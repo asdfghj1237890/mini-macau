@@ -40,7 +40,8 @@ export interface BusStop {
 
 export interface TimetableEntry {
   stationId: string
-  arrivalMinutes: number // minutes since midnight
+  arrivalMinutes: number
+  departureMinutes?: number
 }
 
 export interface Trip {

@@ -1,5 +1,6 @@
 import along from '@turf/along'
 import length from '@turf/length'
+import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { Feature, LineString } from 'geojson'
 import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute } from '../types'
 
@@ -40,7 +41,7 @@ function interpolateOnLine(
 function computeLRTVehicles(
   trips: Trip[],
   lines: LRTLine[],
-  stations: Map<string, { progress: number }>,
+  stationProgressMap: Map<string, { progress: number }>,
   nowMinutes: number
 ): VehiclePosition[] {
   const vehicles: VehiclePosition[] = []
@@ -53,29 +54,43 @@ function computeLRTVehicles(
     const entries = trip.entries
     if (entries.length < 2) continue
 
-    const firstDeparture = entries[0].arrivalMinutes
-    const lastArrival = entries[entries.length - 1].arrivalMinutes
-    if (nowMinutes < firstDeparture || nowMinutes > lastArrival) continue
+    const firstArr = entries[0].arrivalMinutes
+    const lastDep = entries[entries.length - 1].departureMinutes ?? entries[entries.length - 1].arrivalMinutes
+    if (nowMinutes < firstArr || nowMinutes > lastDep) continue
 
-    let segIdx = 0
-    for (let i = 0; i < entries.length - 1; i++) {
-      if (nowMinutes >= entries[i].arrivalMinutes && nowMinutes <= entries[i + 1].arrivalMinutes) {
-        segIdx = i
+    let overallProgress: number | null = null
+
+    for (let i = 0; i < entries.length; i++) {
+      const e = entries[i]
+      const dep = e.departureMinutes ?? e.arrivalMinutes
+
+      if (nowMinutes >= e.arrivalMinutes && nowMinutes <= dep) {
+        const key = `${trip.lineId}:${e.stationId}`
+        overallProgress = stationProgressMap.get(key)?.progress ?? (i / (entries.length - 1))
         break
+      }
+
+      if (i < entries.length - 1) {
+        const next = entries[i + 1]
+        if (nowMinutes > dep && nowMinutes < next.arrivalMinutes) {
+          const travelDuration = next.arrivalMinutes - dep
+          const segProgress = travelDuration > 0
+            ? (nowMinutes - dep) / travelDuration
+            : 0
+
+          const fromKey = `${trip.lineId}:${e.stationId}`
+          const toKey = `${trip.lineId}:${next.stationId}`
+          const fromP = stationProgressMap.get(fromKey)?.progress ?? (i / (entries.length - 1))
+          const toP = stationProgressMap.get(toKey)?.progress ?? ((i + 1) / (entries.length - 1))
+          overallProgress = fromP + (toP - fromP) * segProgress
+          break
+        }
       }
     }
 
-    const fromEntry = entries[segIdx]
-    const toEntry = entries[segIdx + 1]
-    const segDuration = toEntry.arrivalMinutes - fromEntry.arrivalMinutes
-    const segProgress = segDuration > 0
-      ? (nowMinutes - fromEntry.arrivalMinutes) / segDuration
-      : 0
+    if (overallProgress === null) continue
 
-    const fromProgress = stations.get(fromEntry.stationId)?.progress ?? 0
-    const toProgress = stations.get(toEntry.stationId)?.progress ?? 1
-    const overallProgress = fromProgress + (toProgress - fromProgress) * segProgress
-
+    overallProgress = Math.max(0, Math.min(1, overallProgress))
     const pos = interpolateOnLine(line.geometry, overallProgress)
     vehicles.push({
       id: trip.id,
@@ -139,35 +154,50 @@ function computeBusVehicles(
   return vehicles
 }
 
+let cachedProgressMap: Map<string, { progress: number }> | null = null
+let cachedTransitRef: TransitData | null = null
+
+function getStationProgressMap(transitData: TransitData): Map<string, { progress: number }> {
+  if (cachedProgressMap && cachedTransitRef === transitData) return cachedProgressMap
+
+  const stationCoordsMap = new Map<string, [number, number]>()
+  for (const s of transitData.stations) {
+    stationCoordsMap.set(s.id, s.coordinates as [number, number])
+  }
+
+  const progressMap = new Map<string, { progress: number }>()
+  for (const line of transitData.lrtLines) {
+    const totalLen = getLineLength(line.geometry)
+    for (const sid of line.stations) {
+      const coords = stationCoordsMap.get(sid)
+      if (!coords || totalLen === 0) {
+        progressMap.set(`${line.id}:${sid}`, { progress: 0 })
+        continue
+      }
+      const pt = nearestPointOnLine(line.geometry, coords, { units: 'kilometers' })
+      const dist = pt.properties.location ?? 0
+      progressMap.set(`${line.id}:${sid}`, {
+        progress: Math.max(0, Math.min(1, dist / totalLen)),
+      })
+    }
+  }
+
+  cachedProgressMap = progressMap
+  cachedTransitRef = transitData
+  return progressMap
+}
+
 export function computeVehiclePositions(
   transitData: TransitData,
   time: Date
 ): VehiclePosition[] {
   const nowMinutes = timeToMinutes(time)
-
-  const stationProgressMap = new Map<string, { progress: number }>()
-  for (const line of transitData.lrtLines) {
-    const stationCount = line.stations.length
-    line.stations.forEach((sid, i) => {
-      stationProgressMap.set(`${line.id}:${sid}`, {
-        progress: stationCount > 1 ? i / (stationCount - 1) : 0,
-      })
-    })
-  }
-
-  const tripStationMap = new Map<string, { progress: number }>()
-  for (const trip of transitData.trips) {
-    for (const entry of trip.entries) {
-      const key = `${trip.lineId}:${entry.stationId}`
-      const val = stationProgressMap.get(key)
-      if (val) tripStationMap.set(key, val)
-    }
-  }
+  const stationProgressMap = getStationProgressMap(transitData)
 
   const lrtVehicles = computeLRTVehicles(
     transitData.trips,
     transitData.lrtLines,
-    tripStationMap,
+    stationProgressMap,
     nowMinutes
   )
 
