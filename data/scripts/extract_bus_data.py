@@ -2,6 +2,12 @@
 Generate bus-routes.json and bus-stops.json for the frontend.
 Reads from data/bus_reference/ (fetched from motransportinfo.com)
 and snaps route geometries to roads via OSRM.
+
+NOTE: After running this script, run patch_bus_bridges.py to rewrite the
+crossings of bus routes that should use 嘉樂庇總督大橋 (Macau-Taipa
+Bridge). Public OSRM driving profile cannot use that bridge because OSM
+tags it as bus/taxi-only, so by default cross-channel routes are
+mis-routed onto Sai Van Bridge.
 """
 
 import json

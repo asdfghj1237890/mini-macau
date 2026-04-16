@@ -16,6 +16,52 @@ const LRT_LINE_OPACITY_DIM = 0.12
 const BUS_LINE_OPACITY = 0.4
 const BUS_LINE_OPACITY_DIM = 0.1
 
+const LRT_VIADUCT_BASE_M = 6
+const LRT_VIADUCT_HEIGHT_M = 7.2
+const LRT_VIADUCT_HALF_WIDTH_M = 3.5
+const LRT_VIADUCT_OPACITY = 0.95
+const LRT_VIADUCT_OPACITY_DIM = 0.18
+
+const METERS_PER_DEG_LAT = 111320
+
+function bufferLineStringToCorridor(
+  geometry: GeoJSON.Feature<GeoJSON.LineString> | GeoJSON.LineString,
+  halfWidthM: number
+): GeoJSON.Feature<GeoJSON.MultiPolygon> {
+  const line = (geometry as GeoJSON.Feature<GeoJSON.LineString>).geometry
+    ? (geometry as GeoJSON.Feature<GeoJSON.LineString>).geometry
+    : (geometry as GeoJSON.LineString)
+  const coords = line.coordinates
+  const polys: number[][][][] = []
+  for (let i = 0; i < coords.length - 1; i++) {
+    const [lng0, lat0] = coords[i]
+    const [lng1, lat1] = coords[i + 1]
+    const midLat = (lat0 + lat1) / 2
+    const cosLat = Math.cos((midLat * Math.PI) / 180)
+    const mLat = 1 / METERS_PER_DEG_LAT
+    const mLng = 1 / (METERS_PER_DEG_LAT * Math.max(cosLat, 1e-6))
+
+    const dxM = (lng1 - lng0) / mLng
+    const dyM = (lat1 - lat0) / mLat
+    const len = Math.sqrt(dxM * dxM + dyM * dyM)
+    if (len < 0.001) continue
+
+    const pxM = (-dyM / len) * halfWidthM
+    const pyM = (dxM / len) * halfWidthM
+
+    const c1: [number, number] = [lng0 + pxM * mLng, lat0 + pyM * mLat]
+    const c2: [number, number] = [lng1 + pxM * mLng, lat1 + pyM * mLat]
+    const c3: [number, number] = [lng1 - pxM * mLng, lat1 - pyM * mLat]
+    const c4: [number, number] = [lng0 - pxM * mLng, lat0 - pyM * mLat]
+    polys.push([[c1, c2, c3, c4, c1]])
+  }
+  return {
+    type: 'Feature',
+    geometry: { type: 'MultiPolygon', coordinates: polys },
+    properties: {},
+  }
+}
+
 function getLRTLineWindow(
   line: LRTLine,
   trips: Trip[],
@@ -67,6 +113,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   const layersAddedRef = useRef(false)
   const bus3DRef = useRef<Bus3DLayer | null>(null)
   const [is3D, setIs3D] = useState(true)
+  const [showBuildings, setShowBuildings] = useState(true)
   const [isDark, setIsDark] = useState(true)
   const [zoom, setZoom] = useState<number>(MACAU_ZOOM)
   const { lang, toggleLang } = useI18n()
@@ -88,6 +135,46 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
     map.on('zoom', () => {
       setZoom(map.getZoom())
     })
+
+    const canvasEl = map.getCanvas()
+    let middleDragging = false
+    let mdLastX = 0
+    let mdLastY = 0
+    const BEARING_SENS = 0.5
+    const PITCH_SENS = 0.5
+
+    const onCanvasMiddleDown = (e: MouseEvent) => {
+      if (e.button !== 1) return
+      e.preventDefault()
+      middleDragging = true
+      mdLastX = e.clientX
+      mdLastY = e.clientY
+      canvasEl.style.cursor = 'grabbing'
+    }
+    const onWindowMiddleMove = (e: MouseEvent) => {
+      if (!middleDragging) return
+      e.preventDefault()
+      const dx = e.clientX - mdLastX
+      const dy = e.clientY - mdLastY
+      mdLastX = e.clientX
+      mdLastY = e.clientY
+      const nextBearing = map.getBearing() - dx * BEARING_SENS
+      const nextPitch = Math.max(0, Math.min(map.getMaxPitch(), map.getPitch() + dy * PITCH_SENS))
+      map.jumpTo({ bearing: nextBearing, pitch: nextPitch })
+    }
+    const onWindowMiddleUp = (e: MouseEvent) => {
+      if (e.button !== 1 || !middleDragging) return
+      middleDragging = false
+      canvasEl.style.cursor = ''
+    }
+    const onCanvasAuxClick = (e: MouseEvent) => {
+      if (e.button === 1) e.preventDefault()
+    }
+
+    canvasEl.addEventListener('mousedown', onCanvasMiddleDown)
+    canvasEl.addEventListener('auxclick', onCanvasAuxClick)
+    window.addEventListener('mousemove', onWindowMiddleMove)
+    window.addEventListener('mouseup', onWindowMiddleUp)
 
     map.on('load', () => {
       try {
@@ -113,7 +200,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
             type: 'fill-extrusion',
             minzoom: 14,
             filter: ['!=', ['get', 'hide_3d'], true],
-            layout: { visibility: is3D ? 'visible' : 'none' },
+            layout: { visibility: is3D && showBuildings ? 'visible' : 'none' },
             paint: {
               'fill-extrusion-color': isDark ? '#2a2d33' : '#d8d8dc',
               'fill-extrusion-height': [
@@ -143,11 +230,29 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
             'line-color': line.color,
             'line-width': [
               'interpolate', ['linear'], ['zoom'],
-              10, 3,
-              13, 5,
-              16, 9,
+              10, 4,
+              13, 7,
+              16, 13,
+              18, 18,
             ],
             'line-opacity': LRT_LINE_OPACITY,
+          },
+        })
+
+        const corridor = bufferLineStringToCorridor(line.geometry, LRT_VIADUCT_HALF_WIDTH_M)
+        map.addSource(`lrt-viaduct-${line.id}`, { type: 'geojson', data: corridor })
+        map.addLayer({
+          id: `lrt-viaduct-${line.id}`,
+          type: 'fill-extrusion',
+          source: `lrt-viaduct-${line.id}`,
+          minzoom: 13,
+          layout: { visibility: is3D ? 'visible' : 'none' },
+          paint: {
+            'fill-extrusion-color': line.color,
+            'fill-extrusion-base': LRT_VIADUCT_BASE_M,
+            'fill-extrusion-height': LRT_VIADUCT_HEIGHT_M,
+            'fill-extrusion-opacity': LRT_VIADUCT_OPACITY,
+            'fill-extrusion-vertical-gradient': true,
           },
         })
       }
@@ -274,6 +379,10 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
     return () => {
       layersAddedRef.current = false
       bus3DRef.current = null
+      canvasEl.removeEventListener('mousedown', onCanvasMiddleDown)
+      canvasEl.removeEventListener('auxclick', onCanvasAuxClick)
+      window.removeEventListener('mousemove', onWindowMiddleMove)
+      window.removeEventListener('mouseup', onWindowMiddleUp)
       map.remove()
     }
   }, [transitData.lrtLines.length, transitData.stations.length, transitData.busRoutes.length, isDark, lang])
@@ -348,6 +457,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
 
           for (const line of td.lrtLines) {
             const layerId = `lrt-line-${line.id}`
+            const viaductId = `lrt-viaduct-${line.id}`
             if (!map.getLayer(layerId)) continue
             const win = cache.map.get(line.id) ?? null
             const inService = win ? nowMinutes >= win[0] && nowMinutes <= win[1] : true
@@ -355,6 +465,13 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
             if (prev !== inService) {
               serviceStatusRef.current.set(layerId, inService)
               map.setPaintProperty(layerId, 'line-opacity', inService ? LRT_LINE_OPACITY : LRT_LINE_OPACITY_DIM)
+              if (map.getLayer(viaductId)) {
+                map.setPaintProperty(
+                  viaductId,
+                  'fill-extrusion-opacity',
+                  inService ? LRT_VIADUCT_OPACITY : LRT_VIADUCT_OPACITY_DIM
+                )
+              }
             }
           }
 
@@ -416,11 +533,38 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
       const map = mapRef.current
       map?.easeTo({ pitch: next ? 45 : 0, duration: 500 })
       if (map?.getLayer(BUILDINGS_LAYER_ID)) {
-        map.setLayoutProperty(BUILDINGS_LAYER_ID, 'visibility', next ? 'visible' : 'none')
+        map.setLayoutProperty(
+          BUILDINGS_LAYER_ID,
+          'visibility',
+          next && showBuildings ? 'visible' : 'none'
+        )
+      }
+      if (map) {
+        for (const line of transitRef.current.lrtLines) {
+          const viaductId = `lrt-viaduct-${line.id}`
+          if (map.getLayer(viaductId)) {
+            map.setLayoutProperty(viaductId, 'visibility', next ? 'visible' : 'none')
+          }
+        }
       }
       return next
     })
-  }, [])
+  }, [showBuildings])
+
+  const toggleBuildings = useCallback(() => {
+    setShowBuildings(prev => {
+      const next = !prev
+      const map = mapRef.current
+      if (map?.getLayer(BUILDINGS_LAYER_ID)) {
+        map.setLayoutProperty(
+          BUILDINGS_LAYER_ID,
+          'visibility',
+          is3D && next ? 'visible' : 'none'
+        )
+      }
+      return next
+    })
+  }, [is3D])
 
   const toggleTheme = useCallback(() => {
     setIsDark(prev => !prev)
@@ -443,6 +587,18 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
                      hover:bg-black/90 transition-colors backdrop-blur-sm border border-white/20"
         >
           {is3D ? '2D' : '3D'}
+        </button>
+        <button
+          onClick={toggleBuildings}
+          disabled={!is3D}
+          aria-pressed={showBuildings}
+          title={lang === 'zh' ? '3D 建築物' : lang === 'pt' ? 'Edifícios 3D' : '3D Buildings'}
+          className={`bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm
+                      hover:bg-black/90 transition-colors backdrop-blur-sm border border-white/20
+                      disabled:opacity-40 disabled:cursor-not-allowed
+                      ${showBuildings ? '' : 'opacity-50 line-through'}`}
+        >
+          {lang === 'zh' ? '3D建築' : lang === 'pt' ? 'Edif. 3D' : '3D BLDG'}
         </button>
         <button
           onClick={toggleTheme}

@@ -1,0 +1,10 @@
+{
+  "_comment": "Map of bridge_id -> list of bus route IDs that should travel over that bridge instead of the OSRM-default crossing. Edit this file when you confirm new routes use the Macau-Taipa Bridge (老大橋).",
+  "macau_taipa_bridge": [
+    "11",
+    "22",
+    "28A",
+    "33",
+    "MT4"
+  ]
+}
