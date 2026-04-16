@@ -1,5 +1,6 @@
-import type { Station, TransitData, SimulationClock } from '../types'
+import type { Station, TransitData, SimulationClock, ScheduleType } from '../types'
 import { useI18n } from '../i18n'
+import { getScheduleType } from '../engines/simulationEngine'
 
 interface Props {
   station: Station | null
@@ -12,11 +13,13 @@ function getNextArrivals(
   stationId: string,
   transitData: TransitData,
   currentMinutes: number,
+  scheduleType: ScheduleType,
   count: number = 5
 ): { tripId: string; lineName: string; lineCn: string; lineColor: string; arrivalMinutes: number; direction: string }[] {
   const arrivals: { tripId: string; lineName: string; lineCn: string; lineColor: string; arrivalMinutes: number; direction: string }[] = []
 
   for (const trip of transitData.trips) {
+    if (trip.scheduleType && trip.scheduleType !== scheduleType) continue
     const line = transitData.lrtLines.find(l => l.id === trip.lineId)
     if (!line) continue
 
@@ -54,7 +57,8 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
     clock.currentTime.getMinutes() +
     clock.currentTime.getSeconds() / 60
 
-  const arrivals = getNextArrivals(station.id, transitData, nowMinutes)
+  const scheduleType = getScheduleType(clock.currentTime)
+  const arrivals = getNextArrivals(station.id, transitData, nowMinutes, scheduleType)
 
   const lineColors = station.lineIds.map(lid =>
     transitData.lrtLines.find(l => l.id === lid)?.color ?? '#888'

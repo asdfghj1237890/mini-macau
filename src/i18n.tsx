@@ -33,6 +33,9 @@ const translations = {
     towards: 'Towards',
     departed: 'Departed',
     dwelling: 'At station',
+    scheduleMonThu: 'Mon–Thu',
+    scheduleFriday: 'Friday',
+    scheduleSatSun: 'Sat/Sun/Holiday',
   },
   zh: {
     lrtLines: '輕軌路線',
@@ -64,6 +67,9 @@ const translations = {
     towards: '開往',
     departed: '已離站',
     dwelling: '停站中',
+    scheduleMonThu: '週一至週四',
+    scheduleFriday: '週五',
+    scheduleSatSun: '週六日及公眾假期',
   },
 }
 
@@ -97,6 +103,9 @@ interface Translations {
   towards: string
   departed: string
   dwelling: string
+  scheduleMonThu: string
+  scheduleFriday: string
+  scheduleSatSun: string
 }
 
 interface I18nContextValue {

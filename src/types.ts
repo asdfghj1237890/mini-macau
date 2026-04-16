@@ -44,10 +44,13 @@ export interface TimetableEntry {
   departureMinutes?: number
 }
 
+export type ScheduleType = 'mon_thu' | 'friday' | 'sat_sun'
+
 export interface Trip {
   id: string
   lineId: string
   direction: 'forward' | 'backward'
+  scheduleType?: ScheduleType
   entries: TimetableEntry[]
 }
 

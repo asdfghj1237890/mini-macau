@@ -1,42 +1,37 @@
 """
-Generate LRT timetable data from EXACT official MLM departure timetable images.
+Generate LRT timetable data using per-station exact departure times
+with time-proximity matching.
 
-Sources (Mon-Thu schedule):
-  - TT_BAR_2026.jpg      → Barra → TFT (forward, Taipa Line)
-  - TT_OCE_2026.jpg      → Ocean both dirs (verification)
-  - TT_JOC_2026.jpg      → Jockey Club both dirs (verification)
-  - TT_HU_2025.jpg       → Union Hospital → Seac Pai Van (forward, SPV Line)
-  - TT_SPV_2025.jpg      → Seac Pai Van → Union Hospital (backward, SPV Line)
-  - TT_HQL_LOT_2026_03.jpg → Lotus → Hengqin (forward, Hengqin Line)
-  - TT_HQL_HQ_2026_03.jpg  → Hengqin → Lotus (backward, Hengqin Line)
+Phase 1: Mon-Thu schedule
+Phase 2: Friday + Sat/Sun/Holiday (schedule_type parameter)
+
+Sources: Official MLM timetable images (2026.02 / 2026.03 / 2025.11)
 """
 
 import json
+import sys
 from pathlib import Path
 
 OUTPUT_DIR = Path(__file__).parent.parent / "output"
 
-# ── Taipa Line ──────────────────────────────────────────────────────
-# 13 stations, ~28 min journey
+# ── Station definitions ─────────────────────────────────────────────
+
 TAIPA_STATIONS = [
     "Barra", "Ocean", "Jockey_Club", "Stadium", "Pai_Kok",
     "Cotai_West", "Lotus", "Union_Hospital", "East_Asian_Games",
     "Cotai_East", "MUST", "Airport", "Taipa_Ferry_Terminal",
 ]
-# Segment travel times (departure-to-departure, minutes).
-# Barra→Ocean = 4 (Sai Van Bridge), Ocean→JC = 2, JC→Stadium = 3,
-# all remaining = 2 each. Sum = 27 min.
-# Verified against ALL intermediate station timetable images:
-# Barra 06:30 → Ocean 06:34 → JC 06:36 → Stadium 06:39 → PK 06:41 →
-# CW 06:43 → Lotus 06:45 → UH 06:47 → EAG 06:49 → CE 06:51 →
-# MUST 06:53 → Airport 06:55 → TFT ~06:57
-# Dwell 0.05 min (3 sec) keeps accumulation negligible (11 × 0.05 = 0.55 min).
-TAIPA_SEGMENT_TIMES = [4, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-TAIPA_DWELL = 0.05
-TAIPA_TERMINAL_DWELL = 0.0
 
-# EXACT departures from Barra → TFT, Mon-Thu (from TT_BAR_2026.jpg, updated 2026.02)
-BARRA_FWD_DEPARTURES: dict[int, list[int]] = {
+SPV_STATIONS = ["Union_Hospital", "Seac_Pai_Van"]
+HQ_STATIONS = ["Lotus", "Hengqin"]
+
+# ── Taipa Line: Per-station departure data (Mon-Thu) ────────────────
+# Each dict: hour -> [minutes]
+# Forward = "To Taipa Ferry Terminal"  (往氹仔碼頭站)
+# Backward = "To Barra"               (往媽閣站)
+# Source: Official MLM timetable images per station
+
+BARRA_TO_TFT: dict[int, list[int]] = {
     6:  [30, 40, 50],
     7:  [1, 7, 13, 19, 25, 31, 37, 43, 50, 56, 59],
     8:  [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 38, 45, 51, 57],
@@ -57,8 +52,238 @@ BARRA_FWD_DEPARTURES: dict[int, list[int]] = {
     23: [2, 8, 15],
 }
 
-# EXACT departures from TFT → Barra, Mon-Thu (from TT_TFT_2026.jpg, updated 2026.02)
-TFT_BWD_DEPARTURES: dict[int, list[int]] = {
+OCEAN_TO_TFT: dict[int, list[int]] = {
+    6:  [34, 45, 55],
+    7:  [5, 12, 18, 24, 30, 36, 42, 48, 54],
+    8:  [1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 37, 43, 49, 56],
+    9:  [2, 8, 15, 23, 31, 38, 46, 54],
+    10: [1, 9, 17, 24, 32, 40, 47, 55],
+    11: [3, 10, 18, 25, 33, 39, 45, 51, 58],
+    12: [4, 10, 16, 22, 28, 34, 40, 46, 53],
+    13: [5, 11, 17, 23, 29, 35, 42, 48, 54],
+    14: [0, 6, 12, 18, 24, 30, 36, 41, 46, 51, 56],
+    15: [1, 6, 11, 16, 22, 27, 32, 37, 42, 47, 52, 57],
+    16: [3, 8, 13, 18, 23, 28, 33, 38, 43, 48, 54, 59],
+    17: [4, 10, 15, 20, 25, 30, 35, 40, 46, 51, 56],
+    18: [1, 6, 11, 16, 22, 27, 32, 37, 42, 47, 53, 58],
+    19: [3, 8, 13, 18, 23, 28, 33, 38, 43, 48, 54, 59],
+    20: [4, 9, 14, 19, 24, 29, 34, 40, 46, 52, 58],
+    21: [4, 10, 16, 23, 29, 36, 42, 48, 54],
+    22: [0, 6, 12, 18, 24, 30, 37, 43, 49, 55],
+    23: [1, 7, 13, 19],
+}
+
+JC_TO_TFT: dict[int, list[int]] = {
+    6:  [36, 47, 57],
+    7:  [8, 14, 20, 26, 32, 38, 44, 50, 56],
+    8:  [3, 6, 9, 12, 15, 18, 21, 24, 27, 30, 33, 39, 45, 52, 58],
+    9:  [4, 10, 18, 25, 33, 40, 48, 56],
+    10: [3, 11, 19, 26, 34, 42, 49, 57],
+    11: [5, 12, 20, 27, 35, 41, 47, 53],
+    12: [0, 6, 12, 18, 24, 30, 36, 42, 48, 55],
+    13: [7, 13, 19, 25, 31, 37, 44, 50, 56],
+    14: [2, 8, 14, 20, 26, 32, 38, 43, 48, 53, 58],
+    15: [3, 8, 13, 18, 24, 29, 34, 39, 44, 49, 54, 59],
+    16: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 56],
+    17: [1, 6, 12, 17, 22, 27, 32, 37, 42, 48, 53, 58],
+    18: [3, 8, 13, 18, 24, 29, 34, 39, 44, 49, 55],
+    19: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 56],
+    20: [1, 6, 11, 16, 21, 26, 31, 36, 42, 48, 54],
+    21: [0, 6, 12, 18, 25, 31, 38, 44, 50, 56],
+    22: [2, 8, 14, 20, 26, 32, 39, 45, 51, 57],
+    23: [3, 9, 15, 21],
+}
+
+STADIUM_TO_TFT: dict[int, list[int]] = {
+    6:  [39, 49],
+    7:  [0, 10, 16, 22, 28, 34, 41, 47, 53],
+    8:  [0, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 35, 41, 48, 54],
+    9:  [0, 6, 13, 21, 29, 36, 44, 52, 59],
+    10: [6, 13, 21, 29, 36, 44, 52, 59],
+    11: [7, 15, 22, 30, 38, 44, 50, 56],
+    12: [2, 8, 14, 20, 26, 32, 38, 44, 50, 57],
+    13: [9, 15, 21, 27, 33, 39, 46, 52, 58],
+    14: [4, 10, 16, 22, 28, 35, 40, 45, 50, 55],
+    15: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 51, 56],
+    16: [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 53, 58],
+    17: [3, 8, 14, 19, 24, 29, 34, 39, 44, 50, 55],
+    18: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 52, 57],
+    19: [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 53, 58],
+    20: [3, 8, 13, 18, 23, 28, 34, 40, 46, 52, 58],
+    21: [4, 9, 14, 20, 27, 34, 40, 46, 52, 58],
+    22: [4, 10, 16, 22, 28, 35, 41, 47, 53, 59],
+    23: [5, 11, 17, 24],
+}
+
+PAI_KOK_TO_TFT: dict[int, list[int]] = {
+    6:  [41, 51],
+    7:  [2, 12, 18, 24, 30, 36, 42, 49, 55],
+    8:  [2, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 43, 50, 56],
+    9:  [2, 8, 15, 23, 31, 38, 46, 54],
+    10: [1, 8, 15, 23, 31, 38, 46, 54],
+    11: [1, 9, 17, 24, 32, 40, 46, 52, 58],
+    12: [4, 10, 16, 22, 28, 34, 40, 46, 52, 59],
+    13: [11, 17, 23, 29, 35, 41, 48, 54],
+    14: [0, 6, 12, 18, 24, 30, 37, 42, 47, 52, 57],
+    15: [2, 7, 12, 17, 23, 28, 33, 38, 43, 48, 53, 58],
+    16: [4, 9, 14, 19, 24, 29, 34, 39, 44, 49, 55],
+    17: [0, 5, 10, 16, 21, 26, 31, 36, 41, 46, 52, 57],
+    18: [2, 7, 12, 17, 23, 28, 33, 38, 43, 48, 54, 59],
+    19: [4, 9, 14, 19, 24, 29, 34, 39, 44, 49, 55],
+    20: [0, 5, 10, 15, 20, 25, 30, 36, 42, 48, 54],
+    21: [0, 6, 11, 16, 22, 29, 36, 42, 48, 54],
+    22: [0, 6, 12, 18, 24, 30, 37, 43, 49, 55],
+    23: [1, 7, 13, 19, 26],
+}
+
+COTAI_WEST_TO_TFT: dict[int, list[int]] = {
+    6:  [43, 53],
+    7:  [4, 14, 20, 26, 32, 38, 41, 51, 57],
+    8:  [4, 9, 12, 15, 18, 21, 24, 27, 30, 33, 36, 39, 45, 52, 58],
+    9:  [4, 10, 17, 25, 33, 40, 48, 56],
+    10: [3, 10, 17, 25, 33, 40, 48, 56],
+    11: [3, 11, 19, 26, 34, 41, 48, 54],
+    12: [0, 6, 12, 18, 24, 30, 36, 42, 48, 54],
+    13: [1, 13, 19, 25, 31, 37, 43, 50, 56],
+    14: [2, 8, 14, 20, 26, 32, 38, 44, 49, 54, 59],
+    15: [4, 9, 14, 19, 25, 30, 35, 40, 45, 50, 55],
+    16: [0, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 57],
+    17: [2, 7, 12, 17, 23, 28, 33, 38, 43, 48, 54, 59],
+    18: [4, 9, 14, 19, 25, 30, 35, 40, 45, 50, 56],
+    19: [1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 51, 57],
+    20: [2, 7, 12, 17, 22, 27, 32, 38, 44, 50, 56],
+    21: [2, 8, 13, 18, 24, 31, 38, 44, 50, 56],
+    22: [2, 8, 14, 20, 26, 32, 39, 45, 51, 57],
+    23: [3, 9, 16, 22, 28],
+}
+
+LOTUS_TO_TFT: dict[int, list[int]] = {
+    6:  [45, 55],
+    7:  [6, 16, 22, 28, 34, 41, 47, 53, 59],
+    8:  [6, 11, 14, 17, 20, 23, 26, 29, 32, 35, 38, 41, 47, 54],
+    9:  [0, 6, 12, 19, 27, 35, 42, 50, 58],
+    10: [5, 12, 19, 27, 35, 42, 50, 58],
+    11: [5, 13, 21, 28, 36, 44, 50, 56],
+    12: [2, 8, 14, 20, 26, 32, 38, 44, 50, 56],
+    13: [3, 15, 21, 27, 33, 39, 45, 52, 58],
+    14: [4, 10, 16, 22, 28, 34, 40, 46, 51, 56],
+    15: [1, 6, 11, 16, 21, 27, 32, 37, 42, 47, 52, 57],
+    16: [2, 8, 13, 18, 23, 28, 33, 38, 43, 48, 53, 59],
+    17: [4, 9, 14, 19, 25, 30, 35, 40, 45, 50, 56],
+    18: [1, 6, 11, 16, 22, 27, 32, 37, 42, 47, 53, 58],
+    19: [3, 8, 13, 18, 23, 28, 33, 38, 43, 48, 53, 59],
+    20: [4, 9, 14, 19, 24, 29, 34, 40, 46, 52, 58],
+    21: [4, 10, 15, 21, 27, 33, 40, 46, 52, 58],
+    22: [4, 10, 16, 22, 28, 34, 41, 47, 53, 59],
+    23: [5, 11, 18, 24, 30],
+}
+
+UH_TO_TFT: dict[int, list[int]] = {
+    6:  [47, 57],
+    7:  [8, 18, 24, 30, 36, 42, 49, 55],
+    8:  [1, 8, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 49, 56],
+    9:  [2, 8, 14, 21, 29, 37, 44, 52],
+    10: [0, 7, 14, 21, 29, 37, 44, 52],
+    11: [0, 7, 15, 23, 30, 38, 46, 52, 58],
+    12: [4, 10, 16, 22, 28, 34, 40, 46, 52, 58],
+    13: [5, 17, 23, 29, 35, 41, 47, 54],
+    14: [0, 6, 12, 18, 24, 30, 36, 42, 48, 53, 58],
+    15: [3, 8, 13, 18, 23, 29, 34, 39, 44, 49, 54, 59],
+    16: [4, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+    17: [1, 6, 11, 16, 22, 27, 32, 37, 42, 47, 52, 58],
+    18: [3, 8, 13, 18, 24, 29, 34, 39, 44, 49, 55],
+    19: [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 56],
+    20: [1, 6, 11, 16, 21, 26, 31, 37, 42, 48, 54],
+    21: [0, 6, 12, 17, 23, 29, 35, 42, 48, 54],
+    22: [0, 6, 12, 18, 24, 30, 37, 43, 49, 55],
+    23: [1, 7, 14, 20, 26, 32],
+}
+
+EAG_TO_TFT: dict[int, list[int]] = {
+    6:  [49],
+    7:  [0, 10, 20, 26, 32, 38, 45, 51, 57],
+    8:  [3, 10, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43, 45, 51, 58],
+    9:  [4, 10, 16, 24, 31, 39, 47, 54],
+    10: [2, 9, 17, 24, 31, 39, 47, 54],
+    11: [2, 9, 17, 25, 32, 40, 48, 54],
+    12: [0, 6, 12, 18, 24, 31, 37, 43, 49, 55],
+    13: [7, 19, 25, 31, 37, 43, 49, 56],
+    14: [2, 8, 14, 20, 26, 32, 38, 44, 50, 55],
+    15: [0, 5, 10, 15, 20, 25, 31, 36, 41, 46, 51, 56],
+    16: [1, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 58],
+    17: [3, 8, 13, 18, 24, 29, 34, 39, 44, 49, 54],
+    18: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 52, 57],
+    19: [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 58],
+    20: [3, 8, 13, 18, 23, 28, 33, 39, 45, 50, 56],
+    21: [2, 8, 14, 19, 25, 31, 38, 44, 50, 56],
+    22: [2, 8, 14, 20, 27, 33, 39, 45, 51, 57],
+    23: [3, 10, 16, 22, 28, 34],
+}
+
+CE_TO_TFT: dict[int, list[int]] = {
+    6:  [51],
+    7:  [2, 12, 22, 28, 34, 40, 46, 53, 59],
+    8:  [5, 12, 18, 21, 24, 27, 30, 33, 36, 39, 42, 45, 48, 53],
+    9:  [0, 6, 12, 18, 26, 34, 41, 49, 56],
+    10: [4, 11, 19, 26, 34, 41, 49, 56],
+    11: [4, 11, 19, 27, 34, 42, 50, 56],
+    12: [2, 8, 14, 20, 26, 32, 38, 44, 51, 57],
+    13: [9, 21, 27, 33, 39, 45, 51, 58],
+    14: [4, 10, 16, 22, 28, 34, 41, 46, 51, 57],
+    15: [2, 7, 12, 17, 22, 27, 33, 38, 43, 48, 53, 58],
+    16: [3, 9, 14, 19, 24, 29, 34, 39, 44, 49, 54],
+    17: [0, 5, 10, 15, 20, 26, 31, 36, 41, 46, 51, 56],
+    18: [2, 7, 12, 17, 23, 28, 33, 38, 43, 48, 54, 59],
+    19: [4, 9, 14, 19, 24, 29, 34, 39, 44, 50, 55],
+    20: [0, 5, 10, 15, 20, 25, 30, 36, 41, 47, 53, 58],
+    21: [4, 10, 16, 21, 27, 33, 39, 46, 52, 58],
+    22: [4, 10, 16, 22, 28, 35, 41, 47, 53],
+    23: [0, 5, 11, 17, 24, 30, 36],
+}
+
+MUST_TO_TFT: dict[int, list[int]] = {
+    6:  [53],
+    7:  [4, 14, 24, 30, 36, 42, 48, 55],
+    8:  [1, 7, 14, 20, 23, 26, 29, 32, 35, 38, 41, 44, 47, 50, 55],
+    9:  [2, 8, 14, 20, 28, 36, 43, 51, 58],
+    10: [6, 13, 21, 28, 36, 43, 51, 58],
+    11: [6, 13, 21, 29, 36, 44, 52, 58],
+    12: [4, 10, 16, 22, 28, 34, 40, 46, 53, 59],
+    13: [11, 23, 29, 35, 41, 47, 53],
+    14: [0, 6, 12, 18, 24, 30, 36, 42, 48, 53, 59],
+    15: [4, 9, 14, 19, 24, 29, 35, 40, 45, 50, 55],
+    16: [0, 5, 11, 16, 21, 26, 31, 36, 41, 46, 51, 56],
+    17: [2, 7, 12, 17, 22, 28, 33, 38, 43, 48, 53, 58],
+    18: [4, 9, 14, 19, 25, 30, 35, 40, 45, 50, 56],
+    19: [1, 6, 11, 16, 21, 26, 31, 36, 41, 46, 52, 57],
+    20: [2, 7, 12, 17, 22, 27, 32, 38, 43, 49, 55],
+    21: [1, 6, 12, 18, 23, 29, 36, 42, 48, 54],
+    22: [0, 6, 12, 18, 24, 31, 37, 43, 49, 55],
+    23: [2, 7, 13, 19, 26, 32, 38],
+}
+
+AIRPORT_TO_TFT: dict[int, list[int]] = {
+    6:  [55],
+    7:  [6, 16, 26, 32, 39, 45, 51, 57],
+    8:  [3, 9, 16, 22, 25, 28, 31, 34, 37, 40, 43, 46, 49, 52, 58],
+    9:  [4, 10, 16, 22, 30, 38, 45, 53],
+    10: [0, 8, 15, 23, 30, 38, 45, 53],
+    11: [0, 8, 15, 23, 31, 38, 46, 54],
+    12: [0, 6, 12, 18, 24, 30, 36, 42, 48, 55],
+    13: [1, 13, 25, 31, 37, 43, 49, 55],
+    14: [2, 8, 14, 20, 26, 32, 38, 44, 50, 55],
+    15: [1, 6, 11, 16, 21, 26, 32, 37, 42, 47, 52, 57],
+    16: [2, 7, 13, 18, 23, 28, 33, 38, 43, 48, 53, 58],
+    17: [4, 9, 14, 19, 24, 30, 35, 40, 45, 50, 55],
+    18: [1, 6, 11, 16, 22, 27, 32, 37, 42, 47, 53, 58],
+    19: [3, 8, 13, 18, 23, 28, 33, 38, 43, 48, 54, 59],
+    20: [4, 9, 14, 19, 24, 29, 34, 40, 46, 51, 57],
+    21: [3, 8, 14, 20, 25, 31, 38, 44, 50, 56],
+    22: [2, 8, 14, 20, 26, 33, 39, 46, 52, 58],
+    23: [4, 10, 16, 22, 28, 34, 40],
+}
+
+TFT_TO_BARRA: dict[int, list[int]] = {
     6:  [30, 40, 51],
     7:  [1, 11, 21, 31, 37, 43, 49, 52, 55],
     8:  [2, 8, 14, 20, 26, 32, 38, 41, 44, 51, 57],
@@ -79,14 +304,374 @@ TFT_BWD_DEPARTURES: dict[int, list[int]] = {
     23: [2, 9, 15],
 }
 
-# ── Seac Pai Van Line ───────────────────────────────────────────────
-# 2 stations, ~2 min journey, 6 min frequency
-SPV_STATIONS = ["Union_Hospital", "Seac_Pai_Van"]
-SPV_SEGMENT_TIMES = [2]
-SPV_DWELL = 0.0
-SPV_TERMINAL_DWELL = 0.0
+# ── Friday terminal departures ──────────────────────────────────────
 
-# Union Hospital → Seac Pai Van, Mon-Thu (TT_HU_2025.jpg, updated 2025.11)
+BARRA_FRI: dict[int, list[int]] = {
+    6:  [30, 40, 50],
+    7:  [1, 7, 13, 19, 25, 31, 37, 43, 50, 56, 59],
+    8:  [2, 5, 8, 11, 14, 17, 20, 23, 26, 29, 32, 38, 45, 51, 57],
+    9:  [3, 11, 18, 26, 34, 41, 49, 56],
+    10: [4, 12, 19, 27, 35, 42, 50, 58],
+    11: [5, 13, 21, 28, 34, 40, 47, 53, 59],
+    12: [5, 11, 17, 23, 29, 35, 42, 48, 54],
+    13: [0, 6, 12, 18, 24, 31, 37, 43, 49, 55],
+    14: [1, 7, 13, 19, 26, 31, 36, 41, 46, 51, 56],
+    15: [1, 6, 11, 17, 22, 27, 32, 37, 42, 47, 52, 58],
+    16: [3, 8, 13, 18, 23, 28, 33, 38, 43, 49, 54, 59],
+    17: [5, 10, 15, 20, 25, 30, 35, 41, 46, 51, 56],
+    18: [1, 6, 11, 17, 22, 27, 32, 37, 42, 47, 53, 58],
+    19: [3, 8, 13, 18, 23, 28, 33, 38, 43, 49, 54, 59],
+    20: [4, 10, 15, 20, 25, 30, 36, 41, 47, 53],
+    21: [0, 6, 12, 18, 25, 31, 37, 43, 50, 56],
+    22: [2, 8, 14, 20, 26, 33, 39, 45, 51, 57],
+    23: [3, 10, 16, 22, 28, 34, 40, 46, 53, 59],
+}
+
+TFT_FRI: dict[int, list[int]] = {
+    6:  [30, 40, 51],
+    7:  [1, 11, 21, 31, 37, 43, 49, 52, 55],
+    8:  [2, 8, 14, 20, 26, 32, 38, 41, 44, 51, 57],
+    9:  [6, 15, 24, 33, 41, 49, 56],
+    10: [4, 12, 19, 27, 35, 42, 50, 57],
+    11: [5, 13, 20, 28, 36, 43, 51, 59],
+    12: [5, 11, 17, 23, 29, 35, 41, 48, 54],
+    13: [0, 6, 12, 18, 24, 30, 37, 43, 49, 55],
+    14: [1, 7, 13, 19, 25, 32, 38, 44, 50, 56],
+    15: [1, 6, 11, 16, 22, 27, 32, 37, 42, 47, 52, 58],
+    16: [3, 8, 13, 18, 23, 28, 34, 39, 44, 49, 54, 59],
+    17: [4, 10, 15, 20, 25, 30, 35, 40, 46, 51, 56],
+    18: [1, 6, 11, 16, 22, 27, 32, 37, 42, 47, 52, 57],
+    19: [3, 8, 13, 18, 23, 28, 33, 38, 43, 48, 54, 59],
+    20: [4, 9, 15, 20, 25, 30, 37, 45, 53],
+    21: [0, 6, 12, 18, 24, 30, 37, 43, 49, 55],
+    22: [1, 7, 13, 19, 25, 32, 38, 44, 50, 56],
+    23: [2, 9, 15],
+}
+
+# ── Sat/Sun/Holiday terminal departures ─────────────────────────────
+
+BARRA_SSH: dict[int, list[int]] = {
+    6:  [30, 40, 50],
+    7:  [1, 8, 16, 24, 31, 39, 46, 54],
+    8:  [2, 9, 17, 25, 32, 40, 48, 55],
+    9:  [3, 11, 18, 26, 32, 38, 44, 50, 56],
+    10: [3, 9, 15, 21, 27, 33, 39, 45, 51, 58],
+    11: [4, 10, 16, 22, 28, 34, 40, 47, 53, 59],
+    12: [5, 11, 17, 23, 29, 35, 42, 48, 54],
+    13: [0, 6, 12, 18, 24, 31, 37, 43, 49, 55],
+    14: [1, 7, 13, 20, 26, 32, 38, 44, 50, 57],
+    15: [3, 9, 15, 21, 27, 34, 40, 46, 52, 58],
+    16: [4, 11, 17, 23, 29, 34, 39, 44, 50, 55],
+    17: [0, 5, 10, 15, 20, 25, 31, 36, 41, 46, 51, 56],
+    18: [1, 7, 12, 17, 22, 27, 32, 37, 42, 48, 53, 58],
+    19: [3, 8, 13, 18, 23, 28, 33, 38, 43, 49, 54, 59],
+    20: [4, 9, 14, 19, 24, 29, 35, 40, 45, 50, 55],
+    21: [1, 7, 13, 19, 26, 32, 38, 44, 50, 56],
+    22: [2, 8, 14, 21, 27, 33, 39, 45, 51, 57],
+    23: [3, 10, 16, 22, 28, 34, 40, 46, 52, 59],
+}
+
+TFT_SSH: dict[int, list[int]] = {
+    6:  [30, 40, 51],
+    7:  [1, 11, 21, 31, 39, 46, 54],
+    8:  [2, 9, 17, 25, 32, 40, 47, 55],
+    9:  [3, 10, 18, 26, 33, 41, 49, 56],
+    10: [2, 9, 15, 21, 27, 33, 39, 45, 51, 57],
+    11: [4, 10, 16, 22, 28, 34, 40, 46, 53, 59],
+    12: [5, 11, 17, 23, 29, 35, 41, 48, 54],
+    13: [0, 6, 12, 18, 24, 30, 37, 43, 49, 55],
+    14: [1, 7, 13, 20, 26, 32, 38, 44, 50, 57],
+    15: [3, 9, 15, 21, 27, 34, 40, 46, 52, 58],
+    16: [4, 11, 17, 23, 29, 35, 41, 48, 54],
+    17: [0, 5, 10, 15, 20, 25, 30, 36, 41, 46, 51, 56],
+    18: [1, 6, 12, 17, 22, 27, 32, 37, 42, 47, 52, 58],
+    19: [3, 8, 13, 18, 23, 28, 33, 38, 43, 49, 54, 59],
+    20: [4, 9, 14, 19, 24, 29, 35, 40, 45, 50, 55],
+    21: [2, 10, 18, 25, 32, 38, 44, 50, 56],
+    22: [2, 8, 14, 20, 27, 33, 39, 45, 51, 57],
+    23: [3, 9, 15, 22, 28, 34, 40, 46, 53, 59],
+}
+
+SCHEDULE_TERMINALS = {
+    "mon_thu": (BARRA_TO_TFT, TFT_TO_BARRA),
+    "friday":  (BARRA_FRI, TFT_FRI),
+    "sat_sun": (BARRA_SSH, TFT_SSH),
+}
+
+# Backward per-station data: "To Barra" departures at each intermediate station
+# Read from left columns (往媽閣站) of each station's Mon-Thu timetable image.
+
+AIRPORT_TO_BARRA: dict[int, list[int]] = {
+    6:  [31, 42, 52],
+    7:  [2, 13, 23, 33, 39, 45, 51, 54, 57],
+    8:  [3, 10, 16, 22, 28, 34, 40, 43, 46, 52, 58],
+    9:  [8, 17, 26, 35, 43, 50, 58],
+    10: [6, 13, 21, 29, 36, 44, 52, 59],
+    11: [7, 15, 22, 30, 38, 45, 53],
+    12: [1, 7, 13, 19, 25, 31, 37, 43, 50, 56],
+    13: [2, 8, 14, 20, 26, 32, 39, 45, 51, 57],
+    14: [3, 9, 15, 21, 27, 33, 40, 46, 52, 58],
+    15: [3, 9, 15, 21, 27, 34, 40, 46, 52, 58],
+    16: [5, 10, 15, 20, 25, 30, 36, 41, 46, 51, 56],
+    17: [1, 6, 12, 17, 22, 27, 32, 37, 42, 48, 53, 58],
+    18: [3, 8, 13, 18, 24, 29, 34, 39, 44, 49, 54, 59],
+    19: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 56],
+    20: [1, 6, 11, 16, 21, 26, 31, 39, 46, 54],
+    21: [2, 8, 14, 20, 26, 32, 39, 46, 52, 58],
+    22: [3, 9, 15, 21, 27, 33, 40, 46, 52, 58],
+    23: [4, 10, 16, 22, 28, 34, 40],
+}
+
+MUST_TO_BARRA: dict[int, list[int]] = {
+    6:  [34, 44, 55],
+    7:  [5, 15, 25, 35, 41, 47, 53, 56],
+    8:  [0, 6, 12, 18, 24, 30, 36, 42, 45, 48, 55],
+    9:  [1, 10, 19, 28, 37, 45, 53],
+    10: [0, 8, 16, 23, 31, 39, 46, 54],
+    11: [2, 9, 17, 24, 32, 40, 47, 55],
+    12: [3, 9, 15, 21, 27, 33, 39, 45, 52, 58],
+    13: [4, 10, 16, 22, 28, 34, 41, 47, 53, 59],
+    14: [5, 11, 17, 23, 29, 36, 42, 48, 54],
+    15: [0, 5, 11, 17, 23, 29, 36, 42, 48, 54],
+    16: [0, 7, 12, 17, 22, 27, 32, 38, 43, 48, 53, 58],
+    17: [3, 8, 14, 19, 24, 29, 34, 39, 44, 50, 55],
+    18: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 51, 56],
+    19: [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 53, 58],
+    20: [3, 8, 13, 18, 23, 28, 33, 41, 48, 56],
+    21: [4, 10, 16, 22, 28, 34, 41, 48, 54],
+    22: [0, 6, 13, 19, 25, 31, 37, 44, 50, 56],
+    23: [2, 9, 15, 21, 27, 33, 39],
+}
+
+CE_TO_BARRA: dict[int, list[int]] = {
+    6:  [36, 41, 46, 52, 57],
+    7:  [2, 7, 17, 27, 32, 37, 40, 43],
+    8:  [2, 5, 8, 14, 20, 26, 32, 38, 45, 48, 51, 57],
+    9:  [3, 12, 22, 31, 39, 47, 55],
+    10: [3, 10, 18, 26, 33, 41, 49, 56],
+    11: [4, 11, 19, 27, 34, 42, 50, 57],
+    12: [5, 11, 17, 23, 29, 35, 41, 48, 54],
+    13: [0, 6, 12, 18, 24, 30, 37, 43, 49, 55],
+    14: [1, 7, 13, 19, 25, 32, 38, 44, 50, 56],
+    15: [2, 7, 13, 19, 25, 32, 38, 44, 50, 56],
+    16: [2, 9, 14, 19, 24, 29, 34, 40, 45, 50, 55],
+    17: [0, 5, 11, 16, 21, 26, 31, 36, 41, 47, 52, 57],
+    18: [2, 7, 12, 17, 23, 28, 33, 38, 43, 48, 53, 58],
+    19: [4, 9, 14, 19, 24, 29, 34, 39, 44, 49, 55],
+    20: [0, 5, 10, 15, 20, 25, 30, 35, 43, 50, 58],
+    21: [6, 12, 18, 24, 30, 36, 43, 50, 56],
+    22: [2, 8, 14, 20, 26, 33, 39, 45, 51, 57],
+    23: [3, 9, 15, 21],
+}
+
+EAG_TO_BARRA: dict[int, list[int]] = {
+    6:  [37, 43, 48, 53, 58],
+    7:  [4, 9, 19, 29, 34, 39, 42, 45],
+    8:  [3, 6, 10, 16, 22, 28, 34, 40, 46, 49, 52, 58],
+    9:  [5, 14, 23, 32, 41, 49, 57],
+    10: [4, 12, 20, 27, 35, 42, 50, 58],
+    11: [5, 9, 13, 21, 28, 36, 40, 44, 51],
+    12: [0, 7, 13, 19, 25, 31, 37, 43, 49, 55],
+    13: [2, 8, 14, 20, 26, 32, 38, 44, 51, 57],
+    14: [3, 9, 14, 19, 24, 29, 35, 40, 45, 50, 55],
+    15: [0, 5, 9, 15, 21, 27, 33, 39, 45, 51, 57],
+    16: [4, 9, 14, 19, 24, 29, 34, 39, 44, 49, 54, 59],
+    17: [2, 7, 12, 17, 22, 27, 33, 38, 43, 48, 53, 59],
+    18: [4, 9, 14, 19, 24, 29, 34, 39, 44, 50, 55],
+    19: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 52, 57],
+    20: [2, 7, 12, 17, 22, 27, 32, 37, 45, 52],
+    21: [0, 8, 14, 20, 26, 32, 38, 45, 52, 58],
+    22: [4, 10, 16, 22, 28, 34, 41, 47, 53, 59],
+    23: [5, 11, 17, 23],
+}
+
+UH_TO_BARRA: dict[int, list[int]] = {
+    6:  [40, 45, 50, 56],
+    7:  [1, 6, 11, 21, 26, 31, 36, 41, 44],
+    8:  [0, 3, 6, 9, 12, 16, 23, 29, 35, 41, 48, 54, 57],
+    9:  [0, 7, 16, 25, 31, 38, 46, 52, 58],
+    10: [7, 14, 22, 30, 37, 45, 53],
+    11: [0, 7, 14, 22, 29, 37, 44, 52, 59],
+    12: [2, 9, 15, 21, 27, 33, 39, 45, 52, 58],
+    13: [4, 10, 16, 22, 28, 34, 40, 47, 53, 59],
+    14: [5, 10, 16, 22, 28, 34, 40, 46, 52, 58],
+    15: [2, 8, 14, 19, 24, 29, 34, 40, 46, 52, 58],
+    16: [6, 11, 16, 21, 26, 31, 36, 42, 47, 52, 57],
+    17: [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 57],
+    18: [3, 8, 13, 18, 23, 28, 34, 39, 44, 50, 55],
+    19: [0, 5, 10, 15, 20, 25, 30, 35, 40, 46, 51, 56],
+    20: [1, 6, 11, 16, 21, 26, 31, 36, 42, 47, 53, 59],
+    21: [5, 10, 16, 22, 28, 35, 41, 47, 53, 59],
+    22: [5, 11, 17, 24, 30, 36, 42, 48, 54],
+    23: [0, 7, 13, 19, 25],
+}
+
+LOTUS_TO_BARRA: dict[int, list[int]] = {
+    6:  [30, 42, 47, 52, 58],
+    7:  [3, 8, 13, 23, 28, 33, 38, 43, 46],
+    8:  [2, 5, 8, 11, 14, 20, 26, 32, 38, 44, 50, 54, 57],
+    9:  [3, 9, 18, 27, 37, 46, 53],
+    10: [1, 9, 16, 24, 32, 39, 47, 55],
+    11: [2, 10, 17, 24, 32, 39, 47, 54],
+    12: [2, 8, 14, 20, 26, 32, 38, 44, 51, 57],
+    13: [3, 9, 15, 21, 27, 33, 39, 46, 52, 58],
+    14: [1, 7, 10, 13, 19, 24, 29, 34, 39, 44, 50, 56],
+    15: [2, 8, 13, 19, 24, 29, 34, 39, 44, 49, 54, 59],
+    16: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 51, 56],
+    17: [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 53, 58],
+    18: [3, 8, 13, 18, 24, 29, 34, 39, 44, 50, 55],
+    19: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 51, 57],
+    20: [2, 7, 12, 17, 22, 27, 32, 37, 42, 48, 54],
+    21: [0, 6, 11, 17, 22, 27, 32, 37, 42, 47, 53, 59],
+    22: [5, 11, 17, 24, 30, 36, 42, 49, 55],
+    23: [1, 7, 14, 20, 26, 32],
+}
+
+CW_TO_BARRA: dict[int, list[int]] = {
+    6:  [32, 44, 49, 55],
+    7:  [0, 5, 10, 15, 25, 30, 35, 40, 46, 49, 52, 58],
+    8:  [1, 4, 7, 10, 13, 16, 22, 28, 34, 40, 47, 53, 56, 59],
+    9:  [5, 11, 20, 30, 39, 48, 56],
+    10: [3, 11, 18, 26, 34, 41, 49, 57],
+    11: [4, 12, 19, 27, 34, 42, 49, 57],
+    12: [4, 10, 16, 22, 28, 34, 40, 46, 53, 59],
+    13: [5, 11, 17, 23, 29, 35, 41, 48, 54],
+    14: [0, 3, 9, 12, 15, 21, 27, 32, 37, 42, 47, 52, 58],
+    15: [4, 10, 16, 21, 26, 31, 36, 41, 46, 51, 56],
+    16: [2, 7, 12, 17, 23, 28, 33, 38, 43, 48, 53, 58],
+    17: [4, 9, 14, 19, 24, 29, 34, 39, 44, 49, 55],
+    18: [0, 5, 10, 15, 20, 26, 31, 36, 41, 46, 52, 57],
+    19: [2, 7, 12, 17, 23, 28, 33, 38, 43, 48, 54, 59],
+    20: [4, 9, 14, 19, 24, 29, 35, 40, 46, 52, 58],
+    21: [3, 8, 13, 19, 24, 29, 34, 39, 44, 49, 55],
+    22: [1, 7, 13, 20, 26, 32, 38, 45, 51, 57],
+    23: [3, 9, 16, 22, 28],
+}
+
+PK_TO_BARRA: dict[int, list[int]] = {
+    6:  [34, 46, 51, 57],
+    7:  [2, 7, 12, 17, 27, 32, 37, 43, 48, 51, 54],
+    8:  [0, 3, 6, 9, 12, 15, 18, 24, 31, 37, 43, 49, 55, 58],
+    9:  [1, 7, 13, 23, 32, 41, 50, 58],
+    10: [5, 13, 21, 28, 36, 44, 51, 59],
+    11: [6, 14, 21, 28, 36, 44, 51, 59],
+    12: [5, 13, 21, 28, 36, 44, 51, 59],
+    13: [5, 11, 17, 23, 29, 35, 41, 47, 53],
+    14: [0, 5, 10, 16, 23, 29, 35, 41, 47, 53],
+    15: [0, 6, 12, 18, 24, 29, 34, 39, 45, 50, 55],
+    16: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 51, 57],
+    17: [2, 7, 12, 17, 22, 27, 33, 38, 43, 48, 54, 59],
+    18: [4, 9, 14, 19, 24, 29, 34, 39, 44, 50, 55],
+    19: [0, 5, 10, 15, 20, 25, 31, 36, 41, 46, 52, 57],
+    20: [2, 7, 12, 17, 22, 27, 32, 38, 44, 50, 56],
+    21: [2, 8, 13, 18, 24, 29, 35, 41, 47, 53, 59],
+    22: [5, 11, 17, 23, 29, 35, 42, 48, 54],
+    23: [0, 7, 13, 19, 25, 32],
+}
+
+STADIUM_TO_BARRA: dict[int, list[int]] = {
+    6:  [36, 48, 53, 59],
+    7:  [4, 9, 14, 19, 29, 34, 39, 44, 50, 54, 57],
+    8:  [1, 4, 8, 11, 14, 17, 20, 26, 32, 39, 45, 51, 57],
+    9:  [0, 3, 9, 15, 24, 34, 42, 51, 59],
+    10: [7, 15, 23, 30, 38, 45, 53],
+    11: [1, 8, 16, 20, 24, 31, 39, 47, 50, 54],
+    12: [2, 10, 17, 23, 29, 36, 42, 48, 54],
+    13: [0, 6, 12, 18, 24, 31, 37, 43, 49, 55],
+    14: [1, 7, 13, 16, 19, 22, 28, 34, 40, 46, 52, 58],
+    15: [2, 7, 13, 19, 24, 29, 34, 39, 45, 51, 57],
+    16: [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 53, 58],
+    17: [3, 8, 14, 19, 24, 29, 35, 40, 45, 50, 56],
+    18: [1, 6, 11, 16, 21, 27, 32, 37, 42, 47, 52, 57],
+    19: [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 52, 58],
+    20: [3, 8, 13, 18, 23, 28, 33, 38, 43, 48, 55],
+    21: [2, 7, 12, 17, 22, 27, 33, 38, 43, 48, 54],
+    22: [1, 7, 13, 20, 26, 32, 38, 44, 50, 56],
+    23: [2, 9, 15, 21, 27, 34],
+}
+
+JC_TO_BARRA: dict[int, list[int]] = {
+    6:  [30, 38, 50, 56],
+    7:  [1, 6, 11, 16, 21, 32, 37, 42, 47, 52, 55, 58],
+    8:  [4, 7, 10, 13, 16, 19, 22, 29, 35, 41, 47, 53, 59],
+    9:  [2, 5, 11, 17, 27, 36, 45, 54],
+    10: [2, 9, 17, 25, 32, 40, 48, 55],
+    11: [3, 11, 18, 22, 26, 34, 41, 49, 53, 57],
+    12: [4, 12, 19, 26, 32, 38, 44, 50, 56],
+    13: [2, 8, 14, 20, 26, 32, 38, 44, 50, 56],
+    14: [3, 8, 14, 20, 26, 32, 38, 44, 50, 56],
+    15: [3, 10, 16, 22, 27, 32, 37, 42, 47, 52, 58],
+    16: [3, 8, 13, 18, 24, 29, 34, 39, 44, 49, 55],
+    17: [0, 5, 10, 15, 20, 25, 30, 36, 41, 46, 51, 56],
+    18: [2, 7, 12, 17, 22, 27, 32, 37, 42, 47, 53, 58],
+    19: [3, 8, 13, 18, 24, 29, 34, 39, 44, 49, 55],
+    20: [0, 5, 10, 15, 20, 25, 30, 36, 42, 48, 54],
+    21: [0, 6, 11, 17, 23, 29, 36, 42, 48, 54],
+    22: [0, 6, 12, 18, 24, 30, 37, 43, 49, 55],
+    23: [1, 7, 13, 20, 26, 32, 38],
+}
+
+OCEAN_TO_BARRA: dict[int, list[int]] = {
+    6:  [32, 40, 53, 58],
+    7:  [3, 8, 14, 19, 24, 34, 39, 44, 49, 54, 57],
+    8:  [0, 6, 9, 12, 15, 19, 22, 25, 31, 37, 43, 49, 55],
+    9:  [1, 4, 7, 14, 20, 29, 38, 47, 56],
+    10: [4, 12, 19, 27, 35, 42, 50, 58],
+    11: [5, 13, 21, 24, 28, 36, 43, 51, 55],
+    12: [6, 14, 22, 28, 34, 40, 46, 52, 58],
+    13: [5, 11, 17, 23, 29, 35, 41, 47, 53],
+    14: [0, 6, 12, 18, 21, 24, 30, 36, 42, 49, 52, 55],
+    15: [1, 7, 13, 19, 24, 29, 34, 39, 45],
+    16: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 51, 57],
+    17: [2, 7, 12, 17, 22, 27, 33, 38, 43, 48, 53, 58],
+    18: [4, 9, 14, 19, 24, 29, 34, 39, 44, 50, 55],
+    19: [0, 5, 10, 15, 21, 26, 31, 36, 41, 46, 51, 56],
+    20: [1, 6, 11, 17, 22, 27, 32, 37, 42, 47, 52, 58],
+    21: [0, 6, 12, 18, 24, 30, 37, 42, 47, 52],
+    22: [1, 7, 13, 19, 26, 32, 38, 44, 50, 56],
+    23: [3, 9, 15, 21, 27, 33],
+}
+
+# Forward station data list (indexed like TAIPA_STATIONS)
+FWD_STATION_DEPS = [
+    BARRA_TO_TFT,      # 0: Barra (terminal)
+    OCEAN_TO_TFT,      # 1: Ocean
+    JC_TO_TFT,         # 2: Jockey Club
+    STADIUM_TO_TFT,    # 3: Stadium
+    PAI_KOK_TO_TFT,    # 4: Pai Kok
+    COTAI_WEST_TO_TFT,  # 5: Cotai West
+    LOTUS_TO_TFT,      # 6: Lotus
+    UH_TO_TFT,         # 7: Union Hospital
+    EAG_TO_TFT,        # 8: East Asian Games
+    CE_TO_TFT,         # 9: Cotai East
+    MUST_TO_TFT,       # 10: MUST
+    AIRPORT_TO_TFT,    # 11: Airport
+    None,               # 12: TFT (destination, computed from Airport+2)
+]
+
+# Backward station data list (reversed order: TFT→Barra)
+BWD_STATION_DEPS = [
+    TFT_TO_BARRA,      # 0: TFT (terminal)
+    AIRPORT_TO_BARRA,   # 1: Airport
+    MUST_TO_BARRA,      # 2: MUST
+    CE_TO_BARRA,        # 3: Cotai East
+    EAG_TO_BARRA,       # 4: East Asian Games
+    UH_TO_BARRA,        # 5: Union Hospital
+    LOTUS_TO_BARRA,     # 6: Lotus
+    CW_TO_BARRA,        # 7: Cotai West
+    PK_TO_BARRA,        # 8: Pai Kok
+    STADIUM_TO_BARRA,   # 9: Stadium
+    JC_TO_BARRA,        # 10: Jockey Club
+    OCEAN_TO_BARRA,     # 11: Ocean
+    None,               # 12: Barra (destination, computed from Ocean+5)
+]
+
+# Estimated cumulative offsets from terminal (for search window centering)
+FWD_EST_OFFSETS = [0, 5, 7, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28]
+BWD_EST_OFFSETS = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 21, 23, 27]
+
+# ── Seac Pai Van Line ───────────────────────────────────────────────
+
 UH_TO_SPV: dict[int, list[int]] = {
     6:  [33, 39, 45, 51, 57],
     7:  [3, 9, 15, 21, 27, 33, 39, 45, 51, 57],
@@ -108,7 +693,6 @@ UH_TO_SPV: dict[int, list[int]] = {
     23: [5, 12, 20, 29, 38],
 }
 
-# Seac Pai Van → Union Hospital, Mon-Thu (TT_SPV_2025.jpg, updated 2025.11)
 SPV_TO_UH: dict[int, list[int]] = {
     6:  [30, 36, 42, 48, 54],
     7:  [0, 6, 12, 18, 24, 30, 36, 42, 48, 54],
@@ -131,13 +715,7 @@ SPV_TO_UH: dict[int, list[int]] = {
 }
 
 # ── Hengqin Line ────────────────────────────────────────────────────
-# 2 stations, ~2 min journey (2.2km tunnel crossing)
-HQ_STATIONS = ["Lotus", "Hengqin"]
-HQ_SEGMENT_TIMES = [3]
-HQ_DWELL = 0.0
-HQ_TERMINAL_DWELL = 0.0
 
-# Lotus → Hengqin, Mon-Thu (TT_HQL_LOT_2026_03.jpg, updated 2026.03)
 LOT_TO_HQ: dict[int, list[int]] = {
     6:  [33, 39, 46, 52, 58],
     7:  [5, 11, 18, 24, 30, 37, 43, 50, 56],
@@ -159,7 +737,6 @@ LOT_TO_HQ: dict[int, list[int]] = {
     23: [5, 11, 20, 28, 37],
 }
 
-# Hengqin → Lotus, Mon-Thu (TT_HQL_HQ_2026_03.jpg, updated 2026.03)
 HQ_TO_LOT: dict[int, list[int]] = {
     6:  [30, 36, 42, 49, 55],
     7:  [2, 8, 14, 21, 27, 34, 40, 46, 53, 59],
@@ -182,119 +759,396 @@ HQ_TO_LOT: dict[int, list[int]] = {
 }
 
 
-def build_trip_entries(
-    stations: list[str],
-    seg_times: list[float],
-    dep_minute: float,
-    dwell: float,
-    terminal_dwell: float,
-) -> list[dict]:
-    entries = []
-    t = dep_minute
-    for i, sid in enumerate(stations):
-        is_first = (i == 0)
-        is_last = (i == len(stations) - 1)
-        if is_first:
-            dw = terminal_dwell
-        elif is_last:
-            dw = terminal_dwell
-        else:
-            dw = dwell
+# ── Helper functions ────────────────────────────────────────────────
+
+def flatten_deps(dep: dict[int, list[int]]) -> list[int]:
+    """Convert hour→[minutes] dict to sorted list of absolute minutes."""
+    result = []
+    for hour, mins in dep.items():
+        for m in mins:
+            result.append(hour * 60 + m)
+    return sorted(result)
+
+
+def find_closest(target: int, candidates: list[int], window: int = 3,
+                  min_val: int | None = None) -> int | None:
+    """Find the closest candidate within ±window of target, >= min_val."""
+    best = None
+    best_dist = window + 1
+    for c in candidates:
+        if min_val is not None and c < min_val:
+            continue
+        dist = abs(c - target)
+        if dist < best_dist:
+            best_dist = dist
+            best = c
+    return best
+
+
+# ── Time-proximity matching for Taipa Line ──────────────────────────
+
+def build_taipa_forward_trips(
+    terminal_deps: dict[int, list[int]] | None = None,
+    schedule_type: str = "mon_thu",
+) -> tuple[list[dict], int, int]:
+    """Build forward trips (Barra → TFT) using per-station matching."""
+    barra_deps = flatten_deps(terminal_deps or BARRA_TO_TFT)
+    station_dep_lists = []
+    for i in range(1, 12):  # Ocean through Airport (indices 1-11)
+        data = FWD_STATION_DEPS[i]
+        station_dep_lists.append(flatten_deps(data) if data else [])
+
+    trips = []
+    matched_count = 0
+    partial_count = 0
+
+    for dep_min in barra_deps:
+        entries = [{
+            "stationId": TAIPA_STATIONS[0],
+            "arrivalMinutes": dep_min,
+            "departureMinutes": dep_min,
+        }]
+        all_matched = True
+        prev_time = dep_min
+
+        for si, (sdeps, est_off) in enumerate(
+            zip(station_dep_lists, FWD_EST_OFFSETS[1:12])
+        ):
+            station_name = TAIPA_STATIONS[si + 1]
+            expected = dep_min + est_off
+            matched = find_closest(expected, sdeps, window=3, min_val=prev_time + 1)
+
+            if matched is not None:
+                arr = matched
+            else:
+                arr = max(expected, prev_time + 1)
+                all_matched = False
+
+            entries.append({
+                "stationId": station_name,
+                "arrivalMinutes": arr,
+                "departureMinutes": arr,
+            })
+            prev_time = arr
+
+        tft_arr = prev_time + 2
         entries.append({
-            "stationId": sid,
-            "arrivalMinutes": round(t, 2),
-            "departureMinutes": round(t + dw, 2),
+            "stationId": TAIPA_STATIONS[12],
+            "arrivalMinutes": tft_arr,
+            "departureMinutes": tft_arr,
         })
-        if i < len(seg_times):
-            t = round(t + dw + seg_times[i], 2)
-    return entries
+
+        prefix = {"mon_thu": "", "friday": "fri_", "sat_sun": "ssh_"}.get(schedule_type, "")
+        trips.append({
+            "id": f"taipa_{prefix}F{len(trips):04d}",
+            "lineId": "taipa",
+            "direction": "forward",
+            "scheduleType": schedule_type,
+            "entries": entries,
+        })
+        if all_matched:
+            matched_count += 1
+        else:
+            partial_count += 1
+
+    return trips, matched_count, partial_count
 
 
-def generate_trips_from_departures(
+def build_taipa_backward_trips(
+    terminal_deps: dict[int, list[int]] | None = None,
+    schedule_type: str = "mon_thu",
+) -> tuple[list[dict], int, int]:
+    """Build backward trips (TFT → Barra) using per-station matching."""
+    tft_deps = flatten_deps(terminal_deps or TFT_TO_BARRA)
+    rev_stations = list(reversed(TAIPA_STATIONS))  # TFT → Barra order
+
+    station_dep_lists = []
+    for i in range(1, 12):  # Airport through Ocean (indices 1-11)
+        data = BWD_STATION_DEPS[i]
+        station_dep_lists.append(flatten_deps(data) if data else [])
+
+    trips = []
+    matched_count = 0
+    partial_count = 0
+
+    for dep_min in tft_deps:
+        entries = [{
+            "stationId": rev_stations[0],
+            "arrivalMinutes": dep_min,
+            "departureMinutes": dep_min,
+        }]
+        all_matched = True
+        prev_time = dep_min
+
+        for si, (sdeps, est_off) in enumerate(
+            zip(station_dep_lists, BWD_EST_OFFSETS[1:12])
+        ):
+            station_name = rev_stations[si + 1]
+            expected = dep_min + est_off
+            matched = find_closest(expected, sdeps, window=3, min_val=prev_time + 1)
+
+            if matched is not None:
+                arr = matched
+            else:
+                arr = max(expected, prev_time + 1)
+                all_matched = False
+
+            entries.append({
+                "stationId": station_name,
+                "arrivalMinutes": arr,
+                "departureMinutes": arr,
+            })
+            prev_time = arr
+
+        barra_arr = prev_time + 4
+        entries.append({
+            "stationId": rev_stations[12],
+            "arrivalMinutes": barra_arr,
+            "departureMinutes": barra_arr,
+        })
+
+        prefix = {"mon_thu": "", "friday": "fri_", "sat_sun": "ssh_"}.get(schedule_type, "")
+        trips.append({
+            "id": f"taipa_{prefix}B{len(trips):04d}",
+            "lineId": "taipa",
+            "direction": "backward",
+            "scheduleType": schedule_type,
+            "entries": entries,
+        })
+        if all_matched:
+            matched_count += 1
+        else:
+            partial_count += 1
+
+    return trips, matched_count, partial_count
+
+
+# ── SPV and Hengqin trip builders (2-station lines, direct) ────────
+
+def build_2station_trips(
     line_id: str,
     stations: list[str],
-    seg_times: list[float],
-    dwell: float,
-    terminal_dwell: float,
-    fwd_departures: dict[int, list[int]],
-    bwd_departures: dict[int, list[int]],
-) -> list[dict]:
+    seg_time: int,
+    fwd_deps: dict[int, list[int]],
+    bwd_deps: dict[int, list[int]],
+    schedule_type: str = "mon_thu",
+) -> tuple[list[dict], int, int]:
+    """Build trips for simple 2-station lines."""
     trips = []
-    rev_stations = list(reversed(stations))
-    rev_seg_times = list(reversed(seg_times))
     fwd_count = 0
     bwd_count = 0
+    prefix = {"mon_thu": "", "friday": "fri_", "sat_sun": "ssh_"}.get(schedule_type, "")
 
-    for hour in sorted(fwd_departures.keys()):
-        for minute in fwd_departures[hour]:
-            dep = hour * 60 + minute
-            entries = build_trip_entries(
-                stations, seg_times, dep, dwell, terminal_dwell
-            )
-            trips.append({
-                "id": f"{line_id}_F{fwd_count:04d}",
-                "lineId": line_id,
-                "direction": "forward",
-                "entries": entries,
-            })
-            fwd_count += 1
+    fwd_list = flatten_deps(fwd_deps)
+    for dep in fwd_list:
+        trips.append({
+            "id": f"{line_id}_{prefix}F{fwd_count:04d}",
+            "lineId": line_id,
+            "direction": "forward",
+            "scheduleType": schedule_type,
+            "entries": [
+                {"stationId": stations[0], "arrivalMinutes": dep, "departureMinutes": dep},
+                {"stationId": stations[1], "arrivalMinutes": dep + seg_time, "departureMinutes": dep + seg_time},
+            ],
+        })
+        fwd_count += 1
 
-    for hour in sorted(bwd_departures.keys()):
-        for minute in bwd_departures[hour]:
-            dep = hour * 60 + minute
-            entries = build_trip_entries(
-                rev_stations, rev_seg_times, dep, dwell, terminal_dwell
-            )
-            trips.append({
-                "id": f"{line_id}_B{bwd_count:04d}",
-                "lineId": line_id,
-                "direction": "backward",
-                "entries": entries,
-            })
-            bwd_count += 1
+    bwd_list = flatten_deps(bwd_deps)
+    rev = list(reversed(stations))
+    for dep in bwd_list:
+        trips.append({
+            "id": f"{line_id}_{prefix}B{bwd_count:04d}",
+            "lineId": line_id,
+            "direction": "backward",
+            "scheduleType": schedule_type,
+            "entries": [
+                {"stationId": rev[0], "arrivalMinutes": dep, "departureMinutes": dep},
+                {"stationId": rev[1], "arrivalMinutes": dep + seg_time, "departureMinutes": dep + seg_time},
+            ],
+        })
+        bwd_count += 1
 
     return trips, fwd_count, bwd_count
 
+
+# ── Extra trips: trains starting from intermediate stations ─────────
+
+def build_extra_trips(
+    existing_trips: list[dict],
+    direction: str,
+    schedule_type: str,
+) -> list[dict]:
+    """Build partial trips for departures not covered by terminal-originated trips.
+
+    In early morning, trains are pre-positioned at intermediate stations and begin
+    service simultaneously. These departures show up in per-station timetables but
+    don't originate from a terminal station.
+    """
+    if direction == "forward":
+        stations = TAIPA_STATIONS
+        station_deps_list = FWD_STATION_DEPS
+        est_offsets = FWD_EST_OFFSETS
+        last_seg = 2
+    else:
+        stations = list(reversed(TAIPA_STATIONS))
+        station_deps_list = BWD_STATION_DEPS
+        est_offsets = BWD_EST_OFFSETS
+        last_seg = 4
+
+    claimed: dict[str, set[int]] = {s: set() for s in TAIPA_STATIONS}
+    for trip in existing_trips:
+        if trip["direction"] != direction:
+            continue
+        if trip.get("scheduleType") != schedule_type:
+            continue
+        for entry in trip["entries"]:
+            claimed[entry["stationId"]].add(entry["arrivalMinutes"])
+
+    prefix = {"mon_thu": "", "friday": "fri_", "sat_sun": "ssh_"}.get(schedule_type, "")
+    dir_code = "XF" if direction == "forward" else "XB"
+    trips: list[dict] = []
+
+    for start_idx in range(1, 12):
+        station_name = stations[start_idx]
+        deps_data = station_deps_list[start_idx]
+        if not deps_data:
+            continue
+        all_deps = flatten_deps(deps_data)
+
+        for dep_min in all_deps:
+            if any(abs(dep_min - ct) <= 1 for ct in claimed[station_name]):
+                continue
+
+            entries = [{
+                "stationId": station_name,
+                "arrivalMinutes": dep_min,
+                "departureMinutes": dep_min,
+            }]
+            prev_time = dep_min
+
+            for si in range(start_idx + 1, 12):
+                next_station = stations[si]
+                next_data = station_deps_list[si]
+                if not next_data:
+                    continue
+                next_deps = flatten_deps(next_data)
+                est_off = est_offsets[si] - est_offsets[start_idx]
+                expected = dep_min + est_off
+                matched = find_closest(expected, next_deps, window=3, min_val=prev_time + 1)
+                arr = matched if matched is not None else max(expected, prev_time + 1)
+                entries.append({
+                    "stationId": next_station,
+                    "arrivalMinutes": arr,
+                    "departureMinutes": arr,
+                })
+                prev_time = arr
+
+            dest_arr = prev_time + last_seg
+            entries.append({
+                "stationId": stations[12],
+                "arrivalMinutes": dest_arr,
+                "departureMinutes": dest_arr,
+            })
+
+            trips.append({
+                "id": f"taipa_{prefix}{dir_code}{len(trips):04d}",
+                "lineId": "taipa",
+                "direction": direction,
+                "scheduleType": schedule_type,
+                "entries": entries,
+            })
+
+            for entry in entries:
+                claimed[entry["stationId"]].add(entry["arrivalMinutes"])
+
+    return trips
+
+
+# ── Validation ──────────────────────────────────────────────────────
+
+def validate_trips(trips: list[dict], label: str):
+    """Check monotonicity and print spot-check for first 3 trips."""
+    issues = 0
+    for trip in trips:
+        times = [e["arrivalMinutes"] for e in trip["entries"]]
+        for i in range(1, len(times)):
+            if times[i] <= times[i - 1]:
+                issues += 1
+                if issues <= 5:
+                    h1, m1 = divmod(times[i - 1], 60)
+                    h2, m2 = divmod(times[i], 60)
+                    print(f"  ⚠ {trip['id']}: non-monotonic at station {i}: "
+                          f"{int(h1):02d}:{int(m1):02d} → {int(h2):02d}:{int(m2):02d}")
+    if issues:
+        print(f"  {label}: {issues} monotonicity issues")
+    else:
+        print(f"  {label}: all trips monotonic ✓")
+
+    for trip in trips[:3]:
+        first = trip["entries"][0]
+        last = trip["entries"][-1]
+        h1, m1 = divmod(first["arrivalMinutes"], 60)
+        h2, m2 = divmod(last["arrivalMinutes"], 60)
+        stations_str = " → ".join(
+            f"{e['stationId']}@{int(divmod(e['arrivalMinutes'],60)[0]):02d}:{int(divmod(e['arrivalMinutes'],60)[1]):02d}"
+            for e in trip["entries"]
+        )
+        print(f"  {trip['id']}: {stations_str}")
+
+
+# ── Main ────────────────────────────────────────────────────────────
 
 def run():
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
     all_trips = []
 
-    taipa, fwd, bwd = generate_trips_from_departures(
-        "taipa", TAIPA_STATIONS, TAIPA_SEGMENT_TIMES,
-        TAIPA_DWELL, TAIPA_TERMINAL_DWELL,
-        BARRA_FWD_DEPARTURES, TFT_BWD_DEPARTURES,
-    )
-    all_trips.extend(taipa)
-    print(f"  taipa: {fwd}F + {bwd}B = {len(taipa)} trips")
+    schedules = [
+        ("mon_thu", BARRA_TO_TFT, TFT_TO_BARRA),
+        ("friday",  BARRA_FRI,    TFT_FRI),
+        ("sat_sun", BARRA_SSH,    TFT_SSH),
+    ]
 
-    spv, fwd, bwd = generate_trips_from_departures(
-        "seac_pai_van", SPV_STATIONS, SPV_SEGMENT_TIMES,
-        SPV_DWELL, SPV_TERMINAL_DWELL,
-        UH_TO_SPV, SPV_TO_UH,
-    )
-    all_trips.extend(spv)
-    print(f"  seac_pai_van: {fwd}F + {bwd}B = {len(spv)} trips")
+    for stype, fwd_term, bwd_term in schedules:
+        label = stype.replace("_", "/").upper()
+        print(f"\n=== Taipa Line [{label}] (per-station matching) ===")
+        fwd_trips, fwd_m, fwd_p = build_taipa_forward_trips(fwd_term, stype)
+        bwd_trips, bwd_m, bwd_p = build_taipa_backward_trips(bwd_term, stype)
+        taipa = fwd_trips + bwd_trips
+        print(f"  Forward: {len(fwd_trips)} trips ({fwd_m} matched, {fwd_p} partial)")
+        print(f"  Backward: {len(bwd_trips)} trips ({bwd_m} matched, {bwd_p} partial)")
 
-    hq, fwd, bwd = generate_trips_from_departures(
-        "hengqin", HQ_STATIONS, HQ_SEGMENT_TIMES,
-        HQ_DWELL, HQ_TERMINAL_DWELL,
-        LOT_TO_HQ, HQ_TO_LOT,
-    )
-    all_trips.extend(hq)
-    print(f"  hengqin: {fwd}F + {bwd}B = {len(hq)} trips")
+        extra_fwd = build_extra_trips(taipa, "forward", stype)
+        extra_bwd = build_extra_trips(taipa, "backward", stype)
+        taipa.extend(extra_fwd)
+        taipa.extend(extra_bwd)
+        print(f"  Extra: {len(extra_fwd)} forward + {len(extra_bwd)} backward partial trips")
+        all_trips.extend(taipa)
+
+        validate_trips(fwd_trips, f"Taipa FWD [{label}]")
+        validate_trips(bwd_trips, f"Taipa BWD [{label}]")
+        if extra_fwd:
+            validate_trips(extra_fwd, f"Taipa XF [{label}]")
+        if extra_bwd:
+            validate_trips(extra_bwd, f"Taipa XB [{label}]")
+
+        print(f"\n=== Seac Pai Van Line [{label}] ===")
+        spv, sf, sb = build_2station_trips(
+            "seac_pai_van", SPV_STATIONS, 2, UH_TO_SPV, SPV_TO_UH, stype
+        )
+        all_trips.extend(spv)
+        print(f"  {sf}F + {sb}B = {len(spv)} trips")
+
+        print(f"\n=== Hengqin Line [{label}] ===")
+        hq, hf, hb = build_2station_trips(
+            "hengqin", HQ_STATIONS, 3, LOT_TO_HQ, HQ_TO_LOT, stype
+        )
+        all_trips.extend(hq)
+        print(f"  {hf}F + {hb}B = {len(hq)} trips")
 
     out_path = OUTPUT_DIR / "trips.json"
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(all_trips, f, ensure_ascii=False, indent=2)
-    print(f"Total: {len(all_trips)} trips written to {out_path}")
-
-    sample = all_trips[0]
-    first = sample["entries"][0]
-    last = sample["entries"][-1]
-    h1, m1 = divmod(first["arrivalMinutes"], 60)
-    h2, m2 = divmod(last["arrivalMinutes"], 60)
-    print(f"  Sample: {sample['id']} departs {int(h1):02d}:{m1:04.1f}, arrives {int(h2):02d}:{m2:04.1f}")
+    print(f"\nTotal: {len(all_trips)} trips written to {out_path}")
 
 
 if __name__ == "__main__":

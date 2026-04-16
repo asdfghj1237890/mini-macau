@@ -2,7 +2,16 @@ import along from '@turf/along'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { Feature, LineString } from 'geojson'
-import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute } from '../types'
+import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute, ScheduleType } from '../types'
+
+function getScheduleType(date: Date): ScheduleType {
+  const day = date.getDay()
+  if (day === 5) return 'friday'
+  if (day === 0 || day === 6) return 'sat_sun'
+  return 'mon_thu'
+}
+
+export { getScheduleType }
 
 function timeToMinutes(date: Date): number {
   return date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60 + date.getMilliseconds() / 60000
@@ -193,9 +202,14 @@ export function computeVehiclePositions(
 ): VehiclePosition[] {
   const nowMinutes = timeToMinutes(time)
   const stationProgressMap = getStationProgressMap(transitData)
+  const scheduleType = getScheduleType(time)
+
+  const filteredTrips = transitData.trips.filter(
+    t => !t.scheduleType || t.scheduleType === scheduleType
+  )
 
   const lrtVehicles = computeLRTVehicles(
-    transitData.trips,
+    filteredTrips,
     transitData.lrtLines,
     stationProgressMap,
     nowMinutes
