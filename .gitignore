@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.vite/
+data/.venv/
+data/__pycache__/
+data/raw/
+*.pyc
+.env
+.env.local
