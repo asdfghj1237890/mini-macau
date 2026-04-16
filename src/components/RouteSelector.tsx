@@ -5,8 +5,10 @@ import { useI18n } from '../i18n'
 interface Props {
   transitData: TransitData
   visibleRoutes: Set<string>
+  isAutoMode: boolean
   onToggleRoute: (routeId: string) => void
   onToggleAll: () => void
+  onResetAuto: () => void
 }
 
 const NIGHT_ROUTES = new Set(['N1A', 'N1B', 'N2', 'N3', 'N5', 'N6'])
@@ -44,7 +46,7 @@ const GROUP_LABEL_KEYS: Record<GroupKey, 'groupPeninsula' | 'groupCrossHarbour' 
   special: 'groupSpecial',
 }
 
-export function RouteSelector({ transitData, visibleRoutes, onToggleRoute, onToggleAll }: Props) {
+export function RouteSelector({ transitData, visibleRoutes, isAutoMode, onToggleRoute, onToggleAll, onResetAuto }: Props) {
   const [expanded, setExpanded] = useState(false)
   const { t, lang } = useI18n()
 
@@ -76,13 +78,22 @@ export function RouteSelector({ transitData, visibleRoutes, onToggleRoute, onTog
 
       {expanded && (
         <div className="border-t border-white/10">
-          <button
-            onClick={onToggleAll}
-            className="w-full px-4 py-1.5 text-xs text-white/60 hover:text-white
-                       hover:bg-white/10 transition-colors text-center"
-          >
-            {allVisible ? t.hideAll : t.showAll}
-          </button>
+          <div className="flex border-b border-white/10">
+            <button
+              onClick={onResetAuto}
+              className={`flex-1 px-2 py-1.5 text-xs transition-colors text-center
+                         ${isAutoMode ? 'text-blue-400' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
+            >
+              {t.autoByTime}
+            </button>
+            <button
+              onClick={onToggleAll}
+              className="flex-1 px-2 py-1.5 text-xs text-white/50 hover:text-white
+                         hover:bg-white/10 transition-colors text-center"
+            >
+              {allVisible ? t.hideAll : t.showAll}
+            </button>
+          </div>
           <div className="max-h-[45vh] overflow-y-auto">
             {GROUP_ORDER.map(groupKey => {
               const routes = grouped.get(groupKey) || []
