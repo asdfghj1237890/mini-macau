@@ -113,12 +113,33 @@ def find_channel_runs(coords: list[list[float]]) -> list[tuple[int, int]]:
     return real_runs
 
 
+MAX_OSRM_DETOUR_RATIO = 2.5
+
+
 def osrm_or_straight(a: list[float], b: list[float]) -> list[list[float]]:
-    """OSRM-route a -> b; fall back to straight segment if OSRM fails."""
+    """OSRM-route a -> b; fall back to straight segment if OSRM fails OR
+    returns a grossly detoured path (>2.5x straight-line distance).
+
+    The detour rejection is important for Macau's heavily one-way grid
+    near 亞馬喇: OSRM driving profile often loops ~1km through the
+    roundabout to cover 25m straight. Those loops visually duplicate the
+    hand-drawn roundabout polyline.
+    """
     try:
         coords = get_road_geometry([a, b], profile="driving")
         time.sleep(OSRM_DELAY_S)
         if coords and len(coords) >= 2:
+            road_len = 0.0
+            for i in range(len(coords) - 1):
+                road_len += math.sqrt(dist_m2(coords[i], coords[i + 1]))
+            straight = math.sqrt(dist_m2(a, b))
+            if straight > 5 and road_len / straight > MAX_OSRM_DETOUR_RATIO:
+                print(
+                    f"      OSRM detour rejected "
+                    f"({road_len:.0f}m vs {straight:.0f}m straight, "
+                    f"ratio={road_len/straight:.1f}x)"
+                )
+                return [a, b]
             return coords
     except Exception as e:
         print(f"      OSRM fallback ({e})")
@@ -220,7 +241,27 @@ def patch_route(
             macau_approach, taipa_approach,
         )
 
-    route["geometry"]["geometry"]["coordinates"] = coords
+    # For bilateral routes whose direction-0 geometry is one-way (e.g. MT4),
+    # build the return leg manually so simulation can loop forward-only and
+    # use the west Y-arm for the return. Otherwise the simulation engine's
+    # forward/backward bounce traverses the east Y-arm backwards -> wrong
+    # direction visually. Append polyline_north so the combined geometry is
+    # a M -> T -> M round trip via east then west arms.
+    if route.get("routeType") == "bilateral":
+        last_coord = coords[-1]
+        nb_first = polyline_north[0]
+        # If last direction-0 coord is not already at taipa_approach, add a
+        # straight bridge from the last Taipa stop to it (OSRM through Taipa
+        # roads would be cleaner but public OSRM is rate-limited here).
+        if dist_m2(last_coord, nb_first) > 25:
+            print(f"    bilateral: appending return leg (polyline_north)")
+        coords = coords + list(polyline_north)
+        route["geometry"]["geometry"]["coordinates"] = coords
+        # Mark as circular so simulation engine does forward-only loop.
+        route["routeType"] = "circular"
+    else:
+        route["geometry"]["geometry"]["coordinates"] = coords
+
     return True
 
 
