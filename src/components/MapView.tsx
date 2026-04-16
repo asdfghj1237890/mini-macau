@@ -298,9 +298,15 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
           type: 'circle',
           source: 'stations',
           paint: {
-            'circle-radius': 5,
+            'circle-radius': [
+              'interpolate', ['linear'], ['zoom'],
+              10, 5,
+              13, 7,
+              16, 9,
+              18, 11,
+            ],
             'circle-color': '#ffffff',
-            'circle-stroke-width': 2,
+            'circle-stroke-width': 2.5,
             'circle-stroke-color': isDark ? '#444' : '#999',
           },
         })
