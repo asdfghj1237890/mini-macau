@@ -10,7 +10,7 @@ export function LineLegend({ transitData }: Props) {
 
   if (transitData.loading) {
     return (
-      <div className="absolute top-14 right-4 bg-black/70 backdrop-blur-sm rounded-xl z-10
+      <div className="absolute top-28 right-4 bg-black/70 backdrop-blur-sm rounded-xl z-10
                       px-4 py-3 border border-white/20 text-white/60 text-sm">
         {t.loading}
       </div>
@@ -18,7 +18,7 @@ export function LineLegend({ transitData }: Props) {
   }
 
   return (
-    <div className="absolute top-14 right-4 bg-black/70 backdrop-blur-sm rounded-xl z-10
+    <div className="absolute top-28 right-4 bg-black/70 backdrop-blur-sm rounded-xl z-10
                     px-4 py-3 border border-white/20 max-h-[60vh] overflow-y-auto">
       <div className="text-white/80 text-xs font-semibold uppercase tracking-wider mb-2">
         {t.lrtLines}

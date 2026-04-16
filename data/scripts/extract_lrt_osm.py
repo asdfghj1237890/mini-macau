@@ -58,7 +58,7 @@ LRT_LINES_META = {
         "id": "hengqin",
         "name": "Hengqin Line",
         "nameCn": "橫琴線",
-        "color": "#8A66C3",
+        "color": "#BD283B",
         "stations_ordered": ["Lotus", "Hengqin"],
     },
 }

@@ -17,10 +17,11 @@ interface Props {
   transitData: TransitData
   onVehicleClick?: (vehicle: VehiclePosition | null) => void
   onStationClick?: (station: Station | null) => void
+  onClearSelection?: () => void
   trackedVehicleId?: string | null
 }
 
-export function MapView({ clock, transitData, onVehicleClick, onStationClick, trackedVehicleId }: Props) {
+export function MapView({ clock, transitData, onVehicleClick, onStationClick, onClearSelection, trackedVehicleId }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -141,6 +142,15 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, tr
       })
       map.on('mouseleave', 'vehicles-circle', () => {
         map.getCanvas().style.cursor = ''
+      })
+
+      map.on('click', (e) => {
+        const features = map.queryRenderedFeatures(e.point, {
+          layers: ['vehicles-circle', 'stations-circle'],
+        })
+        if (features.length === 0) {
+          onClearSelection?.()
+        }
       })
     })
 
