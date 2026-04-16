@@ -16,6 +16,7 @@ const SCHEDULE_LABELS = {
 
 const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const WEEKDAY_ZH = ['日', '一', '二', '三', '四', '五', '六']
+const WEEKDAY_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 
 function pad2(n: number) { return String(n).padStart(2, '0') }
 
@@ -34,7 +35,9 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
   const d = time.getDate()
   const dow = lang === 'zh'
     ? `週${WEEKDAY_ZH[time.getDay()]}`
-    : WEEKDAY_EN[time.getDay()]
+    : lang === 'pt'
+      ? WEEKDAY_PT[time.getDay()]
+      : WEEKDAY_EN[time.getDay()]
 
   const h = pad2(time.getHours())
   const m = pad2(time.getMinutes())
@@ -98,7 +101,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
           onClick={handleOpen}
           className="text-white font-mono font-bold tracking-wider text-lg
                      hover:text-blue-300 transition-colors cursor-pointer"
-          title={lang === 'zh' ? '點擊設定時間' : 'Click to set time'}
+          title={t.clickToSetTime}
         >
           <span className="text-white/60">{y}/{pad2(mo)}/{pad2(d)}</span>
           {' '}
