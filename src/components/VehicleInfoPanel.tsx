@@ -1,5 +1,5 @@
 import type { VehiclePosition, TransitData, SimulationClock, Trip } from '../types'
-import { useI18n } from '../i18n'
+import { useI18n, localName } from '../i18n'
 import { useMemo } from 'react'
 
 interface Props {
@@ -30,9 +30,9 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
   }, [vehicle?.id, transitData.trips])
 
   const stationMap = useMemo(() => {
-    const map = new Map<string, { name: string; nameCn: string }>()
+    const map = new Map<string, { name: string; nameCn: string; namePt: string }>()
     for (const s of transitData.stations) {
-      map.set(s.id, { name: s.name, nameCn: s.nameCn })
+      map.set(s.id, { name: s.name, nameCn: s.nameCn, namePt: s.namePt })
     }
     return map
   }, [transitData.stations])
@@ -46,9 +46,11 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     ? transitData.busRoutes.find(r => r.id === vehicle.lineId)
     : null
 
-  const lineName = lang === 'zh'
-    ? (line?.nameCn ?? (route ? `${t.route} ${route.name}` : vehicle.lineId))
-    : (line?.name ?? (route ? `Route ${route.name}` : vehicle.lineId))
+  const lineName = line
+    ? localName(lang, line)
+    : route
+      ? (lang === 'en' ? `Route ${route.name}` : `${route.name} ${localName(lang, route)}`.trim())
+      : vehicle.lineId
 
   const nowMinutes = clock.currentTime.getHours() * 60
     + clock.currentTime.getMinutes()
@@ -62,7 +64,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
       : '')
   const destStation = stationMap.get(destinationId)
   const destName = destStation
-    ? (lang === 'zh' ? destStation.nameCn : destStation.name)
+    ? localName(lang, destStation)
     : ''
 
   return (
@@ -96,7 +98,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
             <div className="absolute left-[5px] top-1 bottom-1 w-px bg-white/15" />
             {trip.entries.map((entry, i) => {
               const s = stationMap.get(entry.stationId)
-              const label = s ? (lang === 'zh' ? s.nameCn : s.name) : entry.stationId
+              const label = s ? localName(lang, s) : entry.stationId
               const arr = entry.arrivalMinutes
               const dep = entry.departureMinutes ?? arr
               const isFirst = i === 0

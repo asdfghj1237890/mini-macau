@@ -1,5 +1,5 @@
 import type { Station, TransitData, SimulationClock, ScheduleType } from '../types'
-import { useI18n } from '../i18n'
+import { useI18n, localName } from '../i18n'
 import { getScheduleType } from '../engines/simulationEngine'
 
 interface Props {
@@ -9,14 +9,24 @@ interface Props {
   onClose: () => void
 }
 
+interface Arrival {
+  tripId: string
+  lineName: string
+  lineCn: string
+  linePt: string
+  lineColor: string
+  arrivalMinutes: number
+  direction: string
+}
+
 function getNextArrivals(
   stationId: string,
   transitData: TransitData,
   currentMinutes: number,
   scheduleType: ScheduleType,
   count: number = 5
-): { tripId: string; lineName: string; lineCn: string; lineColor: string; arrivalMinutes: number; direction: string }[] {
-  const arrivals: { tripId: string; lineName: string; lineCn: string; lineColor: string; arrivalMinutes: number; direction: string }[] = []
+): Arrival[] {
+  const arrivals: Arrival[] = []
 
   for (const trip of transitData.trips) {
     if (trip.scheduleType && trip.scheduleType !== scheduleType) continue
@@ -29,6 +39,7 @@ function getNextArrivals(
           tripId: trip.id,
           lineName: line.name,
           lineCn: line.nameCn,
+          linePt: line.name,
           lineColor: line.color,
           arrivalMinutes: entry.arrivalMinutes,
           direction: trip.direction === 'forward' ? '→' : '←',
@@ -64,10 +75,11 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
     transitData.lrtLines.find(l => l.id === lid)?.color ?? '#888'
   )
 
-  const stationName = lang === 'zh' ? station.nameCn : station.name
-  const subName = lang === 'zh'
-    ? `${station.name} / ${station.namePt}`
-    : `${station.nameCn} / ${station.namePt}`
+  const stationName = localName(lang, station)
+  const otherNames = [station.name, station.nameCn, station.namePt]
+    .filter(n => n && n !== stationName)
+  const uniqueOthers = [...new Set(otherNames)]
+  const subName = uniqueOthers.join(' / ')
 
   return (
     <div className="absolute top-20 left-4 bg-black/80 backdrop-blur-sm rounded-xl z-10
@@ -96,7 +108,7 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
           <div className="space-y-1">
             {arrivals.map((a, i) => {
               const waitMin = Math.round(a.arrivalMinutes - nowMinutes)
-              const displayName = lang === 'zh' ? a.lineCn : a.lineName
+              const displayName = localName(lang, { name: a.lineName, nameCn: a.lineCn, namePt: a.linePt })
               return (
                 <div key={i} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-1.5">
@@ -120,7 +132,7 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
           <div className="text-white/50 text-xs">
             {t.lines}: {station.lineIds.map(lid => {
               const line = transitData.lrtLines.find(l => l.id === lid)
-              return lang === 'zh' ? line?.nameCn : line?.name
+              return line ? localName(lang, line) : lid
             }).filter(Boolean).join(', ')}
           </div>
         </div>

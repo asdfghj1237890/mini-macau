@@ -22,12 +22,14 @@ export interface LRTLine {
 export interface BusRoute {
   id: string
   name: string
+  nameCn: string
   color: string
   stops: string[]
   geometry: Feature<LineString>
   frequency: number // minutes between departures
   serviceHoursStart: number // hour (0-23)
   serviceHoursEnd: number // hour (0-23)
+  routeType: 'bilateral' | 'circular'
 }
 
 export interface BusStop {

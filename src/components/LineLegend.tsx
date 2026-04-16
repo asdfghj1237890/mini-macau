@@ -1,5 +1,5 @@
 import type { TransitData } from '../types'
-import { useI18n } from '../i18n'
+import { useI18n, localName } from '../i18n'
 
 interface Props {
   transitData: TransitData
@@ -30,7 +30,7 @@ export function LineLegend({ transitData }: Props) {
             style={{ backgroundColor: line.color }}
           />
           <span className="text-white text-sm">
-            {lang === 'zh' ? line.nameCn : line.name}
+            {localName(lang, line)}
           </span>
         </div>
       ))}
