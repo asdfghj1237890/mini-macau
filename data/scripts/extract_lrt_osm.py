@@ -43,8 +43,8 @@ LRT_LINES_META = {
         "color": "#84C44A",
         "stations_ordered": [
             "Barra", "Ocean", "Jockey Club", "Stadium", "Pai Kok",
-            "Cotai West", "Lotus", "East Asian Games", "Cotai East",
-            "MUST", "Airport", "Taipa Ferry Terminal"
+            "Cotai West", "Lotus", "Union Hospital", "East Asian Games",
+            "Cotai East", "MUST", "Airport", "Taipa Ferry Terminal"
         ],
     },
     "seac_pai_van": {
