@@ -184,21 +184,26 @@ interface I18nContextValue {
   lang: Lang
   t: Translations
   toggleLang: () => void
+  setLang: (lang: Lang) => void
 }
 
 const I18nContext = createContext<I18nContextValue>(null!)
 
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>('zh')
+  const [lang, setLangState] = useState<Lang>('zh')
 
   const toggleLang = useCallback(() => {
-    setLang(prev => LANG_CYCLE[prev])
+    setLangState(prev => LANG_CYCLE[prev])
+  }, [])
+
+  const setLang = useCallback((l: Lang) => {
+    setLangState(l)
   }, [])
 
   const t = translations[lang]
 
   return (
-    <I18nContext.Provider value={{ lang, t, toggleLang }}>
+    <I18nContext.Provider value={{ lang, t, toggleLang, setLang }}>
       {children}
     </I18nContext.Provider>
   )

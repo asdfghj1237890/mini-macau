@@ -1,10 +1,97 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mini Map Macau</title>
+
+    <title>Mini Map Macau · 澳門公共交通 3D 即時模擬地圖</title>
+    <meta
+      name="description"
+      content="互動式澳門公共交通 3D 地圖：依真實班表模擬輕軌 3 條線與 400+ 輛巴士即時行駛。Real-time Macau LRT and bus network simulation visualised on an interactive 3D map — watch every vehicle move in sync with the official schedule."
+    />
+    <meta
+      name="keywords"
+      content="澳門, 輕軌, 巴士, 公共交通, 3D地圖, 即時模擬, 交通路線, Macau, MLM, Macau LRT, Macau bus, Macau transit, Macau map, real-time simulation, 3D map, Ponte Governador Nobre de Carvalho, 嘉樂庇總督大橋"
+    />
+    <meta name="author" content="Mini Map Macau" />
+    <meta name="robots" content="index,follow,max-image-preview:large" />
+    <meta name="googlebot" content="index,follow" />
+    <meta name="theme-color" content="#0a0a0a" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="canonical" href="https://mini-map-macau.app/" />
+    <link rel="alternate" hreflang="zh-Hant" href="https://mini-map-macau.app/" />
+    <link rel="alternate" hreflang="en" href="https://mini-map-macau.app/" />
+    <link rel="alternate" hreflang="pt" href="https://mini-map-macau.app/" />
+    <link rel="alternate" hreflang="x-default" href="https://mini-map-macau.app/" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Mini Map Macau" />
+    <meta property="og:title" content="Mini Map Macau · 澳門公共交通 3D 即時模擬地圖" />
+    <meta
+      property="og:description"
+      content="互動式澳門公共交通 3D 地圖：依真實班表模擬輕軌 3 條線與 400+ 輛巴士即時行駛。"
+    />
+    <meta property="og:url" content="https://mini-map-macau.app/" />
+    <meta property="og:locale" content="zh_HK" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale:alternate" content="pt_PT" />
+    <meta property="og:image" content="https://mini-map-macau.app/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Mini Map Macau 3D transit simulation" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Mini Map Macau · 澳門公共交通 3D 即時模擬地圖" />
+    <meta
+      name="twitter:description"
+      content="互動式澳門公共交通 3D 地圖：依真實班表模擬輕軌 3 條線與 400+ 輛巴士即時行駛。"
+    />
+    <meta name="twitter:image" content="https://mini-map-macau.app/og-image.png" />
+
+    <link rel="preconnect" href="https://basemaps.cartocdn.com" crossorigin />
+    <link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin />
+    <link rel="dns-prefetch" href="https://basemaps.cartocdn.com" />
+    <link rel="dns-prefetch" href="https://tiles.openfreemap.org" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Mini Map Macau",
+        "alternateName": ["澳門迷你交通地圖", "Mini Mapa Macau"],
+        "url": "https://mini-map-macau.app/",
+        "description": "Real-time 3D simulation of Macau's public transit network — LRT and 400+ buses moving on an interactive map in sync with the official schedule.",
+        "applicationCategory": "TravelApplication",
+        "applicationSubCategory": "TransportationApplication",
+        "operatingSystem": "Any (browser with WebGL 2.0)",
+        "browserRequirements": "Requires JavaScript and WebGL 2.0",
+        "inLanguage": ["zh-Hant", "pt-PT", "en"],
+        "isAccessibleForFree": true,
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "about": [
+          { "@type": "Thing", "name": "Macau Light Rapid Transit", "sameAs": "https://en.wikipedia.org/wiki/Macau_Light_Rapid_Transit" },
+          { "@type": "Thing", "name": "Public transport in Macau", "sameAs": "https://en.wikipedia.org/wiki/Public_transport_in_Macau" }
+        ],
+        "spatialCoverage": {
+          "@type": "Place",
+          "name": "Macau",
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 22.1604,
+            "longitude": 113.5592
+          }
+        }
+      }
+    </script>
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-754JZVPQB2"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -15,6 +102,13 @@
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <div style="padding:2rem;font-family:system-ui;color:#ddd;background:#111;min-height:100vh;">
+        <h1>Mini Map Macau</h1>
+        <p>互動式澳門公共交通 3D 即時模擬地圖，需要啟用 JavaScript 才能載入。</p>
+        <p>This site is an interactive real-time 3D map of Macau's public transit network. Please enable JavaScript.</p>
+      </div>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

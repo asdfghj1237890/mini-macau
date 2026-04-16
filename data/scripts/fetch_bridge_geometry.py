@@ -23,6 +23,14 @@ OVERPASS_MIRRORS = [
 ]
 OUTPUT_PATH = Path(__file__).parent.parent / "bus_reference" / "bridges.json"
 
+# Hand-picked approach coordinates on ordinary public roads just outside
+# the bridge's restricted zone. OSRM can route to these; it cannot route
+# to the bridge endpoints themselves (OSM tags bus/taxi only). These are
+# used as OSRM connection targets so route geometry ties into real roads
+# rather than snapping to an arbitrary nearby street.
+MACAU_APPROACH = [113.5467, 22.1925]
+TAIPA_APPROACH = [113.5510, 22.1625]
+
 
 QUERY = """
 [out:json][timeout:60];
@@ -30,6 +38,8 @@ QUERY = """
   way(22.14,113.53,22.21,113.57)["bridge"="yes"]["name"~"Carvalho"];
   way(22.14,113.53,22.21,113.57)["bridge"="yes"]["name:zh"~"嘉樂庇"];
   way(22.14,113.53,22.21,113.57)["bridge"="yes"]["name"~"嘉樂庇"];
+  way(22.186,113.541,22.194,113.549)["bridge"="yes"];
+  way(22.159,113.544,22.167,113.555)["bridge"="yes"];
 );
 (._;>;);
 out body;
@@ -52,23 +62,55 @@ def fetch_bridge() -> dict:
 
 
 def stitch_ways(elements: list[dict]) -> list[list[float]]:
-    """Combine all matching ways into a single ordered polyline.
+    """Combine all ways connected to the named main bridge into a single
+    ordered polyline.
 
     The Macau-Taipa Bridge is mapped as several parallel/overlapping ways
-    (carriageways per direction). Latitude is monotonic along the bridge,
-    so we collect every node and sort by latitude descending (Macau north
-    -> Taipa south), de-duplicating near-coincident neighbours.
+    plus short on-/off-ramp ways. Other grade-separated overpasses nearby
+    (e.g. Ferreira do Amaral roundabout) share the bbox but are NOT
+    connected. We do a connected-component filter: start from ways whose
+    name matches the bridge, then iteratively add any way sharing a node
+    with a kept way. Latitude is monotonic along the bridge+ramps, so we
+    then sort by latitude descending and dedup near-coincident nodes.
     """
     nodes = {}
-    way_node_ids: set[int] = set()
+    ways: list[dict] = []
     for el in elements:
         if el.get("type") == "node":
             nodes[el["id"]] = (el["lon"], el["lat"])
         elif el.get("type") == "way":
-            for nid in el.get("nodes", []):
-                way_node_ids.add(nid)
+            ways.append(el)
 
-    pts = [nodes[nid] for nid in way_node_ids if nid in nodes]
+    if not ways:
+        return []
+
+    def is_seed(w: dict) -> bool:
+        tags = w.get("tags", {})
+        name = tags.get("name", "") + " " + tags.get("name:zh", "")
+        return "Carvalho" in name or "嘉樂庇" in name
+
+    kept_ids: set[int] = {w["id"] for w in ways if is_seed(w)}
+    if not kept_ids:
+        return []
+
+    kept_nodes: set[int] = set()
+    for w in ways:
+        if w["id"] in kept_ids:
+            kept_nodes.update(w["nodes"])
+
+    changed = True
+    while changed:
+        changed = False
+        for w in ways:
+            if w["id"] in kept_ids:
+                continue
+            w_nodes = set(w["nodes"])
+            if w_nodes & kept_nodes:
+                kept_ids.add(w["id"])
+                kept_nodes.update(w_nodes)
+                changed = True
+
+    pts = [nodes[nid] for nid in kept_nodes if nid in nodes]
     if not pts:
         return []
 
@@ -116,6 +158,8 @@ def run():
             "coordinates": coords,
             "macau_end": macau_end,
             "taipa_end": taipa_end,
+            "macau_approach": MACAU_APPROACH,
+            "taipa_approach": TAIPA_APPROACH,
         }
     }
 
