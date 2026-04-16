@@ -52,11 +52,7 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
         7,
       ],
       'circle-color': ['get', 'color'],
-      'circle-opacity': [
-        'interpolate', ['linear'], ['zoom'],
-        16.4, 0.2,
-        16.9, ['case', ['==', ['get', 'type'], 'bus'], 0, 0.2],
-      ],
+      'circle-opacity': 0.2,
       'circle-blur': 0.5,
     },
   })
@@ -74,16 +70,8 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
       'circle-color': ['get', 'color'],
       'circle-stroke-width': 1.5,
       'circle-stroke-color': '#ffffff',
-      'circle-opacity': [
-        'interpolate', ['linear'], ['zoom'],
-        16.4, 1,
-        16.9, ['case', ['==', ['get', 'type'], 'bus'], 0, 1],
-      ],
-      'circle-stroke-opacity': [
-        'interpolate', ['linear'], ['zoom'],
-        16.4, 1,
-        16.9, ['case', ['==', ['get', 'type'], 'bus'], 0, 1],
-      ],
+      'circle-opacity': 1,
+      'circle-stroke-opacity': 1,
     },
   })
 
