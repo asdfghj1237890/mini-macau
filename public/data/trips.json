@@ -24826,6 +24826,64 @@
     "scheduleType": "mon_thu",
     "entries": [
       {
+        "stationId": "Stadium",
+        "arrivalMinutes": 390,
+        "departureMinutes": 390
+      },
+      {
+        "stationId": "Pai_Kok",
+        "arrivalMinutes": 391,
+        "departureMinutes": 391
+      },
+      {
+        "stationId": "Cotai_West",
+        "arrivalMinutes": 393,
+        "departureMinutes": 393
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 396,
+        "departureMinutes": 396
+      },
+      {
+        "stationId": "Union_Hospital",
+        "arrivalMinutes": 398,
+        "departureMinutes": 398
+      },
+      {
+        "stationId": "East_Asian_Games",
+        "arrivalMinutes": 400,
+        "departureMinutes": 400
+      },
+      {
+        "stationId": "Cotai_East",
+        "arrivalMinutes": 401,
+        "departureMinutes": 401
+      },
+      {
+        "stationId": "MUST",
+        "arrivalMinutes": 404,
+        "departureMinutes": 404
+      },
+      {
+        "stationId": "Airport",
+        "arrivalMinutes": 406,
+        "departureMinutes": 406
+      },
+      {
+        "stationId": "Taipa_Ferry_Terminal",
+        "arrivalMinutes": 408,
+        "departureMinutes": 408
+      }
+    ]
+  },
+  {
+    "id": "taipa_XF0001",
+    "lineId": "taipa",
+    "direction": "forward",
+    "scheduleType": "mon_thu",
+    "entries": [
+      {
         "stationId": "Cotai_West",
         "arrivalMinutes": 461,
         "departureMinutes": 461
@@ -24864,6 +24922,34 @@
         "stationId": "Taipa_Ferry_Terminal",
         "arrivalMinutes": 475,
         "departureMinutes": 475
+      }
+    ]
+  },
+  {
+    "id": "taipa_XF0002",
+    "lineId": "taipa",
+    "direction": "forward",
+    "scheduleType": "mon_thu",
+    "entries": [
+      {
+        "stationId": "Cotai_East",
+        "arrivalMinutes": 390,
+        "departureMinutes": 390
+      },
+      {
+        "stationId": "MUST",
+        "arrivalMinutes": 392,
+        "departureMinutes": 392
+      },
+      {
+        "stationId": "Airport",
+        "arrivalMinutes": 394,
+        "departureMinutes": 394
+      },
+      {
+        "stationId": "Taipa_Ferry_Terminal",
+        "arrivalMinutes": 396,
+        "departureMinutes": 396
       }
     ]
   },
@@ -65125,6 +65211,64 @@
     "scheduleType": "friday",
     "entries": [
       {
+        "stationId": "Stadium",
+        "arrivalMinutes": 390,
+        "departureMinutes": 390
+      },
+      {
+        "stationId": "Pai_Kok",
+        "arrivalMinutes": 391,
+        "departureMinutes": 391
+      },
+      {
+        "stationId": "Cotai_West",
+        "arrivalMinutes": 393,
+        "departureMinutes": 393
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 396,
+        "departureMinutes": 396
+      },
+      {
+        "stationId": "Union_Hospital",
+        "arrivalMinutes": 398,
+        "departureMinutes": 398
+      },
+      {
+        "stationId": "East_Asian_Games",
+        "arrivalMinutes": 400,
+        "departureMinutes": 400
+      },
+      {
+        "stationId": "Cotai_East",
+        "arrivalMinutes": 401,
+        "departureMinutes": 401
+      },
+      {
+        "stationId": "MUST",
+        "arrivalMinutes": 404,
+        "departureMinutes": 404
+      },
+      {
+        "stationId": "Airport",
+        "arrivalMinutes": 406,
+        "departureMinutes": 406
+      },
+      {
+        "stationId": "Taipa_Ferry_Terminal",
+        "arrivalMinutes": 408,
+        "departureMinutes": 408
+      }
+    ]
+  },
+  {
+    "id": "taipa_fri_XF0001",
+    "lineId": "taipa",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
         "stationId": "Cotai_West",
         "arrivalMinutes": 461,
         "departureMinutes": 461
@@ -65163,6 +65307,34 @@
         "stationId": "Taipa_Ferry_Terminal",
         "arrivalMinutes": 475,
         "departureMinutes": 475
+      }
+    ]
+  },
+  {
+    "id": "taipa_fri_XF0002",
+    "lineId": "taipa",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Cotai_East",
+        "arrivalMinutes": 390,
+        "departureMinutes": 390
+      },
+      {
+        "stationId": "MUST",
+        "arrivalMinutes": 392,
+        "departureMinutes": 392
+      },
+      {
+        "stationId": "Airport",
+        "arrivalMinutes": 394,
+        "departureMinutes": 394
+      },
+      {
+        "stationId": "Taipa_Ferry_Terminal",
+        "arrivalMinutes": 396,
+        "departureMinutes": 396
       }
     ]
   },
@@ -105807,6 +105979,64 @@
     "entries": [
       {
         "stationId": "Stadium",
+        "arrivalMinutes": 390,
+        "departureMinutes": 390
+      },
+      {
+        "stationId": "Pai_Kok",
+        "arrivalMinutes": 391,
+        "departureMinutes": 391
+      },
+      {
+        "stationId": "Cotai_West",
+        "arrivalMinutes": 393,
+        "departureMinutes": 393
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 396,
+        "departureMinutes": 396
+      },
+      {
+        "stationId": "Union_Hospital",
+        "arrivalMinutes": 398,
+        "departureMinutes": 398
+      },
+      {
+        "stationId": "East_Asian_Games",
+        "arrivalMinutes": 400,
+        "departureMinutes": 400
+      },
+      {
+        "stationId": "Cotai_East",
+        "arrivalMinutes": 401,
+        "departureMinutes": 401
+      },
+      {
+        "stationId": "MUST",
+        "arrivalMinutes": 404,
+        "departureMinutes": 404
+      },
+      {
+        "stationId": "Airport",
+        "arrivalMinutes": 406,
+        "departureMinutes": 406
+      },
+      {
+        "stationId": "Taipa_Ferry_Terminal",
+        "arrivalMinutes": 408,
+        "departureMinutes": 408
+      }
+    ]
+  },
+  {
+    "id": "taipa_ssh_XF0014",
+    "lineId": "taipa",
+    "direction": "forward",
+    "scheduleType": "sat_sun",
+    "entries": [
+      {
+        "stationId": "Stadium",
         "arrivalMinutes": 442,
         "departureMinutes": 442
       },
@@ -105858,7 +106088,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XF0014",
+    "id": "taipa_ssh_XF0015",
     "lineId": "taipa",
     "direction": "forward",
     "scheduleType": "sat_sun",
@@ -105916,7 +106146,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XF0015",
+    "id": "taipa_ssh_XF0016",
     "lineId": "taipa",
     "direction": "forward",
     "scheduleType": "sat_sun",
@@ -105974,7 +106204,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XF0016",
+    "id": "taipa_ssh_XF0017",
     "lineId": "taipa",
     "direction": "forward",
     "scheduleType": "sat_sun",
@@ -106032,7 +106262,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XF0017",
+    "id": "taipa_ssh_XF0018",
     "lineId": "taipa",
     "direction": "forward",
     "scheduleType": "sat_sun",
@@ -106090,7 +106320,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XF0018",
+    "id": "taipa_ssh_XF0019",
     "lineId": "taipa",
     "direction": "forward",
     "scheduleType": "sat_sun",
@@ -106134,6 +106364,34 @@
         "stationId": "Taipa_Ferry_Terminal",
         "arrivalMinutes": 475,
         "departureMinutes": 475
+      }
+    ]
+  },
+  {
+    "id": "taipa_ssh_XF0020",
+    "lineId": "taipa",
+    "direction": "forward",
+    "scheduleType": "sat_sun",
+    "entries": [
+      {
+        "stationId": "Cotai_East",
+        "arrivalMinutes": 390,
+        "departureMinutes": 390
+      },
+      {
+        "stationId": "MUST",
+        "arrivalMinutes": 392,
+        "departureMinutes": 392
+      },
+      {
+        "stationId": "Airport",
+        "arrivalMinutes": 394,
+        "departureMinutes": 394
+      },
+      {
+        "stationId": "Taipa_Ferry_Terminal",
+        "arrivalMinutes": 396,
+        "departureMinutes": 396
       }
     ]
   },
