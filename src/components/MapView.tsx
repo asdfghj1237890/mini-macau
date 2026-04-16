@@ -164,12 +164,15 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   const transitRef = useRef(transitData)
   const trackedRef = useRef(trackedVehicleId)
   const prevTrackedRef = useRef<string | null>(null)
+  const flyingUntilRef = useRef(0)
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
 
   useEffect(() => {
     let raf: number
     const TRACK_ZOOM = 16
+    const FLY_DURATION = 1200
+
     const animate = () => {
       const map = mapRef.current
       const td = transitRef.current
@@ -183,14 +186,17 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
           const tracked = vehicles.find(v => v.id === tid)
           if (tracked) {
             const isNewTrack = prevTrackedRef.current !== tid
+            const now = performance.now()
+
             if (isNewTrack) {
               prevTrackedRef.current = tid
+              flyingUntilRef.current = now + FLY_DURATION
               map.flyTo({
                 center: [tracked.coordinates[0], tracked.coordinates[1]],
-                zoom: TRACK_ZOOM,
-                duration: 1000,
+                zoom: Math.max(map.getZoom(), TRACK_ZOOM),
+                duration: FLY_DURATION,
               })
-            } else {
+            } else if (now > flyingUntilRef.current) {
               map.setCenter([tracked.coordinates[0], tracked.coordinates[1]])
             }
           }
