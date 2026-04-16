@@ -74,7 +74,7 @@ def stitch_ways(elements: list[dict]) -> list[list[float]]:
 
     pts.sort(key=lambda p: -p[1])
 
-    DEDUP_M = 8.0
+    DEDUP_M = 1.5
     METERS_PER_DEG_LAT = 111320.0
     deduped: list[tuple[float, float]] = []
     for p in pts:

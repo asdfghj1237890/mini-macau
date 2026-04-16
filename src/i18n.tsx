@@ -41,10 +41,12 @@ const translations = {
     towards: 'Towards',
     departed: 'Departed',
     dwelling: 'At station',
-    scheduleMonThu: 'Mon–Thu',
-    scheduleFriday: 'Friday',
-    scheduleSatSun: 'Sat/Sun/Holiday',
+    scheduleMonThu: 'Mon–Thu schedule',
+    scheduleFriday: 'Friday schedule',
+    scheduleSatSun: 'Weekend / holiday schedule',
     clickToSetTime: 'Click to set time',
+    apply: 'Apply',
+    cancel: 'Cancel',
   },
   zh: {
     lrtLines: '輕軌路線',
@@ -82,10 +84,12 @@ const translations = {
     towards: '開往',
     departed: '已離站',
     dwelling: '停站中',
-    scheduleMonThu: '週一至週四',
-    scheduleFriday: '週五',
-    scheduleSatSun: '週六日及公眾假期',
+    scheduleMonThu: '平日班次',
+    scheduleFriday: '週五班次',
+    scheduleSatSun: '假日班次',
     clickToSetTime: '點擊設定時間',
+    apply: '套用',
+    cancel: '取消',
   },
   pt: {
     lrtLines: 'Linhas MLM',
@@ -123,10 +127,12 @@ const translations = {
     towards: 'Direcção',
     departed: 'Partiu',
     dwelling: 'Na estação',
-    scheduleMonThu: 'Seg–Qui',
-    scheduleFriday: 'Sexta',
-    scheduleSatSun: 'Sáb/Dom/Feriado',
+    scheduleMonThu: 'Horário Seg–Qui',
+    scheduleFriday: 'Horário Sex',
+    scheduleSatSun: 'Horário fim-de-semana',
     clickToSetTime: 'Clique para definir a hora',
+    apply: 'Aplicar',
+    cancel: 'Cancelar',
   },
 }
 
@@ -170,6 +176,8 @@ interface Translations {
   scheduleFriday: string
   scheduleSatSun: string
   clickToSetTime: string
+  apply: string
+  cancel: string
 }
 
 interface I18nContextValue {
