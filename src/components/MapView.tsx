@@ -166,6 +166,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   const prevTrackedRef = useRef<string | null>(null)
   const flyingUntilRef = useRef(0)
   const userInteractingUntilRef = useRef(0)
+  const wasUserBusyRef = useRef(false)
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
 
@@ -173,7 +174,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
     const map = mapRef.current
     if (!map) return
 
-    const PAUSE_MS = 400
+    const PAUSE_MS = 500
     const markInteracting = () => {
       userInteractingUntilRef.current = performance.now() + PAUSE_MS
     }
@@ -182,13 +183,11 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
     canvas.addEventListener('wheel', markInteracting, { passive: true })
     canvas.addEventListener('mousedown', markInteracting)
     canvas.addEventListener('touchstart', markInteracting, { passive: true })
-    map.on('zoomstart', markInteracting)
 
     return () => {
       canvas.removeEventListener('wheel', markInteracting)
       canvas.removeEventListener('mousedown', markInteracting)
       canvas.removeEventListener('touchstart', markInteracting)
-      map.off('zoomstart', markInteracting)
     }
   }, [transitData.lrtLines.length, isDark, lang])
 
@@ -196,6 +195,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
     let raf: number
     const TRACK_ZOOM = 16
     const FLY_DURATION = 1200
+    const EASE_BACK_DURATION = 400
 
     const animate = () => {
       const map = mapRef.current
@@ -212,6 +212,8 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
             const isNewTrack = prevTrackedRef.current !== tid
             const now = performance.now()
             const userBusy = now < userInteractingUntilRef.current
+            const justResumed = wasUserBusyRef.current && !userBusy
+            wasUserBusyRef.current = userBusy
 
             if (isNewTrack) {
               prevTrackedRef.current = tid
@@ -222,7 +224,15 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
                 duration: FLY_DURATION,
               })
             } else if (now > flyingUntilRef.current && !userBusy) {
-              map.setCenter([tracked.coordinates[0], tracked.coordinates[1]])
+              if (justResumed) {
+                flyingUntilRef.current = now + EASE_BACK_DURATION
+                map.easeTo({
+                  center: [tracked.coordinates[0], tracked.coordinates[1]],
+                  duration: EASE_BACK_DURATION,
+                })
+              } else {
+                map.setCenter([tracked.coordinates[0], tracked.coordinates[1]])
+              }
             }
           }
         } else if (prevTrackedRef.current !== null) {
