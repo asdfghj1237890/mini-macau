@@ -95,6 +95,7 @@ export default function App() {
       <VehicleInfoPanel
         vehicle={selectedVehicle}
         transitData={filteredTransitData}
+        clock={clock}
         onClose={clearSelection}
       />
       <StationInfoPanel
