@@ -22,6 +22,7 @@ const translations = {
     pause: 'Pause',
     showAll: 'Show All',
     hideAll: 'Hide All',
+    autoByTime: 'By service hours',
     type: 'Type',
     lrt: 'LRT',
     bus: 'Bus',
@@ -62,6 +63,7 @@ const translations = {
     pause: '暫停',
     showAll: '顯示全部',
     hideAll: '隱藏全部',
+    autoByTime: '按營運時間',
     type: '類型',
     lrt: '輕軌',
     bus: '巴士',
@@ -102,6 +104,7 @@ const translations = {
     pause: 'Pausa',
     showAll: 'Mostrar Tudo',
     hideAll: 'Ocultar Tudo',
+    autoByTime: 'Por horário',
     type: 'Tipo',
     lrt: 'MLM',
     bus: 'Autocarro',
@@ -144,6 +147,7 @@ interface Translations {
   pause: string
   showAll: string
   hideAll: string
+  autoByTime: string
   type: string
   lrt: string
   bus: string
