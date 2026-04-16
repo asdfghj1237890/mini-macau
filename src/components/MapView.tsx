@@ -165,8 +165,32 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   const trackedRef = useRef(trackedVehicleId)
   const prevTrackedRef = useRef<string | null>(null)
   const flyingUntilRef = useRef(0)
+  const userInteractingUntilRef = useRef(0)
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    const PAUSE_MS = 400
+    const markInteracting = () => {
+      userInteractingUntilRef.current = performance.now() + PAUSE_MS
+    }
+
+    const canvas = map.getCanvas()
+    canvas.addEventListener('wheel', markInteracting, { passive: true })
+    canvas.addEventListener('mousedown', markInteracting)
+    canvas.addEventListener('touchstart', markInteracting, { passive: true })
+    map.on('zoomstart', markInteracting)
+
+    return () => {
+      canvas.removeEventListener('wheel', markInteracting)
+      canvas.removeEventListener('mousedown', markInteracting)
+      canvas.removeEventListener('touchstart', markInteracting)
+      map.off('zoomstart', markInteracting)
+    }
+  }, [transitData.lrtLines.length, isDark, lang])
 
   useEffect(() => {
     let raf: number
@@ -187,6 +211,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
           if (tracked) {
             const isNewTrack = prevTrackedRef.current !== tid
             const now = performance.now()
+            const userBusy = now < userInteractingUntilRef.current
 
             if (isNewTrack) {
               prevTrackedRef.current = tid
@@ -196,7 +221,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
                 zoom: Math.max(map.getZoom(), TRACK_ZOOM),
                 duration: FLY_DURATION,
               })
-            } else if (now > flyingUntilRef.current) {
+            } else if (now > flyingUntilRef.current && !userBusy) {
               map.setCenter([tracked.coordinates[0], tracked.coordinates[1]])
             }
           }
