@@ -163,11 +163,13 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
 
   const transitRef = useRef(transitData)
   const trackedRef = useRef(trackedVehicleId)
+  const prevTrackedRef = useRef<string | null>(null)
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
 
   useEffect(() => {
     let raf: number
+    const TRACK_ZOOM = 16
     const animate = () => {
       const map = mapRef.current
       const td = transitRef.current
@@ -180,11 +182,20 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
         if (tid) {
           const tracked = vehicles.find(v => v.id === tid)
           if (tracked) {
-            map.easeTo({
-              center: [tracked.coordinates[0], tracked.coordinates[1]],
-              duration: 200,
-            })
+            const isNewTrack = prevTrackedRef.current !== tid
+            if (isNewTrack) {
+              prevTrackedRef.current = tid
+              map.flyTo({
+                center: [tracked.coordinates[0], tracked.coordinates[1]],
+                zoom: TRACK_ZOOM,
+                duration: 1000,
+              })
+            } else {
+              map.setCenter([tracked.coordinates[0], tracked.coordinates[1]])
+            }
           }
+        } else if (prevTrackedRef.current !== null) {
+          prevTrackedRef.current = null
         }
       }
       raf = requestAnimationFrame(animate)
