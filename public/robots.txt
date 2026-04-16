@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mini-map-macau.app/sitemap.xml

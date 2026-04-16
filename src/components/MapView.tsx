@@ -116,7 +116,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   const [showBuildings, setShowBuildings] = useState(true)
   const [isDark, setIsDark] = useState(true)
   const [zoom, setZoom] = useState<number>(MACAU_ZOOM)
-  const { lang, toggleLang } = useI18n()
+  const { lang, setLang } = useI18n()
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -607,13 +607,42 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
         >
           {isDark ? '☀' : '🌙'}
         </button>
-        <button
-          onClick={toggleLang}
-          className="bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm
-                     hover:bg-black/90 transition-colors backdrop-blur-sm border border-white/20"
-        >
-          {lang === 'zh' ? 'PT' : lang === 'pt' ? 'EN' : '中文'}
-        </button>
+        <div className="relative group">
+          <button
+            aria-haspopup="listbox"
+            aria-label="language"
+            className="bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm
+                       hover:bg-black/90 transition-colors backdrop-blur-sm border border-white/20
+                       group-hover:bg-black/90 group-focus-within:bg-black/90"
+          >
+            {lang === 'zh' ? '中文' : lang === 'pt' ? 'PT' : 'EN'}
+            <span className="ml-1 text-white/40 text-[10px] inline-block">▾</span>
+          </button>
+          <div
+            role="listbox"
+            className="absolute top-full right-0 mt-1 flex flex-col gap-1
+                       bg-black/85 backdrop-blur-sm border border-white/20 rounded-lg p-1
+                       min-w-full opacity-0 translate-y-[-4px] pointer-events-none
+                       group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto
+                       group-focus-within:opacity-100 group-focus-within:translate-y-0 group-focus-within:pointer-events-auto
+                       transition-all duration-150"
+          >
+            {(['zh', 'pt', 'en'] as const)
+              .filter(l => l !== lang)
+              .map(l => (
+                <button
+                  key={l}
+                  role="option"
+                  aria-selected={false}
+                  onClick={() => setLang(l)}
+                  className="px-3 py-1 text-sm text-white/80 hover:bg-white/10 hover:text-white
+                             rounded text-left transition-colors"
+                >
+                  {l === 'zh' ? '中文' : l === 'pt' ? 'PT' : 'EN'}
+                </button>
+              ))}
+          </div>
+        </div>
       </div>
     </>
   )

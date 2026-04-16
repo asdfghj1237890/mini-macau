@@ -128,29 +128,32 @@ def osrm_or_straight(a: list[float], b: list[float]) -> list[list[float]]:
 def replace_run(
     coords: list[list[float]],
     run: tuple[int, int],
-    bridge_coords: list[list[float]],
+    bridge_polyline: list[list[float]],
+    macau_approach: list[float],
+    taipa_approach: list[float],
 ) -> list[list[float]]:
     """Replace coords[run[0]..run[1]] with bridge-correct path.
 
-    Anchors are picked as the points just outside the channel that are
-    closest to the corresponding bridge endpoint, searched within a
-    window. OSRM routes from each anchor to the bridge end.
+    OSRM targets are the approach points (on ordinary roads just outside
+    the bridge's restricted zone), NOT the bridge endpoints themselves.
+    OSRM cannot snap to the bridge (tagged motor_vehicle=no) so it would
+    otherwise snap to an arbitrary nearby street and produce a visible
+    offset. The bridge polyline already starts/ends at approach points
+    (extended at load time), so leg_in->bridge->leg_out is continuous.
     """
     start, end = run
 
     prev_lat = coords[start - 1][1]
-    macau_end = bridge_coords[0]
-    taipa_end = bridge_coords[-1]
 
-    # Direction based on which side the pre-bracket is on
     if prev_lat > CHANNEL_LAT_NORTH:
-        pre_target, post_target = macau_end, taipa_end
-        bridge_directed = list(bridge_coords)
+        pre_target = macau_approach
+        post_target = taipa_approach
+        bridge_directed = list(bridge_polyline)
     else:
-        pre_target, post_target = taipa_end, macau_end
-        bridge_directed = list(reversed(bridge_coords))
+        pre_target = taipa_approach
+        post_target = macau_approach
+        bridge_directed = list(reversed(bridge_polyline))
 
-    # Search closest point to pre_target in window before the run
     anchor_pre_idx = start - 1
     best_d = dist_m2(coords[anchor_pre_idx], pre_target)
     for i in range(max(0, start - ANCHOR_SEARCH_WINDOW), start):
@@ -159,7 +162,6 @@ def replace_run(
             best_d = d
             anchor_pre_idx = i
 
-    # Search closest point to post_target in window after the run
     anchor_post_idx = end + 1
     best_d = dist_m2(coords[anchor_post_idx], post_target)
     for i in range(end + 1, min(len(coords), end + 1 + ANCHOR_SEARCH_WINDOW)):
@@ -185,7 +187,12 @@ def replace_run(
     return coords[:anchor_pre_idx] + new_segment + coords[anchor_post_idx + 1 :]
 
 
-def patch_route(route: dict, bridge_coords: list[list[float]]) -> bool:
+def patch_route(
+    route: dict,
+    bridge_polyline: list[list[float]],
+    macau_approach: list[float],
+    taipa_approach: list[float],
+) -> bool:
     """Mutate route['geometry']['geometry']['coordinates'] in place.
 
     Returns True if the route was modified.
@@ -201,7 +208,7 @@ def patch_route(route: dict, bridge_coords: list[list[float]]) -> bool:
 
     print(f"    {len(runs)} channel run(s)")
     for run in reversed(runs):
-        coords = replace_run(coords, run, bridge_coords)
+        coords = replace_run(coords, run, bridge_polyline, macau_approach, taipa_approach)
 
     route["geometry"]["geometry"]["coordinates"] = coords
     return True
@@ -211,7 +218,10 @@ def run():
     bridges, bridge_routes, routes = load_inputs()
 
     bridge = bridges["macau_taipa_bridge"]
-    bridge_coords = densify(bridge["coordinates"], BRIDGE_DENSIFY_M)
+    macau_approach = bridge["macau_approach"]
+    taipa_approach = bridge["taipa_approach"]
+    bridge_polyline_raw = [macau_approach] + bridge["coordinates"] + [taipa_approach]
+    bridge_polyline = densify(bridge_polyline_raw, BRIDGE_DENSIFY_M)
     target_route_ids = set(bridge_routes.get("macau_taipa_bridge", []))
 
     if not target_route_ids:
@@ -219,7 +229,7 @@ def run():
         return
 
     print(f"Patching {len(target_route_ids)} routes via Macau-Taipa Bridge")
-    print(f"  Bridge has {len(bridge_coords)} coordinates")
+    print(f"  Bridge polyline (with approaches) has {len(bridge_polyline)} coordinates")
 
     by_id = {r["id"]: r for r in routes}
     patched = 0
@@ -229,7 +239,7 @@ def run():
             missing.append(rid)
             continue
         print(f"  Route {rid}:")
-        if patch_route(by_id[rid], bridge_coords):
+        if patch_route(by_id[rid], bridge_polyline, macau_approach, taipa_approach):
             patched += 1
 
     out_path = PUBLIC_DIR / "bus-routes.json"
