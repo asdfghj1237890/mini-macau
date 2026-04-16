@@ -132,18 +132,30 @@ function computeBusVehicles(
     const minutesSinceStart = nowMinutes - route.serviceHoursStart * 60
     const numVehicles = Math.max(1, Math.floor(tripDuration / route.frequency))
 
+    const isCircular = route.routeType === 'circular'
+
     for (let v = 0; v < numVehicles; v++) {
       const offset = (v * route.frequency)
       const elapsed = minutesSinceStart - offset
       if (elapsed < 0) continue
 
-      const cycleTime = tripDuration * 2
-      const cyclePos = elapsed % cycleTime
       let progress: number
-      if (cyclePos <= tripDuration) {
-        progress = cyclePos / tripDuration
+      if (isCircular) {
+        // Circular routes: direction-0 geometry is a full M -> T -> M
+        // loop already, so buses just advance forward and wrap. Bouncing
+        // here would traverse the east Y-arm upward (wrong direction)
+        // and the west Y-arm downward (wrong direction).
+        progress = (elapsed % tripDuration) / tripDuration
       } else {
-        progress = 1 - (cyclePos - tripDuration) / tripDuration
+        // Bilateral routes: direction-0 geometry is one-way. Simulate the
+        // return trip by bouncing back through the same geometry.
+        const cycleTime = tripDuration * 2
+        const cyclePos = elapsed % cycleTime
+        if (cyclePos <= tripDuration) {
+          progress = cyclePos / tripDuration
+        } else {
+          progress = 1 - (cyclePos - tripDuration) / tripDuration
+        }
       }
       progress = Math.max(0, Math.min(1, progress))
 
