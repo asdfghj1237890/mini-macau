@@ -1,10 +1,17 @@
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { VehiclePosition } from '../types'
+import type { Lang } from '../i18n'
 
 const SOURCE_ID = 'vehicles-source'
 const CIRCLE_LAYER_ID = 'vehicles-circle'
 const LABEL_LAYER_ID = 'vehicles-label'
 const PULSE_LAYER_ID = 'vehicles-pulse'
+
+const LINE_LABELS: Record<string, { en: string; zh: string }> = {
+  taipa: { en: 'Taipa', zh: '氹仔' },
+  seac_pai_van: { en: 'SPV', zh: '石排灣' },
+  hengqin: { en: 'Hengqin', zh: '橫琴' },
+}
 
 function vehiclesToGeoJson(vehicles: VehiclePosition[]): GeoJSON.FeatureCollection {
   return {
@@ -21,12 +28,14 @@ function vehiclesToGeoJson(vehicles: VehiclePosition[]): GeoJSON.FeatureCollecti
         type: v.type,
         color: v.color,
         bearing: v.bearing,
+        labelEn: LINE_LABELS[v.lineId]?.en ?? v.lineId,
+        labelZh: LINE_LABELS[v.lineId]?.zh ?? v.lineId,
       },
     })),
   }
 }
 
-export function addVehicleLayers(map: MapLibreMap) {
+export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
   map.addSource(SOURCE_ID, {
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] },
@@ -70,7 +79,7 @@ export function addVehicleLayers(map: MapLibreMap) {
     source: SOURCE_ID,
     filter: ['==', ['get', 'type'], 'lrt'],
     layout: {
-      'text-field': ['get', 'lineId'],
+      'text-field': ['get', lang === 'zh' ? 'labelZh' : 'labelEn'],
       'text-size': 8,
       'text-offset': [0, -1.5],
       'text-anchor': 'bottom',
