@@ -200,13 +200,12 @@ def patch_route(
     if len(coords) < 2:
         return False
 
-    # Idempotency guard: if the geometry already contains a hand-drawn Y-arm
-    # signature point (a specific mid-arm coord that never appears in
-    # OSRM-native Macau roads), skip to avoid double-patching.
-    sig_lng, sig_lat = 113.54402, 22.18822
+    # Idempotency guard: user-provided Y-junction has unique precision
+    # that never appears in OSRM-native coords.
+    sig_lng, sig_lat = 113.54378841447661, 22.187214667083378
     for c in coords:
-        if abs(c[0] - sig_lng) < 1e-6 and abs(c[1] - sig_lat) < 1e-6:
-            print(f"    skip: already patched (Y-arm signature found)")
+        if abs(c[0] - sig_lng) < 1e-9 and abs(c[1] - sig_lat) < 1e-9:
+            print(f"    skip: already patched (Y-junction signature found)")
             return False
 
     runs = find_channel_runs(coords)
@@ -232,23 +231,28 @@ def run():
     macau_approach = bridge["macau_approach"]
     taipa_approach = bridge["taipa_approach"]
     bridge_span = bridge["coordinates"]
-    macau_east_arm_down = bridge["macau_east_arm_down"]
-    macau_west_arm_up = bridge["macau_west_arm_up"]
+    sb_roundabout = bridge["macau_sb_roundabout"]
+    nb_roundabout = bridge["macau_nb_roundabout"]
+    y_up = bridge["macau_y_up"]
+    y_down = bridge["macau_y_down"]
+    y_junction = bridge["macau_y_junction"]
     taipa_ramp = bridge["taipa_ramp"]
 
-    # South-bound (Macau -> Taipa): approach -> east Y-arm -> 橋端點 ->
-    # bridge span -> Taipa ramp -> Taipa approach
+    # South-bound (Macau -> Taipa): terminal -> roundabout CW north->south
+    # -> 上橋位 -> 橋端點 -> bridge span -> Taipa ramp -> Taipa approach
     polyline_south_raw = (
-        list(macau_east_arm_down)
+        list(sb_roundabout)
+        + [y_up, y_junction]
         + list(bridge_span)
         + list(taipa_ramp[1:])
     )
-    # North-bound (Taipa -> Macau): reverse of taipa ramp + reversed bridge
-    # span + west Y-arm up + approach
+    # North-bound (Taipa -> Macau): reverse taipa ramp -> reversed bridge
+    # span -> 橋端點 -> 下橋位 -> roundabout CW SW->NW -> terminal
     polyline_north_raw = (
         list(reversed(taipa_ramp))
         + list(reversed(bridge_span))[1:]
-        + list(macau_west_arm_up[1:])
+        + [y_junction, y_down]
+        + list(nb_roundabout)
     )
 
     polyline_south = densify(polyline_south_raw, BRIDGE_DENSIFY_M)
