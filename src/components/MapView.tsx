@@ -122,7 +122,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, tr
         })
       }
 
-      addVehicleLayers(map)
+      addVehicleLayers(map, lang)
       layersAddedRef.current = true
 
       map.on('click', 'vehicles-circle', (e) => {
