@@ -80,6 +80,7 @@ export default function App() {
         transitData={filteredTransitData}
         onVehicleClick={onVehicleClick}
         onStationClick={onStationClick}
+        onClearSelection={clearSelection}
         trackedVehicleId={trackedVehicleId}
       />
       <TimeDisplay clock={clock} vehicleCount={vehicleCountRef.current} />
