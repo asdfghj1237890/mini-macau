@@ -81,6 +81,7 @@ export interface SimulationClock {
   setSpeed: (s: number) => void
   togglePause: () => void
   reset: () => void
+  setTime: (date: Date) => void
 }
 
 export interface StationProgress {

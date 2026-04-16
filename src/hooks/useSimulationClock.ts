@@ -40,5 +40,11 @@ export function useSimulationClock(): SimulationClock {
     lastTickRef.current = performance.now()
   }, [])
 
-  return { currentTime: displayTime, timeRef, speed, paused, setSpeed, togglePause, reset }
+  const setTime = useCallback((date: Date) => {
+    timeRef.current = date
+    setDisplayTime(date)
+    lastTickRef.current = performance.now()
+  }, [])
+
+  return { currentTime: displayTime, timeRef, speed, paused, setSpeed, togglePause, reset, setTime }
 }
