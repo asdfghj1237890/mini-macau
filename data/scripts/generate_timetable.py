@@ -23,15 +23,16 @@ TAIPA_STATIONS = [
     "Cotai_West", "Lotus", "Union_Hospital", "East_Asian_Games",
     "Cotai_East", "MUST", "Airport", "Taipa_Ferry_Terminal",
 ]
-# Segment travel times (minutes). Barra→Ocean = 4 min (Sai Van Bridge).
-# Remaining 11 segments = 2 min each. Total travel = 4 + 22 = 26 min.
-# Verified against intermediate station timetables (Stadium, Pai Kok, etc.):
+# Segment travel times (departure-to-departure, minutes).
+# Barra→Ocean = 4 (Sai Van Bridge), Ocean→JC = 2, JC→Stadium = 3,
+# all remaining = 2 each. Sum = 27 min.
+# Verified against ALL intermediate station timetable images:
 # Barra 06:30 → Ocean 06:34 → JC 06:36 → Stadium 06:39 → PK 06:41 →
 # CW 06:43 → Lotus 06:45 → UH 06:47 → EAG 06:49 → CE 06:51 →
 # MUST 06:53 → Airport 06:55 → TFT ~06:57
-# Dwell 0.1 min (6 sec) × 11 intermediate = 1.1 min → total ~27.1 min
-TAIPA_SEGMENT_TIMES = [4, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]
-TAIPA_DWELL = 0.1
+# Dwell 0.05 min (3 sec) keeps accumulation negligible (11 × 0.05 = 0.55 min).
+TAIPA_SEGMENT_TIMES = [4, 2, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2]
+TAIPA_DWELL = 0.05
 TAIPA_TERMINAL_DWELL = 0.0
 
 # EXACT departures from Barra → TFT, Mon-Thu (from TT_BAR_2026.jpg, updated 2026.02)
