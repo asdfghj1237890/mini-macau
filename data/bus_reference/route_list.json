@@ -1,0 +1,370 @@
+[
+  {
+    "id": "1",
+    "description": "關閘 - 媽閣"
+  },
+  {
+    "id": "1A",
+    "description": "筷子基街 - 新口岸／科英布拉街"
+  },
+  {
+    "id": "2",
+    "description": "永寧廣場 - 媽閣"
+  },
+  {
+    "id": "2A",
+    "description": "東城第三街 - 亞馬喇前地"
+  },
+  {
+    "id": "2AS",
+    "description": "黑沙環衛生中心 - 亞馬喇前地"
+  },
+  {
+    "id": "3",
+    "description": "關閘 - 外港碼頭"
+  },
+  {
+    "id": "3A",
+    "description": "司打口 - 關閘"
+  },
+  {
+    "id": "3AX",
+    "description": "關閘 - 亞馬喇前地快線"
+  },
+  {
+    "id": "3X",
+    "description": "關閘 - 亞馬喇前地快線"
+  },
+  {
+    "id": "4",
+    "description": "筷子基 - 新馬路"
+  },
+  {
+    "id": "5",
+    "description": "媽閣 - 華大新村"
+  },
+  {
+    "id": "5X",
+    "description": "青洲坊 - 皇朝快線"
+  },
+  {
+    "id": "6A",
+    "description": "永寧廣場 - 山頂醫院"
+  },
+  {
+    "id": "6B",
+    "description": "媽閣 - 山頂醫院"
+  },
+  {
+    "id": "7",
+    "description": "東方明珠街 - 城市日前地"
+  },
+  {
+    "id": "8",
+    "description": "工業園街 - 回力"
+  },
+  {
+    "id": "8A",
+    "description": "工業園街 - 亞馬喇前地"
+  },
+  {
+    "id": "9",
+    "description": "牧場街 - 媽閣"
+  },
+  {
+    "id": "9A",
+    "description": "青茂 - 旅遊塔"
+  },
+  {
+    "id": "10",
+    "description": "關閘 - 媽閣"
+  },
+  {
+    "id": "10B",
+    "description": "馬場大馬路 - 殷皇子馬路"
+  },
+  {
+    "id": "11",
+    "description": "媽閣 - 氹仔官也街"
+  },
+  {
+    "id": "12",
+    "description": "永寧廣場 - 外港碼頭"
+  },
+  {
+    "id": "15",
+    "description": "海洋花園 - 九澳油庫"
+  },
+  {
+    "id": "16",
+    "description": "牧場街 - 下環街市"
+  },
+  {
+    "id": "16S",
+    "description": "牧場街 - 媽閣"
+  },
+  {
+    "id": "17",
+    "description": "白鴿巢 - 宋玉生廣場"
+  },
+  {
+    "id": "17S",
+    "description": "新口岸／科英布拉街 - 關閘"
+  },
+  {
+    "id": "18",
+    "description": "牧場街 - 媽閣"
+  },
+  {
+    "id": "18A",
+    "description": "東方明珠街 - 新馬路"
+  },
+  {
+    "id": "18B",
+    "description": "永定街 - 媽閣"
+  },
+  {
+    "id": "19",
+    "description": "永寧廣場 - 新馬路"
+  },
+  {
+    "id": "21A",
+    "description": "媽閣 - 九澳油庫"
+  },
+  {
+    "id": "22",
+    "description": "祐漢第二街 - 柯維納馬路"
+  },
+  {
+    "id": "23",
+    "description": "青洲 - 旅遊塔"
+  },
+  {
+    "id": "25",
+    "description": "關閘 - 路環市區"
+  },
+  {
+    "id": "25AX",
+    "description": "關閘 - 蝴蝶谷大馬路快線"
+  },
+  {
+    "id": "25B",
+    "description": "關閘 - 橫琴澳方口岸"
+  },
+  {
+    "id": "25BS",
+    "description": "橫琴澳方口岸 - 望德聖母灣"
+  },
+  {
+    "id": "26",
+    "description": "筷子基北灣 - 路環市區"
+  },
+  {
+    "id": "26A",
+    "description": "筷子基北灣 - 黑沙海灘"
+  },
+  {
+    "id": "27",
+    "description": "望廈 - 青洲"
+  },
+  {
+    "id": "28A",
+    "description": "外港碼頭 - 柯維納馬路"
+  },
+  {
+    "id": "28B",
+    "description": "青洲 - 媽閣"
+  },
+  {
+    "id": "28C",
+    "description": "回力 - 騎士馬路"
+  },
+  {
+    "id": "29",
+    "description": "城市日前地 - 青洲"
+  },
+  {
+    "id": "30",
+    "description": "青洲坊 - 氹仔中央公園"
+  },
+  {
+    "id": "30X",
+    "description": "關閘 - 望德聖母灣快線"
+  },
+  {
+    "id": "32",
+    "description": "筷子基 - 旅遊塔"
+  },
+  {
+    "id": "33",
+    "description": "筷子基 - 柯維納馬路"
+  },
+  {
+    "id": "34",
+    "description": "青洲坊 - 海洋花園"
+  },
+  {
+    "id": "35",
+    "description": "蘇利安圓形地 - 澳門協和醫院"
+  },
+  {
+    "id": "36",
+    "description": "蘇利安圓形地 - 澳門機場"
+  },
+  {
+    "id": "37",
+    "description": "松樹尾 - 信安馬路"
+  },
+  {
+    "id": "39",
+    "description": "新口岸／科英布拉街 - 湖畔大廈"
+  },
+  {
+    "id": "50",
+    "description": "城市日前地 - 路環市區"
+  },
+  {
+    "id": "50B",
+    "description": "城市日前地 - 駕考中心"
+  },
+  {
+    "id": "51",
+    "description": "蝴蝶谷大馬路 - 關閘"
+  },
+  {
+    "id": "51A",
+    "description": "海擎天 - 蝴蝶谷大馬路"
+  },
+  {
+    "id": "51X",
+    "description": "關閘 - 蝴蝶谷大馬路快線"
+  },
+  {
+    "id": "52",
+    "description": "蝴蝶谷大馬路 - 亞馬喇前地"
+  },
+  {
+    "id": "55",
+    "description": "蝴蝶谷大馬路 - 司打口"
+  },
+  {
+    "id": "56",
+    "description": "蝴蝶谷大馬路 - 高士德"
+  },
+  {
+    "id": "59",
+    "description": "關閘 - 聯生圓形地"
+  },
+  {
+    "id": "60",
+    "description": "外港碼頭 - 司打口"
+  },
+  {
+    "id": "61",
+    "description": "媽閣 - 關閘"
+  },
+  {
+    "id": "65",
+    "description": "牧場街 - 司打口"
+  },
+  {
+    "id": "71",
+    "description": "澳門大學 - 亞馬喇前地"
+  },
+  {
+    "id": "71S",
+    "description": "澳門大學 - 俾若翰街／快富樓"
+  },
+  {
+    "id": "72",
+    "description": "澳門大學 - 湖畔大廈"
+  },
+  {
+    "id": "73",
+    "description": "澳門大學 - 黑沙環衛生中心"
+  },
+  {
+    "id": "101",
+    "description": "港珠澳大橋邊檢大樓 - 亞馬喇前地"
+  },
+  {
+    "id": "102",
+    "description": "港珠澳大橋邊檢大樓 - 橫琴澳方口岸"
+  },
+  {
+    "id": "103",
+    "description": "氹仔客運碼頭 - 祐漢"
+  },
+  {
+    "id": "701X",
+    "description": "澳門大學 - 望德聖母灣快線"
+  },
+  {
+    "id": "701XS",
+    "description": "澳門大學 - 橫琴澳方口岸快線"
+  },
+  {
+    "id": "AP1",
+    "description": "青茂 - 澳門機場"
+  },
+  {
+    "id": "AP1X",
+    "description": "關閘 - 澳門機場快線"
+  },
+  {
+    "id": "H1",
+    "description": "山頂醫院 - 水坑尾"
+  },
+  {
+    "id": "H2",
+    "description": "俾若翰街／快富樓 - 山頂醫院"
+  },
+  {
+    "id": "H3",
+    "description": "蝴蝶谷大馬路 - 山頂醫院"
+  },
+  {
+    "id": "MT1",
+    "description": "城市日前地 - 澳門機場"
+  },
+  {
+    "id": "MT2",
+    "description": "城市日前地 - 氹仔中央公園"
+  },
+  {
+    "id": "MT3",
+    "description": "望廈 - 望德聖母灣"
+  },
+  {
+    "id": "MT4",
+    "description": "關閘 - 氹仔客運碼頭"
+  },
+  {
+    "id": "MT5",
+    "description": "湖畔大廈 - 皇朝"
+  },
+  {
+    "id": "N1A",
+    "description": "筷子基北灣 - 亞馬喇前地深宵線"
+  },
+  {
+    "id": "N1B",
+    "description": "筷子基北灣 - 亞馬喇前地深宵線"
+  },
+  {
+    "id": "N2",
+    "description": "筷子基北灣 - 氹仔客運碼頭深宵線"
+  },
+  {
+    "id": "N3",
+    "description": "亞馬喇前地 - 黑沙海灘深宵線"
+  },
+  {
+    "id": "N5",
+    "description": "亞馬喇前地 - 蝴蝶谷大馬路深宵線"
+  },
+  {
+    "id": "N6",
+    "description": "澳門大學 - 科技大學深宵線"
+  }
+]

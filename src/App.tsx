@@ -22,7 +22,8 @@ export default function App() {
 
   useMemo(() => {
     if (transitData.busRoutes.length > 0 && visibleRoutes.size === 0) {
-      setVisibleRoutes(new Set(transitData.busRoutes.map(r => r.id)))
+      const defaultRoutes = new Set(['1', '3', '3A', '5', '10', '11', '21A', '25', '26A', '33', 'MT1', 'AP1'])
+      setVisibleRoutes(new Set(transitData.busRoutes.filter(r => defaultRoutes.has(r.id)).map(r => r.id)))
     }
   }, [transitData.busRoutes.length])
 

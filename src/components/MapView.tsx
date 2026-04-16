@@ -67,11 +67,11 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
         })
       }
 
-      const labelField = lang === 'zh' ? 'nameCn' : 'name'
+      const labelField = lang === 'zh' ? 'nameCn' : lang === 'pt' ? 'namePt' : 'name'
       const stationFeatures = transitData.stations.map(s => ({
         type: 'Feature' as const,
         geometry: { type: 'Point' as const, coordinates: s.coordinates },
-        properties: { id: s.id, name: s.name, nameCn: s.nameCn },
+        properties: { id: s.id, name: s.name, nameCn: s.nameCn, namePt: s.namePt },
       }))
 
       if (stationFeatures.length > 0) {
@@ -280,7 +280,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
           className="bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm
                      hover:bg-black/90 transition-colors backdrop-blur-sm border border-white/20"
         >
-          {lang === 'zh' ? 'EN' : '中文'}
+          {lang === 'zh' ? 'PT' : lang === 'pt' ? 'EN' : '中文'}
         </button>
       </div>
     </>
