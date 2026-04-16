@@ -1,47 +1,83 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <rect width="100" height="100" rx="16" fill="#1a1a2e"/>
-  <g fill="none" stroke="#e8d5a3" stroke-width="2" stroke-linecap="round">
-    <!-- Cross on top -->
-    <line x1="50" y1="10" x2="50" y2="20"/>
-    <line x1="46" y1="14" x2="54" y2="14"/>
-    <!-- Layer 1 (top, narrowest) - triangular pediment -->
-    <polygon points="42,22 58,22 55,20 50,17 45,20" fill="#e8d5a3" stroke="none"/>
-    <line x1="42" y1="22" x2="58" y2="22"/>
-    <line x1="44" y1="22" x2="44" y2="30"/>
-    <line x1="50" y1="22" x2="50" y2="30"/>
-    <line x1="56" y1="22" x2="56" y2="30"/>
-    <!-- Layer 2 -->
-    <line x1="38" y1="30" x2="62" y2="30"/>
-    <line x1="40" y1="30" x2="40" y2="42"/>
-    <line x1="46" y1="30" x2="46" y2="42"/>
-    <line x1="54" y1="30" x2="54" y2="42"/>
-    <line x1="60" y1="30" x2="60" y2="42"/>
-    <!-- Round window in center -->
-    <circle cx="50" cy="36" r="3.5" fill="#1a1a2e" stroke="#e8d5a3" stroke-width="1.5"/>
-    <!-- Layer 3 -->
-    <line x1="34" y1="42" x2="66" y2="42"/>
-    <line x1="36" y1="42" x2="36" y2="56"/>
-    <line x1="42" y1="42" x2="42" y2="56"/>
-    <line x1="50" y1="42" x2="50" y2="56"/>
-    <line x1="58" y1="42" x2="58" y2="56"/>
-    <line x1="64" y1="42" x2="64" y2="56"/>
-    <!-- Layer 4 -->
-    <line x1="30" y1="56" x2="70" y2="56"/>
-    <line x1="32" y1="56" x2="32" y2="72"/>
-    <line x1="40" y1="56" x2="40" y2="72"/>
-    <line x1="50" y1="56" x2="50" y2="72"/>
-    <line x1="60" y1="56" x2="60" y2="72"/>
-    <line x1="68" y1="56" x2="68" y2="72"/>
-    <!-- Door arches -->
-    <path d="M43,72 L43,64 A4,4 0 0 1 51,64 L51,72" fill="#1a1a2e" stroke="#e8d5a3" stroke-width="1.5"/>
-    <!-- Layer 5 (base, widest) -->
-    <line x1="26" y1="72" x2="74" y2="72"/>
-    <line x1="28" y1="72" x2="28" y2="88"/>
-    <line x1="38" y1="72" x2="38" y2="88"/>
-    <line x1="50" y1="72" x2="50" y2="88"/>
-    <line x1="62" y1="72" x2="62" y2="88"/>
-    <line x1="72" y1="72" x2="72" y2="88"/>
-    <!-- Ground line -->
-    <line x1="24" y1="88" x2="76" y2="88" stroke-width="2.5"/>
+  <!-- Background -->
+  <rect width="100" height="100" rx="20" fill="#1a1a2e"/>
+  
+  <g transform="translate(0, 2)">
+    <!-- Base Shapes (Stone) -->
+    <!-- T1 & T2 Main Block -->
+    <rect x="12" y="44" width="76" height="42" fill="#cdd0d4" />
+    <!-- T3 Main Block -->
+    <rect x="28" y="28" width="44" height="16" fill="#cdd0d4" />
+    <!-- T4 Main Block -->
+    <rect x="38" y="18" width="24" height="10" fill="#cdd0d4" />
+    <!-- T5 Pediment (Triangle) -->
+    <polygon points="36,18 64,18 50,6" fill="#cdd0d4" />
+
+    <!-- Volutes (Swooping side walls) -->
+    <path d="M12,44 C12,35 20,28 28,28 L28,44 Z" fill="#cdd0d4"/>
+    <path d="M88,44 C88,35 80,28 72,28 L72,44 Z" fill="#cdd0d4"/>
+    <path d="M28,28 C28,22 33,18 38,18 L38,28 Z" fill="#cdd0d4"/>
+    <path d="M72,28 C72,22 67,18 62,18 L62,28 Z" fill="#cdd0d4"/>
+
+    <!-- Structural Lines / Cornices -->
+    <g stroke="#9fa2a8" stroke-width="1.5" stroke-linecap="round">
+      <!-- Horizontal dividers between tiers -->
+      <line x1="10" y1="64" x2="90" y2="64" stroke-width="2"/>
+      <line x1="10" y1="44" x2="90" y2="44" stroke-width="2"/>
+      <line x1="26" y1="28" x2="74" y2="28" stroke-width="2"/>
+      <line x1="36" y1="18" x2="64" y2="18" stroke-width="2"/>
+
+      <!-- Vertical Columns T1 & T2 -->
+      <path d="M14,44 L14,86 M18,44 L18,86 M32,44 L32,86 M40,44 L40,86 M60,44 L60,86 M68,44 L68,86 M82,44 L82,86 M86,44 L86,86"/>
+      <!-- Vertical Columns T3 -->
+      <path d="M30,28 L30,44 M36,28 L36,44 M42,28 L42,44 M58,28 L58,44 M64,28 L64,44 M70,28 L70,44"/>
+      <!-- Vertical Columns T4 -->
+      <path d="M40,18 L40,28 M44,18 L44,28 M56,18 L56,28 M60,18 L60,28"/>
+    </g>
+
+    <!-- Cutouts / Openings (Holes showing the dark background) -->
+    <g fill="#1a1a2e">
+      <!-- T1 Doors (Bottom layer) -->
+      <rect x="42" y="66" width="16" height="20"/>
+      <rect x="20" y="70" width="10" height="16"/>
+      <rect x="70" y="70" width="10" height="16"/>
+      
+      <!-- T2 Windows (Second layer) -->
+      <rect x="43" y="47" width="14" height="14"/>
+      <rect x="21" y="49" width="8" height="12"/>
+      <rect x="71" y="49" width="8" height="12"/>
+
+      <!-- T3 Center Niche (Deep Arched) -->
+      <path d="M44,42 L44,34 A6,6 0 0 1 56,34 L56,42 Z"/>
+      <!-- T4 Center Niche -->
+      <path d="M47,26 L47,22 A3,3 0 0 1 53,22 L53,26 Z"/>
+    </g>
+
+    <!-- Statues inside the niches -->
+    <!-- T2 Small side statues -->
+    <path d="M34,56 L34,50 A2,2 0 0 1 38,50 L38,56 Z" fill="#8b8e94"/>
+    <path d="M62,56 L62,50 A2,2 0 0 1 66,50 L66,56 Z" fill="#8b8e94"/>
+    <!-- T3 Main Virgin Mary statue -->
+    <path d="M48,42 L48,36 A2,2 0 0 1 52,36 L52,42 Z" fill="#8b8e94"/>
+
+    <!-- T5 Details (Dove/Holy Spirit emblem) -->
+    <circle cx="50" cy="14" r="1.5" fill="#8b8e94"/>
+
+    <!-- Obelisks (The little spires on the edges of each tier) -->
+    <g fill="#cdd0d4">
+      <path d="M11,44 L13,44 L12,38 Z"/>
+      <path d="M87,44 L89,44 L88,38 Z"/>
+      <path d="M27,28 L29,28 L28,22 Z"/>
+      <path d="M71,28 L73,28 L72,22 Z"/>
+      <path d="M37,18 L39,18 L38,12 Z"/>
+      <path d="M61,18 L63,18 L62,12 Z"/>
+    </g>
+
+    <!-- Top Cross -->
+    <path d="M50,6 L50,0 M47,2.5 L53,2.5" stroke="#cdd0d4" stroke-width="1.5" fill="none"/>
+
+    <!-- Ground Steps -->
+    <rect x="8" y="86" width="84" height="2" fill="#a5a8ae"/>
+    <rect x="6" y="88" width="88" height="2" fill="#8b8e94"/>
   </g>
 </svg>
