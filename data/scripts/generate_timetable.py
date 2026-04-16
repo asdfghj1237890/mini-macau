@@ -1,8 +1,10 @@
 """
 Generate LRT timetable data based on known service parameters.
-Taipa Line: 6:30-23:15 weekday, 6:30-23:59 weekend, ~5-10 min frequency, ~28 min journey
-Seac Pai Van Line: same hours, ~6 min frequency, ~2 min journey
-Hengqin Line: same hours, ~6 min frequency, ~3 min journey
+Taipa Line: 6:30-23:15, ~5-10 min frequency, ~36 min journey
+Seac Pai Van Line: same hours, ~6 min frequency, ~3 min journey
+Hengqin Line: same hours, ~6 min frequency, ~4 min journey
+
+Each entry has arrivalMinutes and departureMinutes to model station dwell time.
 """
 
 import json
@@ -17,21 +19,28 @@ LINES = {
             "Cotai_West", "Lotus", "East_Asian_Games", "Cotai_East",
             "MUST", "Airport", "Taipa_Ferry_Terminal",
         ],
-        "segment_times": [4, 2, 2, 2, 2, 2, 3, 3, 2, 3, 3],  # minutes between consecutive stations
-        "frequency": 7,  # average minutes between departures
+        # Travel time in minutes between consecutive stations
+        "segment_times": [5, 2, 2, 2, 2, 2, 3, 3, 2, 3, 3],
+        "dwell": 0.75,  # 45 seconds at each intermediate station
+        "terminal_dwell": 2.0,  # 2 minutes at terminal stations
+        "frequency": 6,
         "service_start": 6 * 60 + 30,  # 06:30
-        "service_end": 23 * 60 + 15,  # 23:15
+        "service_end": 23 * 60 + 15,   # 23:15
     },
     "seac_pai_van": {
         "stations": ["Union_Hospital", "Seac_Pai_Van"],
-        "segment_times": [2],
+        "segment_times": [3],
+        "dwell": 0.75,
+        "terminal_dwell": 2.0,
         "frequency": 6,
         "service_start": 6 * 60 + 30,
         "service_end": 23 * 60 + 15,
     },
     "hengqin": {
         "stations": ["Lotus", "Hengqin"],
-        "segment_times": [3],
+        "segment_times": [4],
+        "dwell": 0.75,
+        "terminal_dwell": 3.0,
         "frequency": 6,
         "service_start": 6 * 60 + 30,
         "service_end": 23 * 60 + 15,
@@ -47,10 +56,10 @@ def generate_trips_for_line(line_id: str, config: dict) -> list[dict]:
     freq = config["frequency"]
     start = config["service_start"]
     end = config["service_end"]
+    dwell = config["dwell"]
+    terminal_dwell = config["terminal_dwell"]
 
-    total_journey = sum(seg_times)
-    dwell_time = 0.5  # 30 seconds at each station
-
+    total_journey = sum(seg_times) + dwell * (len(stations) - 2) + terminal_dwell
     trip_counter = 0
 
     # Forward trips (first station -> last station)
@@ -59,9 +68,19 @@ def generate_trips_for_line(line_id: str, config: dict) -> list[dict]:
         entries = []
         t = dep
         for i, sid in enumerate(stations):
-            entries.append({"stationId": sid, "arrivalMinutes": round(t, 1)})
+            is_terminal = (i == 0 or i == len(stations) - 1)
+            dw = terminal_dwell if is_terminal else dwell
+            arr = round(t, 2)
+            dept = round(t + dw, 2)
+            entries.append({
+                "stationId": sid,
+                "arrivalMinutes": arr,
+                "departureMinutes": dept,
+            })
             if i < len(seg_times):
-                t += dwell_time + seg_times[i]
+                t = dept + seg_times[i]
+            else:
+                t = dept
         trips.append({
             "id": f"{line_id}_F{trip_counter:04d}",
             "lineId": line_id,
@@ -74,14 +93,24 @@ def generate_trips_for_line(line_id: str, config: dict) -> list[dict]:
     # Backward trips (last station -> first station)
     rev_stations = list(reversed(stations))
     rev_seg_times = list(reversed(seg_times))
-    dep = start + freq // 2  # offset backward trips by half the frequency
+    dep = start + freq // 2
     while dep + total_journey <= end + 10:
         entries = []
         t = dep
         for i, sid in enumerate(rev_stations):
-            entries.append({"stationId": sid, "arrivalMinutes": round(t, 1)})
+            is_terminal = (i == 0 or i == len(rev_stations) - 1)
+            dw = terminal_dwell if is_terminal else dwell
+            arr = round(t, 2)
+            dept = round(t + dw, 2)
+            entries.append({
+                "stationId": sid,
+                "arrivalMinutes": arr,
+                "departureMinutes": dept,
+            })
             if i < len(rev_seg_times):
-                t += dwell_time + rev_seg_times[i]
+                t = dept + rev_seg_times[i]
+            else:
+                t = dept
         trips.append({
             "id": f"{line_id}_B{trip_counter:04d}",
             "lineId": line_id,
@@ -103,7 +132,8 @@ def run():
         all_trips.extend(trips)
         fwd = sum(1 for t in trips if t["direction"] == "forward")
         bwd = sum(1 for t in trips if t["direction"] == "backward")
-        print(f"  {line_id}: {fwd} forward + {bwd} backward = {len(trips)} trips")
+        journey = sum(config["segment_times"]) + config["dwell"] * (len(config["stations"]) - 2) + config["terminal_dwell"]
+        print(f"  {line_id}: {fwd}F + {bwd}B = {len(trips)} trips, {journey:.1f}min journey")
 
     out_path = OUTPUT_DIR / "trips.json"
     with open(out_path, "w", encoding="utf-8") as f:
