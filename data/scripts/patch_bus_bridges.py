@@ -23,6 +23,7 @@ Run after extract_bus_data.py.
 """
 
 import json
+import math
 import time
 from pathlib import Path
 
@@ -33,8 +34,37 @@ PUBLIC_DIR = Path(__file__).parent.parent.parent / "public" / "data"
 
 CHANNEL_LAT_NORTH = 22.187
 CHANNEL_LAT_SOUTH = 22.158
-ANCHOR_BACKOFF = 3
+ANCHOR_SEARCH_WINDOW = 15
+BRIDGE_DENSIFY_M = 100.0
 OSRM_DELAY_S = 0.7
+METERS_PER_DEG_LAT = 111320.0
+
+
+def dist_m2(a: list[float], b: list[float]) -> float:
+    """Squared distance between two lon/lat points in metres^2 (approx)."""
+    mid_lat = (a[1] + b[1]) / 2
+    cos_lat = max(0.1, math.cos(math.radians(mid_lat)))
+    d_lat_m = (a[1] - b[1]) * METERS_PER_DEG_LAT
+    d_lng_m = (a[0] - b[0]) * METERS_PER_DEG_LAT * cos_lat
+    return d_lat_m * d_lat_m + d_lng_m * d_lng_m
+
+
+def densify(coords: list[list[float]], max_gap_m: float) -> list[list[float]]:
+    """Linearly interpolate so no consecutive pair is more than max_gap_m apart."""
+    if len(coords) < 2:
+        return list(coords)
+    out: list[list[float]] = [list(coords[0])]
+    for i in range(1, len(coords)):
+        a = coords[i - 1]
+        b = coords[i]
+        d = math.sqrt(dist_m2(a, b))
+        if d > max_gap_m:
+            n = int(d / max_gap_m) + 1
+            for k in range(1, n):
+                t = k / n
+                out.append([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t])
+        out.append(list(b))
+    return out
 
 
 def load_inputs() -> tuple[dict, dict, list[dict]]:
@@ -102,36 +132,49 @@ def replace_run(
 ) -> list[list[float]]:
     """Replace coords[run[0]..run[1]] with bridge-correct path.
 
-    Anchor points (just outside the channel) are kept; everything strictly
-    inside the run is removed and replaced by [OSRM_to_bridge + bridge +
-    OSRM_to_anchor].
+    Anchors are picked as the points just outside the channel that are
+    closest to the corresponding bridge endpoint, searched within a
+    window. OSRM routes from each anchor to the bridge end.
     """
     start, end = run
-    anchor_pre_idx = max(0, start - ANCHOR_BACKOFF)
-    anchor_post_idx = min(len(coords) - 1, end + ANCHOR_BACKOFF)
+
+    prev_lat = coords[start - 1][1]
+    macau_end = bridge_coords[0]
+    taipa_end = bridge_coords[-1]
+
+    # Direction based on which side the pre-bracket is on
+    if prev_lat > CHANNEL_LAT_NORTH:
+        pre_target, post_target = macau_end, taipa_end
+        bridge_directed = list(bridge_coords)
+    else:
+        pre_target, post_target = taipa_end, macau_end
+        bridge_directed = list(reversed(bridge_coords))
+
+    # Search closest point to pre_target in window before the run
+    anchor_pre_idx = start - 1
+    best_d = dist_m2(coords[anchor_pre_idx], pre_target)
+    for i in range(max(0, start - ANCHOR_SEARCH_WINDOW), start):
+        d = dist_m2(coords[i], pre_target)
+        if d < best_d:
+            best_d = d
+            anchor_pre_idx = i
+
+    # Search closest point to post_target in window after the run
+    anchor_post_idx = end + 1
+    best_d = dist_m2(coords[anchor_post_idx], post_target)
+    for i in range(end + 1, min(len(coords), end + 1 + ANCHOR_SEARCH_WINDOW)):
+        d = dist_m2(coords[i], post_target)
+        if d < best_d:
+            best_d = d
+            anchor_post_idx = i
 
     anchor_pre = coords[anchor_pre_idx]
     anchor_post = coords[anchor_post_idx]
 
-    # Direction: which end of the bridge is closer to anchor_pre?
-    macau_end = bridge_coords[0]
-    taipa_end = bridge_coords[-1]
-
-    def dist2(a: list[float], b: list[float]) -> float:
-        dx, dy = a[0] - b[0], a[1] - b[1]
-        return dx * dx + dy * dy
-
-    if dist2(anchor_pre, macau_end) <= dist2(anchor_pre, taipa_end):
-        bridge_directed = list(bridge_coords)
-        from_end, to_end = macau_end, taipa_end
-    else:
-        bridge_directed = list(reversed(bridge_coords))
-        from_end, to_end = taipa_end, macau_end
-
-    print(f"    OSRM connector A: {anchor_pre} -> {from_end}")
-    leg_in = osrm_or_straight(anchor_pre, from_end)
-    print(f"    OSRM connector B: {to_end} -> {anchor_post}")
-    leg_out = osrm_or_straight(to_end, anchor_post)
+    print(f"    OSRM connector A: {anchor_pre} -> {pre_target}")
+    leg_in = osrm_or_straight(anchor_pre, pre_target)
+    print(f"    OSRM connector B: {post_target} -> {anchor_post}")
+    leg_out = osrm_or_straight(post_target, anchor_post)
 
     new_segment = (
         list(leg_in)
@@ -168,7 +211,7 @@ def run():
     bridges, bridge_routes, routes = load_inputs()
 
     bridge = bridges["macau_taipa_bridge"]
-    bridge_coords = bridge["coordinates"]
+    bridge_coords = densify(bridge["coordinates"], BRIDGE_DENSIFY_M)
     target_route_ids = set(bridge_routes.get("macau_taipa_bridge", []))
 
     if not target_route_ids:
