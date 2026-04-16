@@ -40,7 +40,7 @@ LRT_LINES_META = {
         "id": "taipa",
         "name": "Taipa Line",
         "nameCn": "氹仔線",
-        "color": "#009B3A",
+        "color": "#84C44A",
         "stations_ordered": [
             "Barra", "Ocean", "Jockey Club", "Stadium", "Pai Kok",
             "Cotai West", "Lotus", "East Asian Games", "Cotai East",
@@ -51,14 +51,14 @@ LRT_LINES_META = {
         "id": "seac_pai_van",
         "name": "Seac Pai Van Line",
         "nameCn": "石排灣線",
-        "color": "#FFB81C",
+        "color": "#8A66C3",
         "stations_ordered": ["Union Hospital", "Seac Pai Van"],
     },
     "hengqin": {
         "id": "hengqin",
         "name": "Hengqin Line",
         "nameCn": "橫琴線",
-        "color": "#0072CE",
+        "color": "#8A66C3",
         "stations_ordered": ["Lotus", "Hengqin"],
     },
 }

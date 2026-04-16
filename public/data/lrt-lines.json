@@ -3,7 +3,7 @@
     "id": "taipa",
     "name": "Taipa Line",
     "nameCn": "氹仔線",
-    "color": "#009B3A",
+    "color": "#84C44A",
     "stations": [
       "Barra",
       "Ocean",
@@ -1628,7 +1628,7 @@
     "id": "seac_pai_van",
     "name": "Seac Pai Van Line",
     "nameCn": "石排灣線",
-    "color": "#FFB81C",
+    "color": "#8A66C3",
     "stations": [
       "Union_Hospital",
       "Seac_Pai_Van"
@@ -1755,7 +1755,7 @@
     "id": "hengqin",
     "name": "Hengqin Line",
     "nameCn": "橫琴線",
-    "color": "#0072CE",
+    "color": "#8A66C3",
     "stations": [
       "Lotus",
       "Hengqin"
