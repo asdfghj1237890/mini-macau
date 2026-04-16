@@ -15,11 +15,12 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - run: npm ci
       - run: npm run build
+      - run: ls -la dist/
 
       - uses: cloudflare/wrangler-action@v3
         with:
