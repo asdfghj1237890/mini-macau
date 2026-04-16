@@ -201,6 +201,15 @@ def patch_route(
     if len(coords) < 2:
         return False
 
+    # Idempotency guard: if the geometry already contains the hand-drawn
+    # Y-ramp signature point (a specific mid-ramp coord that never appears
+    # in OSRM-native Macau roads), skip to avoid double-patching.
+    sig_lng, sig_lat = 113.5444, 22.1876
+    for c in coords:
+        if abs(c[0] - sig_lng) < 1e-6 and abs(c[1] - sig_lat) < 1e-6:
+            print(f"    skip: already patched (Y-ramp signature found)")
+            return False
+
     runs = find_channel_runs(coords)
     if not runs:
         print(f"    skip: no channel crossing in geometry")
@@ -220,7 +229,17 @@ def run():
     bridge = bridges["macau_taipa_bridge"]
     macau_approach = bridge["macau_approach"]
     taipa_approach = bridge["taipa_approach"]
-    bridge_polyline_raw = [macau_approach] + bridge["coordinates"] + [taipa_approach]
+    bridge_span = bridge["coordinates"]
+    macau_ramp = bridge["macau_ramp"]
+    taipa_ramp = bridge["taipa_ramp"]
+
+    # Stitch: macau ramp + bridge span (skip first, == macau_ramp end)
+    #        + taipa ramp (skip first, == bridge span end)
+    bridge_polyline_raw = (
+        list(macau_ramp)
+        + list(bridge_span[1:])
+        + list(taipa_ramp[1:])
+    )
     bridge_polyline = densify(bridge_polyline_raw, BRIDGE_DENSIFY_M)
     target_route_ids = set(bridge_routes.get("macau_taipa_bridge", []))
 

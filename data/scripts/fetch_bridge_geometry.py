@@ -28,8 +28,8 @@ OUTPUT_PATH = Path(__file__).parent.parent / "bus_reference" / "bridges.json"
 # to the bridge endpoints themselves (OSM tags bus/taxi only). These are
 # used as OSRM connection targets so route geometry ties into real roads
 # rather than snapping to an arbitrary nearby street.
-MACAU_APPROACH = [113.5467, 22.1925]
-TAIPA_APPROACH = [113.5510, 22.1625]
+MACAU_APPROACH = [113.545, 22.1888]
+TAIPA_APPROACH = [113.5497, 22.1638]
 
 
 QUERY = """
