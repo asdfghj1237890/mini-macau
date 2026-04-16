@@ -24,6 +24,15 @@ const translations = {
     nextArrivals: 'Next Arrivals',
     lines: 'Lines',
     resetNorth: 'Reset to current time',
+    direction: 'Direction',
+    forward: 'Forward',
+    backward: 'Backward',
+    arrived: 'Arrived',
+    arriving: 'Arriving',
+    schedule: 'Schedule',
+    towards: 'Towards',
+    departed: 'Departed',
+    dwelling: 'At station',
   },
   zh: {
     lrtLines: '輕軌路線',
@@ -46,6 +55,15 @@ const translations = {
     nextArrivals: '下一班到站',
     lines: '路線',
     resetNorth: '回到現在時間',
+    direction: '方向',
+    forward: '正向',
+    backward: '反向',
+    arrived: '已到達',
+    arriving: '即將到達',
+    schedule: '行車時刻',
+    towards: '開往',
+    departed: '已離站',
+    dwelling: '停站中',
   },
 }
 
@@ -70,6 +88,15 @@ interface Translations {
   nextArrivals: string
   lines: string
   resetNorth: string
+  direction: string
+  forward: string
+  backward: string
+  arrived: string
+  arriving: string
+  schedule: string
+  towards: string
+  departed: string
+  dwelling: string
 }
 
 interface I18nContextValue {

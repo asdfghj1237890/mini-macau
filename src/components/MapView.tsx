@@ -5,7 +5,7 @@ import { addVehicleLayers, updateVehicleData } from '../layers/VehicleLayer'
 import { computeVehiclePositions } from '../engines/simulationEngine'
 import { useI18n } from '../i18n'
 
-const MACAU_CENTER: [number, number] = [113.5439, 22.1987]
+const MACAU_CENTER: [number, number] = [113.55920888434439, 22.160440018223373]
 const MACAU_ZOOM = 13
 const STYLES = {
   dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
