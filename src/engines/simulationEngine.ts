@@ -4,14 +4,25 @@ import type { Feature, LineString } from 'geojson'
 import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute } from '../types'
 
 function timeToMinutes(date: Date): number {
-  return date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60
+  return date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60 + date.getMilliseconds() / 60000
+}
+
+const lineLengthCache = new WeakMap<Feature<LineString>, number>()
+
+function getLineLength(line: Feature<LineString>): number {
+  let len = lineLengthCache.get(line)
+  if (len === undefined) {
+    len = length(line, { units: 'kilometers' })
+    lineLengthCache.set(line, len)
+  }
+  return len
 }
 
 function interpolateOnLine(
   line: Feature<LineString>,
   progress: number
 ): { coordinates: [number, number]; bearing: number } {
-  const totalLen = length(line, { units: 'kilometers' })
+  const totalLen = getLineLength(line)
   const dist = Math.max(0, Math.min(totalLen, progress * totalLen))
   const point = along(line, dist, { units: 'kilometers' })
   const coords = point.geometry.coordinates as [number, number]

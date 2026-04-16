@@ -1,4 +1,5 @@
 import type { Feature, LineString } from 'geojson'
+import type React from 'react'
 
 export interface Station {
   id: string
@@ -70,6 +71,7 @@ export interface VehiclePosition {
 
 export interface SimulationClock {
   currentTime: Date
+  timeRef: React.RefObject<Date>
   speed: number
   paused: boolean
   setSpeed: (s: number) => void

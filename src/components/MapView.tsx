@@ -151,22 +151,37 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, tr
     }
   }, [transitData.lrtLines.length, transitData.stations.length, transitData.busRoutes.length, isDark, lang])
 
-  useEffect(() => {
-    if (!mapRef.current || transitData.loading || !layersAddedRef.current) return
-    const vehicles = computeVehiclePositions(transitData, clock.currentTime)
-    vehiclesRef.current = vehicles
-    updateVehicleData(mapRef.current, vehicles)
+  const transitRef = useRef(transitData)
+  const trackedRef = useRef(trackedVehicleId)
+  transitRef.current = transitData
+  trackedRef.current = trackedVehicleId
 
-    if (trackedVehicleId) {
-      const tracked = vehicles.find(v => v.id === trackedVehicleId)
-      if (tracked) {
-        mapRef.current.easeTo({
-          center: [tracked.coordinates[0], tracked.coordinates[1]],
-          duration: 200,
-        })
+  useEffect(() => {
+    let raf: number
+    const animate = () => {
+      const map = mapRef.current
+      const td = transitRef.current
+      if (map && !td.loading && layersAddedRef.current) {
+        const vehicles = computeVehiclePositions(td, clock.timeRef.current)
+        vehiclesRef.current = vehicles
+        updateVehicleData(map, vehicles)
+
+        const tid = trackedRef.current
+        if (tid) {
+          const tracked = vehicles.find(v => v.id === tid)
+          if (tracked) {
+            map.easeTo({
+              center: [tracked.coordinates[0], tracked.coordinates[1]],
+              duration: 200,
+            })
+          }
+        }
       }
+      raf = requestAnimationFrame(animate)
     }
-  }, [clock.currentTime, transitData, trackedVehicleId])
+    raf = requestAnimationFrame(animate)
+    return () => cancelAnimationFrame(raf)
+  }, [])
 
   const toggle3D = useCallback(() => {
     setIs3D(prev => {
