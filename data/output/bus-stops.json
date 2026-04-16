@@ -1,0 +1,8511 @@
+[
+  {
+    "id": "Barra",
+    "name": "Barra",
+    "nameCn": "Barra",
+    "coordinates": [
+      113.5356,
+      22.1875
+    ],
+    "routeIds": [
+      "1",
+      "2",
+      "5",
+      "6A",
+      "7",
+      "10",
+      "10A",
+      "15",
+      "21A",
+      "25",
+      "28A",
+      "34",
+      "50"
+    ]
+  },
+  {
+    "id": "Horta_e_Costa",
+    "name": "Horta e Costa",
+    "nameCn": "Horta e Costa",
+    "coordinates": [
+      113.5475,
+      22.201
+    ],
+    "routeIds": [
+      "1",
+      "3",
+      "3A",
+      "7",
+      "8",
+      "10",
+      "28A",
+      "N2"
+    ]
+  },
+  {
+    "id": "Flora_Garden",
+    "name": "Flora Garden",
+    "nameCn": "Flora Garden",
+    "coordinates": [
+      113.55,
+      22.2035
+    ],
+    "routeIds": [
+      "1"
+    ]
+  },
+  {
+    "id": "Portas_do_Cerco",
+    "name": "Portas do Cerco",
+    "nameCn": "Portas do Cerco",
+    "coordinates": [
+      113.5541,
+      22.214
+    ],
+    "routeIds": [
+      "1",
+      "3",
+      "3A",
+      "6A",
+      "8",
+      "10",
+      "22",
+      "26A",
+      "28A",
+      "30",
+      "AP1",
+      "N1A",
+      "N2"
+    ]
+  },
+  {
+    "id": "Praia_Grande",
+    "name": "Praia Grande",
+    "nameCn": "Praia Grande",
+    "coordinates": [
+      113.5402,
+      22.192
+    ],
+    "routeIds": [
+      "2",
+      "5",
+      "10",
+      "10A",
+      "25",
+      "50"
+    ]
+  },
+  {
+    "id": "NAPE",
+    "name": "NAPE",
+    "nameCn": "NAPE",
+    "coordinates": [
+      113.551,
+      22.188
+    ],
+    "routeIds": [
+      "2",
+      "3A",
+      "8",
+      "10A",
+      "26",
+      "26A",
+      "N1A"
+    ]
+  },
+  {
+    "id": "Outer_Harbour_Ferry",
+    "name": "Outer Harbour Ferry",
+    "nameCn": "Outer Harbour Ferry",
+    "coordinates": [
+      113.557,
+      22.195
+    ],
+    "routeIds": [
+      "2",
+      "3A",
+      "10A"
+    ]
+  },
+  {
+    "id": "Almeida_Ribeiro",
+    "name": "Almeida Ribeiro",
+    "nameCn": "Almeida Ribeiro",
+    "coordinates": [
+      113.5398,
+      22.1935
+    ],
+    "routeIds": [
+      "3"
+    ]
+  },
+  {
+    "id": "Inner_Harbour",
+    "name": "Inner Harbour",
+    "nameCn": "Inner Harbour",
+    "coordinates": [
+      113.5355,
+      22.196
+    ],
+    "routeIds": [
+      "3",
+      "6A",
+      "7",
+      "28A"
+    ]
+  },
+  {
+    "id": "Guia_Hill",
+    "name": "Guia Hill",
+    "nameCn": "Guia Hill",
+    "coordinates": [
+      113.5508,
+      22.2005
+    ],
+    "routeIds": [
+      "5"
+    ]
+  },
+  {
+    "id": "Fai_Chi_Kei",
+    "name": "Fai Chi Kei",
+    "nameCn": "Fai Chi Kei",
+    "coordinates": [
+      113.538,
+      22.2095
+    ],
+    "routeIds": [
+      "5",
+      "22",
+      "26",
+      "30",
+      "33"
+    ]
+  },
+  {
+    "id": "Red_Market",
+    "name": "Red Market",
+    "nameCn": "Red Market",
+    "coordinates": [
+      113.546,
+      22.2065
+    ],
+    "routeIds": [
+      "6A",
+      "N1A"
+    ]
+  },
+  {
+    "id": "Mong_Ha",
+    "name": "Mong Ha",
+    "nameCn": "Mong Ha",
+    "coordinates": [
+      113.5497,
+      22.207
+    ],
+    "routeIds": [
+      "7"
+    ]
+  },
+  {
+    "id": "Science_Museum",
+    "name": "Science Museum",
+    "nameCn": "Science Museum",
+    "coordinates": [
+      113.5545,
+      22.185
+    ],
+    "routeIds": [
+      "8",
+      "26A"
+    ]
+  },
+  {
+    "id": "Taipa_Village",
+    "name": "Taipa Village",
+    "nameCn": "Taipa Village",
+    "coordinates": [
+      113.557,
+      22.151
+    ],
+    "routeIds": [
+      "11",
+      "15",
+      "26A"
+    ]
+  },
+  {
+    "id": "Jockey_Club",
+    "name": "Jockey Club",
+    "nameCn": "Jockey Club",
+    "coordinates": [
+      113.5525,
+      22.1536
+    ],
+    "routeIds": [
+      "11"
+    ]
+  },
+  {
+    "id": "Stadium",
+    "name": "Stadium",
+    "nameCn": "Stadium",
+    "coordinates": [
+      113.5568,
+      22.153
+    ],
+    "routeIds": [
+      "11",
+      "MT1"
+    ]
+  },
+  {
+    "id": "Cotai",
+    "name": "Cotai",
+    "nameCn": "Cotai",
+    "coordinates": [
+      113.56,
+      22.142
+    ],
+    "routeIds": [
+      "11",
+      "22"
+    ]
+  },
+  {
+    "id": "Taipa_Bridge",
+    "name": "Taipa Bridge",
+    "nameCn": "Taipa Bridge",
+    "coordinates": [
+      113.545,
+      22.175
+    ],
+    "routeIds": [
+      "15",
+      "21A",
+      "22",
+      "25",
+      "30",
+      "33",
+      "34",
+      "N2"
+    ]
+  },
+  {
+    "id": "Hac_Sa_Beach",
+    "name": "Hac Sa Beach",
+    "nameCn": "Hac Sa Beach",
+    "coordinates": [
+      113.569,
+      22.12
+    ],
+    "routeIds": [
+      "15"
+    ]
+  },
+  {
+    "id": "Coloane_Village",
+    "name": "Coloane Village",
+    "nameCn": "Coloane Village",
+    "coordinates": [
+      113.564,
+      22.124
+    ],
+    "routeIds": [
+      "21A"
+    ]
+  },
+  {
+    "id": "Nam_Van",
+    "name": "Nam Van",
+    "nameCn": "Nam Van",
+    "coordinates": [
+      113.541,
+      22.189
+    ],
+    "routeIds": [
+      "21A"
+    ]
+  },
+  {
+    "id": "Cotai_Strip",
+    "name": "Cotai Strip",
+    "nameCn": "Cotai Strip",
+    "coordinates": [
+      113.561,
+      22.138
+    ],
+    "routeIds": [
+      "25",
+      "30",
+      "33",
+      "MT1",
+      "N2"
+    ]
+  },
+  {
+    "id": "Macau_Tower",
+    "name": "Macau Tower",
+    "nameCn": "Macau Tower",
+    "coordinates": [
+      113.538,
+      22.183
+    ],
+    "routeIds": [
+      "26",
+      "34",
+      "N1A"
+    ]
+  },
+  {
+    "id": "Areia_Preta",
+    "name": "Areia Preta",
+    "nameCn": "Areia Preta",
+    "coordinates": [
+      113.552,
+      22.209
+    ],
+    "routeIds": [
+      "33"
+    ]
+  },
+  {
+    "id": "Airport",
+    "name": "Airport",
+    "nameCn": "Airport",
+    "coordinates": [
+      113.5764,
+      22.1496
+    ],
+    "routeIds": [
+      "34",
+      "AP1"
+    ]
+  },
+  {
+    "id": "Seac_Pai_Van",
+    "name": "Seac Pai Van",
+    "nameCn": "Seac Pai Van",
+    "coordinates": [
+      113.551,
+      22.1268
+    ],
+    "routeIds": [
+      "50"
+    ]
+  },
+  {
+    "id": "Taipa_Ferry_Terminal",
+    "name": "Taipa Ferry Terminal",
+    "nameCn": "Taipa Ferry Terminal",
+    "coordinates": [
+      113.578,
+      22.156
+    ],
+    "routeIds": [
+      "AP1",
+      "MT1"
+    ]
+  },
+  {
+    "id": "Galaxy",
+    "name": "Galaxy",
+    "nameCn": "Galaxy",
+    "coordinates": [
+      113.556,
+      22.149
+    ],
+    "routeIds": [
+      "MT1",
+      "MT2"
+    ]
+  },
+  {
+    "id": "Venetian",
+    "name": "Venetian",
+    "nameCn": "Venetian",
+    "coordinates": [
+      113.562,
+      22.141
+    ],
+    "routeIds": [
+      "MT2"
+    ]
+  },
+  {
+    "id": "City_of_Dreams",
+    "name": "City of Dreams",
+    "nameCn": "City of Dreams",
+    "coordinates": [
+      113.559,
+      22.144
+    ],
+    "routeIds": [
+      "MT2"
+    ]
+  },
+  {
+    "id": "Lotus",
+    "name": "Lotus",
+    "nameCn": "Lotus",
+    "coordinates": [
+      113.5546,
+      22.1382
+    ],
+    "routeIds": [
+      "MT2"
+    ]
+  },
+  {
+    "id": "Sai_Van_Bridge",
+    "name": "Sai Van Bridge",
+    "nameCn": "Sai Van Bridge",
+    "coordinates": [
+      113.541,
+      22.18
+    ],
+    "routeIds": [
+      "50"
+    ]
+  },
+  {
+    "id": "518264028",
+    "name": "提督/高士德 Almirante Lacerda / Horta e Costa",
+    "nameCn": "提督/高士德",
+    "coordinates": [
+      113.5439761,
+      22.2049918
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1522473391",
+    "name": "三叠泉",
+    "nameCn": "三叠泉",
+    "coordinates": [
+      113.5007207,
+      22.1199082
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1758310997",
+    "name": "拱北口岸",
+    "nameCn": "拱北口岸",
+    "coordinates": [
+      113.5488497,
+      22.2196795
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1769106695",
+    "name": "南山",
+    "nameCn": "南山",
+    "coordinates": [
+      113.519932,
+      22.2111389
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1769106748",
+    "name": "华发国际花园",
+    "nameCn": "华发国际花园",
+    "coordinates": [
+      113.5342164,
+      22.2161702
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1769106776",
+    "name": "华发国际花园",
+    "nameCn": "华发国际花园",
+    "coordinates": [
+      113.5353167,
+      22.2161296
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1769106905",
+    "name": "华发世纪城",
+    "nameCn": "华发世纪城",
+    "coordinates": [
+      113.5226817,
+      22.2133105
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1769106915",
+    "name": "南山",
+    "nameCn": "南山",
+    "coordinates": [
+      113.5210494,
+      22.2100383
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1769106942",
+    "name": "华发世纪城",
+    "nameCn": "华发世纪城",
+    "coordinates": [
+      113.5224872,
+      22.2136447
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1769110578",
+    "name": "北山工业区",
+    "nameCn": "北山工业区",
+    "coordinates": [
+      113.5084717,
+      22.2185083
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1769110585",
+    "name": "北山工业区",
+    "nameCn": "北山工业区",
+    "coordinates": [
+      113.5108184,
+      22.2170195
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1781450845",
+    "name": "侨光西",
+    "nameCn": "侨光西",
+    "coordinates": [
+      113.5331599,
+      22.2180678
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358114",
+    "name": "湾仔旅游码头",
+    "nameCn": "湾仔旅游码头",
+    "coordinates": [
+      113.5284224,
+      22.1940289
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358126",
+    "name": "南湾南路南",
+    "nameCn": "南湾南路南",
+    "coordinates": [
+      113.5120589,
+      22.1733533
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358273",
+    "name": "鸿景花园(湾仔中学)",
+    "nameCn": "鸿景花园(湾仔中学)",
+    "coordinates": [
+      113.5276638,
+      22.2027528
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358323",
+    "name": "珠海希尔顿酒店",
+    "nameCn": "珠海希尔顿酒店",
+    "coordinates": [
+      113.5247518,
+      22.1885002
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358345",
+    "name": "交控集团(竹仙洞)",
+    "nameCn": "交控集团(竹仙洞)",
+    "coordinates": [
+      113.5150099,
+      22.2143305
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358428",
+    "name": "南联",
+    "nameCn": "南联",
+    "coordinates": [
+      113.5243299,
+      22.2073887
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358499",
+    "name": "南湾南路南",
+    "nameCn": "南湾南路南",
+    "coordinates": [
+      113.5119132,
+      22.1736334
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358506",
+    "name": "珠海希尔顿酒店",
+    "nameCn": "珠海希尔顿酒店",
+    "coordinates": [
+      113.524408,
+      22.1886085
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358510",
+    "name": "城轨湾仔站",
+    "nameCn": "城轨湾仔站",
+    "coordinates": [
+      113.5226,
+      22.1857695
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358542",
+    "name": "城轨湾仔站",
+    "nameCn": "城轨湾仔站",
+    "coordinates": [
+      113.5227787,
+      22.1853564
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1793358576",
+    "name": "南联",
+    "nameCn": "南联",
+    "coordinates": [
+      113.5246077,
+      22.2075798
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "1846238580",
+    "name": "利是达星际广场",
+    "nameCn": "利是达星际广场",
+    "coordinates": [
+      113.505576,
+      22.1695592
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427382",
+    "name": "Seac Pai Van Park",
+    "nameCn": "石排灣郊野公園",
+    "coordinates": [
+      113.5551595,
+      22.1252319
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427383",
+    "name": "中心街 R. Direita do Hipódromo",
+    "nameCn": "中心街",
+    "coordinates": [
+      113.5522209,
+      22.212332
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427396",
+    "name": "Triangle Garden",
+    "nameCn": "三角花園",
+    "coordinates": [
+      113.5482874,
+      22.2106221
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427401",
+    "name": "下環街市 Mercado de S. Lourenço",
+    "nameCn": "下環街市",
+    "coordinates": [
+      113.5345233,
+      22.1912335
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427405",
+    "name": "中區/殷皇子馬路 Centro / Infante D. Henrique",
+    "nameCn": "中區/殷皇子馬路",
+    "coordinates": [
+      113.5414944,
+      22.1916134
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427409",
+    "name": "中華廣場 China Plaza",
+    "nameCn": "中華廣場",
+    "coordinates": [
+      113.5425842,
+      22.1926658
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427419",
+    "name": "Flora Garden",
+    "nameCn": "二龍喉公園",
+    "coordinates": [
+      113.5506506,
+      22.2008617
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427424",
+    "name": "百利寶花園 Treasure Garden",
+    "nameCn": "百利寶花園",
+    "coordinates": [
+      113.5591689,
+      22.1578785
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427425",
+    "name": "信虹花園 Jardim Lameiras",
+    "nameCn": "信虹花園",
+    "coordinates": [
+      113.5598299,
+      22.156298
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427426",
+    "name": "亞利鴉架街 Rua Manuel Arriaga",
+    "nameCn": "亞利鴉架街",
+    "coordinates": [
+      113.5456228,
+      22.2022248
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427429",
+    "name": "亞婆井前地 Largo do Lilau",
+    "nameCn": "亞婆井前地",
+    "coordinates": [
+      113.5350775,
+      22.1886829
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427430",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5434919,
+      22.1893484
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427431",
+    "name": "仙德麗街 Rua Cidade de Sintra",
+    "nameCn": "仙德麗街",
+    "coordinates": [
+      113.546217,
+      22.1891424
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427432",
+    "name": "何賢公園 Jardim Comendador Ho Yin",
+    "nameCn": "何賢公園",
+    "coordinates": [
+      113.5487275,
+      22.1926034
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427434",
+    "name": "東亞運/保齡球中心 Jogos da Ásia Oriental/ Centro de Bowling",
+    "nameCn": "東亞運/保齡球中心",
+    "coordinates": [
+      113.5689517,
+      22.1433638
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427435",
+    "name": "信安馬路 Av. Son On",
+    "nameCn": "信安馬路",
+    "coordinates": [
+      113.5694588,
+      22.1622292
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427436",
+    "name": "俾利喇/高士德 Xavier Pereira / Horta e Costa",
+    "nameCn": "俾利喇/高士德",
+    "coordinates": [
+      113.5473401,
+      22.2032671
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427438",
+    "name": "偉龍/科技大學 Wai Long / M.U.S.T.",
+    "nameCn": "偉龍/科技大學",
+    "coordinates": [
+      113.5650835,
+      22.1519605
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427439",
+    "name": "十六浦 Ponte 16",
+    "nameCn": "十六浦",
+    "coordinates": [
+      113.5365397,
+      22.19744
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427440",
+    "name": "八角亭 Praia Grande/ Jardim S. Francisco",
+    "nameCn": "八角亭",
+    "coordinates": [
+      113.5438711,
+      22.1923856
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427444",
+    "name": "加思欄/公共衛生專科大樓 S. Francisco/ Edf. Especialidade Saúde Pública",
+    "nameCn": "加思欄/公共衛生專科大樓",
+    "coordinates": [
+      113.5451848,
+      22.1927143
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427445",
+    "name": "加思欄馬路 S. Francisco / Quartel",
+    "nameCn": "加思欄馬路",
+    "coordinates": [
+      113.5451081,
+      22.1914136
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427447",
+    "name": "勞動節大馬路 Av. 1º de Maio",
+    "nameCn": "勞動節大馬路",
+    "coordinates": [
+      113.5552284,
+      22.2097541
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427448",
+    "name": "勞動節街/中葡職業技術學校 R. 1 de Maio / Escola Luso-Chinesa Técnico-Profissional",
+    "nameCn": "勞動節街/中葡職業技術學校",
+    "coordinates": [
+      113.554352,
+      22.2099014
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427449",
+    "name": "北京街/假日酒店 Rua de Pequim / Holiday Inn",
+    "nameCn": "北京街/假日酒店",
+    "coordinates": [
+      113.5477031,
+      22.191753
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427455",
+    "name": "區華利前地 Praça Jorge Alvares",
+    "nameCn": "區華利前地",
+    "coordinates": [
+      113.5392526,
+      22.1903702
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427456",
+    "name": "十月一號前地 Praceta de 1 de Outubro",
+    "nameCn": "十月一號前地",
+    "coordinates": [
+      113.5461768,
+      22.1909497
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427457",
+    "name": "十月初五街 R. Cinco Outubro",
+    "nameCn": "十月初五街",
+    "coordinates": [
+      113.5377672,
+      22.1979225
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427458",
+    "name": "半邊橙 Meia Laranja",
+    "nameCn": "半邊橙",
+    "coordinates": [
+      113.5312957,
+      22.1818103
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427459",
+    "name": "半邊橙/迅發花園 Meia Laranja / Edf. Son Fat",
+    "nameCn": "半邊橙/迅發花園",
+    "coordinates": [
+      113.530851,
+      22.182056
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427462",
+    "name": "南光大廈 Edf. Nam Kwong.",
+    "nameCn": "南光大廈",
+    "coordinates": [
+      113.5465917,
+      22.1920416
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427463",
+    "name": "南新花園 Edf. Nam Sun",
+    "nameCn": "南新花園",
+    "coordinates": [
+      113.5495271,
+      22.1574268
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427464",
+    "name": "南灣大馬路/時代 Praia Grande / Si Toi",
+    "nameCn": "南灣大馬路/時代",
+    "coordinates": [
+      113.5414699,
+      22.1926264
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427465",
+    "name": "南灣湖景大馬路 Avenida Panorâmica do Lago Nam Van",
+    "nameCn": "南灣湖景大馬路",
+    "coordinates": [
+      113.5379934,
+      22.1868134
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427467",
+    "name": "友誼馬路/海港街 Av. Amizade / R. Terminal Marítimo",
+    "nameCn": "友誼馬路/海港街",
+    "coordinates": [
+      113.5556948,
+      22.1961494
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427468",
+    "name": "友誼馬路/行車天橋 Av. Amizade / Viaduto",
+    "nameCn": "友誼馬路/行車天橋",
+    "coordinates": [
+      113.5548863,
+      22.1948647
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427469",
+    "name": "台山街市 Mercado Tamag. Barbosa",
+    "nameCn": "台山街市",
+    "coordinates": [
+      113.5462629,
+      22.2104926
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427470",
+    "name": "史伯泰/盧廉若 Espateiro / Lou Lim Ieok",
+    "nameCn": "史伯泰/盧廉若",
+    "coordinates": [
+      113.5527068,
+      22.1626138
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427473",
+    "name": "史伯泰/麗景灣 Esparteiro/ Regency",
+    "nameCn": "史伯泰/麗景灣",
+    "coordinates": [
+      113.5536496,
+      22.1628185
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427474",
+    "name": "司打口 Praça Ponte Horta",
+    "nameCn": "司打口",
+    "coordinates": [
+      113.535279,
+      22.193569
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427477",
+    "name": "海上居 La Marina",
+    "nameCn": "海上居",
+    "coordinates": [
+      113.5558409,
+      22.2133506
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427479",
+    "name": "Carmo Swimming Pools",
+    "nameCn": "嘉模泳池",
+    "coordinates": [
+      113.5592353,
+      22.1549131
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427481",
+    "name": "回力 Jai Alai",
+    "nameCn": "回力",
+    "coordinates": [
+      113.5551221,
+      22.1965819
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427482",
+    "name": "沙梨頭/華寶工業大廈 Ribeira do Patane / Edf. Industrial Wa Pou",
+    "nameCn": "沙梨頭/華寶工業大廈",
+    "coordinates": [
+      113.5386592,
+      22.202635
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427492",
+    "name": "城市日大馬路/波爾圖街 Av. 24 de Junho / R. do Porto",
+    "nameCn": "城市日大馬路/波爾圖街",
+    "coordinates": [
+      113.5486869,
+      22.1874034
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427501",
+    "name": "Outer Harbour Ferry Terminal",
+    "nameCn": "外港碼頭",
+    "coordinates": [
+      113.5576638,
+      22.1974709
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427505",
+    "name": "奧林匹克大馬路 Avenida Olímpica",
+    "nameCn": "奧林匹克大馬路",
+    "coordinates": [
+      113.5585442,
+      22.1564308
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427508",
+    "name": "望德聖母灣馬路/軍營 Est. Baia N. S. Esperança  / Quartel",
+    "nameCn": "望德聖母灣馬路/軍營",
+    "coordinates": [
+      113.555236,
+      22.1507797
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427525",
+    "name": "A-Ma Temple",
+    "nameCn": "媽閣廟站",
+    "coordinates": [
+      113.5309928,
+      22.1869792
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427529",
+    "name": "西灣湖景大馬路 / 媽閣碼頭 Av. Panorâmica do Lago Sai Van / Ponte-cais da Barra",
+    "nameCn": "西灣湖景大馬路 / 媽閣碼頭",
+    "coordinates": [
+      113.529023,
+      22.1846829
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427533",
+    "name": "Fisherman's Wharf Convention & Exhibition Centre",
+    "nameCn": "漁人碼頭會展中心",
+    "coordinates": [
+      113.5552352,
+      22.1943581
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427542",
+    "name": "孫逸仙大馬路/金沙 Av. Dr. Sun Yat Sen / Sands",
+    "nameCn": "孫逸仙大馬路/金沙",
+    "coordinates": [
+      113.5556868,
+      22.190015
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427546",
+    "name": "泉裕豪庭 Chun U Villa",
+    "nameCn": "泉裕豪庭",
+    "coordinates": [
+      113.5585886,
+      22.1587355
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427555",
+    "name": "宋玉生廣場 / 建興龍 Al. Dr. C. d'Assumpção / Kin Heng Long",
+    "nameCn": "宋玉生廣場/建興龍",
+    "coordinates": [
+      113.5510906,
+      22.1891097
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427564",
+    "name": "工業園街 R. do Parque Industrial",
+    "nameCn": "工業園街",
+    "coordinates": [
+      113.534908,
+      22.2116203
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427569",
+    "name": "巴掌圍 S. Agostinho",
+    "nameCn": "巴掌圍",
+    "coordinates": [
+      113.5388307,
+      22.1906337
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427570",
+    "name": "巴波沙 / 新城市 Av. Artur de Tamagnini Barbosa / Edf. Jardim Cidade",
+    "nameCn": "巴波沙 / 新城市",
+    "coordinates": [
+      113.5475152,
+      22.2126098
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427571",
+    "name": "Macao Municipal Kennel",
+    "nameCn": "市政狗房",
+    "coordinates": [
+      113.5463773,
+      22.2070116
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427573",
+    "name": "布拉干薩街 Rua Bragança",
+    "nameCn": "布拉干薩街",
+    "coordinates": [
+      113.5524911,
+      22.1588088
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427578",
+    "name": "幸運閣 Edf. Hang Wan Kok",
+    "nameCn": "幸運閣",
+    "coordinates": [
+      113.54763,
+      22.2041746
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427589",
+    "name": "廈門街/澳門理工大學 Rua de Xiamen/U.P.M.",
+    "nameCn": "廈門街/澳門理工大學",
+    "coordinates": [
+      113.5515231,
+      22.1930731
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427593",
+    "name": "廣東大馬路/鴻發 Av. Kwong Tung / Edf. Hung Fat",
+    "nameCn": "廣東大馬路/鴻發",
+    "coordinates": [
+      113.5545284,
+      22.1617712
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427597",
+    "name": "廣東大馬路/濠景 Av. Kwong Tung / Nova Taipa",
+    "nameCn": "廣東大馬路/濠景",
+    "coordinates": [
+      113.5526984,
+      22.1595298
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427601",
+    "name": "廣東大馬路/馬會 Av. Kwong Tung / Jockey Club",
+    "nameCn": "廣東大馬路/馬會",
+    "coordinates": [
+      113.5486397,
+      22.1577326
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427604",
+    "name": "廣東大馬路/濠尚 Av. Kwong Tung / Nova Grand",
+    "nameCn": "廣東大馬路/濠尚",
+    "coordinates": [
+      113.5524745,
+      22.1596359
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427609",
+    "name": "聖公會中學 Colégio Anglicano",
+    "nameCn": "聖公會中學",
+    "coordinates": [
+      113.560009,
+      22.1613501
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427615",
+    "name": "得勝斜路 Calçada da Vitória",
+    "nameCn": "得勝斜路",
+    "coordinates": [
+      113.5482189,
+      22.1960146
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427620",
+    "name": "得勝花園 Jardim da Vitória",
+    "nameCn": "得勝花園",
+    "coordinates": [
+      113.5487584,
+      22.1992622
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427624",
+    "name": "愉景花園 Sunny View Garden",
+    "nameCn": "愉景花園",
+    "coordinates": [
+      113.5493536,
+      22.204523
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427634",
+    "name": "慕拉士/飛通大廈 Venceslau Morais / Edf. Airway",
+    "nameCn": "慕拉士/飛通大廈",
+    "coordinates": [
+      113.554496,
+      22.2051249
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427638",
+    "name": "慕拉士巷 Trav. Venc. Morais",
+    "nameCn": "慕拉士巷",
+    "coordinates": [
+      113.5526232,
+      22.2066229
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427642",
+    "name": "慕拉士馬路 Av. Venceslau de Morais",
+    "nameCn": "慕拉士馬路",
+    "coordinates": [
+      113.5502591,
+      22.2085518
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427661",
+    "name": "拱形馬路/蓮峰廟 Est. Arco / Tempo Lin Fung",
+    "nameCn": "拱形馬路/蓮峰廟",
+    "coordinates": [
+      113.5481023,
+      22.2101836
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427665",
+    "name": "捐血中心 Centro Transfusões Sangue",
+    "nameCn": "捐血中心",
+    "coordinates": [
+      113.5502539,
+      22.1890304
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427670",
+    "name": "提督/紅街市 Alm. Lacerda / Mercado Vermelho",
+    "nameCn": "提督/紅街市",
+    "coordinates": [
+      113.5434053,
+      22.2047254
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427672",
+    "name": "提督馬路/雅廉訪 Av. Alm. Lacerda / Ouvidor Arriaga",
+    "nameCn": "提督馬路/雅廉訪",
+    "coordinates": [
+      113.5453282,
+      22.206349
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427680",
+    "name": "宋玉生博士圓形地 Rotunda Dr. Carlos A. C. P. d'Assumpção",
+    "nameCn": "宋玉生博士圓形地",
+    "coordinates": [
+      113.5550929,
+      22.162567
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427684",
+    "name": "新勝街 R. Tomás Vieira",
+    "nameCn": "新勝街",
+    "coordinates": [
+      113.5421607,
+      22.1985047
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427695",
+    "name": "NAPE / Macao Cultural Center",
+    "nameCn": "新口岸 / 文化中心",
+    "coordinates": [
+      113.554268,
+      22.1875717
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427698",
+    "name": "新口岸/柏嘉街 NAPE/ Rua Cidade de Braga",
+    "nameCn": "新口岸/柏嘉街",
+    "coordinates": [
+      113.5502071,
+      22.1869014
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427703",
+    "name": "新口岸/科英布拉街 NAPE / Rua de Coimbra",
+    "nameCn": "新口岸/科英布拉街",
+    "coordinates": [
+      113.5503155,
+      22.1885789
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427711",
+    "name": "新雅馬路/母親會 Est. Bela Vista / Obra das Mães",
+    "nameCn": "新雅馬路/母親會",
+    "coordinates": [
+      113.5531062,
+      22.2030437
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427716",
+    "name": "新馬路/華僑 Almeida Ribeiro / OCBC",
+    "nameCn": "新馬路/華僑",
+    "coordinates": [
+      113.5391489,
+      22.1939049
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427720",
+    "name": "新馬路/大豐 Almeida Ribeiro / Tai Fung",
+    "nameCn": "新馬路/大豐",
+    "coordinates": [
+      113.538319,
+      22.1947735
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427729",
+    "name": "金蓮花廣場 A Praça Flor de Lótus",
+    "nameCn": "金蓮花廣場",
+    "coordinates": [
+      113.5528363,
+      22.1943946
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427738",
+    "name": "Mong-Ha Fort",
+    "nameCn": "望廈炮台",
+    "coordinates": [
+      113.5479587,
+      22.2056946
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427746",
+    "name": "望德聖母灣馬路/紅樹林 Est. Baia N. S. Esperança / Mangal",
+    "nameCn": "望德聖母灣馬路/紅樹林",
+    "coordinates": [
+      113.5599752,
+      22.1501852
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427751",
+    "name": "望德聖母灣馬路/軍營 Est. Baia N. S. Esperança  / Quartel",
+    "nameCn": "望德聖母灣馬路/軍營",
+    "coordinates": [
+      113.5549935,
+      22.1508845
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427756",
+    "name": "望德聖母灣馬路/連貫公路 Est. Baia N. S. Esperança / Istmo",
+    "nameCn": "望德聖母灣馬路/連貫公路",
+    "coordinates": [
+      113.5623957,
+      22.1504139
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427769",
+    "name": "排角/銀河 Pai Kok / Galaxy",
+    "nameCn": "排角/銀河",
+    "coordinates": [
+      113.5551437,
+      22.1504126
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427775",
+    "name": "李寶椿街 Rua de Lei Pou Ch'ôn",
+    "nameCn": "李寶椿街",
+    "coordinates": [
+      113.5465978,
+      22.2121829
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427790",
+    "name": "東北大馬路/保利達 Av Nordeste / Edf. Poly Tex",
+    "nameCn": "東北大馬路/保利達",
+    "coordinates": [
+      113.5571379,
+      22.2089346
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427794",
+    "name": "東北大馬路/廣華 Av. Nordeste / Kwong Wa",
+    "nameCn": "東北大馬路/廣華",
+    "coordinates": [
+      113.5563219,
+      22.2077982
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427798",
+    "name": "東北大馬路/東華 Av Nordeste / Edf. Tong Wa",
+    "nameCn": "東北大馬路/東華",
+    "coordinates": [
+      113.5553641,
+      22.206785
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427803",
+    "name": "東北大馬路/海濱 Av Nordeste / Edf. Hoi Pan",
+    "nameCn": "東北大馬路/海濱",
+    "coordinates": [
+      113.5552776,
+      22.2069776
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427816",
+    "name": "東南小學 Esc. Tong Nam",
+    "nameCn": "東南小學",
+    "coordinates": [
+      113.5440092,
+      22.1985468
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427820",
+    "name": "東方拱門 Arco Oriente",
+    "nameCn": "東方拱門",
+    "coordinates": [
+      113.54995,
+      22.193933
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427823",
+    "name": "Oriental Pearl / Terminal",
+    "nameCn": "東方明珠總站",
+    "coordinates": [
+      113.5570156,
+      22.2104196
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427824",
+    "name": "高美士中葡中學 Escola S. Luso-chinesa de L.G. Gomes",
+    "nameCn": "高美士中葡中學",
+    "coordinates": [
+      113.5477915,
+      22.1986643
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427825",
+    "name": "東望洋斜巷 Calçada da Guia",
+    "nameCn": "東望洋斜巷",
+    "coordinates": [
+      113.5463753,
+      22.1958847
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427829",
+    "name": "愕斜巷/山頂醫院 Calçada da Surpresa / Hospital S. Januário",
+    "nameCn": "愕斜巷/山頂醫院",
+    "coordinates": [
+      113.5458972,
+      22.1945489
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427838",
+    "name": "栢港停車場 Auto-Silo Pak Kong",
+    "nameCn": "栢港停車場",
+    "coordinates": [
+      113.5367674,
+      22.1977586
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427849",
+    "name": "機場倉庫 Officinas do Aeroporto",
+    "nameCn": "機場倉庫",
+    "coordinates": [
+      113.5738971,
+      22.1616009
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427853",
+    "name": "機場圓形地/偉龍 Rotunda do Aeroporto / Wai Long",
+    "nameCn": "機場圓形地/偉龍",
+    "coordinates": [
+      113.5679572,
+      22.1551087
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427860",
+    "name": "Wai Long / M.U.S.T.-Hospital",
+    "nameCn": "偉龍/科大醫院",
+    "coordinates": [
+      113.56788,
+      22.1546408
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427864",
+    "name": "歸僑總會 Sacadura Cabral / Trav. Ultramar",
+    "nameCn": "歸僑總會",
+    "coordinates": [
+      113.5453157,
+      22.2002884
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427869",
+    "name": "殷皇子馬路 Av. Infante D. Henrique",
+    "nameCn": "殷皇子馬路",
+    "coordinates": [
+      113.5418516,
+      22.1914918
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427872",
+    "name": "民國馬路 Av. República",
+    "nameCn": "民國馬路",
+    "coordinates": [
+      113.5360147,
+      22.1858349
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427874",
+    "name": "沙梨頭街市 Mercado de Patane",
+    "nameCn": "沙梨頭街市",
+    "coordinates": [
+      113.5375381,
+      22.2012439
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427887",
+    "name": "水坑尾/公共行政大樓 R. Campo / Edf. Admin. Pública",
+    "nameCn": "水坑尾/公共行政大樓",
+    "coordinates": [
+      113.543702,
+      22.1940135
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427891",
+    "name": "水坑尾/天神巷 R. Campo/ Travessa dos Anjos",
+    "nameCn": "水坑尾/天神巷",
+    "coordinates": [
+      113.5433218,
+      22.1935345
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427895",
+    "name": "R Bend / Labour Affairs Bureau",
+    "nameCn": "水塘北角/勞工事務局",
+    "coordinates": [
+      113.5599054,
+      22.2046523
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427903",
+    "name": "永康街/麗華 Rua da Saúde / Edf. Lai Wah",
+    "nameCn": "永康街/麗華",
+    "coordinates": [
+      113.5514017,
+      22.2099018
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427908",
+    "name": "Wing Lok Cinema",
+    "nameCn": "永樂戲院",
+    "coordinates": [
+      113.5429745,
+      22.2017273
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427913",
+    "name": "氹仔CEM貨倉 Nobre Carvalho / Armazem CEM",
+    "nameCn": "氹仔CEM貨倉",
+    "coordinates": [
+      113.561461,
+      22.1546428
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427933",
+    "name": "氹仔中央公園/哥英布拉街 Parque Central da Taipa / Rua de Coimbra",
+    "nameCn": "氹仔中央公園/哥英布拉街",
+    "coordinates": [
+      113.5557279,
+      22.15868
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427937",
+    "name": "氹仔中央公園/成都街 Parque Central da Taipa/R. Seng Tou",
+    "nameCn": "氹仔中央公園/成都街",
+    "coordinates": [
+      113.5544871,
+      22.1582826
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427941",
+    "name": "氹仔中葡小學 Escola Luso Chinesa da Taipa",
+    "nameCn": "氹仔中葡小學",
+    "coordinates": [
+      113.5551553,
+      22.1520594
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427947",
+    "name": "氹仔嘉樂庇馬路 Est. Gov. Nobre Carvalho",
+    "nameCn": "氹仔嘉樂庇馬路",
+    "coordinates": [
+      113.5630735,
+      22.153
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427954",
+    "name": "氹仔大中華廣場 Great China Plaza/ Taipa",
+    "nameCn": "氹仔大中華廣場",
+    "coordinates": [
+      113.5567129,
+      22.1607362
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427960",
+    "name": "氹仔官也街 Rua do Cunha",
+    "nameCn": "氹仔官也街",
+    "coordinates": [
+      113.5571493,
+      22.1530154
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427964",
+    "name": "氹仔海濱花園 Edificio Jardim Beira-Mar",
+    "nameCn": "氹仔海濱花園",
+    "coordinates": [
+      113.5420706,
+      22.1584978
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165427996",
+    "name": "氹仔茵景園 Edf. Greenville",
+    "nameCn": "氹仔茵景園",
+    "coordinates": [
+      113.559975,
+      22.1561446
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428000",
+    "name": "海洋花園衛生中心 Centro de Saúde dos Jardins do Oceano",
+    "nameCn": "海洋花園衛生中心",
+    "coordinates": [
+      113.5422173,
+      22.1595072
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428003",
+    "name": "氹仔電訊 Av. Sun Yat Sen / CTM",
+    "nameCn": "氹仔電訊",
+    "coordinates": [
+      113.5563632,
+      22.1608289
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428004",
+    "name": "沙嘉都喇街 Sacadura Cabral",
+    "nameCn": "沙嘉都喇街",
+    "coordinates": [
+      113.5465949,
+      22.1994393
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428020",
+    "name": "沙梨頭南街/蘭花前地 Rua Sul do Patane / Praça das Orquideas",
+    "nameCn": "沙梨頭南街/蘭花前地",
+    "coordinates": [
+      113.5430959,
+      22.2062287
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428024",
+    "name": "沙梨頭海邊街 R Ribeira Patane",
+    "nameCn": "沙梨頭海邊街",
+    "coordinates": [
+      113.5401512,
+      22.2030824
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428035",
+    "name": "沙欄仔 Rua do Tarrafeiro",
+    "nameCn": "沙欄仔",
+    "coordinates": [
+      113.5373583,
+      22.1988113
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428041",
+    "name": "河邊新街/下環 Alm. Sérgio / Praia Manduco",
+    "nameCn": "河邊新街/下環",
+    "coordinates": [
+      113.5321532,
+      22.1885703
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428045",
+    "name": "河邊新街/凱泉灣 Alm. Sérgio / Riviera Macau",
+    "nameCn": "河邊新街/凱泉灣",
+    "coordinates": [
+      113.5333498,
+      22.1905373
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428049",
+    "name": "河邊新街/李道巷 Alm. Sérgio/ Trav. Lido",
+    "nameCn": "河邊新街/李道巷",
+    "coordinates": [
+      113.5346344,
+      22.1924753
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428051",
+    "name": "河邊新街/街市 Alm. Sérgio / Mercado",
+    "nameCn": "河邊新街/街市",
+    "coordinates": [
+      113.5332695,
+      22.1901396
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428052",
+    "name": "治安警察局 C.P.S.P.",
+    "nameCn": "治安警察局",
+    "coordinates": [
+      113.5467445,
+      22.1919138
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428054",
+    "name": "泉亮花園 Edf. Chun Leong",
+    "nameCn": "泉亮花園",
+    "coordinates": [
+      113.5582304,
+      22.1591081
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428066",
+    "name": "泉悅花園 Edf. Chun Yuet Garden",
+    "nameCn": "泉悅花園",
+    "coordinates": [
+      113.5595137,
+      22.156182
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428075",
+    "name": "海洋廣場 Plaza Oceano",
+    "nameCn": "海洋廣場",
+    "coordinates": [
+      113.5437888,
+      22.160824
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428089",
+    "name": "海洋花園/紫荊苑 Jardins do Oceano / Bauhinia Court",
+    "nameCn": "海洋花園/紫荊苑",
+    "coordinates": [
+      113.5437437,
+      22.1612155
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428092",
+    "name": "高勵雅馬路 Est. Alm. M. Correia",
+    "nameCn": "高勵雅馬路",
+    "coordinates": [
+      113.5619377,
+      22.1623382
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428097",
+    "name": "海邊新街 R. do Guimarães",
+    "nameCn": "海邊新街",
+    "coordinates": [
+      113.5374551,
+      22.2005578
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428102",
+    "name": "渡船街/俾利喇街 R. Barca / R. Xavier Pereira",
+    "nameCn": "渡船街/俾利喇街",
+    "coordinates": [
+      113.5455837,
+      22.2017453
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428106",
+    "name": "渡船街/婦聯 Rua da Barca / Esc. Assoc. G. de Mulhers",
+    "nameCn": "渡船街/婦聯",
+    "coordinates": [
+      113.544051,
+      22.2023034
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428107",
+    "name": "海事及水務局 D. dos S. de A. Marítimos e de Água",
+    "nameCn": "海事及水務局",
+    "coordinates": [
+      113.5331667,
+      22.1879022
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428109",
+    "name": "湖畔公園 Jardim do Lago",
+    "nameCn": "湖畔公園",
+    "coordinates": [
+      113.5621366,
+      22.1586767
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428110",
+    "name": "湖畔大廈 Edifício do Lago",
+    "nameCn": "湖畔大廈",
+    "coordinates": [
+      113.5609836,
+      22.1589616
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428111",
+    "name": "漁翁街/勞工事務局 Rua dos Pescadores / DSAL",
+    "nameCn": "漁翁街/勞工事務局",
+    "coordinates": [
+      113.5600309,
+      22.2047922
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428112",
+    "name": "澳門旅遊大學 Universidade de Turismo de Macau",
+    "nameCn": "澳門旅遊大學",
+    "coordinates": [
+      113.5593408,
+      22.1634267
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428114",
+    "name": "澳廣視 TDM",
+    "nameCn": "澳廣視",
+    "coordinates": [
+      113.549611,
+      22.2059875
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428115",
+    "name": "澳門土木工程實驗室 L.E.C.M.",
+    "nameCn": "澳門土木工程實驗室",
+    "coordinates": [
+      113.5647272,
+      22.1521869
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428117",
+    "name": "City University of Macau",
+    "nameCn": "城市大學",
+    "coordinates": [
+      113.5563132,
+      22.163811
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428120",
+    "name": "Macau Tower",
+    "nameCn": "澳門旅遊塔",
+    "coordinates": [
+      113.5377069,
+      22.1803757
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428121",
+    "name": "Macau East Asia Games Dome",
+    "nameCn": "澳門東亞運動會體育館",
+    "coordinates": [
+      113.5686133,
+      22.139841
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428122",
+    "name": "Macau International Airport",
+    "nameCn": "澳門機場",
+    "coordinates": [
+      113.5736717,
+      22.1575603
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428123",
+    "name": "Macau Science Centre",
+    "nameCn": "澳門科學館",
+    "coordinates": [
+      113.5565017,
+      22.1871009
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428125",
+    "name": "Macau Stadium",
+    "nameCn": "澳門運動場",
+    "coordinates": [
+      113.5550104,
+      22.1553928
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428126",
+    "name": "Riviera Hotel Macau",
+    "nameCn": "濠璟酒店",
+    "coordinates": [
+      113.5360825,
+      22.1861736
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428127",
+    "name": "內港客運碼頭 Terminal Marítimo de Passageiros do Porto Interior",
+    "nameCn": "內港客運碼頭",
+    "coordinates": [
+      113.5355599,
+      22.1944109
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428128",
+    "name": "燒灰爐 P. Lobo Ávila",
+    "nameCn": "燒灰爐",
+    "coordinates": [
+      113.5376577,
+      22.1885348
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428129",
+    "name": "營地大街 Rua dos Mercadores",
+    "nameCn": "營地大街",
+    "coordinates": [
+      113.5399373,
+      22.1951425
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428130",
+    "name": "澳門理工大學 Universidade Politécnica de Macau",
+    "nameCn": "澳門理工大學",
+    "coordinates": [
+      113.552009,
+      22.1935042
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428133",
+    "name": "白朗古/跑狗場 Gen. C. Branco / Canídromo",
+    "nameCn": "白朗古/跑狗場",
+    "coordinates": [
+      113.5450264,
+      22.2092041
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428134",
+    "name": "白朗古將軍馬路 Av. Gen. Castelo Branco",
+    "nameCn": "白朗古將軍馬路",
+    "coordinates": [
+      113.5446995,
+      22.209453
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428135",
+    "name": "白鴿巢前地 Praça Luís Camões",
+    "nameCn": "白鴿巢前地",
+    "coordinates": [
+      113.539559,
+      22.1992343
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428136",
+    "name": "白鴿巢總站 Jardim Camões / Terminal",
+    "nameCn": "白鴿巢總站",
+    "coordinates": [
+      113.5393926,
+      22.1992253
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428138",
+    "name": "粵華中學 Yuet Wah College",
+    "nameCn": "粵華中學",
+    "coordinates": [
+      113.5478177,
+      22.1970999
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428140",
+    "name": "盧廉若/菩提園 Lou Lim Ieok / Templo de Pou Tai Un",
+    "nameCn": "盧廉若/菩提園",
+    "coordinates": [
+      113.5513449,
+      22.1616611
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428141",
+    "name": "盧廉若/葡京花園 Lou Lim Ieok / Jardins de Lisboa",
+    "nameCn": "盧廉若/葡京花園",
+    "coordinates": [
+      113.5482607,
+      22.1594628
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428143",
+    "name": "Lou Lim Ioc Garden",
+    "nameCn": "盧廉若公園",
+    "coordinates": [
+      113.5483109,
+      22.2002089
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428147",
+    "name": "看台街/騎士馬路 R. da Tribuna / Est. dos Cavaleiros",
+    "nameCn": "看台街/騎士馬路",
+    "coordinates": [
+      113.5493895,
+      22.2132358
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428148",
+    "name": "One Oasis / Mahogany Tower",
+    "nameCn": "金峰南岸/金譽峰",
+    "coordinates": [
+      113.5585636,
+      22.128249
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428149",
+    "name": "石排灣馬路/擎天匯 Est. Seak Pai Van/ Praia Park",
+    "nameCn": "石排灣馬路/擎天匯",
+    "coordinates": [
+      113.5604404,
+      22.1313763
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428151",
+    "name": "Social Welfare Bureau",
+    "nameCn": "社會工作局",
+    "coordinates": [
+      113.5445416,
+      22.1980298
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428154",
+    "name": "Iao Hon Municipal Market",
+    "nameCn": "祐漢街市",
+    "coordinates": [
+      113.5519984,
+      22.2115854
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428157",
+    "name": "福泰工業大廈 Edf. Ind. Fôk Tai",
+    "nameCn": "福泰工業大廈",
+    "coordinates": [
+      113.5527613,
+      22.2090041
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428158",
+    "name": "霍英東馬路/科技大學 Av. Dr. Henry Fok / M.U.S.T.",
+    "nameCn": "霍英東馬路/科技大學",
+    "coordinates": [
+      113.5665896,
+      22.1503748
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428160",
+    "name": "立法會前地 Praça da Assembleia Legislativa",
+    "nameCn": "立法會前地",
+    "coordinates": [
+      113.5393904,
+      22.1830164
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428161",
+    "name": "Cheoc Van Swimming Pool - 1",
+    "nameCn": "竹灣泳池-1",
+    "coordinates": [
+      113.5580768,
+      22.1144903
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428162",
+    "name": "Cheoc Van Swimming Pool - 2",
+    "nameCn": "竹灣泳池-2",
+    "coordinates": [
+      113.5579463,
+      22.1144807
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428163",
+    "name": "Cheoc Van Beach - 1",
+    "nameCn": "竹灣海灘-1",
+    "coordinates": [
+      113.5634722,
+      22.11295
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428164",
+    "name": "Cheoc Van Beach - 2",
+    "nameCn": "竹灣海灘-2",
+    "coordinates": [
+      113.5633877,
+      22.1127884
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428167",
+    "name": "Cheoc Van Barbecue Park - 1",
+    "nameCn": "竹灣燒烤公園-1",
+    "coordinates": [
+      113.5626602,
+      22.1143799
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428168",
+    "name": "Cheoc Van Barbecue Park - 2",
+    "nameCn": "竹灣燒烤公園-2",
+    "coordinates": [
+      113.5625884,
+      22.1136461
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428169",
+    "name": "竹灣豪園-1 Vila Chok Wan Hou Un-1",
+    "nameCn": "竹灣豪園-1",
+    "coordinates": [
+      113.5662539,
+      22.1133579
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428170",
+    "name": "竹灣豪園-2 Vila Chok Wan Hou Un-2",
+    "nameCn": "竹灣豪園-2",
+    "coordinates": [
+      113.5666923,
+      22.1131381
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428171",
+    "name": "竹灣馬路-1 Est. Cheoc Van-1",
+    "nameCn": "竹灣馬路-1",
+    "coordinates": [
+      113.5610014,
+      22.1145552
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428173",
+    "name": "竹灣馬路-2 Est. Cheoc Van-2",
+    "nameCn": "竹灣馬路-2",
+    "coordinates": [
+      113.5605969,
+      22.11434
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428175",
+    "name": "北區警司處 Comissariado da Zona Norte",
+    "nameCn": "北區警司處",
+    "coordinates": [
+      113.5462366,
+      22.2103712
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428199",
+    "name": "筷子基總站 Fai Chi Kei / Terminal",
+    "nameCn": "筷子基總站",
+    "coordinates": [
+      113.5434402,
+      22.2084002
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428206",
+    "name": "Dr. Sun Yat Sen Municipal Park",
+    "nameCn": "紀念孫中山公園",
+    "coordinates": [
+      113.5453613,
+      22.2153352
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428207",
+    "name": "約翰四世大馬路 Av. D. João IV",
+    "nameCn": "約翰四世大馬路",
+    "coordinates": [
+      113.5428799,
+      22.1918398
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428209",
+    "name": "約翰四世大馬路/馬統領街 Av. D. Joao IV / R. do Comandante Mata e Oliveria",
+    "nameCn": "約翰四世大馬路/馬統領街",
+    "coordinates": [
+      113.5423577,
+      22.191607
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428214",
+    "name": "高美士/馬六甲街停車場 Gonzaga Gomes / Auto-Silo da Rua de Malaca",
+    "nameCn": "高美士/馬六甲街停車場",
+    "coordinates": [
+      113.5537438,
+      22.1957148
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428218",
+    "name": "總統酒店 Hotel Presidente",
+    "nameCn": "總統酒店",
+    "coordinates": [
+      113.5470384,
+      22.1901778
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428228",
+    "name": "羅利老/得勝花園 Adolfo Loureiro/ Jardim Vitória",
+    "nameCn": "羅利老/得勝花園",
+    "coordinates": [
+      113.5481235,
+      22.1992972
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428232",
+    "name": "羅利老馬路 Adolfo Loureiro",
+    "nameCn": "羅利老馬路",
+    "coordinates": [
+      113.5471289,
+      22.2003556
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428234",
+    "name": "羅理基/馬六甲街 Av. R. Rodrigues / Rua Malaca",
+    "nameCn": "羅理基/馬六甲街",
+    "coordinates": [
+      113.5528184,
+      22.1962515
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428244",
+    "name": "Sacred Heart Canossian College",
+    "nameCn": "聖心學校",
+    "coordinates": [
+      113.5468175,
+      22.2059031
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428249",
+    "name": "聖方濟各老人院 Asilo S. Francisco",
+    "nameCn": "聖方濟各老人院",
+    "coordinates": [
+      113.5483199,
+      22.2042645
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428254",
+    "name": "聯生圓形地總站 Rotunda da Concórdia/ Terminal",
+    "nameCn": "聯生圓形地總站",
+    "coordinates": [
+      113.5549759,
+      22.1256771
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428272",
+    "name": "Garden of Flower City",
+    "nameCn": "花城公園",
+    "coordinates": [
+      113.5571297,
+      22.1561283
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428275",
+    "name": "草堆街 Rua das Estalagens",
+    "nameCn": "草堆街",
+    "coordinates": [
+      113.5390784,
+      22.1962807
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428281",
+    "name": "荷蘭園/栢蕙 Cons. F. Almeida / Pak Wai",
+    "nameCn": "荷蘭園/栢蕙",
+    "coordinates": [
+      113.5503661,
+      22.2029174
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428287",
+    "name": "荷蘭花園 Cons.F.Almeida / Holland Garden",
+    "nameCn": "荷蘭花園",
+    "coordinates": [
+      113.5494215,
+      22.2016972
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428292",
+    "name": "鄭觀應公立學校 Escola Oficial Zheng Guanying",
+    "nameCn": "鄭觀應公立學校",
+    "coordinates": [
+      113.5453338,
+      22.2136649
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428298",
+    "name": "華寶花園 Edf. Jardim de Va Pou",
+    "nameCn": "華寶花園",
+    "coordinates": [
+      113.5551642,
+      22.1555163
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428303",
+    "name": "葡京路 Av. Lisboa",
+    "nameCn": "葡京路",
+    "coordinates": [
+      113.5437956,
+      22.1904596
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428313",
+    "name": "葡京酒店 Hotel Lisboa",
+    "nameCn": "葡京酒店",
+    "coordinates": [
+      113.5448135,
+      22.1892839
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428321",
+    "name": "Lim Fung Swimming Pool",
+    "nameCn": "蓮峰游泳池",
+    "coordinates": [
+      113.5460442,
+      22.207883
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428326",
+    "name": "蓮花圓形地 Rotunda Flor de Lótus",
+    "nameCn": "蓮花圓形地",
+    "coordinates": [
+      113.5636464,
+      22.1407612
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428332",
+    "name": "連貫公路/新濠影匯 Est. do Istmo / Studio City",
+    "nameCn": "連貫公路/新濠影匯",
+    "coordinates": [
+      113.563207,
+      22.1406671
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428337",
+    "name": "蓮花路/蓮花圓形地-1 Est. F. de Lótus / Rotunda F. de Lótus-1",
+    "nameCn": "蓮花路/蓮花圓形地-1",
+    "coordinates": [
+      113.5675242,
+      22.1383818
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428343",
+    "name": "蓮花路/蓮花圓形地-2 Est. F. de Lótus / Rotunda F. de Lótus-2",
+    "nameCn": "蓮花路/蓮花圓形地-2",
+    "coordinates": [
+      113.5644126,
+      22.1391146
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428351",
+    "name": "Montanha Russa Park",
+    "nameCn": "螺絲山公園",
+    "coordinates": [
+      113.55184,
+      22.2031957
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428366",
+    "name": "街總社區服務大樓 União G. das Associações dos Moradores",
+    "nameCn": "街總社區服務大樓",
+    "coordinates": [
+      113.5440388,
+      22.2131417
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428376",
+    "name": "福海花園 Edf. Fok Hoi",
+    "nameCn": "福海花園",
+    "coordinates": [
+      113.5512924,
+      22.2057068
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428381",
+    "name": "西坑街 Rua da Penha",
+    "nameCn": "西坑街",
+    "coordinates": [
+      113.5357495,
+      22.1885671
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428389",
+    "name": "西灣 Sai Wan",
+    "nameCn": "西灣",
+    "coordinates": [
+      113.533511,
+      22.1829994
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428390",
+    "name": "西灣/大興大廈 Sai Wan / Edf. Tai Heng",
+    "nameCn": "西灣/大興大廈",
+    "coordinates": [
+      113.5334559,
+      22.1827831
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428407",
+    "name": "Kun Iam Tong Temple",
+    "nameCn": "觀音堂",
+    "coordinates": [
+      113.5497132,
+      22.2042572
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428420",
+    "name": "賈伯樂/培正 Al. Costa Cabral / Esc. Pui Ching",
+    "nameCn": "賈伯樂/培正",
+    "coordinates": [
+      113.5470193,
+      22.200979
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428426",
+    "name": "賈伯樂/沙嘉都喇 Al. Costa Cabral / Sacadura Cabral",
+    "nameCn": "賈伯樂/沙嘉都喇",
+    "coordinates": [
+      113.5460391,
+      22.2001928
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428429",
+    "name": "賈羅布/葡京 Lopo S Carvalho / Hotel Lisboa",
+    "nameCn": "賈羅布/葡京",
+    "coordinates": [
+      113.5451285,
+      22.1904638
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428430",
+    "name": "賽馬會 Jockey Club",
+    "nameCn": "賽馬會",
+    "coordinates": [
+      113.5495312,
+      22.1569044
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428439",
+    "name": "跨境工業區 Parque Industrial Transfronteiriço",
+    "nameCn": "跨境工業區",
+    "coordinates": [
+      113.5344569,
+      22.2121566
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428455",
+    "name": "永進馬路/美獅美高梅 Av .do Progresso/ MGM COTAI",
+    "nameCn": "永進馬路/美獅美高梅",
+    "coordinates": [
+      113.5670257,
+      22.1455437
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428461",
+    "name": "路氹新城 Nova Cidade de COTAI",
+    "nameCn": "路氹新城",
+    "coordinates": [
+      113.5669069,
+      22.141901
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428469",
+    "name": "路環小型賽車場 Kartódromo de Coloane",
+    "nameCn": "路環小型賽車場",
+    "coordinates": [
+      113.5608702,
+      22.1315615
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428472",
+    "name": "路環居民大會堂 Assoc. de M. de Coloane",
+    "nameCn": "路環居民大會堂",
+    "coordinates": [
+      113.5533926,
+      22.1182427
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428477",
+    "name": "路環市區/打纜街 Vila de Coloane/Rua da Cordoaria",
+    "nameCn": "路環市區/打纜街",
+    "coordinates": [
+      113.5523492,
+      22.1179271
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428481",
+    "name": "Youth Correctional Inst. - 1",
+    "nameCn": "少年感化院-1",
+    "coordinates": [
+      113.5551616,
+      22.118069
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428486",
+    "name": "Youth Correctional Inst. - 2",
+    "nameCn": "少年感化院-2",
+    "coordinates": [
+      113.5548926,
+      22.1180948
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428504",
+    "name": "安順大廈 Edifício On Son",
+    "nameCn": "安順大廈",
+    "coordinates": [
+      113.5587597,
+      22.128265
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428506",
+    "name": "路環警察訓練營-1 Est. do Campo / PSP-1",
+    "nameCn": "路環警察訓練營-1",
+    "coordinates": [
+      113.5535124,
+      22.1205615
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428507",
+    "name": "路環警察訓練營-2 Est. do Campo / PSP-2",
+    "nameCn": "路環警察訓練營-2",
+    "coordinates": [
+      113.5533533,
+      22.1204861
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428510",
+    "name": "連勝/鏡湖醫院 C. Amaral / Hospital Kiang Wu",
+    "nameCn": "連勝/鏡湖醫院",
+    "coordinates": [
+      113.5424455,
+      22.1997498
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428516",
+    "name": "連勝馬路 Est. Coelho Amaral",
+    "nameCn": "連勝馬路",
+    "coordinates": [
+      113.5445751,
+      22.201315
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428522",
+    "name": "連勝馬路/高士德 Est. C. Amaral/ Horta e Costa",
+    "nameCn": "連勝馬路/高士德",
+    "coordinates": [
+      113.5450869,
+      22.2036239
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428526",
+    "name": "連貫公路/巴黎人 Est. do Istmo / Parisian",
+    "nameCn": "連貫公路/巴黎人",
+    "coordinates": [
+      113.5634364,
+      22.1444762
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428542",
+    "name": "連貫公路/巴黎人花園 Est. do Istmo / Le Jardin",
+    "nameCn": "連貫公路/巴黎人花園",
+    "coordinates": [
+      113.5638191,
+      22.143741
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428546",
+    "name": "霍英東馬路/新濠天地 Av. Dr. Henry Fok / C.O.D.",
+    "nameCn": "霍英東馬路/新濠天地",
+    "coordinates": [
+      113.5651504,
+      22.150256
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428547",
+    "name": "運動場/體育中心 Estádio/ Centro Desportivo",
+    "nameCn": "運動場/體育中心",
+    "coordinates": [
+      113.5526668,
+      22.1552723
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428556",
+    "name": "重型車輛駕考中心 Centro de Exm. de Condução dos Auto. Pesados",
+    "nameCn": "重型車輛駕考中心",
+    "coordinates": [
+      113.5580651,
+      22.1316709
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428560",
+    "name": "新馬路/金碧坊 Almeida Ribeiro/ Mercado Kam Pek",
+    "nameCn": "新馬路/金碧坊",
+    "coordinates": [
+      113.537281,
+      22.1956989
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428566",
+    "name": "Kiang Wu Hospital",
+    "nameCn": "鏡湖醫院",
+    "coordinates": [
+      113.5433188,
+      22.1991675
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428600",
+    "name": "關閘馬路 Istmo F. Amaral",
+    "nameCn": "關閘馬路",
+    "coordinates": [
+      113.548587,
+      22.2123029
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428609",
+    "name": "關閘馬路/三角花園 Istmo F. Amaral / Jardim Triangular",
+    "nameCn": "關閘馬路/三角花園",
+    "coordinates": [
+      113.5485379,
+      22.2107289
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428625",
+    "name": "雅廉花園 Edf. Nga Lim",
+    "nameCn": "雅廉花園",
+    "coordinates": [
+      113.5487761,
+      22.2032009
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428633",
+    "name": "雅廉訪/聖心 Ouvidor Arriaga / Esc. S. C. Jesus",
+    "nameCn": "雅廉訪/聖心",
+    "coordinates": [
+      113.5459641,
+      22.2053672
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428641",
+    "name": "電力公司 CEM",
+    "nameCn": "電力公司",
+    "coordinates": [
+      113.5543141,
+      22.2038502
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428664",
+    "name": "霍英東馬路/永利皇宮 Av. Dr. Henry Fok / Wynn Palace",
+    "nameCn": "霍英東馬路/永利皇宮",
+    "coordinates": [
+      113.5696546,
+      22.1500774
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428668",
+    "name": "青洲/嘉應花園 Cons. Borja / Edf. Mayfair Garden",
+    "nameCn": "青洲/嘉應花園",
+    "coordinates": [
+      113.5435835,
+      22.2106797
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428688",
+    "name": "青洲/美樂花園 Est. Ilha Verde / Edf. Mei Lok Garden",
+    "nameCn": "青洲/美樂花園",
+    "coordinates": [
+      113.5379349,
+      22.2131931
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428697",
+    "name": "青洲 / 聖德蘭學校 Cons. Borja / Escola S. Teresa",
+    "nameCn": "青洲 / 聖德蘭學校",
+    "coordinates": [
+      113.5418948,
+      22.2109583
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428709",
+    "name": "青洲/聖若瑟中學 Cons. Borja / Colégio S. José",
+    "nameCn": "青洲/聖若瑟中學",
+    "coordinates": [
+      113.5400067,
+      22.2110646
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428726",
+    "name": "青洲/自來水公司 Ilha Verde / S.A.A.M.",
+    "nameCn": "青洲/自來水公司",
+    "coordinates": [
+      113.5400425,
+      22.2111842
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428735",
+    "name": "青洲/鴨涌河 Est. Ilha Verde / Canal dos Patos",
+    "nameCn": "青洲/鴨涌河",
+    "coordinates": [
+      113.5381028,
+      22.2133677
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428768",
+    "name": "青翠花園 Edf. Cheng Choi",
+    "nameCn": "青翠花園",
+    "coordinates": [
+      113.5369191,
+      22.2095271
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428780",
+    "name": "青洲總站 Est. Ilha Verde / Terminal",
+    "nameCn": "青洲總站",
+    "coordinates": [
+      113.5362496,
+      22.2094128
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428790",
+    "name": "永寧廣場總站 Al. Tranquilidade / Terminal",
+    "nameCn": "永寧廣場總站",
+    "coordinates": [
+      113.5523538,
+      22.2131682
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428799",
+    "name": "風順堂街 Rua S. Lourenço",
+    "nameCn": "風順堂街",
+    "coordinates": [
+      113.5364895,
+      22.1905126
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428804",
+    "name": "馬六甲街 Rua de Malaca",
+    "nameCn": "馬六甲街",
+    "coordinates": [
+      113.5546907,
+      22.1954479
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428815",
+    "name": "馬場東大馬路 Av. Leste Hipódromo",
+    "nameCn": "馬場東大馬路",
+    "coordinates": [
+      113.5543142,
+      22.2129347
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428830",
+    "name": "青茂 / 青洲坊 Qingmao / Bairro da Ilha Verde",
+    "nameCn": "青茂 / 青洲坊",
+    "coordinates": [
+      113.5420273,
+      22.211833
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428836",
+    "name": "東亞運/巴黎人花園 Jogos da Ásia Oriental/ Le Jardin",
+    "nameCn": "東亞運/巴黎人花園",
+    "coordinates": [
+      113.5685353,
+      22.1432054
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428842",
+    "name": "路氹東/永利皇宮 Cotai Leste/Wynn Palace",
+    "nameCn": "路氹東/永利皇宮",
+    "coordinates": [
+      113.5693611,
+      22.1472148
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428847",
+    "name": "海灣花園/海城閣 Jardim Hoi Van/ Hoi Cheng",
+    "nameCn": "海灣花園/海城閣",
+    "coordinates": [
+      113.5614593,
+      22.1623055
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428851",
+    "name": "高士德/亞利鴉架街 Horta e Costa / Rua Manuel Arriaga",
+    "nameCn": "高士德/亞利鴉架街",
+    "coordinates": [
+      113.5460486,
+      22.2036626
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428856",
+    "name": "高士德/培正 Horta e Costa / Esc. Pui Cheng",
+    "nameCn": "高士德/培正",
+    "coordinates": [
+      113.5485073,
+      22.2014988
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428859",
+    "name": "Horta Costa / Mercado Vermelho",
+    "nameCn": "高士德/紅街市",
+    "coordinates": [
+      113.544668,
+      22.2048894
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428870",
+    "name": "高士德/賈伯樂 Horta Costa / Costa Cabral",
+    "nameCn": "高士德/賈伯樂",
+    "coordinates": [
+      113.5479632,
+      22.2021531
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428875",
+    "name": "高士德/連勝 Horta Costa / Coelho do Amaral",
+    "nameCn": "高士德/連勝",
+    "coordinates": [
+      113.5459419,
+      22.2039627
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428879",
+    "name": "高美士/利澳 Gonzaga Gomes / Rio",
+    "nameCn": "高美士/利澳",
+    "coordinates": [
+      113.5501872,
+      22.192681
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428882",
+    "name": "高美士/南園大廈 Gonzaga Gomes / Edf. Nam Yun",
+    "nameCn": "高美士/南園大廈",
+    "coordinates": [
+      113.550099,
+      22.1925874
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428884",
+    "name": "D. Bosco College Sports Center",
+    "nameCn": "鮑思高球場",
+    "coordinates": [
+      113.5517688,
+      22.2025862
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428885",
+    "name": "青茂 / 鴨涌河變電站 Qingmao / Subestação Canal dos Patos",
+    "nameCn": "青茂 / 鴨涌河變電站",
+    "coordinates": [
+      113.5404947,
+      22.2126473
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428886",
+    "name": "黑橋/地堡街 Ponte Negra / R. do Regedor",
+    "nameCn": "黑橋/地堡街",
+    "coordinates": [
+      113.5561453,
+      22.1544774
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428890",
+    "name": "Hac Sa Beach",
+    "nameCn": "黑沙海灘",
+    "coordinates": [
+      113.5693451,
+      22.1188017
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428891",
+    "name": "勞動節街/裕華 Rua 1 de Maio / Edf. U Wa",
+    "nameCn": "勞動節街/裕華",
+    "coordinates": [
+      113.5541979,
+      22.2095139
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428892",
+    "name": "黑沙環中街/黑沙環衛生中心 R. Central da Areia Preta / Centro de Saúde da Areia Preta",
+    "nameCn": "黑沙環中街/黑沙環衛生中心",
+    "coordinates": [
+      113.5550224,
+      22.211728
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428893",
+    "name": "黑沙環新街/南華 R. Nova Areia Preta / Nam Wa",
+    "nameCn": "黑沙環新街/南華",
+    "coordinates": [
+      113.5570473,
+      22.2062825
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428896",
+    "name": "黑沙環新街/建華 R. Nova Areia Preta / Edf. Kin Wa",
+    "nameCn": "黑沙環新街/建華",
+    "coordinates": [
+      113.5544006,
+      22.2085129
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428901",
+    "name": "黑沙環第五街 Rua Cinco / Areia Preta",
+    "nameCn": "黑沙環第五街",
+    "coordinates": [
+      113.5507648,
+      22.2083473
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428905",
+    "name": "黑沙環馬路 Est. Areia Preta",
+    "nameCn": "黑沙環馬路",
+    "coordinates": [
+      113.5497113,
+      22.2081468
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2165428916",
+    "name": "Hellene Graden / Hac Sa",
+    "nameCn": "海蘭花園/黑沙",
+    "coordinates": [
+      113.5682994,
+      22.1170043
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2185571664",
+    "name": "俾若翰街 / 綠楊花園 R. do Comandante João Belo/Edf. Lok Yeung Fa Yuen",
+    "nameCn": "俾若翰街 / 綠楊花園",
+    "coordinates": [
+      113.5408648,
+      22.207512
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2392038130",
+    "name": "蓮花海濱大馬路/銀河-2 Av. M. Flor de Lótus/Galaxy-2",
+    "nameCn": "蓮花海濱大馬路/銀河-2",
+    "coordinates": [
+      113.5526756,
+      22.1443288
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2392038136",
+    "name": "蓮花海濱大馬路/銀河-1 Av. M. Flor de Lótus/ Galaxy-1",
+    "nameCn": "蓮花海濱大馬路/銀河-1",
+    "coordinates": [
+      113.5516349,
+      22.1493181
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2392038138",
+    "name": "蓮花海濱大馬路/百老匯 Av. M. Flor de Lótus / Broadway",
+    "nameCn": "蓮花海濱大馬路/百老匯",
+    "coordinates": [
+      113.5523642,
+      22.1457877
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2392038142",
+    "name": "皇庭海景酒店 Pousada Marina Infante",
+    "nameCn": "皇庭海景酒店",
+    "coordinates": [
+      113.5509091,
+      22.1499836
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2392926761",
+    "name": "和諧圓形地 Rotunda da Harmonia",
+    "nameCn": "和諧圓形地",
+    "coordinates": [
+      113.5582749,
+      22.1318661
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2397316007",
+    "name": "青茂 / 青葱大廈 Qingmao / Edifício Cheng Chong",
+    "nameCn": "青茂 / 青葱大廈",
+    "coordinates": [
+      113.5410378,
+      22.2124228
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2491152762",
+    "name": "Chun Lai Garden",
+    "nameCn": "泉澧花園",
+    "coordinates": [
+      113.5561235,
+      22.1613458
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2492640348",
+    "name": "T551 UM / Postgarduate House",
+    "nameCn": "T551 澳大/研究生宿舍",
+    "coordinates": [
+      113.5461831,
+      22.1247976
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2492714502",
+    "name": "T559 University South",
+    "nameCn": "T559 大學南",
+    "coordinates": [
+      113.5461863,
+      22.1241293
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2493357533",
+    "name": "雞頸馬路/孝思-2 Est. da Ponta da Cabrita/ Hau Si-2",
+    "nameCn": "雞頸馬路/孝思-2",
+    "coordinates": [
+      113.5689175,
+      22.1605674
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2493357534",
+    "name": "雞頸馬路臨時站-1 Paragem Provisória Da Estrada da Ponta da Cabrita No 1",
+    "nameCn": "雞頸馬路臨時站-1",
+    "coordinates": [
+      113.5625589,
+      22.1604276
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2493357567",
+    "name": "海濱圓形地/生態保護區 Rotunda Marginal/ Zonas Ecológicas",
+    "nameCn": "海濱圓形地/生態保護區",
+    "coordinates": [
+      113.552682,
+      22.141324
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2493357568",
+    "name": "海濱圓形地/西堤馬路 Rotunda Marginal/ Est. do Dique Oeste",
+    "nameCn": "海濱圓形地/西堤馬路",
+    "coordinates": [
+      113.5522649,
+      22.1411398
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2494627359",
+    "name": "樂居大馬路/樂群樓 Av. de Lok Koi / Edf. Lok Kuan",
+    "nameCn": "樂居大馬路/樂群樓",
+    "coordinates": [
+      113.5611011,
+      22.1294269
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2494627360",
+    "name": "Hellene Garden / Orchids Villa",
+    "nameCn": "海蘭花園/蘭苑",
+    "coordinates": [
+      113.5695038,
+      22.1163847
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2561573383",
+    "name": "T552 UM / Central Teaching Building",
+    "nameCn": "T552 澳大/中央教學樓",
+    "coordinates": [
+      113.5464549,
+      22.1280473
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2561573384",
+    "name": "T553 UM / University Gallery",
+    "nameCn": "T553 澳大/大學展館",
+    "coordinates": [
+      113.5463628,
+      22.1310314
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2561573392",
+    "name": "凱泉灣總站 Riviera Macau / Terminal",
+    "nameCn": "凱泉灣總站",
+    "coordinates": [
+      113.5329886,
+      22.1907634
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2561573410",
+    "name": "山頂醫院急診大樓 Urgências do Hospital S. Januário",
+    "nameCn": "山頂醫院急診大樓",
+    "coordinates": [
+      113.5473372,
+      22.1941705
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2561573411",
+    "name": "山頂醫院總站 Hospital S. Januário / Terminal",
+    "nameCn": "山頂醫院總站",
+    "coordinates": [
+      113.5463036,
+      22.1941643
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2561588890",
+    "name": "蘇利安圓形地 Rotunda Leonel Sousa",
+    "nameCn": "蘇利安圓形地",
+    "coordinates": [
+      113.5497093,
+      22.1638779
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632948",
+    "name": "高利亞海軍上將大馬路 Av. Alm. Magalhães Correia",
+    "nameCn": "高利亞海軍上將大馬路",
+    "coordinates": [
+      113.5529485,
+      22.208512
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632949",
+    "name": "回力 Jai Alai",
+    "nameCn": "回力",
+    "coordinates": [
+      113.5552482,
+      22.1960939
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632950",
+    "name": "旅遊塔/行車隧道 Torre/ Túnel Rodoviário",
+    "nameCn": "旅遊塔/行車隧道",
+    "coordinates": [
+      113.5369508,
+      22.1801624
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632952",
+    "name": "海洋花園瞭望台 Terraço Panorâmico dos Jardins do Oceano",
+    "nameCn": "海洋花園瞭望台",
+    "coordinates": [
+      113.5429724,
+      22.1616445
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632953",
+    "name": "水塘馬路 Est. do Reservatório",
+    "nameCn": "水塘馬路",
+    "coordinates": [
+      113.5546107,
+      22.1997587
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632954",
+    "name": "永華街 Rua Graciosa",
+    "nameCn": "永華街",
+    "coordinates": [
+      113.5525146,
+      22.2105205
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632955",
+    "name": "祐漢第二街 Rua 2 Iao Hon",
+    "nameCn": "祐漢第二街",
+    "coordinates": [
+      113.550203,
+      22.2115551
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632956",
+    "name": "馬場東大馬路/黑沙環衛生中心 Av. Leste do Hipódromo / Centro de Saúde da Areia Preta",
+    "nameCn": "馬場東大馬路/黑沙環衛生中心",
+    "coordinates": [
+      113.5541894,
+      22.2121735
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632957",
+    "name": "望賢樓 Edf. Mong In",
+    "nameCn": "望賢樓",
+    "coordinates": [
+      113.5496231,
+      22.2057581
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2562632958",
+    "name": "勞動節大馬路/廣華 Av. 1º de Maio / Kwong Wa",
+    "nameCn": "勞動節大馬路/廣華",
+    "coordinates": [
+      113.5575487,
+      22.2077742
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2563012139",
+    "name": "雅廉訪/俾利喇 Ouvidor Arriaga / Xavier Pereira",
+    "nameCn": "雅廉訪/俾利喇",
+    "coordinates": [
+      113.5480611,
+      22.2036208
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2563012140",
+    "name": "Tap Seac Multisport Pavilion",
+    "nameCn": "塔石體育館",
+    "coordinates": [
+      113.546615,
+      22.1968452
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2574211493",
+    "name": "Ka-Ho Village",
+    "nameCn": "九澳村",
+    "coordinates": [
+      113.581594,
+      22.1320836
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2574211497",
+    "name": "九澳聖若瑟學校 Escola de S. José de Ká-Hó",
+    "nameCn": "九澳聖若瑟學校",
+    "coordinates": [
+      113.5823096,
+      22.1336045
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2597928920",
+    "name": "T555 UM / Sport Complex",
+    "nameCn": "T555 澳大/綜合體育館",
+    "coordinates": [
+      113.5432263,
+      22.1339277
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2597928921",
+    "name": "T550/2 University of Macau / Terminal (Lane A)",
+    "nameCn": "T550/2 澳門大學總站(A車道)",
+    "coordinates": [
+      113.5462997,
+      22.135698
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2597928922",
+    "name": "T554 UM / University Hall",
+    "nameCn": "T554 澳大/大學會堂",
+    "coordinates": [
+      113.5463541,
+      22.1341062
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2597928924",
+    "name": "T558 University Avenue",
+    "nameCn": "T558 大學大馬路",
+    "coordinates": [
+      113.5468585,
+      22.1305037
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2710674405",
+    "name": "陳瑞祺中學 Esc. Chan Sui Ki",
+    "nameCn": "陳瑞祺中學",
+    "coordinates": [
+      113.5490281,
+      22.1984922
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2727219330",
+    "name": "Hac Sa Village - 2",
+    "nameCn": "黑沙村-2",
+    "coordinates": [
+      113.5666017,
+      22.1175599
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2727219335",
+    "name": "Hac Sa Village - 1",
+    "nameCn": "黑沙村-1",
+    "coordinates": [
+      113.5661311,
+      22.1182029
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2727219336",
+    "name": "Ka-Ho Reservoir Courtry Park / DSC-1",
+    "nameCn": "九澳水庫郊野公園/懲教管理局-1",
+    "coordinates": [
+      113.5783487,
+      22.1339627
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2727219339",
+    "name": "Hac Sa Reservoir - 1",
+    "nameCn": "黑沙水庫-1",
+    "coordinates": [
+      113.5707048,
+      22.1238884
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2727219345",
+    "name": "Hac Sa Reservoir - 2",
+    "nameCn": "黑沙水庫-2",
+    "coordinates": [
+      113.5718288,
+      22.1239437
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2727219348",
+    "name": "Grand Coloane Resort - 2",
+    "nameCn": "鷺環海天酒店-2",
+    "coordinates": [
+      113.575919,
+      22.1267634
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2727219354",
+    "name": "Grand Coloane Resort - 1",
+    "nameCn": "鷺環海天酒店-1",
+    "coordinates": [
+      113.5761059,
+      22.1270399
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2727219357",
+    "name": "樂居大馬路/居雅大廈 Av. de Lok Koi / Edf. Koi Nga",
+    "nameCn": "樂居大馬路/居雅大廈",
+    "coordinates": [
+      113.5609472,
+      22.1294282
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736904337",
+    "name": "基馬拉斯/濠珀 Guimarães / Nova Park",
+    "nameCn": "基馬拉斯/濠珀",
+    "coordinates": [
+      113.5555658,
+      22.1579309
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736904362",
+    "name": "聚龍明珠/榮苑 Tjoi Long Sea View/Bloco 1",
+    "nameCn": "聚龍明珠/榮苑",
+    "coordinates": [
+      113.55894,
+      22.165605
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736904368",
+    "name": "南新花園 Edf. Nam Sun",
+    "nameCn": "南新花園",
+    "coordinates": [
+      113.550016,
+      22.1574225
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736967232",
+    "name": "新城大馬路/威尼斯人 Av. Cidade Nova/ Venetian",
+    "nameCn": "新城大馬路/威尼斯人",
+    "coordinates": [
+      113.5581672,
+      22.1486304
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736967245",
+    "name": "路氹西/金光會展 Cotai Oeste / Cotai Expo",
+    "nameCn": "路氹西/金光會展",
+    "coordinates": [
+      113.557995,
+      22.1446325
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736967261",
+    "name": "新城大馬路/銀河 Av. Cidade Nova/ Galaxy",
+    "nameCn": "新城大馬路/銀河",
+    "coordinates": [
+      113.5578319,
+      22.1488076
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736967273",
+    "name": "科大/機場貨運站 M.U.S.T./ Terminal de Carga do Aeroporto",
+    "nameCn": "科大/機場貨運站",
+    "coordinates": [
+      113.5704975,
+      22.153182
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736967282",
+    "name": "路氹西/銀河 Cotai Oeste / Galaxy",
+    "nameCn": "路氹西/銀河",
+    "coordinates": [
+      113.5576604,
+      22.1448938
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736967293",
+    "name": "射擊路/上葡京 R. Tiro/ Palácio Grande Lisboa",
+    "nameCn": "射擊路/上葡京",
+    "coordinates": [
+      113.5736075,
+      22.1451458
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736967322",
+    "name": "機場大馬路/上葡京 Av. Aeroporto/ Palácio Grande Lisboa",
+    "nameCn": "機場大馬路/上葡京",
+    "coordinates": [
+      113.5757126,
+      22.1446642
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736967335",
+    "name": "連貫公路/新濠天地 Est. do Istmo/ C.O.D.",
+    "nameCn": "連貫公路/新濠天地",
+    "coordinates": [
+      113.5640915,
+      22.1491583
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2736967349",
+    "name": "路氹東/新濠天地 Cotai Leste/ C.O.D.",
+    "nameCn": "路氹東/新濠天地",
+    "coordinates": [
+      113.5687599,
+      22.1491282
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2737450896",
+    "name": "友誼馬路/海景花園 Av. Amizade / Praceta de Miramar",
+    "nameCn": "友誼馬路/海景花園",
+    "coordinates": [
+      113.5525447,
+      22.1922633
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2737583084",
+    "name": "城市日前地 Praceta 24 de Junho",
+    "nameCn": "城市日前地",
+    "coordinates": [
+      113.5478595,
+      22.1872509
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2737681694",
+    "name": "駕駛學習暨考試中心 Centro de Aprendizagem e Exames de Condução",
+    "nameCn": "駕駛學習暨考試中心",
+    "coordinates": [
+      113.5750806,
+      22.1510804
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2760922339",
+    "name": "機場大馬路/科大醫院 Av. do Aeroporto / M.U.S.T.-Hospital",
+    "nameCn": "機場大馬路/科大醫院",
+    "coordinates": [
+      113.5700425,
+      22.1533011
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2772915210",
+    "name": "濠江路口",
+    "nameCn": "濠江路口",
+    "coordinates": [
+      113.5401026,
+      22.1324004
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2772915211",
+    "name": "横琴新家园",
+    "nameCn": "横琴新家园",
+    "coordinates": [
+      113.5402472,
+      22.1280445
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2772915212",
+    "name": "横琴新家园",
+    "nameCn": "横琴新家园",
+    "coordinates": [
+      113.5397519,
+      22.128455
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2772915213",
+    "name": "粗沙环",
+    "nameCn": "粗沙环",
+    "coordinates": [
+      113.5374555,
+      22.1269248
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2772915214",
+    "name": "粗沙环",
+    "nameCn": "粗沙环",
+    "coordinates": [
+      113.5400324,
+      22.1246527
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2786954530",
+    "name": "蓮花路/新濠影匯 Est. F. de Lótus/ Studio City",
+    "nameCn": "蓮花路/新濠影匯",
+    "coordinates": [
+      113.5601416,
+      22.1396236
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2914195639",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5431149,
+      22.1889444
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2914195640",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5431247,
+      22.1894824
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2914195641",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5432461,
+      22.1893348
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2914195642",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5435281,
+      22.189408
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2914195643",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.543271,
+      22.1894731
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2926151143",
+    "name": "蘇利安圓形地 Rotunda Leonel Sousa",
+    "nameCn": "蘇利安圓形地",
+    "coordinates": [
+      113.5475338,
+      22.1642045
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2929238176",
+    "name": "T556 UM / Administration Building",
+    "nameCn": "T556 澳大/行政樓",
+    "coordinates": [
+      113.5436002,
+      22.1340299
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "2948029923",
+    "name": "司打口總站 Praça Ponte Horta / Terminal",
+    "nameCn": "司打口總站",
+    "coordinates": [
+      113.5350763,
+      22.1933476
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3005525893",
+    "name": "水坑尾/天神巷 R. Campo/ Travessa dos Anjos",
+    "nameCn": "水坑尾/天神巷",
+    "coordinates": [
+      113.5433859,
+      22.1938166
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3005525894",
+    "name": "河邊新街/貨倉巷 Alm. Sérgio / Trv. dos Armazéns",
+    "nameCn": "河邊新街/貨倉巷",
+    "coordinates": [
+      113.533011,
+      22.1899997
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3007408037",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5433163,
+      22.1893322
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3018060287",
+    "name": "新馬路/爐石塘 Almeida Ribeiro / Rua Camilo Pessanha",
+    "nameCn": "新馬路/爐石塘",
+    "coordinates": [
+      113.5379509,
+      22.1951539
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3124416275",
+    "name": "粵通碼頭 Ponte Cais N.14",
+    "nameCn": "粵通碼頭",
+    "coordinates": [
+      113.5362014,
+      22.1953416
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3127073302",
+    "name": "湾仔口岸（城轨湾仔北站）",
+    "nameCn": "湾仔口岸（城轨湾仔北站）",
+    "coordinates": [
+      113.5293632,
+      22.1978671
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3127074346",
+    "name": "鸿景花园(湾仔中学)",
+    "nameCn": "鸿景花园(湾仔中学)",
+    "coordinates": [
+      113.5281283,
+      22.2025865
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3129275867",
+    "name": "北大希望之星",
+    "nameCn": "北大希望之星",
+    "coordinates": [
+      113.5205465,
+      22.1811416
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3129278392",
+    "name": "横琴大桥南",
+    "nameCn": "横琴大桥南",
+    "coordinates": [
+      113.5189505,
+      22.1542864
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3129278394",
+    "name": "横琴金融基地",
+    "nameCn": "横琴金融基地",
+    "coordinates": [
+      113.5308651,
+      22.1520095
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3129278395",
+    "name": "环岛东路中",
+    "nameCn": "环岛东路中",
+    "coordinates": [
+      113.536387,
+      22.1510829
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3129282172",
+    "name": "横琴国际商务中心",
+    "nameCn": "横琴国际商务中心",
+    "coordinates": [
+      113.5383246,
+      22.148414
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3129295768",
+    "name": "濠江路口",
+    "nameCn": "濠江路口",
+    "coordinates": [
+      113.5394055,
+      22.1340052
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3129295769",
+    "name": "横琴医院",
+    "nameCn": "横琴医院",
+    "coordinates": [
+      113.5441811,
+      22.1207739
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3129295770",
+    "name": "横琴客运码头",
+    "nameCn": "横琴客运码头",
+    "coordinates": [
+      113.5460131,
+      22.1157533
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3130587281",
+    "name": "跨境工业区",
+    "nameCn": "跨境工业区",
+    "coordinates": [
+      113.5334531,
+      22.2055901
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3130588629",
+    "name": "中心路中",
+    "nameCn": "中心路中",
+    "coordinates": [
+      113.5325114,
+      22.2092694
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3133676022",
+    "name": "利是达星际广场",
+    "nameCn": "利是达星际广场",
+    "coordinates": [
+      113.5055918,
+      22.1701025
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3133676023",
+    "name": "天科路中",
+    "nameCn": "天科路中",
+    "coordinates": [
+      113.5000771,
+      22.1684701
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3133686705",
+    "name": "石博园",
+    "nameCn": "石博园",
+    "coordinates": [
+      113.509781,
+      22.1530182
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3133686708",
+    "name": "横琴一中",
+    "nameCn": "横琴一中",
+    "coordinates": [
+      113.5266318,
+      22.1263839
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3133686709",
+    "name": "四塘北",
+    "nameCn": "四塘北",
+    "coordinates": [
+      113.5142923,
+      22.1245948
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3133686710",
+    "name": "三塘北",
+    "nameCn": "三塘北",
+    "coordinates": [
+      113.5082352,
+      22.1223888
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3212331561",
+    "name": "中心路中",
+    "nameCn": "中心路中",
+    "coordinates": [
+      113.5324049,
+      22.2090385
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3212332498",
+    "name": "Cross-Border Industrial Zone (North)",
+    "nameCn": "跨境工业区北",
+    "coordinates": [
+      113.5314276,
+      22.2121573
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3220411790",
+    "name": "和諧廣場/業興大廈 Al. da Harmonia / Edf. Ip Heng",
+    "nameCn": "和諧廣場/業興大廈",
+    "coordinates": [
+      113.5630248,
+      22.1298438
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3220411791",
+    "name": "和諧廣場/樂群樓 Al. da Harmonia / Edf. Lok Kuan",
+    "nameCn": "和諧廣場/樂群樓",
+    "coordinates": [
+      113.5628451,
+      22.1297136
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3239578459",
+    "name": "横琴金融基地",
+    "nameCn": "横琴金融基地",
+    "coordinates": [
+      113.5349995,
+      22.1522914
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3239578460",
+    "name": "环岛东路中",
+    "nameCn": "环岛东路中",
+    "coordinates": [
+      113.5385623,
+      22.1494535
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3239578715",
+    "name": "跨境工业区北",
+    "nameCn": "跨境工业区北",
+    "coordinates": [
+      113.5318848,
+      22.2115619
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3239578716",
+    "name": "横琴国际商务中心",
+    "nameCn": "横琴国际商务中心",
+    "coordinates": [
+      113.5392255,
+      22.1469003
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3265327570",
+    "name": "横琴客运码头",
+    "nameCn": "横琴客运码头",
+    "coordinates": [
+      113.5463664,
+      22.1157877
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3265327571",
+    "name": "横琴湾酒店",
+    "nameCn": "横琴湾酒店",
+    "coordinates": [
+      113.5392671,
+      22.1016041
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3265327572",
+    "name": "横琴湾酒店",
+    "nameCn": "横琴湾酒店",
+    "coordinates": [
+      113.5392601,
+      22.1021805
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3265327576",
+    "name": "横琴医院",
+    "nameCn": "横琴医院",
+    "coordinates": [
+      113.5437509,
+      22.1214593
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3265327577",
+    "name": "国际网球中心",
+    "nameCn": "国际网球中心",
+    "coordinates": [
+      113.5319701,
+      22.126409
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3265327578",
+    "name": "国际网球中心",
+    "nameCn": "国际网球中心",
+    "coordinates": [
+      113.5300545,
+      22.1268824
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3265331052",
+    "name": "长隆",
+    "nameCn": "长隆",
+    "coordinates": [
+      113.5357199,
+      22.100509
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3265331053",
+    "name": "长隆大道东",
+    "nameCn": "长隆大道东",
+    "coordinates": [
+      113.5424508,
+      22.1093897
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3265331054",
+    "name": "长隆大道东",
+    "nameCn": "长隆大道东",
+    "coordinates": [
+      113.5424055,
+      22.1097981
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3355354286",
+    "name": "横琴大桥南",
+    "nameCn": "横琴大桥南",
+    "coordinates": [
+      113.518189,
+      22.1542417
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3355480606",
+    "name": "湾仔旅游码头",
+    "nameCn": "湾仔旅游码头",
+    "coordinates": [
+      113.5270385,
+      22.1923831
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3371739347",
+    "name": "慕拉士馬路/望善樓 Av. Venc. Morais / Edf. Mong Sin",
+    "nameCn": "慕拉士馬路/望善樓",
+    "coordinates": [
+      113.5521199,
+      22.2069048
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3376142625",
+    "name": "T550/4 University of Macau / Terminal (Lane B)",
+    "nameCn": "T550/4 澳門大學總站(B車道)",
+    "coordinates": [
+      113.5463043,
+      22.1358021
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3376404848",
+    "name": "宝顺路",
+    "nameCn": "宝顺路",
+    "coordinates": [
+      113.5033379,
+      22.1653955
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3376572949",
+    "name": "国际会展中心",
+    "nameCn": "国际会展中心",
+    "coordinates": [
+      113.5175018,
+      22.1769063
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3396928056",
+    "name": "T550/1 University of Macau / Terminal (Lane A)",
+    "nameCn": "T550/1 澳門大學總站(A車道)",
+    "coordinates": [
+      113.5466619,
+      22.1357057
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3406760431",
+    "name": "天科路中",
+    "nameCn": "天科路中",
+    "coordinates": [
+      113.5004797,
+      22.1682913
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3442989649",
+    "name": "国际会展中心",
+    "nameCn": "国际会展中心",
+    "coordinates": [
+      113.5180917,
+      22.1768588
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3442994931",
+    "name": "珠海保税区",
+    "nameCn": "珠海保税区",
+    "coordinates": [
+      113.509363,
+      22.1716835
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3442998063",
+    "name": "洋环",
+    "nameCn": "洋环",
+    "coordinates": [
+      113.5287747,
+      22.1525929
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3443018798",
+    "name": "城轨横琴站",
+    "nameCn": "城轨横琴站",
+    "coordinates": [
+      113.5389461,
+      22.1425734
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3452102101",
+    "name": "东桥",
+    "nameCn": "东桥",
+    "coordinates": [
+      113.5158229,
+      22.2198623
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3452109263",
+    "name": "环岛北路东",
+    "nameCn": "环岛北路东",
+    "coordinates": [
+      113.515644,
+      22.1548902
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3452114829",
+    "name": "环岛北路东",
+    "nameCn": "环岛北路东",
+    "coordinates": [
+      113.5124162,
+      22.1535155
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3459544529",
+    "name": "公交临时站1",
+    "nameCn": "公交临时站1",
+    "coordinates": [
+      113.5064832,
+      22.1516294
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3459544530",
+    "name": "公交临时站1",
+    "nameCn": "公交临时站1",
+    "coordinates": [
+      113.5057258,
+      22.1517096
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3459556238",
+    "name": "天羽道路口",
+    "nameCn": "天羽道路口",
+    "coordinates": [
+      113.5015747,
+      22.1500268
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3687097723",
+    "name": "横琴大道中",
+    "nameCn": "横琴大道中",
+    "coordinates": [
+      113.5045464,
+      22.1212713
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3721154052",
+    "name": "伯牙道路口",
+    "nameCn": "伯牙道路口",
+    "coordinates": [
+      113.5182117,
+      22.126051
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3721154053",
+    "name": "四塘北",
+    "nameCn": "四塘北",
+    "coordinates": [
+      113.5166061,
+      22.1249356
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3721154054",
+    "name": "三塘北",
+    "nameCn": "三塘北",
+    "coordinates": [
+      113.5064045,
+      22.1212289
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3723400349",
+    "name": "基馬拉斯/氹仔中央公園 Guimarães / Parque Central da Taipa",
+    "nameCn": "基馬拉斯/氹仔中央公園",
+    "coordinates": [
+      113.5556648,
+      22.1582588
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3759818883",
+    "name": "澳门新街坊南",
+    "nameCn": "澳门新街坊南",
+    "coordinates": [
+      113.5096689,
+      22.138083
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3759818884",
+    "name": "下村",
+    "nameCn": "下村",
+    "coordinates": [
+      113.5232122,
+      22.141251
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3759818885",
+    "name": "横琴口岸西",
+    "nameCn": "横琴口岸西",
+    "coordinates": [
+      113.5372586,
+      22.1447434
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3759818888",
+    "name": "横琴口岸西",
+    "nameCn": "横琴口岸西",
+    "coordinates": [
+      113.5349966,
+      22.1437515
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3759818889",
+    "name": "下村",
+    "nameCn": "下村",
+    "coordinates": [
+      113.5240584,
+      22.1410578
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3759818890",
+    "name": "澳门新街坊南",
+    "nameCn": "澳门新街坊南",
+    "coordinates": [
+      113.5121364,
+      22.1386739
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3759819709",
+    "name": "伯牙道路口",
+    "nameCn": "伯牙道路口",
+    "coordinates": [
+      113.5209233,
+      22.1260789
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3769062735",
+    "name": "仙桥路南",
+    "nameCn": "仙桥路南",
+    "coordinates": [
+      113.5173419,
+      22.2177918
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3773318365",
+    "name": "海洋花園/玫瑰苑 Jardins do Oceano / Rose Court",
+    "nameCn": "海洋花園/玫瑰苑",
+    "coordinates": [
+      113.5416739,
+      22.1621566
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3773318366",
+    "name": "西灣大橋/海洋大馬路 Ponte de Sai Van / Av. do Oceano",
+    "nameCn": "西灣大橋/海洋大馬路",
+    "coordinates": [
+      113.5417497,
+      22.1628139
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3785975667",
+    "name": "昌明花園 Jardim Cheong Meng",
+    "nameCn": "昌明花園",
+    "coordinates": [
+      113.5432309,
+      22.2044231
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3823117904",
+    "name": "拱北口岸",
+    "nameCn": "拱北口岸",
+    "coordinates": [
+      113.5487297,
+      22.2198394
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3923359050",
+    "name": "氹仔電訊 Av. Sun Yat Sen / CTM",
+    "nameCn": "氹仔電訊",
+    "coordinates": [
+      113.5565871,
+      22.1606131
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3923359637",
+    "name": "Garden of Flower City",
+    "nameCn": "花城公園",
+    "coordinates": [
+      113.5573816,
+      22.1562775
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3923359638",
+    "name": "華寶花園 Edf. Jardim de Va Pou",
+    "nameCn": "華寶花園",
+    "coordinates": [
+      113.5547786,
+      22.1556891
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3928901875",
+    "name": "公交临时站1",
+    "nameCn": "公交临时站1",
+    "coordinates": [
+      113.5107949,
+      22.1226924
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3928901876",
+    "name": "钜星汇广场",
+    "nameCn": "钜星汇广场",
+    "coordinates": [
+      113.5242125,
+      22.1269079
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3934149089",
+    "name": "子期路口",
+    "nameCn": "子期路口",
+    "coordinates": [
+      113.5320404,
+      22.1438551
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3934149090",
+    "name": "横琴市民中心",
+    "nameCn": "横琴市民中心",
+    "coordinates": [
+      113.5172713,
+      22.1408905
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3934149091",
+    "name": "横琴检察院",
+    "nameCn": "横琴检察院",
+    "coordinates": [
+      113.5154401,
+      22.1398873
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3934149092",
+    "name": "横琴检察院",
+    "nameCn": "横琴检察院",
+    "coordinates": [
+      113.514134,
+      22.1397379
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3934149093",
+    "name": "金汇国际广场",
+    "nameCn": "金汇国际广场",
+    "coordinates": [
+      113.5062407,
+      22.1368195
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3934149094",
+    "name": "金汇国际广场",
+    "nameCn": "金汇国际广场",
+    "coordinates": [
+      113.5062662,
+      22.1365017
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3934149095",
+    "name": "Stop_3934149095",
+    "nameCn": "Stop_3934149095",
+    "coordinates": [
+      113.5012138,
+      22.1346105
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "3990948807",
+    "name": "九澳油庫 T. de Combustíveis do P. de Ká-Hó",
+    "nameCn": "九澳油庫",
+    "coordinates": [
+      113.5894298,
+      22.1334978
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4064564812",
+    "name": "筷子基衛生中心 Centro de Saúde de Fai Chi Kei",
+    "nameCn": "筷子基衛生中心",
+    "coordinates": [
+      113.5448599,
+      22.2080013
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4100191946",
+    "name": "河邊新街/媽閣 Alm. Sérgio / Barra",
+    "nameCn": "河邊新街/媽閣",
+    "coordinates": [
+      113.5323247,
+      22.1891128
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4100192293",
+    "name": "林茂/信譽灣畔 Lam Mau / La Magnífícence",
+    "nameCn": "林茂/信譽灣畔",
+    "coordinates": [
+      113.5395623,
+      22.2044138
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4100192294",
+    "name": "林茂/澳門遊艇會 Lam Mau / Clube Náutico de Macau",
+    "nameCn": "林茂/澳門遊艇會",
+    "coordinates": [
+      113.5389078,
+      22.2044361
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4107981405",
+    "name": "愕斜巷/山頂醫院 Calçada da Surpresa / Hospital S. Januário",
+    "nameCn": "愕斜巷/山頂醫院",
+    "coordinates": [
+      113.5457835,
+      22.1943758
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4156028061",
+    "name": "殷皇子馬路 Av. Infante D. Henrique",
+    "nameCn": "殷皇子馬路",
+    "coordinates": [
+      113.5416792,
+      22.1916538
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4169895493",
+    "name": "林茂/運順新邨 Lam Mau / Van Sion Son Chun",
+    "nameCn": "林茂/運順新邨",
+    "coordinates": [
+      113.5424248,
+      22.2052474
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4169895494",
+    "name": "沙梨頭北街/筷子基北灣 Rua Norte do Patane / Bacia Norte do Patane",
+    "nameCn": "沙梨頭北街/筷子基北灣",
+    "coordinates": [
+      113.5416833,
+      22.2088266
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4169895503",
+    "name": "氹仔客運碼頭 Terminal Marítimo de Passageiros da Taipa",
+    "nameCn": "氹仔客運碼頭",
+    "coordinates": [
+      113.5758222,
+      22.1627825
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4169895505",
+    "name": "氹仔客運碼頭 Terminal Marítimo de Passageiros da Taipa",
+    "nameCn": "氹仔客運碼頭",
+    "coordinates": [
+      113.5759014,
+      22.1630713
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4213309778",
+    "name": "看台街 Rua da Tribuna",
+    "nameCn": "看台街",
+    "coordinates": [
+      113.5501287,
+      22.2132279
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4235276889",
+    "name": "Vitory Garden",
+    "nameCn": "得勝花園",
+    "coordinates": [
+      113.5489591,
+      22.1994545
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4277844988",
+    "name": "塔石廣場 Praça do Tap Seac",
+    "nameCn": "塔石廣場",
+    "coordinates": [
+      113.5472658,
+      22.1976035
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4277845898",
+    "name": "水坑尾/方圓廣場 R. Campo / Vicky Plaza",
+    "nameCn": "水坑尾/方圓廣場",
+    "coordinates": [
+      113.5439313,
+      22.194306
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4294805711",
+    "name": "Macau International Airport",
+    "nameCn": "澳門機場",
+    "coordinates": [
+      113.5740052,
+      22.1577918
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4357533390",
+    "name": "Ka-Ho Reservoir Courtry Park / DSC-2",
+    "nameCn": "九澳水庫郊野公園/懲教管理局-2",
+    "coordinates": [
+      113.5784742,
+      22.1338876
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4357533419",
+    "name": "聖路濟亞中心 Centro de Santa Lucia",
+    "nameCn": "聖路濟亞中心",
+    "coordinates": [
+      113.5878545,
+      22.130857
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4357533420",
+    "name": "蝴蝶谷大馬路總站 Av. Vale das Borboletas / Terminal",
+    "nameCn": "蝴蝶谷大馬路總站",
+    "coordinates": [
+      113.5620309,
+      22.1287947
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4371647399",
+    "name": "海擎天總站 The Praia / Terminal",
+    "nameCn": "海擎天總站",
+    "coordinates": [
+      113.5414585,
+      22.2059908
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4470960975",
+    "name": "日昇樓 Edifício Iat Seng",
+    "nameCn": "日昇樓",
+    "coordinates": [
+      113.5608861,
+      22.1639678
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4550328425",
+    "name": "祐漢第一街 Rua 1 Iao Hon",
+    "nameCn": "祐漢第一街",
+    "coordinates": [
+      113.5496894,
+      22.2120447
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4550328426",
+    "name": "馬場海邊馬路 Est. Marginal do Hipódromo",
+    "nameCn": "馬場海邊馬路",
+    "coordinates": [
+      113.5501283,
+      22.210112
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4550328428",
+    "name": "路氹城馬路/巴黎人 Av. de Cotai / Parisian",
+    "nameCn": "路氹城馬路/巴黎人",
+    "coordinates": [
+      113.56209,
+      22.1427251
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4550328429",
+    "name": "路氹城馬路/新濠影匯 Av. de Cotai / Studio City",
+    "nameCn": "路氹城馬路/新濠影匯",
+    "coordinates": [
+      113.5621281,
+      22.1423878
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4644370724",
+    "name": "Macau International Airport",
+    "nameCn": "澳門機場",
+    "coordinates": [
+      113.5741947,
+      22.1579808
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4773194055",
+    "name": "船澳街 Rua da Doca Seca",
+    "nameCn": "船澳街",
+    "coordinates": [
+      113.5404372,
+      22.2067682
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4790589675",
+    "name": "長壽大馬路/勝意樓 Av. da Longevidade / Edf. Seng Yee",
+    "nameCn": "長壽大馬路/勝意樓",
+    "coordinates": [
+      113.5507739,
+      22.2106373
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4824423708",
+    "name": "Barrier Gate Plaza",
+    "nameCn": "關閘廣場",
+    "coordinates": [
+      113.5500844,
+      22.2153273
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4824423710",
+    "name": "松樹尾總站 Chun Su Mei / Terminal",
+    "nameCn": "松樹尾總站",
+    "coordinates": [
+      113.5572893,
+      22.1545585
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4827484513",
+    "name": "南湾总站(下客区)",
+    "nameCn": "南湾总站(下客区)",
+    "coordinates": [
+      113.5174338,
+      22.2153359
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4845746342",
+    "name": "茂丰路南",
+    "nameCn": "茂丰路南",
+    "coordinates": [
+      113.5193333,
+      22.2199546
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4853223952",
+    "name": "Coloane Village",
+    "nameCn": "路環市區/衛生站",
+    "coordinates": [
+      113.5516595,
+      22.1181661
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4897929707",
+    "name": "氹仔客運碼頭 Terminal Marítimo de Passageiros da Taipa",
+    "nameCn": "氹仔客運碼頭",
+    "coordinates": [
+      113.5762442,
+      22.1626847
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4897929708",
+    "name": "氹仔客運碼頭 Terminal Marítimo de Passageiros da Taipa",
+    "nameCn": "氹仔客運碼頭",
+    "coordinates": [
+      113.576332,
+      22.1629883
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "4897929709",
+    "name": "氹仔客運碼頭 Terminal Marítimo de Passageiros da Taipa",
+    "nameCn": "氹仔客運碼頭",
+    "coordinates": [
+      113.5759716,
+      22.1633196
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5016251019",
+    "name": "初級法院刑事大樓 Edf. dos Juízos Criminals do Tribunal Judicial de Base",
+    "nameCn": "初級法院刑事大樓",
+    "coordinates": [
+      113.5375231,
+      22.1845492
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5016251020",
+    "name": "青洲總站 Est. Ilha Verde / Terminal",
+    "nameCn": "青洲總站",
+    "coordinates": [
+      113.5361401,
+      22.2100018
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5116393901",
+    "name": "九澳高頂燒烤公園 Parque de M. do Altinho de Ká-Hó",
+    "nameCn": "九澳高頂燒烤公園",
+    "coordinates": [
+      113.5750728,
+      22.1294439
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5116393902",
+    "name": "九澳高頂馬路 Est. do Altinho de Ká-Hó",
+    "nameCn": "九澳高頂馬路",
+    "coordinates": [
+      113.5755163,
+      22.1293292
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5139888863",
+    "name": "青洲坊總站 Bairro da Ilha Verde/ Terminal",
+    "nameCn": "青洲坊總站",
+    "coordinates": [
+      113.5437772,
+      22.2119418
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5359251460",
+    "name": "蓮花路停車場 Auto-Silo da Estrada Flor de Lótus",
+    "nameCn": "蓮花路停車場",
+    "coordinates": [
+      113.5609196,
+      22.1389631
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5359251461",
+    "name": "Harbourview Hotel",
+    "nameCn": "勵庭海景酒店",
+    "coordinates": [
+      113.5567129,
+      22.1899492
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5367492295",
+    "name": "Zhuhai Intercity Railway Station",
+    "nameCn": "城轨珠海站",
+    "coordinates": [
+      113.5458514,
+      22.2187702
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5501811790",
+    "name": "湾仔",
+    "nameCn": "湾仔",
+    "coordinates": [
+      113.5294542,
+      22.1954047
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5516433109",
+    "name": "宝顺路",
+    "nameCn": "宝顺路",
+    "coordinates": [
+      113.5040976,
+      22.1655897
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5520497716",
+    "name": "河邊新街 / 豐順新邨 Alm. Sérgio/ Fong Son San Chun",
+    "nameCn": "河邊新街 / 豐順新邨",
+    "coordinates": [
+      113.531611,
+      22.1880574
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5521866431",
+    "name": "牧場街總站 Rua dos Currais / Terminal",
+    "nameCn": "牧場街總站",
+    "coordinates": [
+      113.5465912,
+      22.2154558
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5527132790",
+    "name": "台山中街 Rua Central de T'oi Sán",
+    "nameCn": "台山中街",
+    "coordinates": [
+      113.54513,
+      22.2114811
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5528552748",
+    "name": "東北大馬路/南澳 Av. Nordeste/ Nam Ou",
+    "nameCn": "東北大馬路/南澳",
+    "coordinates": [
+      113.5545085,
+      22.2061913
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5528651470",
+    "name": "永定街 Rua da Serenidade",
+    "nameCn": "永定街",
+    "coordinates": [
+      113.5498067,
+      22.2127511
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5528651471",
+    "name": "馬場大馬路 Avenida do Hipódromo",
+    "nameCn": "馬場大馬路",
+    "coordinates": [
+      113.5500792,
+      22.2138092
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5736394518",
+    "name": "金皇冠中國大酒店 Hotel China Coroa d'Ouro",
+    "nameCn": "金皇冠中國大酒店",
+    "coordinates": [
+      113.5737512,
+      22.1590048
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5769905331",
+    "name": "華大新村 Bairro Vá Tai",
+    "nameCn": "華大新村",
+    "coordinates": [
+      113.5482838,
+      22.213455
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5769905332",
+    "name": "運動場/賽馬會 Estádio/ Jockey Club",
+    "nameCn": "運動場/賽馬會",
+    "coordinates": [
+      113.5523615,
+      22.1555452
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5769905333",
+    "name": "路環發電廠 Central Térmica de Coloane",
+    "nameCn": "路環發電廠",
+    "coordinates": [
+      113.5741557,
+      22.1384603
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5769905334",
+    "name": "路環電廠圓形地 R. da Central Térmica de Coloane",
+    "nameCn": "路環電廠圓形地",
+    "coordinates": [
+      113.574072,
+      22.1387712
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5920768895",
+    "name": "氹仔客運碼頭 Terminal Marítimo de Passageiros da Taipa",
+    "nameCn": "氹仔客運碼頭",
+    "coordinates": [
+      113.5764083,
+      22.1632287
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938562833",
+    "name": "蝴蝶谷大馬路總站 Av. Vale das Borboletas / Terminal",
+    "nameCn": "蝴蝶谷大馬路總站",
+    "coordinates": [
+      113.5624811,
+      22.1287045
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938562834",
+    "name": "蝴蝶谷大馬路總站 Av. Vale das Borboletas / Terminal",
+    "nameCn": "蝴蝶谷大馬路總站",
+    "coordinates": [
+      113.5622482,
+      22.1287023
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938562835",
+    "name": "蝴蝶谷大馬路總站 Av. Vale das Borboletas / Terminal",
+    "nameCn": "蝴蝶谷大馬路總站",
+    "coordinates": [
+      113.5620313,
+      22.1286974
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938562836",
+    "name": "蝴蝶谷大馬路總站 Av. Vale das Borboletas / Terminal",
+    "nameCn": "蝴蝶谷大馬路總站",
+    "coordinates": [
+      113.5624787,
+      22.1287984
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938562837",
+    "name": "蝴蝶谷大馬路總站 Av. Vale das Borboletas / Terminal",
+    "nameCn": "蝴蝶谷大馬路總站",
+    "coordinates": [
+      113.5622446,
+      22.1287984
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938615084",
+    "name": "湖畔大廈 Edifício do Lago",
+    "nameCn": "湖畔大廈",
+    "coordinates": [
+      113.5613939,
+      22.1588413
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938615985",
+    "name": "湖畔大廈 Edifício do Lago",
+    "nameCn": "湖畔大廈",
+    "coordinates": [
+      113.5612234,
+      22.1587103
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938615986",
+    "name": "湖畔大廈 Edifício do Lago",
+    "nameCn": "湖畔大廈",
+    "coordinates": [
+      113.5610685,
+      22.1586624
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938615987",
+    "name": "湖畔大廈 Edifício do Lago",
+    "nameCn": "湖畔大廈",
+    "coordinates": [
+      113.5612777,
+      22.1589661
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938615988",
+    "name": "湖畔大廈 Edifício do Lago",
+    "nameCn": "湖畔大廈",
+    "coordinates": [
+      113.5611013,
+      22.1588301
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5938615989",
+    "name": "湖畔大廈 Edifício do Lago",
+    "nameCn": "湖畔大廈",
+    "coordinates": [
+      113.561163,
+      22.1590984
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949356870",
+    "name": "牧場街總站 Rua dos Currais / Terminal",
+    "nameCn": "牧場街總站",
+    "coordinates": [
+      113.5468073,
+      22.215518
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949356871",
+    "name": "牧場街總站 Rua dos Currais / Terminal",
+    "nameCn": "牧場街總站",
+    "coordinates": [
+      113.5467619,
+      22.2154024
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949356872",
+    "name": "牧場街總站 Rua dos Currais / Terminal",
+    "nameCn": "牧場街總站",
+    "coordinates": [
+      113.5467014,
+      22.2153222
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949397451",
+    "name": "Outer Harbour Ferry Terminal",
+    "nameCn": "外港碼頭",
+    "coordinates": [
+      113.5574995,
+      22.1974091
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949397452",
+    "name": "Outer Harbour Ferry Terminal",
+    "nameCn": "外港碼頭",
+    "coordinates": [
+      113.5576613,
+      22.1974117
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949397453",
+    "name": "Outer Harbour Ferry Terminal",
+    "nameCn": "外港碼頭",
+    "coordinates": [
+      113.5574774,
+      22.1974632
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949439077",
+    "name": "筷子基總站 Fai Chi Kei / Terminal",
+    "nameCn": "筷子基總站",
+    "coordinates": [
+      113.5431781,
+      22.209249
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949439078",
+    "name": "筷子基總站 Fai Chi Kei / Terminal",
+    "nameCn": "筷子基總站",
+    "coordinates": [
+      113.5433363,
+      22.2087648
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949470105",
+    "name": "關閘馬路 Istmo F. Amaral",
+    "nameCn": "關閘馬路",
+    "coordinates": [
+      113.5486914,
+      22.2128296
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949470106",
+    "name": "關閘馬路 Istmo F. Amaral",
+    "nameCn": "關閘馬路",
+    "coordinates": [
+      113.5486423,
+      22.2125827
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949557370",
+    "name": "台山平民大廈 Moradias Económicas da Tamagnini Barbosa",
+    "nameCn": "台山平民大廈",
+    "coordinates": [
+      113.5463552,
+      22.2136021
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "5949557371",
+    "name": "鄭觀應公立學校 Escola Oficial Zheng Guanying",
+    "nameCn": "鄭觀應公立學校",
+    "coordinates": [
+      113.5448526,
+      22.2137042
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6022656799",
+    "name": "港珠澳大橋邊檢大樓 Posto Fronteiriço da Ponte Hong Kong-Zhuhai-Macau",
+    "nameCn": "港珠澳大橋邊檢大樓",
+    "coordinates": [
+      113.5746353,
+      22.2011396
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6022656800",
+    "name": "北安大馬路/和睦街 Est. Pac On/ Rua Wo Mok",
+    "nameCn": "北安大馬路/和睦街",
+    "coordinates": [
+      113.5708125,
+      22.1633819
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6022656801",
+    "name": "北安大馬路/新城區 Est. Pac On/ Novos Aterros",
+    "nameCn": "北安大馬路/新城區",
+    "coordinates": [
+      113.5686297,
+      22.1645589
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6093588730",
+    "name": "永寧廣場總站 Al. Tranquilidade / Terminal",
+    "nameCn": "永寧廣場總站",
+    "coordinates": [
+      113.553335,
+      22.2133879
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6093588731",
+    "name": "永寧廣場總站 Al. Tranquilidade / Terminal",
+    "nameCn": "永寧廣場總站",
+    "coordinates": [
+      113.5535442,
+      22.2127261
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6145549146",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5486319,
+      22.2150073
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6145549147",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5487222,
+      22.2149776
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6145549148",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.548748,
+      22.2152593
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6145549149",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5488381,
+      22.21487
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6145549151",
+    "name": "Border Gates Bus Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5489236,
+      22.2152185
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6145549152",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5490185,
+      22.2149314
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6145549154",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.549119,
+      22.2154888
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6145549155",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5492155,
+      22.2151739
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6145549156",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5491629,
+      22.2148968
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6252291133",
+    "name": "東亞運馬路/羅斯福 Av. dos Jogos da Ásia Oriental / Roosevelt",
+    "nameCn": "東亞運馬路/羅斯福",
+    "coordinates": [
+      113.5441624,
+      22.1537838
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6337710966",
+    "name": "九澳七苦聖母小堂 Igreja de Nossa Senhoras das Dores(Ká Hó)",
+    "nameCn": "九澳七苦聖母小堂",
+    "coordinates": [
+      113.5886223,
+      22.1317648
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6449325846",
+    "name": "琴朗路口",
+    "nameCn": "琴朗路口",
+    "coordinates": [
+      113.528132,
+      22.1423886
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6449325847",
+    "name": "琴朗路口",
+    "nameCn": "琴朗路口",
+    "coordinates": [
+      113.528204,
+      22.1426006
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6449397574",
+    "name": "兴澳路口",
+    "nameCn": "兴澳路口",
+    "coordinates": [
+      113.5447528,
+      22.1488729
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6449397575",
+    "name": "洋环路口",
+    "nameCn": "洋环路口",
+    "coordinates": [
+      113.5363851,
+      22.1571808
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6449397576",
+    "name": "兴盛一路口",
+    "nameCn": "兴盛一路口",
+    "coordinates": [
+      113.5205062,
+      22.157761
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6449397578",
+    "name": "海贝桥",
+    "nameCn": "海贝桥",
+    "coordinates": [
+      113.521678,
+      22.1607778
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6449397579",
+    "name": "海鸣桥",
+    "nameCn": "海鸣桥",
+    "coordinates": [
+      113.5288588,
+      22.1597023
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6502428121",
+    "name": "夏湾农贸市场",
+    "nameCn": "夏湾农贸市场",
+    "coordinates": [
+      113.5394382,
+      22.2187123
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6502428122",
+    "name": "都会道",
+    "nameCn": "都会道",
+    "coordinates": [
+      113.5323391,
+      22.1562112
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6539942685",
+    "name": "Free Shuttle Bus to City Of Dreams",
+    "nameCn": "Free Shuttle Bus to City Of Dreams",
+    "coordinates": [
+      113.5412119,
+      22.1898032
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6727058374",
+    "name": "青洲坊總站 Bairro da Ilha Verde/ Terminal",
+    "nameCn": "青洲坊總站",
+    "coordinates": [
+      113.5437675,
+      22.2117689
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6727058375",
+    "name": "青洲坊總站 Bairro da Ilha Verde/ Terminal",
+    "nameCn": "青洲坊總站",
+    "coordinates": [
+      113.5435177,
+      22.2118774
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "6783089318",
+    "name": "创新方",
+    "nameCn": "创新方",
+    "coordinates": [
+      113.5142448,
+      22.1278435
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7091050179",
+    "name": "青茂 / 何賢紳士馬路 Qingmao / Av. do Comendador Ho Yin",
+    "nameCn": "青茂 / 何賢紳士馬路",
+    "coordinates": [
+      113.5414592,
+      22.2114744
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7091050180",
+    "name": "柯維納馬路 Estrada Gov. A. Oliveira",
+    "nameCn": "柯維納馬路",
+    "coordinates": [
+      113.5459714,
+      22.1569859
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7091050181",
+    "name": "柯維納馬路 Estrada Gov. A. Oliveira",
+    "nameCn": "柯維納馬路",
+    "coordinates": [
+      113.5459947,
+      22.1571891
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7091050182",
+    "name": "柯維納馬路 Estrada Gov. A. Oliveira",
+    "nameCn": "柯維納馬路",
+    "coordinates": [
+      113.5457029,
+      22.1571898
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7091050183",
+    "name": "柯維納馬路 Estrada Gov. A. Oliveira",
+    "nameCn": "柯維納馬路",
+    "coordinates": [
+      113.5462551,
+      22.1571946
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7091114285",
+    "name": "柯維納馬路 Estrada Gov. A. Oliveira",
+    "nameCn": "柯維納馬路",
+    "coordinates": [
+      113.5463462,
+      22.1569871
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7122945502",
+    "name": "天星里",
+    "nameCn": "天星里",
+    "coordinates": [
+      113.5242241,
+      22.1366674
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7122945503",
+    "name": "天星里",
+    "nameCn": "天星里",
+    "coordinates": [
+      113.5260703,
+      22.1364118
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7133573383",
+    "name": "Free shuttle to Border Gate",
+    "nameCn": "免費接駁巴士前往關閘",
+    "coordinates": [
+      113.5591764,
+      22.1489535
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7133573384",
+    "name": "Free shuttles to ferry terminals",
+    "nameCn": "免費接駁巴士前往渡輪碼頭",
+    "coordinates": [
+      113.5586346,
+      22.1483573
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7137067925",
+    "name": "Free shuttle to Taipa Ferry Terminal / Macau Airport",
+    "nameCn": "免費穿梭巴士前往氹仔客運碼頭/澳門機場",
+    "coordinates": [
+      113.5731667,
+      22.1477634
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7137067926",
+    "name": "Free shuttle to Macau Ferry Terminal",
+    "nameCn": "Free shuttle to Macau Ferry Terminal",
+    "coordinates": [
+      113.5731747,
+      22.1479894
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7137067927",
+    "name": "Free shuttle to Border Gate",
+    "nameCn": "Free shuttle to Border Gate",
+    "coordinates": [
+      113.573156,
+      22.1474479
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7137067928",
+    "name": "Free shuttle to Taipa City",
+    "nameCn": "Free shuttle to Taipa City",
+    "coordinates": [
+      113.5732954,
+      22.1474628
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7137067929",
+    "name": "Free shuttle to Central Macau",
+    "nameCn": "Free shuttle to Central Macau",
+    "coordinates": [
+      113.5732847,
+      22.1472988
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7139453234",
+    "name": "Free Shuttle to Grand Lisboa Palace",
+    "nameCn": "免費接駁巴士前往上葡京",
+    "coordinates": [
+      113.5739749,
+      22.1641686
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7139453235",
+    "name": "Free Shuttle To Venetian Casino",
+    "nameCn": "免費接駁巴士前往威尼斯人",
+    "coordinates": [
+      113.5738596,
+      22.1642058
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7164357103",
+    "name": "屏湾一路中",
+    "nameCn": "屏湾一路中",
+    "coordinates": [
+      113.5175034,
+      22.2162777
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7449382547",
+    "name": "水坑尾/高可寧大宅 R. Campo/ Mansão do Kou Ho Neng",
+    "nameCn": "水坑尾/高可寧大宅",
+    "coordinates": [
+      113.5437907,
+      22.1944082
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7449382564",
+    "name": "Kiang Wu Nursing College of Macau",
+    "nameCn": "澳門鏡湖護理學院",
+    "coordinates": [
+      113.5685865,
+      22.1364635
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7474858433",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.543663,
+      22.1890471
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7474858435",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.543318,
+      22.1892383
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7474858437",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5432748,
+      22.1891455
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7474858438",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5431362,
+      22.1891384
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7644921490",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5434545,
+      22.1894584
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7644921493",
+    "name": "亞馬喇前地 Praça Ferreira Amaral",
+    "nameCn": "亞馬喇前地",
+    "coordinates": [
+      113.5435596,
+      22.1893055
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7649132592",
+    "name": "河邊新街/凱泉灣 Alm. Sérgio / Riviera Macau",
+    "nameCn": "河邊新街/凱泉灣",
+    "coordinates": [
+      113.5331172,
+      22.1901856
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7649132593",
+    "name": "提督馬路/雅廉訪 Av. Alm. Lacerda / Ouvidor Arriaga",
+    "nameCn": "提督馬路/雅廉訪",
+    "coordinates": [
+      113.5454988,
+      22.2066404
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7649132596",
+    "name": "Lou Lim Ioc Garden",
+    "nameCn": "盧廉若公園",
+    "coordinates": [
+      113.5481687,
+      22.2000366
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7649132597",
+    "name": "D. Bosco College Sports Center",
+    "nameCn": "鮑思高球場",
+    "coordinates": [
+      113.5520642,
+      22.20235
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7649132598",
+    "name": "慕拉士馬路/望善樓 Av. Venc. Morais / Edf. Mong Sin",
+    "nameCn": "慕拉士馬路/望善樓",
+    "coordinates": [
+      113.5522646,
+      22.2067961
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7649132599",
+    "name": "塔石體育館 Pavilhão Polidesportivo Tap Seac",
+    "nameCn": "塔石體育館",
+    "coordinates": [
+      113.5467945,
+      22.1970625
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7649132601",
+    "name": "看台街 Rua da Tribuna",
+    "nameCn": "看台街",
+    "coordinates": [
+      113.5503221,
+      22.2132129
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7656680005",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5492892,
+      22.2151045
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7658012286",
+    "name": "百利寶花園 Treasure Garden",
+    "nameCn": "百利寶花園",
+    "coordinates": [
+      113.5590133,
+      22.1580449
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7658012287",
+    "name": "和諧廣場/樂群樓 Al. da Harmonia / Edf. Lok Kuan",
+    "nameCn": "和諧廣場/樂群樓",
+    "coordinates": [
+      113.5628455,
+      22.1299456
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7658012288",
+    "name": "和諧廣場/業興大廈 Al. da Harmonia / Edf. Ip Heng",
+    "nameCn": "和諧廣場/業興大廈",
+    "coordinates": [
+      113.5630271,
+      22.1295445
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7658012289",
+    "name": "連貫公路/巴黎人 Est. do Istmo / Parisian",
+    "nameCn": "連貫公路/巴黎人",
+    "coordinates": [
+      113.5634514,
+      22.1447277
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7794305692",
+    "name": "横琴口岸",
+    "nameCn": "横琴口岸",
+    "coordinates": [
+      113.540274,
+      22.1399557
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7794305704",
+    "name": "横琴口岸东",
+    "nameCn": "横琴口岸东",
+    "coordinates": [
+      113.5422312,
+      22.1404695
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7794305705",
+    "name": "琴政路口",
+    "nameCn": "琴政路口",
+    "coordinates": [
+      113.5342288,
+      22.1376622
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7794305706",
+    "name": "子期路北",
+    "nameCn": "子期路北",
+    "coordinates": [
+      113.5336905,
+      22.1424041
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817662622",
+    "name": "Macao - Hengqin Frontier Post",
+    "nameCn": "橫琴澳方口岸",
+    "coordinates": [
+      113.5459506,
+      22.1413162
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817662623",
+    "name": "Macao - Hengqin Frontier Post",
+    "nameCn": "橫琴澳方口岸",
+    "coordinates": [
+      113.5457149,
+      22.1413083
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817662624",
+    "name": "Macao - Hengqin Frontier Post",
+    "nameCn": "橫琴澳方口岸",
+    "coordinates": [
+      113.5457562,
+      22.1410304
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817671231",
+    "name": "横琴文化艺术中心",
+    "nameCn": "横琴文化艺术中心",
+    "coordinates": [
+      113.5320509,
+      22.1363193
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817671233",
+    "name": "Stop_7817671233",
+    "nameCn": "Stop_7817671233",
+    "coordinates": [
+      113.5004246,
+      22.1317478
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817671234",
+    "name": "万利东路口",
+    "nameCn": "万利东路口",
+    "coordinates": [
+      113.502272,
+      22.132174
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817671236",
+    "name": "福福桥北",
+    "nameCn": "福福桥北",
+    "coordinates": [
+      113.5059533,
+      22.1335671
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817671237",
+    "name": "思思桥北",
+    "nameCn": "思思桥北",
+    "coordinates": [
+      113.5106837,
+      22.1355193
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817671238",
+    "name": "思思桥北",
+    "nameCn": "思思桥北",
+    "coordinates": [
+      113.5128086,
+      22.1358181
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817671242",
+    "name": "姗姗桥北",
+    "nameCn": "姗姗桥北",
+    "coordinates": [
+      113.5161293,
+      22.1366055
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817671243",
+    "name": "姗姗桥北",
+    "nameCn": "姗姗桥北",
+    "coordinates": [
+      113.5169605,
+      22.1364828
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7817671244",
+    "name": "横琴文化艺术中心",
+    "nameCn": "横琴文化艺术中心",
+    "coordinates": [
+      113.5300965,
+      22.1365891
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7823597184",
+    "name": "澳大河隧/西堤馬路 Túnel S. da UM/ Est. do Dique Oeste",
+    "nameCn": "澳大河隧/西堤馬路",
+    "coordinates": [
+      113.5522264,
+      22.1340108
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7823627285",
+    "name": "澳大河隧/高爾夫俱樂部 Túnel S. da UM/ Clube de Golfe",
+    "nameCn": "澳大河隧/高爾夫俱樂部",
+    "coordinates": [
+      113.5526204,
+      22.1348211
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7823639917",
+    "name": "城轨长隆站",
+    "nameCn": "城轨长隆站",
+    "coordinates": [
+      113.5359302,
+      22.1065176
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7823639918",
+    "name": "城轨长隆站",
+    "nameCn": "城轨长隆站",
+    "coordinates": [
+      113.5358528,
+      22.1061229
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7823639919",
+    "name": "海鸣桥",
+    "nameCn": "海鸣桥",
+    "coordinates": [
+      113.5291333,
+      22.1599197
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7868960733",
+    "name": "機場大馬路/永利皇宮 Av. do Aeroporto/ Wynn Palace",
+    "nameCn": "機場大馬路/永利皇宮",
+    "coordinates": [
+      113.5722785,
+      22.1498873
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7868960734",
+    "name": "機場大馬路/輕軌車廠 Av. do Aeroporto/ Oficina do Metro Ligeiro",
+    "nameCn": "機場大馬路/輕軌車廠",
+    "coordinates": [
+      113.5732584,
+      22.1489832
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "7868960735",
+    "name": "雞頸馬路/孝思-1 Est. da Ponta da Cabrita/ Hau Si-1",
+    "nameCn": "雞頸馬路/孝思-1",
+    "coordinates": [
+      113.5659146,
+      22.161795
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8007328819",
+    "name": "洋环路口",
+    "nameCn": "洋环路口",
+    "coordinates": [
+      113.537516,
+      22.1547366
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8007328820",
+    "name": "祥澳路口",
+    "nameCn": "祥澳路口",
+    "coordinates": [
+      113.5454032,
+      22.1475724
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8007328821",
+    "name": "观澳路口",
+    "nameCn": "观澳路口",
+    "coordinates": [
+      113.5393975,
+      22.1528646
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8007328838",
+    "name": "景秀二路东",
+    "nameCn": "景秀二路东",
+    "coordinates": [
+      113.513718,
+      22.1789586
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8007328839",
+    "name": "景秀二路西",
+    "nameCn": "景秀二路西",
+    "coordinates": [
+      113.5100262,
+      22.1768299
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8007328840",
+    "name": "通航二路北",
+    "nameCn": "通航二路北",
+    "coordinates": [
+      113.509356,
+      22.1742689
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8173581167",
+    "name": "城轨十字门站",
+    "nameCn": "城轨十字门站",
+    "coordinates": [
+      113.5156367,
+      22.1753503
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8173581168",
+    "name": "城轨十字门站",
+    "nameCn": "城轨十字门站",
+    "coordinates": [
+      113.5154863,
+      22.1757606
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8173581169",
+    "name": "城轨横琴北站",
+    "nameCn": "城轨横琴北站",
+    "coordinates": [
+      113.5291887,
+      22.1628542
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8185910237",
+    "name": "筷子基街 / 廣大中學 Rua de Fái Chi Kei / Escola Kwong Tai",
+    "nameCn": "筷子基街 / 廣大中學",
+    "coordinates": [
+      113.5390549,
+      22.2059412
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8270692076",
+    "name": "富邦道口",
+    "nameCn": "富邦道口",
+    "coordinates": [
+      113.515067,
+      22.1615602
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8270692077",
+    "name": "富邦道口",
+    "nameCn": "富邦道口",
+    "coordinates": [
+      113.516377,
+      22.1618607
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8270692078",
+    "name": "一号驿站",
+    "nameCn": "一号驿站",
+    "coordinates": [
+      113.5119862,
+      22.1599531
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8270692079",
+    "name": "一号驿站",
+    "nameCn": "一号驿站",
+    "coordinates": [
+      113.5133357,
+      22.1603298
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8491590986",
+    "name": "南湾总站",
+    "nameCn": "南湾总站",
+    "coordinates": [
+      113.5178531,
+      22.2155796
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8494683438",
+    "name": "上村村口",
+    "nameCn": "上村村口",
+    "coordinates": [
+      113.5067577,
+      22.142289
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "8746050765",
+    "name": "艺文二道中",
+    "nameCn": "艺文二道中",
+    "coordinates": [
+      113.5076445,
+      22.1273224
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9006904502",
+    "name": "青洲坊總站 Bairro da Ilha Verde/ Terminal",
+    "nameCn": "青洲坊總站",
+    "coordinates": [
+      113.5437125,
+      22.2118583
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9014739931",
+    "name": "美景花園 Edf. Mei Keng Garden",
+    "nameCn": "美景花園",
+    "coordinates": [
+      113.5533226,
+      22.1566499
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9014739932",
+    "name": "蓮花路停車場 Auto-Silo da Estrada Flor de Lótus",
+    "nameCn": "蓮花路停車場",
+    "coordinates": [
+      113.5607231,
+      22.1389874
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9023190773",
+    "name": "偉龍/科技大學 Wai Long / M.U.S.T.",
+    "nameCn": "偉龍/科技大學",
+    "coordinates": [
+      113.5648553,
+      22.1516562
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9023190774",
+    "name": "Qingmao Frontier Port",
+    "nameCn": "青茂口岸",
+    "coordinates": [
+      113.5430558,
+      22.213519
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9090084594",
+    "name": "青茂口岸总站",
+    "nameCn": "青茂口岸总站",
+    "coordinates": [
+      113.5408093,
+      22.2166843
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9169140946",
+    "name": "俾利喇 / 望德樓 Xavier Pereira / Edf. Mong Tak",
+    "nameCn": "俾利喇 / 望德樓",
+    "coordinates": [
+      113.5509592,
+      22.2074484
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9169140947",
+    "name": "望廈總站 Mong Há / Terminal",
+    "nameCn": "望廈總站",
+    "coordinates": [
+      113.5513448,
+      22.2070362
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9176492173",
+    "name": "黑沙環海邊馬路 Estrada Marginal Areia Preta",
+    "nameCn": "黑沙環海邊馬路",
+    "coordinates": [
+      113.553554,
+      22.2075702
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9288061880",
+    "name": "宋玉生廣場/東南亞 Al. Dr. C. d'Assumpção/ Tong Nam Ah",
+    "nameCn": "宋玉生廣場/東南亞",
+    "coordinates": [
+      113.5514326,
+      22.1884254
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9288061881",
+    "name": "溜冰路/葡京人 Rua da Patinagem/ Lisboeta",
+    "nameCn": "溜冰路/葡京人",
+    "coordinates": [
+      113.5723826,
+      22.141313
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9288061882",
+    "name": "溜冰路/東亞運體育館 Rua da Patinagem/ N. D. dos J. da Ásia Oriental",
+    "nameCn": "溜冰路/東亞運體育館",
+    "coordinates": [
+      113.5721118,
+      22.1390352
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9466013067",
+    "name": "一号驿站西",
+    "nameCn": "一号驿站西",
+    "coordinates": [
+      113.5082583,
+      22.158077
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9466013068",
+    "name": "一号驿站西",
+    "nameCn": "一号驿站西",
+    "coordinates": [
+      113.5095614,
+      22.158463
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9557587493",
+    "name": "青洲坊總站 Bairro da Ilha Verde/ Terminal",
+    "nameCn": "青洲坊總站",
+    "coordinates": [
+      113.5435199,
+      22.2117913
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9573463991",
+    "name": "湾仔口岸（城轨湾仔北站）",
+    "nameCn": "湾仔口岸（城轨湾仔北站）",
+    "coordinates": [
+      113.5289821,
+      22.1978779
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9589123206",
+    "name": "連貫公路/倫敦人 Est. do Istmo/ Londoner",
+    "nameCn": "連貫公路/倫敦人",
+    "coordinates": [
+      113.56398,
+      22.146203
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9600770202",
+    "name": "內港客運碼頭 Terminal Marítimo de Passageiros do Porto Interior",
+    "nameCn": "內港客運碼頭",
+    "coordinates": [
+      113.5357348,
+      22.1947102
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9600802923",
+    "name": "排角/銀河 Pai Kok / Galaxy",
+    "nameCn": "排角/銀河",
+    "coordinates": [
+      113.5546187,
+      22.1506339
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9705706658",
+    "name": "凱泉灣總站 Riviera Macau / Terminal",
+    "nameCn": "凱泉灣總站",
+    "coordinates": [
+      113.5330437,
+      22.1908787
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "9754962265",
+    "name": "俾若翰街 / 快富樓 Rua do Comandante João Belo/Edifício Fai Fu",
+    "nameCn": "俾若翰街 / 快富樓",
+    "coordinates": [
+      113.538972,
+      22.2069786
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10051764527",
+    "name": "湖畔大廈 Edifício do Lago",
+    "nameCn": "湖畔大廈",
+    "coordinates": [
+      113.5612097,
+      22.1585661
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10087367284",
+    "name": "蓮花路/體育館馬路 Est. F. de Lótus/ Av. da Nave Desportiva",
+    "nameCn": "蓮花路/體育館馬路",
+    "coordinates": [
+      113.5676457,
+      22.1386669
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10103455818",
+    "name": "Stop_10103455818",
+    "nameCn": "Stop_10103455818",
+    "coordinates": [
+      113.5304034,
+      22.2023028
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10103455819",
+    "name": "Stop_10103455819",
+    "nameCn": "Stop_10103455819",
+    "coordinates": [
+      113.5305524,
+      22.2014274
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10131707810",
+    "name": "Stop_10131707810",
+    "nameCn": "Stop_10131707810",
+    "coordinates": [
+      113.5338768,
+      22.1384507
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10131707811",
+    "name": "Stop_10131707811",
+    "nameCn": "Stop_10131707811",
+    "coordinates": [
+      113.5184694,
+      22.1397993
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10131707812",
+    "name": "高峰1,3,4号线（伯牙小学站）",
+    "nameCn": "高峰1,3,4号线（伯牙小学站）",
+    "coordinates": [
+      113.5187879,
+      22.139242
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10168134186",
+    "name": "天科路口",
+    "nameCn": "天科路口",
+    "coordinates": [
+      113.5026477,
+      22.1683955
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10245171331",
+    "name": "媽閣交通樞紐 Centro Modal de Transportes da Barra",
+    "nameCn": "媽閣交通樞紐",
+    "coordinates": [
+      113.5297869,
+      22.1834893
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10245171369",
+    "name": "媽閣交通樞紐 Centro Modal de Transportes da Barra",
+    "nameCn": "媽閣交通樞紐",
+    "coordinates": [
+      113.5297704,
+      22.1836526
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10245171370",
+    "name": "媽閣交通樞紐 Centro Modal de Transportes da Barra",
+    "nameCn": "媽閣交通樞紐",
+    "coordinates": [
+      113.5297663,
+      22.1837957
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10245171371",
+    "name": "媽閣交通樞紐 Centro Modal de Transportes da Barra",
+    "nameCn": "媽閣交通樞紐",
+    "coordinates": [
+      113.529774,
+      22.1839715
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10245171372",
+    "name": "連貫公路/威尼斯人 Est. do Istmo/ Venetian",
+    "nameCn": "連貫公路/威尼斯人",
+    "coordinates": [
+      113.5636791,
+      22.1492518
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10245171373",
+    "name": "連貫公路/威尼斯人 Est. do Istmo/ Venetian",
+    "nameCn": "連貫公路/威尼斯人",
+    "coordinates": [
+      113.5636921,
+      22.1494809
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10245171374",
+    "name": "Hac Sa Beach",
+    "nameCn": "黑沙海灘",
+    "coordinates": [
+      113.5693419,
+      22.1183227
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10559323621",
+    "name": "天羽道中",
+    "nameCn": "天羽道中",
+    "coordinates": [
+      113.5110511,
+      22.1373442
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10559323622",
+    "name": "思思桥南",
+    "nameCn": "思思桥南",
+    "coordinates": [
+      113.513179,
+      22.1310095
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10559323624",
+    "name": "创新方",
+    "nameCn": "创新方",
+    "coordinates": [
+      113.5138612,
+      22.1297281
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10559323625",
+    "name": "思思桥南",
+    "nameCn": "思思桥南",
+    "coordinates": [
+      113.5126664,
+      22.1332857
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10559323626",
+    "name": "横琴市民中心",
+    "nameCn": "横琴市民中心",
+    "coordinates": [
+      113.5199391,
+      22.1410143
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10559323628",
+    "name": "桂花南路口",
+    "nameCn": "桂花南路口",
+    "coordinates": [
+      113.5407598,
+      22.2186561
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10591605628",
+    "name": "聯生圓形地總站 Rotunda da Concórdia/ Terminal",
+    "nameCn": "聯生圓形地總站",
+    "coordinates": [
+      113.5549918,
+      22.125581
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10591605629",
+    "name": "聯生圓形地總站 Rotunda da Concórdia/ Terminal",
+    "nameCn": "聯生圓形地總站",
+    "coordinates": [
+      113.5549409,
+      22.1257813
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "10748270626",
+    "name": "東北大馬路/保利達 Av Nordeste / Edf. Poly Tex",
+    "nameCn": "東北大馬路/保利達",
+    "coordinates": [
+      113.5574135,
+      22.2092246
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11097600725",
+    "name": "荣澳道口",
+    "nameCn": "荣澳道口",
+    "coordinates": [
+      113.5323595,
+      22.1577351
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11097600736",
+    "name": "荣澳道口",
+    "nameCn": "荣澳道口",
+    "coordinates": [
+      113.5313489,
+      22.157726
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11236669766",
+    "name": "Macao - Hengqin Frontier Post",
+    "nameCn": "橫琴澳方口岸",
+    "coordinates": [
+      113.5463973,
+      22.1413389
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11236669767",
+    "name": "Macao - Hengqin Frontier Post",
+    "nameCn": "橫琴澳方口岸",
+    "coordinates": [
+      113.5459237,
+      22.1410376
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11236669768",
+    "name": "T550/3 University of Macau / Terminal (Lane B)",
+    "nameCn": "T550/3 澳門大學總站(B車道)",
+    "coordinates": [
+      113.5466517,
+      22.1357957
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11370491169",
+    "name": "Free Shuttle Bus",
+    "nameCn": "Free Shuttle Bus",
+    "coordinates": [
+      113.5552776,
+      22.1972612
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11396145506",
+    "name": "西灣湖景大馬路 / 媽閣交通樞紐 Av. Panorâmica do Lago Sai Van / Centro Modal de Transportes da Barra",
+    "nameCn": "西灣湖景大馬路 / 媽閣交通樞紐",
+    "coordinates": [
+      113.529259,
+      22.1846684
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11411325550",
+    "name": "澳門協和醫院/綜合服務大樓 Hospital Macau Union/ Edf. de Multi-Serviços",
+    "nameCn": "澳門協和醫院/綜合服務大樓",
+    "coordinates": [
+      113.5664157,
+      22.1353817
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11411325551",
+    "name": "Macau Union Hospital",
+    "nameCn": "澳門協和醫院",
+    "coordinates": [
+      113.5644073,
+      22.1370246
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11425046868",
+    "name": "牧場街總站 Rua dos Currais / Terminal",
+    "nameCn": "牧場街總站",
+    "coordinates": [
+      113.5465979,
+      22.2152554
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11425764002",
+    "name": "城市日大馬路/永利 Av. 24 de Junho/ Wynn",
+    "nameCn": "城市日大馬路/永利 Av. 24 de Junho/ Wynn",
+    "coordinates": [
+      113.5478547,
+      22.1886599
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11425764003",
+    "name": "横琴市民中心东",
+    "nameCn": "横琴市民中心东",
+    "coordinates": [
+      113.5190759,
+      22.1422405
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11425764008",
+    "name": "澳门新街坊",
+    "nameCn": "澳门新街坊",
+    "coordinates": [
+      113.5102206,
+      22.1401496
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11425764009",
+    "name": "澳门新街坊",
+    "nameCn": "澳门新街坊",
+    "coordinates": [
+      113.5102333,
+      22.1420978
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11530160257",
+    "name": "Faculty of Law",
+    "nameCn": "法學院",
+    "coordinates": [
+      113.5430951,
+      22.1263854
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11530180107",
+    "name": "University Hall",
+    "nameCn": "大學會堂",
+    "coordinates": [
+      113.5463546,
+      22.1342349
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11530180131",
+    "name": "Humanities and Social Sciences Building",
+    "nameCn": "人文社科樓",
+    "coordinates": [
+      113.5422326,
+      22.1291059
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11530195016",
+    "name": "Anthony Lau Building",
+    "nameCn": "劉少榮樓",
+    "coordinates": [
+      113.5464622,
+      22.1281652
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11530199273",
+    "name": "Faculty of Science and Technology",
+    "nameCn": "科技學院",
+    "coordinates": [
+      113.5424872,
+      22.1320928
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11530209502",
+    "name": "Postgraduate Houses Bus Stop",
+    "nameCn": "研究生宿舍巴士站",
+    "coordinates": [
+      113.5461801,
+      22.1243773
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11530223580",
+    "name": "Postgraduate House S4 (near Corridor)",
+    "nameCn": "研究生宿舍南四座(近連廊)",
+    "coordinates": [
+      113.5446795,
+      22.1232818
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11633983123",
+    "name": "珠海华发喜来登酒店(公交站)",
+    "nameCn": "珠海华发喜来登酒店(公交站)",
+    "coordinates": [
+      113.5196259,
+      22.1727399
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11659081916",
+    "name": "依依桥南",
+    "nameCn": "依依桥南",
+    "coordinates": [
+      113.5347199,
+      22.1334646
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11659081917",
+    "name": "子期南道中",
+    "nameCn": "子期南道中",
+    "coordinates": [
+      113.5352182,
+      22.1303595
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11659081918",
+    "name": "子期南道中",
+    "nameCn": "子期南道中",
+    "coordinates": [
+      113.5350296,
+      22.1303074
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11669513034",
+    "name": "大桥二线通道南",
+    "nameCn": "大桥二线通道南",
+    "coordinates": [
+      113.5192901,
+      22.1563505
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11669513035",
+    "name": "大桥二线通道北",
+    "nameCn": "大桥二线通道北",
+    "coordinates": [
+      113.5172254,
+      22.1578148
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11669513036",
+    "name": "爱琴路总站",
+    "nameCn": "爱琴路总站",
+    "coordinates": [
+      113.5147127,
+      22.1595232
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11690728664",
+    "name": "汇通五路",
+    "nameCn": "汇通五路",
+    "coordinates": [
+      113.5286451,
+      22.1638521
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11690728665",
+    "name": "汇通五路",
+    "nameCn": "汇通五路",
+    "coordinates": [
+      113.5287667,
+      22.1641881
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11690728666",
+    "name": "高级人才公寓",
+    "nameCn": "高级人才公寓",
+    "coordinates": [
+      113.5355099,
+      22.1285397
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11707933045",
+    "name": "都会道中",
+    "nameCn": "都会道中",
+    "coordinates": [
+      113.5380054,
+      22.1525616
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11707933046",
+    "name": "荣澳道中",
+    "nameCn": "荣澳道中",
+    "coordinates": [
+      113.5336466,
+      22.1626789
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11707933047",
+    "name": "汇通七路",
+    "nameCn": "汇通七路",
+    "coordinates": [
+      113.5291688,
+      22.1671335
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11707933061",
+    "name": "汇通七路",
+    "nameCn": "汇通七路",
+    "coordinates": [
+      113.5293084,
+      22.1668123
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11707933062",
+    "name": "荣澳道中",
+    "nameCn": "荣澳道中",
+    "coordinates": [
+      113.5335319,
+      22.1611764
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11707933063",
+    "name": "都会道中",
+    "nameCn": "都会道中",
+    "coordinates": [
+      113.5379792,
+      22.1522945
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11707933064",
+    "name": "十字门大道",
+    "nameCn": "十字门大道",
+    "coordinates": [
+      113.5306517,
+      22.1538135
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11707933067",
+    "name": "十字门大道",
+    "nameCn": "十字门大道",
+    "coordinates": [
+      113.5307805,
+      22.1554543
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11860425661",
+    "name": "天科路口",
+    "nameCn": "天科路口",
+    "coordinates": [
+      113.5023808,
+      22.1678179
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11865329433",
+    "name": "海贝桥",
+    "nameCn": "海贝桥",
+    "coordinates": [
+      113.5215718,
+      22.1610636
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11865329434",
+    "name": "富琴道北",
+    "nameCn": "富琴道北",
+    "coordinates": [
+      113.5221435,
+      22.1621153
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "11878627972",
+    "name": "Free Shuttle Bus To Border Gate",
+    "nameCn": "Free Shuttle Bus To Border Gate",
+    "coordinates": [
+      113.5558449,
+      22.1974212
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12165379765",
+    "name": "北安出入境事務大樓 Edf. Serviços Migração Pac On",
+    "nameCn": "北安出入境事務大樓",
+    "coordinates": [
+      113.5735001,
+      22.1638068
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12231865621",
+    "name": "港珠澳大橋邊檢大樓 Posto Fronteiriço da Ponte Hong Kong-Zhuhai-Macau",
+    "nameCn": "港珠澳大橋邊檢大樓",
+    "coordinates": [
+      113.574729,
+      22.2020004
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12293210793",
+    "name": "青茂 / 白朗古 Qingmao / Gen. C. Branco",
+    "nameCn": "青茂 / 白朗古",
+    "coordinates": [
+      113.5437006,
+      22.2129454
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12357355313",
+    "name": "橫琴澳方口岸 Posto Fronteiriço Macau - Hengqin",
+    "nameCn": "橫琴澳方口岸",
+    "coordinates": [
+      113.5462011,
+      22.1413279
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12438090801",
+    "name": "Free Shuttle To Wynn Cotai Palace",
+    "nameCn": "免費接駁巴士前往永利皇宮",
+    "coordinates": [
+      113.5731051,
+      22.1643783
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12438091001",
+    "name": "Free Casino Shuttles",
+    "nameCn": "Free Casino Shuttles",
+    "coordinates": [
+      113.5750594,
+      22.1594557
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12438221201",
+    "name": "Shuttle to airport",
+    "nameCn": "Shuttle to airport",
+    "coordinates": [
+      113.5626464,
+      22.1442738
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12438465201",
+    "name": "Free Shuttle Buses (Wynn)",
+    "nameCn": "Free Shuttle Buses (Wynn)",
+    "coordinates": [
+      113.546778,
+      22.1869802
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12438465301",
+    "name": "Free Shuttle Buses (MGM)",
+    "nameCn": "Free Shuttle Buses (MGM)",
+    "coordinates": [
+      113.5466956,
+      22.1865586
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12534706772",
+    "name": "體育館大馬路/美獅美高梅 Av. Nave Desportiva/ MGM Cotai",
+    "nameCn": "體育館大馬路/美獅美高梅",
+    "coordinates": [
+      113.5689843,
+      22.1465444
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12792067505",
+    "name": "望信樓/慕拉士政府綜合服務中心-1 Edf. Mong Son/ Centr. Serv. RAEM na Av. Venc. Morais-1",
+    "nameCn": "望信樓/慕拉士政府綜合服務中心-1",
+    "coordinates": [
+      113.5546157,
+      22.2048574
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12792067506",
+    "name": "望信樓/慕拉士政府綜合服務中心-2 Edf. Mong Son/ Centr. Serv. RAEM na Av. Venc. Morais-2",
+    "nameCn": "望信樓/慕拉士政府綜合服務中心-2",
+    "coordinates": [
+      113.5543063,
+      22.204562
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12882982160",
+    "name": "港澳大道路口",
+    "nameCn": "港澳大道路口",
+    "coordinates": [
+      113.546811,
+      22.1455403
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12882982162",
+    "name": "大桥二线通道南",
+    "nameCn": "大桥二线通道南",
+    "coordinates": [
+      113.5193693,
+      22.1557314
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12905463213",
+    "name": "T557 University North",
+    "nameCn": "T557 大學北",
+    "coordinates": [
+      113.5465823,
+      22.1340732
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "12999064946",
+    "name": "交控集团(竹仙洞)",
+    "nameCn": "交控集团(竹仙洞)",
+    "coordinates": [
+      113.5145552,
+      22.2143467
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13100035740",
+    "name": "荣澳道南",
+    "nameCn": "荣澳道南",
+    "coordinates": [
+      113.5335603,
+      22.1550245
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13100035741",
+    "name": "富城道口",
+    "nameCn": "富城道口",
+    "coordinates": [
+      113.5220073,
+      22.1565722
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13108527478",
+    "name": "澳大/研究生宿舍 UM / Residência de E. de Pós-Graduação",
+    "nameCn": "澳大/研究生宿舍",
+    "coordinates": [
+      113.5461772,
+      22.1245495
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13128023191",
+    "name": "依依桥南",
+    "nameCn": "依依桥南",
+    "coordinates": [
+      113.5345665,
+      22.132655
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13128023192",
+    "name": "滨水长廊",
+    "nameCn": "滨水长廊",
+    "coordinates": [
+      113.5298075,
+      22.1317608
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13128023193",
+    "name": "莲涟驿站",
+    "nameCn": "莲涟驿站",
+    "coordinates": [
+      113.5242383,
+      22.1318902
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13128023194",
+    "name": "姗姗桥南",
+    "nameCn": "姗姗桥南",
+    "coordinates": [
+      113.5174887,
+      22.1325143
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13128028819",
+    "name": "姗姗桥南",
+    "nameCn": "姗姗桥南",
+    "coordinates": [
+      113.5198571,
+      22.132319
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13128028820",
+    "name": "莲涟驿站",
+    "nameCn": "莲涟驿站",
+    "coordinates": [
+      113.5259418,
+      22.1315427
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13128028821",
+    "name": "滨水长廊",
+    "nameCn": "滨水长廊",
+    "coordinates": [
+      113.5318404,
+      22.1315496
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13128028822",
+    "name": "汇通二路东",
+    "nameCn": "汇通二路东",
+    "coordinates": [
+      113.532153,
+      22.1603688
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13159548952",
+    "name": "泰安大馬路 Av Tai On",
+    "nameCn": "泰安大馬路",
+    "coordinates": [
+      113.5671399,
+      22.2066064
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13159548953",
+    "name": "東啟大廈 Edf Tong Kai",
+    "nameCn": "東啟大廈",
+    "coordinates": [
+      113.5674053,
+      22.2043294
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13173522217",
+    "name": "東方明珠大馬路/樂居 Av Pérola Oriental / Lok Koi",
+    "nameCn": "東方明珠大馬路/樂居",
+    "coordinates": [
+      113.5596897,
+      22.2087789
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13176244327",
+    "name": "港珠澳大橋邊檢大樓 Posto Fronteiriço da Ponte Hong Kong-Zhuhai-Macau",
+    "nameCn": "港珠澳大橋邊檢大樓",
+    "coordinates": [
+      113.5745707,
+      22.2014327
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13201057903",
+    "name": "爱琴路东",
+    "nameCn": "爱琴路东",
+    "coordinates": [
+      113.5109008,
+      22.15727
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13228061733",
+    "name": "汇通六路",
+    "nameCn": "汇通六路",
+    "coordinates": [
+      113.529254,
+      22.1653958
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13328280031",
+    "name": "青茂口岸总站(下客区)",
+    "nameCn": "青茂口岸总站(下客区)",
+    "coordinates": [
+      113.5407139,
+      22.217027
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13410636192",
+    "name": "巴波沙 / 李寶椿街 Av. Artur de Tamagnini Barbosa / Rua de Lei Pou Ch’ôn",
+    "nameCn": "巴波沙 / 李寶椿街",
+    "coordinates": [
+      113.5474536,
+      22.2117995
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13481762840",
+    "name": "Barrier Gate Plaza",
+    "nameCn": "關閘廣場",
+    "coordinates": [
+      113.5498923,
+      22.2153939
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13481762841",
+    "name": "Barrier Gate Plaza",
+    "nameCn": "關閘廣場",
+    "coordinates": [
+      113.5501068,
+      22.2149431
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13481762842",
+    "name": "Barrier Gate Plaza",
+    "nameCn": "關閘廣場",
+    "coordinates": [
+      113.5496239,
+      22.215176
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13481762843",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5486641,
+      22.2152057
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13503248451",
+    "name": "Barrier Gate Plaza",
+    "nameCn": "關閘廣場",
+    "coordinates": [
+      113.5498367,
+      22.2152846
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13503248452",
+    "name": "關閘總站 Portas do Cerco/ Terminal",
+    "nameCn": "關閘總站",
+    "coordinates": [
+      113.5491819,
+      22.2150144
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13514022441",
+    "name": "俾若翰街 / 綠楊花園 R. do Comandante João Belo/Edf. Lok Yeung Fa Yuen",
+    "nameCn": "俾若翰街 / 綠楊花園",
+    "coordinates": [
+      113.5416557,
+      22.2077024
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13534483904",
+    "name": "東城大廈 Edf. Tong Seng",
+    "nameCn": "東城大廈",
+    "coordinates": [
+      113.5650547,
+      22.2059327
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13534483905",
+    "name": "東方明珠總站 Pérola Oriental / Terminal",
+    "nameCn": "東方明珠總站",
+    "coordinates": [
+      113.557325,
+      22.210756
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13534483907",
+    "name": "東城第三街 R. Três Zona Este",
+    "nameCn": "東城第三街",
+    "coordinates": [
+      113.568337,
+      22.2053887
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13583658096",
+    "name": "Bridge Port Hub",
+    "nameCn": "大桥口岸枢纽",
+    "coordinates": [
+      113.5750608,
+      22.2080197
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13590754720",
+    "name": "屏湾一路中",
+    "nameCn": "屏湾一路中",
+    "coordinates": [
+      113.5167119,
+      22.21476
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13592003025",
+    "name": "横琴口岸(下客区)",
+    "nameCn": "横琴口岸(下客区)",
+    "coordinates": [
+      113.5403346,
+      22.1407925
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13592003026",
+    "name": "城轨珠海站(下客区)",
+    "nameCn": "城轨珠海站(下客区)",
+    "coordinates": [
+      113.5454337,
+      22.2187144
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13592003027",
+    "name": "外港碼頭(落客站)",
+    "nameCn": "外港碼頭(落客站)",
+    "coordinates": [
+      113.5594468,
+      22.1982058
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13602262906",
+    "name": "永寧廣場總站(落客站)",
+    "nameCn": "永寧廣場總站(落客站)",
+    "coordinates": [
+      113.5541007,
+      22.2124383
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13727401798",
+    "name": "榕樹街/金峰南岸 R. Árvores Pagode/ One Oasis",
+    "nameCn": "榕樹街/金峰南岸",
+    "coordinates": [
+      113.5576986,
+      22.1296121
+    ],
+    "routeIds": []
+  },
+  {
+    "id": "13727401799",
+    "name": "榕樹街/石排灣馬路 R. Árvores Pagode/ Estr. Seac Pai Van",
+    "nameCn": "榕樹街/石排灣馬路",
+    "coordinates": [
+      113.557979,
+      22.129963
+    ],
+    "routeIds": []
+  }
+]
