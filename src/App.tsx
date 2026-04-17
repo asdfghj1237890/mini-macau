@@ -134,6 +134,7 @@ export default function App() {
       <MapView
         clock={clock}
         transitData={filteredTransitData}
+        allTransitData={transitData}
         onVehicleClick={onVehicleClick}
         onStationClick={onStationClick}
         onClearSelection={clearSelection}
