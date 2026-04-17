@@ -17,7 +17,7 @@ type MobilePanel = 'lrt' | 'bus' | null
 
 export function LineLegend({ transitData, allTransitData, visibleRoutes, isAutoMode, onToggleRoute, onToggleAll, onResetAuto }: Props) {
   const { lang, t } = useI18n()
-  const [collapsed, setCollapsed] = useState(true)
+  const [collapsed, setCollapsed] = useState(false)
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null)
 
   const busRoutes = allTransitData?.busRoutes ?? []
