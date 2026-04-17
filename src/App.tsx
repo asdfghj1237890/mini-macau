@@ -1,15 +1,15 @@
-import { useState, useCallback, useMemo, useRef } from 'react'
+import { useState, useCallback, useMemo, useRef, useEffect, lazy, Suspense } from 'react'
 import { MapView } from './components/MapView'
 import { ControlPanel } from './components/ControlPanel'
 import { LineLegend } from './components/LineLegend'
 import { TimeDisplay } from './components/TimeDisplay'
-import { RouteSelector } from './components/RouteSelector'
-import { VehicleInfoPanel } from './components/VehicleInfoPanel'
-import { StationInfoPanel } from './components/StationInfoPanel'
 import { useSimulationClock } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
-import { computeVehiclePositions } from './engines/simulationEngine'
 import type { VehiclePosition, Station, BusRoute } from './types'
+
+const RouteSelector = lazy(() => import('./components/RouteSelector').then(m => ({ default: m.RouteSelector })))
+const VehicleInfoPanel = lazy(() => import('./components/VehicleInfoPanel').then(m => ({ default: m.VehicleInfoPanel })))
+const StationInfoPanel = lazy(() => import('./components/StationInfoPanel').then(m => ({ default: m.StationInfoPanel })))
 
 const LS_KEY = 'mini-macau-visible-routes'
 
@@ -47,12 +47,12 @@ export default function App() {
   const [selectedVehicle, setSelectedVehicle] = useState<VehiclePosition | null>(null)
   const [selectedStation, setSelectedStation] = useState<Station | null>(null)
   const [trackedVehicleId, setTrackedVehicleId] = useState<string | null>(null)
-  const vehicleCountRef = useRef(0)
+  const [vehicleCount, setVehicleCount] = useState(0)
   const initedRef = useRef(false)
 
   const currentHour = clock.currentTime.getHours()
 
-  useMemo(() => {
+  useEffect(() => {
     if (transitData.busRoutes.length === 0) return
 
     if (!initedRef.current) {
@@ -80,12 +80,9 @@ export default function App() {
     busRoutes: transitData.busRoutes.filter(r => visibleRoutes.has(r.id)),
   }), [transitData, visibleRoutes])
 
-  useMemo(() => {
-    if (!transitData.loading) {
-      const vehicles = computeVehiclePositions(filteredTransitData, clock.currentTime)
-      vehicleCountRef.current = vehicles.length
-    }
-  }, [Math.floor(clock.currentTime.getTime() / 5000)])
+  const onVehicleCount = useCallback((count: number) => {
+    setVehicleCount(count)
+  }, [])
 
   const onToggleRoute = useCallback((routeId: string) => {
     setVisibleRoutes(prev => {
@@ -141,30 +138,37 @@ export default function App() {
         onStationClick={onStationClick}
         onClearSelection={clearSelection}
         trackedVehicleId={trackedVehicleId}
+        onVehicleCount={onVehicleCount}
       />
-      <TimeDisplay clock={clock} vehicleCount={vehicleCountRef.current} />
+      <TimeDisplay clock={clock} vehicleCount={vehicleCount} />
       <ControlPanel clock={clock} />
       <LineLegend transitData={filteredTransitData} />
-      <RouteSelector
-        transitData={transitData}
-        visibleRoutes={visibleRoutes}
-        isAutoMode={isAutoMode}
-        onToggleRoute={onToggleRoute}
-        onToggleAll={onToggleAll}
-        onResetAuto={onResetAuto}
-      />
-      <VehicleInfoPanel
-        vehicle={selectedVehicle}
-        transitData={filteredTransitData}
-        clock={clock}
-        onClose={clearSelection}
-      />
-      <StationInfoPanel
-        station={selectedStation}
-        transitData={filteredTransitData}
-        clock={clock}
-        onClose={clearSelection}
-      />
+      <Suspense>
+        <RouteSelector
+          transitData={transitData}
+          visibleRoutes={visibleRoutes}
+          isAutoMode={isAutoMode}
+          onToggleRoute={onToggleRoute}
+          onToggleAll={onToggleAll}
+          onResetAuto={onResetAuto}
+        />
+        {selectedVehicle && (
+          <VehicleInfoPanel
+            vehicle={selectedVehicle}
+            transitData={filteredTransitData}
+            clock={clock}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedStation && (
+          <StationInfoPanel
+            station={selectedStation}
+            transitData={filteredTransitData}
+            clock={clock}
+            onClose={clearSelection}
+          />
+        )}
+      </Suspense>
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback, useState } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, ScheduleType } from '../types'
-import { addVehicleLayers, updateVehicleData } from '../layers/VehicleLayer'
+import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
 import { computeVehiclePositions, getScheduleType } from '../engines/simulationEngine'
@@ -105,9 +105,10 @@ interface Props {
   onStationClick?: (station: Station | null) => void
   onClearSelection?: () => void
   trackedVehicleId?: string | null
+  onVehicleCount?: (count: number) => void
 }
 
-export function MapView({ clock, transitData, onVehicleClick, onStationClick, onClearSelection, trackedVehicleId }: Props) {
+export function MapView({ clock, transitData, onVehicleClick, onStationClick, onClearSelection, trackedVehicleId, onVehicleCount }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -119,13 +120,23 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   const [isDark, setIsDark] = useState(true)
   const [zoom, setZoom] = useState<number>(MACAU_ZOOM)
   const { lang, setLang } = useI18n()
+  const isDarkRef = useRef(isDark)
+  const langRef = useRef(lang)
+  const is3DRef = useRef(is3D)
+  const showBuildingsRef = useRef(showBuildings)
+  isDarkRef.current = isDark
+  langRef.current = lang
+  is3DRef.current = is3D
+  showBuildingsRef.current = showBuildings
+
+  const addCustomLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
 
   useEffect(() => {
     if (!containerRef.current) return
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: isDark ? STYLES.dark : STYLES.light,
+      style: isDarkRef.current ? STYLES.dark : STYLES.light,
       center: MACAU_CENTER,
       zoom: MACAU_ZOOM,
       pitch: is3D ? 45 : 0,
@@ -134,8 +145,10 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
 
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
 
+    let zoomTimer = 0
     map.on('zoom', () => {
-      setZoom(map.getZoom())
+      cancelAnimationFrame(zoomTimer)
+      zoomTimer = requestAnimationFrame(() => setZoom(map.getZoom()))
     })
 
     const canvasEl = map.getCanvas()
@@ -178,233 +191,189 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
     window.addEventListener('mousemove', onWindowMiddleMove)
     window.addEventListener('mouseup', onWindowMiddleUp)
 
-    map.on('load', () => {
+    const lrtLineMap = new Map(transitData.lrtLines.map(l => [l.id, l]))
+    const stationFeatures = transitData.stations.map(s => {
+      let coords: [number, number] = s.coordinates
+      const lrtLineId = s.lineIds.find(id => lrtLineMap.has(id))
+      const line = lrtLineId ? lrtLineMap.get(lrtLineId) : undefined
+      if (line?.geometry) {
+        const snapped = nearestPointOnLine(line.geometry, s.coordinates)
+        const c = snapped.geometry.coordinates
+        if (Array.isArray(c) && c.length >= 2) {
+          coords = [c[0], c[1]]
+        }
+      }
+      return {
+        type: 'Feature' as const,
+        geometry: { type: 'Point' as const, coordinates: coords },
+        properties: { id: s.id, name: s.name, nameCn: s.nameCn, namePt: s.namePt },
+      }
+    })
+
+    const corridors = new Map<string, GeoJSON.Feature<GeoJSON.MultiPolygon>>()
+    for (const line of transitData.lrtLines) {
+      if (line.geometry) {
+        corridors.set(line.id, bufferLineStringToCorridor(line.geometry, LRT_VIADUCT_HALF_WIDTH_M))
+      }
+    }
+
+    const addCustomLayers = (m: maplibregl.Map) => {
+      const dark = isDarkRef.current
+      const currentLang = langRef.current
+      const cur3D = is3DRef.current
+      const curBuildings = showBuildingsRef.current
+
       try {
-        const styleLayers = map.getStyle().layers ?? []
+        const styleLayers = m.getStyle().layers ?? []
         let firstSymbolId: string | undefined
         for (const l of styleLayers) {
-          if (l.type === 'symbol') {
-            firstSymbolId = l.id
-            break
-          }
+          if (l.type === 'symbol') { firstSymbolId = l.id; break }
         }
 
-        map.addSource(BUILDINGS_SOURCE_ID, {
-          type: 'vector',
-          url: BUILDINGS_TILEJSON,
-        })
-
-        map.addLayer(
-          {
-            id: BUILDINGS_LAYER_ID,
-            source: BUILDINGS_SOURCE_ID,
-            'source-layer': 'building',
-            type: 'fill-extrusion',
-            minzoom: 14,
-            filter: ['!=', ['get', 'hide_3d'], true],
-            layout: { visibility: is3D && showBuildings ? 'visible' : 'none' },
-            paint: {
-              'fill-extrusion-color': isDark ? '#2a2d33' : '#d8d8dc',
-              'fill-extrusion-height': [
-                'interpolate', ['linear'], ['zoom'],
-                14, 0,
-                15.5, ['coalesce', ['get', 'render_height'], 0],
-              ],
-              'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-              'fill-extrusion-opacity': 0.85,
-            },
+        m.addSource(BUILDINGS_SOURCE_ID, { type: 'vector', url: BUILDINGS_TILEJSON })
+        m.addLayer({
+          id: BUILDINGS_LAYER_ID,
+          source: BUILDINGS_SOURCE_ID,
+          'source-layer': 'building',
+          type: 'fill-extrusion',
+          minzoom: 14,
+          filter: ['!=', ['get', 'hide_3d'], true],
+          layout: { visibility: cur3D && curBuildings ? 'visible' : 'none' },
+          paint: {
+            'fill-extrusion-color': dark ? '#2a2d33' : '#d8d8dc',
+            'fill-extrusion-height': [
+              'interpolate', ['linear'], ['zoom'],
+              14, 0, 15.5, ['coalesce', ['get', 'render_height'], 0],
+            ],
+            'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+            'fill-extrusion-opacity': 0.85,
           },
-          firstSymbolId
-        )
-      } catch {
-        // If the external building tiles fail, skip silently and keep the map functional.
-      }
+        }, firstSymbolId)
+      } catch { /* building tiles may fail */ }
 
       for (const line of transitData.lrtLines) {
         if (!line.geometry) continue
-        map.addSource(`lrt-line-${line.id}`, { type: 'geojson', data: line.geometry })
-        map.addLayer({
-          id: `lrt-line-${line.id}`,
-          type: 'line',
-          source: `lrt-line-${line.id}`,
+        m.addSource(`lrt-line-${line.id}`, { type: 'geojson', data: line.geometry })
+        m.addLayer({
+          id: `lrt-line-${line.id}`, type: 'line', source: `lrt-line-${line.id}`,
           layout: { 'line-cap': 'round', 'line-join': 'round' },
           paint: {
             'line-color': line.color,
-            'line-width': [
-              'interpolate', ['linear'], ['zoom'],
-              10, 4,
-              13, 7,
-              16, 13,
-              18, 18,
-            ],
+            'line-width': ['interpolate', ['linear'], ['zoom'], 10, 4, 13, 7, 16, 13, 18, 18],
             'line-opacity': LRT_LINE_OPACITY,
           },
         })
-
-        const corridor = bufferLineStringToCorridor(line.geometry, LRT_VIADUCT_HALF_WIDTH_M)
-        map.addSource(`lrt-viaduct-${line.id}`, { type: 'geojson', data: corridor })
-        map.addLayer({
-          id: `lrt-viaduct-${line.id}`,
-          type: 'fill-extrusion',
-          source: `lrt-viaduct-${line.id}`,
-          minzoom: 13,
-          layout: { visibility: is3D ? 'visible' : 'none' },
-          paint: {
-            'fill-extrusion-color': line.color,
-            'fill-extrusion-base': LRT_VIADUCT_BASE_M,
-            'fill-extrusion-height': LRT_VIADUCT_HEIGHT_M,
-            'fill-extrusion-opacity': LRT_VIADUCT_OPACITY,
-            'fill-extrusion-vertical-gradient': true,
-          },
-        })
+        const corridor = corridors.get(line.id)
+        if (corridor) {
+          m.addSource(`lrt-viaduct-${line.id}`, { type: 'geojson', data: corridor })
+          m.addLayer({
+            id: `lrt-viaduct-${line.id}`, type: 'fill-extrusion', source: `lrt-viaduct-${line.id}`,
+            minzoom: 13, layout: { visibility: cur3D ? 'visible' : 'none' },
+            paint: {
+              'fill-extrusion-color': line.color, 'fill-extrusion-base': LRT_VIADUCT_BASE_M,
+              'fill-extrusion-height': LRT_VIADUCT_HEIGHT_M, 'fill-extrusion-opacity': LRT_VIADUCT_OPACITY,
+              'fill-extrusion-vertical-gradient': true,
+            },
+          })
+        }
       }
 
       for (const route of transitData.busRoutes) {
         if (!route.geometry?.geometry?.coordinates?.length) continue
-        map.addSource(`bus-route-${route.id}`, { type: 'geojson', data: route.geometry })
-        map.addLayer({
-          id: `bus-route-${route.id}`,
-          type: 'line',
-          source: `bus-route-${route.id}`,
+        m.addSource(`bus-route-${route.id}`, { type: 'geojson', data: route.geometry })
+        m.addLayer({
+          id: `bus-route-${route.id}`, type: 'line', source: `bus-route-${route.id}`,
           paint: { 'line-color': route.color, 'line-width': 2, 'line-opacity': BUS_LINE_OPACITY, 'line-dasharray': [2, 2] },
         })
       }
 
-      const labelField = lang === 'zh' ? 'nameCn' : lang === 'pt' ? 'namePt' : 'name'
-      const lrtLineMap = new Map(transitData.lrtLines.map(l => [l.id, l]))
-      const stationFeatures = transitData.stations.map(s => {
-        let coords: [number, number] = s.coordinates
-        const lrtLineId = s.lineIds.find(id => lrtLineMap.has(id))
-        const line = lrtLineId ? lrtLineMap.get(lrtLineId) : undefined
-        if (line?.geometry) {
-          const snapped = nearestPointOnLine(line.geometry, s.coordinates)
-          const c = snapped.geometry.coordinates
-          if (Array.isArray(c) && c.length >= 2) {
-            coords = [c[0], c[1]]
-          }
-        }
-        return {
-          type: 'Feature' as const,
-          geometry: { type: 'Point' as const, coordinates: coords },
-          properties: { id: s.id, name: s.name, nameCn: s.nameCn, namePt: s.namePt },
-        }
-      })
-
+      const labelField = currentLang === 'zh' ? 'nameCn' : currentLang === 'pt' ? 'namePt' : 'name'
       if (stationFeatures.length > 0) {
-        map.addSource('stations', {
+        m.addSource('stations', {
           type: 'geojson',
           data: { type: 'FeatureCollection', features: stationFeatures },
         })
-        map.addLayer({
-          id: 'stations-circle',
-          type: 'circle',
-          source: 'stations',
+        m.addLayer({
+          id: 'stations-circle', type: 'circle', source: 'stations',
           paint: {
-            'circle-radius': [
-              'interpolate', ['linear'], ['zoom'],
-              10, 5,
-              13, 7,
-              16, 9,
-              18, 11,
-            ],
-            'circle-color': '#ffffff',
-            'circle-stroke-width': 2.5,
-            'circle-stroke-color': isDark ? '#444' : '#999',
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 5, 13, 7, 16, 9, 18, 11],
+            'circle-color': '#ffffff', 'circle-stroke-width': 2.5,
+            'circle-stroke-color': dark ? '#444' : '#999',
           },
         })
-        map.addLayer({
-          id: 'stations-label',
-          type: 'symbol',
-          source: 'stations',
-          layout: {
-            'text-field': ['get', labelField],
-            'text-size': 11,
-            'text-offset': [0, 1.2],
-            'text-anchor': 'top',
-          },
-          paint: {
-            'text-color': isDark ? '#cccccc' : '#333333',
-            'text-halo-color': isDark ? '#000000' : '#ffffff',
-            'text-halo-width': 1,
-          },
-        })
-
-        map.on('click', 'stations-circle', (e) => {
-          const feature = e.features?.[0]
-          if (feature) {
-            const sid = feature.properties?.id
-            const station = transitData.stations.find(s => s.id === sid)
-            onStationClick?.(station ?? null)
-          }
-        })
-        map.on('mouseenter', 'stations-circle', () => {
-          map.getCanvas().style.cursor = 'pointer'
-        })
-        map.on('mouseleave', 'stations-circle', () => {
-          map.getCanvas().style.cursor = ''
+        m.addLayer({
+          id: 'stations-label', type: 'symbol', source: 'stations',
+          layout: { 'text-field': ['get', labelField], 'text-size': 11, 'text-offset': [0, 1.2], 'text-anchor': 'top' },
+          paint: { 'text-color': dark ? '#cccccc' : '#333333', 'text-halo-color': dark ? '#000000' : '#ffffff', 'text-halo-width': 1 },
         })
       }
 
-      addVehicleLayers(map, lang)
+      addVehicleLayers(m, currentLang)
 
       const bus3DLayer = new Bus3DLayer()
-      bus3DLayer.attach(map)
+      bus3DLayer.attach(m)
       bus3DRef.current = bus3DLayer
 
       const lrt3DLayer = new LRT3DLayer()
-      lrt3DLayer.attach(map)
+      lrt3DLayer.attach(m)
       lrt3DRef.current = lrt3DLayer
 
       layersAddedRef.current = true
+      serviceStatusRef.current = new Map()
+      lastServiceCheckRef.current = 0
+    }
 
-      map.on('click', 'vehicles-circle', (e) => {
+    addCustomLayersRef.current = addCustomLayers
+
+    const attachClickHandlers = (m: maplibregl.Map) => {
+      m.on('click', 'stations-circle', (e) => {
+        const feature = e.features?.[0]
+        if (feature) {
+          const sid = feature.properties?.id
+          const station = transitData.stations.find(s => s.id === sid)
+          onStationClick?.(station ?? null)
+        }
+      })
+      m.on('mouseenter', 'stations-circle', () => { m.getCanvas().style.cursor = 'pointer' })
+      m.on('mouseleave', 'stations-circle', () => { m.getCanvas().style.cursor = '' })
+
+      m.on('click', 'vehicles-circle', (e) => {
         const feature = e.features?.[0]
         if (feature) {
           const vid = feature.properties?.id
           const vehicle = vehiclesRef.current.find(v => v.id === vid)
-          if (vehicle) {
-            onVehicleClick?.(vehicle)
-            return
-          }
+          if (vehicle) { onVehicleClick?.(vehicle); return }
         }
       })
-      map.on('mouseenter', 'vehicles-circle', () => {
-        map.getCanvas().style.cursor = 'pointer'
-      })
-      map.on('mouseleave', 'vehicles-circle', () => {
-        map.getCanvas().style.cursor = ''
-      })
+      m.on('mouseenter', 'vehicles-circle', () => { m.getCanvas().style.cursor = 'pointer' })
+      m.on('mouseleave', 'vehicles-circle', () => { m.getCanvas().style.cursor = '' })
 
       const model3DLayers = ['bus-3d-body', 'bus-3d-roof', 'bus-3d-window', 'bus-3d-windshield', 'bus-3d-wheel',
         'lrt-3d-body', 'lrt-3d-roof', 'lrt-3d-window', 'lrt-3d-windshield', 'lrt-3d-bogie', 'lrt-3d-gangway']
       for (const layerId of model3DLayers) {
-        map.on('click', layerId, (e) => {
+        m.on('click', layerId, (e) => {
           const feature = e.features?.[0]
           if (feature) {
             const vid = feature.properties?.vehicleId
             const vehicle = vehiclesRef.current.find(v => v.id === vid)
-            if (vehicle) {
-              onVehicleClick?.(vehicle)
-              e.preventDefault()
-            }
+            if (vehicle) { onVehicleClick?.(vehicle); e.preventDefault() }
           }
         })
-        map.on('mouseenter', layerId, () => {
-          map.getCanvas().style.cursor = 'pointer'
-        })
-        map.on('mouseleave', layerId, () => {
-          map.getCanvas().style.cursor = ''
-        })
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
       }
 
-      map.on('click', (e) => {
-        const features = map.queryRenderedFeatures(e.point, {
+      m.on('click', (e) => {
+        const features = m.queryRenderedFeatures(e.point, {
           layers: ['vehicles-circle', 'stations-circle', ...model3DLayers],
         })
-        if (features.length === 0) {
-          onClearSelection?.()
-        }
+        if (features.length === 0) onClearSelection?.()
       })
+    }
+
+    map.on('load', () => {
+      addCustomLayers(map)
+      attachClickHandlers(map)
     })
 
     mapRef.current = map
@@ -414,13 +383,36 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
       layersAddedRef.current = false
       bus3DRef.current = null
       lrt3DRef.current = null
+      addCustomLayersRef.current = null
       canvasEl.removeEventListener('mousedown', onCanvasMiddleDown)
       canvasEl.removeEventListener('auxclick', onCanvasAuxClick)
       window.removeEventListener('mousemove', onWindowMiddleMove)
       window.removeEventListener('mouseup', onWindowMiddleUp)
       map.remove()
     }
-  }, [transitData.lrtLines.length, transitData.stations.length, transitData.busRoutes.length, isDark, lang])
+  }, [transitData.lrtLines.length, transitData.stations.length, transitData.busRoutes.length])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    layersAddedRef.current = false
+    bus3DRef.current = null
+    lrt3DRef.current = null
+    map.once('style.load', () => {
+      addCustomLayersRef.current?.(map)
+    })
+    map.setStyle(isDark ? STYLES.dark : STYLES.light, { diff: false })
+  }, [isDark])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const labelField = lang === 'zh' ? 'nameCn' : lang === 'pt' ? 'namePt' : 'name'
+    if (map.getLayer('stations-label')) {
+      map.setLayoutProperty('stations-label', 'text-field', ['get', labelField])
+    }
+    updateVehicleLabelLang(map, lang)
+  }, [lang])
 
   const transitRef = useRef(transitData)
   const trackedRef = useRef(trackedVehicleId)
@@ -433,6 +425,8 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   const lrtWindowCacheRef = useRef<{ td: TransitData | null; schedule: ScheduleType | null; map: Map<string, [number, number] | null> }>(
     { td: null, schedule: null, map: new Map() }
   )
+  const onVehicleCountRef = useRef(onVehicleCount)
+  onVehicleCountRef.current = onVehicleCount
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
 
@@ -455,13 +449,14 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
       canvas.removeEventListener('mousedown', markInteracting)
       canvas.removeEventListener('touchstart', markInteracting)
     }
-  }, [transitData.lrtLines.length, isDark, lang])
+  }, [transitData.lrtLines.length])
 
   useEffect(() => {
     let raf: number
     const TRACK_ZOOM = 16
     const FLY_DURATION = 1200
     const EASE_BACK_DURATION = 400
+    let lastCountReport = 0
 
     const animate = () => {
       const map = mapRef.current
@@ -472,6 +467,12 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
         bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
         lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
         updateVehicleData(map, vehicles)
+
+        const now = performance.now()
+        if (now - lastCountReport > 5000) {
+          lastCountReport = now
+          onVehicleCountRef.current?.(vehicles.length)
+        }
 
         const perfNow = performance.now()
         if (perfNow - lastServiceCheckRef.current > 1000) {
