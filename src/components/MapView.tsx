@@ -101,6 +101,7 @@ const STYLES = {
 interface Props {
   clock: SimulationClock
   transitData: TransitData
+  allTransitData: TransitData
   onVehicleClick?: (vehicle: VehiclePosition | null) => void
   onStationClick?: (station: Station | null) => void
   onClearSelection?: () => void
@@ -108,7 +109,7 @@ interface Props {
   onVehicleCount?: (count: number) => void
 }
 
-export function MapView({ clock, transitData, onVehicleClick, onStationClick, onClearSelection, trackedVehicleId, onVehicleCount }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onStationClick, onClearSelection, trackedVehicleId, onVehicleCount }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -199,8 +200,8 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
     window.addEventListener('mousemove', onWindowMiddleMove)
     window.addEventListener('mouseup', onWindowMiddleUp)
 
-    const lrtLineMap = new Map(transitData.lrtLines.map(l => [l.id, l]))
-    const stationFeatures = transitData.stations.map(s => {
+    const lrtLineMap = new Map(allTransitData.lrtLines.map(l => [l.id, l]))
+    const stationFeatures = allTransitData.stations.map(s => {
       let coords: [number, number] = s.coordinates
       const lrtLineId = s.lineIds.find(id => lrtLineMap.has(id))
       const line = lrtLineId ? lrtLineMap.get(lrtLineId) : undefined
@@ -219,7 +220,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
     })
 
     const corridors = new Map<string, GeoJSON.Feature<GeoJSON.MultiPolygon>>()
-    for (const line of transitData.lrtLines) {
+    for (const line of allTransitData.lrtLines) {
       if (line.geometry) {
         corridors.set(line.id, bufferLineStringToCorridor(line.geometry, LRT_VIADUCT_HALF_WIDTH_M))
       }
@@ -259,7 +260,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
         }, firstSymbolId)
       } catch { /* building tiles may fail */ }
 
-      for (const line of transitData.lrtLines) {
+      for (const line of allTransitData.lrtLines) {
         if (!line.geometry) continue
         m.addSource(`lrt-line-${line.id}`, { type: 'geojson', data: line.geometry })
         m.addLayer({
@@ -286,7 +287,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
         }
       }
 
-      for (const route of transitData.busRoutes) {
+      for (const route of allTransitData.busRoutes) {
         if (!route.geometry?.geometry?.coordinates?.length) continue
         m.addSource(`bus-route-${route.id}`, { type: 'geojson', data: route.geometry })
         m.addLayer({
@@ -338,7 +339,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
         const feature = e.features?.[0]
         if (feature) {
           const sid = feature.properties?.id
-          const station = transitData.stations.find(s => s.id === sid)
+          const station = allTransitData.stations.find(s => s.id === sid)
           onStationClick?.(station ?? null)
         }
       })
@@ -398,7 +399,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
       window.removeEventListener('mouseup', onWindowMiddleUp)
       map.remove()
     }
-  }, [transitData.lrtLines.length, transitData.stations.length, transitData.busRoutes.length])
+  }, [allTransitData.lrtLines.length, allTransitData.stations.length, allTransitData.busRoutes.length])
 
   useEffect(() => {
     const map = mapRef.current
@@ -457,7 +458,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
       canvas.removeEventListener('mousedown', markInteracting)
       canvas.removeEventListener('touchstart', markInteracting)
     }
-  }, [transitData.lrtLines.length])
+  }, [allTransitData.lrtLines.length])
 
   useEffect(() => {
     let raf: number
