@@ -17,7 +17,6 @@ type MobilePanel = 'lrt' | 'bus' | null
 
 export function LineLegend({ transitData, allTransitData, visibleRoutes, isAutoMode, onToggleRoute, onToggleAll, onResetAuto }: Props) {
   const { lang, t } = useI18n()
-  const [collapsed, setCollapsed] = useState(false)
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null)
 
   const busRoutes = allTransitData?.busRoutes ?? []
@@ -32,7 +31,7 @@ export function LineLegend({ transitData, allTransitData, visibleRoutes, isAutoM
 
   if (transitData.loading) {
     return (
-      <div className="absolute top-28 right-4 bg-black/70 backdrop-blur-sm rounded-xl z-10
+      <div className="bg-black/70 backdrop-blur-sm rounded-xl
                       px-4 py-3 border border-white/20 text-white/60 text-sm
                       max-sm:hidden landscape:hidden">
         {t.loading}
@@ -45,58 +44,40 @@ export function LineLegend({ transitData, allTransitData, visibleRoutes, isAutoM
 
   return (
     <>
-      {/* Desktop: original expandable panel */}
-      <div className="absolute top-28 right-4 bg-black/70 backdrop-blur-sm rounded-xl z-10
-                      border border-white/20 hidden sm:block landscape:hidden">
-        <button
-          onClick={() => setCollapsed(c => !c)}
-          className="w-full px-4 py-2
-                     text-white/80 text-xs font-semibold uppercase tracking-wider
-                     flex items-center justify-between gap-2
-                     hover:bg-white/10 transition-colors rounded-xl"
-        >
-          <span>{t.lrtLines}</span>
-          <span className="text-white/40 text-[10px]">{collapsed ? '▼' : '▲'}</span>
-        </button>
-
-        {!collapsed && (
-          <div className="px-4 pb-3 max-h-[60vh] overflow-y-auto">
-            {transitData.lrtLines.map(line => (
-              <div key={line.id} className="flex items-center gap-2 py-0.5">
-                <div
-                  className="w-3 h-3 rounded-sm shrink-0"
-                  style={{ backgroundColor: line.color }}
-                />
-                <span className="text-white text-sm">
-                  {localName(lang, line)}
-                </span>
-              </div>
-            ))}
-            {transitData.busRoutes.length > 0 && (
-              <>
-                <div className="text-white/80 text-xs font-semibold uppercase tracking-wider mt-3 mb-2">
-                  {t.busRoutes}
-                </div>
-                <div className="text-white/50 text-xs">
-                  {t.routesActive(transitData.busRoutes.length)}
-                </div>
-              </>
-            )}
-            {transitData.flights.length > 0 && (
-              <>
-                <div className="text-white/80 text-xs font-semibold uppercase tracking-wider mt-3 mb-2">
-                  {t.flights}
-                </div>
-                <div className="flex items-center gap-2 py-0.5">
-                  <div className="w-3 h-3 rounded-sm shrink-0 bg-sky-400" />
-                  <span className="text-white/50 text-xs">
-                    {t.flightsActive(transitData.flights.length)}
-                  </span>
-                </div>
-              </>
-            )}
-          </div>
-        )}
+      {/* Desktop: compact legend below MapLibre +/- controls */}
+      <div className="absolute top-[7.5rem] right-[10px] z-10
+                      bg-black/70 backdrop-blur-sm rounded-xl
+                      border border-white/20 hidden sm:block landscape:hidden
+                      px-3 py-2">
+        <div className="flex flex-col gap-1">
+          {transitData.lrtLines.map(line => (
+            <div key={line.id} className="flex items-center gap-1.5">
+              <div
+                className="w-2 h-2 rounded-sm shrink-0"
+                style={{ backgroundColor: line.color }}
+              />
+              <span className="text-white/80 text-[11px] whitespace-nowrap">
+                {localName(lang, line)}
+              </span>
+            </div>
+          ))}
+          {transitData.busRoutes.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-sm shrink-0 bg-emerald-400" />
+              <span className="text-white/50 text-[11px] whitespace-nowrap">
+                {t.routesActive(transitData.busRoutes.length)}
+              </span>
+            </div>
+          )}
+          {transitData.flights.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 rounded-sm shrink-0 bg-sky-400" />
+              <span className="text-white/50 text-[11px] whitespace-nowrap">
+                {t.flightsActive(transitData.flights.length)}
+              </span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Mobile: two square icon buttons stacked vertically, left of MapLibre +/- */}
