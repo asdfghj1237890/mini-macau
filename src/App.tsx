@@ -10,6 +10,7 @@ import type { VehiclePosition, Station, BusRoute } from './types'
 const RouteSelector = lazy(() => import('./components/RouteSelector').then(m => ({ default: m.RouteSelector })))
 const VehicleInfoPanel = lazy(() => import('./components/VehicleInfoPanel').then(m => ({ default: m.VehicleInfoPanel })))
 const StationInfoPanel = lazy(() => import('./components/StationInfoPanel').then(m => ({ default: m.StationInfoPanel })))
+const FlightInfoPanel = lazy(() => import('./components/FlightInfoPanel').then(m => ({ default: m.FlightInfoPanel })))
 
 const LS_KEY = 'mini-macau-visible-routes'
 
@@ -161,7 +162,14 @@ export default function App() {
           onToggleAll={onToggleAll}
           onResetAuto={onResetAuto}
         />
-        {selectedVehicle && (
+        {selectedVehicle && selectedVehicle.type === 'flight' && (
+          <FlightInfoPanel
+            vehicle={selectedVehicle}
+            clock={clock}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedVehicle && selectedVehicle.type !== 'flight' && (
           <VehicleInfoPanel
             vehicle={selectedVehicle}
             transitData={filteredTransitData}

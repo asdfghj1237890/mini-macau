@@ -82,6 +82,19 @@ export function LineLegend({ transitData, allTransitData, visibleRoutes, isAutoM
                 </div>
               </>
             )}
+            {transitData.flights.length > 0 && (
+              <>
+                <div className="text-white/80 text-xs font-semibold uppercase tracking-wider mt-3 mb-2">
+                  {t.flights}
+                </div>
+                <div className="flex items-center gap-2 py-0.5">
+                  <div className="w-3 h-3 rounded-sm shrink-0 bg-sky-400" />
+                  <span className="text-white/50 text-xs">
+                    {t.flightsActive(transitData.flights.length)}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

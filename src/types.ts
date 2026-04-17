@@ -56,23 +56,44 @@ export interface Trip {
   entries: TimetableEntry[]
 }
 
+export interface FlightAirport {
+  iata: string
+  name: string
+  bearing: number
+}
+
+export interface Flight {
+  id: string
+  flightNumber: string
+  airline: { name: string; iata: string }
+  type: 'departure' | 'arrival'
+  scheduledTime: number // minutes since midnight
+  destination?: FlightAirport
+  origin?: FlightAirport
+  aircraftType?: string
+}
+
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
   trips: Trip[]
   busRoutes: BusRoute[]
   busStops: BusStop[]
+  flights: Flight[]
   loading: boolean
 }
 
 export interface VehiclePosition {
   id: string
   lineId: string
-  type: 'lrt' | 'bus'
+  type: 'lrt' | 'bus' | 'flight'
   coordinates: [number, number]
   bearing: number
   progress: number
   color: string
+  altitude?: number
+  scale?: number
+  flightData?: Flight
 }
 
 export interface SimulationClock {

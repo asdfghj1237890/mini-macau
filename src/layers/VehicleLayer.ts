@@ -16,22 +16,25 @@ const LINE_LABELS: Record<string, { en: string; zh: string }> = {
 function vehiclesToGeoJson(vehicles: VehiclePosition[]): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
-    features: vehicles.map(v => ({
-      type: 'Feature',
-      geometry: {
-        type: 'Point',
-        coordinates: v.coordinates,
-      },
-      properties: {
-        id: v.id,
-        lineId: v.lineId,
-        type: v.type,
-        color: v.color,
-        bearing: v.bearing,
-        labelEn: LINE_LABELS[v.lineId]?.en ?? v.lineId,
-        labelZh: LINE_LABELS[v.lineId]?.zh ?? v.lineId,
-      },
-    })),
+    features: vehicles.map(v => {
+      const isFlight = v.type === 'flight'
+      return {
+        type: 'Feature' as const,
+        geometry: {
+          type: 'Point' as const,
+          coordinates: v.coordinates,
+        },
+        properties: {
+          id: v.id,
+          lineId: v.lineId,
+          type: v.type,
+          color: v.color,
+          bearing: v.bearing,
+          labelEn: isFlight ? v.lineId : (LINE_LABELS[v.lineId]?.en ?? v.lineId),
+          labelZh: isFlight ? v.lineId : (LINE_LABELS[v.lineId]?.zh ?? v.lineId),
+        },
+      }
+    }),
   }
 }
 
@@ -48,6 +51,7 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
     paint: {
       'circle-radius': [
         'case',
+        ['==', ['get', 'type'], 'flight'], 12,
         ['==', ['get', 'type'], 'lrt'], 10,
         7,
       ],
@@ -64,6 +68,7 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
     paint: {
       'circle-radius': [
         'case',
+        ['==', ['get', 'type'], 'flight'], 7,
         ['==', ['get', 'type'], 'lrt'], 6,
         4,
       ],
@@ -79,10 +84,14 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
     id: LABEL_LAYER_ID,
     type: 'symbol',
     source: SOURCE_ID,
-    filter: ['==', ['get', 'type'], 'lrt'],
+    filter: ['in', ['get', 'type'], ['literal', ['lrt', 'flight']]],
     layout: {
       'text-field': ['get', lang === 'zh' ? 'labelZh' : 'labelEn'],
-      'text-size': 8,
+      'text-size': [
+        'case',
+        ['==', ['get', 'type'], 'flight'], 9,
+        8,
+      ],
       'text-offset': [0, -1.5],
       'text-anchor': 'bottom',
       'text-allow-overlap': true,
@@ -92,7 +101,7 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
       'text-halo-color': '#000000',
       'text-halo-width': 1,
     },
-    minzoom: 14,
+    minzoom: 12,
   })
 }
 

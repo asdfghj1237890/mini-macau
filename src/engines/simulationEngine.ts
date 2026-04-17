@@ -2,7 +2,7 @@ import along from '@turf/along'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { Feature, LineString } from 'geojson'
-import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute, ScheduleType } from '../types'
+import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute, Flight, ScheduleType } from '../types'
 
 function getScheduleType(date: Date): ScheduleType {
   const day = date.getDay()
@@ -175,6 +175,125 @@ function computeBusVehicles(
   return vehicles
 }
 
+const MFM_LAT = 22.1494
+const MFM_LON = 113.5914
+const FLIGHT_VISIBLE_MINUTES = 15
+const FLIGHT_MAX_DISTANCE_KM = 30
+const FLIGHT_MAX_ALTITUDE_M = 3000
+const FLIGHT_COLOR = '#38bdf8'
+const DEG_PER_KM_LAT = 1 / 111.32
+
+const APRON_STANDS: [number, number][] = [
+  [113.5735298224446, 22.156080223561954],
+  [113.57405681042064, 22.15623040046111],
+  [113.57465381777813, 22.15658536340373],
+  [113.57511447160334, 22.15702223964229],
+  [113.57545351284965, 22.157534202263445],
+  [113.57578149837322, 22.158131489627372],
+  [113.57611685435795, 22.158680991762665],
+]
+const APRON_TARGET: [number, number] = [113.56823689628482, 22.16647817410933]
+const APRON_LOOKAHEAD_MINUTES = 120
+
+function bearingTo(fromLon: number, fromLat: number, toLon: number, toLat: number): number {
+  const dLon = (toLon - fromLon) * Math.PI / 180
+  const lat1 = fromLat * Math.PI / 180
+  const lat2 = toLat * Math.PI / 180
+  const y = Math.sin(dLon) * Math.cos(lat2)
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon)
+  return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360
+}
+
+function computeFlightVehicles(
+  flights: Flight[],
+  nowMinutes: number,
+): VehiclePosition[] {
+  const vehicles: VehiclePosition[] = []
+
+  const departures = flights
+    .filter(f => f.type === 'departure')
+    .sort((a, b) => a.scheduledTime - b.scheduledTime)
+
+  const pendingDepartures = departures.filter(f => {
+    const untilDepart = f.scheduledTime - nowMinutes
+    return untilDepart > 0 && untilDepart <= APRON_LOOKAHEAD_MINUTES
+  })
+
+  for (let i = 0; i < pendingDepartures.length && i < APRON_STANDS.length; i++) {
+    const flight = pendingDepartures[i]
+    const [lon, lat] = APRON_STANDS[i]
+    const heading = bearingTo(lon, lat, APRON_TARGET[0], APRON_TARGET[1])
+    vehicles.push({
+      id: flight.id,
+      lineId: flight.flightNumber,
+      type: 'flight',
+      coordinates: [lon, lat],
+      bearing: heading,
+      progress: 0,
+      color: FLIGHT_COLOR,
+      altitude: 0,
+      scale: 0.25,
+      flightData: flight,
+    })
+  }
+
+  for (const flight of flights) {
+    if (flight.type === 'departure') {
+      const elapsed = nowMinutes - flight.scheduledTime
+      if (elapsed < 0 || elapsed > FLIGHT_VISIBLE_MINUTES) continue
+      const progress = Math.max(0, Math.min(1, elapsed / FLIGHT_VISIBLE_MINUTES))
+
+      const airport = flight.destination
+      const bearingDeg = airport?.bearing ?? 0
+      const bearingRad = (bearingDeg * Math.PI) / 180
+      const dist = progress * FLIGHT_MAX_DISTANCE_KM
+      const degPerKmLon = DEG_PER_KM_LAT / Math.cos((MFM_LAT * Math.PI) / 180)
+      const lat = MFM_LAT + Math.cos(bearingRad) * dist * DEG_PER_KM_LAT
+      const lon = MFM_LON + Math.sin(bearingRad) * dist * degPerKmLon
+      const altitude = progress * FLIGHT_MAX_ALTITUDE_M
+
+      vehicles.push({
+        id: flight.id,
+        lineId: flight.flightNumber,
+        type: 'flight',
+        coordinates: [lon, lat],
+        bearing: bearingDeg,
+        progress,
+        color: FLIGHT_COLOR,
+        altitude,
+        flightData: flight,
+      })
+    } else {
+      const untilArrival = flight.scheduledTime - nowMinutes
+      if (untilArrival < 0 || untilArrival > FLIGHT_VISIBLE_MINUTES) continue
+      const progress = Math.max(0, Math.min(1, 1 - untilArrival / FLIGHT_VISIBLE_MINUTES))
+
+      const airport = flight.origin
+      const bearingDeg = airport?.bearing ?? 180
+      const bearingRad = (bearingDeg * Math.PI) / 180
+      const dist = (1 - progress) * FLIGHT_MAX_DISTANCE_KM
+      const degPerKmLon = DEG_PER_KM_LAT / Math.cos((MFM_LAT * Math.PI) / 180)
+      const lat = MFM_LAT + Math.cos(bearingRad) * dist * DEG_PER_KM_LAT
+      const lon = MFM_LON + Math.sin(bearingRad) * dist * degPerKmLon
+      const altitude = (1 - progress) * FLIGHT_MAX_ALTITUDE_M
+
+      vehicles.push({
+        id: flight.id,
+        lineId: flight.flightNumber,
+        type: 'flight',
+        coordinates: [lon, lat],
+        bearing: (bearingDeg + 180) % 360,
+        progress,
+        color: FLIGHT_COLOR,
+        altitude,
+        flightData: flight,
+      })
+    }
+  }
+
+  return vehicles
+}
+
 let cachedProgressMap: Map<string, { progress: number }> | null = null
 let cachedTransitRef: TransitData | null = null
 
@@ -232,5 +351,10 @@ export function computeVehiclePositions(
     nowMinutes
   )
 
-  return [...lrtVehicles, ...busVehicles]
+  const flightVehicles = computeFlightVehicles(
+    transitData.flights,
+    nowMinutes
+  )
+
+  return [...lrtVehicles, ...busVehicles, ...flightVehicles]
 }
