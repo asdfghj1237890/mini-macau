@@ -1,0 +1,38 @@
+name: Update Flight Data
+
+on:
+  schedule:
+    - cron: '0 22 * * *' # UTC 22:00 = Macau 06:00 (UTC+8)
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: latest
+
+      - name: Fetch MFM flight data
+        working-directory: data
+        run: uv run python scripts/fetch_flights.py
+        env:
+          AVIATIONSTACK_API_KEY: ${{ secrets.AVIATIONSTACK_API_KEY }}
+
+      - name: Check for changes
+        id: diff
+        run: |
+          git diff --quiet public/data/flights.json && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/flights.json
+          git commit -m "chore: update MFM flight data"
+          git push

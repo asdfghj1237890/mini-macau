@@ -1,0 +1,2944 @@
+[
+  {
+    "id": "ZH3367-arr-0005",
+    "flightNumber": "ZH3367",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 5,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "SC237-arr-0005",
+    "flightNumber": "SC237",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 5,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "CA5453-arr-0005",
+    "flightNumber": "CA5453",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 5,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "NX667-arr-0015",
+    "flightNumber": "NX667",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 15,
+    "origin": {
+      "iata": "KHH",
+      "name": "Kaoshiung International Airport",
+      "bearing": 84.8
+    }
+  },
+  {
+    "id": "BR2915-arr-0015",
+    "flightNumber": "BR2915",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "arrival",
+    "scheduledTime": 15,
+    "origin": {
+      "iata": "KHH",
+      "name": "Kaoshiung International Airport",
+      "bearing": 84.8
+    }
+  },
+  {
+    "id": "NX660-dep-0035",
+    "flightNumber": "NX660",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 35,
+    "destination": {
+      "iata": "KHH",
+      "name": "Kaoshiung International Airport",
+      "bearing": 84.8
+    }
+  },
+  {
+    "id": "BR2918-dep-0035",
+    "flightNumber": "BR2918",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "departure",
+    "scheduledTime": 35,
+    "destination": {
+      "iata": "KHH",
+      "name": "Kaoshiung International Airport",
+      "bearing": 84.8
+    }
+  },
+  {
+    "id": "NX611-arr-0035",
+    "flightNumber": "NX611",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 35,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "BR2903-arr-0035",
+    "flightNumber": "BR2903",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "arrival",
+    "scheduledTime": 35,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "QH9589-dep-0040",
+    "flightNumber": "QH9589",
+    "airline": {
+      "name": "Bamboo Airways",
+      "iata": "QH"
+    },
+    "type": "departure",
+    "scheduledTime": 40,
+    "destination": {
+      "iata": "DAD",
+      "name": "Da Nang",
+      "bearing": 220.8
+    }
+  },
+  {
+    "id": "NX2103-arr-0040",
+    "flightNumber": "NX2103",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 40,
+    "origin": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "CA3859-arr-0040",
+    "flightNumber": "CA3859",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 40,
+    "origin": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "ZH9089-arr-0040",
+    "flightNumber": "ZH9089",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 40,
+    "origin": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "MU2008-dep-0045",
+    "flightNumber": "MU2008",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 45,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "HO3502-dep-0045",
+    "flightNumber": "HO3502",
+    "airline": {
+      "name": "Juneyao Air",
+      "iata": "HO"
+    },
+    "type": "departure",
+    "scheduledTime": 45,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "FM3006-dep-0045",
+    "flightNumber": "FM3006",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "departure",
+    "scheduledTime": 45,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "ZH3325-arr-0045",
+    "flightNumber": "ZH3325",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 45,
+    "origin": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "SC225-arr-0045",
+    "flightNumber": "SC225",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 45,
+    "origin": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "CA5481-arr-0045",
+    "flightNumber": "CA5481",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 45,
+    "origin": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "NX115-arr-0045",
+    "flightNumber": "NX115",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 45,
+    "origin": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "MU2962-dep-0050",
+    "flightNumber": "MU2962",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 50,
+    "destination": {
+      "iata": "WUX",
+      "name": "Wuxi",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "MU2015-arr-0050",
+    "flightNumber": "MU2015",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "arrival",
+    "scheduledTime": 50,
+    "origin": {
+      "iata": "PKX",
+      "name": "Beijing Daxing International Airport",
+      "bearing": 7.2
+    }
+  },
+  {
+    "id": "AK187-dep-0060",
+    "flightNumber": "AK187",
+    "airline": {
+      "name": "AirAsia",
+      "iata": "AK"
+    },
+    "type": "departure",
+    "scheduledTime": 60,
+    "destination": {
+      "iata": "KUL",
+      "name": "Kuala Lumpur International Airport (klia)",
+      "bearing": 212.4
+    }
+  },
+  {
+    "id": "NX118-dep-0065",
+    "flightNumber": "NX118",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 65,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "ZH3324-dep-0065",
+    "flightNumber": "ZH3324",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "departure",
+    "scheduledTime": 65,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "SC224-dep-0065",
+    "flightNumber": "SC224",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "departure",
+    "scheduledTime": 65,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "CA5444-dep-0065",
+    "flightNumber": "CA5444",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 65,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "CZ1845-arr-0070",
+    "flightNumber": "CZ1845",
+    "airline": {
+      "name": "China Southern Airlines",
+      "iata": "CZ"
+    },
+    "type": "arrival",
+    "scheduledTime": 70,
+    "origin": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "MF8719-arr-0070",
+    "flightNumber": "MF8719",
+    "airline": {
+      "name": "Xiamen Air",
+      "iata": "MF"
+    },
+    "type": "arrival",
+    "scheduledTime": 70,
+    "origin": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "NX616-dep-0085",
+    "flightNumber": "NX616",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 85,
+    "destination": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "BR2906-dep-0085",
+    "flightNumber": "BR2906",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "departure",
+    "scheduledTime": 85,
+    "destination": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "ZH3389-arr-0095",
+    "flightNumber": "ZH3389",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 95,
+    "origin": {
+      "iata": "CKG",
+      "name": "Chongqing Jiangbei International",
+      "bearing": 321.9
+    }
+  },
+  {
+    "id": "SC267-arr-0095",
+    "flightNumber": "SC267",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 95,
+    "origin": {
+      "iata": "CKG",
+      "name": "Chongqing Jiangbei International",
+      "bearing": 321.9
+    }
+  },
+  {
+    "id": "CA5439-arr-0095",
+    "flightNumber": "CA5439",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 95,
+    "origin": {
+      "iata": "CKG",
+      "name": "Chongqing Jiangbei International",
+      "bearing": 321.9
+    }
+  },
+  {
+    "id": "NX181-arr-0095",
+    "flightNumber": "NX181",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 95,
+    "origin": {
+      "iata": "CKG",
+      "name": "Chongqing Jiangbei International",
+      "bearing": 321.9
+    }
+  },
+  {
+    "id": "ZH9090-dep-0100",
+    "flightNumber": "ZH9090",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "departure",
+    "scheduledTime": 100,
+    "destination": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "NX2104-dep-0100",
+    "flightNumber": "NX2104",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 100,
+    "destination": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "CA3860-dep-0100",
+    "flightNumber": "CA3860",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 100,
+    "destination": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "NX132-dep-0105",
+    "flightNumber": "NX132",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 105,
+    "destination": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "ZH3362-dep-0105",
+    "flightNumber": "ZH3362",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "departure",
+    "scheduledTime": 105,
+    "destination": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "SC282-dep-0105",
+    "flightNumber": "SC282",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "departure",
+    "scheduledTime": 105,
+    "destination": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "CA5422-dep-0105",
+    "flightNumber": "CA5422",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 105,
+    "destination": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "ZH3381-arr-0105",
+    "flightNumber": "ZH3381",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 105,
+    "origin": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "SC259-arr-0105",
+    "flightNumber": "SC259",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 105,
+    "origin": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "CA5461-arr-0105",
+    "flightNumber": "CA5461",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 105,
+    "origin": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "NX225-arr-0105",
+    "flightNumber": "NX225",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 105,
+    "origin": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "MU2016-dep-0110",
+    "flightNumber": "MU2016",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 110,
+    "destination": {
+      "iata": "PKX",
+      "name": "Beijing Daxing International Airport",
+      "bearing": 7.2
+    }
+  },
+  {
+    "id": "SQ8344-arr-0115",
+    "flightNumber": "SQ8344",
+    "airline": {
+      "name": "Singapore Airlines",
+      "iata": "SQ"
+    },
+    "type": "arrival",
+    "scheduledTime": 115,
+    "origin": {
+      "iata": "SIN",
+      "name": "Singapore Changi",
+      "bearing": 205.5
+    }
+  },
+  {
+    "id": "TR904-arr-0115",
+    "flightNumber": "TR904",
+    "airline": {
+      "name": "Scoot",
+      "iata": "TR"
+    },
+    "type": "arrival",
+    "scheduledTime": 115,
+    "origin": {
+      "iata": "SIN",
+      "name": "Singapore Changi",
+      "bearing": 205.5
+    }
+  },
+  {
+    "id": "NX372-dep-0125",
+    "flightNumber": "NX372",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 125,
+    "destination": {
+      "iata": "KWE",
+      "name": "Guiyang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "ZH3320-dep-0125",
+    "flightNumber": "ZH3320",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "departure",
+    "scheduledTime": 125,
+    "destination": {
+      "iata": "KWE",
+      "name": "Guiyang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "SC298-dep-0125",
+    "flightNumber": "SC298",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "departure",
+    "scheduledTime": 125,
+    "destination": {
+      "iata": "KWE",
+      "name": "Guiyang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "CA5476-dep-0125",
+    "flightNumber": "CA5476",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 125,
+    "destination": {
+      "iata": "KWE",
+      "name": "Guiyang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "JX331-arr-0125",
+    "flightNumber": "JX331",
+    "airline": {
+      "name": "STARLUX",
+      "iata": "JX"
+    },
+    "type": "arrival",
+    "scheduledTime": 125,
+    "origin": {
+      "iata": "RMQ",
+      "name": "Chingchuankang",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "NX826-dep-0130",
+    "flightNumber": "NX826",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 130,
+    "destination": {
+      "iata": "ICN",
+      "name": "Seoul (Incheon)",
+      "bearing": 33.0
+    }
+  },
+  {
+    "id": "OZ6866-dep-0130",
+    "flightNumber": "OZ6866",
+    "airline": {
+      "name": "Asiana Airlines",
+      "iata": "OZ"
+    },
+    "type": "departure",
+    "scheduledTime": 130,
+    "destination": {
+      "iata": "ICN",
+      "name": "Seoul (Incheon)",
+      "bearing": 33.0
+    }
+  },
+  {
+    "id": "ZH3383-arr-0130",
+    "flightNumber": "ZH3383",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 130,
+    "origin": {
+      "iata": "NGB",
+      "name": "Lishe International Airport",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "SC265-arr-0130",
+    "flightNumber": "SC265",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 130,
+    "origin": {
+      "iata": "NGB",
+      "name": "Lishe International Airport",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "CA5435-arr-0130",
+    "flightNumber": "CA5435",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 130,
+    "origin": {
+      "iata": "NGB",
+      "name": "Lishe International Airport",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "NX161-arr-0130",
+    "flightNumber": "NX161",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 130,
+    "origin": {
+      "iata": "NGB",
+      "name": "Lishe International Airport",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "NX387-arr-0135",
+    "flightNumber": "NX387",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 135,
+    "origin": {
+      "iata": "TFU",
+      "name": "Chengdu Tianfu International Airport",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "ZH3329-arr-0135",
+    "flightNumber": "ZH3329",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 135,
+    "origin": {
+      "iata": "TFU",
+      "name": "Chengdu Tianfu International Airport",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "SC229-arr-0135",
+    "flightNumber": "SC229",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 135,
+    "origin": {
+      "iata": "TFU",
+      "name": "Chengdu Tianfu International Airport",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "CA5451-arr-0135",
+    "flightNumber": "CA5451",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 135,
+    "origin": {
+      "iata": "TFU",
+      "name": "Chengdu Tianfu International Airport",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "MF8720-dep-0140",
+    "flightNumber": "MF8720",
+    "airline": {
+      "name": "Xiamen Air",
+      "iata": "MF"
+    },
+    "type": "departure",
+    "scheduledTime": 140,
+    "destination": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "CZ1846-dep-0140",
+    "flightNumber": "CZ1846",
+    "airline": {
+      "name": "China Southern Airlines",
+      "iata": "CZ"
+    },
+    "type": "departure",
+    "scheduledTime": 140,
+    "destination": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "NX935-arr-0145",
+    "flightNumber": "NX935",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 145,
+    "origin": {
+      "iata": "BKK",
+      "name": "Suvarnabhumi International",
+      "bearing": 237.4
+    }
+  },
+  {
+    "id": "Z292-arr-0150",
+    "flightNumber": "Z292",
+    "airline": {
+      "name": "Philippines AirAsia",
+      "iata": "Z2"
+    },
+    "type": "arrival",
+    "scheduledTime": 150,
+    "origin": {
+      "iata": "MNL",
+      "name": "Ninoy Aquino International",
+      "bearing": 136.1
+    }
+  },
+  {
+    "id": "NX674-dep-0155",
+    "flightNumber": "NX674",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 155,
+    "destination": {
+      "iata": "RMQ",
+      "name": "Chingchuankang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "BR3498-dep-0155",
+    "flightNumber": "BR3498",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "departure",
+    "scheduledTime": 155,
+    "destination": {
+      "iata": "RMQ",
+      "name": "Chingchuankang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "BR805-arr-0155",
+    "flightNumber": "BR805",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "arrival",
+    "scheduledTime": 155,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "NX3005-arr-0155",
+    "flightNumber": "NX3005",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 155,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "TR905-dep-0165",
+    "flightNumber": "TR905",
+    "airline": {
+      "name": "Scoot",
+      "iata": "TR"
+    },
+    "type": "departure",
+    "scheduledTime": 165,
+    "destination": {
+      "iata": "SIN",
+      "name": "Singapore Changi",
+      "bearing": 205.5
+    }
+  },
+  {
+    "id": "SQ8345-dep-0165",
+    "flightNumber": "SQ8345",
+    "airline": {
+      "name": "Singapore Airlines",
+      "iata": "SQ"
+    },
+    "type": "departure",
+    "scheduledTime": 165,
+    "destination": {
+      "iata": "SIN",
+      "name": "Singapore Changi",
+      "bearing": 205.5
+    }
+  },
+  {
+    "id": "NX992-dep-0175",
+    "flightNumber": "NX992",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 175,
+    "destination": {
+      "iata": "BKK",
+      "name": "Suvarnabhumi International",
+      "bearing": 237.4
+    }
+  },
+  {
+    "id": "ZH3353-arr-0175",
+    "flightNumber": "ZH3353",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 175,
+    "origin": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "SC261-arr-0175",
+    "flightNumber": "SC261",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 175,
+    "origin": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "CA5419-arr-0175",
+    "flightNumber": "CA5419",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 175,
+    "origin": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "NX127-arr-0175",
+    "flightNumber": "NX127",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 175,
+    "origin": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "FM3003-arr-0180",
+    "flightNumber": "FM3003",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "arrival",
+    "scheduledTime": 180,
+    "origin": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "MU2055-arr-0180",
+    "flightNumber": "MU2055",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "arrival",
+    "scheduledTime": 180,
+    "origin": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "Z293-dep-0190",
+    "flightNumber": "Z293",
+    "airline": {
+      "name": "Philippines AirAsia",
+      "iata": "Z2"
+    },
+    "type": "departure",
+    "scheduledTime": 190,
+    "destination": {
+      "iata": "MNL",
+      "name": "Ninoy Aquino International",
+      "bearing": 136.1
+    }
+  },
+  {
+    "id": "JX332-dep-0195",
+    "flightNumber": "JX332",
+    "airline": {
+      "name": "STARLUX",
+      "iata": "JX"
+    },
+    "type": "departure",
+    "scheduledTime": 195,
+    "destination": {
+      "iata": "RMQ",
+      "name": "Chingchuankang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "FM3009-arr-0195",
+    "flightNumber": "FM3009",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "arrival",
+    "scheduledTime": 195,
+    "origin": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "MU239-arr-0195",
+    "flightNumber": "MU239",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "arrival",
+    "scheduledTime": 195,
+    "origin": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "NX120-dep-0205",
+    "flightNumber": "NX120",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 205,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "ZH3328-dep-0205",
+    "flightNumber": "ZH3328",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "departure",
+    "scheduledTime": 205,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "SC228-dep-0205",
+    "flightNumber": "SC228",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "departure",
+    "scheduledTime": 205,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "CA5450-dep-0205",
+    "flightNumber": "CA5450",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 205,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "NX622-dep-0210",
+    "flightNumber": "NX622",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 210,
+    "destination": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "BR2908-dep-0210",
+    "flightNumber": "BR2908",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "departure",
+    "scheduledTime": 210,
+    "destination": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "NX978-dep-0220",
+    "flightNumber": "NX978",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 220,
+    "destination": {
+      "iata": "DAD",
+      "name": "Da Nang",
+      "bearing": 220.8
+    }
+  },
+  {
+    "id": "JX205-arr-0220",
+    "flightNumber": "JX205",
+    "airline": {
+      "name": "STARLUX",
+      "iata": "JX"
+    },
+    "type": "arrival",
+    "scheduledTime": 220,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "ZH3363-arr-0230",
+    "flightNumber": "ZH3363",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 230,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "SC235-arr-0230",
+    "flightNumber": "SC235",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 230,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "CA5403-arr-0230",
+    "flightNumber": "CA5403",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 230,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "NX1-arr-0230",
+    "flightNumber": "NX1",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 230,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "MU2056-dep-0235",
+    "flightNumber": "MU2056",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 235,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "FM3004-dep-0235",
+    "flightNumber": "FM3004",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "departure",
+    "scheduledTime": 235,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "NX861-arr-0245",
+    "flightNumber": "NX861",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 245,
+    "origin": {
+      "iata": "NRT",
+      "name": "Narita International Airport",
+      "bearing": 53.7
+    }
+  },
+  {
+    "id": "NH5902-arr-0245",
+    "flightNumber": "NH5902",
+    "airline": {
+      "name": "All Nippon Airways",
+      "iata": "NH"
+    },
+    "type": "arrival",
+    "scheduledTime": 245,
+    "origin": {
+      "iata": "NRT",
+      "name": "Narita International Airport",
+      "bearing": 53.7
+    }
+  },
+  {
+    "id": "BR806-dep-0250",
+    "flightNumber": "BR806",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "departure",
+    "scheduledTime": 250,
+    "destination": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "NX3006-dep-0250",
+    "flightNumber": "NX3006",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 250,
+    "destination": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "MU240-dep-0260",
+    "flightNumber": "MU240",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 260,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "FM3010-dep-0260",
+    "flightNumber": "FM3010",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "departure",
+    "scheduledTime": 260,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "NX9998-dep-0265",
+    "flightNumber": "NX9998",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 265,
+    "destination": {
+      "iata": "BKK",
+      "name": "Suvarnabhumi International",
+      "bearing": 237.4
+    }
+  },
+  {
+    "id": "FM3007-arr-0265",
+    "flightNumber": "FM3007",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "arrival",
+    "scheduledTime": 265,
+    "origin": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "MU9991-arr-0265",
+    "flightNumber": "MU9991",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "arrival",
+    "scheduledTime": 265,
+    "origin": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "NX659-arr-0270",
+    "flightNumber": "NX659",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 270,
+    "origin": {
+      "iata": "KHH",
+      "name": "Kaoshiung International Airport",
+      "bearing": 84.8
+    }
+  },
+  {
+    "id": "BR2917-arr-0270",
+    "flightNumber": "BR2917",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "arrival",
+    "scheduledTime": 270,
+    "origin": {
+      "iata": "KHH",
+      "name": "Kaoshiung International Airport",
+      "bearing": 84.8
+    }
+  },
+  {
+    "id": "NX9937-arr-0270",
+    "flightNumber": "NX9937",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 270,
+    "origin": {
+      "iata": "BKK",
+      "name": "Suvarnabhumi International",
+      "bearing": 237.4
+    }
+  },
+  {
+    "id": "NX228-dep-0280",
+    "flightNumber": "NX228",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 280,
+    "destination": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "ZH3340-dep-0280",
+    "flightNumber": "ZH3340",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "departure",
+    "scheduledTime": 280,
+    "destination": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "SC234-dep-0280",
+    "flightNumber": "SC234",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "departure",
+    "scheduledTime": 280,
+    "destination": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "CA5460-dep-0280",
+    "flightNumber": "CA5460",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 280,
+    "destination": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
+    }
+  },
+  {
+    "id": "VJ3732-arr-0280",
+    "flightNumber": "VJ3732",
+    "airline": {
+      "name": "VietJet Air",
+      "iata": "VJ"
+    },
+    "type": "arrival",
+    "scheduledTime": 280,
+    "origin": {
+      "iata": "BKK",
+      "name": "Suvarnabhumi International",
+      "bearing": 237.4
+    }
+  },
+  {
+    "id": "NX964-dep-0285",
+    "flightNumber": "NX964",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 285,
+    "destination": {
+      "iata": "HAN",
+      "name": "Noibai International",
+      "bearing": 264.1
+    }
+  },
+  {
+    "id": "JX206-dep-0290",
+    "flightNumber": "JX206",
+    "airline": {
+      "name": "STARLUX",
+      "iata": "JX"
+    },
+    "type": "departure",
+    "scheduledTime": 290,
+    "destination": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "NX907-arr-0295",
+    "flightNumber": "NX907",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 295,
+    "origin": {
+      "iata": "SIN",
+      "name": "Singapore Changi",
+      "bearing": 205.5
+    }
+  },
+  {
+    "id": "NX950-dep-0305",
+    "flightNumber": "NX950",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 305,
+    "destination": {
+      "iata": "HAN",
+      "name": "Noibai International",
+      "bearing": 264.1
+    }
+  },
+  {
+    "id": "SL370-arr-0305",
+    "flightNumber": "SL370",
+    "airline": {
+      "name": "Thai Lion Air",
+      "iata": "SL"
+    },
+    "type": "arrival",
+    "scheduledTime": 305,
+    "origin": {
+      "iata": "DMK",
+      "name": "Don Muang",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "NX986-dep-0325",
+    "flightNumber": "NX986",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 325,
+    "destination": {
+      "iata": "DAD",
+      "name": "Da Nang",
+      "bearing": 220.8
+    }
+  },
+  {
+    "id": "5J362-arr-0325",
+    "flightNumber": "5J362",
+    "airline": {
+      "name": "Cebu Pacific",
+      "iata": "5J"
+    },
+    "type": "arrival",
+    "scheduledTime": 325,
+    "origin": {
+      "iata": "MNL",
+      "name": "Ninoy Aquino International",
+      "bearing": 136.1
+    }
+  },
+  {
+    "id": "NX658-dep-0335",
+    "flightNumber": "NX658",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 335,
+    "destination": {
+      "iata": "KHH",
+      "name": "Kaoshiung International Airport",
+      "bearing": 84.8
+    }
+  },
+  {
+    "id": "BR2914-dep-0335",
+    "flightNumber": "BR2914",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "departure",
+    "scheduledTime": 335,
+    "destination": {
+      "iata": "KHH",
+      "name": "Kaoshiung International Airport",
+      "bearing": 84.8
+    }
+  },
+  {
+    "id": "VJ3733-dep-0340",
+    "flightNumber": "VJ3733",
+    "airline": {
+      "name": "VietJet Air",
+      "iata": "VJ"
+    },
+    "type": "departure",
+    "scheduledTime": 340,
+    "destination": {
+      "iata": "BKK",
+      "name": "Suvarnabhumi International",
+      "bearing": 237.4
+    }
+  },
+  {
+    "id": "MU9992-dep-0345",
+    "flightNumber": "MU9992",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 345,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "FM3008-dep-0345",
+    "flightNumber": "FM3008",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "departure",
+    "scheduledTime": 345,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "ZH3361-arr-0345",
+    "flightNumber": "ZH3361",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 345,
+    "origin": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "SC281-arr-0345",
+    "flightNumber": "SC281",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 345,
+    "origin": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "CA5421-arr-0345",
+    "flightNumber": "CA5421",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 345,
+    "origin": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "NX131-arr-0345",
+    "flightNumber": "NX131",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 345,
+    "origin": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "NX386-dep-0360",
+    "flightNumber": "NX386",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 360,
+    "destination": {
+      "iata": "TFU",
+      "name": "Chengdu Tianfu International Airport",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "ZH3332-dep-0360",
+    "flightNumber": "ZH3332",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "departure",
+    "scheduledTime": 360,
+    "destination": {
+      "iata": "TFU",
+      "name": "Chengdu Tianfu International Airport",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "SC232-dep-0360",
+    "flightNumber": "SC232",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "departure",
+    "scheduledTime": 360,
+    "destination": {
+      "iata": "TFU",
+      "name": "Chengdu Tianfu International Airport",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "CA5458-dep-0360",
+    "flightNumber": "CA5458",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 360,
+    "destination": {
+      "iata": "TFU",
+      "name": "Chengdu Tianfu International Airport",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "SL371-dep-0365",
+    "flightNumber": "SL371",
+    "airline": {
+      "name": "Thai Lion Air",
+      "iata": "SL"
+    },
+    "type": "departure",
+    "scheduledTime": 365,
+    "destination": {
+      "iata": "DMK",
+      "name": "Don Muang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "NX615-arr-0365",
+    "flightNumber": "NX615",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 365,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "BR2905-arr-0365",
+    "flightNumber": "BR2905",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "arrival",
+    "scheduledTime": 365,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "5J363-dep-0385",
+    "flightNumber": "5J363",
+    "airline": {
+      "name": "Cebu Pacific",
+      "iata": "5J"
+    },
+    "type": "departure",
+    "scheduledTime": 385,
+    "destination": {
+      "iata": "MNL",
+      "name": "Ninoy Aquino International",
+      "bearing": 136.1
+    }
+  },
+  {
+    "id": "ZH3399-arr-0430",
+    "flightNumber": "ZH3399",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 430,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "SC239-arr-0430",
+    "flightNumber": "SC239",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 430,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "CA5409-arr-0430",
+    "flightNumber": "CA5409",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 430,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "NX9-arr-0430",
+    "flightNumber": "NX9",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 430,
+    "origin": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "ZH3355-arr-0435",
+    "flightNumber": "ZH3355",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 435,
+    "origin": {
+      "iata": "TAO",
+      "name": "Qingdao",
+      "bearing": 21.2
+    }
+  },
+  {
+    "id": "SC273-arr-0435",
+    "flightNumber": "SC273",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 435,
+    "origin": {
+      "iata": "TAO",
+      "name": "Qingdao",
+      "bearing": 21.2
+    }
+  },
+  {
+    "id": "CA5425-arr-0435",
+    "flightNumber": "CA5425",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 435,
+    "origin": {
+      "iata": "TAO",
+      "name": "Qingdao",
+      "bearing": 21.2
+    }
+  },
+  {
+    "id": "NX21-arr-0435",
+    "flightNumber": "NX21",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 435,
+    "origin": {
+      "iata": "TAO",
+      "name": "Qingdao",
+      "bearing": 21.2
+    }
+  },
+  {
+    "id": "ZH3323-arr-0465",
+    "flightNumber": "ZH3323",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "arrival",
+    "scheduledTime": 465,
+    "origin": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "SC223-arr-0465",
+    "flightNumber": "SC223",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "arrival",
+    "scheduledTime": 465,
+    "origin": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "CA5443-arr-0465",
+    "flightNumber": "CA5443",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 465,
+    "origin": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "NX119-arr-0465",
+    "flightNumber": "NX119",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 465,
+    "origin": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "NX621-arr-0475",
+    "flightNumber": "NX621",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 475,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "BR2907-arr-0475",
+    "flightNumber": "BR2907",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "arrival",
+    "scheduledTime": 475,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "NX977-arr-0495",
+    "flightNumber": "NX977",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 495,
+    "origin": {
+      "iata": "DAD",
+      "name": "Da Nang",
+      "bearing": 220.8
+    }
+  },
+  {
+    "id": "BX381-arr-0520",
+    "flightNumber": "BX381",
+    "airline": {
+      "name": "Air Busan",
+      "iata": "BX"
+    },
+    "type": "arrival",
+    "scheduledTime": 520,
+    "origin": {
+      "iata": "PUS",
+      "name": "Gimhae",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "OZ9749-arr-0520",
+    "flightNumber": "OZ9749",
+    "airline": {
+      "name": "Asiana Airlines",
+      "iata": "OZ"
+    },
+    "type": "arrival",
+    "scheduledTime": 520,
+    "origin": {
+      "iata": "PUS",
+      "name": "Gimhae",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "NX963-arr-0575",
+    "flightNumber": "NX963",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 575,
+    "origin": {
+      "iata": "HAN",
+      "name": "Noibai International",
+      "bearing": 264.1
+    }
+  },
+  {
+    "id": "NX991-arr-0590",
+    "flightNumber": "NX991",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 590,
+    "origin": {
+      "iata": "BKK",
+      "name": "Suvarnabhumi International",
+      "bearing": 237.4
+    }
+  },
+  {
+    "id": "BX382-dep-0595",
+    "flightNumber": "BX382",
+    "airline": {
+      "name": "Air Busan",
+      "iata": "BX"
+    },
+    "type": "departure",
+    "scheduledTime": 595,
+    "destination": {
+      "iata": "PUS",
+      "name": "Gimhae",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "OZ9750-dep-0595",
+    "flightNumber": "OZ9750",
+    "airline": {
+      "name": "Asiana Airlines",
+      "iata": "OZ"
+    },
+    "type": "departure",
+    "scheduledTime": 595,
+    "destination": {
+      "iata": "PUS",
+      "name": "Gimhae",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "NX949-arr-0595",
+    "flightNumber": "NX949",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 595,
+    "origin": {
+      "iata": "HAN",
+      "name": "Noibai International",
+      "bearing": 264.1
+    }
+  },
+  {
+    "id": "NX985-arr-0620",
+    "flightNumber": "NX985",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 620,
+    "origin": {
+      "iata": "DAD",
+      "name": "Da Nang",
+      "bearing": 220.8
+    }
+  },
+  {
+    "id": "NX9997-arr-0660",
+    "flightNumber": "NX9997",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 660,
+    "origin": {
+      "iata": "BKK",
+      "name": "Suvarnabhumi International",
+      "bearing": 237.4
+    }
+  },
+  {
+    "id": "Z27710-arr-1000",
+    "flightNumber": "Z27710",
+    "airline": {
+      "name": "Philippines AirAsia",
+      "iata": "Z2"
+    },
+    "type": "arrival",
+    "scheduledTime": 1000,
+    "origin": {
+      "iata": "CEB",
+      "name": "Mactan-Cebu International",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "BR802-dep-1275",
+    "flightNumber": "BR802",
+    "airline": {
+      "name": "EVA Air",
+      "iata": "BR"
+    },
+    "type": "departure",
+    "scheduledTime": 1275,
+    "destination": {
+      "iata": "TPE",
+      "name": "Taiwan Taoyuan International (Chiang Kai Shek International)",
+      "bearing": 65.8
+    }
+  },
+  {
+    "id": "FM806-dep-1285",
+    "flightNumber": "FM806",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "departure",
+    "scheduledTime": 1285,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "MU8646-dep-1285",
+    "flightNumber": "MU8646",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 1285,
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "FM818-dep-1300",
+    "flightNumber": "FM818",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "departure",
+    "scheduledTime": 1300,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "MU8626-dep-1300",
+    "flightNumber": "MU8626",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 1300,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai Hongqiao International",
+      "bearing": 35.7
+    }
+  },
+  {
+    "id": "AK762-arr-1305",
+    "flightNumber": "AK762",
+    "airline": {
+      "name": "AirAsia",
+      "iata": "AK"
+    },
+    "type": "arrival",
+    "scheduledTime": 1305,
+    "origin": {
+      "iata": "DMK",
+      "name": "Don Muang",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "H19961-dep-1310",
+    "flightNumber": "H19961",
+    "airline": {
+      "name": null,
+      "iata": "H1"
+    },
+    "type": "departure",
+    "scheduledTime": 1310,
+    "destination": {
+      "iata": "ICN",
+      "name": "Seoul (Incheon)",
+      "bearing": 33.0
+    }
+  },
+  {
+    "id": "7C6002-dep-1310",
+    "flightNumber": "7C6002",
+    "airline": {
+      "name": "Jeju Air",
+      "iata": "7C"
+    },
+    "type": "departure",
+    "scheduledTime": 1310,
+    "destination": {
+      "iata": "ICN",
+      "name": "Seoul (Incheon)",
+      "bearing": 33.0
+    }
+  },
+  {
+    "id": "SL372-arr-1310",
+    "flightNumber": "SL372",
+    "airline": {
+      "name": "Thai Lion Air",
+      "iata": "SL"
+    },
+    "type": "arrival",
+    "scheduledTime": 1310,
+    "origin": {
+      "iata": "DMK",
+      "name": "Don Muang",
+      "bearing": 180
+    }
+  },
+  {
+    "id": "NX9938-dep-1315",
+    "flightNumber": "NX9938",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1315,
+    "destination": {
+      "iata": "BKK",
+      "name": "Suvarnabhumi International",
+      "bearing": 237.4
+    }
+  },
+  {
+    "id": "CZ1841-arr-1320",
+    "flightNumber": "CZ1841",
+    "airline": {
+      "name": "China Southern Airlines",
+      "iata": "CZ"
+    },
+    "type": "arrival",
+    "scheduledTime": 1320,
+    "origin": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "KE2016-dep-1330",
+    "flightNumber": "KE2016",
+    "airline": {
+      "name": "Korean Air",
+      "iata": "KE"
+    },
+    "type": "departure",
+    "scheduledTime": 1330,
+    "destination": {
+      "iata": "ICN",
+      "name": "Seoul (Incheon)",
+      "bearing": 33.0
+    }
+  },
+  {
+    "id": "DL7905-dep-1330",
+    "flightNumber": "DL7905",
+    "airline": {
+      "name": "Delta Air Lines",
+      "iata": "DL"
+    },
+    "type": "departure",
+    "scheduledTime": 1330,
+    "destination": {
+      "iata": "ICN",
+      "name": "Seoul (Incheon)",
+      "bearing": 33.0
+    }
+  },
+  {
+    "id": "FD763-dep-1335",
+    "flightNumber": "FD763",
+    "airline": {
+      "name": "Thai AirAsia",
+      "iata": "FD"
+    },
+    "type": "departure",
+    "scheduledTime": 1335,
+    "destination": {
+      "iata": "DMK",
+      "name": "Don Muang",
+      "bearing": 0
+    },
+    "aircraftType": "A320"
+  },
+  {
+    "id": "AK763-dep-1335",
+    "flightNumber": "AK763",
+    "airline": {
+      "name": "AirAsia",
+      "iata": "AK"
+    },
+    "type": "departure",
+    "scheduledTime": 1335,
+    "destination": {
+      "iata": "DMK",
+      "name": "Don Muang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "MU866-dep-1340",
+    "flightNumber": "MU866",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 1340,
+    "destination": {
+      "iata": "KHN",
+      "name": "Nanchang",
+      "bearing": 0
+    }
+  },
+  {
+    "id": "MU9798-dep-1365",
+    "flightNumber": "MU9798",
+    "airline": {
+      "name": "China Eastern Airlines",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 1365,
+    "destination": {
+      "iata": "NKG",
+      "name": "Nanjing Lukou International Airport",
+      "bearing": 24.9
+    }
+  },
+  {
+    "id": "SL373-dep-1370",
+    "flightNumber": "SL373",
+    "airline": {
+      "name": "SAS Connect",
+      "iata": "SL"
+    },
+    "type": "departure",
+    "scheduledTime": 1370,
+    "destination": {
+      "iata": "DMK",
+      "name": "Don Muang",
+      "bearing": 0
+    },
+    "aircraftType": "B738"
+  },
+  {
+    "id": "MF8682-dep-1380",
+    "flightNumber": "MF8682",
+    "airline": {
+      "name": "Xiamen Air",
+      "iata": "MF"
+    },
+    "type": "departure",
+    "scheduledTime": 1380,
+    "destination": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "CZ1842-dep-1380",
+    "flightNumber": "CZ1842",
+    "airline": {
+      "name": "China Southern Airlines",
+      "iata": "CZ"
+    },
+    "type": "departure",
+    "scheduledTime": 1380,
+    "destination": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2
+    }
+  },
+  {
+    "id": "NX22-dep-1395",
+    "flightNumber": "NX22",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1395,
+    "destination": {
+      "iata": "TAO",
+      "name": "Qingdao",
+      "bearing": 21.2
+    }
+  },
+  {
+    "id": "ZH3356-dep-1395",
+    "flightNumber": "ZH3356",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "departure",
+    "scheduledTime": 1395,
+    "destination": {
+      "iata": "TAO",
+      "name": "Qingdao",
+      "bearing": 21.2
+    }
+  },
+  {
+    "id": "SC274-dep-1395",
+    "flightNumber": "SC274",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "departure",
+    "scheduledTime": 1395,
+    "destination": {
+      "iata": "TAO",
+      "name": "Qingdao",
+      "bearing": 21.2
+    }
+  },
+  {
+    "id": "CA5426-dep-1395",
+    "flightNumber": "CA5426",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 1395,
+    "destination": {
+      "iata": "TAO",
+      "name": "Qingdao",
+      "bearing": 21.2
+    }
+  },
+  {
+    "id": "NX10-dep-1400",
+    "flightNumber": "NX10",
+    "airline": {
+      "name": "Air Macau",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1400,
+    "destination": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "ZH3400-dep-1400",
+    "flightNumber": "ZH3400",
+    "airline": {
+      "name": "Shenzhen Airlines",
+      "iata": "ZH"
+    },
+    "type": "departure",
+    "scheduledTime": 1400,
+    "destination": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "SC240-dep-1400",
+    "flightNumber": "SC240",
+    "airline": {
+      "name": "Shandong Airlines",
+      "iata": "SC"
+    },
+    "type": "departure",
+    "scheduledTime": 1400,
+    "destination": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "CA5410-dep-1400",
+    "flightNumber": "CA5410",
+    "airline": {
+      "name": "Air China",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 1400,
+    "destination": {
+      "iata": "PEK",
+      "name": "Beijing Capital International",
+      "bearing": 7.4
+    }
+  },
+  {
+    "id": "HO3501-arr-1410",
+    "flightNumber": "HO3501",
+    "airline": {
+      "name": "Juneyao Air",
+      "iata": "HO"
+    },
+    "type": "arrival",
+    "scheduledTime": 1410,
+    "origin": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "FM3005-arr-1410",
+    "flightNumber": "FM3005",
+    "airline": {
+      "name": "Shanghai Airlines",
+      "iata": "FM"
+    },
+    "type": "arrival",
+    "scheduledTime": 1410,
+    "origin": {
+      "iata": "PVG",
+      "name": "Shanghai Pudong International",
+      "bearing": 37.5
+    }
+  },
+  {
+    "id": "CZ6082-dep-1435",
+    "flightNumber": "CZ6082",
+    "airline": {
+      "name": "China Southern Airlines",
+      "iata": "CZ"
+    },
+    "type": "departure",
+    "scheduledTime": 1435,
+    "destination": {
+      "iata": "PKX",
+      "name": "Beijing Daxing International Airport",
+      "bearing": 7.2
+    }
+  }
+]
