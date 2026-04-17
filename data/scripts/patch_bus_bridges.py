@@ -35,7 +35,7 @@ PUBLIC_DIR = Path(__file__).parent.parent.parent / "public" / "data"
 CHANNEL_LAT_NORTH = 22.187
 CHANNEL_LAT_SOUTH = 22.158
 ANCHOR_SEARCH_WINDOW = 15
-BRIDGE_DENSIFY_M = 100.0
+BRIDGE_DENSIFY_M = 50.0
 OSRM_DELAY_S = 0.7
 METERS_PER_DEG_LAT = 111320.0
 
@@ -113,17 +113,22 @@ def find_channel_runs(coords: list[list[float]]) -> list[tuple[int, int]]:
     return real_runs
 
 
-MAX_OSRM_DETOUR_RATIO = 2.5
+MAX_OSRM_DETOUR_RATIO = 4.0
 
 
 def osrm_or_straight(a: list[float], b: list[float]) -> list[list[float]]:
     """OSRM-route a -> b; fall back to straight segment if OSRM fails OR
-    returns a grossly detoured path (>2.5x straight-line distance).
+    returns a detoured path (>4.0x straight-line distance).
 
-    The detour rejection is important for Macau's heavily one-way grid
-    near 亞馬喇: OSRM driving profile often loops ~1km through the
-    roundabout to cover 25m straight. Those loops visually duplicate the
-    hand-drawn roundabout polyline.
+    4.0x rejects:
+      - Macau's 亞馬喇 pathological one-way loops (20-25x for 25m hops)
+      - Taipa's short-approach one-way detours (~5-22x, e.g. 1km for
+        200m straight from Rotunda de Leonel de Sousa approach)
+    4.0x accepts:
+      - Taipa's legitimate routing through one-way networks where OSRM
+        needs ~3-4x to navigate (e.g. 1.6km road for 436m straight when
+        crossing Cotai grid). Straight-line fallback in these cases
+        cuts through buildings, which looks worse than meandering road.
     """
     try:
         coords = get_road_geometry([a, b], profile="driving")
@@ -250,12 +255,16 @@ def patch_route(
     if route.get("routeType") == "bilateral":
         last_coord = coords[-1]
         nb_first = polyline_north[0]
-        # If last direction-0 coord is not already at taipa_approach, add a
-        # straight bridge from the last Taipa stop to it (OSRM through Taipa
-        # roads would be cleaner but public OSRM is rate-limited here).
-        if dist_m2(last_coord, nb_first) > 25:
-            print(f"    bilateral: appending return leg (polyline_north)")
-        coords = coords + list(polyline_north)
+        gap = math.sqrt(dist_m2(last_coord, nb_first))
+        # Bridge the gap between the last direction-0 coord (some Taipa stop)
+        # and polyline_north's start (taipa_approach). Without this, a single
+        # long straight line cuts across Taipa (e.g. 2.7km for MT4).
+        if gap > 25:
+            print(f"    bilateral: bridging gap ({gap:.0f}m) via OSRM -> polyline_north")
+            transition = osrm_or_straight(last_coord, nb_first)
+            coords = coords + list(transition[1:]) + list(polyline_north[1:])
+        else:
+            coords = coords + list(polyline_north[1:])
         route["geometry"]["geometry"]["coordinates"] = coords
         # Mark as circular so simulation engine does forward-only loop.
         route["routeType"] = "circular"
@@ -277,20 +286,36 @@ def run():
     y_up = bridge["macau_y_up"]
     y_down = bridge["macau_y_down"]
     y_junction = bridge["macau_y_junction"]
-    taipa_ramp = bridge["taipa_ramp"]
+    taipa_sb_ramp_body = bridge["taipa_sb_ramp_body"]
+    taipa_nb_ramp_body = bridge["taipa_nb_ramp_body"]
 
-    # South-bound (Macau -> Taipa): terminal -> roundabout CW north->south
-    # -> 上橋位 -> 橋端點 -> bridge span -> Taipa ramp -> Taipa approach
+    # Pre-compute the Taipa approach legs via OSRM so that the rendered
+    # ramps follow real streets (one-way restrictions in Taipa make
+    # these paths meander, but at least they trace actual roads rather
+    # than cutting through empty land as hand-drawn intermediates did).
+    print("  Pre-computing Taipa approach legs via OSRM ...")
+    sb_ramp_to_approach = osrm_or_straight(taipa_sb_ramp_body[-1], taipa_approach)
+    time.sleep(OSRM_DELAY_S)
+    nb_approach_to_ramp = osrm_or_straight(taipa_approach, taipa_nb_ramp_body[0])
+    time.sleep(OSRM_DELAY_S)
+
+    taipa_sb_ramp = list(taipa_sb_ramp_body) + list(sb_ramp_to_approach[1:])
+    taipa_nb_ramp = list(nb_approach_to_ramp) + list(taipa_nb_ramp_body[1:])
+
+    # South-bound (Macau -> Taipa): Macau terminal -> Macau roundabout CW
+    # -> 上橋位(east) -> 橋端點 -> bridge span -> Taipa east ramp (下橋點)
+    # -> Taipa approach
     polyline_south_raw = (
         list(sb_roundabout)
         + [y_up, y_junction]
         + list(bridge_span)
-        + list(taipa_ramp[1:])
+        + list(taipa_sb_ramp[1:])
     )
-    # North-bound (Taipa -> Macau): reverse taipa ramp -> reversed bridge
-    # span -> 橋端點 -> 下橋位 -> roundabout CW SW->NW -> terminal
+    # North-bound (Taipa -> Macau): Taipa approach -> Taipa west ramp
+    # (上橋點) -> bridge span reversed -> 橋端點 -> 下橋位 (west) ->
+    # Macau roundabout CW -> Macau terminal
     polyline_north_raw = (
-        list(reversed(taipa_ramp))
+        list(taipa_nb_ramp)
         + list(reversed(bridge_span))[1:]
         + [y_junction, y_down]
         + list(nb_roundabout)
