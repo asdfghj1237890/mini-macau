@@ -47,7 +47,7 @@ export const GROUP_LABEL_KEYS: Record<GroupKey, 'groupPeninsula' | 'groupCrossHa
 }
 
 export function RouteSelector({ transitData, visibleRoutes, isAutoMode, onToggleRoute, onToggleAll, onResetAuto }: Props) {
-  const [expanded, setExpanded] = useState(false)
+  const [expanded, setExpanded] = useState(true)
   const { t, lang } = useI18n()
 
   const grouped = useMemo(() => {
