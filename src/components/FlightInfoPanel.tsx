@@ -1,9 +1,8 @@
-import type { VehiclePosition, SimulationClock } from '../types'
+import type { VehiclePosition } from '../types'
 import { useI18n } from '../i18n'
 
 interface Props {
   vehicle: VehiclePosition
-  clock: SimulationClock
   onClose: () => void
 }
 
@@ -59,7 +58,7 @@ const FLIGHT_LABELS = {
   },
 } as const
 
-export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
+export function FlightInfoPanel({ vehicle, onClose }: Props) {
   const { lang } = useI18n()
   const fl = FLIGHT_LABELS[lang]
   const flight = vehicle.flightData

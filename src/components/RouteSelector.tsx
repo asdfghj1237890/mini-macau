@@ -31,7 +31,7 @@ export function RouteSelector({ transitData, visibleRoutes, isAutoMode, onToggle
   const allVisible = visibleRoutes.size === transitData.busRoutes.length
 
   return (
-    <div className="absolute top-[20rem] right-4 bg-black/70 backdrop-blur-sm rounded-xl z-10
+    <div className="absolute top-[16rem] right-[10px] bg-black/70 backdrop-blur-sm rounded-xl z-10
                     border border-white/20 overflow-hidden max-w-[220px]
                     max-sm:hidden landscape:hidden">
       <button
