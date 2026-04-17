@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react'
 import type { TransitData } from '../types'
 import { useI18n, localName } from '../i18n'
-import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS } from './RouteSelector'
+import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS } from '../routeGroups'
 
 interface Props {
   transitData: TransitData
