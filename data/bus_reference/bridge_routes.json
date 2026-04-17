@@ -1,10 +1,25 @@
 {
-  "_comment": "Map of bridge_id -> list of bus route IDs that should travel over that bridge instead of the OSRM-default crossing. Edit this file when you confirm new routes use the Macau-Taipa Bridge (老大橋).",
+  "_comment": "Bus route IDs that travel via 嘉樂庇總督大橋 (Macau-Taipa Bridge / Ponte Governador Nobre de Carvalho). Sourced from user knowledge of actual Macau bus operations. patch_bus_bridges.py rewrites these routes' channel-crossing geometry to use the bridge.",
   "macau_taipa_bridge": [
     "11",
+    "21A",
     "22",
+    "25",
+    "25AX",
+    "25B",
     "28A",
     "33",
-    "MT4"
+    "39",
+    "50",
+    "50B",
+    "52",
+    "71",
+    "73",
+    "102",
+    "H3",
+    "MT1",
+    "MT2",
+    "MT5",
+    "N5"
   ]
 }

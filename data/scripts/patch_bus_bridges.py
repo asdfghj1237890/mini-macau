@@ -67,6 +67,34 @@ def densify(coords: list[list[float]], max_gap_m: float) -> list[list[float]]:
     return out
 
 
+def chaikin_smooth(coords: list[list[float]], iterations: int = 2) -> list[list[float]]:
+    """Chaikin's corner-cutting subdivision: each iteration replaces every
+    interior corner with two new points at 1/4 and 3/4 along its adjacent
+    segments, smoothing sharp Z-zigzags into gentle curves. First and
+    last points are preserved exactly.
+
+    With 2 iterations on a polyline that has a Z (e.g. user-given
+    waypoints A -> B -> C where B is a 9m back-jog from A), the path
+    becomes a smooth S-curve that no longer has visible angular kinks.
+    User waypoints get displaced by at most ~2-5m, all still on-road.
+    """
+    pts = [list(c) for c in coords]
+    for _ in range(iterations):
+        if len(pts) < 3:
+            return pts
+        new: list[list[float]] = [pts[0]]
+        for i in range(len(pts) - 1):
+            a = pts[i]
+            b = pts[i + 1]
+            if i > 0:
+                new.append([0.75 * a[0] + 0.25 * b[0], 0.75 * a[1] + 0.25 * b[1]])
+            if i < len(pts) - 2:
+                new.append([0.25 * a[0] + 0.75 * b[0], 0.25 * a[1] + 0.75 * b[1]])
+        new.append(pts[-1])
+        pts = new
+    return pts
+
+
 def load_inputs() -> tuple[dict, dict, list[dict]]:
     bridges = json.load(open(REFERENCE_DIR / "bridges.json", "r", encoding="utf-8"))
     bridge_routes = json.load(open(REFERENCE_DIR / "bridge_routes.json", "r", encoding="utf-8"))
@@ -114,21 +142,27 @@ def find_channel_runs(coords: list[list[float]]) -> list[tuple[int, int]]:
 
 
 MAX_OSRM_DETOUR_RATIO = 4.0
+MAX_OSRM_BACKTRACK_M = 150.0
+MAX_OSRM_PERP_RATIO = 0.3
+SAFE_TRIM_GAP_M = 200.0
 
 
 def osrm_or_straight(a: list[float], b: list[float]) -> list[list[float]]:
-    """OSRM-route a -> b; fall back to straight segment if OSRM fails OR
-    returns a detoured path (>4.0x straight-line distance).
+    """OSRM-route a -> b; fall back to straight segment if OSRM fails,
+    detours grossly (>4x), OR backtracks too far (>150m opposite direction
+    of the straight line in the first half of the path).
 
-    4.0x rejects:
-      - Macau's 亞馬喇 pathological one-way loops (20-25x for 25m hops)
-      - Taipa's short-approach one-way detours (~5-22x, e.g. 1km for
-        200m straight from Rotunda de Leonel de Sousa approach)
-    4.0x accepts:
-      - Taipa's legitimate routing through one-way networks where OSRM
-        needs ~3-4x to navigate (e.g. 1.6km road for 436m straight when
-        crossing Cotai grid). Straight-line fallback in these cases
-        cuts through buildings, which looks worse than meandering road.
+    Two filters because each catches a different pathology:
+      - Detour ratio rejects gross loops (Macau's 20-25x one-way knots,
+        Taipa short-approach loops)
+      - Backtrack rejects "looks visually wrong" paths where OSRM goes
+        the wrong way before turning around (e.g. Taipa SB leg_out from
+        approach goes 300m WEST through small roundabout before turning
+        SE to the anchor — total ratio 2.6x looks acceptable but the
+        westward leg looks like a loop on screen).
+
+    Straight-line fallback isn't perfect (can cross buildings) but is
+    better than visible backtrack loops in the bridge approach area.
     """
     try:
         coords = get_road_geometry([a, b], profile="driving")
@@ -145,6 +179,61 @@ def osrm_or_straight(a: list[float], b: list[float]) -> list[list[float]]:
                     f"ratio={road_len/straight:.1f}x)"
                 )
                 return [a, b]
+
+            if straight > 50:
+                # Use proper meter-based projection (lng degrees vary by lat).
+                mid_lat = (a[1] + b[1]) / 2
+                cos_lat = max(0.1, math.cos(math.radians(mid_lat)))
+                m_lng = METERS_PER_DEG_LAT * cos_lat
+                ab_x = (b[0] - a[0]) * m_lng
+                ab_y = (b[1] - a[1]) * METERS_PER_DEG_LAT
+                ab_dist = math.sqrt(ab_x * ab_x + ab_y * ab_y)
+                if ab_dist > 0:
+                    max_back_m = 0.0
+                    max_perp_m = 0.0
+                    worst_idx = -1
+                    for i, p in enumerate(coords):
+                        ap_x = (p[0] - a[0]) * m_lng
+                        ap_y = (p[1] - a[1]) * METERS_PER_DEG_LAT
+                        # Parallel projection along ab (signed metres along ab).
+                        parallel = (ap_x * ab_x + ap_y * ab_y) / ab_dist
+                        if parallel < 0:
+                            back_m = -parallel
+                            if back_m > max_back_m:
+                                max_back_m = back_m
+                                worst_idx = i
+                        # Perpendicular distance from line ab in metres.
+                        cross = ap_x * ab_y - ap_y * ab_x
+                        perp_m = abs(cross) / ab_dist
+                        if perp_m > max_perp_m:
+                            max_perp_m = perp_m
+                            if i > worst_idx:
+                                worst_idx = i
+                    # Trim loops detected by backward motion OR large
+                    # perpendicular deviation, BUT only if the resulting
+                    # gap from `a` to the post-loop point is small enough
+                    # to NOT cut through buildings. Otherwise keep the
+                    # OSRM loop -- a visible loop on real roads is a
+                    # smaller evil than a long straight through buildings.
+                    bad_back = max_back_m > MAX_OSRM_BACKTRACK_M
+                    bad_perp = max_perp_m > MAX_OSRM_PERP_RATIO * ab_dist
+                    if (bad_back or bad_perp) and 0 <= worst_idx < len(coords) - 1:
+                        post_trim = coords[worst_idx + 1]
+                        gap_after_trim = math.sqrt(dist_m2(a, post_trim))
+                        if gap_after_trim < SAFE_TRIM_GAP_M:
+                            print(
+                                f"      OSRM loop trimmed "
+                                f"(back={max_back_m:.0f}m, perp={max_perp_m:.0f}m, "
+                                f"straight={ab_dist:.0f}m, gap-after-trim={gap_after_trim:.0f}m, "
+                                f"removed {worst_idx + 1}/{len(coords)} pts)"
+                            )
+                            coords = [list(a)] + coords[worst_idx + 1 :]
+                        else:
+                            print(
+                                f"      OSRM loop KEPT "
+                                f"(back={max_back_m:.0f}m, perp={max_perp_m:.0f}m, "
+                                f"trim would leave {gap_after_trim:.0f}m straight = building cut)"
+                            )
             return coords
     except Exception as e:
         print(f"      OSRM fallback ({e})")
@@ -202,6 +291,22 @@ def replace_run(
     print(f"    OSRM connector B: {post_target} -> {anchor_post}")
     leg_out = osrm_or_straight(post_target, anchor_post)
 
+    # If either leg fell back to a long straight (OSRM rejected and the
+    # gap is significant), skip patching this run. Otherwise the straight
+    # line cuts through buildings on the map. The original (Sai Van)
+    # geometry stays for this crossing.
+    in_dist = math.sqrt(dist_m2(anchor_pre, pre_target))
+    out_dist = math.sqrt(dist_m2(post_target, anchor_post))
+    LONG_STRAIGHT_M = 500
+    if (len(leg_in) <= 2 and in_dist > LONG_STRAIGHT_M) or (
+        len(leg_out) <= 2 and out_dist > LONG_STRAIGHT_M
+    ):
+        print(
+            f"    SKIP run {run}: leg fallback to long straight "
+            f"(in={in_dist:.0f}m, out={out_dist:.0f}m); keeping original geometry"
+        )
+        return coords
+
     new_segment = (
         list(leg_in)
         + list(bridge_directed[1:])
@@ -240,37 +345,38 @@ def patch_route(
         return False
 
     print(f"    {len(runs)} channel run(s)")
+
+    is_bilateral = route.get("routeType") == "bilateral"
+    pristine_coords = list(coords) if is_bilateral else None
+
     for run in reversed(runs):
         coords = replace_run(
             coords, run, polyline_south, polyline_north,
             macau_approach, taipa_approach,
         )
 
-    # For bilateral routes whose direction-0 geometry is one-way (e.g. MT4),
-    # build the return leg manually so simulation can loop forward-only and
-    # use the west Y-arm for the return. Otherwise the simulation engine's
-    # forward/backward bounce traverses the east Y-arm backwards -> wrong
-    # direction visually. Append polyline_north so the combined geometry is
-    # a M -> T -> M round trip via east then west arms.
-    if route.get("routeType") == "bilateral":
-        last_coord = coords[-1]
-        nb_first = polyline_north[0]
-        gap = math.sqrt(dist_m2(last_coord, nb_first))
-        # Bridge the gap between the last direction-0 coord (some Taipa stop)
-        # and polyline_north's start (taipa_approach). Without this, a single
-        # long straight line cuts across Taipa (e.g. 2.7km for MT4).
-        if gap > 25:
-            print(f"    bilateral: bridging gap ({gap:.0f}m) via OSRM -> polyline_north")
-            transition = osrm_or_straight(last_coord, nb_first)
-            coords = coords + list(transition[1:]) + list(polyline_north[1:])
-        else:
-            coords = coords + list(polyline_north[1:])
-        route["geometry"]["geometry"]["coordinates"] = coords
+    # For bilateral routes (direction-0 is one-way), build the return leg
+    # by reversing the pristine direction-0 geometry and patching its
+    # (now NB-direction) channel runs with the west Y-arm. This mirrors
+    # how a real bilateral bus drives: forward through stops to terminus,
+    # then back through the SAME stops in reverse, using the opposite
+    # bridge arm. No OSRM cross-Taipa transition needed.
+    if is_bilateral and pristine_coords is not None:
+        print(f"    bilateral: building return leg from reversed pristine")
+        reversed_pristine = list(reversed(pristine_coords))
+        rev_runs = find_channel_runs(reversed_pristine)
+        for rev_run in reversed(rev_runs):
+            reversed_pristine = replace_run(
+                reversed_pristine, rev_run, polyline_south, polyline_north,
+                macau_approach, taipa_approach,
+            )
+        # Append return leg, skip first to avoid duplicating the last
+        # forward coord (they're geographically identical = the terminus).
+        coords = coords + reversed_pristine[1:]
         # Mark as circular so simulation engine does forward-only loop.
         route["routeType"] = "circular"
-    else:
-        route["geometry"]["geometry"]["coordinates"] = coords
 
+    route["geometry"]["geometry"]["coordinates"] = coords
     return True
 
 
@@ -321,8 +427,12 @@ def run():
         + list(nb_roundabout)
     )
 
-    polyline_south = densify(polyline_south_raw, BRIDGE_DENSIFY_M)
-    polyline_north = densify(polyline_north_raw, BRIDGE_DENSIFY_M)
+    # Chaikin-smooth the hand-built bridge polylines to remove visual
+    # Z-zigzags caused by user's closely-spaced ramp waypoints (e.g.
+    # 9m back-jog at the Taipa Y-junction). Then densify to fill any
+    # remaining long gaps with linear interpolation.
+    polyline_south = densify(chaikin_smooth(polyline_south_raw, 2), BRIDGE_DENSIFY_M)
+    polyline_north = densify(chaikin_smooth(polyline_north_raw, 2), BRIDGE_DENSIFY_M)
     target_route_ids = set(bridge_routes.get("macau_taipa_bridge", []))
 
     if not target_route_ids:
