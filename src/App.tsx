@@ -143,7 +143,6 @@ export default function App() {
         onVehicleCount={onVehicleCount}
       />
       <TimeDisplay clock={clock} vehicleCount={vehicleCount} />
-      <ControlPanel clock={clock} />
       <LineLegend
         transitData={filteredTransitData}
         allTransitData={transitData}
@@ -153,6 +152,7 @@ export default function App() {
         onToggleAll={onToggleAll}
         onResetAuto={onResetAuto}
       />
+      <ControlPanel clock={clock} />
       <Suspense>
         <RouteSelector
           transitData={transitData}
@@ -165,7 +165,6 @@ export default function App() {
         {selectedVehicle && selectedVehicle.type === 'flight' && (
           <FlightInfoPanel
             vehicle={selectedVehicle}
-            clock={clock}
             onClose={clearSelection}
           />
         )}

@@ -144,7 +144,6 @@ function htailPolygon(lng: number, lat: number, b: number, side: 1 | -1, sc = 1)
 function vtailPolygon(lng: number, lat: number, b: number, sc = 1): [number, number][] {
   const t = xf(lng, lat, b, sc)
   const rootFwd = VTAIL_Y + VTAIL_ROOT / 2
-  const rootAft = VTAIL_Y - VTAIL_ROOT / 2
   const tipFwd = VTAIL_Y + VTAIL_TIP_CHORD / 2 - 24
   const tipAft = VTAIL_Y - VTAIL_TIP_CHORD / 2 - 12
 
