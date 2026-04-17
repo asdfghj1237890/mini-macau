@@ -46,12 +46,15 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
   }, [clock])
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center">
+    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center
+                    max-sm:top-2 landscape:top-2">
       <div className="bg-black/70 backdrop-blur-sm rounded-xl px-5 py-2
-                      border border-white/20 text-center">
+                      border border-white/20 text-center
+                      max-sm:px-3 max-sm:py-1.5 landscape:px-3 landscape:py-1">
         <button
           onClick={() => setOpen(prev => !prev)}
           className="text-white font-mono font-bold tracking-wider text-lg
+                     max-sm:text-sm landscape:text-sm
                      hover:text-blue-300 transition-colors cursor-pointer"
           title={t.clickToSetTime}
         >
@@ -62,7 +65,8 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
           <span>{h}:{m}:{s}</span>
         </button>
 
-        <div className="flex items-center justify-center gap-3 text-xs mt-0.5">
+        <div className="flex items-center justify-center gap-3 text-xs mt-0.5
+                        max-sm:gap-2 max-sm:text-[10px] landscape:text-[10px]">
           <span className="text-amber-300/80">{scheduleLabel}</span>
           {clock.speed !== 1 && (
             <span className="text-white/60">{clock.speed}x</span>

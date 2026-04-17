@@ -192,7 +192,11 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
 
   return (
     <div className="absolute top-20 left-4 bg-black/80 backdrop-blur-sm rounded-xl z-10
-                    px-4 py-3 border border-white/20 min-w-[220px] max-w-[300px]">
+                    px-4 py-3 border border-white/20 min-w-[220px] max-w-[300px]
+                    max-sm:top-auto max-sm:bottom-20 max-sm:left-2 max-sm:right-2
+                    max-sm:max-w-none max-sm:min-w-0 max-sm:max-h-[45vh]
+                    landscape:top-auto landscape:bottom-16 landscape:left-2
+                    landscape:max-h-[50vh]">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div
