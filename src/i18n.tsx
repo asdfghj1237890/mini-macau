@@ -47,6 +47,8 @@ const translations = {
     clickToSetTime: 'Click to set time',
     apply: 'Apply',
     cancel: 'Cancel',
+    flights: 'Flights',
+    flightsActive: (n: number) => `${n} flights`,
   },
   zh: {
     lrtLines: '輕軌路線',
@@ -90,6 +92,8 @@ const translations = {
     clickToSetTime: '點擊設定時間',
     apply: '套用',
     cancel: '取消',
+    flights: '航班',
+    flightsActive: (n: number) => `${n} 架航班`,
   },
   pt: {
     lrtLines: 'Linhas MLM',
@@ -133,6 +137,8 @@ const translations = {
     clickToSetTime: 'Clique para definir a hora',
     apply: 'Aplicar',
     cancel: 'Cancelar',
+    flights: 'Voos',
+    flightsActive: (n: number) => `${n} voos`,
   },
 }
 
@@ -178,6 +184,8 @@ interface Translations {
   clickToSetTime: string
   apply: string
   cancel: string
+  flights: string
+  flightsActive: (n: number) => string
 }
 
 interface I18nContextValue {

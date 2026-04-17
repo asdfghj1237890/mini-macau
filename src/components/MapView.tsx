@@ -5,6 +5,7 @@ import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTL
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
+import { Flight3DLayer, ALL_FLIGHT_3D_LAYERS } from '../layers/Flight3DLayer'
 import { computeVehiclePositions, getScheduleType } from '../engines/simulationEngine'
 import { useI18n } from '../i18n'
 
@@ -116,6 +117,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const layersAddedRef = useRef(false)
   const bus3DRef = useRef<Bus3DLayer | null>(null)
   const lrt3DRef = useRef<LRT3DLayer | null>(null)
+  const flight3DRef = useRef<Flight3DLayer | null>(null)
   const [is3D, setIs3D] = useState(true)
   const [showBuildings, setShowBuildings] = useState(true)
   const [isDark, setIsDark] = useState(true)
@@ -327,6 +329,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       lrt3DLayer.attach(m)
       lrt3DRef.current = lrt3DLayer
 
+      const flight3DLayer = new Flight3DLayer()
+      flight3DLayer.attach(m)
+      flight3DRef.current = flight3DLayer
+
       layersAddedRef.current = true
       serviceStatusRef.current = new Map()
       lastServiceCheckRef.current = 0
@@ -358,7 +364,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       m.on('mouseleave', 'vehicles-circle', () => { m.getCanvas().style.cursor = '' })
 
       const model3DLayers = ['bus-3d-body', 'bus-3d-roof', 'bus-3d-window', 'bus-3d-windshield', 'bus-3d-wheel',
-        'lrt-3d-body', 'lrt-3d-roof', 'lrt-3d-window', 'lrt-3d-windshield', 'lrt-3d-bogie', 'lrt-3d-gangway']
+        'lrt-3d-body', 'lrt-3d-roof', 'lrt-3d-window', 'lrt-3d-windshield', 'lrt-3d-bogie', 'lrt-3d-gangway',
+        ...ALL_FLIGHT_3D_LAYERS]
       for (const layerId of model3DLayers) {
         m.on('click', layerId, (e) => {
           const feature = e.features?.[0]
@@ -392,6 +399,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       layersAddedRef.current = false
       bus3DRef.current = null
       lrt3DRef.current = null
+      flight3DRef.current = null
       addCustomLayersRef.current = null
       canvasEl.removeEventListener('mousedown', onCanvasMiddleDown)
       canvasEl.removeEventListener('auxclick', onCanvasAuxClick)
@@ -407,6 +415,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     layersAddedRef.current = false
     bus3DRef.current = null
     lrt3DRef.current = null
+    flight3DRef.current = null
     map.once('style.load', () => {
       addCustomLayersRef.current?.(map)
     })
@@ -475,6 +484,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         vehiclesRef.current = vehicles
         bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
         lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
+        flight3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'flight'))
         updateVehicleData(map, vehicles)
 
         const now = performance.now()
