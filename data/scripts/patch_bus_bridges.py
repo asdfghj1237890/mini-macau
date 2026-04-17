@@ -144,6 +144,7 @@ def find_channel_runs(coords: list[list[float]]) -> list[tuple[int, int]]:
 MAX_OSRM_DETOUR_RATIO = 4.0
 MAX_OSRM_BACKTRACK_M = 150.0
 MAX_OSRM_PERP_RATIO = 0.3
+MIN_PERP_FOR_TRIM_M = 200.0
 SAFE_TRIM_GAP_M = 200.0
 
 
@@ -216,7 +217,14 @@ def osrm_or_straight(a: list[float], b: list[float]) -> list[list[float]]:
                     # OSRM loop -- a visible loop on real roads is a
                     # smaller evil than a long straight through buildings.
                     bad_back = max_back_m > MAX_OSRM_BACKTRACK_M
-                    bad_perp = max_perp_m > MAX_OSRM_PERP_RATIO * ab_dist
+                    # Perp must BOTH exceed ratio and an absolute floor.
+                    # Short legs (e.g. 300-500m Amaral roundabout traversal)
+                    # naturally have perp ~100-150m = roundabout radius, which
+                    # is legitimate road geometry, NOT a pathological loop.
+                    bad_perp = (
+                        max_perp_m > MAX_OSRM_PERP_RATIO * ab_dist
+                        and max_perp_m > MIN_PERP_FOR_TRIM_M
+                    )
                     if (bad_back or bad_perp) and 0 <= worst_idx < len(coords) - 1:
                         post_trim = coords[worst_idx + 1]
                         gap_after_trim = math.sqrt(dist_m2(a, post_trim))
@@ -247,6 +255,8 @@ def replace_run(
     polyline_north: list[list[float]],
     macau_approach: list[float],
     taipa_approach: list[float],
+    min_pre_idx: int = 0,
+    max_post_idx: int | None = None,
 ) -> list[list[float]]:
     """Replace coords[run[0]..run[1]] with bridge-correct path.
 
@@ -267,17 +277,21 @@ def replace_run(
         post_target = macau_approach
         bridge_directed = list(polyline_north)
 
+    pre_search_start = max(min_pre_idx, start - ANCHOR_SEARCH_WINDOW)
     anchor_pre_idx = start - 1
     best_d = dist_m2(coords[anchor_pre_idx], pre_target)
-    for i in range(max(0, start - ANCHOR_SEARCH_WINDOW), start):
+    for i in range(pre_search_start, start):
         d = dist_m2(coords[i], pre_target)
         if d < best_d:
             best_d = d
             anchor_pre_idx = i
 
+    post_search_end = min(len(coords), end + 1 + ANCHOR_SEARCH_WINDOW)
+    if max_post_idx is not None:
+        post_search_end = min(post_search_end, max_post_idx)
     anchor_post_idx = end + 1
     best_d = dist_m2(coords[anchor_post_idx], post_target)
-    for i in range(end + 1, min(len(coords), end + 1 + ANCHOR_SEARCH_WINDOW)):
+    for i in range(end + 1, post_search_end):
         d = dist_m2(coords[i], post_target)
         if d < best_d:
             best_d = d
@@ -349,11 +363,40 @@ def patch_route(
     is_bilateral = route.get("routeType") == "bilateral"
     pristine_coords = list(coords) if is_bilateral else None
 
-    for run in reversed(runs):
-        coords = replace_run(
-            coords, run, polyline_south, polyline_north,
+    # Process runs in FORWARD (chronological) order with offset tracking.
+    # Clamp each run's anchor search window so it cannot intrude into an
+    # adjacent run's region:
+    #   - anchor_pre search cannot go below the END of the previous run's
+    #     splice (would swallow what's already patched)
+    #   - anchor_post search cannot exceed the START of the next run
+    #     (would swallow the between-runs original coords, critical for
+    #     routes like 39 where there's only 1-2 coords of Taipa transit
+    #     between the two channel runs)
+    sorted_runs = sorted(runs, key=lambda r: r[0])
+    offset = 0
+    prev_splice_end = 0
+    for i, run in enumerate(sorted_runs):
+        s, e = run
+        s_adj, e_adj = s + offset, e + offset
+        # Next run's (adjusted) start bounds our anchor_post search.
+        if i + 1 < len(sorted_runs):
+            next_s_adj = sorted_runs[i + 1][0] + offset
+        else:
+            next_s_adj = None
+        len_before = len(coords)
+        new_coords = replace_run(
+            coords, (s_adj, e_adj), polyline_south, polyline_north,
             macau_approach, taipa_approach,
+            min_pre_idx=prev_splice_end,
+            max_post_idx=next_s_adj,
         )
+        size_diff = len(new_coords) - len_before
+        offset += size_diff
+        # End of the splice we just made, in the new coords -- at least
+        # e_adj advanced by size_diff; use that as the floor for the next
+        # run's anchor_pre search.
+        prev_splice_end = e_adj + size_diff + 1
+        coords = new_coords
 
     # For bilateral routes (direction-0 is one-way), build the return leg
     # by reversing the pristine direction-0 geometry and patching its

@@ -1,6 +1,8 @@
-import type { VehiclePosition, TransitData, SimulationClock, Trip } from '../types'
+import type { VehiclePosition, TransitData, SimulationClock, Trip, BusRoute, BusStop } from '../types'
 import { useI18n, localName } from '../i18n'
 import { useMemo } from 'react'
+import length from '@turf/length'
+import nearestPointOnLine from '@turf/nearest-point-on-line'
 
 interface Props {
   vehicle: VehiclePosition | null
@@ -16,9 +18,80 @@ const LINE_TERMINALS: Record<string, { forward: string; backward: string }> = {
 }
 
 function formatMinutes(totalMinutes: number): string {
-  const h = Math.floor(totalMinutes / 60) % 24
-  const m = Math.floor(totalMinutes % 60)
+  const wrapped = ((totalMinutes % 1440) + 1440) % 1440
+  const h = Math.floor(wrapped / 60)
+  const m = Math.floor(wrapped % 60)
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+}
+
+interface BusStopETA {
+  stopId: string
+  stopName: string
+  stopNameCn: string
+  etaMinutes: number
+  status: 'past' | 'dwelling' | 'future'
+}
+
+const busStopListCache = new WeakMap<BusRoute, { totalLenKm: number; stopProgress: Map<string, number> }>()
+
+function getBusRouteCache(route: BusRoute, busStopMap: Map<string, BusStop>) {
+  let entry = busStopListCache.get(route)
+  if (entry) return entry
+  const totalLenKm = length(route.geometry, { units: 'kilometers' })
+  const stopProgress = new Map<string, number>()
+  if (totalLenKm > 0) {
+    for (const stopId of route.stops) {
+      const stop = busStopMap.get(stopId)
+      if (!stop) continue
+      const projected = nearestPointOnLine(route.geometry, stop.coordinates, { units: 'kilometers' })
+      const dist = (projected.properties.location ?? 0) as number
+      stopProgress.set(stopId, dist / totalLenKm)
+    }
+  }
+  entry = { totalLenKm, stopProgress }
+  busStopListCache.set(route, entry)
+  return entry
+}
+
+function computeBusStopETAs(
+  vehicle: VehiclePosition,
+  route: BusRoute,
+  busStopMap: Map<string, BusStop>,
+  nowMinutes: number,
+): BusStopETA[] {
+  const cache = getBusRouteCache(route, busStopMap)
+  if (cache.totalLenKm < 0.01) return []
+  const tripDuration = cache.totalLenKm < 5 ? 30 : 60
+  const isCircular = route.routeType === 'circular'
+
+  const seen = new Set<string>()
+  const result: BusStopETA[] = []
+  for (const stopId of route.stops) {
+    if (seen.has(stopId)) continue
+    seen.add(stopId)
+    const stopProg = cache.stopProgress.get(stopId)
+    if (stopProg === undefined) continue
+    const stop = busStopMap.get(stopId)
+    if (!stop) continue
+
+    let delta = stopProg - vehicle.progress
+    if (isCircular && delta < -0.005) delta += 1
+    const etaSeconds = delta * tripDuration * 60
+
+    let status: 'past' | 'dwelling' | 'future'
+    if (Math.abs(etaSeconds) < 30) status = 'dwelling'
+    else if (delta > 0) status = 'future'
+    else status = 'past'
+
+    result.push({
+      stopId,
+      stopName: stop.name,
+      stopNameCn: stop.nameCn,
+      etaMinutes: nowMinutes + delta * tripDuration,
+      status,
+    })
+  }
+  return result
 }
 
 export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props) {
@@ -36,6 +109,22 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     }
     return map
   }, [transitData.stations])
+
+  const busStopMap = useMemo(() => {
+    return new Map(transitData.busStops.map(s => [s.id, s]))
+  }, [transitData.busStops])
+
+  const nowMinutesForETA = clock.currentTime.getHours() * 60
+    + clock.currentTime.getMinutes()
+    + clock.currentTime.getSeconds() / 60
+
+  const busETAs: BusStopETA[] = useMemo(() => {
+    if (!vehicle || vehicle.type !== 'bus') return []
+    const route = transitData.busRoutes.find(r => r.id === vehicle.lineId)
+    if (!route) return []
+    return computeBusStopETAs(vehicle, route, busStopMap, nowMinutesForETA)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vehicle?.id, vehicle?.progress, busStopMap, transitData.busRoutes])
 
   if (!vehicle) return null
 
@@ -164,14 +253,61 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
         </div>
       )}
 
-      {!trip && vehicle.type === 'bus' && (
-        <div className="text-xs text-white/50 mt-1">
-          {route?.name && (
-            <div className="flex justify-between">
-              <span>{t.route}</span>
-              <span className="text-white">{route.name}</span>
-            </div>
-          )}
+      {!trip && vehicle.type === 'bus' && busETAs.length > 0 && (
+        <div className="max-h-[50vh] overflow-y-auto -mx-1 px-1">
+          <div className="relative pl-4">
+            <div className="absolute left-[5px] top-1 bottom-1 w-px bg-white/15" />
+            {busETAs.map((s, i) => {
+              const label = lang === 'zh' ? (s.stopNameCn || s.stopName) : s.stopName
+              const isLast = i === busETAs.length - 1
+              return (
+                <div key={`${s.stopId}-${i}`} className="relative flex items-start gap-2 pb-1.5">
+                  <div
+                    className={`absolute left-[-14px] top-[5px] w-[11px] h-[11px] rounded-full border-2 z-[1]
+                      ${s.status === 'past'
+                        ? 'bg-white/30 border-white/30'
+                        : s.status === 'dwelling'
+                          ? 'border-yellow-400 bg-yellow-400'
+                          : isLast
+                            ? 'border-white bg-transparent'
+                            : 'border-white/60 bg-transparent'
+                      }`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span
+                        className={`text-xs truncate ${
+                          s.status === 'past'
+                            ? 'text-white/30'
+                            : s.status === 'dwelling'
+                              ? 'text-yellow-300 font-semibold'
+                              : isLast
+                                ? 'text-white font-medium'
+                                : 'text-white/80'
+                        }`}
+                      >
+                        {label}
+                      </span>
+                      <span
+                        className={`text-xs font-mono flex-shrink-0 ${
+                          s.status === 'past'
+                            ? 'text-white/25'
+                            : s.status === 'dwelling'
+                              ? 'text-yellow-300'
+                              : 'text-white/60'
+                        }`}
+                      >
+                        {formatMinutes(s.etaMinutes)}
+                      </span>
+                    </div>
+                    {s.status === 'dwelling' && (
+                      <span className="text-[10px] text-yellow-400/70">{t.dwelling}</span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
     </div>
