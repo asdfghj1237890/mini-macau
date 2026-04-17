@@ -86,8 +86,8 @@ export function ControlPanel({ clock }: Props) {
                           text-xs font-medium tabular-nums
                           active:scale-95 transition
                           ${active
-                  ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30'
-                  : 'text-white/55 hover:text-white hover:bg-white/10'}`}
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30'
+                  : 'text-white/60 hover:text-white hover:bg-white/10'}`}
             >
               {s}x
             </button>
