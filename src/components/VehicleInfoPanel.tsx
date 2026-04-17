@@ -29,7 +29,7 @@ interface BusStopETA {
   stopName: string
   stopNameCn: string
   etaMinutes: number
-  status: 'past' | 'dwelling' | 'future'
+  status: 'past' | 'dwelling' | 'arriving' | 'future'
 }
 
 const busStopListCache = new WeakMap<BusRoute, { totalLenKm: number; stopProgress: Map<string, number> }>()
@@ -53,6 +53,27 @@ function getBusRouteCache(route: BusRoute, busStopMap: Map<string, BusStop>) {
   return entry
 }
 
+function computeLiveBusProgress(vehicle: VehiclePosition, route: BusRoute, totalLenKm: number, nowMinutes: number): number {
+  const tripDuration = totalLenKm < 5 ? 30 : 60
+  const isCircular = route.routeType === 'circular'
+  const vIndex = parseInt(vehicle.id.split('-').pop() ?? '0', 10)
+  const minutesSinceStart = nowMinutes - route.serviceHoursStart * 60
+  const elapsed = minutesSinceStart - vIndex * route.frequency
+  if (elapsed < 0) return vehicle.progress
+
+  let progress: number
+  if (isCircular) {
+    progress = (elapsed % tripDuration) / tripDuration
+  } else {
+    const cycleTime = tripDuration * 2
+    const cyclePos = elapsed % cycleTime
+    progress = cyclePos <= tripDuration
+      ? cyclePos / tripDuration
+      : 1 - (cyclePos - tripDuration) / tripDuration
+  }
+  return Math.max(0, Math.min(1, progress))
+}
+
 function computeBusStopETAs(
   vehicle: VehiclePosition,
   route: BusRoute,
@@ -64,30 +85,43 @@ function computeBusStopETAs(
   const tripDuration = cache.totalLenKm < 5 ? 30 : 60
   const isCircular = route.routeType === 'circular'
 
-  const seen = new Set<string>()
-  const result: BusStopETA[] = []
+  const liveProgress = computeLiveBusProgress(vehicle, route, cache.totalLenKm, nowMinutes)
+
+  const entries: { stopId: string; stop: BusStop; effectiveProg: number }[] = []
+  let prevProg = -1
   for (const stopId of route.stops) {
-    if (seen.has(stopId)) continue
-    seen.add(stopId)
     const stopProg = cache.stopProgress.get(stopId)
     if (stopProg === undefined) continue
     const stop = busStopMap.get(stopId)
     if (!stop) continue
 
-    let delta = stopProg - vehicle.progress
-    if (isCircular && delta < -0.005) delta += 1
-    const etaSeconds = delta * tripDuration * 60
+    let effectiveProg = stopProg
+    if (effectiveProg <= prevProg + 0.001) {
+      effectiveProg = prevProg + 0.001
+    }
+    prevProg = effectiveProg
+    entries.push({ stopId, stop, effectiveProg })
+  }
 
-    let status: 'past' | 'dwelling' | 'future'
-    if (Math.abs(etaSeconds) < 30) status = 'dwelling'
-    else if (delta > 0) status = 'future'
+  const result: BusStopETA[] = []
+  for (let i = 0; i < entries.length; i++) {
+    const { stopId, stop, effectiveProg } = entries[i]
+    let delta = effectiveProg - liveProgress
+    if (isCircular && delta < -0.005) delta += 1
+
+    const etaMin = delta * tripDuration
+
+    let status: 'past' | 'dwelling' | 'arriving' | 'future'
+    if (etaMin > -0.5 && etaMin < 0.5) status = 'dwelling'
+    else if (etaMin >= 0.5 && etaMin < 2.5) status = 'arriving'
+    else if (etaMin >= 2.5) status = 'future'
     else status = 'past'
 
     result.push({
       stopId,
       stopName: stop.name,
       stopNameCn: stop.nameCn,
-      etaMinutes: nowMinutes + delta * tripDuration,
+      etaMinutes: nowMinutes + etaMin,
       status,
     })
   }
@@ -124,7 +158,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     if (!route) return []
     return computeBusStopETAs(vehicle, route, busStopMap, nowMinutesForETA)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, vehicle?.progress, busStopMap, transitData.busRoutes])
+  }, [vehicle?.id, nowMinutesForETA, busStopMap, transitData.busRoutes])
 
   if (!vehicle) return null
 
@@ -268,9 +302,11 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
                         ? 'bg-white/30 border-white/30'
                         : s.status === 'dwelling'
                           ? 'border-yellow-400 bg-yellow-400'
-                          : isLast
-                            ? 'border-white bg-transparent'
-                            : 'border-white/60 bg-transparent'
+                          : s.status === 'arriving'
+                            ? 'border-yellow-400 bg-transparent animate-pulse'
+                            : isLast
+                              ? 'border-white bg-transparent'
+                              : 'border-white/60 bg-transparent'
                       }`}
                   />
                   <div className="flex-1 min-w-0">
@@ -281,9 +317,11 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
                             ? 'text-white/30'
                             : s.status === 'dwelling'
                               ? 'text-yellow-300 font-semibold'
-                              : isLast
-                                ? 'text-white font-medium'
-                                : 'text-white/80'
+                              : s.status === 'arriving'
+                                ? 'text-yellow-200'
+                                : isLast
+                                  ? 'text-white font-medium'
+                                  : 'text-white/80'
                         }`}
                       >
                         {label}
@@ -294,7 +332,9 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
                             ? 'text-white/25'
                             : s.status === 'dwelling'
                               ? 'text-yellow-300'
-                              : 'text-white/60'
+                              : s.status === 'arriving'
+                                ? 'text-yellow-200/80'
+                                : 'text-white/60'
                         }`}
                       >
                         {formatMinutes(s.etaMinutes)}
@@ -302,6 +342,9 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
                     </div>
                     {s.status === 'dwelling' && (
                       <span className="text-[10px] text-yellow-400/70">{t.dwelling}</span>
+                    )}
+                    {s.status === 'arriving' && (
+                      <span className="text-[10px] text-yellow-300/60">{t.arriving}</span>
                     )}
                   </div>
                 </div>
