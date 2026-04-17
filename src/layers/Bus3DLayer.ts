@@ -32,7 +32,7 @@ const METERS_PER_DEG_LAT = 111320
 
 type BusFeatureKind = 'body' | 'roof' | 'window' | 'wheel' | 'windshield'
 
-type BusFeature = GeoJSON.Feature<GeoJSON.Polygon, { color: string; kind: BusFeatureKind }>
+type BusFeature = GeoJSON.Feature<GeoJSON.Polygon, { color: string; kind: BusFeatureKind; vehicleId: string }>
 
 function rectanglePolygon(
   lng: number,
@@ -98,23 +98,24 @@ function buildBusFeatures(buses: VehiclePosition[]): BusFeature[] {
   const features: BusFeature[] = []
   for (const v of buses) {
     const [lng, lat] = v.coordinates
+    const vid = v.id
     const body = rectanglePolygon(lng, lat, v.bearing, BUS_LENGTH_M, BUS_WIDTH_M)
     features.push({
       type: 'Feature',
       geometry: { type: 'Polygon', coordinates: [body] },
-      properties: { color: v.color, kind: 'body' },
+      properties: { color: v.color, kind: 'body', vehicleId: vid },
     })
     const roof = rectanglePolygon(lng, lat, v.bearing, BUS_LENGTH_M - 1.2, BUS_WIDTH_M - 0.6)
     features.push({
       type: 'Feature',
       geometry: { type: 'Polygon', coordinates: [roof] },
-      properties: { color: v.color, kind: 'roof' },
+      properties: { color: v.color, kind: 'roof', vehicleId: vid },
     })
     const window = rectanglePolygon(lng, lat, v.bearing, BUS_LENGTH_M - 3.6, BUS_WIDTH_M + 0.2)
     features.push({
       type: 'Feature',
       geometry: { type: 'Polygon', coordinates: [window] },
-      properties: { color: v.color, kind: 'window' },
+      properties: { color: v.color, kind: 'window', vehicleId: vid },
     })
     for (const [ox, oy] of WHEEL_OFFSETS_LOCAL) {
       const [wLng, wLat] = offsetInBus(lng, lat, v.bearing, ox, oy)
@@ -122,7 +123,7 @@ function buildBusFeatures(buses: VehiclePosition[]): BusFeature[] {
       features.push({
         type: 'Feature',
         geometry: { type: 'Polygon', coordinates: [wheel] },
-        properties: { color: v.color, kind: 'wheel' },
+        properties: { color: v.color, kind: 'wheel', vehicleId: vid },
       })
     }
 
@@ -137,7 +138,7 @@ function buildBusFeatures(buses: VehiclePosition[]): BusFeature[] {
     features.push({
       type: 'Feature',
       geometry: { type: 'Polygon', coordinates: [windshield] },
-      properties: { color: v.color, kind: 'windshield' },
+      properties: { color: v.color, kind: 'windshield', vehicleId: vid },
     })
   }
   return features
