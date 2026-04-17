@@ -4,6 +4,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
+import { LRT3DLayer } from '../layers/LRT3DLayer'
 import { computeVehiclePositions, getScheduleType } from '../engines/simulationEngine'
 import { useI18n } from '../i18n'
 
@@ -112,6 +113,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   const vehiclesRef = useRef<VehiclePosition[]>([])
   const layersAddedRef = useRef(false)
   const bus3DRef = useRef<Bus3DLayer | null>(null)
+  const lrt3DRef = useRef<LRT3DLayer | null>(null)
   const [is3D, setIs3D] = useState(true)
   const [showBuildings, setShowBuildings] = useState(true)
   const [isDark, setIsDark] = useState(true)
@@ -349,6 +351,10 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
       bus3DLayer.attach(map)
       bus3DRef.current = bus3DLayer
 
+      const lrt3DLayer = new LRT3DLayer()
+      lrt3DLayer.attach(map)
+      lrt3DRef.current = lrt3DLayer
+
       layersAddedRef.current = true
 
       map.on('click', 'vehicles-circle', (e) => {
@@ -369,9 +375,31 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
         map.getCanvas().style.cursor = ''
       })
 
+      const model3DLayers = ['bus-3d-body', 'bus-3d-roof', 'bus-3d-window', 'bus-3d-windshield', 'bus-3d-wheel',
+        'lrt-3d-body', 'lrt-3d-roof', 'lrt-3d-window', 'lrt-3d-windshield', 'lrt-3d-bogie', 'lrt-3d-gangway']
+      for (const layerId of model3DLayers) {
+        map.on('click', layerId, (e) => {
+          const feature = e.features?.[0]
+          if (feature) {
+            const vid = feature.properties?.vehicleId
+            const vehicle = vehiclesRef.current.find(v => v.id === vid)
+            if (vehicle) {
+              onVehicleClick?.(vehicle)
+              e.preventDefault()
+            }
+          }
+        })
+        map.on('mouseenter', layerId, () => {
+          map.getCanvas().style.cursor = 'pointer'
+        })
+        map.on('mouseleave', layerId, () => {
+          map.getCanvas().style.cursor = ''
+        })
+      }
+
       map.on('click', (e) => {
         const features = map.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle'],
+          layers: ['vehicles-circle', 'stations-circle', ...model3DLayers],
         })
         if (features.length === 0) {
           onClearSelection?.()
@@ -385,6 +413,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
     return () => {
       layersAddedRef.current = false
       bus3DRef.current = null
+      lrt3DRef.current = null
       canvasEl.removeEventListener('mousedown', onCanvasMiddleDown)
       canvasEl.removeEventListener('auxclick', onCanvasAuxClick)
       window.removeEventListener('mousemove', onWindowMiddleMove)
@@ -441,6 +470,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
         const vehicles = computeVehiclePositions(td, clock.timeRef.current)
         vehiclesRef.current = vehicles
         bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
+        lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
         updateVehicleData(map, vehicles)
 
         const perfNow = performance.now()
