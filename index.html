@@ -7,11 +7,11 @@
     <title>Mini Map Macau · 澳門公共交通 3D 即時模擬地圖</title>
     <meta
       name="description"
-      content="互動式澳門公共交通 3D 地圖：依真實班表模擬輕軌 3 條線與 400+ 輛巴士即時行駛。Real-time Macau LRT and bus network simulation visualised on an interactive 3D map — watch every vehicle move in sync with the official schedule."
+      content="互動式澳門公共交通 3D 地圖：即時模擬輕軌氹仔線、石排灣線、橫琴線與 90+ 條巴士路線（含跨海線與夜間巴士）。查詢到站時間 ETA、車站資訊與路線圖。Real-time Macau LRT &amp; bus network simulation on an interactive 3D map — track 400+ vehicles across Taipa, Cotai, and the Peninsula with live ETAs."
     />
     <meta
       name="keywords"
-      content="澳門, 輕軌, 巴士, 公共交通, 3D地圖, 即時模擬, 交通路線, Macau, MLM, Macau LRT, Macau bus, Macau transit, Macau map, real-time simulation, 3D map, Ponte Governador Nobre de Carvalho, 嘉樂庇總督大橋"
+      content="澳門, 輕軌, 巴士, 公共交通, 3D地圖, 即時模擬, 交通路線, 澳門輕軌, 澳門巴士, 澳門交通, 澳門地圖, 氹仔線, 石排灣線, 橫琴線, 媽閣站, 蓮花站, 機場站, 氹仔碼頭站, 路氹, 氹仔, 路環, 澳門半島, 班次查詢, 到站時間, 路線圖, 乘車資訊, 新福利, 澳巴, 跨海線, 夜間巴士, 交通資訊, WebGL, 互動地圖, Macau, Macao, MLM, Macau LRT, Macau Light Metro, Macau bus, Macau transit, Macau public transport, Macau map, Macau route, real-time simulation, 3D map, interactive map, transit tracker, bus tracker, ETA, live transit, Taipa Line, Seac Pai Van Line, Hengqin Line, Cotai, Taipa, Coloane, Macau Peninsula, Ponte Governador Nobre de Carvalho, 嘉樂庇總督大橋, Ponte de Sai Van, 西灣大橋, Ponte de Amizade, 友誼大橋, mapa de Macau, transporte público de Macau, autocarro de Macau, Metro Ligeiro de Macau"
     />
     <meta name="author" content="Mini Map Macau" />
     <meta name="robots" content="index,follow,max-image-preview:large" />
@@ -33,7 +33,7 @@
     <meta property="og:title" content="Mini Map Macau · 澳門公共交通 3D 即時模擬地圖" />
     <meta
       property="og:description"
-      content="互動式澳門公共交通 3D 地圖：依真實班表模擬輕軌 3 條線與 400+ 輛巴士即時行駛。"
+      content="互動式澳門公共交通 3D 地圖：即時模擬輕軌 3 條線與 90+ 條巴士路線，查詢到站時間與路線圖。"
     />
     <meta property="og:url" content="https://mini-map-macau.app/" />
     <meta property="og:locale" content="zh_HK" />
@@ -48,7 +48,7 @@
     <meta name="twitter:title" content="Mini Map Macau · 澳門公共交通 3D 即時模擬地圖" />
     <meta
       name="twitter:description"
-      content="互動式澳門公共交通 3D 地圖：依真實班表模擬輕軌 3 條線與 400+ 輛巴士即時行駛。"
+      content="互動式澳門公共交通 3D 地圖：即時模擬輕軌 3 條線與 90+ 條巴士路線，查詢到站時間與路線圖。"
     />
     <meta name="twitter:image" content="https://mini-map-macau.app/og-image.png" />
 
@@ -62,9 +62,9 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Mini Map Macau",
-        "alternateName": ["澳門迷你交通地圖", "Mini Mapa Macau"],
+        "alternateName": ["澳門迷你交通地圖", "Mini Mapa Macau", "澳門即時交通地圖", "澳門3D巴士地圖"],
         "url": "https://mini-map-macau.app/",
-        "description": "Real-time 3D simulation of Macau's public transit network — LRT and 400+ buses moving on an interactive map in sync with the official schedule.",
+        "description": "Real-time 3D simulation of Macau's public transit network — LRT (Taipa, Seac Pai Van, Hengqin lines) and 90+ bus routes with 400+ vehicles moving on an interactive map. View live ETAs, station info, and route maps.",
         "applicationCategory": "TravelApplication",
         "applicationSubCategory": "TransportationApplication",
         "operatingSystem": "Any (browser with WebGL 2.0)",
@@ -76,17 +76,25 @@
           "price": "0",
           "priceCurrency": "USD"
         },
+        "keywords": "澳門輕軌, 澳門巴士, 氹仔線, 石排灣線, 橫琴線, Macau LRT, Macau bus, transit tracker, 到站時間, ETA, 路線圖",
         "about": [
           { "@type": "Thing", "name": "Macau Light Rapid Transit", "sameAs": "https://en.wikipedia.org/wiki/Macau_Light_Rapid_Transit" },
-          { "@type": "Thing", "name": "Public transport in Macau", "sameAs": "https://en.wikipedia.org/wiki/Public_transport_in_Macau" }
+          { "@type": "Thing", "name": "Public transport in Macau", "sameAs": "https://en.wikipedia.org/wiki/Public_transport_in_Macau" },
+          { "@type": "Thing", "name": "Taipa", "sameAs": "https://en.wikipedia.org/wiki/Taipa" },
+          { "@type": "Thing", "name": "Cotai", "sameAs": "https://en.wikipedia.org/wiki/Cotai" }
         ],
         "spatialCoverage": {
           "@type": "Place",
-          "name": "Macau",
+          "name": "Macau SAR, China",
+          "alternateName": ["澳門", "Macao", "Região Administrativa Especial de Macau"],
           "geo": {
             "@type": "GeoCoordinates",
             "latitude": 22.1604,
             "longitude": 113.5592
+          },
+          "containedInPlace": {
+            "@type": "Country",
+            "name": "China"
           }
         }
       }
@@ -104,9 +112,10 @@
     <div id="root"></div>
     <noscript>
       <div style="padding:2rem;font-family:system-ui;color:#ddd;background:#111;min-height:100vh;">
-        <h1>Mini Map Macau</h1>
-        <p>互動式澳門公共交通 3D 即時模擬地圖，需要啟用 JavaScript 才能載入。</p>
-        <p>This site is an interactive real-time 3D map of Macau's public transit network. Please enable JavaScript.</p>
+        <h1>Mini Map Macau — 澳門公共交通 3D 即時模擬地圖</h1>
+        <p>互動式澳門公共交通 3D 地圖：即時模擬輕軌氹仔線、石排灣線、橫琴線與 90+ 條巴士路線。提供到站時間查詢、車站資訊與路線圖。需要啟用 JavaScript 才能載入。</p>
+        <p>Real-time 3D simulation of Macau's public transit — LRT (Taipa, Seac Pai Van, Hengqin lines) and 90+ bus routes across the Peninsula, Taipa, and Cotai. Track 400+ vehicles with live ETAs. Please enable JavaScript.</p>
+        <p>Mapa interactivo 3D do transporte público de Macau — Metro Ligeiro e mais de 90 rotas de autocarro. Por favor active o JavaScript.</p>
       </div>
     </noscript>
     <script type="module" src="/src/main.tsx"></script>
