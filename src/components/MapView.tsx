@@ -629,89 +629,15 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   return (
     <>
       <div ref={containerRef} className="w-full h-full" />
-      {/* Desktop toolbar */}
-      <div className="absolute top-4 left-4 gap-2 z-10 items-center
-                      hidden sm:flex">
-        <div
-          className="bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm font-mono
-                     backdrop-blur-sm border border-white/20 tabular-nums"
-          aria-label="zoom level"
-        >
-          Z {zoom.toFixed(1)}
-        </div>
-        <button
-          onClick={toggle3D}
-          className="bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm
-                     hover:bg-black/90 transition-colors backdrop-blur-sm border border-white/20"
-        >
-          {is3D ? '2D' : '3D'}
-        </button>
-        <button
-          onClick={toggleBuildings}
-          disabled={!is3D}
-          aria-pressed={showBuildings}
-          title={lang === 'zh' ? '3D 建築物' : lang === 'pt' ? 'Edifícios 3D' : '3D Buildings'}
-          className={`bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm
-                      hover:bg-black/90 transition-colors backdrop-blur-sm border border-white/20
-                      disabled:opacity-40 disabled:cursor-not-allowed
-                      ${showBuildings ? '' : 'opacity-50 line-through'}`}
-        >
-          {lang === 'zh' ? '3D建築' : lang === 'pt' ? 'Edif. 3D' : '3D BLDG'}
-        </button>
-        <button
-          onClick={toggleTheme}
-          className="bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm
-                     hover:bg-black/90 transition-colors backdrop-blur-sm border border-white/20"
-        >
-          {isDark ? '☀' : '🌙'}
-        </button>
-        <div className="relative group">
-          <button
-            aria-haspopup="listbox"
-            aria-label="language"
-            className="bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm
-                       hover:bg-black/90 transition-colors backdrop-blur-sm border border-white/20
-                       group-hover:bg-black/90 group-focus-within:bg-black/90"
-          >
-            {lang === 'zh' ? '中文' : lang === 'pt' ? 'PT' : 'EN'}
-            <span className="ml-1 text-white/40 text-[10px] inline-block">▾</span>
-          </button>
-          <div
-            role="listbox"
-            aria-label="language"
-            className="absolute top-full right-0 mt-1 flex flex-col gap-1
-                       bg-black/85 backdrop-blur-sm border border-white/20 rounded-lg p-1
-                       min-w-full opacity-0 translate-y-[-4px] pointer-events-none
-                       group-hover:opacity-100 group-hover:translate-y-0 group-hover:pointer-events-auto
-                       group-focus-within:opacity-100 group-focus-within:translate-y-0 group-focus-within:pointer-events-auto
-                       transition-all duration-150"
-          >
-            {(['zh', 'pt', 'en'] as const)
-              .filter(l => l !== lang)
-              .map(l => (
-                <button
-                  key={l}
-                  role="option"
-                  aria-selected={false}
-                  onClick={() => setLang(l)}
-                  className="px-3 py-1 text-sm text-white/80 hover:bg-white/10 hover:text-white
-                             rounded text-left transition-colors"
-                >
-                  {l === 'zh' ? '中文' : l === 'pt' ? 'PT' : 'EN'}
-                </button>
-              ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile: hamburger + zoom */}
-      <div className="absolute top-2 left-2 flex gap-0.5 z-10 items-center
-                      sm:hidden">
+      {/* Hamburger + zoom (both desktop and mobile) */}
+      <div className="absolute top-4 left-4 flex gap-1.5 z-10 items-center
+                      max-sm:top-2 max-sm:left-2 max-sm:gap-0.5">
         <button
           onClick={() => setMenuOpen(o => !o)}
           aria-label="menu"
           aria-expanded={menuOpen}
-          className="bg-black/70 text-white w-8 h-8 flex items-center justify-center rounded-lg
+          className="bg-black/70 text-white w-9 h-9 max-sm:w-8 max-sm:h-8
+                     flex items-center justify-center rounded-lg
                      backdrop-blur-sm border border-white/20
                      hover:bg-black/90 active:scale-95 transition"
         >
@@ -724,7 +650,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           </svg>
         </button>
         <div
-          className="bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-mono
+          className="bg-black/70 text-white px-3 py-1.5 max-sm:px-2 max-sm:py-1
+                     rounded-lg text-sm max-sm:text-xs font-mono
                      backdrop-blur-sm border border-white/20 tabular-nums"
           aria-label="zoom level"
         >
@@ -732,23 +659,48 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         </div>
       </div>
 
-      {/* Mobile: backdrop */}
+      {/* Backdrop */}
       {menuOpen && (
         <div
-          className="fixed inset-0 z-20 sm:hidden"
+          className="fixed inset-0 z-20"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
-      {/* Mobile: slide-out panel */}
+      {/* Slide-out panel */}
       <div
         className={`fixed top-0 left-0 z-30 h-full w-52
                     bg-black/90 backdrop-blur-xl border-r border-white/10
                     transition-transform duration-200 ease-out
-                    sm:hidden
                     ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className="flex flex-col gap-1 p-4 pt-14">
+        <div className="flex flex-col gap-1 p-4 pt-6">
+          <div className="mb-4">
+            <div
+              className="text-lg font-black tracking-widest uppercase leading-tight"
+              style={{
+                fontFamily: "'Orbitron', sans-serif",
+                background: 'linear-gradient(135deg, #38bdf8, #818cf8, #f472b6)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              MINI MAP
+            </div>
+            <div
+              className="text-2xl font-black tracking-[0.25em] uppercase leading-tight"
+              style={{
+                fontFamily: "'Orbitron', sans-serif",
+                background: 'linear-gradient(135deg, #38bdf8, #818cf8, #f472b6)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              MACAU
+            </div>
+            <div className="w-full h-px bg-gradient-to-r from-sky-400/60 via-indigo-400/60 to-pink-400/60 mt-2" />
+          </div>
+
           <div className="text-white/40 text-[10px] uppercase tracking-widest mb-1">
             {lang === 'zh' ? '地圖設定' : lang === 'pt' ? 'Definições' : 'Map Settings'}
           </div>
