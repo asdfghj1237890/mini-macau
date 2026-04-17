@@ -26,7 +26,8 @@ const WINDSHIELD_THICKNESS_M = 0.4
 const WINDSHIELD_WIDTH_M = 5.8
 const WINDSHIELD_OVERHANG_M = 0.25
 
-const MIN_ZOOM = 16.9
+const IS_MOBILE = window.matchMedia('(max-width: 639px)').matches
+const MIN_ZOOM = IS_MOBILE ? 16 : 16.9
 
 const METERS_PER_DEG_LAT = 111320
 
