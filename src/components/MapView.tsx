@@ -657,6 +657,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
           </button>
           <div
             role="listbox"
+            aria-label="language"
             className="absolute top-full right-0 mt-1 flex flex-col gap-1
                        bg-black/85 backdrop-blur-sm border border-white/20 rounded-lg p-1
                        min-w-full opacity-0 translate-y-[-4px] pointer-events-none
