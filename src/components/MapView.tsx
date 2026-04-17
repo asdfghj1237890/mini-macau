@@ -119,6 +119,7 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   const [showBuildings, setShowBuildings] = useState(true)
   const [isDark, setIsDark] = useState(true)
   const [zoom, setZoom] = useState<number>(MACAU_ZOOM)
+  const [menuOpen, setMenuOpen] = useState(false)
   const { lang, setLang } = useI18n()
   const isDarkRef = useRef(isDark)
   const langRef = useRef(lang)
@@ -141,9 +142,16 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
       zoom: MACAU_ZOOM,
       pitch: is3D ? 45 : 0,
       bearing: -17,
+      attributionControl: false,
     })
 
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
+
+    map.once('load', () => {
+      const attrib = containerRef.current?.querySelector('.maplibregl-ctrl-attrib')
+      if (attrib) attrib.classList.remove('maplibregl-compact-show')
+    })
 
     let zoomTimer = 0
     map.on('zoom', () => {
@@ -610,7 +618,9 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
   return (
     <>
       <div ref={containerRef} className="w-full h-full" />
-      <div className="absolute top-4 left-4 flex gap-2 z-10 items-center">
+      {/* Desktop toolbar */}
+      <div className="absolute top-4 left-4 gap-2 z-10 items-center
+                      hidden sm:flex">
         <div
           className="bg-black/70 text-white px-3 py-1.5 rounded-lg text-sm font-mono
                      backdrop-blur-sm border border-white/20 tabular-nums"
@@ -680,6 +690,112 @@ export function MapView({ clock, transitData, onVehicleClick, onStationClick, on
                 </button>
               ))}
           </div>
+        </div>
+      </div>
+
+      {/* Mobile: hamburger + zoom */}
+      <div className="absolute top-2 left-2 flex gap-1.5 z-10 items-center
+                      sm:hidden">
+        <button
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="menu"
+          aria-expanded={menuOpen}
+          className="bg-black/70 text-white w-8 h-8 flex items-center justify-center rounded-lg
+                     backdrop-blur-sm border border-white/20
+                     hover:bg-black/90 active:scale-95 transition"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="2" strokeLinecap="round">
+            {menuOpen
+              ? <><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>
+              : <><line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></>
+            }
+          </svg>
+        </button>
+        <div
+          className="bg-black/70 text-white px-2 py-1 rounded-lg text-xs font-mono
+                     backdrop-blur-sm border border-white/20 tabular-nums"
+          aria-label="zoom level"
+        >
+          Z {zoom.toFixed(1)}
+        </div>
+      </div>
+
+      {/* Mobile: backdrop */}
+      {menuOpen && (
+        <div
+          className="fixed inset-0 z-20 sm:hidden"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+
+      {/* Mobile: slide-out panel */}
+      <div
+        className={`fixed top-0 left-0 z-30 h-full w-52
+                    bg-black/90 backdrop-blur-xl border-r border-white/10
+                    transition-transform duration-200 ease-out
+                    sm:hidden
+                    ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+      >
+        <div className="flex flex-col gap-1 p-4 pt-14">
+          <div className="text-white/40 text-[10px] uppercase tracking-widest mb-1">
+            {lang === 'zh' ? '地圖設定' : lang === 'pt' ? 'Definições' : 'Map Settings'}
+          </div>
+
+          <button
+            onClick={() => { toggle3D(); setMenuOpen(false) }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white
+                       hover:bg-white/10 active:scale-[0.98] transition"
+          >
+            <span className="w-5 text-center text-base">{is3D ? '🗺' : '🌐'}</span>
+            <span>{is3D ? '2D' : '3D'}</span>
+          </button>
+
+          <button
+            onClick={() => { toggleBuildings(); setMenuOpen(false) }}
+            disabled={!is3D}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
+                        hover:bg-white/10 active:scale-[0.98] transition
+                        ${!is3D ? 'opacity-30 cursor-not-allowed' : 'text-white'}`}
+          >
+            <span className="w-5 text-center text-base">🏢</span>
+            <span className={showBuildings ? '' : 'line-through opacity-60'}>
+              {lang === 'zh' ? '3D 建築' : lang === 'pt' ? 'Edifícios 3D' : '3D Buildings'}
+            </span>
+          </button>
+
+          <button
+            onClick={() => { toggleTheme(); setMenuOpen(false) }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white
+                       hover:bg-white/10 active:scale-[0.98] transition"
+          >
+            <span className="w-5 text-center text-base">{isDark ? '☀️' : '🌙'}</span>
+            <span>{isDark
+              ? (lang === 'zh' ? '淺色模式' : lang === 'pt' ? 'Modo claro' : 'Light mode')
+              : (lang === 'zh' ? '深色模式' : lang === 'pt' ? 'Modo escuro' : 'Dark mode')
+            }</span>
+          </button>
+
+          <div className="w-full h-px bg-white/10 my-1" />
+
+          <div className="text-white/40 text-[10px] uppercase tracking-widest mb-1">
+            {lang === 'zh' ? '語言' : lang === 'pt' ? 'Idioma' : 'Language'}
+          </div>
+
+          {(['zh', 'pt', 'en'] as const).map(l => (
+            <button
+              key={l}
+              onClick={() => { setLang(l); setMenuOpen(false) }}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
+                          hover:bg-white/10 active:scale-[0.98] transition
+                          ${lang === l ? 'text-blue-400 bg-white/5' : 'text-white/80'}`}
+            >
+              <span className="w-5 text-center text-base">
+                {l === 'zh' ? '中' : l === 'pt' ? 'PT' : 'EN'}
+              </span>
+              <span>{l === 'zh' ? '繁體中文' : l === 'pt' ? 'Português' : 'English'}</span>
+            </button>
+          ))}
         </div>
       </div>
     </>

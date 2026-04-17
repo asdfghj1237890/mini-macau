@@ -11,24 +11,24 @@ interface Props {
   onResetAuto: () => void
 }
 
-const NIGHT_ROUTES = new Set(['N1A', 'N1B', 'N2', 'N3', 'N5', 'N6'])
-const TAIPA_COTAI_ROUTES = new Set([
+export const NIGHT_ROUTES = new Set(['N1A', 'N1B', 'N2', 'N3', 'N5', 'N6'])
+export const TAIPA_COTAI_ROUTES = new Set([
   'MT1', 'MT2', 'MT3', 'MT4', 'MT5',
   '11', '15', '50', '50B', '51', '51A', '51X', '52', '55', '56', '59',
   '35', '36', '37', '39', '71', '71S', '72', '73',
 ])
-const SPECIAL_ROUTES = new Set([
+export const SPECIAL_ROUTES = new Set([
   'AP1', 'AP1X', 'H1', 'H2', 'H3', '701X', '701XS', '101', '102', '103',
 ])
-const CROSS_HARBOUR_ROUTES = new Set([
+export const CROSS_HARBOUR_ROUTES = new Set([
   '21A', '22', '25', '25AX', '25B', '25BS', '26', '26A', '27',
   '28A', '28B', '28C', '29', '30', '30X', '32', '33', '34',
   '60', '61', '65',
 ])
 
-type GroupKey = 'peninsula' | 'crossHarbour' | 'taipaCotai' | 'night' | 'special'
+export type GroupKey = 'peninsula' | 'crossHarbour' | 'taipaCotai' | 'night' | 'special'
 
-function getRouteGroup(route: BusRoute): GroupKey {
+export function getRouteGroup(route: BusRoute): GroupKey {
   const id = route.id
   if (NIGHT_ROUTES.has(id)) return 'night'
   if (SPECIAL_ROUTES.has(id)) return 'special'
@@ -37,8 +37,8 @@ function getRouteGroup(route: BusRoute): GroupKey {
   return 'peninsula'
 }
 
-const GROUP_ORDER: GroupKey[] = ['peninsula', 'crossHarbour', 'taipaCotai', 'night', 'special']
-const GROUP_LABEL_KEYS: Record<GroupKey, 'groupPeninsula' | 'groupCrossHarbour' | 'groupTaipaCotai' | 'groupNight' | 'groupSpecial'> = {
+export const GROUP_ORDER: GroupKey[] = ['peninsula', 'crossHarbour', 'taipaCotai', 'night', 'special']
+export const GROUP_LABEL_KEYS: Record<GroupKey, 'groupPeninsula' | 'groupCrossHarbour' | 'groupTaipaCotai' | 'groupNight' | 'groupSpecial'> = {
   peninsula: 'groupPeninsula',
   crossHarbour: 'groupCrossHarbour',
   taipaCotai: 'groupTaipaCotai',
@@ -66,7 +66,8 @@ export function RouteSelector({ transitData, visibleRoutes, isAutoMode, onToggle
 
   return (
     <div className="absolute top-[20rem] right-4 bg-black/70 backdrop-blur-sm rounded-xl z-10
-                    border border-white/20 overflow-hidden max-w-[220px]">
+                    border border-white/20 overflow-hidden max-w-[220px]
+                    max-sm:hidden landscape:hidden">
       <button
         onClick={() => setExpanded(e => !e)}
         className="w-full px-4 py-2 text-white text-sm flex items-center justify-center gap-1.5
