@@ -695,7 +695,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       </div>
 
       {/* Mobile: hamburger + zoom */}
-      <div className="absolute top-2 left-2 flex gap-1.5 z-10 items-center
+      <div className="absolute top-2 left-2 flex gap-0.5 z-10 items-center
                       sm:hidden">
         <button
           onClick={() => setMenuOpen(o => !o)}
