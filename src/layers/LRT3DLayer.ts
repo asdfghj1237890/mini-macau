@@ -18,7 +18,8 @@ const ALL_LAYERS = [
   LRT_3D_BOGIE_LAYER,
 ]
 
-const MIN_ZOOM = 16.9
+const IS_MOBILE = window.matchMedia('(max-width: 639px)').matches
+const MIN_ZOOM = IS_MOBILE ? 16 : 16.9
 const METERS_PER_DEG_LAT = 111320
 
 // Viaduct top surface from MapView constants
