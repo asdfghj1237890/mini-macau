@@ -125,7 +125,7 @@ function computeBusVehicles(
     if (nowMinutes < route.serviceHoursStart * 60 || nowMinutes > route.serviceHoursEnd * 60) continue
     if (!route.geometry?.geometry?.coordinates?.length) continue
 
-    const totalLen = length(route.geometry, { units: 'kilometers' })
+    const totalLen = getLineLength(route.geometry)
     if (totalLen < 0.01) continue
 
     const tripDuration = totalLen < 5 ? 30 : 60

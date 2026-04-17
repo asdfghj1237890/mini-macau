@@ -104,6 +104,12 @@ export function updateVehicleData(map: MapLibreMap, vehicles: VehiclePosition[])
   }
 }
 
+export function updateVehicleLabelLang(map: MapLibreMap, lang: Lang) {
+  if (map.getLayer(LABEL_LAYER_ID)) {
+    map.setLayoutProperty(LABEL_LAYER_ID, 'text-field', ['get', lang === 'zh' ? 'labelZh' : 'labelEn'])
+  }
+}
+
 export function removeVehicleLayers(map: MapLibreMap) {
   if (map.getLayer(LABEL_LAYER_ID)) map.removeLayer(LABEL_LAYER_ID)
   if (map.getLayer(CIRCLE_LAYER_ID)) map.removeLayer(CIRCLE_LAYER_ID)

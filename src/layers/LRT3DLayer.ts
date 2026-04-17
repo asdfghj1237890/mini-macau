@@ -28,8 +28,6 @@ const VIADUCT_TOP_M = 7.2
 const CAR_LENGTH_M = 27.04
 const CAR_WIDTH_M = 8.45
 const CAR_GAP_M = 3.38
-const TOTAL_LENGTH_M = CAR_LENGTH_M * 2 + CAR_GAP_M
-
 // Vertical dimensions (absolute, on top of viaduct) — scaled x1.8 * x1.3
 const BOGIE_BASE_M = VIADUCT_TOP_M
 const BOGIE_HEIGHT_M = VIADUCT_TOP_M + 2.81
