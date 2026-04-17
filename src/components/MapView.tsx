@@ -759,6 +759,16 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               <span>{l === 'zh' ? '繁體中文' : l === 'pt' ? 'Português' : 'English'}</span>
             </button>
           ))}
+
+          <div className="w-full h-px bg-white/10 my-2" />
+
+          <p className="text-white/25 text-[9px] leading-relaxed px-1">
+            {lang === 'zh'
+              ? '本地圖為模擬展示，數據不保證完全反映此時此刻的真實狀況。'
+              : lang === 'pt'
+                ? 'Este mapa é uma simulação. Os dados podem não refletir a situação atual em tempo real.'
+                : 'This map is a simulation. Data may not accurately reflect real-time conditions.'}
+          </p>
         </div>
       </div>
     </>
