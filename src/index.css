@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "maplibre-gl/dist/maplibre-gl.css";
 
+@variant landscape (@media (orientation: landscape) and (max-height: 500px));
+
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -8,4 +10,48 @@ html, body, #root {
   height: 100%;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  #root {
+    padding-top: env(safe-area-inset-top);
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+@media (max-width: 639px) {
+  .maplibregl-ctrl-top-right {
+    top: 0.25rem;
+    right: 0.25rem;
+  }
+  .maplibregl-ctrl-top-right .maplibregl-ctrl {
+    margin: 0.25rem 0.25rem 0 0;
+  }
+  .maplibregl-ctrl-bottom-left {
+    bottom: 3rem;
+  }
+  .maplibregl-ctrl-bottom-right {
+    bottom: 0.25rem;
+  }
+  .maplibregl-ctrl-attrib {
+    font-size: 9px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .maplibregl-ctrl-top-right {
+    top: 0.25rem;
+    right: 0.25rem;
+  }
+  .maplibregl-ctrl-bottom-left {
+    bottom: 2.5rem;
+  }
+  .maplibregl-ctrl-bottom-right {
+    bottom: 0.25rem;
+  }
+  .maplibregl-ctrl-attrib {
+    font-size: 9px;
+  }
 }

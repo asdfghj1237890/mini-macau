@@ -142,7 +142,15 @@ export default function App() {
       />
       <TimeDisplay clock={clock} vehicleCount={vehicleCount} />
       <ControlPanel clock={clock} />
-      <LineLegend transitData={filteredTransitData} />
+      <LineLegend
+        transitData={filteredTransitData}
+        allTransitData={transitData}
+        visibleRoutes={visibleRoutes}
+        isAutoMode={isAutoMode}
+        onToggleRoute={onToggleRoute}
+        onToggleAll={onToggleAll}
+        onResetAuto={onResetAuto}
+      />
       <Suspense>
         <RouteSelector
           transitData={transitData}
