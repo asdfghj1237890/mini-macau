@@ -89,11 +89,16 @@ function getLRTLineWindow(
   return [minStart, maxEnd]
 }
 
-function isBusInService(route: BusRoute, hour: number): boolean {
+const BUS_SERVICE_TAIL_MIN = 60
+
+function isBusInService(route: BusRoute, hour: number, minute: number = 0): boolean {
+  const nowMin = hour * 60 + minute
+  const startMin = route.serviceHoursStart * 60
+  const endWithTail = route.serviceHoursEnd * 60 + BUS_SERVICE_TAIL_MIN
   if (route.serviceHoursStart <= route.serviceHoursEnd) {
-    return hour >= route.serviceHoursStart && hour < route.serviceHoursEnd
+    return nowMin >= startMin && nowMin < endWithTail
   }
-  return hour >= route.serviceHoursStart || hour < route.serviceHoursEnd
+  return nowMin >= startMin || nowMin < endWithTail % 1440
 }
 
 const MACAU_CENTER: [number, number] = [113.55920888434439, 22.160440018223373]
@@ -689,7 +694,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           for (const route of td.busRoutes) {
             const layerId = `bus-route-${route.id}`
             if (!map.getLayer(layerId)) continue
-            const inService = isBusInService(route, hour)
+            const inService = isBusInService(route, hour, simTime.getMinutes())
             const prev = serviceStatusRef.current.get(layerId)
             if (prev !== inService) {
               serviceStatusRef.current.set(layerId, inService)
