@@ -1,6 +1,6 @@
 import type { VehiclePosition, TransitData, SimulationClock, Trip, BusRoute, BusStop } from '../types'
 import { useI18n, localName } from '../i18n'
-import { useMemo } from 'react'
+import { useMemo, useRef, useEffect } from 'react'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 
@@ -47,25 +47,16 @@ function getBusRouteCache(route: BusRoute, busStopMap: Map<string, BusStop>) {
   return entry
 }
 
-function computeLiveBusProgress(vehicle: VehiclePosition, route: BusRoute, totalLenKm: number, nowMinutes: number): number {
+function computeLiveBusDirection(vehicle: VehiclePosition, route: BusRoute, totalLenKm: number, nowMinutes: number): boolean {
+  if (route.routeType === 'circular') return false
   const tripDuration = totalLenKm < 5 ? 30 : 60
-  const isCircular = route.routeType === 'circular'
   const vIndex = parseInt(vehicle.id.split('-').pop() ?? '0', 10)
   const minutesSinceStart = nowMinutes - route.serviceHoursStart * 60
   const elapsed = minutesSinceStart - vIndex * route.frequency
-  if (elapsed < 0) return vehicle.progress
-
-  let progress: number
-  if (isCircular) {
-    progress = (elapsed % tripDuration) / tripDuration
-  } else {
-    const cycleTime = tripDuration * 2
-    const cyclePos = elapsed % cycleTime
-    progress = cyclePos <= tripDuration
-      ? cyclePos / tripDuration
-      : 1 - (cyclePos - tripDuration) / tripDuration
-  }
-  return Math.max(0, Math.min(1, progress))
+  if (elapsed < 0) return false
+  const cycleTime = tripDuration * 2
+  const cyclePos = elapsed % cycleTime
+  return cyclePos > tripDuration
 }
 
 function computeBusStopETAs(
@@ -79,7 +70,8 @@ function computeBusStopETAs(
   const tripDuration = cache.totalLenKm < 5 ? 30 : 60
   const isCircular = route.routeType === 'circular'
 
-  const liveProgress = computeLiveBusProgress(vehicle, route, cache.totalLenKm, nowMinutes)
+  const liveProgress = vehicle.progress
+  const returning = computeLiveBusDirection(vehicle, route, cache.totalLenKm, nowMinutes)
 
   const entries: { stopId: string; stop: BusStop; effectiveProg: number }[] = []
   let prevProg = -1
@@ -97,18 +89,27 @@ function computeBusStopETAs(
     entries.push({ stopId, stop, effectiveProg })
   }
 
+  if (returning) entries.reverse()
+
   const result: BusStopETA[] = []
   for (let i = 0; i < entries.length; i++) {
     const { stopId, stop, effectiveProg } = entries[i]
-    let delta = effectiveProg - liveProgress
-    if (isCircular && delta < -0.005) delta += 1
+    let delta: number
+    if (returning) {
+      delta = liveProgress - effectiveProg
+    } else if (isCircular) {
+      delta = effectiveProg - liveProgress
+      if (delta < -0.005) delta += 1
+    } else {
+      delta = effectiveProg - liveProgress
+    }
 
     const etaMin = delta * tripDuration
 
     let status: 'past' | 'dwelling' | 'arriving' | 'future'
     if (etaMin > -0.5 && etaMin < 0.5) status = 'dwelling'
-    else if (etaMin >= 0.5 && etaMin < 2.5) status = 'arriving'
-    else if (etaMin >= 2.5) status = 'future'
+    else if (etaMin >= 0.5 && etaMin < 5) status = 'arriving'
+    else if (etaMin >= 5) status = 'future'
     else status = 'past'
 
     result.push({
@@ -198,7 +199,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
       let status: 'past' | 'dwelling' | 'arriving' | 'future'
       if (nowMinutes > dep + 0.5) status = 'past'
       else if (nowMinutes >= arr - 0.3 && nowMinutes <= dep + 0.5) status = 'dwelling'
-      else if (nowMinutes >= arr - 2.5) status = 'arriving'
+      else if (nowMinutes >= arr - 5) status = 'arriving'
       else status = 'future'
 
       rows.push({
@@ -228,6 +229,29 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
       })
     })
   }
+
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const firstActiveIdx = rows.findIndex(r => r.status !== 'past')
+  const prevVehicleIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!vehicle || firstActiveIdx < 0) return
+    const isNewVehicle = prevVehicleIdRef.current !== vehicle.id
+    prevVehicleIdRef.current = vehicle.id
+    const el = scrollRef.current
+    if (!el) return
+    const targetRow = el.children[firstActiveIdx] as HTMLElement | undefined
+    if (!targetRow) return
+    if (isNewVehicle) {
+      targetRow.scrollIntoView({ block: 'center' })
+    } else {
+      const containerRect = el.getBoundingClientRect()
+      const rowRect = targetRow.getBoundingClientRect()
+      if (rowRect.top < containerRect.top || rowRect.bottom > containerRect.bottom) {
+        targetRow.scrollIntoView({ block: 'center', behavior: 'smooth' })
+      }
+    }
+  }, [vehicle?.id, firstActiveIdx])
 
   // Find next destination (last entry for lrt, last future stop for bus)
   const destRow = trip
@@ -279,12 +303,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
       const cache = getBusRouteCache(route, busStopMap)
       if (cache.totalLenKm < 0.01) return 0
       const tripDuration = cache.totalLenKm < 5 ? 30 : 60
-      const avgSpeed = (cache.totalLenKm / tripDuration) * 60
-      const dwellingStop = busETAs.find(s => s.status === 'dwelling')
-      if (dwellingStop) return 0
-      const arrivingStop = busETAs.find(s => s.status === 'arriving')
-      if (arrivingStop) return Math.round(avgSpeed * 0.5)
-      return Math.round(avgSpeed)
+      return Math.round((cache.totalLenKm / tripDuration) * 60)
     }
     return 0
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -354,7 +373,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
               <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35 text-right">ARR</span>
               <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35 text-right">DEP</span>
             </div>
-            <div className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
+            <div ref={scrollRef} className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
               {rows.map((r, i) => {
                 const isFirstRow = i === 0
                 const isLastRow = i === rows.length - 1
