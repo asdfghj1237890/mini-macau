@@ -111,11 +111,18 @@ def fetch_flights(direction: str) -> list[dict]:
 
 
 def process_flight(raw: dict, flight_type: str) -> dict | None:
-    """Convert an AviationStack flight record to our format."""
+    """Convert an AviationStack flight record to our format.
+
+    Codeshare flights (where flight.codeshared is present) are skipped
+    to avoid duplicates — only the actual operating flight is kept.
+    """
     departure = raw.get("departure", {}) or {}
     arrival = raw.get("arrival", {}) or {}
     flight_info = raw.get("flight", {}) or {}
     airline_info = raw.get("airline", {}) or {}
+
+    if flight_info.get("codeshared"):
+        return None
 
     flight_number = flight_info.get("iata") or flight_info.get("icao") or ""
     if not flight_number:
