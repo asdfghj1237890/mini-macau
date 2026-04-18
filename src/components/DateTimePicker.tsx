@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback, type RefObject } from 'react'
 import { useI18n } from '../i18n'
 import { getScheduleType } from '../engines/simulationEngine'
+import { getScheduleDensity } from '../data/hourDensity'
 
 interface Props {
   value: Date
@@ -24,17 +25,6 @@ const QUICK = [
 ]
 
 function pad2(n: number) { return String(n).padStart(2, '0') }
-
-function hourDensity(h: number): number {
-  const peaks = [
-    { c: 7.75, s: 2.5, a: 0.98 },
-    { c: 18, s: 3, a: 1.0 },
-    { c: 13, s: 4, a: 0.58 },
-  ]
-  let v = 0
-  for (const p of peaks) v += p.a * Math.exp(-((h - p.c) ** 2) / (2 * p.s * p.s))
-  return Math.min(1, v * 0.78)
-}
 
 export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
   const { lang, t } = useI18n()
@@ -74,6 +64,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
   const hh = selected.getHours()
   const mm = selected.getMinutes()
   const schedType = getScheduleType(selected)
+  const schedDensity = getScheduleDensity(selected.getDay())
 
   const pickSchedule = useCallback((targetDow: number) => {
     setSelected(prev => {
@@ -193,20 +184,38 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
         <div className="mt-2">
           <div className="relative h-8 bg-[#08080a] border border-white/8 rounded-sm overflow-hidden">
             {Array.from({ length: 96 }).map((_, i) => {
-              const h = (i / 96) * 24
-              const d = hourDensity(h)
+              const h = Math.floor((i / 96) * 24)
+              const d = schedDensity.density[h]
+              const d2 = d * d
+              const r = Math.round(252 + (255 - 252) * d2)
+              const g = Math.round(196 - 60 * d2)
+              const b = Math.round(65 - 45 * d2)
               return (
                 <div
                   key={i}
                   className="absolute top-0 bottom-0"
                   style={{
                     left: `${(i / 96) * 100}%`,
-                    width: `${100 / 96 + 0.4}%`,
-                    background: `linear-gradient(to top, rgba(252,196,65,${d * 0.7}) 0%, rgba(252,196,65,${d * 0.25}) 70%, transparent 100%)`,
+                    width: `${100 / 96 + 0.3}%`,
+                    background: `linear-gradient(to top, rgba(${r},${g},${b},${d2 * 0.85 + d * 0.1}) 0%, rgba(${r},${g},${b},${d2 * 0.4}) 70%, transparent 100%)`,
                   }}
                 />
               )
             })}
+            <div
+              className="absolute top-[2px] mm-mono text-[7px] text-amber-200/90 tracking-widest pointer-events-none"
+              style={{ left: `${(7.5 / 24) * 100}%`, transform: 'translateX(-50%)' }}
+            >
+              AM PEAK
+            </div>
+            <div
+              className="absolute top-[2px] mm-mono text-[7px] text-amber-200/90 tracking-widest pointer-events-none"
+              style={{ left: `${(18 / 24) * 100}%`, transform: 'translateX(-50%)' }}
+            >
+              PM PEAK
+            </div>
+            <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50 pointer-events-none" style={{ left: `${schedDensity.firstFrac * 100}%` }} />
+            <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50 pointer-events-none" style={{ left: `${schedDensity.lastFrac * 100}%` }} />
             <div
               className="absolute top-0 bottom-0 w-[2px] bg-amber-300 pointer-events-none"
               style={{
@@ -216,6 +225,10 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
               }}
             />
             <div
+              className="absolute w-3 h-3 rounded-full bg-amber-300 border-2 border-[#08080a] shadow-[0_0_12px_rgba(252,196,65,0.9)] pointer-events-none"
+              style={{ left: `${(hh + mm / 60) / 24 * 100}%`, top: '50%', transform: 'translate(-50%,-50%)' }}
+            />
+            <div
               className="absolute inset-0 cursor-pointer"
               onClick={e => {
                 const r = (e.currentTarget as HTMLDivElement).getBoundingClientRect()
@@ -223,12 +236,19 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
               }}
             />
           </div>
-          <div className="flex justify-between mm-mono text-[8px] text-white/30 mt-0.5 px-0.5">
-            <span>00</span>
-            <span className="text-amber-200/55">08 PEAK</span>
-            <span>12</span>
-            <span className="text-amber-200/55">18 PEAK</span>
-            <span>24</span>
+          <div className="relative h-3 mt-0.5">
+            <div
+              className="absolute mm-mono text-[8px] text-emerald-300/70 tracking-widest whitespace-nowrap"
+              style={{ left: `${schedDensity.firstFrac * 100}%`, transform: 'translateX(-50%)' }}
+            >
+              首班 {schedDensity.first}
+            </div>
+            <div
+              className="absolute mm-mono text-[8px] text-emerald-300/70 tracking-widest whitespace-nowrap"
+              style={{ left: `${schedDensity.lastFrac * 100}%`, transform: 'translateX(-100%)' }}
+            >
+              末班 {schedDensity.last}
+            </div>
           </div>
         </div>
 
@@ -302,17 +322,23 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
     <div
       ref={rootRef}
       className="absolute top-[92px] left-1/2 -translate-x-1/2 z-[90]
-                 bg-[#0b0b0c] border border-amber-300/25 rounded-sm"
-      style={{ animation: 'mm-pop-in 160ms cubic-bezier(0.2,0.8,0.2,1)', boxShadow: '0 18px 52px rgba(0,0,0,0.75)' }}
+                 bg-[#0b0b0c] border border-amber-300/25 rounded-sm
+                 flex flex-col"
+      style={{
+        animation: 'mm-pop-in 160ms cubic-bezier(0.2,0.8,0.2,1)',
+        boxShadow: '0 18px 52px rgba(0,0,0,0.75)',
+        zoom: 1.2,
+        maxHeight: 'calc((100vh - 260px) / 1.2)',
+      }}
     >
-      <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 bg-amber-300/[0.04]">
+      <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 bg-amber-300/[0.04] shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />
           <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/80">░ SET TIME · 設定時間</span>
         </div>
       </div>
-      <div className="p-3">{body}</div>
-      <div className="px-3 py-2 flex items-center justify-end gap-2 border-t border-white/10 bg-white/[0.02]">
+      <div className="p-3 overflow-y-auto mm-scrollbar">{body}</div>
+      <div className="px-3 py-2 flex items-center justify-end gap-2 border-t border-white/10 bg-white/[0.02] shrink-0">
         <button
           onClick={onCancel}
           className="h-7 px-3 mm-mono text-[10px] tracking-wider text-white/55 hover:text-white transition rounded-sm"
