@@ -124,9 +124,12 @@ export interface TrackedBusState {
   firstSeenAt: number
   speed: number
   status: string
+  transitionFromProgress: number | null
+  transitionStartAt: number | null
 }
 
 const STALE_MS = 60_000
+const TRANSITION_MS = 2_500
 
 export class BusTracker {
   private readonly stopProgress: number[]
@@ -155,8 +158,12 @@ export class BusTracker {
           firstSeenAt: o.observedAt,
           speed: o.speed,
           status: o.status,
+          transitionFromProgress: null,
+          transitionStartAt: null,
         })
       } else if (o.stopIndex !== existing.lastStopIdx) {
+        existing.transitionFromProgress = existing.lastProgress
+        existing.transitionStartAt = o.observedAt
         existing.prevStopIdx = existing.lastStopIdx
         existing.prevProgress = existing.lastProgress
         existing.prevAt = existing.lastAt
@@ -177,18 +184,17 @@ export class BusTracker {
   }
 
   estimateProgress(state: TrackedBusState, now: number): number {
-    if (state.prevProgress == null || state.prevAt == null) {
+    if (state.transitionFromProgress == null || state.transitionStartAt == null) {
       return state.lastProgress
     }
-    let delta = state.lastProgress - state.prevProgress
-    if (this.isCircular && delta < -0.3) delta += 1
-    const dt = state.lastAt - state.prevAt
-    if (dt <= 0 || delta <= 0) return state.lastProgress
-    const ratePerMs = delta / dt
-    const elapsed = Math.max(0, now - state.lastAt)
-    const maxAhead = delta * 1.5
-    const advance = Math.min(ratePerMs * elapsed, maxAhead)
-    const raw = state.lastProgress + advance
+    const elapsed = now - state.transitionStartAt
+    if (elapsed >= TRANSITION_MS) return state.lastProgress
+    if (elapsed <= 0) return state.transitionFromProgress
+    const t = elapsed / TRANSITION_MS
+    let from = state.transitionFromProgress
+    const to = state.lastProgress
+    if (this.isCircular && to - from < -0.5) from -= 1
+    const raw = from + (to - from) * t
     return this.isCircular ? ((raw % 1) + 1) % 1 : Math.max(0, Math.min(1, raw))
   }
 
