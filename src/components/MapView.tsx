@@ -649,7 +649,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     <>
       <div ref={containerRef} className="w-full h-full" />
       {/* Hamburger + zoom (desktop top-left; phone top-[50px] next to TimeDisplay) */}
-      <div className="absolute z-10 flex items-center gap-1.5
+      <div className="mm-ui-scale absolute z-10 flex items-center gap-1.5
                       top-3 left-3
                       max-sm:top-[50px] max-sm:left-2">
         <button
@@ -690,7 +690,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       {/* Slide-out drawer — CRT / Platform style */}
       <div
-        className={`fixed top-0 left-0 z-40 h-full w-60
+        style={{ zoom: 1.2, height: 'calc(100vh / 1.2)' }}
+        className={`fixed top-0 left-0 z-40 w-60
                     bg-[#0b0b0d] border-r border-amber-300/20
                     shadow-[8px_0_32px_rgba(0,0,0,0.8)]
                     transition-transform duration-200 ease-out
