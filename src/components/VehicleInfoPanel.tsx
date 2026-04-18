@@ -241,8 +241,54 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
   const nextETA = nextRow ? nextRow.arr : '—'
   const nextSub = nextRow?.status === 'dwelling' ? 'dwell' : 'arr'
 
-  const vehId = vehicle.id.length > 8 ? vehicle.id.slice(-6).toUpperCase() : vehicle.id.toUpperCase()
-  const speed = Math.round((vehicle as { speedKmh?: number }).speedKmh ?? 32)
+  const speed = useMemo(() => {
+    if (vehicle.type === 'lrt' && trip && line) {
+      const totalLenKm = length(line.geometry, { units: 'kilometers' })
+      for (let i = 0; i < trip.entries.length; i++) {
+        const e = trip.entries[i]
+        const dep = e.departureMinutes ?? e.arrivalMinutes
+        if (nowMinutes >= e.arrivalMinutes - 0.3 && nowMinutes <= dep + 0.3) return 0
+
+        if (i < trip.entries.length - 1) {
+          const next = trip.entries[i + 1]
+          if (nowMinutes > dep && nowMinutes < next.arrivalMinutes) {
+            const travelMin = next.arrivalMinutes - dep
+            if (travelMin <= 0) return 0
+            const stns = transitData.stations
+            const fromCoords = stns.find(s => s.id === e.stationId)?.coordinates
+            const toCoords = stns.find(s => s.id === next.stationId)?.coordinates
+            let segKm: number
+            if (fromCoords && toCoords && totalLenKm > 0) {
+              const p1 = nearestPointOnLine(line.geometry, fromCoords, { units: 'kilometers' })
+              const p2 = nearestPointOnLine(line.geometry, toCoords, { units: 'kilometers' })
+              segKm = Math.abs((p2.properties.location ?? 0) - (p1.properties.location ?? 0))
+            } else {
+              segKm = totalLenKm / Math.max(1, trip.entries.length - 1)
+            }
+            const avgSpeed = (segKm / travelMin) * 60
+            const segProgress = (nowMinutes - dep) / travelMin
+            const approachSlowdown = segProgress > 0.85 ? 1 - ((segProgress - 0.85) / 0.15) * 0.7 : 1
+            const departAccel = segProgress < 0.15 ? 0.3 + (segProgress / 0.15) * 0.7 : 1
+            return Math.round(avgSpeed * approachSlowdown * departAccel)
+          }
+        }
+      }
+      return 0
+    }
+    if (vehicle.type === 'bus' && route) {
+      const cache = getBusRouteCache(route, busStopMap)
+      if (cache.totalLenKm < 0.01) return 0
+      const tripDuration = cache.totalLenKm < 5 ? 30 : 60
+      const avgSpeed = (cache.totalLenKm / tripDuration) * 60
+      const dwellingStop = busETAs.find(s => s.status === 'dwelling')
+      if (dwellingStop) return 0
+      const arrivingStop = busETAs.find(s => s.status === 'arriving')
+      if (arrivingStop) return Math.round(avgSpeed * 0.5)
+      return Math.round(avgSpeed)
+    }
+    return 0
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vehicle.id, vehicle.type, nowMinutes, trip, line, route, busETAs])
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
@@ -281,11 +327,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-3 border-b border-white/8 bg-white/[0.02]">
-          <div className="px-3 py-1.5 border-r border-white/8">
-            <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">VEH</div>
-            <div className="mm-mono mm-tabular text-[14px] font-bold text-white/90 leading-tight">{vehId}</div>
-          </div>
+        <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
           <div className="px-3 py-1.5 border-r border-white/8">
             <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">SPEED</div>
             <div className="flex items-baseline gap-1">

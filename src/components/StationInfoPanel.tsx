@@ -16,6 +16,7 @@ interface Arrival {
   linePt: string
   lineColor: string
   arrivalMinutes: number
+  departureMinutes: number
   destName: string
   destNameCn: string
   destNamePt: string
@@ -37,7 +38,18 @@ function getNextArrivals(
     if (!line) continue
 
     for (const entry of trip.entries) {
-      if (entry.stationId === stationId && entry.arrivalMinutes > currentMinutes) {
+      if (entry.stationId !== stationId) continue
+      const dep = entry.departureMinutes ?? entry.arrivalMinutes
+
+      let effective = currentMinutes
+      if (currentMinutes < entry.arrivalMinutes && currentMinutes + 1440 <= dep) {
+        effective = currentMinutes + 1440
+      }
+
+      const atStation = effective >= entry.arrivalMinutes && effective <= dep
+      const upcoming = entry.arrivalMinutes > effective
+
+      if (atStation || upcoming) {
         const destEntry = trip.entries[trip.entries.length - 1]
         const destStation = stationMap.get(destEntry.stationId)
         arrivals.push({
@@ -47,6 +59,7 @@ function getNextArrivals(
           linePt: line.name,
           lineColor: line.color,
           arrivalMinutes: entry.arrivalMinutes,
+          departureMinutes: dep,
           destName: destStation?.name ?? destEntry.stationId,
           destNameCn: destStation?.nameCn ?? '',
           destNamePt: destStation?.namePt ?? '',
@@ -145,18 +158,25 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
 
             <div className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
               {arrivals.map((a, i) => {
-                const waitMin = Math.max(0, Math.round(a.arrivalMinutes - nowMinutes))
+                let effective = nowMinutes
+                if (nowMinutes < a.arrivalMinutes && nowMinutes + 1440 <= a.departureMinutes) {
+                  effective = nowMinutes + 1440
+                }
+                const atStation = effective >= a.arrivalMinutes && effective <= a.departureMinutes
+                const waitMin = atStation ? 0 : Math.max(0, Math.round(a.arrivalMinutes - effective))
                 const isFirst = i === 0
                 const destLabel = localName(lang, {
                   name: a.destName,
                   nameCn: a.destNameCn,
                   namePt: a.destNamePt,
                 })
-                const statusLabel = waitMin <= 2 ? '即將到'
-                  : waitMin <= 5 ? '下一班'
-                  : '排隊中'
-                const statusColor = waitMin <= 2 ? 'text-amber-300'
-                  : waitMin <= 5 ? 'text-emerald-300/70'
+                const statusLabel = atStation ? '到站中'
+                  : waitMin <= 1 ? '即將到站'
+                  : waitMin <= 3 ? '接近中'
+                  : '等候中'
+                const statusColor = atStation ? 'text-amber-300 mm-led-pulse'
+                  : waitMin <= 1 ? 'text-amber-300'
+                  : waitMin <= 3 ? 'text-emerald-300/70'
                   : 'text-white/35'
                 return (
                   <div
@@ -174,9 +194,11 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
                       {minutesToTimeStr(a.arrivalMinutes)}
                     </span>
                     <span className={`mm-mono mm-tabular text-right font-bold ${
-                      isFirst ? 'text-amber-200 text-[15px] mm-led-pulse' : 'text-white/60 text-[11px]'
+                      atStation
+                        ? 'text-amber-200 text-[15px] mm-led-pulse'
+                        : isFirst ? 'text-amber-200 text-[13px]' : 'text-white/60 text-[11px]'
                     }`}>
-                      {waitMin}
+                      {atStation ? '⬤' : waitMin}
                     </span>
                     <span className={`mm-mono text-[8px] text-right tracking-wider ${statusColor}`}>
                       {statusLabel}
