@@ -258,7 +258,6 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     ? rows[rows.length - 1]
     : rows.find(r => r.status === 'future' || r.status === 'arriving')
   const destName = destRow?.primary ?? ''
-  const destSub = destRow?.secondary ?? ''
 
   // Find next stop dwelling/arriving for NEXT stat
   const nextRow = rows.find(r => r.status === 'dwelling' || r.status === 'arriving' || r.status === 'future')
@@ -322,24 +321,23 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
                style={{ backgroundColor: color + '22' }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[9px] tracking-[0.25em] text-white/50">LINE</div>
-              <div className="mm-han text-sm font-bold text-white leading-tight">{lineLabel}</div>
+              <div className="mm-mono text-[11px] tracking-[0.25em] text-white/50">LINE</div>
+              <div className={`mm-han font-bold text-white leading-tight ${lang === 'zh' ? 'text-[16px]' : 'text-[14px]'}`}>{lineLabel}</div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/70 flex items-center gap-1.5">
+            <div className="mm-mono text-[11px] tracking-[0.25em] text-amber-300/70 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-300 mm-led-pulse" />
               {t.towards.toUpperCase()} · BOUND FOR
             </div>
-            <div className="mm-han text-base font-semibold text-amber-100 truncate">
+            <div className={`mm-han font-semibold text-amber-100 truncate ${lang === 'zh' ? 'text-lg' : 'text-[15px]'}`}>
               {destName}
-              {destSub && <span className="text-amber-200/50 font-normal text-xs ml-1.5">{destSub}</span>}
             </div>
           </div>
           <button
             onClick={onClose}
             className="px-3 text-white/40 hover:text-white hover:bg-white/5 border-l border-white/10
-                       mm-mono text-sm transition-colors"
+                       mm-mono text-[16px] transition-colors"
             aria-label="Close"
           >
             ✕
@@ -349,17 +347,17 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
         {/* Stats strip */}
         <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
           <div className="px-3 py-1.5 border-r border-white/8">
-            <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">SPEED</div>
+            <div className="mm-mono text-[10px] tracking-[0.25em] text-white/35">SPEED</div>
             <div className="flex items-baseline gap-1">
-              <span className="mm-mono mm-tabular text-[14px] font-bold text-white/90 leading-tight">{speed}</span>
-              <span className="mm-mono text-[9px] text-white/40">km/h</span>
+              <span className="mm-mono mm-tabular text-[16px] font-bold text-white/90 leading-tight">{speed}</span>
+              <span className="mm-mono text-[11px] text-white/40">km/h</span>
             </div>
           </div>
           <div className="px-3 py-1.5">
-            <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">NEXT</div>
+            <div className="mm-mono text-[10px] tracking-[0.25em] text-white/35">NEXT</div>
             <div className="flex items-baseline gap-1">
-              <span className="mm-mono mm-tabular text-[15px] font-bold text-amber-200 leading-tight">{nextETA}</span>
-              <span className="mm-mono text-[9px] text-white/40">{nextSub}</span>
+              <span className="mm-mono mm-tabular text-[17px] font-bold text-amber-200 leading-tight">{nextETA}</span>
+              <span className="mm-mono text-[11px] text-white/40">{nextSub}</span>
             </div>
           </div>
         </div>
@@ -370,9 +368,9 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
             <div className="grid grid-cols-[16px_1fr_54px_54px] gap-0 px-3 py-1.5
                             border-b border-white/5 bg-white/[0.015]">
               <span />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35">STATION · 車站</span>
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35 text-right">ARR</span>
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35 text-right">DEP</span>
+              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35">STATION · 車站</span>
+              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 text-right">ARR</span>
+              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 text-right">DEP</span>
             </div>
             <div ref={scrollRef} className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
               {rows.map((r, i) => {
@@ -410,7 +408,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
                     </div>
                     {/* Station */}
                     <div className="flex flex-col min-w-0">
-                      <span className={`mm-han text-[12px] truncate ${
+                      <span className={`mm-han truncate ${lang === 'zh' ? 'text-[14px]' : 'text-[12px]'} ${
                         r.status === 'dwelling' ? 'text-amber-200 font-semibold'
                           : r.status === 'arriving' ? 'text-white font-medium'
                           : r.status === 'future' ? (r.isLast ? 'text-white font-semibold' : 'text-white/80')
@@ -421,13 +419,13 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
                       )}
                     </div>
                     {/* ARR */}
-                    <span className={`mm-mono mm-tabular text-[11px] text-right ${
+                    <span className={`mm-mono mm-tabular text-[13px] text-right ${
                       r.status === 'dwelling' ? 'text-amber-200'
                         : r.status === 'past' ? 'text-white/25 line-through'
                         : 'text-white/65'
                     }`}>{r.arr}</span>
                     {/* DEP */}
-                    <span className={`mm-mono mm-tabular text-[11px] text-right ${
+                    <span className={`mm-mono mm-tabular text-[13px] text-right ${
                       r.status === 'dwelling' ? 'text-amber-300'
                         : r.status === 'past' ? 'text-white/25 line-through'
                         : 'text-white/50'
@@ -441,8 +439,8 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between">
-          <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35 uppercase">{t.schedule}</span>
-          <span className="mm-mono text-[9px] text-emerald-300/80 flex items-center gap-1.5 tracking-wider">
+          <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 uppercase">{t.schedule}</span>
+          <span className="mm-mono text-[11px] text-emerald-300/80 flex items-center gap-1.5 tracking-wider">
             <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />ON TIME
           </span>
         </div>
