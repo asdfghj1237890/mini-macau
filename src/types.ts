@@ -95,6 +95,13 @@ export interface VehiclePosition {
   altitude?: number
   scale?: number
   flightData?: Flight
+  rt?: {
+    plate: string
+    speed: number
+    stopIndex: number
+    dir: 0 | 1
+    observedAt: number
+  }
 }
 
 export interface SimulationClock {

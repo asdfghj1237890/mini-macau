@@ -108,6 +108,7 @@ interface Props {
   transitData: TransitData
   allTransitData: TransitData
   onVehicleClick?: (vehicle: VehiclePosition | null) => void
+  onTrackedVehicleUpdate?: (vehicle: VehiclePosition) => void
   onStationClick?: (station: Station | null) => void
   onClearSelection?: () => void
   trackedVehicleId?: string | null
@@ -116,7 +117,7 @@ interface Props {
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onStationClick, onClearSelection, trackedVehicleId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onClearSelection, trackedVehicleId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -558,6 +559,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   )
   const onVehicleCountRef = useRef(onVehicleCount)
   onVehicleCountRef.current = onVehicleCount
+  const onTrackedUpdateRef = useRef(onTrackedVehicleUpdate)
+  onTrackedUpdateRef.current = onTrackedVehicleUpdate
+  const lastTrackedSyncRef = useRef<{ id: string | null; observedAt: number | null }>({ id: null, observedAt: null })
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
 
@@ -595,14 +599,17 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       if (map && !td.loading && layersAddedRef.current) {
         let vehicles = computeVehiclePositions(td, clock.timeRef.current)
         if (RT_BUILD && rtEnabledRef.current && rtStatesRef.current.size > 0) {
+          const visibleRouteIds = new Set(td.busRoutes.map(r => r.id))
           const liveRouteIds = new Set<string>()
           for (const s of rtStatesRef.current.values()) {
+            if (!visibleRouteIds.has(s.route.id)) continue
             if (s.tracker.getStates().length > 0) liveRouteIds.add(s.route.id)
           }
           if (liveRouteIds.size > 0) {
             vehicles = vehicles.filter(v => !liveRouteIds.has(v.lineId))
             const now = Date.now()
             for (const s of rtStatesRef.current.values()) {
+              if (!visibleRouteIds.has(s.route.id)) continue
               for (const state of s.tracker.getStates()) {
                 const p = s.tracker.estimateProgress(state, now)
                 const pos = interpolateOnLine(s.geometry, p)
@@ -614,6 +621,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                   bearing: pos.bearing,
                   progress: p,
                   color: s.route.color,
+                  rt: {
+                    plate: state.plate,
+                    speed: state.speed,
+                    stopIndex: state.lastStopIdx,
+                    dir: s.dir,
+                    observedAt: state.lastAt,
+                  },
                 })
               }
             }
@@ -688,6 +702,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         if (tid) {
           const tracked = vehicles.find(v => v.id === tid)
           if (tracked) {
+            if (tracked.rt) {
+              const sync = lastTrackedSyncRef.current
+              if (sync.id !== tid || sync.observedAt !== tracked.rt.observedAt) {
+                lastTrackedSyncRef.current = { id: tid, observedAt: tracked.rt.observedAt }
+                onTrackedUpdateRef.current?.(tracked)
+              }
+            }
             const isNewTrack = prevTrackedRef.current !== tid
             const now = performance.now()
             const userBusy = now < userInteractingUntilRef.current
@@ -896,6 +917,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                     setRtEnabled(e => {
                       const next = !e
                       localStorage.setItem('mm_rt_enabled', next ? '1' : '0')
+                      window.dispatchEvent(new Event('mm-rt-changed'))
                       return next
                     })
                   }}

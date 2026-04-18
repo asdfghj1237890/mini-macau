@@ -70,7 +70,9 @@ function computeBusStopETAs(
   const tripDuration = cache.totalLenKm < 5 ? 30 : 60
 
   const liveProgress = vehicle.progress
-  const returning = computeLiveBusDirection(vehicle, route, cache.totalLenKm, nowMinutes)
+  const returning = vehicle.rt
+    ? vehicle.rt.dir === 1
+    : computeLiveBusDirection(vehicle, route, cache.totalLenKm, nowMinutes)
 
   const entries: { stopId: string; stop: BusStop; effectiveProg: number }[] = []
   let prevProg = -1
@@ -90,6 +92,8 @@ function computeBusStopETAs(
 
   if (returning) entries.reverse()
 
+  const rtStopIndex = vehicle.rt?.stopIndex
+
   const result: BusStopETA[] = []
   for (let i = 0; i < entries.length; i++) {
     const { stopId, stop, effectiveProg } = entries[i]
@@ -103,7 +107,12 @@ function computeBusStopETAs(
     const etaMin = delta * tripDuration
 
     let status: 'past' | 'dwelling' | 'arriving' | 'future'
-    if (etaMin > -0.5 && etaMin < 0.5) status = 'dwelling'
+    if (rtStopIndex !== undefined) {
+      if (i < rtStopIndex) status = 'past'
+      else if (i === rtStopIndex) status = 'dwelling'
+      else if (i - rtStopIndex === 1) status = 'arriving'
+      else status = 'future'
+    } else if (etaMin > -0.5 && etaMin < 0.5) status = 'dwelling'
     else if (etaMin >= 0.5 && etaMin < 5) status = 'arriving'
     else if (etaMin >= 5) status = 'future'
     else status = 'past'
@@ -159,7 +168,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     if (!route) return []
     return computeBusStopETAs(vehicle, route, busStopMap, nowMinutesForETA)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, nowMinutesForETA, busStopMap, transitData.busRoutes])
+  }, [vehicle?.id, vehicle?.rt?.stopIndex, vehicle?.rt?.observedAt, vehicle?.progress, nowMinutesForETA, busStopMap, transitData.busRoutes])
 
   if (!vehicle) return null
 
@@ -261,6 +270,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
   const nextSub = nextRow?.status === 'dwelling' ? 'dwell' : 'arr'
 
   const speed = useMemo(() => {
+    if (vehicle.rt) return vehicle.rt.speed
     if (vehicle.type === 'lrt' && trip && line) {
       const totalLenKm = length(line.geometry, { units: 'kilometers' })
       for (let i = 0; i < trip.entries.length; i++) {

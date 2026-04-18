@@ -8,6 +8,25 @@ interface Props {
 
 const SPEEDS = [1, 2, 5, 10, 30, 60]
 
+const RT_BUILD = import.meta.env.VITE_ENABLE_RT === '1'
+
+function useRtActive(): boolean {
+  const [active, setActive] = useState(() =>
+    RT_BUILD && typeof window !== 'undefined' &&
+    localStorage.getItem('mm_rt_enabled') === '1')
+  useEffect(() => {
+    if (!RT_BUILD) return
+    const read = () => setActive(localStorage.getItem('mm_rt_enabled') === '1')
+    window.addEventListener('mm-rt-changed', read)
+    window.addEventListener('storage', read)
+    return () => {
+      window.removeEventListener('mm-rt-changed', read)
+      window.removeEventListener('storage', read)
+    }
+  }, [])
+  return active
+}
+
 // Real departures/hour (all bus routes + all LRT lines), normalized to global peak.
 // Computed from data/bus_reference/routes.json + LRT official timetable (Taipa, SPV, Hengqin).
 const HOUR_DENSITY: Record<string, ReadonlyArray<number>> = {
@@ -276,6 +295,11 @@ export function ControlPanel({ clock }: Props) {
   const isPaused = clock.paused
   const speed = clock.speed
   const isLive = !isPaused && speed === 1 && Math.abs(now.getTime() - Date.now()) < 3000
+  const rtActive = useRtActive()
+
+  useEffect(() => {
+    if (rtActive && clock.speed !== 1) clock.setSpeed(1)
+  }, [rtActive, clock])
 
   // ====================================================
   // PHONE: scrubber on top + 44px play/speed-menu/NOW row
@@ -337,21 +361,27 @@ export function ControlPanel({ clock }: Props) {
                              border border-white/15 shadow-2xl flex flex-col min-w-[64px]
                              overflow-hidden"
                 >
-                  {MOBILE_SPEEDS.map(s => (
-                    <button
-                      key={s}
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked={s === speed}
-                      onClick={() => { clock.setSpeed(s); setSpeedMenuOpen(false) }}
-                      className={`h-10 px-3 text-left mm-mono mm-tabular text-[13px]
-                                  active:bg-white/10 ${s === speed
-                                    ? 'bg-amber-300/15 text-amber-200'
-                                    : 'text-white/70'}`}
-                    >
-                      {s}×
-                    </button>
-                  ))}
+                  {MOBILE_SPEEDS.map(s => {
+                    const locked = rtActive && s !== 1
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={s === speed}
+                        disabled={locked}
+                        title={locked ? 'RT · 鎖定 1×' : undefined}
+                        onClick={() => { if (locked) return; clock.setSpeed(s); setSpeedMenuOpen(false) }}
+                        className={`h-10 px-3 text-left mm-mono mm-tabular text-[13px]
+                                    ${locked ? 'text-white/20 cursor-not-allowed' : 'active:bg-white/10'}
+                                    ${s === speed && !locked
+                                      ? 'bg-amber-300/15 text-amber-200'
+                                      : locked ? '' : 'text-white/70'}`}
+                      >
+                        {s}×
+                      </button>
+                    )
+                  })}
                 </div>
               )}
             </div>
@@ -456,17 +486,22 @@ export function ControlPanel({ clock }: Props) {
           <div className="w-px h-4 bg-white/10 mx-1" />
           {SPEEDS.map(s => {
             const active = s === speed
+            const locked = rtActive && s !== 1
             return (
               <button
                 key={s}
                 type="button"
-                onClick={() => clock.setSpeed(s)}
+                onClick={() => { if (!locked) clock.setSpeed(s) }}
+                disabled={locked}
+                title={locked ? 'RT · 鎖定 1×' : undefined}
                 aria-pressed={active}
                 className={`mm-mono mm-tabular text-[10px] px-1.5 h-6 rounded-sm transition
-                           ${active
-                             ? 'bg-amber-300/15 text-amber-200'
-                             : 'text-white/40 hover:text-white/80'}`}
-                style={active ? { boxShadow: 'inset 0 0 0 1px rgba(253,224,71,0.3)' } : undefined}
+                           ${locked
+                             ? 'text-white/15 cursor-not-allowed'
+                             : active
+                               ? 'bg-amber-300/15 text-amber-200'
+                               : 'text-white/40 hover:text-white/80'}`}
+                style={active && !locked ? { boxShadow: 'inset 0 0 0 1px rgba(253,224,71,0.3)' } : undefined}
               >
                 {s}×
               </button>
