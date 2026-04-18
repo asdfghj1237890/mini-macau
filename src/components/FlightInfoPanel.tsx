@@ -69,64 +69,53 @@ export function FlightInfoPanel({ vehicle, onClose }: Props) {
 
   return (
     <div className="absolute top-20 left-4 bg-black/80 backdrop-blur-sm rounded-xl z-10
-                    px-4 py-3 border border-white/20 min-w-[240px] max-w-[320px]
+                    px-5 py-4 border border-white/20 min-w-[340px] max-w-[420px]
                     max-sm:top-auto max-sm:bottom-20 max-sm:left-2 max-sm:right-2
-                    max-sm:max-w-none max-sm:min-w-0
+                    max-sm:max-w-none max-sm:min-w-0 max-sm:px-4 max-sm:py-3
                     landscape:top-auto landscape:bottom-16 landscape:left-2">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded-full flex-shrink-0 bg-sky-400" />
-          <span className="text-white font-semibold text-sm">{flight.flightNumber}</span>
-          <span className="text-xs px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-medium">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div className="w-3.5 h-3.5 rounded-full flex-shrink-0 bg-sky-400" />
+          <span className="text-white font-semibold text-base max-sm:text-sm">{flight.flightNumber}</span>
+          <span className="text-xs px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-medium">
             {isDeparture ? fl.departure : fl.arrival}
           </span>
         </div>
         <button
           onClick={onClose}
-          className="text-white/40 hover:text-white text-sm transition-colors ml-2"
+          className="text-white/40 hover:text-white text-sm transition-colors ml-3"
         >
           ✕
         </button>
       </div>
 
-      <div className="space-y-2 text-xs">
+      <div className="space-y-3 text-sm max-sm:text-xs max-sm:space-y-2">
         {flight.airline.name && (
-          <div className="flex justify-between">
-            <span className="text-white/50">{fl.airline}</span>
-            <span className="text-white/90">{flight.airline.name} ({flight.airline.iata})</span>
+          <div className="flex justify-between gap-4">
+            <span className="text-white/50 shrink-0">{fl.airline}</span>
+            <span className="text-white/90 text-right">{flight.airline.name} ({flight.airline.iata})</span>
           </div>
         )}
 
-        <div className="flex justify-between">
-          <span className="text-white/50">{isDeparture ? fl.destination : fl.origin}</span>
-          <span className="text-white/90">
+        <div className="flex justify-between gap-4">
+          <span className="text-white/50 shrink-0">{isDeparture ? fl.destination : fl.origin}</span>
+          <span className="text-white/90 text-right">
             {airport?.name ?? '—'} ({airport?.iata ?? '—'})
           </span>
         </div>
 
-        <div className="flex justify-between">
-          <span className="text-white/50">{fl.scheduled}</span>
+        <div className="flex justify-between gap-4">
+          <span className="text-white/50 shrink-0">{fl.scheduled}</span>
           <span className="text-white/90 font-mono">{formatMinutes(flight.scheduledTime)}</span>
         </div>
 
         {flight.aircraftType && (
-          <div className="flex justify-between">
-            <span className="text-white/50">{fl.aircraft}</span>
+          <div className="flex justify-between gap-4">
+            <span className="text-white/50 shrink-0">{fl.aircraft}</span>
             <span className="text-white/90">{flight.aircraftType}</span>
           </div>
         )}
 
-        {vehicle.altitude === 0 && (
-          <div className="w-full h-px bg-white/10 my-1" />
-        )}
-        {vehicle.altitude === 0 && (
-          <div className="flex justify-between">
-            <span className="text-sky-400 text-[10px] font-medium">
-              {isDeparture ? fl.departing : fl.arriving}
-            </span>
-            <span className="text-white/40 text-[10px]">{fl.airport}</span>
-          </div>
-        )}
       </div>
     </div>
   )

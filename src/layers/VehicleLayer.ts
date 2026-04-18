@@ -92,6 +92,11 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
         ['==', ['get', 'type'], 'flight'], 9,
         8,
       ],
+      'text-letter-spacing': [
+        'case',
+        ['==', ['get', 'type'], 'flight'], 0.25,
+        0,
+      ],
       'text-offset': [0, -1.5],
       'text-anchor': 'bottom',
       'text-allow-overlap': true,
