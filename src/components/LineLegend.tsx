@@ -53,7 +53,7 @@ export function LineLegend({
         if (Array.isArray(arr)) return new Set(arr)
       }
     } catch { /* ignore */ }
-    return new Set(['night'])
+    return new Set(GROUP_ORDER)
   })
 
   useEffect(() => { localStorage.setItem(LS_DESKTOP_OPEN, desktopOpen ? '1' : '0') }, [desktopOpen])
@@ -165,7 +165,15 @@ export function LineLegend({
           {/* LRT — clickable rows */}
           <div>
             <div className="px-3 py-1 flex items-center justify-between bg-white/[0.015] border-b border-white/5">
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45">░ LRT · 輕軌</span>
+              <span className="flex items-center gap-1.5 text-white/45">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70">
+                  <rect x="4" y="3" width="16" height="14" rx="2" />
+                  <path d="M4 11h16" /><path d="M12 3v8" />
+                  <path d="M8 21l2-4h4l2 4" />
+                </svg>
+                <span className="mm-mono text-[8px] tracking-[0.25em]">░ LRT · 輕軌</span>
+              </span>
               <span className="mm-mono mm-tabular text-[8px] text-white/30">
                 {lrtActive}<span className="text-white/20">/{lrtTotal}</span>
               </span>
@@ -205,7 +213,16 @@ export function LineLegend({
           {totalRoutes > 0 && visibleRoutes && (
             <div className="border-t border-white/10">
               <div className="px-3 py-1 flex items-center justify-between bg-white/[0.015]">
-                <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45">░ BUS · 巴士</span>
+                <span className="flex items-center gap-1.5 text-white/45">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70">
+                    <path d="M8 6v6" /><path d="M16 6v6" />
+                    <path d="M2 12h20" />
+                    <rect x="2" y="4" width="20" height="14" rx="3" />
+                    <circle cx="7" cy="20" r="1" /><circle cx="17" cy="20" r="1" />
+                  </svg>
+                  <span className="mm-mono text-[8px] tracking-[0.25em]">░ BUS · 巴士</span>
+                </span>
                 <span className="mm-mono mm-tabular text-[9px] text-emerald-300/80">
                   {activeRoutes}<span className="text-white/30">/{totalRoutes}</span>
                 </span>
@@ -396,7 +413,15 @@ export function LineLegend({
                           border border-amber-300/25 rounded-sm overflow-hidden
                           shadow-[0_8px_24px_rgba(0,0,0,0.6)] w-48 max-w-[calc(100vw-5rem)]">
             <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-              <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/75">░ LRT · 輕軌</span>
+              <span className="flex items-center gap-1.5 text-amber-300/75">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <rect x="4" y="3" width="16" height="14" rx="2" />
+                  <path d="M4 11h16" /><path d="M12 3v8" />
+                  <path d="M8 21l2-4h4l2 4" />
+                </svg>
+                <span className="mm-mono text-[9px] tracking-[0.25em]">░ LRT · 輕軌</span>
+              </span>
               <span className="mm-mono mm-tabular text-[8px] text-white/30">{lrtActive}/{lrtTotal}</span>
             </div>
             <div className="py-0.5">
@@ -435,7 +460,16 @@ export function LineLegend({
                           border border-amber-300/25 rounded-sm overflow-hidden
                           shadow-[0_8px_24px_rgba(0,0,0,0.6)] w-[220px] max-w-[calc(100vw-5rem)]">
             <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-              <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/75">░ BUS · 巴士</span>
+              <span className="flex items-center gap-1.5 text-amber-300/75">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <path d="M8 6v6" /><path d="M16 6v6" />
+                  <path d="M2 12h20" />
+                  <rect x="2" y="4" width="20" height="14" rx="3" />
+                  <circle cx="7" cy="20" r="1" /><circle cx="17" cy="20" r="1" />
+                </svg>
+                <span className="mm-mono text-[9px] tracking-[0.25em]">░ BUS · 巴士</span>
+              </span>
               <span className="mm-mono mm-tabular text-[8px] text-emerald-300/80">
                 {visibleRoutes.size}<span className="text-white/30">/{busRoutes.length}</span>
               </span>
