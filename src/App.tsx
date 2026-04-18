@@ -7,7 +7,6 @@ import { useSimulationClock } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
 import type { VehiclePosition, Station, BusRoute } from './types'
 
-const RouteSelector = lazy(() => import('./components/RouteSelector').then(m => ({ default: m.RouteSelector })))
 const VehicleInfoPanel = lazy(() => import('./components/VehicleInfoPanel').then(m => ({ default: m.VehicleInfoPanel })))
 const StationInfoPanel = lazy(() => import('./components/StationInfoPanel').then(m => ({ default: m.StationInfoPanel })))
 const FlightInfoPanel = lazy(() => import('./components/FlightInfoPanel').then(m => ({ default: m.FlightInfoPanel })))
@@ -40,6 +39,10 @@ function clearSavedRoutes() {
   localStorage.removeItem(LS_KEY)
 }
 
+const LS_LRT_KEY = 'mini-macau-lrt-on'
+const LS_FLIGHTS_KEY = 'mini-macau-flights-on'
+const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
+
 export default function App() {
   const clock = useSimulationClock()
   const transitData = useTransitData()
@@ -49,7 +52,33 @@ export default function App() {
   const [selectedStation, setSelectedStation] = useState<Station | null>(null)
   const [trackedVehicleId, setTrackedVehicleId] = useState<string | null>(null)
   const [vehicleCount, setVehicleCount] = useState(0)
+  const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
+  const [flightsOn, setFlightsOn] = useState(() => localStorage.getItem(LS_FLIGHTS_KEY) !== '0')
+  const [lrtOn, setLrtOn] = useState<Set<string>>(() => {
+    try {
+      const raw = localStorage.getItem(LS_LRT_KEY)
+      if (raw) {
+        const arr = JSON.parse(raw)
+        if (Array.isArray(arr)) return new Set(arr)
+      }
+    } catch { /* ignore */ }
+    return new Set()
+  })
+  const lrtInitedRef = useRef(false)
   const initedRef = useRef(false)
+
+  useEffect(() => {
+    if (transitData.lrtLines.length === 0) return
+    if (lrtInitedRef.current) return
+    lrtInitedRef.current = true
+    if (lrtOn.size === 0 && !localStorage.getItem(LS_LRT_KEY)) {
+      setLrtOn(new Set(transitData.lrtLines.map(l => l.id)))
+    }
+  }, [transitData.lrtLines, lrtOn.size])
+
+  useEffect(() => { localStorage.setItem(LS_TIMEBAR_KEY, showTimeBar ? '1' : '0') }, [showTimeBar])
+  useEffect(() => { localStorage.setItem(LS_FLIGHTS_KEY, flightsOn ? '1' : '0') }, [flightsOn])
+  useEffect(() => { localStorage.setItem(LS_LRT_KEY, JSON.stringify([...lrtOn])) }, [lrtOn])
 
   const currentHour = clock.currentTime.getHours()
 
@@ -79,7 +108,9 @@ export default function App() {
   const filteredTransitData = useMemo(() => ({
     ...transitData,
     busRoutes: transitData.busRoutes.filter(r => visibleRoutes.has(r.id)),
-  }), [transitData, visibleRoutes])
+    lrtLines: transitData.lrtLines.filter(l => lrtOn.has(l.id)),
+    flights: flightsOn ? transitData.flights : [],
+  }), [transitData, visibleRoutes, lrtOn, flightsOn])
 
   const onVehicleCount = useCallback((count: number) => {
     setVehicleCount(count)
@@ -107,6 +138,20 @@ export default function App() {
     setIsAutoMode(false)
   }, [transitData.busRoutes])
 
+  const onShowAll = useCallback(() => {
+    const next = new Set(transitData.busRoutes.map(r => r.id))
+    saveRoutes(next)
+    setVisibleRoutes(next)
+    setIsAutoMode(false)
+  }, [transitData.busRoutes])
+
+  const onHideAll = useCallback(() => {
+    const next = new Set<string>()
+    saveRoutes(next)
+    setVisibleRoutes(next)
+    setIsAutoMode(false)
+  }, [])
+
   const onResetAuto = useCallback(() => {
     clearSavedRoutes()
     setIsAutoMode(true)
@@ -130,6 +175,18 @@ export default function App() {
     setTrackedVehicleId(null)
   }, [])
 
+  const toggleLrt = useCallback((id: string) => {
+    setLrtOn(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }, [])
+
+  const toggleFlights = useCallback(() => setFlightsOn(v => !v), [])
+  const toggleTimeBar = useCallback(() => setShowTimeBar(v => !v), [])
+
   return (
     <div className="relative w-full h-full">
       <MapView
@@ -141,27 +198,27 @@ export default function App() {
         onClearSelection={clearSelection}
         trackedVehicleId={trackedVehicleId}
         onVehicleCount={onVehicleCount}
+        showTimeBar={showTimeBar}
+        onToggleTimeBar={toggleTimeBar}
       />
-      <TimeDisplay clock={clock} vehicleCount={vehicleCount} />
+      {showTimeBar && <TimeDisplay clock={clock} vehicleCount={vehicleCount} />}
       <LineLegend
         transitData={filteredTransitData}
         allTransitData={transitData}
         visibleRoutes={visibleRoutes}
         isAutoMode={isAutoMode}
+        lrtOn={lrtOn}
+        flightsOn={flightsOn}
+        onToggleLrt={toggleLrt}
+        onToggleFlights={toggleFlights}
         onToggleRoute={onToggleRoute}
         onToggleAll={onToggleAll}
+        onShowAll={onShowAll}
+        onHideAll={onHideAll}
         onResetAuto={onResetAuto}
       />
       <ControlPanel clock={clock} />
       <Suspense>
-        <RouteSelector
-          transitData={transitData}
-          visibleRoutes={visibleRoutes}
-          isAutoMode={isAutoMode}
-          onToggleRoute={onToggleRoute}
-          onToggleAll={onToggleAll}
-          onResetAuto={onResetAuto}
-        />
         {selectedVehicle && selectedVehicle.type === 'flight' && (
           <FlightInfoPanel
             vehicle={selectedVehicle}

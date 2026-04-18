@@ -3,6 +3,27 @@
 
 @variant landscape (@media (orientation: landscape) and (max-height: 500px));
 
+@font-face {
+  font-family: 'DSEG7 Classic';
+  src: url('https://cdn.jsdelivr.net/gh/keshikan/DSEG@v0.46/fonts/DSEG7-Classic/DSEG7Classic-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+
+.mm-seg7 { font-family: 'DSEG7 Classic', 'JetBrains Mono', ui-monospace, monospace; }
+.mm-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+.mm-han  { font-family: 'Noto Sans HK', 'Noto Sans TC', sans-serif; }
+.mm-tabular { font-variant-numeric: tabular-nums; }
+
+@keyframes mm-led-pulse { 0%,100% { opacity: 1; } 50% { opacity: .82; } }
+.mm-led-pulse { animation: mm-led-pulse 1.6s ease-in-out infinite; }
+
+@keyframes mm-colon-blink { 0%,49% { opacity: 1; } 50%,100% { opacity: .25; } }
+.mm-colon-blink { animation: mm-colon-blink 1s steps(1) infinite; }
+
+@keyframes mm-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes mm-sheet-up { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes mm-pop-in  { from { opacity: 0; transform: translateY(-4px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
 html, body, #root {
   margin: 0;
   padding: 0;
@@ -11,6 +32,23 @@ html, body, #root {
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
+}
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
+::-webkit-scrollbar-track { background: transparent; }
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
+
+/* Desktop: move MapLibre +/- zoom controls to top-left (below hamburger)
+   so the LAYERS panel at top-right doesn't cover them. */
+@media (min-width: 640px) and (orientation: portrait), (min-width: 640px) and (min-height: 501px) {
+  .maplibregl-ctrl-top-right {
+    top: auto;
+    right: auto;
+    left: 0.75rem;
+    top: 3.25rem;
+  }
 }
 
 @supports (padding: env(safe-area-inset-bottom)) {

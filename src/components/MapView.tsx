@@ -108,9 +108,11 @@ interface Props {
   onClearSelection?: () => void
   trackedVehicleId?: string | null
   onVehicleCount?: (count: number) => void
+  showTimeBar?: boolean
+  onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onStationClick, onClearSelection, trackedVehicleId, onVehicleCount }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onStationClick, onClearSelection, trackedVehicleId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -432,6 +434,23 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     updateVehicleLabelLang(map, lang)
   }, [lang])
 
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const visibleIds = new Set(transitData.lrtLines.map(l => l.id))
+    for (const line of allTransitData.lrtLines) {
+      const visible = visibleIds.has(line.id)
+      const lineLayer = `lrt-line-${line.id}`
+      const viaductLayer = `lrt-viaduct-${line.id}`
+      if (map.getLayer(lineLayer)) {
+        map.setLayoutProperty(lineLayer, 'visibility', visible ? 'visible' : 'none')
+      }
+      if (map.getLayer(viaductLayer)) {
+        map.setLayoutProperty(viaductLayer, 'visibility', visible && is3D ? 'visible' : 'none')
+      }
+    }
+  }, [transitData.lrtLines, allTransitData.lrtLines, is3D])
+
   const transitRef = useRef(transitData)
   const trackedRef = useRef(trackedVehicleId)
   const prevTrackedRef = useRef<string | null>(null)
@@ -629,148 +648,227 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   return (
     <>
       <div ref={containerRef} className="w-full h-full" />
-      {/* Hamburger + zoom (both desktop and mobile) */}
-      <div className="absolute top-4 left-4 flex gap-1.5 z-10 items-center
-                      max-sm:top-2 max-sm:left-2 max-sm:gap-0.5">
+      {/* Hamburger + zoom (desktop top-left; phone top-[50px] next to TimeDisplay) */}
+      <div className="absolute z-10 flex items-center gap-1.5
+                      top-3 left-3
+                      max-sm:top-[50px] max-sm:left-2">
         <button
           onClick={() => setMenuOpen(o => !o)}
           aria-label="menu"
           aria-expanded={menuOpen}
-          className="bg-black/70 text-white w-9 h-9 max-sm:w-8 max-sm:h-8
-                     flex items-center justify-center rounded-lg
-                     backdrop-blur-sm border border-white/20
-                     hover:bg-black/90 active:scale-95 transition"
+          className="w-9 h-9 flex items-center justify-center
+                     bg-[#0a0a0b] border border-amber-300/25 text-amber-200
+                     hover:bg-amber-300/10 hover:border-amber-300/50
+                     active:scale-95 transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2" strokeLinecap="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               strokeWidth="2.2" strokeLinecap="round">
             {menuOpen
               ? <><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>
               : <><line x1="4" y1="7" x2="20" y2="7" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="17" x2="20" y2="17" /></>
             }
           </svg>
         </button>
+        {/* Zoom chip — hidden on phone */}
         <div
-          className="bg-black/70 text-white px-3 py-1.5 max-sm:px-2 max-sm:py-1
-                     rounded-lg text-sm max-sm:text-xs font-mono
-                     backdrop-blur-sm border border-white/20 tabular-nums"
+          className="h-9 px-2.5 flex items-center gap-1.5 max-sm:hidden
+                     bg-[#0a0a0b] border border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
           aria-label="zoom level"
         >
-          Z {zoom.toFixed(1)}
+          <span className="mm-mono text-[8px] tracking-[0.2em] text-white/40">ZOOM</span>
+          <span className="mm-mono mm-tabular text-[11px] text-amber-200">{zoom.toFixed(1)}</span>
         </div>
       </div>
 
       {/* Backdrop */}
       {menuOpen && (
         <div
-          className="fixed inset-0 z-20"
+          className="fixed inset-0 z-[35]"
           onClick={() => setMenuOpen(false)}
         />
       )}
 
-      {/* Slide-out panel */}
+      {/* Slide-out drawer — CRT / Platform style */}
       <div
-        className={`fixed top-0 left-0 z-30 h-full w-52
-                    bg-black/90 backdrop-blur-xl border-r border-white/10
+        className={`fixed top-0 left-0 z-40 h-full w-60
+                    bg-[#0b0b0d] border-r border-amber-300/20
+                    shadow-[8px_0_32px_rgba(0,0,0,0.8)]
                     transition-transform duration-200 ease-out
                     ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
-        <div className="flex flex-col gap-1 p-4 pt-6">
-          <div className="mb-4">
-            <div
-              className="text-lg font-black tracking-widest uppercase leading-tight"
-              style={{
-                fontFamily: "'Orbitron', sans-serif",
-                background: 'linear-gradient(135deg, #38bdf8, #818cf8, #f472b6)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              MINI MAP
-            </div>
-            <div
-              className="text-2xl font-black tracking-[0.25em] uppercase leading-tight"
-              style={{
-                fontFamily: "'Orbitron', sans-serif",
-                background: 'linear-gradient(135deg, #38bdf8, #818cf8, #f472b6)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
-              MACAU
-            </div>
-            <div className="w-full h-px bg-gradient-to-r from-sky-400/60 via-indigo-400/60 to-pink-400/60 mt-2" />
-          </div>
-
-          <div className="text-white/40 text-[10px] uppercase tracking-widest mb-1">
-            {lang === 'zh' ? '地圖設定' : lang === 'pt' ? 'Definições' : 'Map Settings'}
-          </div>
-
-          <button
-            onClick={() => { toggle3D(); setMenuOpen(false) }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white
-                       hover:bg-white/10 active:scale-[0.98] transition"
-          >
-            <span className="w-5 text-center text-base">{is3D ? '🗺' : '🌐'}</span>
-            <span>{is3D ? '2D' : '3D'}</span>
-          </button>
-
-          <button
-            onClick={() => { toggleBuildings(); setMenuOpen(false) }}
-            disabled={!is3D}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
-                        hover:bg-white/10 active:scale-[0.98] transition
-                        ${!is3D ? 'opacity-30 cursor-not-allowed' : 'text-white'}`}
-          >
-            <span className="w-5 text-center text-base">🏢</span>
-            <span className={showBuildings ? '' : 'line-through opacity-60'}>
-              {lang === 'zh' ? '3D 建築' : lang === 'pt' ? 'Edifícios 3D' : '3D Buildings'}
+        {/* CRT header with scanlines */}
+        <div className="relative border-b border-amber-300/20 px-3 pt-3 pb-2.5
+                        bg-gradient-to-b from-amber-300/[0.04] to-transparent">
+          <div
+            className="absolute inset-0 pointer-events-none opacity-30"
+            style={{
+              backgroundImage:
+                'repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(252,196,65,0.06) 2px, rgba(252,196,65,0.06) 3px)',
+            }}
+          />
+          <div className="relative flex items-center justify-between mb-2">
+            <span className="mm-mono text-[8px] tracking-[0.3em] text-amber-300/70">SYS.MAP v2</span>
+            <span className="flex items-center gap-1 mm-mono text-[8px] tracking-wider text-emerald-300/80">
+              <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />ONLINE
             </span>
-          </button>
+          </div>
+          <div className="relative flex items-baseline gap-2">
+            <div className="mm-han text-[20px] font-black tracking-[0.15em] text-amber-200 leading-none">澳門</div>
+            <div className="mm-mono text-[10px] tracking-[0.3em] text-amber-300/60 leading-none">MACAU</div>
+          </div>
+          <div className="relative mm-mono text-[9px] tracking-[0.2em] text-white/40 mt-1">
+            MINI · MAP · LIVE
+          </div>
+        </div>
 
-          <button
-            onClick={() => { toggleTheme(); setMenuOpen(false) }}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-white
-                       hover:bg-white/10 active:scale-[0.98] transition"
-          >
-            <span className="w-5 text-center text-base">{isDark ? '☀️' : '🌙'}</span>
-            <span>{isDark
-              ? (lang === 'zh' ? '淺色模式' : lang === 'pt' ? 'Modo claro' : 'Light mode')
-              : (lang === 'zh' ? '深色模式' : lang === 'pt' ? 'Modo escuro' : 'Dark mode')
-            }</span>
-          </button>
-
-          <div className="w-full h-px bg-white/10 my-1" />
-
-          <div className="text-white/40 text-[10px] uppercase tracking-widest mb-1">
-            {lang === 'zh' ? '語言' : lang === 'pt' ? 'Idioma' : 'Language'}
+        {/* Content */}
+        <div className="p-2.5 space-y-3 overflow-y-auto" style={{ height: 'calc(100% - 100px)' }}>
+          {/* Map settings */}
+          <div>
+            <div className="mm-mono text-[8px] tracking-[0.3em] text-white/35 px-1 pb-1.5 border-b border-white/5">
+              ░ {(lang === 'zh' ? '地圖設定' : lang === 'pt' ? 'Definições' : 'Map Settings').toUpperCase()}
+            </div>
+            <div className="pt-1 space-y-0.5">
+              <DrawerRow
+                code="2D"
+                label={lang === 'zh' ? '2D 平面' : lang === 'pt' ? '2D Plano' : '2D Plan'}
+                active={!is3D}
+                onClick={() => { if (is3D) toggle3D(); setMenuOpen(false) }}
+              />
+              <DrawerRow
+                code="3D"
+                label={lang === 'zh' ? '3D 立體' : lang === 'pt' ? '3D Relevo' : '3D Terrain'}
+                active={is3D}
+                onClick={() => { if (!is3D) toggle3D(); setMenuOpen(false) }}
+              />
+              <DrawerRow
+                code="BLD"
+                label={lang === 'zh' ? '建築群' : lang === 'pt' ? 'Edifícios' : 'Buildings'}
+                active={showBuildings}
+                onClick={() => { toggleBuildings(); setMenuOpen(false) }}
+                disabled={!is3D}
+              />
+              <DrawerRow
+                code={isDark ? 'DRK' : 'LGT'}
+                label={isDark
+                  ? (lang === 'zh' ? '深色模式' : lang === 'pt' ? 'Modo Escuro' : 'Dark Mode')
+                  : (lang === 'zh' ? '淺色模式' : lang === 'pt' ? 'Modo Claro' : 'Light Mode')}
+                active
+                onClick={() => { toggleTheme(); setMenuOpen(false) }}
+              />
+              {onToggleTimeBar && (
+                <DrawerRow
+                  code="TIM"
+                  label={lang === 'zh' ? '時間列' : lang === 'pt' ? 'Barra de Hora' : 'Time Bar'}
+                  active={showTimeBar}
+                  onClick={() => { onToggleTimeBar() }}
+                />
+              )}
+            </div>
           </div>
 
-          {(['zh', 'pt', 'en'] as const).map(l => (
-            <button
-              key={l}
-              onClick={() => { setLang(l); setMenuOpen(false) }}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm
-                          hover:bg-white/10 active:scale-[0.98] transition
-                          ${lang === l ? 'text-blue-400 bg-white/5' : 'text-white/80'}`}
-            >
-              <span className="w-5 text-center text-base">
-                {l === 'zh' ? '中' : l === 'pt' ? 'PT' : 'EN'}
-              </span>
-              <span>{l === 'zh' ? '繁體中文' : l === 'pt' ? 'Português' : 'English'}</span>
-            </button>
-          ))}
+          {/* Language — Segmented LCD */}
+          <div>
+            <div className="mm-mono text-[8px] tracking-[0.3em] text-white/35 px-1 pb-1.5 border-b border-white/5">
+              ░ {(lang === 'zh' ? '語系' : lang === 'pt' ? 'Idioma' : 'Language').toUpperCase()} · LANG
+            </div>
+            <div className="pt-2">
+              <div className="relative flex items-stretch bg-[#050506] border border-white/10">
+                {(['zh', 'pt', 'en'] as const).map((l, i) => {
+                  const active = lang === l
+                  return (
+                    <button
+                      key={l}
+                      onClick={() => setLang(l)}
+                      className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2 transition
+                                  ${i > 0 ? 'border-l border-white/10' : ''}
+                                  ${active
+                                    ? 'bg-amber-300/10 text-amber-200'
+                                    : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'}`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full transition
+                                    ${active ? 'bg-amber-300 mm-led-pulse' : 'bg-white/15'}`}
+                        style={active ? { boxShadow: '0 0 6px rgba(252,196,65,0.95)' } : undefined}
+                      />
+                      <span className="mm-mono text-[13px] font-bold tracking-[0.15em] leading-none">
+                        {l.toUpperCase()}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+              <div className="flex items-center justify-between mt-1.5 px-0.5">
+                <span className="mm-mono text-[9px] tracking-wider text-amber-300/60">
+                  ▸ {lang === 'zh' ? '繁體中文' : lang === 'pt' ? 'Português' : 'English'}
+                </span>
+                <span className="mm-mono text-[7px] tracking-[0.2em] text-white/30">LANG.SET</span>
+              </div>
+            </div>
+          </div>
 
-          <div className="w-full h-px bg-white/10 my-2" />
+          {/* Disclaimer */}
+          <div className="pt-2">
+            <div className="bg-[#050506] border border-white/8 px-2.5 py-2">
+              <div className="flex items-start gap-1.5">
+                <span className="mm-mono text-[9px] tracking-[0.15em] text-amber-300/60 leading-none pt-[1px] shrink-0">⚠</span>
+                <p className="text-[10px] leading-[1.55] text-white/45">
+                  {lang === 'zh'
+                    ? '本地圖為概略顯示，數據不保證完全反映此時此刻的真實狀況。'
+                    : lang === 'pt'
+                      ? 'Este mapa é uma representação aproximada; os dados podem não refletir a realidade em tempo real.'
+                      : 'Map shown is approximate; data may not reflect real-time conditions exactly.'}
+                </p>
+              </div>
+            </div>
+          </div>
 
-          <p className="text-white/25 text-[9px] leading-relaxed px-1">
-            {lang === 'zh'
-              ? '本地圖為模擬展示，數據不保證完全反映此時此刻的真實狀況。'
-              : lang === 'pt'
-                ? 'Este mapa é uma simulação. Os dados podem não refletir a situação atual em tempo real.'
-                : 'This map is a simulation. Data may not accurately reflect real-time conditions.'}
-          </p>
+          {/* Status footer */}
+          <div className="border-t border-white/5 pt-2 mt-3 space-y-0.5">
+            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
+              <span>SRC</span><span className="text-white/55">GTFS · SIM</span>
+            </div>
+            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
+              <span>ZOOM</span><span className="mm-tabular text-amber-200/80">{zoom.toFixed(2)}</span>
+            </div>
+            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
+              <span>MODE</span><span className="text-emerald-300/70">{is3D ? '3D.LIVE' : '2D.LIVE'}</span>
+            </div>
+          </div>
         </div>
       </div>
     </>
+  )
+}
+
+interface DrawerRowProps {
+  code: string
+  label: string
+  active: boolean
+  onClick: () => void
+  disabled?: boolean
+}
+
+function DrawerRow({ code, label, active, onClick, disabled }: DrawerRowProps) {
+  return (
+    <button
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      className={`w-full flex items-center gap-2.5 px-2 py-1.5 text-left transition border
+                  ${disabled ? 'opacity-30 cursor-not-allowed border-transparent' :
+                    active ? 'bg-amber-300/[0.06] border-amber-300/15 hover:border-amber-300/30'
+                           : 'border-transparent hover:bg-white/[0.04] hover:border-white/10'}`}
+    >
+      <span className={`mm-mono text-[9px] tracking-wider leading-none w-8 h-6 flex items-center justify-center shrink-0 border
+                        ${active
+                          ? 'border-amber-300/50 bg-amber-300/10 text-amber-200'
+                          : 'border-white/15 bg-white/[0.02] text-white/55'}`}
+            style={active ? { boxShadow: 'inset 0 0 0 1px rgba(253,224,71,0.15)' } : undefined}>
+        {code}
+      </span>
+      <span className={`text-[12px] ${active ? 'text-amber-100' : 'text-white/80'}`}>{label}</span>
+      <div className="flex-1" />
+      {active && !disabled && <span className="w-1 h-1 rounded-full bg-amber-300 mm-led-pulse shrink-0" />}
+    </button>
   )
 }

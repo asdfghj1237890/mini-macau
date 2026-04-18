@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import type { TransitData, BusRoute } from '../types'
 import { useI18n } from '../i18n'
 import { type GroupKey, getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS } from '../routeGroups'
@@ -8,12 +8,20 @@ interface Props {
   visibleRoutes: Set<string>
   isAutoMode: boolean
   onToggleRoute: (routeId: string) => void
-  onToggleAll: () => void
+  onShowAll: () => void
+  onHideAll: () => void
   onResetAuto: () => void
 }
 
-export function RouteSelector({ transitData, visibleRoutes, isAutoMode, onToggleRoute, onToggleAll, onResetAuto }: Props) {
-  const [expanded, setExpanded] = useState(true)
+export function RouteSelector({
+  transitData,
+  visibleRoutes,
+  isAutoMode,
+  onToggleRoute,
+  onShowAll,
+  onHideAll,
+  onResetAuto,
+}: Props) {
   const { t, lang } = useI18n()
 
   const grouped = useMemo(() => {
@@ -28,74 +36,103 @@ export function RouteSelector({ transitData, visibleRoutes, isAutoMode, onToggle
 
   if (transitData.busRoutes.length === 0) return null
 
-  const allVisible = visibleRoutes.size === transitData.busRoutes.length
+  const activeCount = visibleRoutes.size
+  const totalCount = transitData.busRoutes.length
 
   return (
-    <div className="absolute top-[16rem] right-[10px] bg-black/70 backdrop-blur-sm rounded-xl z-10
-                    border border-white/20 overflow-hidden max-w-[220px]
-                    max-sm:hidden landscape:hidden">
-      <button
-        onClick={() => setExpanded(e => !e)}
-        className="w-full px-4 py-2 text-white text-sm flex items-center justify-center gap-1.5
-                   hover:bg-white/10 transition-colors"
-      >
-        <span>{t.busRoutes}</span>
-        <span className="text-white/40 text-xs">{expanded ? '▲' : '▼'}</span>
-      </button>
+    <div className="absolute top-[16rem] right-[10px] z-10
+                    bg-[#0b0b0c]/95 backdrop-blur-md rounded-sm
+                    border border-white/10 overflow-hidden w-[240px]
+                    max-sm:hidden landscape:hidden shadow-2xl">
+      {/* Header */}
+      <div className="px-3 py-1 flex items-center justify-between bg-white/[0.015] border-b border-white/5">
+        <span className="mm-mono text-[9px] tracking-[0.28em] text-amber-300/75">
+          ░ {t.busRoutes.toUpperCase()} · 巴士
+        </span>
+        <span className="mm-mono mm-tabular text-[9px] text-emerald-300/80">
+          {activeCount}<span className="text-white/30">/{totalCount}</span>
+        </span>
+      </div>
 
-      {expanded && (
-        <div className="border-t border-white/10">
-          <div className="flex border-b border-white/10">
-            <button
-              onClick={onResetAuto}
-              className={`flex-1 px-2 py-1.5 text-xs transition-colors text-center
-                         ${isAutoMode ? 'text-blue-400' : 'text-white/50 hover:text-white hover:bg-white/10'}`}
-            >
-              {t.autoByTime}
-            </button>
-            <button
-              onClick={onToggleAll}
-              className="flex-1 px-2 py-1.5 text-xs text-white/50 hover:text-white
-                         hover:bg-white/10 transition-colors text-center"
-            >
-              {allVisible ? t.hideAll : t.showAll}
-            </button>
-          </div>
-          <div className="max-h-[45vh] overflow-y-auto">
-            {GROUP_ORDER.map(groupKey => {
-              const routes = grouped.get(groupKey) || []
-              if (routes.length === 0) return null
-              return (
-                <div key={groupKey}>
-                  <div className="px-3 py-1 text-[10px] text-white/40 uppercase tracking-wider
-                                  bg-white/5 border-t border-white/10">
-                    {t[GROUP_LABEL_KEYS[groupKey]]}
-                  </div>
-                  {routes.map(route => (
+      {/* Mode tabs — AUTO / ALL / NONE */}
+      <div className="grid grid-cols-3 border-y border-white/8">
+        <button
+          onClick={onResetAuto}
+          className={`px-1 py-1.5 mm-mono text-[9px] tracking-[0.12em] transition-colors text-center
+                     ${isAutoMode
+                        ? 'bg-amber-300/10 text-amber-200'
+                        : 'text-white/45 hover:text-white hover:bg-white/5'}`}
+          style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 rgba(252,196,65,0.7)' } : undefined}
+        >
+          {t.autoByTime}
+        </button>
+        <button
+          onClick={onShowAll}
+          className="px-1 py-1.5 mm-mono text-[9px] tracking-[0.15em] text-white/45 hover:text-white
+                     hover:bg-white/5 transition-colors text-center border-l border-white/8"
+        >
+          {t.showAll}
+        </button>
+        <button
+          onClick={onHideAll}
+          className="px-1 py-1.5 mm-mono text-[9px] tracking-[0.15em] text-white/45 hover:text-white
+                     hover:bg-white/5 transition-colors text-center border-l border-white/8"
+        >
+          {t.hideAll}
+        </button>
+      </div>
+
+      {/* Route list */}
+      <div className="max-h-[45vh] overflow-y-auto">
+        {GROUP_ORDER.map(groupKey => {
+          const routes = grouped.get(groupKey) || []
+          if (routes.length === 0) return null
+          const groupActive = routes.filter(r => visibleRoutes.has(r.id)).length
+          return (
+            <div key={groupKey} className="border-t border-white/5">
+              <div className="px-2 py-1 flex items-center gap-2 bg-white/[0.015]">
+                <span className={`w-1.5 h-1.5 rounded-full shrink-0
+                                  ${groupActive > 0 ? 'bg-amber-300' : 'bg-white/15'}`}
+                      style={groupActive > 0 ? { boxShadow: '0 0 5px rgba(252,196,65,0.8)' } : undefined} />
+                <span className="mm-mono text-[9px] tracking-[0.2em] text-white/55 uppercase flex-1 text-left">
+                  {t[GROUP_LABEL_KEYS[groupKey]]}
+                </span>
+                <span className="mm-mono mm-tabular text-[9px] text-white/35">
+                  {groupActive}/{routes.length}
+                </span>
+              </div>
+              <div className="bg-[#060607]">
+                {routes.map(route => {
+                  const on = visibleRoutes.has(route.id)
+                  return (
                     <button
                       key={route.id}
                       onClick={() => onToggleRoute(route.id)}
-                      className={`w-full px-3 py-0.5 text-xs flex items-center gap-2 transition-colors
-                                 hover:bg-white/10 ${visibleRoutes.has(route.id) ? 'text-white' : 'text-white/30'}`}
+                      className={`w-full px-2 py-[3px] flex items-center gap-2 transition-colors
+                                 ${on ? 'hover:bg-white/[0.04]' : 'opacity-35 hover:opacity-60'}`}
                     >
-                      <div
-                        className="w-2 h-2 rounded-full shrink-0"
+                      <span
+                        className="mm-mono mm-tabular text-[10px] font-bold text-center shrink-0"
                         style={{
-                          backgroundColor: visibleRoutes.has(route.id) ? route.color : '#555',
+                          width: 36,
+                          color: on ? route.color : '#555',
+                          textShadow: on ? `0 0 6px ${route.color}66` : 'none',
                         }}
-                      />
-                      <span className="truncate">
+                      >
                         {route.name}
-                        {lang !== 'en' && route.nameCn ? ` ${route.nameCn}` : ''}
+                      </span>
+                      <span className={`text-[10px] flex-1 text-left truncate mm-han
+                                        ${on ? 'text-white/75' : 'text-white/30'}`}>
+                        {lang !== 'en' && route.nameCn ? route.nameCn : ''}
                       </span>
                     </button>
-                  ))}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
