@@ -103,9 +103,6 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
             {yr}·{pad2(mo)}·{pad2(d)} · {dowShort}
           </span>
           <span className="flex items-center gap-2 mm-mono text-[9px] tracking-[0.2em]">
-            {clock.speed !== 1 && (
-              <span className="mm-tabular text-amber-300/70">{clock.speed}×</span>
-            )}
             {vehicleCount !== undefined && vehicleCount > 0 && (
               <span className="mm-tabular text-white/45">{vehicleCount}{vehUnit}</span>
             )}
@@ -132,7 +129,12 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
           </div>
           <div className="flex-1 flex flex-col justify-between items-start py-1.5 px-2 bg-[#08080a] min-w-[42px]">
             <span className="mm-mono text-[8px] tracking-[0.2em] text-white/35">SEC</span>
-            <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-300/80">{s}</span>
+            <div className="flex items-baseline gap-1">
+              <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-300/80">{s}</span>
+              {clock.speed !== 1 && (
+                <span className="mm-mono mm-tabular font-bold text-[13px] leading-none text-emerald-400/80">{clock.speed}×</span>
+              )}
+            </div>
           </div>
         </div>
         {/* Bottom schedule strip */}

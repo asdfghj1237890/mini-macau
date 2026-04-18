@@ -2,7 +2,7 @@ name: Update Flight Data
 
 on:
   schedule:
-    - cron: '0 22 * * *' # UTC 22:00 = Macau 06:00 (UTC+8)
+    - cron: '0 20 * * *' # UTC 20:00 = Macau 04:00 (UTC+8)
   workflow_dispatch: # allow manual trigger from GitHub UI
 
 jobs:
