@@ -1,21 +1,5 @@
 [
   {
-    "id": "NX959-arr-0005",
-    "flightNumber": "NX959",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 5,
-    "origin": {
-      "iata": "HAN",
-      "name": "Ha Noi",
-      "bearing": 264.1
-    },
-    "aircraftType": "A320"
-  },
-  {
     "id": "NX977-arr-0015",
     "flightNumber": "NX977",
     "airline": {
@@ -32,50 +16,50 @@
     "aircraftType": "A21N"
   },
   {
-    "id": "NX227-arr-0025",
+    "id": "NX227-arr-0030",
     "flightNumber": "NX227",
     "airline": {
       "name": "",
       "iata": "NX"
     },
     "type": "arrival",
-    "scheduledTime": 25,
+    "scheduledTime": 30,
     "origin": {
       "iata": "HGH",
       "name": "Hangzhou",
       "bearing": 35.8
     },
-    "aircraftType": "A321"
+    "aircraftType": "A20N"
   },
   {
-    "id": "TW649-arr-0045",
-    "flightNumber": "TW649",
+    "id": "BX381-arr-0040",
+    "flightNumber": "BX381",
     "airline": {
       "name": "",
-      "iata": "TW"
+      "iata": "BX"
     },
     "type": "arrival",
-    "scheduledTime": 45,
+    "scheduledTime": 40,
     "origin": {
-      "iata": "CJU",
-      "name": "Jeju",
-      "bearing": 42.3
+      "iata": "PUS",
+      "name": "Busan",
+      "bearing": 42.5
     },
-    "aircraftType": "Jeju"
+    "aircraftType": "A21N"
   },
   {
-    "id": "NX105-arr-0050",
-    "flightNumber": "NX105",
+    "id": "NX963-arr-0095",
+    "flightNumber": "NX963",
     "airline": {
       "name": "",
       "iata": "NX"
     },
     "type": "arrival",
-    "scheduledTime": 50,
+    "scheduledTime": 95,
     "origin": {
-      "iata": "SHA",
-      "name": "Shanghai",
-      "bearing": 35.7
+      "iata": "HAN",
+      "name": "Ha Noi",
+      "bearing": 264.1
     },
     "aircraftType": "A320"
   },
@@ -96,6 +80,22 @@
     "aircraftType": "A21N"
   },
   {
+    "id": "BX382-dep-0115",
+    "flightNumber": "BX382",
+    "airline": {
+      "name": "",
+      "iata": "BX"
+    },
+    "type": "departure",
+    "scheduledTime": 115,
+    "destination": {
+      "iata": "PUS",
+      "name": "Busan",
+      "bearing": 42.5
+    },
+    "aircraftType": "A21N"
+  },
+  {
     "id": "NX949-arr-0115",
     "flightNumber": "NX949",
     "airline": {
@@ -110,22 +110,6 @@
       "bearing": 264.1
     },
     "aircraftType": "A20N"
-  },
-  {
-    "id": "TW650-dep-0135",
-    "flightNumber": "TW650",
-    "airline": {
-      "name": "",
-      "iata": "TW"
-    },
-    "type": "departure",
-    "scheduledTime": 135,
-    "destination": {
-      "iata": "CJU",
-      "name": "Jeju",
-      "bearing": 42.3
-    },
-    "aircraftType": "Jeju"
   },
   {
     "id": "NX985-arr-0140",
@@ -240,6 +224,54 @@
     "aircraftType": "A21N"
   },
   {
+    "id": "Z27710-arr-0520",
+    "flightNumber": "Z27710",
+    "airline": {
+      "name": "",
+      "iata": "Z2"
+    },
+    "type": "arrival",
+    "scheduledTime": 520,
+    "origin": {
+      "iata": "CEB",
+      "name": "Cebu",
+      "bearing": 138.3
+    },
+    "aircraftType": "Cebu"
+  },
+  {
+    "id": "Z27711-dep-0550",
+    "flightNumber": "Z27711",
+    "airline": {
+      "name": "",
+      "iata": "Z2"
+    },
+    "type": "departure",
+    "scheduledTime": 550,
+    "destination": {
+      "iata": "CEB",
+      "name": "Cebu",
+      "bearing": 138.3
+    },
+    "aircraftType": "Cebu"
+  },
+  {
+    "id": "Z2094-arr-0555",
+    "flightNumber": "Z2094",
+    "airline": {
+      "name": "",
+      "iata": "Z2"
+    },
+    "type": "arrival",
+    "scheduledTime": 555,
+    "origin": {
+      "iata": "MNL",
+      "name": "Manila",
+      "bearing": 136.1
+    },
+    "aircraftType": "A320"
+  },
+  {
     "id": "NX862-dep-0570",
     "flightNumber": "NX862",
     "airline": {
@@ -288,6 +320,38 @@
     "aircraftType": "A20N"
   },
   {
+    "id": "NX016-dep-0620",
+    "flightNumber": "NX016",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 620,
+    "destination": {
+      "iata": "TYN",
+      "name": "Taiyuan",
+      "bearing": 357.2
+    },
+    "aircraftType": "A321"
+  },
+  {
+    "id": "JX329-arr-0620",
+    "flightNumber": "JX329",
+    "airline": {
+      "name": "",
+      "iata": "JX"
+    },
+    "type": "arrival",
+    "scheduledTime": 620,
+    "origin": {
+      "iata": "RMQ",
+      "name": "Taichung",
+      "bearing": 70.5
+    },
+    "aircraftType": "A21N"
+  },
+  {
     "id": "NX112-dep-0625",
     "flightNumber": "NX112",
     "airline": {
@@ -320,6 +384,22 @@
     "aircraftType": "A21N"
   },
   {
+    "id": "Z2095-dep-0630",
+    "flightNumber": "Z2095",
+    "airline": {
+      "name": "",
+      "iata": "Z2"
+    },
+    "type": "departure",
+    "scheduledTime": 630,
+    "destination": {
+      "iata": "MNL",
+      "name": "Manila",
+      "bearing": 136.1
+    },
+    "aircraftType": "A320"
+  },
+  {
     "id": "9C8875-arr-0630",
     "flightNumber": "9C8875",
     "airline": {
@@ -334,22 +414,6 @@
       "bearing": 37.5
     },
     "aircraftType": "A20N"
-  },
-  {
-    "id": "BR829-arr-0635",
-    "flightNumber": "BR829",
-    "airline": {
-      "name": "",
-      "iata": "BR"
-    },
-    "type": "arrival",
-    "scheduledTime": 635,
-    "origin": {
-      "iata": "KHH",
-      "name": "Kaohsiung",
-      "bearing": 84.8
-    },
-    "aircraftType": "A321"
   },
   {
     "id": "NX825-arr-0640",
@@ -464,6 +528,22 @@
     "aircraftType": "A20N"
   },
   {
+    "id": "JX330-dep-0685",
+    "flightNumber": "JX330",
+    "airline": {
+      "name": "",
+      "iata": "JX"
+    },
+    "type": "departure",
+    "scheduledTime": 685,
+    "destination": {
+      "iata": "RMQ",
+      "name": "Taichung",
+      "bearing": 70.5
+    },
+    "aircraftType": "A21N"
+  },
+  {
     "id": "9C8876-dep-0690",
     "flightNumber": "9C8876",
     "airline": {
@@ -496,20 +576,20 @@
     "aircraftType": "A21N"
   },
   {
-    "id": "KR503-arr-0695",
-    "flightNumber": "KR503",
+    "id": "NX922-dep-0700",
+    "flightNumber": "NX922",
     "airline": {
       "name": "",
-      "iata": "KR"
+      "iata": "NX"
     },
-    "type": "arrival",
-    "scheduledTime": 695,
-    "origin": {
-      "iata": "KTI",
-      "name": "Kandal Stueng",
-      "bearing": 219.7
+    "type": "departure",
+    "scheduledTime": 700,
+    "destination": {
+      "iata": "KUL",
+      "name": "K. Lumpur",
+      "bearing": 212.4
     },
-    "aircraftType": "A319"
+    "aircraftType": "A21N"
   },
   {
     "id": "NX385-arr-0700",
@@ -528,22 +608,6 @@
     "aircraftType": "A320"
   },
   {
-    "id": "BR830-dep-0705",
-    "flightNumber": "BR830",
-    "airline": {
-      "name": "",
-      "iata": "BR"
-    },
-    "type": "departure",
-    "scheduledTime": 705,
-    "destination": {
-      "iata": "KHH",
-      "name": "Kaohsiung",
-      "bearing": 84.8
-    },
-    "aircraftType": "A321"
-  },
-  {
     "id": "NX111-arr-0705",
     "flightNumber": "NX111",
     "airline": {
@@ -558,22 +622,6 @@
       "bearing": 35.7
     },
     "aircraftType": "A321"
-  },
-  {
-    "id": "NX182-dep-0710",
-    "flightNumber": "NX182",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 710,
-    "destination": {
-      "iata": "CKG",
-      "name": "Chongqing",
-      "bearing": 321.9
-    },
-    "aircraftType": "A320"
   },
   {
     "id": "BR801-arr-0710",
@@ -672,6 +720,22 @@
     "aircraftType": "Wuxi"
   },
   {
+    "id": "NX260-dep-0735",
+    "flightNumber": "NX260",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 735,
+    "destination": {
+      "iata": "TNA",
+      "name": "Jinan",
+      "bearing": 11.2
+    },
+    "aircraftType": "A20N"
+  },
+  {
     "id": "NX007-arr-0735",
     "flightNumber": "NX007",
     "airline": {
@@ -736,22 +800,6 @@
     "aircraftType": "B738"
   },
   {
-    "id": "KR5561-dep-0750",
-    "flightNumber": "KR5561",
-    "airline": {
-      "name": "",
-      "iata": "KR"
-    },
-    "type": "departure",
-    "scheduledTime": 750,
-    "destination": {
-      "iata": "ROR",
-      "name": "Koror",
-      "bearing": 123.0
-    },
-    "aircraftType": "A319"
-  },
-  {
     "id": "AK188-arr-0755",
     "flightNumber": "AK188",
     "airline": {
@@ -798,22 +846,6 @@
       "bearing": 35.7
     },
     "aircraftType": "B738"
-  },
-  {
-    "id": "NX128-dep-0765",
-    "flightNumber": "NX128",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 765,
-    "destination": {
-      "iata": "NKG",
-      "name": "Nanjing",
-      "bearing": 24.9
-    },
-    "aircraftType": "A20N"
   },
   {
     "id": "7C6001-arr-0770",
@@ -912,8 +944,8 @@
     "aircraftType": "A20N"
   },
   {
-    "id": "MU865-arr-0800",
-    "flightNumber": "MU865",
+    "id": "MU5055-arr-0800",
+    "flightNumber": "MU5055",
     "airline": {
       "name": "",
       "iata": "MU"
@@ -921,11 +953,11 @@
     "type": "arrival",
     "scheduledTime": 800,
     "origin": {
-      "iata": "KHN",
-      "name": "Nanchang",
-      "bearing": 16.8
+      "iata": "HFE",
+      "name": "Hefei",
+      "bearing": 18.1
     },
-    "aircraftType": "AJ27"
+    "aircraftType": "A20N"
   },
   {
     "id": "FM806-dep-0805",
@@ -944,8 +976,8 @@
     "aircraftType": "B738"
   },
   {
-    "id": "NX170-dep-0810",
-    "flightNumber": "NX170",
+    "id": "NX332-dep-0810",
+    "flightNumber": "NX332",
     "airline": {
       "name": "",
       "iata": "NX"
@@ -953,27 +985,11 @@
     "type": "departure",
     "scheduledTime": 810,
     "destination": {
-      "iata": "CZX",
-      "name": "Chang Zhou Benniu",
-      "bearing": 28.1
+      "iata": "NNG",
+      "name": "Nanning",
+      "bearing": 276.3
     },
-    "aircraftType": "A321"
-  },
-  {
-    "id": "NX258-dep-0815",
-    "flightNumber": "NX258",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 815,
-    "destination": {
-      "iata": "WNZ",
-      "name": "Wenzhou",
-      "bearing": 47.3
-    },
-    "aircraftType": "A321"
+    "aircraftType": "A320"
   },
   {
     "id": "MU9797-arr-0815",
@@ -1120,8 +1136,8 @@
     "aircraftType": "A20N"
   },
   {
-    "id": "MU866-dep-0860",
-    "flightNumber": "MU866",
+    "id": "MU5056-dep-0860",
+    "flightNumber": "MU5056",
     "airline": {
       "name": "",
       "iata": "MU"
@@ -1129,11 +1145,11 @@
     "type": "departure",
     "scheduledTime": 860,
     "destination": {
-      "iata": "KHN",
-      "name": "Nanchang",
-      "bearing": 16.8
+      "iata": "HFE",
+      "name": "Hefei",
+      "bearing": 18.1
     },
-    "aircraftType": "AJ27"
+    "aircraftType": "A20N"
   },
   {
     "id": "NX995-arr-0860",
@@ -1200,6 +1216,22 @@
     "aircraftType": "A321"
   },
   {
+    "id": "NX9938-dep-0895",
+    "flightNumber": "NX9938",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 895,
+    "destination": {
+      "iata": "BKK",
+      "name": "Bangkok",
+      "bearing": 237.4
+    },
+    "aircraftType": "A321"
+  },
+  {
     "id": "CZ6081-arr-0895",
     "flightNumber": "CZ6081",
     "airline": {
@@ -1248,22 +1280,6 @@
     "aircraftType": "A21N"
   },
   {
-    "id": "NX022-dep-0915",
-    "flightNumber": "NX022",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 915,
-    "destination": {
-      "iata": "TAO",
-      "name": "Qingdao",
-      "bearing": 21.2
-    },
-    "aircraftType": "A20N"
-  },
-  {
     "id": "NX010-dep-0920",
     "flightNumber": "NX010",
     "airline": {
@@ -1294,6 +1310,22 @@
       "bearing": 220.8
     },
     "aircraftType": "A321"
+  },
+  {
+    "id": "MF8737-arr-0925",
+    "flightNumber": "MF8737",
+    "airline": {
+      "name": "",
+      "iata": "MF"
+    },
+    "type": "arrival",
+    "scheduledTime": 925,
+    "origin": {
+      "iata": "JJN",
+      "name": "Jinjiang",
+      "bearing": 59.0
+    },
+    "aircraftType": "B738"
   },
   {
     "id": "MU2007-arr-0930",
@@ -1424,20 +1456,20 @@
     "aircraftType": "A20N"
   },
   {
-    "id": "CA119-arr-0990",
-    "flightNumber": "CA119",
+    "id": "MF8738-dep-0985",
+    "flightNumber": "MF8738",
     "airline": {
       "name": "",
-      "iata": "CA"
+      "iata": "MF"
     },
-    "type": "arrival",
-    "scheduledTime": 990,
-    "origin": {
-      "iata": "WUH",
-      "name": "Wuhan",
-      "bearing": 3.5
+    "type": "departure",
+    "scheduledTime": 985,
+    "destination": {
+      "iata": "JJN",
+      "name": "Jinjiang",
+      "bearing": 59.0
     },
-    "aircraftType": "A320"
+    "aircraftType": "B738"
   },
   {
     "id": "NX660-dep-0995",
@@ -1664,6 +1696,38 @@
     "aircraftType": "B738"
   },
   {
+    "id": "NX331-arr-1035",
+    "flightNumber": "NX331",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1035,
+    "origin": {
+      "iata": "NNG",
+      "name": "Nanning",
+      "bearing": 276.3
+    },
+    "aircraftType": "A320"
+  },
+  {
+    "id": "NX015-arr-1040",
+    "flightNumber": "NX015",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1040,
+    "origin": {
+      "iata": "TYN",
+      "name": "Taiyuan",
+      "bearing": 357.2
+    },
+    "aircraftType": "A321"
+  },
+  {
     "id": "NX616-dep-1045",
     "flightNumber": "NX616",
     "airline": {
@@ -1676,54 +1740,6 @@
       "iata": "TPE",
       "name": "Taipei",
       "bearing": 65.8
-    },
-    "aircraftType": "A320"
-  },
-  {
-    "id": "MF8671-arr-1045",
-    "flightNumber": "MF8671",
-    "airline": {
-      "name": "",
-      "iata": "MF"
-    },
-    "type": "arrival",
-    "scheduledTime": 1045,
-    "origin": {
-      "iata": "FOC",
-      "name": "Fuzhou",
-      "bearing": 54.5
-    },
-    "aircraftType": "B738"
-  },
-  {
-    "id": "CA120-dep-1050",
-    "flightNumber": "CA120",
-    "airline": {
-      "name": "",
-      "iata": "CA"
-    },
-    "type": "departure",
-    "scheduledTime": 1050,
-    "destination": {
-      "iata": "WUH",
-      "name": "Wuhan",
-      "bearing": 3.5
-    },
-    "aircraftType": "A320"
-  },
-  {
-    "id": "NX181-arr-1055",
-    "flightNumber": "NX181",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1055,
-    "origin": {
-      "iata": "CKG",
-      "name": "Chongqing",
-      "bearing": 321.9
     },
     "aircraftType": "A320"
   },
@@ -1792,6 +1808,22 @@
     "aircraftType": "A20N"
   },
   {
+    "id": "NX186-dep-1075",
+    "flightNumber": "NX186",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1075,
+    "destination": {
+      "iata": "FOC",
+      "name": "Fuzhou",
+      "bearing": 54.5
+    },
+    "aircraftType": "A321"
+  },
+  {
     "id": "TR904-arr-1075",
     "flightNumber": "TR904",
     "airline": {
@@ -1824,8 +1856,8 @@
     "aircraftType": "A21N"
   },
   {
-    "id": "NX372-dep-1085",
-    "flightNumber": "NX372",
+    "id": "NX226-dep-1085",
+    "flightNumber": "NX226",
     "airline": {
       "name": "",
       "iata": "NX"
@@ -1833,9 +1865,9 @@
     "type": "departure",
     "scheduledTime": 1085,
     "destination": {
-      "iata": "KWE",
-      "name": "Guiyang",
-      "bearing": 306.7
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8
     },
     "aircraftType": "A321"
   },
@@ -1920,52 +1952,52 @@
     "aircraftType": "B738"
   },
   {
-    "id": "NX226-dep-1105",
-    "flightNumber": "NX226",
+    "id": "FD766-arr-1100",
+    "flightNumber": "FD766",
     "airline": {
       "name": "",
-      "iata": "NX"
+      "iata": "FD"
     },
-    "type": "departure",
-    "scheduledTime": 1105,
-    "destination": {
-      "iata": "HGH",
-      "name": "Hangzhou",
-      "bearing": 35.8
+    "type": "arrival",
+    "scheduledTime": 1100,
+    "origin": {
+      "iata": "DMK",
+      "name": "Bangkok-DonMueang",
+      "bearing": 238.5
     },
     "aircraftType": "A320"
   },
   {
-    "id": "NX935-arr-1105",
-    "flightNumber": "NX935",
+    "id": "NX372-dep-1105",
+    "flightNumber": "NX372",
     "airline": {
       "name": "",
       "iata": "NX"
     },
+    "type": "departure",
+    "scheduledTime": 1105,
+    "destination": {
+      "iata": "KWE",
+      "name": "Guiyang",
+      "bearing": 306.7
+    },
+    "aircraftType": "A321"
+  },
+  {
+    "id": "BR833-arr-1105",
+    "flightNumber": "BR833",
+    "airline": {
+      "name": "",
+      "iata": "BR"
+    },
     "type": "arrival",
     "scheduledTime": 1105,
     "origin": {
-      "iata": "BKK",
-      "name": "Bangkok",
-      "bearing": 237.4
+      "iata": "KHH",
+      "name": "Kaohsiung",
+      "bearing": 84.8
     },
-    "aircraftType": "A21N"
-  },
-  {
-    "id": "MF8672-dep-1110",
-    "flightNumber": "MF8672",
-    "airline": {
-      "name": "",
-      "iata": "MF"
-    },
-    "type": "departure",
-    "scheduledTime": 1110,
-    "destination": {
-      "iata": "FOC",
-      "name": "Fuzhou",
-      "bearing": 54.5
-    },
-    "aircraftType": "B738"
+    "aircraftType": "A321"
   },
   {
     "id": "Z2092-arr-1110",
@@ -2016,22 +2048,6 @@
     "aircraftType": "A321"
   },
   {
-    "id": "NX257-arr-1120",
-    "flightNumber": "NX257",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1120,
-    "origin": {
-      "iata": "WNZ",
-      "name": "Wenzhou",
-      "bearing": 47.3
-    },
-    "aircraftType": "A321"
-  },
-  {
     "id": "TR905-dep-1125",
     "flightNumber": "TR905",
     "airline": {
@@ -2046,6 +2062,38 @@
       "bearing": 205.5
     },
     "aircraftType": "A20N"
+  },
+  {
+    "id": "NX935-arr-1125",
+    "flightNumber": "NX935",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1125,
+    "origin": {
+      "iata": "BKK",
+      "name": "Bangkok",
+      "bearing": 237.4
+    },
+    "aircraftType": "A21N"
+  },
+  {
+    "id": "NX106-dep-1130",
+    "flightNumber": "NX106",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1130,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai",
+      "bearing": 35.7
+    },
+    "aircraftType": "A320"
   },
   {
     "id": "NX992-dep-1135",
@@ -2064,20 +2112,20 @@
     "aircraftType": "A321"
   },
   {
-    "id": "NX127-arr-1135",
-    "flightNumber": "NX127",
+    "id": "FD767-dep-1140",
+    "flightNumber": "FD767",
     "airline": {
       "name": "",
-      "iata": "NX"
+      "iata": "FD"
     },
-    "type": "arrival",
-    "scheduledTime": 1135,
-    "origin": {
-      "iata": "NKG",
-      "name": "Nanjing",
-      "bearing": 24.9
+    "type": "departure",
+    "scheduledTime": 1140,
+    "destination": {
+      "iata": "DMK",
+      "name": "Bangkok-DonMueang",
+      "bearing": 238.5
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "MU2055-arr-1140",
@@ -2094,6 +2142,22 @@
       "bearing": 35.7
     },
     "aircraftType": "A21N"
+  },
+  {
+    "id": "NX960-dep-1145",
+    "flightNumber": "NX960",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1145,
+    "destination": {
+      "iata": "HAN",
+      "name": "Ha Noi",
+      "bearing": 264.1
+    },
+    "aircraftType": "A320"
   },
   {
     "id": "Z2093-dep-1150",
@@ -2126,22 +2190,6 @@
       "bearing": 70.5
     },
     "aircraftType": "A21N"
-  },
-  {
-    "id": "MU239-arr-1155",
-    "flightNumber": "MU239",
-    "airline": {
-      "name": "",
-      "iata": "MU"
-    },
-    "type": "arrival",
-    "scheduledTime": 1155,
-    "origin": {
-      "iata": "SHA",
-      "name": "Shanghai",
-      "bearing": 35.7
-    },
-    "aircraftType": "A333"
   },
   {
     "id": "NX008-dep-1160",
@@ -2192,20 +2240,20 @@
     "aircraftType": "A320"
   },
   {
-    "id": "NX169-arr-1175",
-    "flightNumber": "NX169",
+    "id": "NX259-arr-1170",
+    "flightNumber": "NX259",
     "airline": {
       "name": "",
       "iata": "NX"
     },
     "type": "arrival",
-    "scheduledTime": 1175,
+    "scheduledTime": 1170,
     "origin": {
-      "iata": "CZX",
-      "name": "Chang Zhou Benniu",
-      "bearing": 28.1
+      "iata": "TNA",
+      "name": "Jinan",
+      "bearing": 11.2
     },
-    "aircraftType": "A321"
+    "aircraftType": "A20N"
   },
   {
     "id": "NX978-dep-1180",
@@ -2288,6 +2336,38 @@
     "aircraftType": "A21N"
   },
   {
+    "id": "BR834-dep-1200",
+    "flightNumber": "BR834",
+    "airline": {
+      "name": "",
+      "iata": "BR"
+    },
+    "type": "departure",
+    "scheduledTime": 1200,
+    "destination": {
+      "iata": "KHH",
+      "name": "Kaohsiung",
+      "bearing": 84.8
+    },
+    "aircraftType": "A321"
+  },
+  {
+    "id": "ZA387-arr-1200",
+    "flightNumber": "ZA387",
+    "airline": {
+      "name": "",
+      "iata": "ZA"
+    },
+    "type": "arrival",
+    "scheduledTime": 1200,
+    "origin": {
+      "iata": "KTI",
+      "name": "Kandal Stueng",
+      "bearing": 219.7
+    },
+    "aircraftType": "A320"
+  },
+  {
     "id": "NX861-arr-1205",
     "flightNumber": "NX861",
     "airline": {
@@ -2320,20 +2400,20 @@
     "aircraftType": "A321"
   },
   {
-    "id": "MU240-dep-1220",
-    "flightNumber": "MU240",
+    "id": "NX9998-dep-1225",
+    "flightNumber": "NX9998",
     "airline": {
       "name": "",
-      "iata": "MU"
+      "iata": "NX"
     },
     "type": "departure",
-    "scheduledTime": 1220,
+    "scheduledTime": 1225,
     "destination": {
-      "iata": "SHA",
-      "name": "Shanghai",
-      "bearing": 35.7
+      "iata": "BKK",
+      "name": "Bangkok",
+      "bearing": 237.4
     },
-    "aircraftType": "A333"
+    "aircraftType": "A20N"
   },
   {
     "id": "MU9991-arr-1225",
@@ -2416,22 +2496,6 @@
     "aircraftType": "B38M"
   },
   {
-    "id": "HU7935-arr-1245",
-    "flightNumber": "HU7935",
-    "airline": {
-      "name": "",
-      "iata": "HU"
-    },
-    "type": "arrival",
-    "scheduledTime": 1245,
-    "origin": {
-      "iata": "HAK",
-      "name": "Haikou",
-      "bearing": 233.4
-    },
-    "aircraftType": "B38M"
-  },
-  {
     "id": "JX206-dep-1250",
     "flightNumber": "JX206",
     "airline": {
@@ -2444,6 +2508,22 @@
       "iata": "TPE",
       "name": "Taipei",
       "bearing": 65.8
+    },
+    "aircraftType": "A21N"
+  },
+  {
+    "id": "NX921-arr-1250",
+    "flightNumber": "NX921",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1250,
+    "origin": {
+      "iata": "KUL",
+      "name": "K. Lumpur",
+      "bearing": 212.4
     },
     "aircraftType": "A21N"
   },
@@ -2462,6 +2542,22 @@
       "bearing": 205.5
     },
     "aircraftType": "A21N"
+  },
+  {
+    "id": "ZA388-dep-1260",
+    "flightNumber": "ZA388",
+    "airline": {
+      "name": "",
+      "iata": "ZA"
+    },
+    "type": "departure",
+    "scheduledTime": 1260,
+    "destination": {
+      "iata": "KTI",
+      "name": "Kandal Stueng",
+      "bearing": 219.7
+    },
+    "aircraftType": "A320"
   },
   {
     "id": "NX950-dep-1265",
@@ -2494,22 +2590,6 @@
       "bearing": 238.5
     },
     "aircraftType": "B738"
-  },
-  {
-    "id": "NX962-dep-1275",
-    "flightNumber": "NX962",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 1275,
-    "destination": {
-      "iata": "HAN",
-      "name": "Ha Noi",
-      "bearing": 264.1
-    },
-    "aircraftType": "A321"
   },
   {
     "id": "VJ8892-arr-1280",
@@ -2560,6 +2640,22 @@
     "aircraftType": "A20N"
   },
   {
+    "id": "NX9937-arr-1290",
+    "flightNumber": "NX9937",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1290,
+    "origin": {
+      "iata": "BKK",
+      "name": "Bangkok",
+      "bearing": 237.4
+    },
+    "aircraftType": "A321"
+  },
+  {
     "id": "NX658-dep-1295",
     "flightNumber": "NX658",
     "airline": {
@@ -2592,22 +2688,6 @@
     "aircraftType": "B38M"
   },
   {
-    "id": "KR5562-arr-1300",
-    "flightNumber": "KR5562",
-    "airline": {
-      "name": "",
-      "iata": "KR"
-    },
-    "type": "arrival",
-    "scheduledTime": 1300,
-    "origin": {
-      "iata": "ROR",
-      "name": "Koror",
-      "bearing": 123.0
-    },
-    "aircraftType": "A319"
-  },
-  {
     "id": "MU9992-dep-1305",
     "flightNumber": "MU9992",
     "airline": {
@@ -2638,22 +2718,6 @@
       "bearing": 59.2
     },
     "aircraftType": "A320"
-  },
-  {
-    "id": "HU7936-dep-1310",
-    "flightNumber": "HU7936",
-    "airline": {
-      "name": "",
-      "iata": "HU"
-    },
-    "type": "departure",
-    "scheduledTime": 1310,
-    "destination": {
-      "iata": "HAK",
-      "name": "Haikou",
-      "bearing": 233.4
-    },
-    "aircraftType": "B38M"
   },
   {
     "id": "NX386-dep-1320",
@@ -2736,20 +2800,20 @@
     "aircraftType": "A20N"
   },
   {
-    "id": "KR502-dep-1360",
-    "flightNumber": "KR502",
+    "id": "NX185-arr-1385",
+    "flightNumber": "NX185",
     "airline": {
       "name": "",
-      "iata": "KR"
+      "iata": "NX"
     },
-    "type": "departure",
-    "scheduledTime": 1360,
-    "destination": {
-      "iata": "KTI",
-      "name": "Kandal Stueng",
-      "bearing": 219.7
+    "type": "arrival",
+    "scheduledTime": 1385,
+    "origin": {
+      "iata": "FOC",
+      "name": "Fuzhou",
+      "bearing": 54.5
     },
-    "aircraftType": "A319"
+    "aircraftType": "A321"
   },
   {
     "id": "NX009-arr-1390",
@@ -2766,22 +2830,6 @@
       "bearing": 7.4
     },
     "aircraftType": "A320"
-  },
-  {
-    "id": "NX021-arr-1395",
-    "flightNumber": "NX021",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1395,
-    "origin": {
-      "iata": "TAO",
-      "name": "Qingdao",
-      "bearing": 21.2
-    },
-    "aircraftType": "A20N"
   },
   {
     "id": "NX119-arr-1425",
