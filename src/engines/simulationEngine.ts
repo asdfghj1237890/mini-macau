@@ -28,7 +28,7 @@ function getLineLength(line: Feature<LineString>): number {
   return len
 }
 
-function interpolateOnLine(
+export function interpolateOnLine(
   line: Feature<LineString>,
   progress: number
 ): { coordinates: [number, number]; bearing: number } {
