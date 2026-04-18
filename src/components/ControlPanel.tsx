@@ -8,13 +8,45 @@ interface Props {
 
 const SPEEDS = [1, 2, 5, 10, 30, 60]
 
-// Hourly demand curve: morning rush, lunch dip, PM peak, late drop.
-const HOUR_DENSITY: ReadonlyArray<number> = [
-  0.02, 0.02, 0.02, 0.02, 0.05, 0.18,
-  0.42, 0.78, 0.92, 0.75, 0.55, 0.50,
-  0.60, 0.58, 0.50, 0.55, 0.72, 0.95,
-  0.98, 0.85, 0.60, 0.40, 0.22, 0.10,
-]
+// Real departures/hour (all bus routes + all LRT lines), normalized to global peak.
+// Computed from data/bus_reference/routes.json + LRT official timetable (Taipa, SPV, Hengqin).
+const HOUR_DENSITY: Record<string, ReadonlyArray<number>> = {
+  mon_thu: [
+    0.25, 0.12, 0.04, 0.04, 0.04, 0.04,
+    0.45, 0.97, 1.00, 0.91, 0.66, 0.66,
+    0.66, 0.67, 0.67, 0.85, 0.91, 0.95,
+    0.96, 0.88, 0.60, 0.57, 0.54, 0.46,
+  ],
+  friday: [
+    0.25, 0.12, 0.04, 0.04, 0.04, 0.04,
+    0.45, 0.97, 1.00, 0.91, 0.66, 0.66,
+    0.66, 0.67, 0.67, 0.86, 0.91, 0.95,
+    0.96, 0.88, 0.60, 0.57, 0.54, 0.47,
+  ],
+  sat_sun: [
+    0.22, 0.10, 0.02, 0.02, 0.02, 0.02,
+    0.38, 0.73, 0.74, 0.72, 0.62, 0.62,
+    0.62, 0.62, 0.62, 0.71, 0.73, 0.75,
+    0.75, 0.71, 0.54, 0.53, 0.51, 0.45,
+  ],
+}
+
+// LRT service bounds + density per schedule type.
+const SCHEDULE_INFO: Record<string, {
+  first: string; last: string
+  firstFrac: number; lastFrac: number
+  density: ReadonlyArray<number>
+}> = {
+  mon_thu: { first: '06:30', last: '23:15', firstFrac: 6.5 / 24, lastFrac: 23.25 / 24, density: HOUR_DENSITY.mon_thu },
+  friday:  { first: '06:30', last: '23:59', firstFrac: 6.5 / 24, lastFrac: (23 + 59 / 60) / 24, density: HOUR_DENSITY.friday },
+  sat_sun: { first: '06:30', last: '23:59', firstFrac: 6.5 / 24, lastFrac: (23 + 59 / 60) / 24, density: HOUR_DENSITY.sat_sun },
+}
+
+function getScheduleInfo(day: number) {
+  if (day === 5) return SCHEDULE_INFO.friday
+  if (day === 0 || day === 6) return SCHEDULE_INFO.sat_sun
+  return SCHEDULE_INFO.mon_thu
+}
 
 function PlayIcon({ size = 12 }: { size?: number }) {
   return (
@@ -97,6 +129,9 @@ function DensityBand({
   showPeaks,
   nowFrac,
   hoverFrac,
+  firstFrac,
+  lastFrac,
+  density,
   small = false,
 }: {
   bins: number
@@ -104,6 +139,9 @@ function DensityBand({
   showPeaks: boolean
   nowFrac: number
   hoverFrac: number | null
+  firstFrac: number
+  lastFrac: number
+  density: ReadonlyArray<number>
   small?: boolean
 }) {
   return (
@@ -113,7 +151,11 @@ function DensityBand({
     >
       {Array.from({ length: bins }).map((_, i) => {
         const h = Math.floor((i / bins) * 24)
-        const d = HOUR_DENSITY[h]
+        const d = density[h]
+        const d2 = d * d
+        const r = Math.round(252 + (255 - 252) * d2)
+        const g = Math.round(196 - 60 * d2)
+        const b = Math.round(65 - 45 * d2)
         return (
           <div
             key={i}
@@ -121,7 +163,7 @@ function DensityBand({
             style={{
               left: `${(i / bins) * 100}%`,
               width: `${100 / bins + 0.3}%`,
-              background: `linear-gradient(to top, rgba(252,196,65,${d * 0.78}) 0%, rgba(252,196,65,${d * 0.35}) 70%, transparent 100%)`,
+              background: `linear-gradient(to top, rgba(${r},${g},${b},${d2 * 0.85 + d * 0.1}) 0%, rgba(${r},${g},${b},${d2 * 0.4}) 70%, transparent 100%)`,
             }}
           />
         )
@@ -142,8 +184,8 @@ function DensityBand({
           </div>
         </>
       )}
-      <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50" style={{ left: `${(6 / 24) * 100}%` }} />
-      <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50" style={{ left: `calc(${(24 / 24) * 100}% - 1px)` }} />
+      <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50" style={{ left: `${firstFrac * 100}%` }} />
+      <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50" style={{ left: `${lastFrac * 100}%` }} />
       <div
         className="absolute top-[-3px] bottom-[-3px] w-[2px] bg-amber-300 shadow-[0_0_10px_rgba(252,196,65,0.9)]"
         style={{ left: `${nowFrac * 100}%`, transform: 'translateX(-1px)' }}
@@ -166,6 +208,7 @@ export function ControlPanel({ clock }: Props) {
   const { t } = useI18n()
   const compact = useIsCompact()
   const scrubRef = useRef<HTMLDivElement>(null)
+  const bandRef = useRef<HTMLDivElement>(null)
   const [hoverFrac, setHoverFrac] = useState<number | null>(null)
   const [expanded, setExpanded] = useState(() => {
     if (typeof window === 'undefined') return true
@@ -195,25 +238,47 @@ export function ControlPanel({ clock }: Props) {
     clock.setTime(d)
   }, [clock])
 
-  const handleMove = useCallback((clientX: number) => {
-    if (!scrubRef.current) return
-    const r = scrubRef.current.getBoundingClientRect()
-    setHoverFrac(Math.max(0, Math.min(1, (clientX - r.left) / r.width)))
+  const fracFromRef = useCallback((ref: React.RefObject<HTMLDivElement | null>, clientX: number) => {
+    if (!ref.current) return null
+    const r = ref.current.getBoundingClientRect()
+    let zoom = 1
+    let el: HTMLElement | null = ref.current
+    while (el) {
+      const z = parseFloat(getComputedStyle(el).zoom || '1')
+      if (z && z !== 1) zoom *= z
+      el = el.parentElement
+    }
+    return Math.max(0, Math.min(1, (clientX / zoom - r.left) / r.width))
   }, [])
 
+  const handleMove = useCallback((clientX: number) => {
+    const f = fracFromRef(scrubRef, clientX)
+    if (f != null) setHoverFrac(f)
+  }, [fracFromRef])
+
   const handleClick = useCallback((e: React.MouseEvent) => {
-    if (!scrubRef.current) return
-    const r = scrubRef.current.getBoundingClientRect()
-    scrubTo((e.clientX - r.left) / r.width)
-  }, [scrubTo])
+    const f = fracFromRef(scrubRef, e.clientX)
+    if (f != null) scrubTo(f)
+  }, [fracFromRef, scrubTo])
 
   const handleTouch = useCallback((clientX: number, commit: boolean) => {
-    if (!scrubRef.current) return
-    const r = scrubRef.current.getBoundingClientRect()
-    const frac = Math.max(0, Math.min(1, (clientX - r.left) / r.width))
-    setHoverFrac(frac)
-    if (commit) scrubTo(frac)
-  }, [scrubTo])
+    const f = fracFromRef(scrubRef, clientX)
+    if (f == null) return
+    setHoverFrac(f)
+    if (commit) scrubTo(f)
+  }, [fracFromRef, scrubTo])
+
+  const handleBandMove = useCallback((clientX: number) => {
+    const f = fracFromRef(bandRef, clientX)
+    if (f != null) setHoverFrac(f)
+  }, [fracFromRef])
+
+  const handleBandClick = useCallback((e: React.MouseEvent) => {
+    const f = fracFromRef(bandRef, e.clientX)
+    if (f != null) scrubTo(f)
+  }, [fracFromRef, scrubTo])
+
+  const sched = getScheduleInfo(now.getDay())
 
   const isPaused = clock.paused
   const speed = clock.speed
@@ -243,7 +308,7 @@ export function ControlPanel({ clock }: Props) {
               setHoverFrac(null)
             }}
           >
-            <DensityBand bins={48} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} />
+            <DensityBand bins={48} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} />
           </div>
           {/* Bottom row */}
           <div className="flex items-stretch gap-0 px-1 pb-1 pt-0.5 border-t border-white/8">
@@ -355,7 +420,7 @@ export function ControlPanel({ clock }: Props) {
             onMouseLeave={() => setHoverFrac(null)}
             onClick={handleClick}
           >
-            <DensityBand bins={48} heightPx={14} showPeaks={false} nowFrac={nowFrac} hoverFrac={hoverFrac} small />
+            <DensityBand bins={48} heightPx={14} showPeaks={false} nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} small />
           </div>
           <div className={`mm-mono text-[10px] mm-tabular px-2 flex items-center gap-1 shrink-0 ${isLive ? 'text-amber-200/90' : 'text-white/45'}`}>
             <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
@@ -442,44 +507,46 @@ export function ControlPanel({ clock }: Props) {
         </div>
 
         {/* Scrubber with hour axis + density + first/last labels */}
-        <div
-          ref={scrubRef}
-          className="relative px-3 pt-2.5 pb-3 select-none cursor-pointer"
-          onMouseMove={e => handleMove(e.clientX)}
-          onMouseLeave={() => setHoverFrac(null)}
-          onClick={handleClick}
-        >
-          {/* hour ticks */}
-          <div className="relative h-3 mb-1">
-            {Array.from({ length: 25 }).map((_, h) => {
-              const major = h % 6 === 0
-              return (
-                <div
-                  key={h}
-                  className="absolute top-0 flex flex-col items-center"
-                  style={{ left: `${(h / 24) * 100}%`, transform: 'translateX(-50%)' }}
-                >
-                  <div className={`${major ? 'h-3 bg-white/30' : 'h-1.5 bg-white/12'} w-px`} />
-                  {major && h < 24 && (
-                    <div className="mm-mono mm-tabular text-[8px] text-white/35 mt-0.5">{pad2(h)}</div>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-          <DensityBand bins={96} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} />
-          <div className="relative h-3 mt-0.5">
-            <div
-              className="absolute mm-mono text-[7px] text-emerald-300/70 tracking-widest"
-              style={{ left: `${(6 / 24) * 100}%`, transform: 'translateX(-50%)' }}
-            >
-              首班 06:00
+        <div className="px-3 pt-2.5 pb-3">
+          <div
+            ref={bandRef}
+            className="relative select-none cursor-pointer"
+            onMouseMove={e => handleBandMove(e.clientX)}
+            onMouseLeave={() => setHoverFrac(null)}
+            onClick={handleBandClick}
+          >
+            {/* hour ticks */}
+            <div className="relative h-3 mb-1">
+              {Array.from({ length: 25 }).map((_, h) => {
+                const major = h % 6 === 0
+                return (
+                  <div
+                    key={h}
+                    className="absolute top-0 flex flex-col items-center"
+                    style={{ left: `${(h / 24) * 100}%`, transform: 'translateX(-50%)' }}
+                  >
+                    <div className={`${major ? 'h-3 bg-white/30' : 'h-1.5 bg-white/12'} w-px`} />
+                    {major && h < 24 && (
+                      <div className="mm-mono mm-tabular text-[8px] text-white/35 mt-0.5">{pad2(h)}</div>
+                    )}
+                  </div>
+                )
+              })}
             </div>
-            <div
-              className="absolute mm-mono text-[7px] text-emerald-300/70 tracking-widest"
-              style={{ left: `${(23.9 / 24) * 100}%`, transform: 'translateX(-100%)' }}
-            >
-              末班 23:55
+            <DensityBand bins={96} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} />
+            <div className="relative h-4 mt-0.5">
+              <div
+                className="absolute mm-mono text-[9px] text-emerald-300/70 tracking-widest whitespace-nowrap"
+                style={{ left: `${sched.firstFrac * 100}%`, transform: 'translateX(-50%)' }}
+              >
+                首班 {sched.first}
+              </div>
+              <div
+                className="absolute mm-mono text-[9px] text-emerald-300/70 tracking-widest whitespace-nowrap"
+                style={{ left: `${sched.lastFrac * 100}%`, transform: 'translateX(-100%)' }}
+              >
+                末班 {sched.last}
+              </div>
             </div>
           </div>
         </div>
