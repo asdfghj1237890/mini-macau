@@ -54,16 +54,19 @@ export default function App() {
   const [vehicleCount, setVehicleCount] = useState(0)
   const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
   const [flightsOn, setFlightsOn] = useState(() => localStorage.getItem(LS_FLIGHTS_KEY) !== '0')
-  const [lrtOn, setLrtOn] = useState<Set<string>>(() => {
+  const lrtSavedRef = useRef<string[] | null>((() => {
     try {
       const raw = localStorage.getItem(LS_LRT_KEY)
       if (raw) {
         const arr = JSON.parse(raw)
-        if (Array.isArray(arr)) return new Set(arr)
+        if (Array.isArray(arr)) return arr as string[]
       }
     } catch { /* ignore */ }
-    return new Set()
-  })
+    return null
+  })())
+  const [lrtOn, setLrtOn] = useState<Set<string>>(() =>
+    lrtSavedRef.current ? new Set(lrtSavedRef.current) : new Set()
+  )
   const lrtInitedRef = useRef(false)
   const initedRef = useRef(false)
 
@@ -71,10 +74,10 @@ export default function App() {
     if (transitData.lrtLines.length === 0) return
     if (lrtInitedRef.current) return
     lrtInitedRef.current = true
-    if (lrtOn.size === 0 && !localStorage.getItem(LS_LRT_KEY)) {
+    if (!lrtSavedRef.current) {
       setLrtOn(new Set(transitData.lrtLines.map(l => l.id)))
     }
-  }, [transitData.lrtLines, lrtOn.size])
+  }, [transitData.lrtLines])
 
   useEffect(() => { localStorage.setItem(LS_TIMEBAR_KEY, showTimeBar ? '1' : '0') }, [showTimeBar])
   useEffect(() => { localStorage.setItem(LS_FLIGHTS_KEY, flightsOn ? '1' : '0') }, [flightsOn])
