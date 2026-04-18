@@ -166,6 +166,10 @@ export default function App() {
     setTrackedVehicleId(vehicle?.id ?? null)
   }, [])
 
+  const onTrackedVehicleUpdate = useCallback((vehicle: VehiclePosition) => {
+    setSelectedVehicle(prev => (prev && prev.id === vehicle.id ? vehicle : prev))
+  }, [])
+
   const onStationClick = useCallback((station: Station | null) => {
     setSelectedStation(station)
     setSelectedVehicle(null)
@@ -209,6 +213,7 @@ export default function App() {
         transitData={filteredTransitData}
         allTransitData={transitData}
         onVehicleClick={onVehicleClick}
+        onTrackedVehicleUpdate={onTrackedVehicleUpdate}
         onStationClick={onStationClick}
         onClearSelection={clearSelection}
         trackedVehicleId={trackedVehicleId}
