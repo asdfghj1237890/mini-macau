@@ -321,7 +321,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
   return (
     <div
       ref={rootRef}
-      className="absolute top-[92px] left-1/2 -translate-x-1/2 z-[90]
+      className="absolute top-[130px] left-1/2 -translate-x-1/2 z-[90]
                  bg-[#0b0b0c] border border-amber-300/25 rounded-sm
                  flex flex-col"
       style={{

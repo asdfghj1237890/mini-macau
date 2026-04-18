@@ -327,12 +327,12 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
                style={{ backgroundColor: color + '22' }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[11px] tracking-[0.25em] text-white/50">LINE</div>
+              <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/50">LINE</div>
               <div className={`mm-han font-bold text-white leading-tight ${lang === 'zh' ? 'text-[16px]' : 'text-[14px]'}`}>{lineLabel}</div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="mm-mono text-[11px] tracking-[0.25em] text-amber-300/70 flex items-center gap-1.5">
+            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-amber-300/70 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-300 mm-led-pulse" />
               {t.towards.toUpperCase()} · BOUND FOR
             </div>
@@ -353,14 +353,14 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
         {/* Stats strip */}
         <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
           <div className="px-3 py-1.5 border-r border-white/8">
-            <div className="mm-mono text-[10px] tracking-[0.25em] text-white/35">SPEED</div>
+            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">SPEED</div>
             <div className="flex items-baseline gap-1">
               <span className="mm-mono mm-tabular text-[16px] font-bold text-white/90 leading-tight">{speed}</span>
               <span className="mm-mono text-[11px] text-white/40">km/h</span>
             </div>
           </div>
           <div className="px-3 py-1.5">
-            <div className="mm-mono text-[10px] tracking-[0.25em] text-white/35">NEXT</div>
+            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">NEXT</div>
             <div className="flex items-baseline gap-1">
               <span className="mm-mono mm-tabular text-[17px] font-bold text-amber-200 leading-tight">{nextETA}</span>
               <span className="mm-mono text-[11px] text-white/40">{nextSub}</span>
@@ -374,9 +374,9 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
             <div className="grid grid-cols-[16px_1fr_54px_54px] gap-0 px-3 py-1.5
                             border-b border-white/5 bg-white/[0.015]">
               <span />
-              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35">STATION · 車站</span>
-              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 text-right">ARR</span>
-              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 text-right">DEP</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">STATION · 車站</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">ARR</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">DEP</span>
             </div>
             <div ref={scrollRef} className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
               {rows.map((r, i) => {

@@ -82,14 +82,14 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
           <div className="px-3 py-2 flex items-center gap-2 border-r border-white/10 bg-sky-400/[0.08]">
             <div className="w-1 h-7 shrink-0 bg-sky-300" />
             <div>
-              <div className="mm-mono text-[11px] tracking-[0.25em] text-white/50">✈ FLIGHT</div>
+              <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/50">✈ FLIGHT</div>
               <div className="mm-mono mm-tabular text-[16px] font-bold text-white leading-tight">
                 {flight.flightNumber}
               </div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="mm-mono text-[11px] tracking-[0.25em] text-sky-300/80 flex items-center gap-1.5">
+            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-sky-300/80 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-sky-300 mm-led-pulse" />
               {isDeparture ? fl.destination.toUpperCase() : fl.origin.toUpperCase()} · {statusLabel}
             </div>
@@ -113,7 +113,7 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
         {/* Stats strip */}
         <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
           <div className="px-3 py-1.5 border-r border-white/8">
-            <div className="mm-mono text-[10px] tracking-[0.25em] text-white/35">
+            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">
               {isDeparture ? fl.departure : fl.arrival}
             </div>
             <div className="mm-mono mm-tabular text-[17px] font-bold text-sky-200 leading-tight">
@@ -121,7 +121,7 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
             </div>
           </div>
           <div className="px-3 py-1.5">
-            <div className="mm-mono text-[10px] tracking-[0.25em] text-white/35">{fl.aircraft}</div>
+            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">{fl.aircraft}</div>
             <div className="mm-mono text-[14px] font-bold text-white/90 leading-tight truncate">
               {flight.aircraftType ?? '—'}
             </div>
@@ -132,7 +132,7 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
         <div className="px-3 py-2 space-y-1">
           {flight.airline.name && (
             <div className="flex items-center justify-between gap-3">
-              <span className="mm-mono text-[11px] tracking-[0.25em] text-white/35">{fl.airline}</span>
+              <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/35">{fl.airline}</span>
               <span className="text-[13px] text-white/80 truncate text-right">
                 {flight.airline.name}
                 {flight.airline.iata && (
@@ -142,7 +142,7 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
             </div>
           )}
           <div className="flex items-center justify-between gap-3">
-            <span className="mm-mono text-[11px] tracking-[0.25em] text-white/35">
+            <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/35">
               {isDeparture ? fl.origin : fl.destination}
             </span>
             <span className="text-[13px] text-white/80">{fl.airport}</span>
@@ -151,10 +151,10 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between">
-          <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 uppercase">
+          <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 uppercase">
             {isDeparture ? 'DEPARTURE · 離境' : 'ARRIVAL · 抵境'}
           </span>
-          <span className={`mm-mono text-[11px] flex items-center gap-1.5 tracking-wider ${isLive ? 'text-sky-300/80' : 'text-white/30'}`}>
+          <span className={`mm-mono text-[11px] max-sm:text-[9px] flex items-center gap-1.5 tracking-wider ${isLive ? 'text-sky-300/80' : 'text-white/30'}`}>
             <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-sky-300 mm-led-pulse' : 'bg-white/25'}`} />
             {isLive ? 'LIVE' : 'SIM'}
           </span>
