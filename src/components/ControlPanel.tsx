@@ -217,6 +217,7 @@ export function ControlPanel({ clock }: Props) {
 
   const isPaused = clock.paused
   const speed = clock.speed
+  const isLive = !isPaused && speed === 1 && Math.abs(now.getTime() - Date.now()) < 3000
 
   // ====================================================
   // PHONE: scrubber on top + 44px play/speed-menu/NOW row
@@ -328,7 +329,7 @@ export function ControlPanel({ clock }: Props) {
   // ====================================================
   if (!expanded) {
     return (
-      <div className="absolute bottom-4 left-4 right-4 z-10 mx-auto mm-fade
+      <div className="mm-ui-scale absolute bottom-4 left-4 right-4 z-10 mx-auto mm-fade
                       landscape:bottom-3" style={{ maxWidth: 480 }}>
         <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
                         shadow-2xl overflow-hidden flex items-center gap-0 px-1 py-1">
@@ -356,8 +357,8 @@ export function ControlPanel({ clock }: Props) {
           >
             <DensityBand bins={48} heightPx={14} showPeaks={false} nowFrac={nowFrac} hoverFrac={hoverFrac} small />
           </div>
-          <div className="mm-mono text-[10px] mm-tabular text-amber-200/90 px-2 flex items-center gap-1 shrink-0">
-            <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />
+          <div className={`mm-mono text-[10px] mm-tabular px-2 flex items-center gap-1 shrink-0 ${isLive ? 'text-amber-200/90' : 'text-white/45'}`}>
+            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
             <span>{hoverLabel ?? nowLabel}</span>
           </div>
           <button
@@ -379,7 +380,7 @@ export function ControlPanel({ clock }: Props) {
   // DESKTOP — expanded: full scrubber with hour axis
   // ====================================================
   return (
-    <div className="absolute bottom-4 left-4 right-4 z-10 mx-auto mm-fade
+    <div className="mm-ui-scale absolute bottom-4 left-4 right-4 z-10 mx-auto mm-fade
                     landscape:bottom-3" style={{ maxWidth: 720 }}>
       <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
                       shadow-2xl overflow-hidden">
@@ -424,9 +425,9 @@ export function ControlPanel({ clock }: Props) {
             <span className="mm-mono text-[9px] tracking-wider">NOW</span>
           </button>
           <div className="flex-1" />
-          <div className="mm-mono mm-tabular text-[9px] text-amber-200/80 pr-2 flex items-center gap-1.5">
-            <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />
-            <span>{hoverLabel ?? `${nowLabel} · NOW`}</span>
+          <div className={`mm-mono mm-tabular text-[9px] pr-2 flex items-center gap-1.5 ${isLive ? 'text-amber-200/80' : 'text-white/40'}`}>
+            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
+            <span>{hoverLabel ?? (isLive ? `${nowLabel} · NOW` : `${nowLabel} · SIM`)}</span>
           </div>
           <button
             type="button"

@@ -41,14 +41,16 @@ html, body, #root {
 * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
 
 /* Desktop: move MapLibre +/- zoom controls to top-left (below hamburger)
-   so the LAYERS panel at top-right doesn't cover them. */
+   so the LAYERS panel at top-right doesn't cover them. Also scale overlay UI 1.3x. */
 @media (min-width: 640px) and (orientation: portrait), (min-width: 640px) and (min-height: 501px) {
   .maplibregl-ctrl-top-right {
     top: auto;
     right: auto;
     left: 0.75rem;
     top: 3.25rem;
+    zoom: 1.3;
   }
+  .mm-ui-scale { zoom: 1.3; }
 }
 
 @supports (padding: env(safe-area-inset-bottom)) {
