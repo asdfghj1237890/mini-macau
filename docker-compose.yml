@@ -1,0 +1,7 @@
+services:
+  mini-macau:
+    image: ghcr.io/asdfghj1237890/mini-macau-rt:latest
+    container_name: mini-macau-rt
+    restart: unless-stopped
+    ports:
+      - "0853:80"

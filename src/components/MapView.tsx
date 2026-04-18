@@ -6,8 +6,12 @@ import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
 import { Flight3DLayer, ALL_FLIGHT_3D_LAYERS } from '../layers/Flight3DLayer'
-import { computeVehiclePositions, getScheduleType } from '../engines/simulationEngine'
+import { computeVehiclePositions, getScheduleType, interpolateOnLine } from '../engines/simulationEngine'
+import length from '@turf/length'
 import { useI18n } from '../i18n'
+import type { BusTracker, RouteRealtimePoller } from '../services/realtimeClient'
+
+const RT_BUILD = import.meta.env.VITE_ENABLE_RT === '1'
 
 const BUILDINGS_SOURCE_ID = 'openfreemap-buildings'
 const BUILDINGS_LAYER_ID = '3d-buildings'
@@ -126,10 +130,21 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const [zoom, setZoom] = useState<number>(MACAU_ZOOM)
   const [menuOpen, setMenuOpen] = useState(false)
   const [rtUnlocked, setRtUnlocked] = useState(() =>
-    typeof window !== 'undefined' && localStorage.getItem('mm_rt_unlocked') === '1')
+    RT_BUILD && typeof window !== 'undefined' && localStorage.getItem('mm_rt_unlocked') === '1')
   const [rtEnabled, setRtEnabled] = useState(() =>
-    typeof window !== 'undefined' && localStorage.getItem('mm_rt_enabled') === '1')
+    RT_BUILD && typeof window !== 'undefined' && localStorage.getItem('mm_rt_enabled') === '1')
   const srcTapsRef = useRef<number[]>([])
+  type RtDirState = {
+    route: BusRoute
+    dir: 0 | 1
+    geometry: GeoJSON.Feature<GeoJSON.LineString>
+    tracker: BusTracker
+    poller: RouteRealtimePoller
+    unsub: () => void
+  }
+  const rtStatesRef = useRef<Map<string, RtDirState>>(new Map())
+  const rtEnabledRef = useRef(rtEnabled)
+  rtEnabledRef.current = rtEnabled
   const { lang, setLang } = useI18n()
   const isDarkRef = useRef(isDark)
   const langRef = useRef(lang)
@@ -152,6 +167,69 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
+
+  const rtDataReady = allTransitData.busRoutes.length > 0 && allTransitData.busStops.length > 0
+  const allTransitSnapshot = { busRoutes: allTransitData.busRoutes, busStops: allTransitData.busStops }
+  const allTransitRefRt = useRef(allTransitSnapshot)
+  allTransitRefRt.current = allTransitSnapshot
+  useEffect(() => {
+    if (!RT_BUILD) return
+    if (!rtEnabled || !rtDataReady) {
+      for (const s of rtStatesRef.current.values()) { s.unsub(); s.poller.stop() }
+      rtStatesRef.current = new Map()
+      return
+    }
+
+    let stopped = false
+    const staggerTimers: number[] = []
+
+    void import('../services/realtimeClient').then(({ RouteRealtimePoller, BusTracker }) => {
+      if (stopped) return
+      const stopMap = new Map(allTransitRefRt.current.busStops.map(s => [s.id, s]))
+      const routes = allTransitRefRt.current.busRoutes
+      const active = new Map<string, RtDirState>()
+      let idx = 0
+
+      for (const route of routes) {
+        const dirs: (0 | 1)[] = route.routeType === 'circular' ? [0] : [0, 1]
+        for (const dir of dirs) {
+          const stopsOrdered = dir === 0 ? route.stops : [...route.stops].reverse()
+          const coords = dir === 0
+            ? route.geometry.geometry.coordinates
+            : [...route.geometry.geometry.coordinates].reverse()
+          const geometry: GeoJSON.Feature<GeoJSON.LineString> = {
+            type: 'Feature',
+            properties: {},
+            geometry: { type: 'LineString', coordinates: coords },
+          }
+          const totalLenKm = length(geometry, { units: 'kilometers' })
+          const stopProgress = stopsOrdered.map(stopId => {
+            const stop = stopMap.get(stopId)
+            if (!stop || totalLenKm <= 0) return 0
+            const projected = nearestPointOnLine(geometry, stop.coordinates, { units: 'kilometers' })
+            return Math.max(0, Math.min(1, (projected.properties.location ?? 0) / totalLenKm))
+          })
+          const tracker = new BusTracker(stopProgress, route.routeType === 'circular')
+          const poller = new RouteRealtimePoller(route.id, dir, 15_000)
+          const unsub = poller.subscribe(obs => { tracker.ingest(obs) })
+          active.set(`${route.id}:${dir}`, { route, dir, geometry, tracker, poller, unsub })
+
+          const delay = idx * 40
+          const t = window.setTimeout(() => { if (!stopped) poller.start() }, delay)
+          staggerTimers.push(t)
+          idx++
+        }
+      }
+      rtStatesRef.current = active
+    })
+
+    return () => {
+      stopped = true
+      for (const t of staggerTimers) clearTimeout(t)
+      for (const s of rtStatesRef.current.values()) { s.unsub(); s.poller.stop() }
+      rtStatesRef.current = new Map()
+    }
+  }, [rtEnabled, rtDataReady])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -515,7 +593,32 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       const map = mapRef.current
       const td = transitRef.current
       if (map && !td.loading && layersAddedRef.current) {
-        const vehicles = computeVehiclePositions(td, clock.timeRef.current)
+        let vehicles = computeVehiclePositions(td, clock.timeRef.current)
+        if (RT_BUILD && rtEnabledRef.current && rtStatesRef.current.size > 0) {
+          const liveRouteIds = new Set<string>()
+          for (const s of rtStatesRef.current.values()) {
+            if (s.tracker.getStates().length > 0) liveRouteIds.add(s.route.id)
+          }
+          if (liveRouteIds.size > 0) {
+            vehicles = vehicles.filter(v => !liveRouteIds.has(v.lineId))
+            const now = Date.now()
+            for (const s of rtStatesRef.current.values()) {
+              for (const state of s.tracker.getStates()) {
+                const p = s.tracker.estimateProgress(state, now)
+                const pos = interpolateOnLine(s.geometry, p)
+                vehicles.push({
+                  id: `${s.route.id}-rt-${s.dir}-${state.plate}`,
+                  lineId: s.route.id,
+                  type: 'bus',
+                  coordinates: pos.coordinates,
+                  bearing: pos.bearing,
+                  progress: p,
+                  color: s.route.color,
+                })
+              }
+            }
+          }
+        }
         vehiclesRef.current = vehicles
         bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
         lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
@@ -784,7 +887,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                   onClick={() => { onToggleTimeBar() }}
                 />
               )}
-              {rtUnlocked && (
+              {RT_BUILD && rtUnlocked && (
                 <DrawerRow
                   code="RT*"
                   label={lang === 'zh' ? '實時巴士 (實驗)' : lang === 'pt' ? 'Bus Tempo Real (β)' : 'Realtime Bus (β)'}
@@ -862,6 +965,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
               <span
                 onClick={() => {
+                  if (!RT_BUILD) return
                   const now = Date.now()
                   const taps = srcTapsRef.current.filter(t => now - t < 2000)
                   taps.push(now)
@@ -881,7 +985,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 }}
                 className="cursor-default select-none"
               >SRC</span>
-              <span className="text-white/55">{rtEnabled ? 'GTFS · RT*' : 'GTFS · SIM'}</span>
+              <span className="text-white/55">{RT_BUILD && rtEnabled ? 'GTFS · RT*' : 'GTFS · SIM'}</span>
             </div>
             <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
               <span>ZOOM</span><span className="mm-tabular text-amber-200/80">{zoom.toFixed(2)}</span>
