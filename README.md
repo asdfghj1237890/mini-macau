@@ -25,7 +25,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, and **MFM a
 - **Trilingual UI** — English / 繁體中文 / Português — flight destinations, station names, and all labels switch with the language
 - **Cyberpunk-styled menu** — Hamburger menu with Orbitron-font title and gradient branding
 - **Responsive mobile UI** — Hamburger menu for map controls, compact legend buttons (LRT/Bus), optimized touch layout with safe-area support
-- **Lazy loading** — Code-split panels (RouteSelector, VehicleInfoPanel, StationInfoPanel, FlightInfoPanel) for fast initial load
+- **Lazy loading** — Code-split panels (VehicleInfoPanel, StationInfoPanel, FlightInfoPanel) for fast initial load
 - **Automated flight data** — GitHub Actions workflow scrapes the official Macau Airport timetable daily and optionally cross-verifies against AviationStack API
 
 ## Tech Stack
@@ -135,7 +135,6 @@ mini-macau/
 │   │   ├── TimeDisplay.tsx       # Clock + DateTimePicker trigger
 │   │   ├── DateTimePicker.tsx    # Date/time selection overlay
 │   │   ├── LineLegend.tsx        # LRT/Bus/Flight legend (desktop + mobile)
-│   │   ├── RouteSelector.tsx     # Bus route group toggles
 │   │   ├── VehicleInfoPanel.tsx  # Vehicle detail + ETA
 │   │   ├── StationInfoPanel.tsx  # Station detail + next arrivals
 │   │   └── FlightInfoPanel.tsx   # Flight detail panel
