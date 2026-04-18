@@ -47,7 +47,7 @@ const ENG_X = 48
 const ENG_Y = WING_Y + 8
 
 const IS_MOBILE = window.matchMedia('(max-width: 639px)').matches
-const MIN_ZOOM = IS_MOBILE ? 11 : 12
+const MIN_ZOOM = IS_MOBILE ? 14.5 : 15.6
 const M_PER_DEG = 111320
 
 type PartKind = 'fuselage' | 'wing' | 'tail' | 'engine' | 'vtail' | 'window' | 'nose'
@@ -141,21 +141,44 @@ function htailPolygon(lng: number, lat: number, b: number, side: 1 | -1, sc = 1)
   ]
 }
 
-function vtailPolygon(lng: number, lat: number, b: number, sc = 1): [number, number][] {
-  const t = xf(lng, lat, b, sc)
-  const rootFwd = VTAIL_Y + VTAIL_ROOT / 2
-  const tipFwd = VTAIL_Y + VTAIL_TIP_CHORD / 2 - 24
-  const tipAft = VTAIL_Y - VTAIL_TIP_CHORD / 2 - 12
+const VTAIL_SLICES = 24
 
-  return [
-    t(-4, rootFwd),
-    t(4, rootFwd),
-    t(3, tipFwd),
-    t(2, tipAft),
-    t(-2, tipAft),
-    t(-3, tipFwd),
-    t(-4, rootFwd),
-  ]
+function vtailSlices(
+  lng: number, lat: number, b: number, sc = 1,
+  baseAlt: number, topAlt: number,
+): { coords: [number, number][]; baseM: number; heightM: number }[] {
+  const rootFwd = VTAIL_Y + VTAIL_ROOT / 2
+  const rootAft = VTAIL_Y - VTAIL_ROOT / 2
+  const rootHalfW = 3.5
+  const tipHalfW = 0.6
+  const tipFwd = VTAIL_Y + VTAIL_TIP_CHORD / 2 - 18
+  const tipAft = VTAIL_Y - VTAIL_TIP_CHORD / 2 - 8
+  const sliceH = (topAlt - baseAlt) / VTAIL_SLICES
+  const slices: { coords: [number, number][]; baseM: number; heightM: number }[] = []
+
+  for (let i = 0; i < VTAIL_SLICES; i++) {
+    const t0 = i / VTAIL_SLICES
+    const t1 = (i + 1) / VTAIL_SLICES
+    const tMid = (t0 + t1) / 2
+
+    const hw = rootHalfW + (tipHalfW - rootHalfW) * tMid
+    const fwd = rootFwd + (tipFwd - rootFwd) * tMid
+    const aft = rootAft + (tipAft - rootAft) * tMid
+
+    const t = xf(lng, lat, b, sc)
+    slices.push({
+      coords: [
+        t(-hw, fwd),
+        t(hw, fwd),
+        t(hw, aft),
+        t(-hw, aft),
+        t(-hw, fwd),
+      ],
+      baseM: baseAlt + i * sliceH,
+      heightM: baseAlt + (i + 1) * sliceH,
+    })
+  }
+  return slices
 }
 
 function enginePolygon(lng: number, lat: number, b: number, side: 1 | -1, sc = 1): [number, number][] {
@@ -256,8 +279,9 @@ function buildFlightFeatures(flights: VehiclePosition[]): FF[] {
         alt + bh * 0.65, alt + bh * 0.8))
     }
 
-    out.push(mk(vtailPolygon(lng, lat, b, sc), 'vtail', c, id,
-      alt + bh, alt + bh + vh))
+    for (const slice of vtailSlices(lng, lat, b, sc, alt + bh, alt + bh + vh)) {
+      out.push(mk(slice.coords, 'vtail', c, id, slice.baseM, slice.heightM))
+    }
 
     for (const side of [-1, 1] as const) {
       out.push(mk(enginePolygon(lng, lat, b, side, sc), 'engine', c, id,

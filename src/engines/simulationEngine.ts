@@ -184,6 +184,7 @@ const FLIGHT_COLOR = '#38bdf8'
 const DEG_PER_KM_LAT = 1 / 111.32
 
 const APRON_STANDS: [number, number][] = [
+  [113.57296247130137, 22.155734815822715],
   [113.5735298224446, 22.156080223561954],
   [113.57405681042064, 22.15623040046111],
   [113.57465381777813, 22.15658536340373],
@@ -191,9 +192,31 @@ const APRON_STANDS: [number, number][] = [
   [113.57545351284965, 22.157534202263445],
   [113.57578149837322, 22.158131489627372],
   [113.57611685435795, 22.158680991762665],
+  [113.57615714826129, 22.159292084371216],
+  [113.57634435144236, 22.159958431996046],
+  [113.57662402849351, 22.160693708475325],
+  [113.57685408539844, 22.161487468535842],
 ]
-const APRON_TARGET: [number, number] = [113.56823689628482, 22.16647817410933]
-const APRON_LOOKAHEAD_MINUTES = 120
+const APRON_TARGET: [number, number] = [113.56229310185826, 22.167971582336254]
+const APRON_LOOKAHEAD_MINUTES = 240
+const TAXI_MINUTES = 5
+
+type TaxiWaypoint = { pos: [number, number]; noseTarget: [number, number] }
+
+const TAXI_ROUTE_SOUTH: TaxiWaypoint[] = [
+  { pos: [113.57846893201933, 22.161205178260285], noseTarget: [113.5861293203778, 22.163669348178995] },
+  { pos: [113.5861293203778, 22.163669348178995], noseTarget: [113.59651483316301, 22.135547426147557] },
+]
+const TAKEOFF_SOUTH: [number, number] = [113.59651483316301, 22.135547426147557]
+
+const TAXI_ROUTE_NORTH: TaxiWaypoint[] = [
+  { pos: [113.57665948112424, 22.15577473693072], noseTarget: [113.59027110500244, 22.14725668004919] },
+  { pos: [113.59027110500244, 22.14725668004919], noseTarget: [113.59458354434732, 22.135724664946018] },
+  { pos: [113.59458354434732, 22.135724664946018], noseTarget: [113.59584660181989, 22.134955830373045] },
+  { pos: [113.59584660181989, 22.134955830373045], noseTarget: [113.59659541446433, 22.135281749889227] },
+  { pos: [113.59659541446433, 22.135281749889227], noseTarget: [113.5857744315255, 22.164838365489818] },
+]
+const TAKEOFF_NORTH: [number, number] = [113.5857744315255, 22.164838365489818]
 
 function bearingTo(fromLon: number, fromLat: number, toLon: number, toLat: number): number {
   const dLon = (toLon - fromLon) * Math.PI / 180
@@ -202,6 +225,60 @@ function bearingTo(fromLon: number, fromLat: number, toLon: number, toLat: numbe
   const y = Math.sin(dLon) * Math.cos(lat2)
   const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon)
   return ((Math.atan2(y, x) * 180 / Math.PI) + 360) % 360
+}
+
+function isSouthbound(bearing: number): boolean {
+  return bearing >= 90 && bearing < 270
+}
+
+function distDeg(a: [number, number], b: [number, number]): number {
+  const dLon = a[0] - b[0], dLat = a[1] - b[1]
+  return Math.sqrt(dLon * dLon + dLat * dLat)
+}
+
+function buildTaxiPath(apronPos: [number, number], route: TaxiWaypoint[], takeoffPt: [number, number]): [number, number][] {
+  return [apronPos, ...route.map(w => w.pos), takeoffPt]
+}
+
+function taxiPathTotalDist(path: [number, number][]): number {
+  let d = 0
+  for (let i = 1; i < path.length; i++) d += distDeg(path[i - 1], path[i])
+  return d
+}
+
+function interpolateTaxiPath(
+  path: [number, number][],
+  route: TaxiWaypoint[],
+  t: number,
+): { pos: [number, number]; bearing: number } {
+  const totalDist = taxiPathTotalDist(path)
+  let targetDist = t * totalDist
+  for (let i = 1; i < path.length; i++) {
+    const segDist = distDeg(path[i - 1], path[i])
+    if (targetDist <= segDist || i === path.length - 1) {
+      const segT = segDist > 0 ? Math.min(1, targetDist / segDist) : 0
+      const lon = path[i - 1][0] + (path[i][0] - path[i - 1][0]) * segT
+      const lat = path[i - 1][1] + (path[i][1] - path[i - 1][1]) * segT
+
+      let bearing: number
+      if (i - 1 === 0) {
+        bearing = route.length > 0
+          ? bearingTo(lon, lat, route[0].noseTarget[0], route[0].noseTarget[1])
+          : bearingTo(path[0][0], path[0][1], path[1][0], path[1][1])
+      } else {
+        const waypointIdx = i - 2
+        if (waypointIdx >= 0 && waypointIdx < route.length) {
+          bearing = bearingTo(lon, lat, route[waypointIdx].noseTarget[0], route[waypointIdx].noseTarget[1])
+        } else {
+          bearing = bearingTo(path[i - 1][0], path[i - 1][1], path[i][0], path[i][1])
+        }
+      }
+      return { pos: [lon, lat], bearing }
+    }
+    targetDist -= segDist
+  }
+  const last = path[path.length - 1]
+  return { pos: last, bearing: bearingTo(path[path.length - 2][0], path[path.length - 2][1], last[0], last[1]) }
 }
 
 function computeFlightVehicles(
@@ -214,9 +291,12 @@ function computeFlightVehicles(
     .filter(f => f.type === 'departure')
     .sort((a, b) => a.scheduledTime - b.scheduledTime)
 
+  const taxiStart = TAXI_MINUTES
+  const apronEnd = APRON_LOOKAHEAD_MINUTES
+
   const pendingDepartures = departures.filter(f => {
-    const untilDepart = f.scheduledTime - nowMinutes
-    return untilDepart > 0 && untilDepart <= APRON_LOOKAHEAD_MINUTES
+    const until = f.scheduledTime - nowMinutes
+    return until > taxiStart && until <= apronEnd
   })
 
   for (let i = 0; i < pendingDepartures.length && i < APRON_STANDS.length; i++) {
@@ -239,17 +319,49 @@ function computeFlightVehicles(
 
   for (const flight of flights) {
     if (flight.type === 'departure') {
+      const until = flight.scheduledTime - nowMinutes
       const elapsed = nowMinutes - flight.scheduledTime
+
+      if (until > 0 && until <= taxiStart) {
+        const destBearing = flight.destination?.bearing ?? 0
+        const southbound = isSouthbound(destBearing)
+        const route = southbound ? TAXI_ROUTE_SOUTH : TAXI_ROUTE_NORTH
+        const takeoffPt = southbound ? TAKEOFF_SOUTH : TAKEOFF_NORTH
+
+        const apronPos = APRON_STANDS[0]
+        const path = buildTaxiPath(apronPos, route, takeoffPt)
+        const t = 1 - until / taxiStart
+
+        const { pos, bearing } = interpolateTaxiPath(path, route, t)
+
+        vehicles.push({
+          id: flight.id,
+          lineId: flight.flightNumber,
+          type: 'flight',
+          coordinates: pos,
+          bearing,
+          progress: 0,
+          color: FLIGHT_COLOR,
+          altitude: 0,
+          scale: 0.25,
+          flightData: flight,
+        })
+        continue
+      }
+
       if (elapsed < 0 || elapsed > FLIGHT_VISIBLE_MINUTES) continue
       const progress = Math.max(0, Math.min(1, elapsed / FLIGHT_VISIBLE_MINUTES))
 
-      const airport = flight.destination
-      const bearingDeg = airport?.bearing ?? 0
-      const bearingRad = (bearingDeg * Math.PI) / 180
+      const destBearing = flight.destination?.bearing ?? 0
+      const southbound = isSouthbound(destBearing)
+      const takeoffPt = southbound ? TAKEOFF_SOUTH : TAKEOFF_NORTH
+      const flyBearing = southbound ? destBearing : destBearing
+
+      const bearingRad = (flyBearing * Math.PI) / 180
       const dist = progress * FLIGHT_MAX_DISTANCE_KM
-      const degPerKmLon = DEG_PER_KM_LAT / Math.cos((MFM_LAT * Math.PI) / 180)
-      const lat = MFM_LAT + Math.cos(bearingRad) * dist * DEG_PER_KM_LAT
-      const lon = MFM_LON + Math.sin(bearingRad) * dist * degPerKmLon
+      const degPerKmLon = DEG_PER_KM_LAT / Math.cos((takeoffPt[1] * Math.PI) / 180)
+      const lat = takeoffPt[1] + Math.cos(bearingRad) * dist * DEG_PER_KM_LAT
+      const lon = takeoffPt[0] + Math.sin(bearingRad) * dist * degPerKmLon
       const altitude = progress * FLIGHT_MAX_ALTITUDE_M
 
       vehicles.push({
@@ -257,7 +369,7 @@ function computeFlightVehicles(
         lineId: flight.flightNumber,
         type: 'flight',
         coordinates: [lon, lat],
-        bearing: bearingDeg,
+        bearing: flyBearing,
         progress,
         color: FLIGHT_COLOR,
         altitude,
