@@ -328,7 +328,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
         animation: 'mm-pop-in 160ms cubic-bezier(0.2,0.8,0.2,1)',
         boxShadow: '0 18px 52px rgba(0,0,0,0.75)',
         zoom: 1.2,
-        maxHeight: 'calc((100vh - 260px) / 1.2)',
+        maxHeight: 'calc((100vh - 340px) / 1.2)',
       }}
     >
       <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 bg-amber-300/[0.04] shrink-0">
