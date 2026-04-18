@@ -13,11 +13,18 @@ const FlightInfoPanel = lazy(() => import('./components/FlightInfoPanel').then(m
 
 const LS_KEY = 'mini-macau-visible-routes'
 
-function isRouteInService(route: BusRoute, hour: number): boolean {
+// Keep a route considered in-service for up to SERVICE_TAIL_MIN past its
+// scheduled end, so buses still finishing their last trip don't vanish.
+const SERVICE_TAIL_MIN = 60
+
+function isRouteInService(route: BusRoute, hour: number, minute: number = 0): boolean {
+  const nowMin = hour * 60 + minute
+  const startMin = route.serviceHoursStart * 60
+  const endWithTail = route.serviceHoursEnd * 60 + SERVICE_TAIL_MIN
   if (route.serviceHoursStart <= route.serviceHoursEnd) {
-    return hour >= route.serviceHoursStart && hour < route.serviceHoursEnd
+    return nowMin >= startMin && nowMin < endWithTail
   }
-  return hour >= route.serviceHoursStart || hour < route.serviceHoursEnd
+  return nowMin >= startMin || nowMin < endWithTail % 1440
 }
 
 function loadSavedRoutes(): string[] | null {
@@ -84,6 +91,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_LRT_KEY, JSON.stringify([...lrtOn])) }, [lrtOn])
 
   const currentHour = clock.currentTime.getHours()
+  const currentMinute = clock.currentTime.getMinutes()
 
   useEffect(() => {
     if (transitData.busRoutes.length === 0) return
@@ -102,11 +110,11 @@ export default function App() {
     if (isAutoMode) {
       setVisibleRoutes(new Set(
         transitData.busRoutes
-          .filter(r => isRouteInService(r, currentHour))
+          .filter(r => isRouteInService(r, currentHour, currentMinute))
           .map(r => r.id)
       ))
     }
-  }, [transitData.busRoutes.length, currentHour, isAutoMode])
+  }, [transitData.busRoutes.length, currentHour, currentMinute, isAutoMode])
 
   const filteredTransitData = useMemo(() => ({
     ...transitData,

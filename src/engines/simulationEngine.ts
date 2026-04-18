@@ -127,22 +127,34 @@ function computeBusVehicles(
   const vehicles: VehiclePosition[] = []
 
   for (const route of busRoutes) {
-    if (nowMinutes < route.serviceHoursStart * 60 || nowMinutes > route.serviceHoursEnd * 60) continue
     if (!route.geometry?.geometry?.coordinates?.length) continue
 
     const totalLen = getLineLength(route.geometry)
     if (totalLen < 0.01) continue
 
     const tripDuration = totalLen < 5 ? 30 : 60
-    const minutesSinceStart = nowMinutes - route.serviceHoursStart * 60
-    const numVehicles = Math.max(1, Math.floor(tripDuration / route.frequency))
-
     const isCircular = route.routeType === 'circular'
+    const cycleTime = isCircular ? tripDuration : tripDuration * 2
+
+    const startMin = route.serviceHoursStart * 60
+    const endMin = route.serviceHoursEnd * 60
+    // Allow buses to finish their last cycle past endMin.
+    if (nowMinutes < startMin || nowMinutes > endMin + cycleTime) continue
+
+    const minutesSinceStart = nowMinutes - startMin
+    const numVehicles = Math.max(1, Math.floor(tripDuration / route.frequency))
 
     for (let v = 0; v < numVehicles; v++) {
       const offset = (v * route.frequency)
       const elapsed = minutesSinceStart - offset
       if (elapsed < 0) continue
+
+      // In the tail period, only keep the bus alive if its current cycle
+      // started at or before endMin — otherwise it was never dispatched.
+      if (nowMinutes > endMin) {
+        const cycleStart = startMin + offset + Math.floor(elapsed / cycleTime) * cycleTime
+        if (cycleStart > endMin) continue
+      }
 
       let progress: number
       if (isCircular) {
