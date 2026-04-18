@@ -138,6 +138,17 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const addCustomLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
 
   useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (e.key === 'Escape') {
+        setMenuOpen(o => !o)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  useEffect(() => {
     if (!containerRef.current) return
 
     const map = new maplibregl.Map({
