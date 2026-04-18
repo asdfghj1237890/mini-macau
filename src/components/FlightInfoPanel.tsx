@@ -1,8 +1,9 @@
-import type { VehiclePosition } from '../types'
-import { useI18n } from '../i18n'
+import type { VehiclePosition, FlightAirport, SimulationClock } from '../types'
+import { useI18n, type Lang } from '../i18n'
 
 interface Props {
   vehicle: VehiclePosition
+  clock: SimulationClock
   onClose: () => void
 }
 
@@ -11,6 +12,12 @@ function formatMinutes(totalMinutes: number): string {
   const h = Math.floor(wrapped / 60)
   const m = Math.floor(wrapped % 60)
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+}
+
+function airportDisplayName(airport: FlightAirport | undefined, lang: Lang): string {
+  if (!airport) return '—'
+  if (lang === 'zh' && airport.nameCn) return airport.nameCn
+  return airport.name || '—'
 }
 
 const FLIGHT_LABELS = {
@@ -52,7 +59,7 @@ const FLIGHT_LABELS = {
   },
 } as const
 
-export function FlightInfoPanel({ vehicle, onClose }: Props) {
+export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
   const { lang } = useI18n()
   const fl = FLIGHT_LABELS[lang]
   const flight = vehicle.flightData
@@ -61,7 +68,7 @@ export function FlightInfoPanel({ vehicle, onClose }: Props) {
   const isDeparture = flight.type === 'departure'
   const airport = isDeparture ? flight.destination : flight.origin
   const statusLabel = isDeparture ? fl.departing : fl.arriving
-  const altitude = (vehicle as { altitudeM?: number }).altitudeM
+  const isLive = !clock.paused && clock.speed === 1 && Math.abs(clock.currentTime.getTime() - Date.now()) < 3000
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
@@ -87,7 +94,7 @@ export function FlightInfoPanel({ vehicle, onClose }: Props) {
               {isDeparture ? fl.destination.toUpperCase() : fl.origin.toUpperCase()} · {statusLabel}
             </div>
             <div className="text-base font-semibold text-sky-100 truncate">
-              {airport?.name ?? '—'}
+              {airportDisplayName(airport, lang)}
               {airport?.iata && (
                 <span className="text-sky-200/60 font-normal text-xs ml-1.5">{airport.iata}</span>
               )}
@@ -104,7 +111,7 @@ export function FlightInfoPanel({ vehicle, onClose }: Props) {
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-3 border-b border-white/8 bg-white/[0.02]">
+        <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
           <div className="px-3 py-1.5 border-r border-white/8">
             <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">
               {isDeparture ? fl.departure : fl.arrival}
@@ -113,19 +120,10 @@ export function FlightInfoPanel({ vehicle, onClose }: Props) {
               {formatMinutes(flight.scheduledTime)}
             </div>
           </div>
-          <div className="px-3 py-1.5 border-r border-white/8">
+          <div className="px-3 py-1.5">
             <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">{fl.aircraft}</div>
             <div className="mm-mono text-[12px] font-bold text-white/90 leading-tight truncate">
               {flight.aircraftType ?? '—'}
-            </div>
-          </div>
-          <div className="px-3 py-1.5">
-            <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">ALT</div>
-            <div className="flex items-baseline gap-1">
-              <span className="mm-mono mm-tabular text-[14px] font-bold text-white/90 leading-tight">
-                {altitude != null ? Math.round(altitude) : '—'}
-              </span>
-              <span className="mm-mono text-[9px] text-white/40">m</span>
             </div>
           </div>
         </div>
@@ -156,8 +154,9 @@ export function FlightInfoPanel({ vehicle, onClose }: Props) {
           <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35 uppercase">
             {isDeparture ? 'DEPARTURE · 離境' : 'ARRIVAL · 抵境'}
           </span>
-          <span className="mm-mono text-[9px] text-sky-300/80 flex items-center gap-1.5 tracking-wider">
-            <span className="w-1 h-1 rounded-full bg-sky-300 mm-led-pulse" />LIVE
+          <span className={`mm-mono text-[9px] flex items-center gap-1.5 tracking-wider ${isLive ? 'text-sky-300/80' : 'text-white/30'}`}>
+            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-sky-300 mm-led-pulse' : 'bg-white/25'}`} />
+            {isLive ? 'LIVE' : 'SIM'}
           </span>
         </div>
       </div>

@@ -30,8 +30,7 @@ import requests
 
 OUTPUT_PATH = Path(__file__).resolve().parent.parent.parent / "public" / "data" / "flights.json"
 
-DEP_URL = "https://www.macau-airport.com/en/flights/timetable/departures"
-ARR_URL = "https://www.macau-airport.com/en/flights/timetable/arrivals"
+_BASE_URL = "https://www.macau-airport.com/{lang}/flights/timetable/{page}"
 
 MFM_LAT = 22.1494
 MFM_LON = 113.5914
@@ -122,22 +121,9 @@ def fetch_page(url: str) -> str:
     return resp.text
 
 
-# HTML structure of each row:
-#   <tr class="detail" id='FLIGHTNO'>
-#     <td class='d-none d-md-table-cell'>Destination</td>
-#     <td>..airline img/link..<span style='display: none'>;XX</span></td>
-#     <td class='d-none d-md-table-cell'>HH:MM</td>
-#     <td class='d-none d-sm-table-cell'>FLIGHTNO</td>
-#     <td class='d-none d-md-table-cell'>AIRCRAFT</td>
-#     <td class='d-none d-lg-table-cell'>YYYY-MM-DD<br/>...<br/>YYYY-MM-DD</td>
-#     ... day-of-week cells ...
-#   </tr>
-
 _ROW_RE = re.compile(r"<tr\s+class=['\"]detail['\"][^>]*>.*?</tr>", re.DOTALL)
-_DEST_RE = re.compile(r"<td class='d-none d-md-table-cell'>([^<]+)</td>")
-_TIME_RE = re.compile(r"<td class='d-none d-md-table-cell'>(\d{2}:\d{2})</td>")
+_MD_CELL_RE = re.compile(r"<td class='d-none d-md-table-cell'>(.*?)</td>", re.DOTALL)
 _FNUM_RE = re.compile(r"<td class='d-none d-sm-table-cell'>([A-Z0-9]+)</td>")
-_ACFT_RE = re.compile(r"<td class='d-none d-md-table-cell'>([A-Z]\w{2,3})</td>")
 _DATE_RE = re.compile(r"<td class='d-none d-lg-table-cell'>(\d{4}-\d{2}-\d{2})<br/>.*?(\d{4}-\d{2}-\d{2})</td>", re.DOTALL)
 _DOW_RE = re.compile(
     r"(\d{4}-\d{2}-\d{2})</td>\s*"
@@ -151,6 +137,8 @@ _DOW_RE = re.compile(
     re.DOTALL,
 )
 
+_ACFT_TOKEN_RE = re.compile(r"^[A-Z0-9]{3,4}$")
+
 
 def _operates_on_weekday(row: str, weekday: int) -> bool:
     """Check if a timetable row operates on the given weekday (Mon=0 .. Sun=6)."""
@@ -162,6 +150,12 @@ def _operates_on_weekday(row: str, weekday: int) -> bool:
 
 
 def parse_timetable_html(html: str, target_date: date) -> list[tuple[str, str, str, str]]:
+    """Extract (time, dest, flight_no, aircraft) tuples from timetable HTML.
+
+    Uses positional extraction: the 3 'd-md-table-cell' columns are always
+    [destination, time, aircraft] in that order. Aircraft is validated against
+    known ICAO/IATA type codes (3-4 uppercase alphanumerics like A320, B38M).
+    """
     results = []
     weekday = target_date.weekday()
 
@@ -179,19 +173,23 @@ def parse_timetable_html(html: str, target_date: date) -> list[tuple[str, str, s
         if not _operates_on_weekday(row, weekday):
             continue
 
-        dest_m = _DEST_RE.search(row)
-        time_m = _TIME_RE.search(row)
+        md_cells = _MD_CELL_RE.findall(row)
         fnum_m = _FNUM_RE.search(row)
-        acft_m = _ACFT_RE.search(row)
 
-        if not (dest_m and time_m and fnum_m):
+        if len(md_cells) < 2 or not fnum_m:
             continue
 
-        dest = dest_m.group(1).strip()
-        time_str = time_m.group(1)
-        flight_no = fnum_m.group(1)
-        aircraft = acft_m.group(1) if acft_m else ""
+        dest = md_cells[0].strip()
+        time_str = md_cells[1].strip()
+        aircraft = md_cells[2].strip() if len(md_cells) >= 3 else ""
 
+        if not re.match(r"\d{2}:\d{2}$", time_str):
+            continue
+
+        if aircraft and not _ACFT_TOKEN_RE.match(aircraft):
+            aircraft = ""
+
+        flight_no = fnum_m.group(1)
         results.append((time_str, dest, flight_no, aircraft))
 
     return results
@@ -208,7 +206,14 @@ def resolve_iata(dest_name: str) -> str:
     return iata
 
 
-def build_flight(time_str: str, place_name: str, flight_no: str, aircraft: str, flight_type: str) -> dict:
+def build_flight(
+    time_str: str,
+    place_name: str,
+    flight_no: str,
+    aircraft: str,
+    flight_type: str,
+    name_cn: str = "",
+) -> dict:
     h, m = map(int, time_str.split(":"))
     scheduled = h * 60 + m
 
@@ -220,7 +225,10 @@ def build_flight(time_str: str, place_name: str, flight_no: str, aircraft: str, 
     else:
         bearing = 0 if flight_type == "departure" else 180
 
-    airport_data = {"iata": iata, "name": place_name, "bearing": bearing}
+    airport_data: dict = {"iata": iata, "name": place_name, "bearing": bearing}
+    if name_cn:
+        airport_data["nameCn"] = name_cn
+
     prefix = "dep" if flight_type == "departure" else "arr"
     fid = f"{flight_no}-{prefix}-{scheduled:04d}"
 
@@ -373,6 +381,38 @@ def cross_verify(flights: list[dict], api_key: str) -> None:
     print("=" * 60)
 
 
+def _build_cn_mapping(target_date: date) -> dict[str, str]:
+    """Fetch Chinese timetable pages and build {english_name: chinese_name} mapping."""
+    mapping: dict[str, str] = {}
+    en_by_fnum: dict[str, str] = {}
+    zh_by_fnum: dict[str, str] = {}
+
+    for page in ("departures", "arrivals"):
+        en_html = fetch_page(_BASE_URL.format(lang="en", page=page))
+        zh_html = fetch_page(_BASE_URL.format(lang="zh", page=page))
+
+        for row_match in _ROW_RE.finditer(en_html):
+            row = row_match.group(0)
+            cells = _MD_CELL_RE.findall(row)
+            fnum_m = _FNUM_RE.search(row)
+            if cells and fnum_m:
+                en_by_fnum[fnum_m.group(1)] = cells[0].strip()
+
+        for row_match in _ROW_RE.finditer(zh_html):
+            row = row_match.group(0)
+            cells = _MD_CELL_RE.findall(row)
+            fnum_m = _FNUM_RE.search(row)
+            if cells and fnum_m:
+                zh_by_fnum[fnum_m.group(1)] = cells[0].strip()
+
+    for fnum, en_name in en_by_fnum.items():
+        zh_name = zh_by_fnum.get(fnum, "")
+        if en_name and zh_name and en_name not in mapping:
+            mapping[en_name] = zh_name
+
+    return mapping
+
+
 def main():
     if len(sys.argv) > 1:
         target_date = date.fromisoformat(sys.argv[1])
@@ -381,13 +421,20 @@ def main():
 
     print(f"Target date: {target_date}")
 
+    print("Building Chinese name mapping...")
+    cn_map = _build_cn_mapping(target_date)
+    print(f"  Mapped {len(cn_map)} destination names")
+
+    dep_url = _BASE_URL.format(lang="en", page="departures")
+    arr_url = _BASE_URL.format(lang="en", page="arrivals")
+
     print("Fetching MFM departures timetable...")
-    dep_html = fetch_page(DEP_URL)
+    dep_html = fetch_page(dep_url)
     dep_rows = parse_timetable_html(dep_html, target_date)
     print(f"  Found {len(dep_rows)} active departure entries")
 
     print("Fetching MFM arrivals timetable...")
-    arr_html = fetch_page(ARR_URL)
+    arr_html = fetch_page(arr_url)
     arr_rows = parse_timetable_html(arr_html, target_date)
     print(f"  Found {len(arr_rows)} active arrival entries")
 
@@ -395,13 +442,13 @@ def main():
     seen_ids: set[str] = set()
 
     for time_str, dest, fno, acft in dep_rows:
-        f = build_flight(time_str, dest, fno, acft, "departure")
+        f = build_flight(time_str, dest, fno, acft, "departure", cn_map.get(dest, ""))
         if f["id"] not in seen_ids:
             flights.append(f)
             seen_ids.add(f["id"])
 
     for time_str, orig, fno, acft in arr_rows:
-        f = build_flight(time_str, orig, fno, acft, "arrival")
+        f = build_flight(time_str, orig, fno, acft, "arrival", cn_map.get(orig, ""))
         if f["id"] not in seen_ids:
             flights.append(f)
             seen_ids.add(f["id"])

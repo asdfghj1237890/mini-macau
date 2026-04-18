@@ -59,6 +59,7 @@ export interface Trip {
 export interface FlightAirport {
   iata: string
   name: string
+  nameCn?: string
   bearing: number
 }
 
