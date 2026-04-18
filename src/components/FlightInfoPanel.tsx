@@ -66,7 +66,8 @@ export function FlightInfoPanel({ vehicle, onClose }: Props) {
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
                     max-sm:top-auto max-sm:bottom-[72px] max-sm:left-2 max-sm:right-2 max-sm:w-auto
-                    landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]">
+                    landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]"
+         style={{ zoom: 1.2 }}>
       <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
                       shadow-2xl shadow-black/60 overflow-hidden mm-fade">
         {/* Header signboard */}
