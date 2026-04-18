@@ -535,7 +535,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             const viaductId = `lrt-viaduct-${line.id}`
             if (!map.getLayer(layerId)) continue
             const win = cache.map.get(line.id) ?? null
-            const inService = win ? nowMinutes >= win[0] && nowMinutes <= win[1] : true
+            const inService = win
+              ? (nowMinutes >= win[0] && nowMinutes <= win[1]) ||
+                (nowMinutes + 1440 >= win[0] && nowMinutes + 1440 <= win[1])
+              : true
             const prev = serviceStatusRef.current.get(layerId)
             if (prev !== inService) {
               serviceStatusRef.current.set(layerId, inService)

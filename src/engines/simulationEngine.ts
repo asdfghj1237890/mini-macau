@@ -65,7 +65,12 @@ function computeLRTVehicles(
 
     const firstArr = entries[0].arrivalMinutes
     const lastDep = entries[entries.length - 1].departureMinutes ?? entries[entries.length - 1].arrivalMinutes
-    if (nowMinutes < firstArr || nowMinutes > lastDep) continue
+
+    let effective = nowMinutes
+    if (nowMinutes < firstArr && nowMinutes + 1440 >= firstArr && nowMinutes + 1440 <= lastDep) {
+      effective = nowMinutes + 1440
+    }
+    if (effective < firstArr || effective > lastDep) continue
 
     let overallProgress: number | null = null
 
@@ -73,7 +78,7 @@ function computeLRTVehicles(
       const e = entries[i]
       const dep = e.departureMinutes ?? e.arrivalMinutes
 
-      if (nowMinutes >= e.arrivalMinutes && nowMinutes <= dep) {
+      if (effective >= e.arrivalMinutes && effective <= dep) {
         const key = `${trip.lineId}:${e.stationId}`
         overallProgress = stationProgressMap.get(key)?.progress ?? (i / (entries.length - 1))
         break
@@ -81,10 +86,10 @@ function computeLRTVehicles(
 
       if (i < entries.length - 1) {
         const next = entries[i + 1]
-        if (nowMinutes > dep && nowMinutes < next.arrivalMinutes) {
+        if (effective > dep && effective < next.arrivalMinutes) {
           const travelDuration = next.arrivalMinutes - dep
           const segProgress = travelDuration > 0
-            ? (nowMinutes - dep) / travelDuration
+            ? (effective - dep) / travelDuration
             : 0
 
           const fromKey = `${trip.lineId}:${e.stationId}`
