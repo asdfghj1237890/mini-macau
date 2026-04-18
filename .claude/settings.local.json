@@ -27,7 +27,9 @@
       "Bash(cp /tmp/v1-platform.jsx \"C:/Users/TOMMY/AppData/Local/Temp/v1-platform.jsx\")",
       "Bash(cp /tmp/v1-controlbar.jsx \"C:/Users/TOMMY/AppData/Local/Temp/v1-controlbar.jsx\")",
       "Bash(cp /tmp/time-picker.jsx \"C:/Users/TOMMY/AppData/Local/Temp/time-picker.jsx\")",
-      "Bash(cp /tmp/shell.jsx \"C:/Users/TOMMY/AppData/Local/Temp/shell.jsx\")"
+      "Bash(cp /tmp/shell.jsx \"C:/Users/TOMMY/AppData/Local/Temp/shell.jsx\")",
+      "WebSearch",
+      "WebFetch(domain:bis.dsat.gov.mo)"
     ]
   }
 }

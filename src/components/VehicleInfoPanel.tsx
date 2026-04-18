@@ -68,7 +68,6 @@ function computeBusStopETAs(
   const cache = getBusRouteCache(route, busStopMap)
   if (cache.totalLenKm < 0.01) return []
   const tripDuration = cache.totalLenKm < 5 ? 30 : 60
-  const isCircular = route.routeType === 'circular'
 
   const liveProgress = vehicle.progress
   const returning = computeLiveBusDirection(vehicle, route, cache.totalLenKm, nowMinutes)
@@ -97,9 +96,6 @@ function computeBusStopETAs(
     let delta: number
     if (returning) {
       delta = liveProgress - effectiveProg
-    } else if (isCircular) {
-      delta = effectiveProg - liveProgress
-      if (delta < -0.005) delta += 1
     } else {
       delta = effectiveProg - liveProgress
     }
