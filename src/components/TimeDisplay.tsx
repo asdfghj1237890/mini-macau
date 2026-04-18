@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import type { SimulationClock } from '../types'
 import { useI18n } from '../i18n'
 import { getScheduleType } from '../engines/simulationEngine'
@@ -9,36 +9,41 @@ interface Props {
   vehicleCount?: number
 }
 
-const SCHEDULE_LABELS = {
-  mon_thu: 'scheduleMonThu',
-  friday: 'scheduleFriday',
-  sat_sun: 'scheduleSatSun',
+const SCHEDULE_EN = {
+  mon_thu: 'MON–THU',
+  friday: 'FRIDAY',
+  sat_sun: 'SAT–SUN',
 } as const
 
-const WEEKDAY_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const WEEKDAY_EN = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const WEEKDAY_ZH = ['日', '一', '二', '三', '四', '五', '六']
-const WEEKDAY_PT = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
+const WEEKDAY_PT = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB']
+const ZH_WEEKDAY_PREFIX = '週'
 
 function pad2(n: number) { return String(n).padStart(2, '0') }
 
 export function TimeDisplay({ clock, vehicleCount }: Props) {
   const { lang, t } = useI18n()
   const [open, setOpen] = useState(false)
+  const phoneRef = useRef<HTMLButtonElement>(null)
+  const deskRef = useRef<HTMLButtonElement>(null)
   const time = clock.currentTime
 
-  const y = time.getFullYear()
+  const yr = time.getFullYear()
   const mo = time.getMonth() + 1
   const d = time.getDate()
   const dow = lang === 'zh'
-    ? `週${WEEKDAY_ZH[time.getDay()]}`
+    ? `${ZH_WEEKDAY_PREFIX}${WEEKDAY_ZH[time.getDay()]}`
     : lang === 'pt'
       ? WEEKDAY_PT[time.getDay()]
       : WEEKDAY_EN[time.getDay()]
+  const dowShort = lang === 'zh' ? WEEKDAY_ZH[time.getDay()] : dow
 
   const h = pad2(time.getHours())
   const m = pad2(time.getMinutes())
   const s = pad2(time.getSeconds())
-  const scheduleLabel = t[SCHEDULE_LABELS[getScheduleType(time)]]
+  const sched = SCHEDULE_EN[getScheduleType(time)]
+  const schedLabel = t[`schedule${getScheduleType(time) === 'mon_thu' ? 'MonThu' : getScheduleType(time) === 'friday' ? 'Friday' : 'SatSun'}` as const]
 
   const handleApply = useCallback((newDate: Date) => {
     clock.setTime(newDate)
@@ -46,46 +51,101 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
   }, [clock])
 
   return (
-    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center
-                    max-sm:top-2 landscape:top-2">
-      <div className="bg-black/70 backdrop-blur-sm rounded-xl px-5 py-2
-                      border border-white/20 text-center
-                      max-sm:px-3 max-sm:py-1.5 landscape:px-3 landscape:py-1">
-        <button
-          onClick={() => setOpen(prev => !prev)}
-          className="text-white font-mono font-bold tracking-wider text-lg
-                     max-sm:text-sm landscape:text-sm
-                     hover:text-blue-300 transition-colors cursor-pointer"
-          title={t.clickToSetTime}
-        >
-          <span className="text-white/60">{y}/{pad2(mo)}/{pad2(d)}</span>
-          {' '}
-          <span className="text-white/40">{dow}</span>
-          {' '}
-          <span>{h}:{m}:{s}</span>
-        </button>
+    <>
+      {/* Phone: compact inline chip next to hamburger. */}
+      <button
+        ref={phoneRef}
+        onClick={() => setOpen(p => !p)}
+        title={t.clickToSetTime}
+        aria-label={t.clickToSetTime}
+        className="sm:hidden absolute top-[50px] left-[52px] z-30
+                   h-9 flex items-stretch bg-[#0a0a0b]
+                   border border-amber-300/25 overflow-hidden
+                   hover:border-amber-300/50 active:bg-amber-300/5 transition
+                   shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+      >
+        <div className="flex flex-col justify-center px-2 bg-amber-300/[0.05] border-r border-amber-300/15">
+          <span className="mm-mono mm-tabular text-[7px] leading-none tracking-[0.2em] text-amber-300/60">
+            {pad2(mo)}·{pad2(d)}
+          </span>
+          <span className="mm-mono text-[7px] leading-none tracking-[0.2em] text-white/40 mt-[2px]">
+            {lang === 'zh' ? WEEKDAY_ZH[time.getDay()] : WEEKDAY_EN[time.getDay()]}
+          </span>
+        </div>
+        <div className="flex items-center gap-[2px] px-2 bg-gradient-to-b from-[#131314] to-[#0a0a0b]">
+          <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-200">{h}</span>
+          <span className="mm-mono font-bold text-[14px] leading-none text-amber-300/70 mm-colon-blink relative -top-[1px]">:</span>
+          <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-200">{m}</span>
+          <span className="mm-mono mm-tabular text-[9px] leading-none text-amber-300/50 ml-0.5">:{s}</span>
+        </div>
+        <div className="flex items-center px-1.5 bg-white/[0.02] border-l border-white/8">
+          <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />
+        </div>
+      </button>
 
-        <div className="flex items-center justify-center gap-3 text-xs mt-0.5
-                        max-sm:gap-2 max-sm:text-[10px] landscape:text-[10px]">
-          <span className="text-amber-300/80">{scheduleLabel}</span>
+      {/* Tablet / Desktop: split-flap departure-board clock centered top. */}
+      <button
+        ref={deskRef}
+        onClick={() => setOpen(p => !p)}
+        title={t.clickToSetTime}
+        aria-label={t.clickToSetTime}
+        className="hidden sm:block absolute top-3 left-1/2 -translate-x-1/2 z-30
+                   text-left bg-[#0a0a0b]/95 backdrop-blur-md
+                   border border-amber-300/25 rounded-sm overflow-hidden
+                   shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+                   hover:border-amber-300/45 transition-colors"
+      >
+        {/* Top meta strip */}
+        <div className="flex items-center justify-between px-3 py-1 bg-amber-300/[0.06] border-b border-amber-300/15 gap-3">
+          <span className="mm-mono mm-tabular text-[9px] tracking-[0.15em] text-amber-200/80">
+            {yr}·{pad2(mo)}·{pad2(d)} · {dowShort}
+          </span>
+          <span className="flex items-center gap-1 mm-mono text-[9px] tracking-[0.2em] text-emerald-300/90">
+            <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />LIVE
+          </span>
+        </div>
+        {/* Split-flap */}
+        <div className="flex items-stretch">
+          <div className="flex items-center justify-center px-2.5 py-1.5
+                          bg-gradient-to-b from-[#131314] to-[#0a0a0b] border-r border-black/40">
+            <span className="mm-mono mm-tabular font-bold text-[40px] leading-none text-amber-200"
+                  style={{ letterSpacing: '0.02em' }}>{h}</span>
+          </div>
+          <div className="flex items-center justify-center px-0.5 bg-[#0a0a0b]">
+            <span className="mm-mono font-bold text-[32px] leading-none text-amber-300/70 mm-colon-blink relative -top-[2px]">:</span>
+          </div>
+          <div className="flex items-center justify-center px-2.5 py-1.5
+                          bg-gradient-to-b from-[#131314] to-[#0a0a0b] border-l border-black/40 border-r border-white/5">
+            <span className="mm-mono mm-tabular font-bold text-[40px] leading-none text-amber-200"
+                  style={{ letterSpacing: '0.02em' }}>{m}</span>
+          </div>
+          <div className="flex flex-col justify-between items-start py-1.5 px-2 bg-[#08080a] min-w-[42px]">
+            <span className="mm-mono text-[8px] tracking-[0.2em] text-white/35">SEC</span>
+            <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-300/80">{s}</span>
+          </div>
+        </div>
+        {/* Bottom schedule strip */}
+        <div className="flex items-center justify-center gap-2 px-3 py-[5px] bg-white/[0.02] border-t border-white/8">
+          <span className="mm-mono text-[9px] tracking-[0.18em] text-white/55 uppercase">
+            {schedLabel} · {sched} TIMETABLE
+          </span>
           {clock.speed !== 1 && (
-            <span className="text-white/60">{clock.speed}x</span>
+            <span className="mm-mono mm-tabular text-[9px] tracking-wider text-amber-300/70">· {clock.speed}×</span>
           )}
           {vehicleCount !== undefined && vehicleCount > 0 && (
-            <span className="text-white/40">{t.vehicles(vehicleCount)}</span>
+            <span className="mm-mono mm-tabular text-[9px] tracking-wider text-white/40">· {vehicleCount}</span>
           )}
         </div>
-      </div>
+      </button>
 
       {open && (
-        <div className="mt-2">
-          <DateTimePicker
-            value={time}
-            onApply={handleApply}
-            onCancel={() => setOpen(false)}
-          />
-        </div>
+        <DateTimePicker
+          value={time}
+          onApply={handleApply}
+          onCancel={() => setOpen(false)}
+          anchorRef={typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches ? phoneRef : deskRef}
+        />
       )}
-    </div>
+    </>
   )
 }
