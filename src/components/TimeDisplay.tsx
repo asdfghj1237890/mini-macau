@@ -81,7 +81,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
           <span className="mm-mono mm-tabular text-[9px] leading-none text-amber-300/50 ml-0.5">:{s}</span>
         </div>
         <div className="flex items-center px-1.5 bg-white/[0.02] border-l border-white/8">
-          <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />
+          <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
         </div>
       </button>
 
