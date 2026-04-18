@@ -190,6 +190,18 @@ export default function App() {
   const toggleFlights = useCallback(() => setFlightsOn(v => !v), [])
   const toggleTimeBar = useCallback(() => setShowTimeBar(v => !v), [])
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      if (e.code === 'Space') {
+        e.preventDefault()
+        clock.togglePause()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [clock.togglePause])
+
   return (
     <div className="relative w-full h-full">
       <MapView
