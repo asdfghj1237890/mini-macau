@@ -238,6 +238,7 @@ export default function App() {
         {selectedVehicle && selectedVehicle.type === 'flight' && (
           <FlightInfoPanel
             vehicle={selectedVehicle}
+            clock={clock}
             onClose={clearSelection}
           />
         )}

@@ -180,8 +180,6 @@ function computeBusVehicles(
   return vehicles
 }
 
-const MFM_LAT = 22.1494
-const MFM_LON = 113.5914
 const FLIGHT_VISIBLE_MINUTES = 15
 const DEPARTURE_CLIMB_MINUTES = 8
 const FLIGHT_MAX_DISTANCE_KM = 30
