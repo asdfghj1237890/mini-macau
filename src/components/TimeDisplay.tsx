@@ -44,6 +44,8 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
   const s = pad2(time.getSeconds())
   const sched = SCHEDULE_EN[getScheduleType(time)]
   const schedLabel = t[`schedule${getScheduleType(time) === 'mon_thu' ? 'MonThu' : getScheduleType(time) === 'friday' ? 'Friday' : 'SatSun'}` as const]
+  const isLive = !clock.paused && clock.speed === 1 && Math.abs(time.getTime() - Date.now()) < 3000
+  const vehUnit = lang === 'zh' ? '輛' : lang === 'pt' ? 'v' : 'veh'
 
   const handleApply = useCallback((newDate: Date) => {
     clock.setTime(newDate)
@@ -89,7 +91,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
         onClick={() => setOpen(p => !p)}
         title={t.clickToSetTime}
         aria-label={t.clickToSetTime}
-        className="hidden sm:block absolute top-3 left-1/2 -translate-x-1/2 z-30
+        className="mm-ui-scale hidden sm:block absolute top-3 left-1/2 -translate-x-1/2 z-30
                    text-left bg-[#0a0a0b]/95 backdrop-blur-md
                    border border-amber-300/25 rounded-sm overflow-hidden
                    shadow-[0_8px_24px_rgba(0,0,0,0.6)]
@@ -100,8 +102,17 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
           <span className="mm-mono mm-tabular text-[9px] tracking-[0.15em] text-amber-200/80">
             {yr}·{pad2(mo)}·{pad2(d)} · {dowShort}
           </span>
-          <span className="flex items-center gap-1 mm-mono text-[9px] tracking-[0.2em] text-emerald-300/90">
-            <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />LIVE
+          <span className="flex items-center gap-2 mm-mono text-[9px] tracking-[0.2em]">
+            {clock.speed !== 1 && (
+              <span className="mm-tabular text-amber-300/70">{clock.speed}×</span>
+            )}
+            {vehicleCount !== undefined && vehicleCount > 0 && (
+              <span className="mm-tabular text-white/45">{vehicleCount}{vehUnit}</span>
+            )}
+            <span className={`flex items-center gap-1 ${isLive ? 'text-emerald-300/90' : 'text-white/30'}`}>
+              <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
+              {isLive ? 'LIVE' : 'SIM'}
+            </span>
           </span>
         </div>
         {/* Split-flap */}
@@ -119,7 +130,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
             <span className="mm-mono mm-tabular font-bold text-[40px] leading-none text-amber-200"
                   style={{ letterSpacing: '0.02em' }}>{m}</span>
           </div>
-          <div className="flex flex-col justify-between items-start py-1.5 px-2 bg-[#08080a] min-w-[42px]">
+          <div className="flex-1 flex flex-col justify-between items-start py-1.5 px-2 bg-[#08080a] min-w-[42px]">
             <span className="mm-mono text-[8px] tracking-[0.2em] text-white/35">SEC</span>
             <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-300/80">{s}</span>
           </div>
@@ -129,12 +140,6 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
           <span className="mm-mono text-[9px] tracking-[0.18em] text-white/55 uppercase">
             {schedLabel} · {sched} TIMETABLE
           </span>
-          {clock.speed !== 1 && (
-            <span className="mm-mono mm-tabular text-[9px] tracking-wider text-amber-300/70">· {clock.speed}×</span>
-          )}
-          {vehicleCount !== undefined && vehicleCount > 0 && (
-            <span className="mm-mono mm-tabular text-[9px] tracking-wider text-white/40">· {vehicleCount}</span>
-          )}
         </div>
       </button>
 

@@ -209,6 +209,7 @@ export default function App() {
         isAutoMode={isAutoMode}
         lrtOn={lrtOn}
         flightsOn={flightsOn}
+        clock={clock}
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
         onToggleRoute={onToggleRoute}
