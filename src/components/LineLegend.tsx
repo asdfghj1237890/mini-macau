@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import type { TransitData } from '../types'
+import type { TransitData, SimulationClock } from '../types'
 import { useI18n, localName } from '../i18n'
 import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS } from '../routeGroups'
 
@@ -13,6 +13,7 @@ interface Props {
   isAutoMode?: boolean
   lrtOn?: Set<string>
   flightsOn?: boolean
+  clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
   onToggleRoute?: (routeId: string) => void
@@ -31,6 +32,7 @@ export function LineLegend({
   isAutoMode,
   lrtOn,
   flightsOn = true,
+  clock,
   onToggleLrt,
   onToggleFlights,
   onToggleRoute,
@@ -99,6 +101,9 @@ export function LineLegend({
   const totalFlightCount = allTransitData?.flights.length ?? flightCount
 
   const isLrtOn = (id: string) => (lrtOn ? lrtOn.has(id) : true)
+  const isLive = clock
+    ? !clock.paused && clock.speed === 1 && Math.abs(clock.currentTime.getTime() - Date.now()) < 3000
+    : true
 
   return (
     <>
@@ -107,7 +112,7 @@ export function LineLegend({
         <button
           type="button"
           onClick={() => setDesktopOpen(true)}
-          className="absolute top-3 right-3 z-20 hidden sm:flex landscape:hidden
+          className="mm-ui-scale absolute top-3 right-3 z-20 hidden sm:flex landscape:hidden
                      bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10
                      hover:border-amber-300/40 shadow-xl px-3 py-2 items-center gap-3 transition"
         >
@@ -133,22 +138,24 @@ export function LineLegend({
           )}
         </button>
       ) : (
-        <div className="absolute top-3 right-3 z-20 hidden sm:block landscape:hidden
+        <div className="mm-ui-scale absolute top-3 right-3 z-20 hidden sm:block landscape:hidden
                         bg-[#0b0b0c]/95 backdrop-blur-md rounded-sm
                         border border-white/10 overflow-hidden w-[240px] shadow-2xl">
           {/* Header */}
           <div className="px-3 py-1 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
             <span className="mm-mono text-[9px] tracking-[0.28em] text-amber-300/75">▤ LAYERS</span>
             <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1 mm-mono text-[9px] tracking-[0.2em] text-emerald-300/80">
-                <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />LIVE
+              <span className={`flex items-center gap-1 mm-mono text-[9px] tracking-[0.2em] ${isLive ? 'text-emerald-300/80' : 'text-white/30'}`}>
+                <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
+                {isLive ? 'LIVE' : 'SIM'}
               </span>
               <button
                 type="button"
                 onClick={() => setDesktopOpen(false)}
                 aria-label="collapse layers panel"
-                className="text-white/40 hover:text-white/90 text-[11px] mm-mono w-5 h-5
-                           flex items-center justify-center leading-none transition"
+                className="text-white/55 hover:text-amber-200 hover:bg-white/5 text-[18px] mm-mono
+                           w-6 h-6 flex items-center justify-center leading-none transition
+                           border border-white/10 hover:border-amber-300/40 rounded-sm"
               >
                 ×
               </button>
