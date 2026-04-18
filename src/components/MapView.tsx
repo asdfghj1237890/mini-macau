@@ -125,6 +125,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const [isDark, setIsDark] = useState(true)
   const [zoom, setZoom] = useState<number>(MACAU_ZOOM)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [rtUnlocked, setRtUnlocked] = useState(() =>
+    typeof window !== 'undefined' && localStorage.getItem('mm_rt_unlocked') === '1')
+  const [rtEnabled, setRtEnabled] = useState(() =>
+    typeof window !== 'undefined' && localStorage.getItem('mm_rt_enabled') === '1')
+  const srcTapsRef = useRef<number[]>([])
   const { lang, setLang } = useI18n()
   const isDarkRef = useRef(isDark)
   const langRef = useRef(lang)
@@ -779,6 +784,20 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                   onClick={() => { onToggleTimeBar() }}
                 />
               )}
+              {rtUnlocked && (
+                <DrawerRow
+                  code="RT*"
+                  label={lang === 'zh' ? '實時巴士 (實驗)' : lang === 'pt' ? 'Bus Tempo Real (β)' : 'Realtime Bus (β)'}
+                  active={rtEnabled}
+                  onClick={() => {
+                    setRtEnabled(e => {
+                      const next = !e
+                      localStorage.setItem('mm_rt_enabled', next ? '1' : '0')
+                      return next
+                    })
+                  }}
+                />
+              )}
             </div>
           </div>
 
@@ -841,7 +860,28 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           {/* Status footer */}
           <div className="border-t border-white/5 pt-2 mt-3 space-y-0.5">
             <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
-              <span>SRC</span><span className="text-white/55">GTFS · SIM</span>
+              <span
+                onClick={() => {
+                  const now = Date.now()
+                  const taps = srcTapsRef.current.filter(t => now - t < 2000)
+                  taps.push(now)
+                  srcTapsRef.current = taps
+                  if (taps.length >= 5) {
+                    srcTapsRef.current = []
+                    setRtUnlocked(u => {
+                      const next = !u
+                      localStorage.setItem('mm_rt_unlocked', next ? '1' : '0')
+                      if (!next) {
+                        setRtEnabled(false)
+                        localStorage.setItem('mm_rt_enabled', '0')
+                      }
+                      return next
+                    })
+                  }
+                }}
+                className="cursor-default select-none"
+              >SRC</span>
+              <span className="text-white/55">{rtEnabled ? 'GTFS · RT*' : 'GTFS · SIM'}</span>
             </div>
             <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
               <span>ZOOM</span><span className="mm-tabular text-amber-200/80">{zoom.toFixed(2)}</span>

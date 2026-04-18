@@ -241,14 +241,7 @@ export function ControlPanel({ clock }: Props) {
   const fracFromRef = useCallback((ref: React.RefObject<HTMLDivElement | null>, clientX: number) => {
     if (!ref.current) return null
     const r = ref.current.getBoundingClientRect()
-    let zoom = 1
-    let el: HTMLElement | null = ref.current
-    while (el) {
-      const z = parseFloat(getComputedStyle(el).zoom || '1')
-      if (z && z !== 1) zoom *= z
-      el = el.parentElement
-    }
-    return Math.max(0, Math.min(1, (clientX / zoom - r.left) / r.width))
+    return Math.max(0, Math.min(1, (clientX - r.left) / r.width))
   }, [])
 
   const handleMove = useCallback((clientX: number) => {
