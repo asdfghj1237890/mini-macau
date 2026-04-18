@@ -110,7 +110,7 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
         {/* Header */}
         <div className="px-3 py-2 border-b border-amber-300/20 flex items-stretch">
           <div className="flex-1 min-w-0">
-            <div className="mm-mono text-[11px] tracking-[0.25em] text-amber-300/70 mb-0.5">
+            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-amber-300/70 mb-0.5">
               STATION · 車站
             </div>
             <div className="mm-han text-lg font-bold text-white truncate">
@@ -151,10 +151,10 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
             <div className="grid grid-cols-[8px_1fr_46px_42px_44px] gap-0 px-3 py-1.5
                             border-b border-white/5 bg-white/[0.015]">
               <span />
-              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35">DEST · 方向</span>
-              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 text-right">ETA</span>
-              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 text-right">MIN</span>
-              <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 text-right">STATUS</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">DEST · 方向</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">ETA</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">MIN</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">STATUS</span>
             </div>
 
             <div className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
