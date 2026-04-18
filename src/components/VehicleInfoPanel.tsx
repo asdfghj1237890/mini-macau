@@ -11,12 +11,6 @@ interface Props {
   onClose: () => void
 }
 
-const LINE_TERMINALS: Record<string, { forward: string; backward: string }> = {
-  taipa: { forward: 'Taipa_Ferry_Terminal', backward: 'Barra' },
-  seac_pai_van: { forward: 'Seac_Pai_Van', backward: 'Union_Hospital' },
-  hengqin: { forward: 'Hengqin', backward: 'Lotus' },
-}
-
 function formatMinutes(totalMinutes: number): string {
   const wrapped = ((totalMinutes % 1440) + 1440) % 1440
   const h = Math.floor(wrapped / 60)
@@ -128,6 +122,16 @@ function computeBusStopETAs(
   return result
 }
 
+interface RowData {
+  key: string
+  primary: string
+  secondary: string
+  arr: string
+  dep: string
+  status: 'past' | 'dwelling' | 'arriving' | 'future'
+  isLast: boolean
+}
+
 export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props) {
   const { lang, t } = useI18n()
 
@@ -169,194 +173,218 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     ? transitData.busRoutes.find(r => r.id === vehicle.lineId)
     : null
 
-  const lineName = line
+  const color = vehicle.color
+  const lineLabel = line
     ? localName(lang, line)
     : route
-      ? (lang === 'en' ? `Route ${route.name}` : `${route.name} ${localName(lang, route)}`.trim())
+      ? route.name
       : vehicle.lineId
-
   const nowMinutes = clock.currentTime.getHours() * 60
     + clock.currentTime.getMinutes()
     + clock.currentTime.getSeconds() / 60
 
-  const terminals = LINE_TERMINALS[vehicle.lineId]
-  const destinationId = trip
-    ? trip.entries[trip.entries.length - 1].stationId
-    : (terminals
-      ? (terminals.forward === vehicle.lineId ? terminals.forward : '')
-      : '')
-  const destStation = stationMap.get(destinationId)
-  const destName = destStation
-    ? localName(lang, destStation)
-    : ''
+  // Build unified rows
+  const rows: RowData[] = []
+  if (trip) {
+    trip.entries.forEach((entry, i) => {
+      const s = stationMap.get(entry.stationId)
+      const primary = s ? localName(lang, s) : entry.stationId
+      const secondary = s ? (s.name !== primary ? s.name : '') : ''
+      const arr = entry.arrivalMinutes
+      const dep = entry.departureMinutes ?? arr
+      const isFirst = i === 0
+      const isLast = i === trip.entries.length - 1
+
+      let status: 'past' | 'dwelling' | 'arriving' | 'future'
+      if (nowMinutes > dep + 0.5) status = 'past'
+      else if (nowMinutes >= arr - 0.3 && nowMinutes <= dep + 0.5) status = 'dwelling'
+      else if (nowMinutes >= arr - 2.5) status = 'arriving'
+      else status = 'future'
+
+      rows.push({
+        key: entry.stationId,
+        primary,
+        secondary,
+        arr: isFirst ? '—' : formatMinutes(arr),
+        dep: isLast ? (lang === 'zh' ? '終站' : lang === 'pt' ? 'Terminal' : 'End') : formatMinutes(dep),
+        status,
+        isLast,
+      })
+    })
+  } else if (vehicle.type === 'bus') {
+    busETAs.forEach((s, i) => {
+      const primary = lang === 'zh' ? (s.stopNameCn || s.stopName) : s.stopName
+      const secondary = lang === 'zh' && s.stopNameCn && s.stopName !== s.stopNameCn ? s.stopName : ''
+      const isLast = i === busETAs.length - 1
+      const etaStr = formatMinutes(s.etaMinutes)
+      rows.push({
+        key: `${s.stopId}-${i}`,
+        primary,
+        secondary,
+        arr: etaStr,
+        dep: isLast ? (lang === 'zh' ? '終站' : lang === 'pt' ? 'Terminal' : 'End') : etaStr,
+        status: s.status,
+        isLast,
+      })
+    })
+  }
+
+  // Find next destination (last entry for lrt, last future stop for bus)
+  const destRow = trip
+    ? rows[rows.length - 1]
+    : rows.find(r => r.status === 'future' || r.status === 'arriving')
+  const destName = destRow?.primary ?? ''
+  const destSub = destRow?.secondary ?? ''
+
+  // Find next stop dwelling/arriving for NEXT stat
+  const nextRow = rows.find(r => r.status === 'dwelling' || r.status === 'arriving' || r.status === 'future')
+  const nextETA = nextRow ? nextRow.arr : '—'
+  const nextSub = nextRow?.status === 'dwelling' ? 'dwell' : 'arr'
+
+  const vehId = vehicle.id.length > 8 ? vehicle.id.slice(-6).toUpperCase() : vehicle.id.toUpperCase()
+  const speed = Math.round((vehicle as { speedKmh?: number }).speedKmh ?? 32)
 
   return (
-    <div className="absolute top-20 left-4 bg-black/80 backdrop-blur-sm rounded-xl z-10
-                    px-4 py-3 border border-white/20 min-w-[220px] max-w-[300px]
-                    max-sm:top-auto max-sm:bottom-20 max-sm:left-2 max-sm:right-2
-                    max-sm:max-w-none max-sm:min-w-0 max-sm:max-h-[45vh]
-                    landscape:top-auto landscape:bottom-16 landscape:left-2
-                    landscape:max-h-[50vh]">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div
-            className="w-3 h-3 rounded-full flex-shrink-0"
-            style={{ backgroundColor: vehicle.color }}
-          />
-          <span className="text-white font-semibold text-sm">{lineName}</span>
+    <div className="absolute top-16 left-4 z-20 w-[340px]
+                    max-sm:top-auto max-sm:bottom-[72px] max-sm:left-2 max-sm:right-2 max-sm:w-auto
+                    landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]">
+      <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
+                      shadow-2xl shadow-black/60 overflow-hidden mm-fade">
+        {/* Header signboard */}
+        <div className="flex items-stretch border-b border-amber-300/20">
+          <div className="px-3 py-2 flex items-center gap-2 border-r border-white/10"
+               style={{ backgroundColor: color + '22' }}>
+            <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
+            <div>
+              <div className="mm-mono text-[9px] tracking-[0.25em] text-white/50">LINE</div>
+              <div className="mm-han text-sm font-bold text-white leading-tight">{lineLabel}</div>
+            </div>
+          </div>
+          <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
+            <div className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/70 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-300 mm-led-pulse" />
+              {t.towards.toUpperCase()} · BOUND FOR
+            </div>
+            <div className="mm-han text-base font-semibold text-amber-100 truncate">
+              {destName}
+              {destSub && <span className="text-amber-200/50 font-normal text-xs ml-1.5">{destSub}</span>}
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="px-3 text-white/40 hover:text-white hover:bg-white/5 border-l border-white/10
+                       mm-mono text-sm transition-colors"
+            aria-label="Close"
+          >
+            ✕
+          </button>
         </div>
-        <button
-          onClick={onClose}
-          className="text-white/40 hover:text-white text-sm transition-colors ml-2"
-        >
-          ✕
-        </button>
+
+        {/* Stats strip */}
+        <div className="grid grid-cols-3 border-b border-white/8 bg-white/[0.02]">
+          <div className="px-3 py-1.5 border-r border-white/8">
+            <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">VEH</div>
+            <div className="mm-mono mm-tabular text-[14px] font-bold text-white/90 leading-tight">{vehId}</div>
+          </div>
+          <div className="px-3 py-1.5 border-r border-white/8">
+            <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">SPEED</div>
+            <div className="flex items-baseline gap-1">
+              <span className="mm-mono mm-tabular text-[14px] font-bold text-white/90 leading-tight">{speed}</span>
+              <span className="mm-mono text-[9px] text-white/40">km/h</span>
+            </div>
+          </div>
+          <div className="px-3 py-1.5">
+            <div className="mm-mono text-[8px] tracking-[0.25em] text-white/35">NEXT</div>
+            <div className="flex items-baseline gap-1">
+              <span className="mm-mono mm-tabular text-[15px] font-bold text-amber-200 leading-tight">{nextETA}</span>
+              <span className="mm-mono text-[9px] text-white/40">{nextSub}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Schedule table */}
+        {rows.length > 0 && (
+          <>
+            <div className="grid grid-cols-[16px_1fr_54px_54px] gap-0 px-3 py-1.5
+                            border-b border-white/5 bg-white/[0.015]">
+              <span />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35">STATION · 車站</span>
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35 text-right">ARR</span>
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35 text-right">DEP</span>
+            </div>
+            <div className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
+              {rows.map((r, i) => {
+                const isFirstRow = i === 0
+                const isLastRow = i === rows.length - 1
+                const railColor = r.status === 'past' ? 'rgba(255,255,255,0.15)' : color + '88'
+                return (
+                  <div
+                    key={r.key}
+                    className={`grid grid-cols-[16px_1fr_54px_54px] items-center px-3 py-1.5
+                                border-b border-white/5 last:border-b-0
+                                ${r.status === 'past' ? 'opacity-35' : ''}`}
+                  >
+                    {/* Marker */}
+                    <div className="relative flex items-center justify-center h-full">
+                      {!isLastRow && (
+                        <div className="absolute left-1/2 -translate-x-1/2 top-[14px] bottom-[-8px] w-px"
+                             style={{ backgroundColor: railColor }} />
+                      )}
+                      {!isFirstRow && (
+                        <div className="absolute left-1/2 -translate-x-1/2 top-[-8px] bottom-[14px] w-px"
+                             style={{ backgroundColor: railColor }} />
+                      )}
+                      {r.status === 'dwelling' ? (
+                        <div className="w-2.5 h-2.5 rounded-full bg-amber-300 relative z-10 mm-led-pulse"
+                             style={{ boxShadow: '0 0 6px rgba(252,196,65,0.8)' }} />
+                      ) : r.status === 'arriving' ? (
+                        <div className="w-2.5 h-2.5 rounded-full border-2 border-amber-300 bg-[#0b0b0c] relative z-10" />
+                      ) : r.status === 'past' ? (
+                        <div className="w-1.5 h-1.5 rounded-full bg-white/30 relative z-10" />
+                      ) : (
+                        <div className="w-2 h-2 rounded-full border-2 relative z-10"
+                             style={{ borderColor: color, backgroundColor: '#0b0b0c' }} />
+                      )}
+                    </div>
+                    {/* Station */}
+                    <div className="flex flex-col min-w-0">
+                      <span className={`mm-han text-[12px] truncate ${
+                        r.status === 'dwelling' ? 'text-amber-200 font-semibold'
+                          : r.status === 'arriving' ? 'text-white font-medium'
+                          : r.status === 'future' ? (r.isLast ? 'text-white font-semibold' : 'text-white/80')
+                          : 'text-white/50'
+                      }`}>{r.primary}</span>
+                      {r.secondary && (
+                        <span className="mm-mono text-[9px] text-white/30 tracking-wide truncate">{r.secondary}</span>
+                      )}
+                    </div>
+                    {/* ARR */}
+                    <span className={`mm-mono mm-tabular text-[11px] text-right ${
+                      r.status === 'dwelling' ? 'text-amber-200'
+                        : r.status === 'past' ? 'text-white/25 line-through'
+                        : 'text-white/65'
+                    }`}>{r.arr}</span>
+                    {/* DEP */}
+                    <span className={`mm-mono mm-tabular text-[11px] text-right ${
+                      r.status === 'dwelling' ? 'text-amber-300'
+                        : r.status === 'past' ? 'text-white/25 line-through'
+                        : 'text-white/50'
+                    }`}>{r.dep}</span>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
+
+        {/* Footer */}
+        <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between">
+          <span className="mm-mono text-[8px] tracking-[0.25em] text-white/35 uppercase">{t.schedule}</span>
+          <span className="mm-mono text-[9px] text-emerald-300/80 flex items-center gap-1.5 tracking-wider">
+            <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />ON TIME
+          </span>
+        </div>
       </div>
-
-      {destName && (
-        <div className="text-xs text-white/60 mb-2">
-          {t.towards} <span className="text-white/90 font-medium">{destName}</span>
-        </div>
-      )}
-
-      {trip && (
-        <div className="max-h-[50vh] overflow-y-auto -mx-1 px-1">
-          <div className="relative pl-4">
-            <div className="absolute left-[5px] top-1 bottom-1 w-px bg-white/15" />
-            {trip.entries.map((entry, i) => {
-              const s = stationMap.get(entry.stationId)
-              const label = s ? localName(lang, s) : entry.stationId
-              const arr = entry.arrivalMinutes
-              const dep = entry.departureMinutes ?? arr
-              const isFirst = i === 0
-              const isLast = i === trip.entries.length - 1
-
-              let status: 'past' | 'dwelling' | 'future'
-              if (nowMinutes > dep + 0.5) {
-                status = 'past'
-              } else if (nowMinutes >= arr - 0.3 && nowMinutes <= dep + 0.5) {
-                status = 'dwelling'
-              } else {
-                status = 'future'
-              }
-
-              return (
-                <div key={entry.stationId} className="relative flex items-start gap-2 pb-1.5">
-                  <div
-                    className={`absolute left-[-14px] top-[5px] w-[11px] h-[11px] rounded-full border-2 z-[1]
-                      ${status === 'past'
-                        ? 'bg-white/30 border-white/30'
-                        : status === 'dwelling'
-                          ? 'border-yellow-400 bg-yellow-400'
-                          : isLast
-                            ? 'border-white bg-transparent'
-                            : 'border-white/60 bg-transparent'
-                      }`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className={`text-xs truncate ${
-                          status === 'past'
-                            ? 'text-white/30'
-                            : status === 'dwelling'
-                              ? 'text-yellow-300 font-semibold'
-                              : isLast
-                                ? 'text-white font-medium'
-                                : 'text-white/80'
-                        }`}
-                      >
-                        {label}
-                      </span>
-                      <span
-                        className={`text-xs font-mono flex-shrink-0 ${
-                          status === 'past'
-                            ? 'text-white/25'
-                            : status === 'dwelling'
-                              ? 'text-yellow-300'
-                              : 'text-white/60'
-                        }`}
-                      >
-                        {formatMinutes(isFirst ? dep : arr)}
-                      </span>
-                    </div>
-                    {status === 'dwelling' && (
-                      <span className="text-[10px] text-yellow-400/70">{t.dwelling}</span>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {!trip && vehicle.type === 'bus' && busETAs.length > 0 && (
-        <div className="max-h-[50vh] overflow-y-auto -mx-1 px-1">
-          <div className="relative pl-4">
-            <div className="absolute left-[5px] top-1 bottom-1 w-px bg-white/15" />
-            {busETAs.map((s, i) => {
-              const label = lang === 'zh' ? (s.stopNameCn || s.stopName) : s.stopName
-              const isLast = i === busETAs.length - 1
-              return (
-                <div key={`${s.stopId}-${i}`} className="relative flex items-start gap-2 pb-1.5">
-                  <div
-                    className={`absolute left-[-14px] top-[5px] w-[11px] h-[11px] rounded-full border-2 z-[1]
-                      ${s.status === 'past'
-                        ? 'bg-white/30 border-white/30'
-                        : s.status === 'dwelling'
-                          ? 'border-yellow-400 bg-yellow-400'
-                          : s.status === 'arriving'
-                            ? 'border-yellow-400 bg-transparent animate-pulse'
-                            : isLast
-                              ? 'border-white bg-transparent'
-                              : 'border-white/60 bg-transparent'
-                      }`}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-2">
-                      <span
-                        className={`text-xs truncate ${
-                          s.status === 'past'
-                            ? 'text-white/30'
-                            : s.status === 'dwelling'
-                              ? 'text-yellow-300 font-semibold'
-                              : s.status === 'arriving'
-                                ? 'text-yellow-200'
-                                : isLast
-                                  ? 'text-white font-medium'
-                                  : 'text-white/80'
-                        }`}
-                      >
-                        {label}
-                      </span>
-                      <span
-                        className={`text-xs font-mono flex-shrink-0 ${
-                          s.status === 'past'
-                            ? 'text-white/25'
-                            : s.status === 'dwelling'
-                              ? 'text-yellow-300'
-                              : s.status === 'arriving'
-                                ? 'text-yellow-200/80'
-                                : 'text-white/60'
-                        }`}
-                      >
-                        {formatMinutes(s.etaMinutes)}
-                      </span>
-                    </div>
-                    {s.status === 'dwelling' && (
-                      <span className="text-[10px] text-yellow-400/70">{t.dwelling}</span>
-                    )}
-                    {s.status === 'arriving' && (
-                      <span className="text-[10px] text-yellow-300/60">{t.arriving}</span>
-                    )}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
     </div>
   )
 }

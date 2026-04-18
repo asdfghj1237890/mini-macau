@@ -1,0 +1,33 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:api.anthropic.com)",
+      "Bash(mkdir -p /tmp/design)",
+      "Read(//tmp/**)",
+      "Bash(gunzip -c \"C:\\\\Users\\\\TOMMY\\\\.claude\\\\projects\\\\C--Users-TOMMY-Desktop-side-projects-mini-macau--claude-worktrees-infallible-ritchie-3c8fad\\\\5aa3aa41-da0a-4f5b-bda7-16449581777e\\\\tool-results\\\\webfetch-1776517650952-7h294o.bin\")",
+      "Bash(tar -tf design.tar)",
+      "Bash(tar -xf design.tar)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(mkdir -p /tmp/design2)",
+      "Bash(curl -sL \"https://api.anthropic.com/v1/design/h/HeC4EYSyRjrH6LdpyjHzHw?open_file=Mini+Map+Macau+Redesign.html\" -o /tmp/design2/bundle.gz)",
+      "Bash(gunzip -c /tmp/design2/bundle.gz)",
+      "Bash(tar -xf /tmp/design2/bundle.tar -C /tmp/design2/)",
+      "Bash(cp /tmp/design2/mini-map-macau/chats/chat1.md /tmp/chat1-new.md)",
+      "Bash(cp /tmp/design/mini-map-macau/chats/chat1.md /tmp/chat1-old.md)",
+      "Bash(awk 'NR<=50 {print NR\": \"length\\($0\\)\" chars\"}' \"/c/Users/TOMMY/Desktop/side-projects/mini-macau/claude_design/Mini Map Macau Redesign _standalone_.html\")",
+      "Bash(awk 'NR>=50 {print NR\": \"length\\($0\\)\" chars\"}' \"/c/Users/TOMMY/Desktop/side-projects/mini-macau/claude_design/Mini Map Macau Redesign _standalone_.html\")",
+      "Bash(awk '{print NR\": \"length\\($0\\)}' \"/c/Users/TOMMY/Desktop/side-projects/mini-macau/claude_design/Mini Map Macau Redesign _standalone_.html\")",
+      "Bash(sort -t: -k2 -n -r)",
+      "Bash(cp /tmp/design2/mini-map-macau/project/v1-platform.jsx /tmp/v1-platform.jsx)",
+      "Bash(cp /tmp/design2/mini-map-macau/project/v1-controlbar.jsx /tmp/v1-controlbar.jsx)",
+      "Bash(cp /tmp/design2/mini-map-macau/project/time-picker.jsx /tmp/time-picker.jsx)",
+      "Bash(cp /tmp/design2/mini-map-macau/project/shell.jsx /tmp/shell.jsx)",
+      "Bash(cp /tmp/v1-platform.jsx \"C:/Users/TOMMY/AppData/Local/Temp/v1-platform.jsx\")",
+      "Bash(cp /tmp/v1-controlbar.jsx \"C:/Users/TOMMY/AppData/Local/Temp/v1-controlbar.jsx\")",
+      "Bash(cp /tmp/time-picker.jsx \"C:/Users/TOMMY/AppData/Local/Temp/time-picker.jsx\")",
+      "Bash(cp /tmp/shell.jsx \"C:/Users/TOMMY/AppData/Local/Temp/shell.jsx\")"
+    ]
+  }
+}
