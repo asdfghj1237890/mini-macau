@@ -5,6 +5,7 @@ import { LineLegend } from './components/LineLegend'
 import { TimeDisplay } from './components/TimeDisplay'
 import { useSimulationClock } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
+import { useServiceStatus } from './hooks/useServiceStatus'
 import type { VehiclePosition, Station, BusRoute } from './types'
 
 const VehicleInfoPanel = lazy(() => import('./components/VehicleInfoPanel').then(m => ({ default: m.VehicleInfoPanel })))
@@ -53,6 +54,7 @@ const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 export default function App() {
   const clock = useSimulationClock()
   const transitData = useTransitData()
+  const serviceStatus = useServiceStatus()
   const [visibleRoutes, setVisibleRoutes] = useState<Set<string>>(new Set())
   const [isAutoMode, setIsAutoMode] = useState(() => loadSavedRoutes() === null)
   const [selectedVehicle, setSelectedVehicle] = useState<VehiclePosition | null>(null)
@@ -93,6 +95,8 @@ export default function App() {
   const currentHour = clock.currentTime.getHours()
   const currentMinute = clock.currentTime.getMinutes()
 
+  const inactiveRoutes = serviceStatus.inactive
+
   useEffect(() => {
     if (transitData.busRoutes.length === 0) return
 
@@ -101,7 +105,7 @@ export default function App() {
       const saved = loadSavedRoutes()
       if (saved) {
         const valid = new Set(transitData.busRoutes.map(r => r.id))
-        setVisibleRoutes(new Set(saved.filter(id => valid.has(id))))
+        setVisibleRoutes(new Set(saved.filter(id => valid.has(id) && !inactiveRoutes.has(id))))
         setIsAutoMode(false)
         return
       }
@@ -110,11 +114,25 @@ export default function App() {
     if (isAutoMode) {
       setVisibleRoutes(new Set(
         transitData.busRoutes
-          .filter(r => isRouteInService(r, currentHour, currentMinute))
+          .filter(r => !inactiveRoutes.has(r.id) && isRouteInService(r, currentHour, currentMinute))
           .map(r => r.id)
       ))
     }
-  }, [transitData.busRoutes.length, currentHour, currentMinute, isAutoMode])
+  }, [transitData.busRoutes.length, currentHour, currentMinute, isAutoMode, inactiveRoutes])
+
+  useEffect(() => {
+    if (inactiveRoutes.size === 0) return
+    setVisibleRoutes(prev => {
+      let changed = false
+      const next = new Set(prev)
+      for (const id of prev) {
+        if (inactiveRoutes.has(id)) { next.delete(id); changed = true }
+      }
+      if (!changed) return prev
+      if (!isAutoMode) saveRoutes(next)
+      return next
+    })
+  }, [inactiveRoutes, isAutoMode])
 
   const filteredTransitData = useMemo(() => ({
     ...transitData,
@@ -128,6 +146,7 @@ export default function App() {
   }, [])
 
   const onToggleRoute = useCallback((routeId: string) => {
+    if (inactiveRoutes.has(routeId)) return
     setVisibleRoutes(prev => {
       const next = new Set(prev)
       if (next.has(routeId)) next.delete(routeId)
@@ -136,25 +155,28 @@ export default function App() {
       return next
     })
     setIsAutoMode(false)
-  }, [])
+  }, [inactiveRoutes])
 
   const onToggleAll = useCallback(() => {
+    const eligible = transitData.busRoutes.filter(r => !inactiveRoutes.has(r.id))
     setVisibleRoutes(prev => {
-      const next = prev.size === transitData.busRoutes.length
+      const next = prev.size === eligible.length
         ? new Set<string>()
-        : new Set(transitData.busRoutes.map(r => r.id))
+        : new Set(eligible.map(r => r.id))
       saveRoutes(next)
       return next
     })
     setIsAutoMode(false)
-  }, [transitData.busRoutes])
+  }, [transitData.busRoutes, inactiveRoutes])
 
   const onShowAll = useCallback(() => {
-    const next = new Set(transitData.busRoutes.map(r => r.id))
+    const next = new Set(
+      transitData.busRoutes.filter(r => !inactiveRoutes.has(r.id)).map(r => r.id)
+    )
     saveRoutes(next)
     setVisibleRoutes(next)
     setIsAutoMode(false)
-  }, [transitData.busRoutes])
+  }, [transitData.busRoutes, inactiveRoutes])
 
   const onHideAll = useCallback(() => {
     const next = new Set<string>()
@@ -234,6 +256,7 @@ export default function App() {
         transitData={filteredTransitData}
         allTransitData={transitData}
         visibleRoutes={visibleRoutes}
+        inactiveRoutes={inactiveRoutes}
         isAutoMode={isAutoMode}
         lrtOn={lrtOn}
         flightsOn={flightsOn}
