@@ -53,6 +53,15 @@ export const FERRY_ROUTES: Record<string, FerryRoute> = {
       [113.61297140171106, 22.175328768249642],
     ],
   },
+  // 澳門(氹仔) → 香港(上環) route exits Taipa Temporary Terminal heading
+  // WSW into open water, then bends ENE across the estuary toward Sheung Wan.
+  cotai_hkg_taipa: {
+    id: 'cotai_hkg_taipa',
+    waypoints: [
+      [113.57917685453981, 22.1723704230209],
+      [113.64477958629995, 22.175364389301873],
+    ],
+  },
   // 澳門 → 香港國際機場 route exits the Outer Harbour heading S, tracks
   // down past Taipa, then bends ESE across the estuary toward HKIA.
   clkmacroute: {

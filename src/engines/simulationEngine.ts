@@ -3,7 +3,7 @@ import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { Feature, LineString } from 'geojson'
 import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute, BusStop, Flight, Ferry, ScheduleType } from '../types'
-import { FERRY_BERTHS, FERRY_COLOR } from './ferryBerths'
+import { FERRY_BERTHS_BY_TERMINAL, FERRY_COLOR_BY_OPERATOR } from './ferryBerths'
 import { FERRY_ROUTES, interpolatePath, pathLengthMeters } from './ferryRoutes'
 
 function getScheduleType(date: Date): ScheduleType {
@@ -1019,19 +1019,20 @@ function computeFerryVehicles(
 
   for (const f of ferries) {
     const route = FERRY_ROUTES[f.routeId]
-    const berth = FERRY_BERTHS[f.berthIndex % FERRY_BERTHS.length]
+    const berths = FERRY_BERTHS_BY_TERMINAL[f.terminal]
+    const berth = berths[f.berthIndex % berths.length]
 
     // Ferry visibility around scheduledTime T:
     //   departure: berth dwell [T - dwellBefore, T), then cruise [T, T + pathMin)
     //   arrival:   cruise [T - pathMin, T),          then berth dwell [T, T + dwellAfter)
     // The cruise path prepends the berth coord so the ferry glides smoothly
     // out of / into its slip instead of teleporting to the first waypoint.
-    // Routes without a path only have the berth dwell window.
+    // Routes without a path only have the berth dwell window (Cotai/Taipa).
     const effectivePath: [number, number][] | null = route
       ? [berth.coord, ...route.waypoints]
       : null
     const pathMin = effectivePath
-      ? ferryPathMinutes(`${f.routeId}:${f.berthIndex % FERRY_BERTHS.length}`, effectivePath)
+      ? ferryPathMinutes(`${f.routeId}:${f.terminal}:${f.berthIndex % berths.length}`, effectivePath)
       : 0
     const offsets = [0, -1440, 1440]
     let phase: 'berth' | 'journey' | null = null
@@ -1087,7 +1088,7 @@ function computeFerryVehicles(
       coordinates: coord,
       bearing,
       progress,
-      color: FERRY_COLOR,
+      color: FERRY_COLOR_BY_OPERATOR[f.operator],
       ferryData: f,
     })
   }
