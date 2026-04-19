@@ -21,11 +21,11 @@ const SERVICE_TAIL_MIN = 60
 function isRouteInService(route: BusRoute, hour: number, minute: number = 0): boolean {
   const nowMin = hour * 60 + minute
   const startMin = route.serviceHoursStart * 60
-  const endWithTail = route.serviceHoursEnd * 60 + SERVICE_TAIL_MIN
-  if (route.serviceHoursStart <= route.serviceHoursEnd) {
-    return nowMin >= startMin && nowMin < endWithTail
-  }
-  return nowMin >= startMin || nowMin < endWithTail % 1440
+  let endWithTail = route.serviceHoursEnd * 60 + SERVICE_TAIL_MIN
+  // Route crosses midnight when end wraps past start (either end<start or end>=24 with ends-next-day)
+  if (endWithTail <= startMin) endWithTail += 1440
+  return (nowMin >= startMin && nowMin < endWithTail)
+    || (nowMin + 1440 >= startMin && nowMin + 1440 < endWithTail)
 }
 
 function loadSavedRoutes(): string[] | null {

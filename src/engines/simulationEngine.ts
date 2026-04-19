@@ -415,10 +415,18 @@ function computeBusVehicles(
     const cycleMin = schedule.cycleSec / 60
 
     const startMin = route.serviceHoursStart * 60
-    const endMin = route.serviceHoursEnd * 60
-    if (nowMinutes < startMin || nowMinutes > endMin + cycleMin) continue
+    let endMin = route.serviceHoursEnd * 60
+    // Route crosses midnight (serviceHoursEnd may be >24 or <start)
+    if (endMin <= startMin) endMin += 1440
+    // Pick the effective "now" that falls inside the window; wrap-around
+    // takes `nowMinutes + 1440` when the service started yesterday.
+    let effectiveNow = nowMinutes
+    if (effectiveNow < startMin && effectiveNow + 1440 <= endMin + cycleMin) {
+      effectiveNow += 1440
+    }
+    if (effectiveNow < startMin || effectiveNow > endMin + cycleMin) continue
 
-    const minutesSinceStart = nowMinutes - startMin
+    const minutesSinceStart = effectiveNow - startMin
     const numVehicles = Math.max(1, Math.floor(tripDurationMin / route.frequency))
 
     for (let v = 0; v < numVehicles; v++) {
@@ -426,7 +434,7 @@ function computeBusVehicles(
       const elapsed = minutesSinceStart - offset
       if (elapsed < 0) continue
 
-      if (nowMinutes > endMin) {
+      if (effectiveNow > endMin) {
         const cycleStart = startMin + offset + Math.floor(elapsed / cycleMin) * cycleMin
         if (cycleStart > endMin) continue
       }
