@@ -85,6 +85,7 @@ export class RouteRealtimePoller {
   private readonly maxBackoffMs: number
   private timer: number | null = null
   private running = false
+  private paused = false
   private failures = 0
   private subs = new Set<Subscriber>()
   private lastObs: BusObservation[] = []
@@ -107,14 +108,30 @@ export class RouteRealtimePoller {
   start() {
     if (this.running) return
     this.running = true
+    this.paused = false
     this.failures = 0
     if (typeof document !== 'undefined') {
       this.visibilityHandler = () => {
-        if (!document.hidden && this.running && this.timer === null) this.schedule(0)
+        if (!document.hidden && this.running && !this.paused && this.timer === null) this.schedule(0)
       }
       document.addEventListener('visibilitychange', this.visibilityHandler)
     }
     this.schedule(0)
+  }
+
+  pause() {
+    if (this.paused) return
+    this.paused = true
+    if (this.timer !== null) {
+      clearTimeout(this.timer)
+      this.timer = null
+    }
+  }
+
+  resume() {
+    if (!this.paused) return
+    this.paused = false
+    if (this.running && this.timer === null) this.schedule(0)
   }
 
   stop() {
@@ -130,7 +147,7 @@ export class RouteRealtimePoller {
   }
 
   private schedule(delay: number) {
-    if (!this.running) return
+    if (!this.running || this.paused) return
     this.timer = window.setTimeout(() => {
       this.timer = null
       void this.tick()
@@ -144,7 +161,7 @@ export class RouteRealtimePoller {
   }
 
   private async tick() {
-    if (!this.running) return
+    if (!this.running || this.paused) return
     if (typeof document !== 'undefined' && document.hidden) {
       this.schedule(this.intervalMs)
       return
