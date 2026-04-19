@@ -24,7 +24,8 @@ export interface BusRoute {
   name: string
   nameCn: string
   color: string
-  stops: string[]
+  stopsForward: string[]
+  stopsBackward: string[]
   geometry: Feature<LineString>
   frequency: number // minutes between departures
   serviceHoursStart: number // hour (0-23)

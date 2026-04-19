@@ -1,13 +1,31 @@
 """
 Generate bus-routes.json and bus-stops.json for the frontend.
-Reads from data/bus_reference/ (fetched from motransportinfo.com)
-and snaps route geometries to roads via OSRM.
 
-NOTE: After running this script, run patch_bus_bridges.py to rewrite the
-crossings of bus routes that should use 嘉樂庇總督大橋 (Macau-Taipa
-Bridge). Public OSRM driving profile cannot use that bridge because OSM
-tags it as bus/taxi-only, so by default cross-channel routes are
-mis-routed onto Sai Van Bridge.
+DSAT (bus_reference/dsat_stops.json) is the authoritative source of per-
+direction stop IDs — including the "/N" platform suffix. motransport
+(bus_reference/routes.json) provides per-platform coordinates and Chinese
+station names, which we align positionally with DSAT.
+
+Output schemas:
+
+  bus-routes.json: [{
+    id, name, nameCn, color,
+    stopsForward:  string[],   // DSAT IDs including /N suffix
+    stopsBackward: string[],   // [] for circular routes
+    geometry,                  // road-snapped LineString of forward path
+    frequency, serviceHoursStart, serviceHoursEnd,
+    routeType: "bilateral" | "circular"
+  }]
+
+  bus-stops.json: [{
+    id: "M172/14",             // full DSAT platform code
+    name, nameCn,
+    coordinates: [lng, lat],
+    routeIds: string[]
+  }]
+
+NOTE: After running this script, run patch_bus_bridges.py to rewrite
+cross-channel routes that should use 嘉樂庇總督大橋 (Macau-Taipa Bridge).
 """
 
 import json
@@ -33,9 +51,8 @@ def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> 
     if len(waypoints) < 2:
         return {"type": "Feature", "geometry": {"type": "LineString", "coordinates": []}, "properties": {}}
 
-    # OSRM has a limit of ~100 waypoints per request; chunk if needed
     MAX_WP = 80
-    all_coords = []
+    all_coords: list[list[float]] = []
 
     for chunk_start in range(0, len(waypoints), MAX_WP - 1):
         chunk = waypoints[chunk_start:chunk_start + MAX_WP]
@@ -68,22 +85,92 @@ def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> 
     }
 
 
+def align_direction(
+    dsat_ids: list[str],
+    mt_stops: list[str],
+    mt_lats: list[str],
+    mt_lngs: list[str],
+    mt_stations: list[str],
+    centroid_lookup: dict,
+) -> list[tuple[str, float, float, str]]:
+    """Return [(dsat_id, lng, lat, nameCn), ...] aligned to DSAT order.
+
+    Strategy:
+    1. If DSAT length matches motransport AND base codes match positionally,
+       zip directly (best case, 89/92 routes).
+    2. Otherwise, for each DSAT ID, consume the next unused motransport entry
+       whose bare staCode matches the DSAT base code.
+    3. If no match is found, fall back to the motransport-wide centroid.
+    """
+    def mt_coord(i: int) -> tuple[float, float, str]:
+        try:
+            lat = float(mt_lats[i])
+            lng = float(mt_lngs[i])
+        except (ValueError, TypeError, IndexError):
+            lat, lng = 0.0, 0.0
+        nm = mt_stations[i] if i < len(mt_stations) else ""
+        return lat, lng, nm
+
+    # Fast path: positional zip
+    if len(dsat_ids) == len(mt_stops) and all(
+        dsat_ids[i].split("/")[0] == mt_stops[i] for i in range(len(dsat_ids))
+    ):
+        out: list[tuple[str, float, float, str]] = []
+        for i, did in enumerate(dsat_ids):
+            lat, lng, nm = mt_coord(i)
+            if not (lat and lng):
+                c = centroid_lookup.get(did.split("/")[0])
+                if c:
+                    lat, lng = c["lat"], c["lng"]
+                    if not nm:
+                        nm = c.get("nameCn", did)
+            out.append((did, lng, lat, nm or did))
+        return out
+
+    # Fallback: per-ID pooled lookup
+    mt_by_base: dict[str, list[tuple[float, float, str]]] = {}
+    for i, sid in enumerate(mt_stops):
+        lat, lng, nm = mt_coord(i)
+        if lat and lng:
+            mt_by_base.setdefault(sid, []).append((lat, lng, nm))
+
+    consumed: dict[str, int] = {}
+    out = []
+    for did in dsat_ids:
+        base = did.split("/")[0]
+        pool = mt_by_base.get(base, [])
+        idx = consumed.get(base, 0)
+        if idx < len(pool):
+            lat, lng, nm = pool[idx]
+            consumed[base] = idx + 1
+        else:
+            c = centroid_lookup.get(base)
+            if c:
+                lat, lng, nm = c["lat"], c["lng"], c.get("nameCn", did)
+            else:
+                lat, lng, nm = 0.0, 0.0, did
+        out.append((did, lng, lat, nm or did))
+    return out
+
+
 def run():
     routes_ref = json.load(open(REFERENCE_DIR / "routes.json", "r", encoding="utf-8"))
     stops_ref = json.load(open(REFERENCE_DIR / "stops.json", "r", encoding="utf-8"))
+    dsat_ref = json.load(open(REFERENCE_DIR / "dsat_stops.json", "r", encoding="utf-8"))
 
-    stop_map = {s["id"]: s for s in stops_ref}
+    centroid_lookup = {s["id"]: s for s in stops_ref}
+    dsat_routes = dsat_ref.get("routes", {})
     PUBLIC_DIR.mkdir(parents=True, exist_ok=True)
 
-    bus_routes = []
-    failed = []
+    bus_routes: list[dict] = []
+    stop_registry: dict[str, dict] = {}
 
     for i, route in enumerate(routes_ref):
         rid = route["id"]
         print(f"[{i+1}/{len(routes_ref)}] Route {rid}: ", end="", flush=True)
 
         if "error" in route:
-            print(f"SKIP (error)")
+            print("SKIP (error)")
             continue
 
         dirs = route.get("directions", [])
@@ -91,93 +178,101 @@ def run():
             print("SKIP (no directions)")
             continue
 
-        # Use direction 0 as primary geometry
-        d0 = dirs[0]
-        waypoints = []
-        stop_ids = []
-        for j, stop_id in enumerate(d0["stops"]):
-            lat = float(d0["lats"][j]) if j < len(d0["lats"]) else 0
-            lng = float(d0["lngs"][j]) if j < len(d0["lngs"]) else 0
-            if lat and lng:
-                waypoints.append([lng, lat])
-                stop_ids.append(stop_id)
+        d_record = dsat_routes.get(rid)
+        if not d_record:
+            print("SKIP (no DSAT record)")
+            continue
 
+        dsat_fwd = d_record.get("forward", [])
+        dsat_bwd = d_record.get("backward", [])
+        if not dsat_fwd:
+            print("SKIP (DSAT forward empty)")
+            continue
+
+        d0 = dirs[0]
+        fwd_aligned = align_direction(
+            dsat_fwd,
+            d0.get("stops", []),
+            d0.get("lats", []),
+            d0.get("lngs", []),
+            d0.get("stations", []),
+            centroid_lookup,
+        )
+
+        bwd_aligned: list[tuple[str, float, float, str]] = []
+        if dsat_bwd:
+            d1 = dirs[1] if len(dirs) > 1 else d0
+            bwd_aligned = align_direction(
+                dsat_bwd,
+                d1.get("stops", []),
+                d1.get("lats", []),
+                d1.get("lngs", []),
+                d1.get("stations", []),
+                centroid_lookup,
+            )
+
+        waypoints = [[lng, lat] for _, lng, lat, _ in fwd_aligned if lng and lat]
         if len(waypoints) < 2:
-            print("SKIP (< 2 waypoints)")
+            print("SKIP (<2 waypoints)")
             continue
 
         geometry = build_route_geometry(waypoints, rid)
 
-        # For bilateral routes, build return geometry and merge stops
-        if route.get("route_type") == "bilateral" and len(dirs) > 1:
-            d1 = dirs[1]
-            wp1 = []
-            for j, stop_id in enumerate(d1["stops"]):
-                lat = float(d1["lats"][j]) if j < len(d1["lats"]) else 0
-                lng = float(d1["lngs"][j]) if j < len(d1["lngs"]) else 0
-                if lat and lng:
-                    wp1.append([lng, lat])
-                    if stop_id not in stop_ids:
-                        stop_ids.append(stop_id)
-            # We don't merge return geometry into the forward one;
-            # simulation engine handles back-and-forth via progress bouncing
-
         color = ROUTE_COLORS[i % len(ROUTE_COLORS)]
-
-        # Compute English name from description
-        desc = route.get("description", "")
-        name_cn = desc
+        stops_fwd = [did for did, _, _, _ in fwd_aligned]
+        stops_bwd = [did for did, _, _, _ in bwd_aligned]
+        route_type = "bilateral" if stops_bwd else "circular"
 
         bus_routes.append({
             "id": rid,
             "name": rid,
-            "nameCn": name_cn,
+            "nameCn": route.get("description", ""),
             "color": color,
-            "stops": stop_ids,
+            "stopsForward": stops_fwd,
+            "stopsBackward": stops_bwd,
             "geometry": geometry,
             "frequency": route.get("avg_freq", 12),
             "serviceHoursStart": route.get("service_start", 6),
             "serviceHoursEnd": route.get("service_end", 23),
-            "routeType": route.get("route_type", "circular"),
+            "routeType": route_type,
         })
 
+        for did, lng, lat, nm in fwd_aligned + bwd_aligned:
+            entry = stop_registry.get(did)
+            if entry is None:
+                entry = {"nameCn": nm, "lng": lng, "lat": lat, "route_ids": []}
+                stop_registry[did] = entry
+            else:
+                if (not entry["lng"] or not entry["lat"]) and lng and lat:
+                    entry["lng"], entry["lat"] = lng, lat
+                if (not entry["nameCn"] or entry["nameCn"] == did) and nm and nm != did:
+                    entry["nameCn"] = nm
+            if rid not in entry["route_ids"]:
+                entry["route_ids"].append(rid)
+
         coord_count = len(geometry.get("geometry", {}).get("coordinates", []))
-        print(f"OK ({len(stop_ids)} stops, {coord_count} geo points)", flush=True)
+        print(f"OK (fwd={len(stops_fwd)} bwd={len(stops_bwd)}, {coord_count} geo)", flush=True)
 
-    # Build bus stops
     bus_stops = []
-    used_stop_ids = set()
-    for route in bus_routes:
-        for sid in route["stops"]:
-            if sid not in used_stop_ids:
-                used_stop_ids.add(sid)
-
-    for sid in used_stop_ids:
-        s = stop_map.get(sid)
-        if not s:
-            continue
-        route_ids = [r["id"] for r in bus_routes if sid in r["stops"]]
+    for did in sorted(stop_registry.keys()):
+        e = stop_registry[did]
         bus_stops.append({
-            "id": sid,
-            "name": sid,
-            "nameCn": s.get("nameCn", sid),
-            "coordinates": [s["lng"], s["lat"]],
-            "routeIds": route_ids,
+            "id": did,
+            "name": did,
+            "nameCn": e["nameCn"],
+            "coordinates": [e["lng"], e["lat"]],
+            "routeIds": e["route_ids"],
         })
 
     routes_path = PUBLIC_DIR / "bus-routes.json"
     stops_path = PUBLIC_DIR / "bus-stops.json"
-
     with open(routes_path, "w", encoding="utf-8") as f:
         json.dump(bus_routes, f, ensure_ascii=False, indent=2)
     with open(stops_path, "w", encoding="utf-8") as f:
         json.dump(bus_stops, f, ensure_ascii=False, indent=2)
 
-    ok = len(bus_routes)
-    print(f"\nDone: {ok} routes -> {routes_path}")
+    print(f"\nDone: {len(bus_routes)} routes -> {routes_path}")
     print(f"      {len(bus_stops)} stops -> {stops_path}")
-    if failed:
-        print(f"Failed: {failed}")
 
 
 if __name__ == "__main__":

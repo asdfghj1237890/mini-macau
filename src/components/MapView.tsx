@@ -230,7 +230,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       let staggerIdx = 0
       for (const [key, { route, dir }] of desired) {
         if (current.has(key)) continue
-        const stopsOrdered = dir === 0 ? route.stops : [...route.stops].reverse()
+        const stopsOrdered = dir === 0 ? route.stopsForward : route.stopsBackward
         const coords = dir === 0
           ? route.geometry.geometry.coordinates
           : [...route.geometry.geometry.coordinates].reverse()
