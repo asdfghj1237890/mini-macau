@@ -187,6 +187,7 @@ export class BusTracker {
   private readonly stopProgress: number[]
   private readonly isCircular: boolean
   private buses = new Map<string, TrackedBusState>()
+  private cachedStates: TrackedBusState[] | null = null
 
   constructor(stopProgress: number[], isCircular: boolean) {
     this.stopProgress = stopProgress
@@ -233,6 +234,7 @@ export class BusTracker {
     for (const [plate, state] of this.buses) {
       if (now - state.lastAt > STALE_MS) this.buses.delete(plate)
     }
+    this.cachedStates = null
   }
 
   estimateProgress(state: TrackedBusState, now: number): number {
@@ -251,9 +253,15 @@ export class BusTracker {
   }
 
   getStates(): TrackedBusState[] {
-    return Array.from(this.buses.values())
+    if (this.cachedStates === null) {
+      this.cachedStates = Array.from(this.buses.values())
+    }
+    return this.cachedStates
   }
 
-  clear() { this.buses.clear() }
+  clear() {
+    this.buses.clear()
+    this.cachedStates = null
+  }
 }
 

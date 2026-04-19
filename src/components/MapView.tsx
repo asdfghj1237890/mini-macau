@@ -151,6 +151,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const rtStatesRef = useRef<Map<string, RtDirState>>(new Map())
   const rtEnabledRef = useRef(rtEnabled)
   rtEnabledRef.current = rtEnabled
+  const rtCachedVehiclesRef = useRef<VehiclePosition[]>([])
+  const rtCachedLiveIdsRef = useRef<Set<string>>(new Set())
+  const rtVisibleIdsRef = useRef<Set<string>>(new Set())
+  const rtVisibleIdsSourceRef = useRef<BusRoute[] | null>(null)
+  const rtLastTickAtRef = useRef(0)
   const { lang, setLang } = useI18n()
   const isDarkRef = useRef(isDark)
   const langRef = useRef(lang)
@@ -183,6 +188,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     if (!rtEnabled || !rtDataReady) {
       for (const s of rtStatesRef.current.values()) { s.unsub(); s.poller.stop() }
       rtStatesRef.current = new Map()
+      rtCachedVehiclesRef.current = []
+      rtCachedLiveIdsRef.current = new Set()
+      rtLastTickAtRef.current = 0
       return
     }
 
@@ -234,6 +242,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       for (const t of staggerTimers) clearTimeout(t)
       for (const s of rtStatesRef.current.values()) { s.unsub(); s.poller.stop() }
       rtStatesRef.current = new Map()
+      rtCachedVehiclesRef.current = []
+      rtCachedLiveIdsRef.current = new Set()
+      rtLastTickAtRef.current = 0
     }
   }, [rtEnabled, rtDataReady])
 
@@ -605,21 +616,29 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       if (map && !td.loading && layersAddedRef.current) {
         let vehicles = computeVehiclePositions(td, clock.timeRef.current)
         if (RT_BUILD && rtEnabledRef.current && rtStatesRef.current.size > 0) {
-          const visibleRouteIds = new Set(td.busRoutes.map(r => r.id))
-          const liveRouteIds = new Set<string>()
-          for (const s of rtStatesRef.current.values()) {
-            if (!visibleRouteIds.has(s.route.id)) continue
-            if (s.tracker.getStates().length > 0) liveRouteIds.add(s.route.id)
+          const rtNow = performance.now()
+          if (rtVisibleIdsSourceRef.current !== td.busRoutes) {
+            rtVisibleIdsSourceRef.current = td.busRoutes
+            const next = new Set<string>()
+            for (const r of td.busRoutes) next.add(r.id)
+            rtVisibleIdsRef.current = next
+            rtLastTickAtRef.current = 0
           }
-          if (liveRouteIds.size > 0) {
-            vehicles = vehicles.filter(v => !liveRouteIds.has(v.lineId))
-            const now = Date.now()
+          if (rtNow - rtLastTickAtRef.current >= 100) {
+            rtLastTickAtRef.current = rtNow
+            const visibleRouteIds = rtVisibleIdsRef.current
+            const liveRouteIds = new Set<string>()
+            const rtVehicles: VehiclePosition[] = []
+            const wallNow = Date.now()
             for (const s of rtStatesRef.current.values()) {
               if (!visibleRouteIds.has(s.route.id)) continue
-              for (const state of s.tracker.getStates()) {
-                const p = s.tracker.estimateProgress(state, now)
+              const states = s.tracker.getStates()
+              if (states.length === 0) continue
+              liveRouteIds.add(s.route.id)
+              for (const state of states) {
+                const p = s.tracker.estimateProgress(state, wallNow)
                 const pos = interpolateOnLine(s.geometry, p)
-                vehicles.push({
+                rtVehicles.push({
                   id: `${s.route.id}-rt-${s.dir}-${state.plate}`,
                   lineId: s.route.id,
                   type: 'bus',
@@ -637,6 +656,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 })
               }
             }
+            rtCachedVehiclesRef.current = rtVehicles
+            rtCachedLiveIdsRef.current = liveRouteIds
+          }
+          const liveIds = rtCachedLiveIdsRef.current
+          if (liveIds.size > 0) {
+            vehicles = vehicles.filter(v => !liveIds.has(v.lineId))
+            for (const v of rtCachedVehiclesRef.current) vehicles.push(v)
           }
         }
         vehiclesRef.current = vehicles
