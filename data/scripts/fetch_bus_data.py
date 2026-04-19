@@ -160,8 +160,13 @@ def compute_service_summary(schedule: list[dict]) -> dict:
     for entry in schedule:
         sh, sm = map(int, entry["start"].split(":"))
         eh, em = map(int, entry["end"].split(":"))
-        all_starts.append(sh * 60 + sm)
-        all_ends.append(eh * 60 + em)
+        start_min = sh * 60 + sm
+        end_min = eh * 60 + em
+        # Period crosses midnight (e.g. 20:00-01:15) — treat end as next day
+        if end_min <= start_min:
+            end_min += 1440
+        all_starts.append(start_min)
+        all_ends.append(end_min)
         avg = (entry["freq_min"] + entry["freq_max"]) / 2
         total_freq += avg
         count += 1
@@ -173,8 +178,10 @@ def compute_service_summary(schedule: list[dict]) -> dict:
     end_hour = latest_end // 60
     if latest_end % 60 > 0:
         end_hour += 1
-    if end_hour > 24:
-        end_hour = 24
+    # Cap at 28 (past 4am) — downstream uses start<=end for same-day routes
+    # and serviceHoursEnd*60 as minute offset, so values >24 are accepted.
+    if end_hour > 28:
+        end_hour = 28
 
     avg_freq = round(total_freq / count) if count else 12
 
