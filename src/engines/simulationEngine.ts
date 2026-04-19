@@ -389,12 +389,23 @@ export function computeBusDirSec(
   return { dirSec: cycleSec - schedule.tripDurationSec, returning: true }
 }
 
+const QUEUE_OFFSET_KM = 0.015 // ~15m gap per queued bus at a shared stop
+
 function computeBusVehicles(
   busRoutes: BusRoute[],
   busStopMap: Map<string, BusStop>,
   nowMinutes: number
 ): VehiclePosition[] {
-  const vehicles: VehiclePosition[] = []
+  type Raw = {
+    route: BusRoute
+    schedule: BusSchedule
+    id: string
+    progress: number
+    returning: boolean
+    dwellStopId: string | null
+    dwellTimeIntoSec: number
+  }
+  const raws: Raw[] = []
 
   for (const route of busRoutes) {
     const schedule = getBusSchedule(route, busStopMap)
@@ -421,19 +432,78 @@ function computeBusVehicles(
       }
 
       const elapsedSec = elapsed * 60
+      const wrapped = ((elapsedSec % schedule.cycleSec) + schedule.cycleSec) % schedule.cycleSec
+      const { dirSec, returning } = computeBusDirSec(wrapped, schedule)
       const progress = Math.max(0, Math.min(1, progressAtCycle(schedule, elapsedSec)))
 
-      const pos = interpolateOnLine(route.geometry, progress)
-      vehicles.push({
-        id: `${route.id}-${v}`,
-        lineId: route.id,
-        type: 'bus',
-        coordinates: pos.coordinates,
-        bearing: pos.bearing,
-        progress,
-        color: route.color,
+      const stops = returning ? schedule.backwardStops : schedule.forwardStops
+      let dwellStopId: string | null = null
+      let dwellTimeIntoSec = 0
+      for (const s of stops) {
+        if (dirSec >= s.arriveSec && dirSec <= s.departSec) {
+          dwellStopId = s.stopId
+          dwellTimeIntoSec = dirSec - s.arriveSec
+          break
+        }
+      }
+
+      raws.push({
+        route, schedule, id: `${route.id}-${v}`, progress, returning,
+        dwellStopId, dwellTimeIntoSec,
       })
     }
+  }
+
+  // Queue dwellers sharing a stop so their sprites don't overlap.
+  // Front of queue (largest dwellTimeIntoSec = arrived earliest) stays put;
+  // later arrivals shift backward along their own route direction.
+  const byStop = new Map<string, Raw[]>()
+  for (const r of raws) {
+    if (!r.dwellStopId) continue
+    const arr = byStop.get(r.dwellStopId)
+    if (arr) arr.push(r)
+    else byStop.set(r.dwellStopId, [r])
+  }
+  const queueIdx = new Map<string, number>()
+  for (const group of byStop.values()) {
+    if (group.length < 2) continue
+    group.sort((a, b) => b.dwellTimeIntoSec - a.dwellTimeIntoSec)
+    for (let i = 0; i < group.length; i++) queueIdx.set(group[i].id, i)
+  }
+
+  const QUEUE_PERP_M = 4 // small right-of-travel nudge so clamped endpoint queues still separate
+
+  const vehicles: VehiclePosition[] = []
+  for (const r of raws) {
+    let finalProgress = r.progress
+    const qi = queueIdx.get(r.id) ?? 0
+    if (qi > 0) {
+      const delta = (QUEUE_OFFSET_KM * qi) / r.schedule.totalLenKm
+      finalProgress = r.returning
+        ? Math.min(1, r.progress + delta)
+        : Math.max(0, r.progress - delta)
+    }
+
+    const pos = interpolateOnLine(r.route.geometry, finalProgress)
+    let [lng, lat] = pos.coordinates
+    if (qi > 0) {
+      const bearingRad = (pos.bearing * Math.PI) / 180
+      const eastM = Math.cos(bearingRad) * QUEUE_PERP_M * qi
+      const northM = -Math.sin(bearingRad) * QUEUE_PERP_M * qi
+      const latRad = lat * Math.PI / 180
+      lng += eastM / (111320 * Math.cos(latRad))
+      lat += northM / 110574
+    }
+
+    vehicles.push({
+      id: r.id,
+      lineId: r.route.id,
+      type: 'bus',
+      coordinates: [lng, lat],
+      bearing: pos.bearing,
+      progress: finalProgress,
+      color: r.route.color,
+    })
   }
 
   return vehicles

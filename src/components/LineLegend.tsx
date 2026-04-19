@@ -174,7 +174,11 @@ export function LineLegend({
                   <path d="M4 11h16" /><path d="M12 3v8" />
                   <path d="M8 21l2-4h4l2 4" />
                 </svg>
-                <span className="mm-mono text-[8px] tracking-[0.25em]">░ LRT · 輕軌</span>
+                <span
+                  className="inline-block w-[8px] h-[8px]"
+                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.35) 0 1px, transparent 1px 3px)' }}
+                />
+                <span className="mm-mono text-[8px] tracking-[0.25em]">LRT · 輕軌</span>
               </span>
               <span className="mm-mono mm-tabular text-[8px] text-white/30">
                 {lrtActive}<span className="text-white/20">/{lrtTotal}</span>
@@ -223,7 +227,11 @@ export function LineLegend({
                     <rect x="2" y="4" width="20" height="14" rx="3" />
                     <circle cx="7" cy="20" r="1" /><circle cx="17" cy="20" r="1" />
                   </svg>
-                  <span className="mm-mono text-[8px] tracking-[0.25em]">░ BUS · 巴士</span>
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(110,231,183,0.35) 0 1px, transparent 1px 3px)' }}
+                  />
+                  <span className="mm-mono text-[8px] tracking-[0.25em]">BUS · 巴士</span>
                 </span>
                 <span className="mm-mono mm-tabular text-[9px] text-emerald-300/80">
                   {activeRoutes}<span className="text-white/30">/{totalRoutes}</span>
@@ -341,8 +349,12 @@ export function LineLegend({
                          ${onToggleFlights ? '' : 'cursor-default'}`}
             >
               <span className={`text-[10px] leading-none ${flightsOn ? 'text-sky-300' : 'text-white/40'}`}>✈</span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(125,211,252,0.35) 0 1px, transparent 1px 3px)' }}
+              />
               <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
-                ░ AIR · 航班
+                AIR · 航班
               </span>
               <span className={`mm-mono mm-tabular text-[9px] ${flightsOn ? 'text-sky-300/80' : 'text-white/25'}`}>
                 {flightCount}
