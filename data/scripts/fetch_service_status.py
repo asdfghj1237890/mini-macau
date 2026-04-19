@@ -28,7 +28,7 @@ DELAY = 0.4
 TIMEOUT = 15
 
 REFERENCE_DIR = Path(__file__).parent.parent / "bus_reference"
-OUTPUT_DIR = Path(__file__).parent.parent / "output"
+OUTPUT_PATH = Path(__file__).parent.parent.parent / "public" / "service-status.json"
 
 DAY_CHARS = "一二三四五六日"
 
@@ -182,14 +182,13 @@ def run() -> int:
         "errors": errors,
     }
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = OUTPUT_DIR / "service-status.json"
-    with open(out_path, "w", encoding="utf-8") as f:
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
     print(f"\nDone. {len(inactive)}/{len(route_list)} routes inactive today.")
     print(f"Errors: {len(errors)}")
-    print(f"Wrote {out_path}")
+    print(f"Wrote {OUTPUT_PATH}")
     return 0
 
 

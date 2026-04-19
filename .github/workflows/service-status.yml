@@ -5,12 +5,11 @@ on:
     - cron: '0 23 * * *' # UTC 23:00 = Macau 07:00 (UTC+8)
   workflow_dispatch:
 
-permissions:
-  contents: write
-
 jobs:
-  snapshot:
+  update:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -22,37 +21,16 @@ jobs:
         working-directory: data
         run: uv run python scripts/fetch_service_status.py
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: service-status
-          path: data/output/service-status.json
-          retention-days: 30
-
-      - name: Publish to data-snapshot branch
+      - name: Check for changes
+        id: diff
         run: |
-          set -e
+          git diff --quiet public/service-status.json && echo "changed=false" >> "$GITHUB_OUTPUT" || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          mkdir -p /tmp/snap
-          cp data/output/service-status.json /tmp/snap/service-status.json
-
-          git fetch origin data-snapshot:data-snapshot || true
-          if git show-ref --quiet refs/heads/data-snapshot; then
-            git checkout data-snapshot
-            git rm -rf . > /dev/null 2>&1 || true
-          else
-            git checkout --orphan data-snapshot
-            git rm -rf . > /dev/null 2>&1 || true
-          fi
-
-          cp /tmp/snap/service-status.json service-status.json
-
-          git add service-status.json
-          if git diff --cached --quiet; then
-            echo "no change; skipping push"
-            exit 0
-          fi
-          git commit -m "snapshot: service-status $(date -u +%Y-%m-%dT%H:%MZ)"
-          git push origin data-snapshot --force
+          git add public/service-status.json
+          git commit -m "chore: update bus service status"
+          git push
