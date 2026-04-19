@@ -346,8 +346,8 @@ export function LineLegend({
       )}
 
       {/* Mobile: 3-icon stack — LRT / BUS / AIR, below map +/- zoom controls */}
-      <div className="absolute top-[7rem] right-[0.55rem] z-10 flex flex-col gap-1.5
-                      sm:hidden landscape:top-[5rem]">
+      <div className="mm-ui-scale absolute top-[9rem] right-[0.5rem] z-10 flex flex-col gap-1.5
+                      sm:hidden landscape:top-[6rem]">
         {/* LRT chip */}
         <button
           onClick={() => togglePanel('lrt')}
