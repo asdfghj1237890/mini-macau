@@ -2,7 +2,9 @@ import along from '@turf/along'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { Feature, LineString } from 'geojson'
-import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute, BusStop, Flight, ScheduleType } from '../types'
+import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute, BusStop, Flight, Ferry, ScheduleType } from '../types'
+import { FERRY_BERTHS, FERRY_COLOR } from './ferryBerths'
+import { FERRY_ROUTES, interpolatePath, pathLengthMeters } from './ferryRoutes'
 
 function getScheduleType(date: Date): ScheduleType {
   const day = date.getDay()
@@ -976,6 +978,122 @@ function getStationProgressMap(transitData: TransitData): Map<string, { progress
   return progressMap
 }
 
+// How long before its scheduled departure a ferry is visible at the berth.
+const FERRY_DWELL_BEFORE_DEP_MIN = 20
+// How long a just-arrived ferry remains at the berth before vanishing.
+const FERRY_DWELL_AFTER_ARR_MIN = 20
+// Visible cruise speed along the waypoint path (km/h). Faster than buses
+// (~20 km/h) and a bit below the flight cruise segment (~120 km/h).
+const FERRY_CRUISE_KMH = 80
+
+// Minutes to traverse the visible path at FERRY_CRUISE_KMH, cached per
+// (route, berth) pair — the berth prefix segment varies per ferry.
+const ferryPathMinutesCache = new Map<string, number>()
+function ferryPathMinutes(key: string, path: [number, number][]): number {
+  const cached = ferryPathMinutesCache.get(key)
+  if (cached !== undefined) return cached
+  const km = pathLengthMeters(path) / 1000
+  const mins = (km / FERRY_CRUISE_KMH) * 60
+  ferryPathMinutesCache.set(key, mins)
+  return mins
+}
+
+const M_PER_DEG_LAT = 111320
+
+function ferryBowToward(
+  from: [number, number],
+  to: [number, number],
+): number {
+  const cosLat = Math.cos((from[1] * Math.PI) / 180)
+  const dx = (to[0] - from[0]) * M_PER_DEG_LAT * cosLat
+  const dy = (to[1] - from[1]) * M_PER_DEG_LAT
+  return (Math.atan2(dx, dy) * 180 / Math.PI + 360) % 360
+}
+
+function computeFerryVehicles(
+  ferries: Ferry[],
+  nowMinutes: number,
+): VehiclePosition[] {
+  if (ferries.length === 0) return []
+  const vehicles: VehiclePosition[] = []
+
+  for (const f of ferries) {
+    const route = FERRY_ROUTES[f.routeId]
+    const berth = FERRY_BERTHS[f.berthIndex % FERRY_BERTHS.length]
+
+    // Ferry visibility around scheduledTime T:
+    //   departure: berth dwell [T - dwellBefore, T), then cruise [T, T + pathMin)
+    //   arrival:   cruise [T - pathMin, T),          then berth dwell [T, T + dwellAfter)
+    // The cruise path prepends the berth coord so the ferry glides smoothly
+    // out of / into its slip instead of teleporting to the first waypoint.
+    // Routes without a path only have the berth dwell window.
+    const effectivePath: [number, number][] | null = route
+      ? [berth.coord, ...route.waypoints]
+      : null
+    const pathMin = effectivePath
+      ? ferryPathMinutes(`${f.routeId}:${f.berthIndex % FERRY_BERTHS.length}`, effectivePath)
+      : 0
+    const offsets = [0, -1440, 1440]
+    let phase: 'berth' | 'journey' | null = null
+    let journeyFrac = 0
+    for (const off of offsets) {
+      const t = f.scheduledTime + off
+      if (f.type === 'departure') {
+        if (nowMinutes >= t - FERRY_DWELL_BEFORE_DEP_MIN && nowMinutes < t) {
+          phase = 'berth'; break
+        }
+        if (effectivePath && nowMinutes >= t && nowMinutes < t + pathMin) {
+          phase = 'journey'
+          journeyFrac = (nowMinutes - t) / pathMin
+          break
+        }
+      } else {
+        if (effectivePath && nowMinutes >= t - pathMin && nowMinutes < t) {
+          phase = 'journey'
+          // Arrivals travel the reverse path; convert fraction accordingly.
+          journeyFrac = 1 - (nowMinutes - (t - pathMin)) / pathMin
+          break
+        }
+        if (nowMinutes >= t && nowMinutes < t + FERRY_DWELL_AFTER_ARR_MIN) {
+          phase = 'berth'; break
+        }
+      }
+    }
+    if (!phase) continue
+
+    let coord: [number, number]
+    let bearing: number
+    let progress = 0
+    if (phase === 'berth') {
+      coord = [berth.coord[0], berth.coord[1]]
+      // Departures turn to face outbound (first waypoint); arrivals keep the
+      // original docked orientation (NW toward shore) from ferryBerths.
+      bearing = route && f.type === 'departure'
+        ? ferryBowToward(berth.coord, route.waypoints[0])
+        : berth.bearing
+    } else {
+      // journey along path (berth → waypoints for departures, reversed for arrivals)
+      const { point, bearing: pathBearing } = interpolatePath(effectivePath!, journeyFrac)
+      coord = point
+      // Arrivals travel the reverse direction of the path, so flip the bow 180°.
+      bearing = f.type === 'arrival' ? (pathBearing + 180) % 360 : pathBearing
+      progress = journeyFrac
+    }
+
+    vehicles.push({
+      id: f.id,
+      lineId: f.routeId,
+      type: 'ferry',
+      coordinates: coord,
+      bearing,
+      progress,
+      color: FERRY_COLOR,
+      ferryData: f,
+    })
+  }
+  return vehicles
+}
+
 export function computeVehiclePositions(
   transitData: TransitData,
   time: Date
@@ -1007,5 +1125,10 @@ export function computeVehiclePositions(
     nowMinutes
   )
 
-  return [...lrtVehicles, ...busVehicles, ...flightVehicles]
+  const ferryVehicles = computeFerryVehicles(
+    transitData.ferries,
+    nowMinutes
+  )
+
+  return [...lrtVehicles, ...busVehicles, ...flightVehicles, ...ferryVehicles]
 }

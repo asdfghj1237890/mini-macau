@@ -18,6 +18,7 @@ function vehiclesToGeoJson(vehicles: VehiclePosition[]): GeoJSON.FeatureCollecti
     type: 'FeatureCollection',
     features: vehicles.map(v => {
       const isFlight = v.type === 'flight'
+      const isFerry = v.type === 'ferry'
       return {
         type: 'Feature' as const,
         geometry: {
@@ -30,8 +31,8 @@ function vehiclesToGeoJson(vehicles: VehiclePosition[]): GeoJSON.FeatureCollecti
           type: v.type,
           color: v.color,
           bearing: v.bearing,
-          labelEn: isFlight ? v.lineId : (LINE_LABELS[v.lineId]?.en ?? v.lineId),
-          labelZh: isFlight ? v.lineId : (LINE_LABELS[v.lineId]?.zh ?? v.lineId),
+          labelEn: isFlight || isFerry ? v.lineId : (LINE_LABELS[v.lineId]?.en ?? v.lineId),
+          labelZh: isFlight || isFerry ? v.lineId : (LINE_LABELS[v.lineId]?.zh ?? v.lineId),
         },
       }
     }),
@@ -53,6 +54,7 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
         'case',
         ['==', ['get', 'type'], 'flight'], 12,
         ['==', ['get', 'type'], 'lrt'], 10,
+        ['==', ['get', 'type'], 'ferry'], 9,
         7,
       ],
       'circle-color': ['get', 'color'],
@@ -70,6 +72,7 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
         'case',
         ['==', ['get', 'type'], 'flight'], 7,
         ['==', ['get', 'type'], 'lrt'], 6,
+        ['==', ['get', 'type'], 'ferry'], 5,
         4,
       ],
       'circle-color': ['get', 'color'],

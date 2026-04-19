@@ -49,6 +49,7 @@ const translations = {
     cancel: 'Cancel',
     flights: 'Flights',
     flightsActive: (n: number) => `${n} flights`,
+    ferries: 'Ferries',
     noServiceToday: 'No service today',
   },
   zh: {
@@ -95,6 +96,7 @@ const translations = {
     cancel: '取消',
     flights: '航班',
     flightsActive: (n: number) => `${n} 架航班`,
+    ferries: '船運',
     noServiceToday: '本日無服務',
   },
   pt: {
@@ -141,6 +143,7 @@ const translations = {
     cancel: 'Cancelar',
     flights: 'Voos',
     flightsActive: (n: number) => `${n} voos`,
+    ferries: 'Ferries',
     noServiceToday: 'Sem serviço hoje',
   },
 }
@@ -189,6 +192,7 @@ interface Translations {
   cancel: string
   flights: string
   flightsActive: (n: number) => string
+  ferries: string
   noServiceToday: string
 }
 
