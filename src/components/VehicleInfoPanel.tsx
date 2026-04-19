@@ -1,8 +1,14 @@
-import type { VehiclePosition, TransitData, SimulationClock, Trip, BusRoute, BusStop } from '../types'
+import type { VehiclePosition, TransitData, SimulationClock, Trip, BusStop } from '../types'
 import { useI18n, localName } from '../i18n'
 import { useMemo, useRef, useEffect } from 'react'
 import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
+import {
+  getBusSchedule,
+  computeBusCycleSec,
+  computeBusDirSec,
+  type BusSchedule,
+} from '../engines/simulationEngine'
 
 interface Props {
   vehicle: VehiclePosition | null
@@ -26,181 +32,25 @@ interface BusStopETA {
   status: 'past' | 'dwelling' | 'arriving' | 'future'
 }
 
-const busStopListCache = new WeakMap<BusRoute, {
-  totalLenKm: number
-  stopProgressForward: number[]
-  stopProgressBackward: number[]
-}>()
-
-function projectPointOnSegment(
-  a: [number, number],
-  b: [number, number],
-  p: [number, number],
-): { alongKm: number; distKm: number; segLenKm: number } {
-  const midLatRad = ((a[1] + b[1]) / 2) * Math.PI / 180
-  const kmPerDegLat = 110.574
-  const kmPerDegLon = 111.32 * Math.cos(midLatRad)
-  const ax = a[0] * kmPerDegLon, ay = a[1] * kmPerDegLat
-  const bx = b[0] * kmPerDegLon, by = b[1] * kmPerDegLat
-  const px = p[0] * kmPerDegLon, py = p[1] * kmPerDegLat
-  const dx = bx - ax, dy = by - ay
-  const segLenKm = Math.sqrt(dx * dx + dy * dy)
-  let t = 0
-  if (segLenKm > 0) {
-    t = ((px - ax) * dx + (py - ay) * dy) / (segLenKm * segLenKm)
-    t = Math.max(0, Math.min(1, t))
-  }
-  const cx = ax + t * dx, cy = ay + t * dy
-  const distKm = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2)
-  return { alongKm: t * segLenKm, distKm, segLenKm }
-}
-
-function getBusRouteCache(route: BusRoute, busStopMap: Map<string, BusStop>) {
-  let entry = busStopListCache.get(route)
-  if (entry) return entry
-
-  const coords = (route.geometry.geometry?.coordinates ?? []) as [number, number][]
-  const cumKm: number[] = [0]
-  for (let i = 1; i < coords.length; i++) {
-    const seg = projectPointOnSegment(coords[i - 1], coords[i], coords[i])
-    cumKm.push(cumKm[i - 1] + seg.segLenKm)
-  }
-  const totalLenKm = cumKm[cumKm.length - 1] ?? 0
-
-  const isCircular = route.routeType === 'circular'
-
-  const projectOrdered = (stopIds: string[]): number[] => {
-    const out: number[] = new Array(stopIds.length).fill(0)
-    if (totalLenKm <= 0 || coords.length < 2) return out
-    const firstEqualsLast = stopIds.length > 1 && stopIds[0] === stopIds[stopIds.length - 1]
-    let cursorKm = 0
-    for (let idx = 0; idx < stopIds.length; idx++) {
-      const stop = busStopMap.get(stopIds[idx])
-      if (!stop) {
-        out[idx] = cursorKm / totalLenKm
-        continue
-      }
-      if (idx === 0 && firstEqualsLast) {
-        out[0] = 0
-        cursorKm = 0
-        continue
-      }
-      if (idx === stopIds.length - 1 && firstEqualsLast) {
-        out[idx] = 1
-        cursorKm = totalLenKm
-        continue
-      }
-      let bestDist = Infinity
-      let bestKm = cursorKm
-      for (let i = 1; i < coords.length; i++) {
-        if (cumKm[i] < cursorKm) continue
-        const { alongKm, distKm } = projectPointOnSegment(coords[i - 1], coords[i], stop.coordinates)
-        let candidateKm = cumKm[i - 1] + alongKm
-        if (candidateKm < cursorKm) candidateKm = cursorKm
-        if (distKm < bestDist) {
-          bestDist = distKm
-          bestKm = candidateKm
-        }
-      }
-      out[idx] = bestKm / totalLenKm
-      cursorKm = bestKm
-    }
-    return out
-  }
-
-  const projectUnordered = (stopIds: string[]): number[] => {
-    const out: number[] = new Array(stopIds.length).fill(0)
-    if (totalLenKm <= 0 || coords.length < 2) return out
-    for (let idx = 0; idx < stopIds.length; idx++) {
-      const stop = busStopMap.get(stopIds[idx])
-      if (!stop) continue
-      const projected = nearestPointOnLine(route.geometry, stop.coordinates, { units: 'kilometers' })
-      const dist = (projected.properties.location ?? 0) as number
-      out[idx] = dist / totalLenKm
-    }
-    return out
-  }
-
-  // Circular routes hug the forward geometry, so walk stops in order to
-  // disambiguate near self-crossings. Bilateral routes' return path shares
-  // the forward polyline in reverse, so a simple nearest-point projection
-  // is sufficient for both directions.
-  const stopProgressForward = isCircular
-    ? projectOrdered(route.stopsForward)
-    : projectUnordered(route.stopsForward)
-  const stopProgressBackward = isCircular
-    ? projectOrdered(route.stopsBackward)
-    : projectUnordered(route.stopsBackward)
-
-  entry = { totalLenKm, stopProgressForward, stopProgressBackward }
-  busStopListCache.set(route, entry)
-  return entry
-}
-
-function computeLiveBusDirection(vehicle: VehiclePosition, route: BusRoute, totalLenKm: number, nowMinutes: number): boolean {
-  if (route.routeType === 'circular') return false
-  const tripDuration = totalLenKm < 5 ? 30 : 60
-  const vIndex = parseInt(vehicle.id.split('-').pop() ?? '0', 10)
-  const minutesSinceStart = nowMinutes - route.serviceHoursStart * 60
-  const elapsed = minutesSinceStart - vIndex * route.frequency
-  if (elapsed < 0) return false
-  const cycleTime = tripDuration * 2
-  const cyclePos = elapsed % cycleTime
-  return cyclePos > tripDuration
-}
-
 function computeBusStopETAs(
   vehicle: VehiclePosition,
-  route: BusRoute,
+  schedule: BusSchedule,
   busStopMap: Map<string, BusStop>,
+  dirSec: number,
+  returning: boolean,
   nowMinutes: number,
 ): BusStopETA[] {
-  const cache = getBusRouteCache(route, busStopMap)
-  if (cache.totalLenKm < 0.01) return []
-  const tripDuration = cache.totalLenKm < 5 ? 30 : 60
-
-  const liveProgress = vehicle.progress
-  const returning = vehicle.rt
-    ? vehicle.rt.dir === 1
-    : computeLiveBusDirection(vehicle, route, cache.totalLenKm, nowMinutes)
-
-  const entries: { stopId: string; stop: BusStop; effectiveProg: number }[] = []
-  const isCircular = route.routeType === 'circular'
-  const stopIds = returning ? route.stopsBackward : route.stopsForward
-  const stopProgs = returning ? cache.stopProgressBackward : cache.stopProgressForward
-  // Bilateral forward: stops project to increasing progress on the polyline.
-  // Bilateral returning: backward stops should project to decreasing progress.
-  // The clamp prevents adjacent stops from collapsing to the same value,
-  // which would break the arriving/dwelling transition.
-  const sign = returning ? -1 : 1
-  let prevProg = returning ? 2 : -1
-  for (let idx = 0; idx < stopIds.length; idx++) {
-    const stopId = stopIds[idx]
-    const stop = busStopMap.get(stopId)
-    if (!stop) continue
-    const stopProg = stopProgs[idx]
-
-    let effectiveProg = stopProg
-    if (!isCircular && (effectiveProg - prevProg) * sign <= 0.001) {
-      effectiveProg = prevProg + sign * 0.001
-    }
-    prevProg = effectiveProg
-    entries.push({ stopId, stop, effectiveProg })
-  }
-
+  const stops = returning ? schedule.backwardStops : schedule.forwardStops
   const rtStopIndex = vehicle.rt?.stopIndex
 
   const result: BusStopETA[] = []
-  for (let i = 0; i < entries.length; i++) {
-    const { stopId, stop, effectiveProg } = entries[i]
-    let delta: number
-    if (returning) {
-      delta = liveProgress - effectiveProg
-    } else {
-      delta = effectiveProg - liveProgress
-    }
+  for (let i = 0; i < stops.length; i++) {
+    const s = stops[i]
+    const stop = busStopMap.get(s.stopId)
+    if (!stop) continue
 
-    const etaMin = delta * tripDuration
+    const deltaSec = s.arriveSec - dirSec
+    const etaMin = deltaSec / 60
 
     let status: 'past' | 'dwelling' | 'arriving' | 'future'
     if (rtStopIndex !== undefined) {
@@ -208,13 +58,13 @@ function computeBusStopETAs(
       else if (i === rtStopIndex) status = 'dwelling'
       else if (i - rtStopIndex === 1) status = 'arriving'
       else status = 'future'
-    } else if (etaMin > -0.5 && etaMin < 0.5) status = 'dwelling'
-    else if (etaMin >= 0.5 && etaMin < 5) status = 'arriving'
+    } else if (dirSec >= s.arriveSec && dirSec <= s.departSec) status = 'dwelling'
+    else if (etaMin > 0 && etaMin < 5) status = 'arriving'
     else if (etaMin >= 5) status = 'future'
     else status = 'past'
 
     result.push({
-      stopId,
+      stopId: s.stopId,
       stopName: stop.name,
       stopNameCn: stop.nameCn,
       etaMinutes: nowMinutes + etaMin,
@@ -258,13 +108,24 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     + clock.currentTime.getMinutes()
     + clock.currentTime.getSeconds() / 60
 
-  const busETAs: BusStopETA[] = useMemo(() => {
-    if (!vehicle || vehicle.type !== 'bus') return []
+  const busCtx = useMemo(() => {
+    if (!vehicle || vehicle.type !== 'bus') return null
     const route = transitData.busRoutes.find(r => r.id === vehicle.lineId)
-    if (!route) return []
-    return computeBusStopETAs(vehicle, route, busStopMap, nowMinutesForETA)
+    if (!route) return null
+    const schedule = getBusSchedule(route, busStopMap)
+    if (!schedule) return null
+    const cycleSec = computeBusCycleSec(vehicle.id, schedule, route, nowMinutesForETA)
+    const { dirSec, returning } = computeBusDirSec(cycleSec, schedule)
+    const effectiveReturning = vehicle.rt ? vehicle.rt.dir === 1 : returning
+    return { route, schedule, dirSec, returning: effectiveReturning }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, vehicle?.rt?.stopIndex, vehicle?.rt?.observedAt, vehicle?.progress, nowMinutesForETA, busStopMap, transitData.busRoutes])
+  }, [vehicle?.id, vehicle?.rt?.stopIndex, vehicle?.rt?.observedAt, vehicle?.rt?.dir, nowMinutesForETA, busStopMap, transitData.busRoutes])
+
+  const busETAs: BusStopETA[] = useMemo(() => {
+    if (!vehicle || !busCtx) return []
+    return computeBusStopETAs(vehicle, busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vehicle?.id, busCtx, busStopMap, nowMinutesForETA])
 
   if (!vehicle) return null
 
@@ -332,16 +193,25 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
   }
 
   const scrollRef = useRef<HTMLDivElement>(null)
-  const firstActiveIdx = rows.findIndex(r => r.status !== 'past')
+  // Center priority: dwelling > arriving > boundary between last past and first future
+  const focusIdx = (() => {
+    const dwellingIdx = rows.findIndex(r => r.status === 'dwelling')
+    if (dwellingIdx >= 0) return dwellingIdx
+    const arrivingIdx = rows.findIndex(r => r.status === 'arriving')
+    if (arrivingIdx >= 0) return arrivingIdx
+    const firstFuture = rows.findIndex(r => r.status === 'future')
+    if (firstFuture > 0 && rows[firstFuture - 1].status === 'past') return firstFuture - 1
+    return firstFuture
+  })()
   const prevVehicleIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!vehicle || firstActiveIdx < 0) return
+    if (!vehicle || focusIdx < 0) return
     const isNewVehicle = prevVehicleIdRef.current !== vehicle.id
     prevVehicleIdRef.current = vehicle.id
     const el = scrollRef.current
     if (!el) return
-    const targetRow = el.children[firstActiveIdx] as HTMLElement | undefined
+    const targetRow = el.children[focusIdx] as HTMLElement | undefined
     if (!targetRow) return
     if (isNewVehicle) {
       targetRow.scrollIntoView({ block: 'center' })
@@ -352,7 +222,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
         targetRow.scrollIntoView({ block: 'center', behavior: 'smooth' })
       }
     }
-  }, [vehicle?.id, firstActiveIdx])
+  }, [vehicle?.id, focusIdx])
 
   // Find next destination (last entry for lrt, last future stop for bus)
   const destRow = trip
@@ -400,15 +270,46 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
       }
       return 0
     }
-    if (vehicle.type === 'bus' && route) {
-      const cache = getBusRouteCache(route, busStopMap)
-      if (cache.totalLenKm < 0.01) return 0
-      const tripDuration = cache.totalLenKm < 5 ? 30 : 60
-      return Math.round((cache.totalLenKm / tripDuration) * 60)
+    if (vehicle.type === 'bus' && busCtx) {
+      const { schedule, dirSec, returning } = busCtx
+      const stops = returning ? schedule.backwardStops : schedule.forwardStops
+      for (const s of stops) {
+        if (dirSec >= s.arriveSec && dirSec <= s.departSec) return 0
+      }
+
+      // Locate driving segment (between two stops, or endpoint leg)
+      let segStart = 0
+      let segEnd = schedule.tripDurationSec
+      let segProgressDelta = 1
+      if (stops.length > 0) {
+        if (dirSec < stops[0].arriveSec) {
+          segEnd = stops[0].arriveSec
+          segProgressDelta = Math.abs(stops[0].progress - (returning ? 1 : 0))
+        } else if (dirSec > stops[stops.length - 1].departSec) {
+          segStart = stops[stops.length - 1].departSec
+          segProgressDelta = Math.abs((returning ? 0 : 1) - stops[stops.length - 1].progress)
+        } else {
+          for (let i = 0; i < stops.length - 1; i++) {
+            if (dirSec > stops[i].departSec && dirSec < stops[i + 1].arriveSec) {
+              segStart = stops[i].departSec
+              segEnd = stops[i + 1].arriveSec
+              segProgressDelta = Math.abs(stops[i + 1].progress - stops[i].progress)
+              break
+            }
+          }
+        }
+      }
+      const segDurSec = Math.max(0.001, segEnd - segStart)
+      const segDistKm = segProgressDelta * schedule.totalLenKm
+      const avgSpeed = (segDistKm / segDurSec) * 3600
+      const t = Math.max(0, Math.min(1, (dirSec - segStart) / segDurSec))
+      const approachSlowdown = t > 0.85 ? 1 - ((t - 0.85) / 0.15) * 0.7 : 1
+      const departAccel = t < 0.15 ? 0.3 + (t / 0.15) * 0.7 : 1
+      return Math.round(avgSpeed * approachSlowdown * departAccel)
     }
     return 0
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle.id, vehicle.type, nowMinutes, trip, line, route, busETAs])
+  }, [vehicle.id, vehicle.type, nowMinutes, trip, line, busCtx])
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
