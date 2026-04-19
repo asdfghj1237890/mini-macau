@@ -9,3 +9,5 @@ data/raw/
 .env
 .env.local
 tmp_*
+.claude/scheduled_tasks.lock
+.env.development

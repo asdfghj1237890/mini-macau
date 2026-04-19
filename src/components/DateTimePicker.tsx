@@ -287,13 +287,22 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
         />
         <div
           ref={rootRef}
-          className="fixed left-0 right-0 bottom-0 z-[90] bg-[#0b0b0c] border-t border-amber-300/25"
-          style={{ animation: 'mm-sheet-up 220ms cubic-bezier(0.2,0.8,0.2,1)', boxShadow: '0 -12px 40px rgba(0,0,0,0.7)' }}
+          className="mm-ui-scale fixed bottom-0 z-[90] bg-[#0b0b0c] border-t border-amber-300/25"
+          style={{
+            left: 0,
+            width: 'calc(100vw / 1.2)',
+            animation: 'mm-sheet-up 220ms cubic-bezier(0.2,0.8,0.2,1)',
+            boxShadow: '0 -12px 40px rgba(0,0,0,0.7)',
+          }}
         >
           <div className="flex items-center justify-between px-4 pt-2.5 pb-1.5 border-b border-white/10 bg-amber-300/[0.04]">
             <div className="flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />
-              <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/80">░ SET TIME · 設定時間</span>
+              <span
+                className="inline-block w-[8px] h-[8px]"
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.7) 0 1px, transparent 1px 3px)' }}
+              />
+              <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/80">SET TIME · 設定時間</span>
             </div>
           </div>
           <div className="mx-auto w-10 h-1 rounded-full bg-white/12 mt-2" />
@@ -334,7 +343,11 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
       <div className="flex items-center justify-between px-3 py-2 border-b border-white/10 bg-amber-300/[0.04] shrink-0">
         <div className="flex items-center gap-2">
           <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />
-          <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/80">░ SET TIME · 設定時間</span>
+          <span
+                className="inline-block w-[8px] h-[8px]"
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.7) 0 1px, transparent 1px 3px)' }}
+              />
+              <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/80">SET TIME · 設定時間</span>
         </div>
       </div>
       <div className="p-3 overflow-y-auto mm-scrollbar">{body}</div>

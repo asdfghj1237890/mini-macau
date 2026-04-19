@@ -26,23 +26,97 @@ interface BusStopETA {
   status: 'past' | 'dwelling' | 'arriving' | 'future'
 }
 
-const busStopListCache = new WeakMap<BusRoute, { totalLenKm: number; stopProgress: Map<string, number> }>()
+const busStopListCache = new WeakMap<BusRoute, { totalLenKm: number; stopProgressByIndex: number[] }>()
+
+function projectPointOnSegment(
+  a: [number, number],
+  b: [number, number],
+  p: [number, number],
+): { alongKm: number; distKm: number; segLenKm: number } {
+  const midLatRad = ((a[1] + b[1]) / 2) * Math.PI / 180
+  const kmPerDegLat = 110.574
+  const kmPerDegLon = 111.32 * Math.cos(midLatRad)
+  const ax = a[0] * kmPerDegLon, ay = a[1] * kmPerDegLat
+  const bx = b[0] * kmPerDegLon, by = b[1] * kmPerDegLat
+  const px = p[0] * kmPerDegLon, py = p[1] * kmPerDegLat
+  const dx = bx - ax, dy = by - ay
+  const segLenKm = Math.sqrt(dx * dx + dy * dy)
+  let t = 0
+  if (segLenKm > 0) {
+    t = ((px - ax) * dx + (py - ay) * dy) / (segLenKm * segLenKm)
+    t = Math.max(0, Math.min(1, t))
+  }
+  const cx = ax + t * dx, cy = ay + t * dy
+  const distKm = Math.sqrt((px - cx) ** 2 + (py - cy) ** 2)
+  return { alongKm: t * segLenKm, distKm, segLenKm }
+}
 
 function getBusRouteCache(route: BusRoute, busStopMap: Map<string, BusStop>) {
   let entry = busStopListCache.get(route)
   if (entry) return entry
-  const totalLenKm = length(route.geometry, { units: 'kilometers' })
-  const stopProgress = new Map<string, number>()
-  if (totalLenKm > 0) {
-    for (const stopId of route.stops) {
-      const stop = busStopMap.get(stopId)
-      if (!stop) continue
-      const projected = nearestPointOnLine(route.geometry, stop.coordinates, { units: 'kilometers' })
-      const dist = (projected.properties.location ?? 0) as number
-      stopProgress.set(stopId, dist / totalLenKm)
+
+  const coords = (route.geometry.geometry?.coordinates ?? []) as [number, number][]
+  const cumKm: number[] = [0]
+  for (let i = 1; i < coords.length; i++) {
+    const seg = projectPointOnSegment(coords[i - 1], coords[i], coords[i])
+    cumKm.push(cumKm[i - 1] + seg.segLenKm)
+  }
+  const totalLenKm = cumKm[cumKm.length - 1] ?? 0
+
+  const stopProgressByIndex: number[] = new Array(route.stops.length).fill(0)
+  const isCircular = route.routeType === 'circular'
+  const firstEqualsLast = route.stops.length > 1
+    && route.stops[0] === route.stops[route.stops.length - 1]
+
+  if (totalLenKm > 0 && coords.length >= 2) {
+    if (isCircular) {
+      // Ordered forward walk: each stop projects onto segments after the
+      // previous cursor. Handles closed loops where first/last stop share
+      // coordinates and routes that visit the same stop twice.
+      let cursorKm = 0
+      for (let idx = 0; idx < route.stops.length; idx++) {
+        const stop = busStopMap.get(route.stops[idx])
+        if (!stop) {
+          stopProgressByIndex[idx] = cursorKm / totalLenKm
+          continue
+        }
+        if (idx === 0 && firstEqualsLast) {
+          stopProgressByIndex[0] = 0
+          cursorKm = 0
+          continue
+        }
+        if (idx === route.stops.length - 1 && firstEqualsLast) {
+          stopProgressByIndex[idx] = 1
+          cursorKm = totalLenKm
+          continue
+        }
+        let bestDist = Infinity
+        let bestKm = cursorKm
+        for (let i = 1; i < coords.length; i++) {
+          if (cumKm[i] < cursorKm) continue
+          const { alongKm, distKm } = projectPointOnSegment(coords[i - 1], coords[i], stop.coordinates)
+          let candidateKm = cumKm[i - 1] + alongKm
+          if (candidateKm < cursorKm) candidateKm = cursorKm
+          if (distKm < bestDist) {
+            bestDist = distKm
+            bestKm = candidateKm
+          }
+        }
+        stopProgressByIndex[idx] = bestKm / totalLenKm
+        cursorKm = bestKm
+      }
+    } else {
+      for (let idx = 0; idx < route.stops.length; idx++) {
+        const stop = busStopMap.get(route.stops[idx])
+        if (!stop) continue
+        const projected = nearestPointOnLine(route.geometry, stop.coordinates, { units: 'kilometers' })
+        const dist = (projected.properties.location ?? 0) as number
+        stopProgressByIndex[idx] = dist / totalLenKm
+      }
     }
   }
-  entry = { totalLenKm, stopProgress }
+
+  entry = { totalLenKm, stopProgressByIndex }
   busStopListCache.set(route, entry)
   return entry
 }
@@ -76,14 +150,15 @@ function computeBusStopETAs(
 
   const entries: { stopId: string; stop: BusStop; effectiveProg: number }[] = []
   let prevProg = -1
-  for (const stopId of route.stops) {
-    const stopProg = cache.stopProgress.get(stopId)
-    if (stopProg === undefined) continue
+  const isCircular = route.routeType === 'circular'
+  for (let idx = 0; idx < route.stops.length; idx++) {
+    const stopId = route.stops[idx]
     const stop = busStopMap.get(stopId)
     if (!stop) continue
+    const stopProg = cache.stopProgressByIndex[idx]
 
     let effectiveProg = stopProg
-    if (effectiveProg <= prevProg + 0.001) {
+    if (!isCircular && effectiveProg <= prevProg + 0.001) {
       effectiveProg = prevProg + 0.001
     }
     prevProg = effectiveProg

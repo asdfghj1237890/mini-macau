@@ -53,6 +53,10 @@ html, body, #root {
   .mm-ui-scale { zoom: 1.3; }
 }
 
+@media (max-width: 639px) {
+  .mm-ui-scale { zoom: 1.2; }
+}
+
 @supports (padding: env(safe-area-inset-bottom)) {
   #root {
     padding-top: env(safe-area-inset-top);
