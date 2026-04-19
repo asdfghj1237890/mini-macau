@@ -588,14 +588,20 @@ export function LineLegend({
                 {t.hideAll}
               </button>
             </div>
-            <div className="max-h-[55vh] overflow-y-auto">
+            <div className="overflow-y-auto max-h-[200px]">
               {GROUP_ORDER.map(groupKey => {
                 const routes = grouped.get(groupKey) || []
                 if (routes.length === 0) return null
                 const groupActive = routes.filter(r => visibleRoutes.has(r.id)).length
+                const collapsed = collapsedGroups.has(groupKey)
                 return (
                   <div key={groupKey} className="border-t border-white/5">
-                    <div className="px-2 py-1 flex items-center gap-2 bg-white/[0.015]">
+                    <button
+                      type="button"
+                      onClick={() => toggleGroupCollapse(groupKey)}
+                      className="w-full px-2 py-1 flex items-center gap-2 bg-white/[0.015]
+                                 active:bg-white/[0.04] transition"
+                    >
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0
                                         ${groupActive > 0 ? 'bg-emerald-300' : 'bg-white/15'}`} />
                       <span className="mm-mono text-[9px] tracking-[0.2em] text-white/55 uppercase flex-1 text-left">
@@ -604,7 +610,11 @@ export function LineLegend({
                       <span className="mm-mono mm-tabular text-[9px] text-white/35">
                         {groupActive}/{routes.length}
                       </span>
-                    </div>
+                      <span className="text-white/30 mm-mono text-[8px] w-3 text-center">
+                        {collapsed ? '▸' : '▾'}
+                      </span>
+                    </button>
+                    {!collapsed && (
                     <div className="bg-[#060607]">
                       {routes.map(route => {
                         const inactive = inactiveRoutes?.has(route.id) ?? false
@@ -640,6 +650,7 @@ export function LineLegend({
                         )
                       })}
                     </div>
+                    )}
                   </div>
                 )
               })}
