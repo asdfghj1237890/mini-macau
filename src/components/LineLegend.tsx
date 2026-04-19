@@ -10,6 +10,7 @@ interface Props {
   transitData: TransitData
   allTransitData?: TransitData
   visibleRoutes?: Set<string>
+  inactiveRoutes?: Set<string>
   isAutoMode?: boolean
   lrtOn?: Set<string>
   flightsOn?: boolean
@@ -29,6 +30,7 @@ export function LineLegend({
   transitData,
   allTransitData,
   visibleRoutes,
+  inactiveRoutes,
   isAutoMode,
   lrtOn,
   flightsOn = true,
@@ -283,27 +285,35 @@ export function LineLegend({
                       {!collapsed && (
                         <div className="bg-[#060607]">
                           {routes.map(route => {
+                            const inactive = inactiveRoutes?.has(route.id) ?? false
                             const on = visibleRoutes.has(route.id)
                             return (
                               <button
                                 key={route.id}
-                                onClick={() => onToggleRoute?.(route.id)}
+                                onClick={() => !inactive && onToggleRoute?.(route.id)}
+                                disabled={inactive}
+                                title={inactive ? t.noServiceToday : undefined}
                                 className={`w-full px-2 py-[3px] flex items-center gap-2 transition-colors
-                                           ${on ? 'hover:bg-white/[0.04]' : 'opacity-35 hover:opacity-60'}`}
+                                           ${inactive
+                                             ? 'opacity-30 cursor-not-allowed'
+                                             : on ? 'hover:bg-white/[0.04]' : 'opacity-35 hover:opacity-60'}`}
                               >
                                 <span
                                   className="mm-mono mm-tabular text-[10px] font-bold text-center shrink-0"
                                   style={{
                                     width: 36,
-                                    color: on ? route.color : '#555',
-                                    textShadow: on ? `0 0 6px ${route.color}66` : 'none',
+                                    color: inactive ? '#444' : on ? route.color : '#555',
+                                    textShadow: !inactive && on ? `0 0 6px ${route.color}66` : 'none',
+                                    textDecoration: inactive ? 'line-through' : 'none',
                                   }}
                                 >
                                   {route.name}
                                 </span>
                                 <span className={`text-[10px] flex-1 text-left truncate mm-han
-                                                  ${on ? 'text-white/75' : 'text-white/30'}`}>
-                                  {lang !== 'en' && route.nameCn ? route.nameCn : ''}
+                                                  ${inactive ? 'text-white/25' : on ? 'text-white/75' : 'text-white/30'}`}>
+                                  {inactive
+                                    ? t.noServiceToday
+                                    : (lang !== 'en' && route.nameCn ? route.nameCn : '')}
                                 </span>
                               </button>
                             )
@@ -527,27 +537,34 @@ export function LineLegend({
                     </div>
                     <div className="bg-[#060607]">
                       {routes.map(route => {
+                        const inactive = inactiveRoutes?.has(route.id) ?? false
                         const on = visibleRoutes.has(route.id)
                         return (
                           <button
                             key={route.id}
-                            onClick={() => onToggleRoute?.(route.id)}
+                            onClick={() => !inactive && onToggleRoute?.(route.id)}
+                            disabled={inactive}
                             className={`w-full px-2 py-[3px] flex items-center gap-2 transition-colors
-                                       ${on ? 'hover:bg-white/[0.04]' : 'opacity-35'}`}
+                                       ${inactive
+                                         ? 'opacity-30 cursor-not-allowed'
+                                         : on ? 'hover:bg-white/[0.04]' : 'opacity-35'}`}
                           >
                             <span
                               className="mm-mono mm-tabular text-[10px] font-bold text-center shrink-0"
                               style={{
                                 width: 34,
-                                color: on ? route.color : '#555',
-                                textShadow: on ? `0 0 6px ${route.color}66` : 'none',
+                                color: inactive ? '#444' : on ? route.color : '#555',
+                                textShadow: !inactive && on ? `0 0 6px ${route.color}66` : 'none',
+                                textDecoration: inactive ? 'line-through' : 'none',
                               }}
                             >
                               {route.name}
                             </span>
                             <span className={`text-[10px] flex-1 text-left truncate mm-han
-                                              ${on ? 'text-white/75' : 'text-white/30'}`}>
-                              {lang !== 'en' && route.nameCn ? route.nameCn : ''}
+                                              ${inactive ? 'text-white/25' : on ? 'text-white/75' : 'text-white/30'}`}>
+                              {inactive
+                                ? t.noServiceToday
+                                : (lang !== 'en' && route.nameCn ? route.nameCn : '')}
                             </span>
                           </button>
                         )

@@ -1,0 +1,58 @@
+name: Bus Service Status
+
+on:
+  schedule:
+    - cron: '0 23 * * *' # UTC 23:00 = Macau 07:00 (UTC+8)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: latest
+
+      - name: Scrape today's service status
+        working-directory: data
+        run: uv run python scripts/fetch_service_status.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-status
+          path: data/output/service-status.json
+          retention-days: 30
+
+      - name: Publish to data-snapshot branch
+        run: |
+          set -e
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          mkdir -p /tmp/snap
+          cp data/output/service-status.json /tmp/snap/service-status.json
+
+          git fetch origin data-snapshot:data-snapshot || true
+          if git show-ref --quiet refs/heads/data-snapshot; then
+            git checkout data-snapshot
+            git rm -rf . > /dev/null 2>&1 || true
+          else
+            git checkout --orphan data-snapshot
+            git rm -rf . > /dev/null 2>&1 || true
+          fi
+
+          cp /tmp/snap/service-status.json service-status.json
+
+          git add service-status.json
+          if git diff --cached --quiet; then
+            echo "no change; skipping push"
+            exit 0
+          fi
+          git commit -m "snapshot: service-status $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push origin data-snapshot --force
