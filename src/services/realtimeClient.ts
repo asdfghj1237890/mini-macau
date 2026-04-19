@@ -35,17 +35,26 @@ export interface BusObservation {
   observedAt: number
 }
 
-export async function fetchDsatRoute(routeName: string, dir: 0 | 1 = 0): Promise<DsatRouteResponse | null> {
+export type FetchResult =
+  | { ok: true; data: DsatRouteResponse }
+  | { ok: false; reason: 'network' | 'http' | 'bad-payload' }
+
+export async function fetchDsatRouteResult(routeName: string, dir: 0 | 1 = 0): Promise<FetchResult> {
   const url = `/api/dsat/routestation/bus?routeName=${encodeURIComponent(routeName)}&dir=${dir}`
   try {
     const r = await fetch(url)
-    if (!r.ok) return null
+    if (!r.ok) return { ok: false, reason: 'http' }
     const json = await r.json()
-    if (json?.header !== '000') return null
-    return json as DsatRouteResponse
+    if (json?.header !== '000') return { ok: false, reason: 'bad-payload' }
+    return { ok: true, data: json as DsatRouteResponse }
   } catch {
-    return null
+    return { ok: false, reason: 'network' }
   }
+}
+
+export async function fetchDsatRoute(routeName: string, dir: 0 | 1 = 0): Promise<DsatRouteResponse | null> {
+  const res = await fetchDsatRouteResult(routeName, dir)
+  return res.ok ? res.data : null
 }
 
 export function extractObservations(resp: DsatRouteResponse, now = Date.now()): BusObservation[] {
@@ -73,14 +82,19 @@ export class RouteRealtimePoller {
   readonly routeName: string
   readonly dir: 0 | 1
   private readonly intervalMs: number
+  private readonly maxBackoffMs: number
   private timer: number | null = null
+  private running = false
+  private failures = 0
   private subs = new Set<Subscriber>()
   private lastObs: BusObservation[] = []
+  private visibilityHandler: (() => void) | null = null
 
-  constructor(routeName: string, dir: 0 | 1, intervalMs: number = 15_000) {
+  constructor(routeName: string, dir: 0 | 1, intervalMs: number = 15_000, maxBackoffMs: number = 5 * 60_000) {
     this.routeName = routeName
     this.dir = dir
     this.intervalMs = intervalMs
+    this.maxBackoffMs = maxBackoffMs
   }
 
   subscribe(fn: Subscriber): () => void {
@@ -91,24 +105,62 @@ export class RouteRealtimePoller {
   getLatest(): BusObservation[] { return this.lastObs }
 
   start() {
-    if (this.timer !== null) return
-    void this.tick()
-    this.timer = window.setInterval(() => { void this.tick() }, this.intervalMs)
+    if (this.running) return
+    this.running = true
+    this.failures = 0
+    if (typeof document !== 'undefined') {
+      this.visibilityHandler = () => {
+        if (!document.hidden && this.running && this.timer === null) this.schedule(0)
+      }
+      document.addEventListener('visibilitychange', this.visibilityHandler)
+    }
+    this.schedule(0)
   }
 
   stop() {
+    this.running = false
     if (this.timer !== null) {
-      clearInterval(this.timer)
+      clearTimeout(this.timer)
       this.timer = null
+    }
+    if (this.visibilityHandler && typeof document !== 'undefined') {
+      document.removeEventListener('visibilitychange', this.visibilityHandler)
+      this.visibilityHandler = null
     }
   }
 
+  private schedule(delay: number) {
+    if (!this.running) return
+    this.timer = window.setTimeout(() => {
+      this.timer = null
+      void this.tick()
+    }, delay)
+  }
+
+  private nextDelay(): number {
+    if (this.failures === 0) return this.intervalMs
+    const backoff = this.intervalMs * Math.pow(2, Math.min(this.failures - 1, 6))
+    return Math.min(backoff, this.maxBackoffMs)
+  }
+
   private async tick() {
-    const resp = await fetchDsatRoute(this.routeName, this.dir)
-    if (!resp) return
-    const obs = extractObservations(resp)
+    if (!this.running) return
+    if (typeof document !== 'undefined' && document.hidden) {
+      this.schedule(this.intervalMs)
+      return
+    }
+    const res = await fetchDsatRouteResult(this.routeName, this.dir)
+    if (!this.running) return
+    if (!res.ok) {
+      if (res.reason === 'http' || res.reason === 'network') this.failures++
+      this.schedule(this.nextDelay())
+      return
+    }
+    this.failures = 0
+    const obs = extractObservations(res.data)
     this.lastObs = obs
-    for (const fn of this.subs) fn(obs, resp)
+    for (const fn of this.subs) fn(obs, res.data)
+    this.schedule(this.nextDelay())
   }
 }
 

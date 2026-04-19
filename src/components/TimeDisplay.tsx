@@ -60,7 +60,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
         onClick={() => setOpen(p => !p)}
         title={t.clickToSetTime}
         aria-label={t.clickToSetTime}
-        className="sm:hidden absolute top-[50px] left-[52px] z-30
+        className="mm-ui-scale sm:hidden absolute top-[50px] left-[60px] z-30
                    h-9 flex items-stretch bg-[#0a0a0b]
                    border border-amber-300/25 overflow-hidden
                    hover:border-amber-300/50 active:bg-amber-300/5 transition

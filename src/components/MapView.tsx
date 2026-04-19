@@ -567,6 +567,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const onTrackedUpdateRef = useRef(onTrackedVehicleUpdate)
   onTrackedUpdateRef.current = onTrackedVehicleUpdate
   const lastTrackedSyncRef = useRef<{ id: string | null; observedAt: number | null }>({ id: null, observedAt: null })
+  const lastSimSyncRef = useRef<{ id: string | null; at: number }>({ id: null, at: 0 })
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
 
@@ -711,6 +712,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               const sync = lastTrackedSyncRef.current
               if (sync.id !== tid || sync.observedAt !== tracked.rt.observedAt) {
                 lastTrackedSyncRef.current = { id: tid, observedAt: tracked.rt.observedAt }
+                onTrackedUpdateRef.current?.(tracked)
+              }
+            } else {
+              const perfNow = performance.now()
+              const sim = lastSimSyncRef.current
+              if (sim.id !== tid || perfNow - sim.at >= 150) {
+                lastSimSyncRef.current = { id: tid, at: perfNow }
                 onTrackedUpdateRef.current?.(tracked)
               }
             }
@@ -874,8 +882,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         <div className="p-2.5 space-y-3 overflow-y-auto" style={{ height: 'calc(100% - 100px)' }}>
           {/* Map settings */}
           <div>
-            <div className="mm-mono text-[8px] tracking-[0.3em] text-white/35 px-1 pb-1.5 border-b border-white/5">
-              ░ {(lang === 'zh' ? '地圖設定' : lang === 'pt' ? 'Definições' : 'Map Settings').toUpperCase()}
+            <div className="mm-mono text-[8px] tracking-[0.3em] text-white/35 px-1 pb-1.5 border-b border-white/5 flex items-center gap-1.5">
+              <span
+                className="inline-block w-[8px] h-[8px]"
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.35) 0 1px, transparent 1px 3px)' }}
+              />
+              {(lang === 'zh' ? '地圖設定' : lang === 'pt' ? 'Definições' : 'Map Settings').toUpperCase()}
             </div>
             <div className="pt-1 space-y-0.5">
               <DrawerRow
@@ -933,8 +945,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
           {/* Language — Segmented LCD */}
           <div>
-            <div className="mm-mono text-[8px] tracking-[0.3em] text-white/35 px-1 pb-1.5 border-b border-white/5">
-              ░ {(lang === 'zh' ? '語系' : lang === 'pt' ? 'Idioma' : 'Language').toUpperCase()} · LANG
+            <div className="mm-mono text-[8px] tracking-[0.3em] text-white/35 px-1 pb-1.5 border-b border-white/5 flex items-center gap-1.5">
+              <span
+                className="inline-block w-[8px] h-[8px]"
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.35) 0 1px, transparent 1px 3px)' }}
+              />
+              {(lang === 'zh' ? '語系' : lang === 'pt' ? 'Idioma' : 'Language').toUpperCase()} · LANG
             </div>
             <div className="pt-2">
               <div className="relative flex items-stretch bg-[#050506] border border-white/10">
