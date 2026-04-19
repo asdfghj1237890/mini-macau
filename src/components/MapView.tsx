@@ -94,11 +94,10 @@ const BUS_SERVICE_TAIL_MIN = 60
 function isBusInService(route: BusRoute, hour: number, minute: number = 0): boolean {
   const nowMin = hour * 60 + minute
   const startMin = route.serviceHoursStart * 60
-  const endWithTail = route.serviceHoursEnd * 60 + BUS_SERVICE_TAIL_MIN
-  if (route.serviceHoursStart <= route.serviceHoursEnd) {
-    return nowMin >= startMin && nowMin < endWithTail
-  }
-  return nowMin >= startMin || nowMin < endWithTail % 1440
+  let endWithTail = route.serviceHoursEnd * 60 + BUS_SERVICE_TAIL_MIN
+  if (endWithTail <= startMin) endWithTail += 1440
+  return (nowMin >= startMin && nowMin < endWithTail)
+    || (nowMin + 1440 >= startMin && nowMin + 1440 < endWithTail)
 }
 
 const MACAU_CENTER: [number, number] = [113.55920888434439, 22.160440018223373]
