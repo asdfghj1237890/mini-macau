@@ -376,8 +376,8 @@ export function LineLegend({
           className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
                      border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
                      ${mobilePanel === 'bus'
-                       ? 'border-amber-300/60 text-amber-200'
-                       : 'border-amber-300/25 text-amber-200/80 hover:border-amber-300/50 active:scale-95'}`}
+                       ? 'border-emerald-300/60 text-emerald-200'
+                       : 'border-emerald-300/25 text-emerald-200/80 hover:border-emerald-300/50 active:scale-95'}`}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -420,7 +420,11 @@ export function LineLegend({
                   <path d="M4 11h16" /><path d="M12 3v8" />
                   <path d="M8 21l2-4h4l2 4" />
                 </svg>
-                <span className="mm-mono text-[9px] tracking-[0.25em]">░ LRT · 輕軌</span>
+                <span
+                  className="inline-block w-[8px] h-[8px]"
+                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.35) 0 1px, transparent 1px 3px)' }}
+                />
+                <span className="mm-mono text-[9px] tracking-[0.25em]">LRT · 輕軌</span>
               </span>
               <span className="mm-mono mm-tabular text-[8px] text-white/30">{lrtActive}/{lrtTotal}</span>
             </div>
@@ -457,10 +461,10 @@ export function LineLegend({
         {/* BUS popover */}
         {mobilePanel === 'bus' && visibleRoutes && (
           <div className="absolute top-full right-0 mt-2 bg-[#0b0b0c] backdrop-blur-md
-                          border border-amber-300/25 rounded-sm overflow-hidden
+                          border border-emerald-300/25 rounded-sm overflow-hidden
                           shadow-[0_8px_24px_rgba(0,0,0,0.6)] w-[220px] max-w-[calc(100vw-5rem)]">
             <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-amber-300/75">
+              <span className="flex items-center gap-1.5 text-emerald-300/75">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                   <path d="M8 6v6" /><path d="M16 6v6" />
@@ -468,7 +472,11 @@ export function LineLegend({
                   <rect x="2" y="4" width="20" height="14" rx="3" />
                   <circle cx="7" cy="20" r="1" /><circle cx="17" cy="20" r="1" />
                 </svg>
-                <span className="mm-mono text-[9px] tracking-[0.25em]">░ BUS · 巴士</span>
+                <span
+                  className="inline-block w-[8px] h-[8px]"
+                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(110,231,183,0.35) 0 1px, transparent 1px 3px)' }}
+                />
+                <span className="mm-mono text-[9px] tracking-[0.25em]">BUS · 巴士</span>
               </span>
               <span className="mm-mono mm-tabular text-[8px] text-emerald-300/80">
                 {visibleRoutes.size}<span className="text-white/30">/{busRoutes.length}</span>
@@ -479,9 +487,9 @@ export function LineLegend({
                 onClick={onResetAuto}
                 className={`px-1 py-1 mm-mono text-[9px] tracking-[0.1em] transition-colors text-center
                            ${isAutoMode
-                             ? 'bg-amber-300/10 text-amber-200'
+                             ? 'bg-emerald-300/10 text-emerald-200'
                              : 'text-white/45 hover:text-white hover:bg-white/5'}`}
-                style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 rgba(252,196,65,0.7)' } : undefined}
+                style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 rgba(110,231,183,0.7)' } : undefined}
               >
                 {t.autoByTime}
               </button>
@@ -509,7 +517,7 @@ export function LineLegend({
                   <div key={groupKey} className="border-t border-white/5">
                     <div className="px-2 py-1 flex items-center gap-2 bg-white/[0.015]">
                       <span className={`w-1.5 h-1.5 rounded-full shrink-0
-                                        ${groupActive > 0 ? 'bg-amber-300' : 'bg-white/15'}`} />
+                                        ${groupActive > 0 ? 'bg-emerald-300' : 'bg-white/15'}`} />
                       <span className="mm-mono text-[9px] tracking-[0.2em] text-white/55 uppercase flex-1 text-left">
                         {t[GROUP_LABEL_KEYS[groupKey]]}
                       </span>
@@ -557,8 +565,21 @@ export function LineLegend({
           <div className="absolute top-full right-0 mt-2 bg-[#0b0b0c] backdrop-blur-md
                           border border-sky-300/25 rounded-sm overflow-hidden
                           shadow-[0_8px_24px_rgba(0,0,0,0.6)] w-52 max-w-[calc(100vw-5rem)]">
-            <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02]">
-              <span className="mm-mono text-[9px] tracking-[0.25em] text-sky-300/80">░ AIR · 航班</span>
+            <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-sky-300/75">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
+                </svg>
+                <span
+                  className="inline-block w-[8px] h-[8px]"
+                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(125,211,252,0.35) 0 1px, transparent 1px 3px)' }}
+                />
+                <span className="mm-mono text-[9px] tracking-[0.25em]">AIR · 航班</span>
+              </span>
+              <span className="mm-mono mm-tabular text-[8px] text-white/30">
+                {flightsOn ? flightCount : 0}/{totalFlightCount}
+              </span>
             </div>
             <button
               type="button"
