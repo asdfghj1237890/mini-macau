@@ -49,6 +49,7 @@ const translations = {
     cancel: 'Cancel',
     flights: 'Flights',
     flightsActive: (n: number) => `${n} flights`,
+    noServiceToday: 'No service today',
   },
   zh: {
     lrtLines: '輕軌路線',
@@ -94,6 +95,7 @@ const translations = {
     cancel: '取消',
     flights: '航班',
     flightsActive: (n: number) => `${n} 架航班`,
+    noServiceToday: '本日無服務',
   },
   pt: {
     lrtLines: 'Linhas MLM',
@@ -139,6 +141,7 @@ const translations = {
     cancel: 'Cancelar',
     flights: 'Voos',
     flightsActive: (n: number) => `${n} voos`,
+    noServiceToday: 'Sem serviço hoje',
   },
 }
 
@@ -186,6 +189,7 @@ interface Translations {
   cancel: string
   flights: string
   flightsActive: (n: number) => string
+  noServiceToday: string
 }
 
 interface I18nContextValue {
