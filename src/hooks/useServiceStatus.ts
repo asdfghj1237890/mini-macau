@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 
-const SNAPSHOT_URL =
-  'https://raw.githubusercontent.com/asdfghj1237890/mini-macau/data-snapshot/service-status.json'
+const SNAPSHOT_URL = '/service-status.json'
 
 interface ServiceStatusPayload {
   date: string
