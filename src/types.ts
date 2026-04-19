@@ -80,12 +80,14 @@ export interface Ferry {
   routeId: string // e.g. "hkgmacroute"
   routeNameZh: string
   routeNameEn: string
-  type: 'departure' | 'arrival' // relative to Macau (外港)
+  operator: 'turbojet' | 'cotai'
+  terminal: 'outer_harbour' | 'taipa'
+  type: 'departure' | 'arrival' // relative to the Macau terminal
   scheduledTime: number // minutes since midnight; berth time at Macau
   otherPortZh: string // e.g. "香港(上環)"
   journeyMinutes: number
-  markers?: string // e.g. "*", "#"
-  berthIndex: number // 0..FERRY_BERTHS.length-1
+  markers?: string // e.g. "*", "#", "@"
+  berthIndex: number // index within FERRY_BERTHS_BY_TERMINAL[terminal]
 }
 
 export interface TransitData {

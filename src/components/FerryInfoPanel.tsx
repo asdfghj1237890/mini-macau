@@ -1,4 +1,4 @@
-import type { VehiclePosition, SimulationClock } from '../types'
+import type { VehiclePosition, SimulationClock, Ferry } from '../types'
 import { useI18n, type Lang } from '../i18n'
 
 interface Props {
@@ -24,7 +24,6 @@ const FERRY_LABELS = {
     journey: 'JRNY',
     departing: 'DEPARTING',
     arriving: 'ARRIVED',
-    port: 'OHT',
     route: 'ROUTE',
     min: 'min',
     note: 'NOTE',
@@ -38,7 +37,6 @@ const FERRY_LABELS = {
     journey: '航程',
     departing: '準備離港',
     arriving: '剛抵港',
-    port: '外港',
     route: '航線',
     min: '分鐘',
     note: '備註',
@@ -52,12 +50,62 @@ const FERRY_LABELS = {
     journey: 'VIAG',
     departing: 'SAINDO',
     arriving: 'CHEG.',
-    port: 'OHT',
     route: 'ROTA',
     min: 'min',
     note: 'NOTA',
   },
 } as const
+
+// Port labels per Macau terminal, per language.
+const PORT_LABEL: Record<Ferry['terminal'], Record<Lang, string>> = {
+  outer_harbour: { en: 'OHT', zh: '外港', pt: 'OHT' },
+  taipa:         { en: 'TMT', zh: '氹仔', pt: 'TMT' },
+}
+
+// Each operator ships its own brand palette; classes are spelled out as
+// literals so Tailwind's JIT picks them up.
+interface OperatorTheme {
+  name: string
+  borderAccent: string   // header bottom border
+  pillBg: string         // left pill bg
+  accentBar: string      // left vertical bar
+  statusText: string     // small status text
+  statusDot: string      // tiny led dot
+  titleText: string      // destination/origin port big text
+  timeText: string       // scheduled time
+  noteText: string       // markers
+  footerLiveText: string
+  footerLiveDot: string
+}
+
+const OPERATOR_THEME: Record<Ferry['operator'], OperatorTheme> = {
+  turbojet: {
+    name: 'TurboJET',
+    borderAccent: 'border-red-400/20',
+    pillBg: 'bg-red-500/[0.08]',
+    accentBar: 'bg-red-400',
+    statusText: 'text-red-300/80',
+    statusDot: 'bg-red-400',
+    titleText: 'text-red-100',
+    timeText: 'text-red-200',
+    noteText: 'text-red-200/90',
+    footerLiveText: 'text-red-300/80',
+    footerLiveDot: 'bg-red-400',
+  },
+  cotai: {
+    name: '金光飛航 Cotai',
+    borderAccent: 'border-blue-400/20',
+    pillBg: 'bg-blue-500/[0.08]',
+    accentBar: 'bg-blue-400',
+    statusText: 'text-blue-300/80',
+    statusDot: 'bg-blue-400',
+    titleText: 'text-blue-100',
+    timeText: 'text-blue-200',
+    noteText: 'text-blue-200/90',
+    footerLiveText: 'text-blue-300/80',
+    footerLiveDot: 'bg-blue-400',
+  },
+}
 
 export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
   const { lang } = useI18n()
@@ -69,6 +117,8 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
   const statusLabel = isDeparture ? fl.departing : fl.arriving
   const routeName = lang === 'en' ? ferry.routeNameEn : ferry.routeNameZh
   const isLive = !clock.paused && clock.speed === 1 && Math.abs(clock.currentTime.getTime() - Date.now()) < 3000
+  const theme = OPERATOR_THEME[ferry.operator]
+  const portLabel = PORT_LABEL[ferry.terminal][lang as Lang]
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
@@ -78,29 +128,29 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
       <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
                       shadow-2xl shadow-black/60 overflow-hidden mm-fade">
         {/* Header signboard */}
-        <div className="flex items-stretch border-b border-red-400/20">
-          <div className="px-3 py-2 flex items-center gap-2 border-r border-white/10 bg-red-500/[0.08]">
-            <div className="w-1 h-7 shrink-0 bg-red-400" />
+        <div className={`flex items-stretch border-b ${theme.borderAccent}`}>
+          <div className={`px-3 py-2 flex items-center gap-2 border-r border-white/10 ${theme.pillBg}`}>
+            <div className={`w-1 h-7 shrink-0 ${theme.accentBar}`} />
             <div>
-              <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/50">⚓ FERRY</div>
-              <div className="mm-mono mm-tabular text-[16px] font-bold text-white leading-tight">
-                TurboJET
+              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">⚓ FERRY</div>
+              <div className="mm-mono mm-tabular text-[13px] font-bold text-white leading-tight">
+                {theme.name}
               </div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-red-300/80 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-400 mm-led-pulse" />
+            <div className={`mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] ${theme.statusText} flex items-center gap-1.5`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${theme.statusDot} mm-led-pulse`} />
               {isDeparture ? fl.destination.toUpperCase() : fl.origin.toUpperCase()} · {statusLabel}
             </div>
-            <div className="text-lg font-semibold text-red-100 truncate">
+            <div className={`text-[14px] font-semibold ${theme.titleText} truncate`}>
               {ferry.otherPortZh}
             </div>
           </div>
           <button
             onClick={onClose}
             className="px-3 text-white/40 hover:text-white hover:bg-white/5 border-l border-white/10
-                       mm-mono text-[16px] transition-colors"
+                       mm-mono text-[13px] transition-colors"
             aria-label="Close"
           >
             ✕
@@ -110,16 +160,16 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
         {/* Stats strip */}
         <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
           <div className="px-3 py-1.5 border-r border-white/8">
-            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">
+            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35">
               {isDeparture ? fl.departure : fl.arrival}
             </div>
-            <div className="mm-mono mm-tabular text-[17px] font-bold text-red-200 leading-tight">
+            <div className={`mm-mono mm-tabular text-[14px] font-bold ${theme.timeText} leading-tight`}>
               {formatMinutes(ferry.scheduledTime)}
             </div>
           </div>
           <div className="px-3 py-1.5">
-            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">{fl.journey}</div>
-            <div className="mm-mono text-[14px] font-bold text-white/90 leading-tight truncate">
+            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35">{fl.journey}</div>
+            <div className="mm-mono text-[11px] font-bold text-white/90 leading-tight truncate">
               {ferry.journeyMinutes} {fl.min}
             </div>
           </div>
@@ -128,32 +178,32 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
         {/* Detail rows */}
         <div className="px-3 py-2 space-y-1">
           <div className="flex items-center justify-between gap-3">
-            <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/35">{fl.route}</span>
-            <span className="text-[13px] text-white/80 truncate text-right mm-han">
+            <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">{fl.route}</span>
+            <span className="text-[10px] text-white/80 truncate text-right mm-han">
               {routeName}
             </span>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/35">
+            <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">
               {isDeparture ? fl.origin : fl.destination}
             </span>
-            <span className="text-[13px] text-white/80">{fl.port}</span>
+            <span className="text-[10px] text-white/80">{portLabel}</span>
           </div>
           {ferry.markers && (
             <div className="flex items-center justify-between gap-3">
-              <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/35">{fl.note}</span>
-              <span className="mm-mono text-[11px] text-red-200/90">{ferry.markers}</span>
+              <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">{fl.note}</span>
+              <span className={`mm-mono text-[9px] ${theme.noteText}`}>{ferry.markers}</span>
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between">
-          <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 uppercase">
+          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35 uppercase">
             {isDeparture ? 'DEPARTURE · 離港' : 'ARRIVAL · 抵港'}
           </span>
-          <span className={`mm-mono text-[11px] max-sm:text-[9px] flex items-center gap-1.5 tracking-wider ${isLive ? 'text-red-300/80' : 'text-white/30'}`}>
-            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-red-400 mm-led-pulse' : 'bg-white/25'}`} />
+          <span className={`mm-mono text-[9px] max-sm:text-[7px] flex items-center gap-1.5 tracking-wider ${isLive ? theme.footerLiveText : 'text-white/30'}`}>
+            <span className={`w-1 h-1 rounded-full ${isLive ? theme.footerLiveDot : 'bg-white/25'}`} />
             {isLive ? 'LIVE' : 'SIM'}
           </span>
         </div>

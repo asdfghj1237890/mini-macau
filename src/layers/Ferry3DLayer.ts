@@ -182,17 +182,29 @@ function mk(
   }
 }
 
+function darken(hex: string, factor: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex)
+  if (!m) return hex
+  const n = parseInt(m[1], 16)
+  const r = Math.round(((n >> 16) & 0xff) * factor)
+  const g = Math.round(((n >> 8) & 0xff) * factor)
+  const bl = Math.round((n & 0xff) * factor)
+  return `#${((r << 16) | (g << 8) | bl).toString(16).padStart(6, '0')}`
+}
+
 function buildFerryFeatures(ferries: VehiclePosition[]): FF[] {
   const out: FF[] = []
   const DARK_HULL = '#111827'
   const WHITE = '#f1f5f9'
   const WINDOW_DARK = '#0b1220'
-  const ROOF_DARK = '#7f1d1d'
 
   for (const v of ferries) {
     const [lng, lat] = v.coordinates
     const id = v.id
     const b = v.bearing
+    // Roof equipment slab: a darker shade of the operator's hull colour so
+    // both red (TurboJet) and blue (Cotai) ferries read as the right brand.
+    const ROOF_DARK = darken(v.color, 0.5)
 
     // 1. Twin pontoon dark hulls (with pointed knife-bows)
     for (const side of [-1, 1] as const) {
