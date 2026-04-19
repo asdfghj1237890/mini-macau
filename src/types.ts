@@ -75,6 +75,19 @@ export interface Flight {
   aircraftType?: string
 }
 
+export interface Ferry {
+  id: string
+  routeId: string // e.g. "hkgmacroute"
+  routeNameZh: string
+  routeNameEn: string
+  type: 'departure' | 'arrival' // relative to Macau (外港)
+  scheduledTime: number // minutes since midnight; berth time at Macau
+  otherPortZh: string // e.g. "香港(上環)"
+  journeyMinutes: number
+  markers?: string // e.g. "*", "#"
+  berthIndex: number // 0..FERRY_BERTHS.length-1
+}
+
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
@@ -82,13 +95,14 @@ export interface TransitData {
   busRoutes: BusRoute[]
   busStops: BusStop[]
   flights: Flight[]
+  ferries: Ferry[]
   loading: boolean
 }
 
 export interface VehiclePosition {
   id: string
   lineId: string
-  type: 'lrt' | 'bus' | 'flight'
+  type: 'lrt' | 'bus' | 'flight' | 'ferry'
   coordinates: [number, number]
   bearing: number
   progress: number
@@ -96,6 +110,7 @@ export interface VehiclePosition {
   altitude?: number
   scale?: number
   flightData?: Flight
+  ferryData?: Ferry
   rt?: {
     plate: string
     speed: number
