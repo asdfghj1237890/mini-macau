@@ -26,7 +26,11 @@ interface BusStopETA {
   status: 'past' | 'dwelling' | 'arriving' | 'future'
 }
 
-const busStopListCache = new WeakMap<BusRoute, { totalLenKm: number; stopProgressByIndex: number[] }>()
+const busStopListCache = new WeakMap<BusRoute, {
+  totalLenKm: number
+  stopProgressForward: number[]
+  stopProgressBackward: number[]
+}>()
 
 function projectPointOnSegment(
   a: [number, number],
@@ -63,60 +67,72 @@ function getBusRouteCache(route: BusRoute, busStopMap: Map<string, BusStop>) {
   }
   const totalLenKm = cumKm[cumKm.length - 1] ?? 0
 
-  const stopProgressByIndex: number[] = new Array(route.stops.length).fill(0)
   const isCircular = route.routeType === 'circular'
-  const firstEqualsLast = route.stops.length > 1
-    && route.stops[0] === route.stops[route.stops.length - 1]
 
-  if (totalLenKm > 0 && coords.length >= 2) {
-    if (isCircular) {
-      // Ordered forward walk: each stop projects onto segments after the
-      // previous cursor. Handles closed loops where first/last stop share
-      // coordinates and routes that visit the same stop twice.
-      let cursorKm = 0
-      for (let idx = 0; idx < route.stops.length; idx++) {
-        const stop = busStopMap.get(route.stops[idx])
-        if (!stop) {
-          stopProgressByIndex[idx] = cursorKm / totalLenKm
-          continue
-        }
-        if (idx === 0 && firstEqualsLast) {
-          stopProgressByIndex[0] = 0
-          cursorKm = 0
-          continue
-        }
-        if (idx === route.stops.length - 1 && firstEqualsLast) {
-          stopProgressByIndex[idx] = 1
-          cursorKm = totalLenKm
-          continue
-        }
-        let bestDist = Infinity
-        let bestKm = cursorKm
-        for (let i = 1; i < coords.length; i++) {
-          if (cumKm[i] < cursorKm) continue
-          const { alongKm, distKm } = projectPointOnSegment(coords[i - 1], coords[i], stop.coordinates)
-          let candidateKm = cumKm[i - 1] + alongKm
-          if (candidateKm < cursorKm) candidateKm = cursorKm
-          if (distKm < bestDist) {
-            bestDist = distKm
-            bestKm = candidateKm
-          }
-        }
-        stopProgressByIndex[idx] = bestKm / totalLenKm
-        cursorKm = bestKm
+  const projectOrdered = (stopIds: string[]): number[] => {
+    const out: number[] = new Array(stopIds.length).fill(0)
+    if (totalLenKm <= 0 || coords.length < 2) return out
+    const firstEqualsLast = stopIds.length > 1 && stopIds[0] === stopIds[stopIds.length - 1]
+    let cursorKm = 0
+    for (let idx = 0; idx < stopIds.length; idx++) {
+      const stop = busStopMap.get(stopIds[idx])
+      if (!stop) {
+        out[idx] = cursorKm / totalLenKm
+        continue
       }
-    } else {
-      for (let idx = 0; idx < route.stops.length; idx++) {
-        const stop = busStopMap.get(route.stops[idx])
-        if (!stop) continue
-        const projected = nearestPointOnLine(route.geometry, stop.coordinates, { units: 'kilometers' })
-        const dist = (projected.properties.location ?? 0) as number
-        stopProgressByIndex[idx] = dist / totalLenKm
+      if (idx === 0 && firstEqualsLast) {
+        out[0] = 0
+        cursorKm = 0
+        continue
       }
+      if (idx === stopIds.length - 1 && firstEqualsLast) {
+        out[idx] = 1
+        cursorKm = totalLenKm
+        continue
+      }
+      let bestDist = Infinity
+      let bestKm = cursorKm
+      for (let i = 1; i < coords.length; i++) {
+        if (cumKm[i] < cursorKm) continue
+        const { alongKm, distKm } = projectPointOnSegment(coords[i - 1], coords[i], stop.coordinates)
+        let candidateKm = cumKm[i - 1] + alongKm
+        if (candidateKm < cursorKm) candidateKm = cursorKm
+        if (distKm < bestDist) {
+          bestDist = distKm
+          bestKm = candidateKm
+        }
+      }
+      out[idx] = bestKm / totalLenKm
+      cursorKm = bestKm
     }
+    return out
   }
 
-  entry = { totalLenKm, stopProgressByIndex }
+  const projectUnordered = (stopIds: string[]): number[] => {
+    const out: number[] = new Array(stopIds.length).fill(0)
+    if (totalLenKm <= 0 || coords.length < 2) return out
+    for (let idx = 0; idx < stopIds.length; idx++) {
+      const stop = busStopMap.get(stopIds[idx])
+      if (!stop) continue
+      const projected = nearestPointOnLine(route.geometry, stop.coordinates, { units: 'kilometers' })
+      const dist = (projected.properties.location ?? 0) as number
+      out[idx] = dist / totalLenKm
+    }
+    return out
+  }
+
+  // Circular routes hug the forward geometry, so walk stops in order to
+  // disambiguate near self-crossings. Bilateral routes' return path shares
+  // the forward polyline in reverse, so a simple nearest-point projection
+  // is sufficient for both directions.
+  const stopProgressForward = isCircular
+    ? projectOrdered(route.stopsForward)
+    : projectUnordered(route.stopsForward)
+  const stopProgressBackward = isCircular
+    ? projectOrdered(route.stopsBackward)
+    : projectUnordered(route.stopsBackward)
+
+  entry = { totalLenKm, stopProgressForward, stopProgressBackward }
   busStopListCache.set(route, entry)
   return entry
 }
@@ -149,23 +165,28 @@ function computeBusStopETAs(
     : computeLiveBusDirection(vehicle, route, cache.totalLenKm, nowMinutes)
 
   const entries: { stopId: string; stop: BusStop; effectiveProg: number }[] = []
-  let prevProg = -1
   const isCircular = route.routeType === 'circular'
-  for (let idx = 0; idx < route.stops.length; idx++) {
-    const stopId = route.stops[idx]
+  const stopIds = returning ? route.stopsBackward : route.stopsForward
+  const stopProgs = returning ? cache.stopProgressBackward : cache.stopProgressForward
+  // Bilateral forward: stops project to increasing progress on the polyline.
+  // Bilateral returning: backward stops should project to decreasing progress.
+  // The clamp prevents adjacent stops from collapsing to the same value,
+  // which would break the arriving/dwelling transition.
+  const sign = returning ? -1 : 1
+  let prevProg = returning ? 2 : -1
+  for (let idx = 0; idx < stopIds.length; idx++) {
+    const stopId = stopIds[idx]
     const stop = busStopMap.get(stopId)
     if (!stop) continue
-    const stopProg = cache.stopProgressByIndex[idx]
+    const stopProg = stopProgs[idx]
 
     let effectiveProg = stopProg
-    if (!isCircular && effectiveProg <= prevProg + 0.001) {
-      effectiveProg = prevProg + 0.001
+    if (!isCircular && (effectiveProg - prevProg) * sign <= 0.001) {
+      effectiveProg = prevProg + sign * 0.001
     }
     prevProg = effectiveProg
     entries.push({ stopId, stop, effectiveProg })
   }
-
-  if (returning) entries.reverse()
 
   const rtStopIndex = vehicle.rt?.stopIndex
 
