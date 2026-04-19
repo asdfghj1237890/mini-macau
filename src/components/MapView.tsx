@@ -180,66 +180,15 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   }, [])
 
   const rtDataReady = allTransitData.busRoutes.length > 0 && allTransitData.busStops.length > 0
-  const allTransitSnapshot = { busRoutes: allTransitData.busRoutes, busStops: allTransitData.busStops }
-  const allTransitRefRt = useRef(allTransitSnapshot)
-  allTransitRefRt.current = allTransitSnapshot
+  const busStopsRef = useRef(allTransitData.busStops)
+  busStopsRef.current = allTransitData.busStops
+  const rtModuleRef = useRef<typeof import('../services/realtimeClient') | null>(null)
+  const pausedRef = useRef(clock.paused)
+  pausedRef.current = clock.paused
+
   useEffect(() => {
     if (!RT_BUILD) return
-    if (!rtEnabled || !rtDataReady) {
-      for (const s of rtStatesRef.current.values()) { s.unsub(); s.poller.stop() }
-      rtStatesRef.current = new Map()
-      rtCachedVehiclesRef.current = []
-      rtCachedLiveIdsRef.current = new Set()
-      rtLastTickAtRef.current = 0
-      return
-    }
-
-    let stopped = false
-    const staggerTimers: number[] = []
-
-    void import('../services/realtimeClient').then(({ RouteRealtimePoller, BusTracker }) => {
-      if (stopped) return
-      const stopMap = new Map(allTransitRefRt.current.busStops.map(s => [s.id, s]))
-      const routes = allTransitRefRt.current.busRoutes
-      const active = new Map<string, RtDirState>()
-      let idx = 0
-
-      for (const route of routes) {
-        const dirs: (0 | 1)[] = route.routeType === 'circular' ? [0] : [0, 1]
-        for (const dir of dirs) {
-          const stopsOrdered = dir === 0 ? route.stops : [...route.stops].reverse()
-          const coords = dir === 0
-            ? route.geometry.geometry.coordinates
-            : [...route.geometry.geometry.coordinates].reverse()
-          const geometry: GeoJSON.Feature<GeoJSON.LineString> = {
-            type: 'Feature',
-            properties: {},
-            geometry: { type: 'LineString', coordinates: coords },
-          }
-          const totalLenKm = length(geometry, { units: 'kilometers' })
-          const stopProgress = stopsOrdered.map(stopId => {
-            const stop = stopMap.get(stopId)
-            if (!stop || totalLenKm <= 0) return 0
-            const projected = nearestPointOnLine(geometry, stop.coordinates, { units: 'kilometers' })
-            return Math.max(0, Math.min(1, (projected.properties.location ?? 0) / totalLenKm))
-          })
-          const tracker = new BusTracker(stopProgress, route.routeType === 'circular')
-          const poller = new RouteRealtimePoller(route.id, dir, 15_000)
-          const unsub = poller.subscribe(obs => { tracker.ingest(obs) })
-          active.set(`${route.id}:${dir}`, { route, dir, geometry, tracker, poller, unsub })
-
-          const delay = idx * 40
-          const t = window.setTimeout(() => { if (!stopped) poller.start() }, delay)
-          staggerTimers.push(t)
-          idx++
-        }
-      }
-      rtStatesRef.current = active
-    })
-
     return () => {
-      stopped = true
-      for (const t of staggerTimers) clearTimeout(t)
       for (const s of rtStatesRef.current.values()) { s.unsub(); s.poller.stop() }
       rtStatesRef.current = new Map()
       rtCachedVehiclesRef.current = []
@@ -247,6 +196,91 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       rtLastTickAtRef.current = 0
     }
   }, [rtEnabled, rtDataReady])
+
+  useEffect(() => {
+    if (!RT_BUILD) return
+    if (!rtEnabled || !rtDataReady) return
+
+    let cancelled = false
+    const staggerTimers: number[] = []
+
+    const sync = async () => {
+      const mod = rtModuleRef.current ?? (rtModuleRef.current = await import('../services/realtimeClient'))
+      if (cancelled) return
+      const { RouteRealtimePoller, BusTracker } = mod
+
+      const stopMap = new Map(busStopsRef.current.map(s => [s.id, s]))
+      const desired = new Map<string, { route: BusRoute; dir: 0 | 1 }>()
+      for (const route of transitData.busRoutes) {
+        const dirs: (0 | 1)[] = route.routeType === 'circular' ? [0] : [0, 1]
+        for (const dir of dirs) desired.set(`${route.id}:${dir}`, { route, dir })
+      }
+
+      const current = rtStatesRef.current
+      const removed: string[] = []
+      for (const [key, state] of current) {
+        if (!desired.has(key)) {
+          state.unsub()
+          state.poller.stop()
+          removed.push(key)
+        }
+      }
+      for (const k of removed) current.delete(k)
+
+      let staggerIdx = 0
+      for (const [key, { route, dir }] of desired) {
+        if (current.has(key)) continue
+        const stopsOrdered = dir === 0 ? route.stops : [...route.stops].reverse()
+        const coords = dir === 0
+          ? route.geometry.geometry.coordinates
+          : [...route.geometry.geometry.coordinates].reverse()
+        const geometry: GeoJSON.Feature<GeoJSON.LineString> = {
+          type: 'Feature',
+          properties: {},
+          geometry: { type: 'LineString', coordinates: coords },
+        }
+        const totalLenKm = length(geometry, { units: 'kilometers' })
+        const stopProgress = stopsOrdered.map(stopId => {
+          const stop = stopMap.get(stopId)
+          if (!stop || totalLenKm <= 0) return 0
+          const projected = nearestPointOnLine(geometry, stop.coordinates, { units: 'kilometers' })
+          return Math.max(0, Math.min(1, (projected.properties.location ?? 0) / totalLenKm))
+        })
+        const tracker = new BusTracker(stopProgress, route.routeType === 'circular')
+        const poller = new RouteRealtimePoller(route.id, dir, 15_000)
+        const unsub = poller.subscribe(obs => { tracker.ingest(obs) })
+        current.set(key, { route, dir, geometry, tracker, poller, unsub })
+
+        const delay = staggerIdx * 40
+        const t = window.setTimeout(() => {
+          if (cancelled) return
+          poller.start()
+          if (pausedRef.current) poller.pause()
+        }, delay)
+        staggerTimers.push(t)
+        staggerIdx++
+      }
+
+      rtLastTickAtRef.current = 0
+    }
+
+    void sync()
+
+    return () => {
+      cancelled = true
+      for (const t of staggerTimers) clearTimeout(t)
+    }
+  }, [rtEnabled, rtDataReady, transitData.busRoutes])
+
+  useEffect(() => {
+    if (!RT_BUILD) return
+    if (clock.paused) {
+      for (const s of rtStatesRef.current.values()) s.poller.pause()
+    } else {
+      for (const s of rtStatesRef.current.values()) s.poller.resume()
+      rtLastTickAtRef.current = 0
+    }
+  }, [clock.paused])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -624,7 +658,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             rtVisibleIdsRef.current = next
             rtLastTickAtRef.current = 0
           }
-          if (rtNow - rtLastTickAtRef.current >= 100) {
+          if (!pausedRef.current && rtNow - rtLastTickAtRef.current >= 100) {
             rtLastTickAtRef.current = rtNow
             const visibleRouteIds = rtVisibleIdsRef.current
             const liveRouteIds = new Set<string>()
