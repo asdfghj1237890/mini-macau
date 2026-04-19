@@ -68,10 +68,16 @@ html, body, #root {
 @media (max-width: 639px) {
   .maplibregl-ctrl-top-right {
     top: 0.25rem;
-    right: 0.25rem;
+    right: 0.5rem;
+    zoom: 1.2;
   }
   .maplibregl-ctrl-top-right .maplibregl-ctrl {
-    margin: 0.25rem 0.25rem 0 0;
+    margin: 0.25rem 0 0 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+  }
+  .maplibregl-ctrl-top-right .maplibregl-ctrl-group button {
+    width: 36px;
+    height: 36px;
   }
   .maplibregl-ctrl-bottom-left {
     bottom: 3rem;
