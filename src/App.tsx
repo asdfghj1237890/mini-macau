@@ -11,6 +11,7 @@ import type { VehiclePosition, Station, BusRoute } from './types'
 const VehicleInfoPanel = lazy(() => import('./components/VehicleInfoPanel').then(m => ({ default: m.VehicleInfoPanel })))
 const StationInfoPanel = lazy(() => import('./components/StationInfoPanel').then(m => ({ default: m.StationInfoPanel })))
 const FlightInfoPanel = lazy(() => import('./components/FlightInfoPanel').then(m => ({ default: m.FlightInfoPanel })))
+const FerryInfoPanel = lazy(() => import('./components/FerryInfoPanel').then(m => ({ default: m.FerryInfoPanel })))
 
 const LS_KEY = 'mini-macau-visible-routes'
 
@@ -49,6 +50,7 @@ function clearSavedRoutes() {
 
 const LS_LRT_KEY = 'mini-macau-lrt-on'
 const LS_FLIGHTS_KEY = 'mini-macau-flights-on'
+const LS_FERRIES_KEY = 'mini-macau-ferries-on'
 const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 
 export default function App() {
@@ -63,6 +65,7 @@ export default function App() {
   const [vehicleCount, setVehicleCount] = useState(0)
   const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
   const [flightsOn, setFlightsOn] = useState(() => localStorage.getItem(LS_FLIGHTS_KEY) !== '0')
+  const [ferriesOn, setFerriesOn] = useState(() => localStorage.getItem(LS_FERRIES_KEY) !== '0')
   const lrtSavedRef = useRef<string[] | null>((() => {
     try {
       const raw = localStorage.getItem(LS_LRT_KEY)
@@ -90,6 +93,7 @@ export default function App() {
 
   useEffect(() => { localStorage.setItem(LS_TIMEBAR_KEY, showTimeBar ? '1' : '0') }, [showTimeBar])
   useEffect(() => { localStorage.setItem(LS_FLIGHTS_KEY, flightsOn ? '1' : '0') }, [flightsOn])
+  useEffect(() => { localStorage.setItem(LS_FERRIES_KEY, ferriesOn ? '1' : '0') }, [ferriesOn])
   useEffect(() => { localStorage.setItem(LS_LRT_KEY, JSON.stringify([...lrtOn])) }, [lrtOn])
 
   const currentHour = clock.currentTime.getHours()
@@ -139,7 +143,8 @@ export default function App() {
     busRoutes: transitData.busRoutes.filter(r => visibleRoutes.has(r.id)),
     lrtLines: transitData.lrtLines.filter(l => lrtOn.has(l.id)),
     flights: flightsOn ? transitData.flights : [],
-  }), [transitData, visibleRoutes, lrtOn, flightsOn])
+    ferries: ferriesOn ? transitData.ferries : [],
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, ferriesOn])
 
   const onVehicleCount = useCallback((count: number) => {
     setVehicleCount(count)
@@ -222,6 +227,7 @@ export default function App() {
   }, [])
 
   const toggleFlights = useCallback(() => setFlightsOn(v => !v), [])
+  const toggleFerries = useCallback(() => setFerriesOn(v => !v), [])
   const toggleTimeBar = useCallback(() => setShowTimeBar(v => !v), [])
 
   useEffect(() => {
@@ -260,9 +266,11 @@ export default function App() {
         isAutoMode={isAutoMode}
         lrtOn={lrtOn}
         flightsOn={flightsOn}
+        ferriesOn={ferriesOn}
         clock={clock}
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
+        onToggleFerries={toggleFerries}
         onToggleRoute={onToggleRoute}
         onToggleAll={onToggleAll}
         onShowAll={onShowAll}
@@ -278,7 +286,14 @@ export default function App() {
             onClose={clearSelection}
           />
         )}
-        {selectedVehicle && selectedVehicle.type !== 'flight' && (
+        {selectedVehicle && selectedVehicle.type === 'ferry' && (
+          <FerryInfoPanel
+            vehicle={selectedVehicle}
+            clock={clock}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedVehicle && selectedVehicle.type !== 'flight' && selectedVehicle.type !== 'ferry' && (
           <VehicleInfoPanel
             vehicle={selectedVehicle}
             transitData={filteredTransitData}

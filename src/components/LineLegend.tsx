@@ -14,9 +14,11 @@ interface Props {
   isAutoMode?: boolean
   lrtOn?: Set<string>
   flightsOn?: boolean
+  ferriesOn?: boolean
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
+  onToggleFerries?: () => void
   onToggleRoute?: (routeId: string) => void
   onToggleAll?: () => void
   onShowAll?: () => void
@@ -24,7 +26,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | null
 
 export function LineLegend({
   transitData,
@@ -34,9 +36,11 @@ export function LineLegend({
   isAutoMode,
   lrtOn,
   flightsOn = true,
+  ferriesOn = true,
   clock,
   onToggleLrt,
   onToggleFlights,
+  onToggleFerries,
   onToggleRoute,
   onShowAll,
   onHideAll,
@@ -101,6 +105,8 @@ export function LineLegend({
   const lrtTotal = allLrtLines.length
   const flightCount = transitData.flights.length
   const totalFlightCount = allTransitData?.flights.length ?? flightCount
+  const ferryCount = transitData.ferries.length
+  const totalFerryCount = allTransitData?.ferries.length ?? ferryCount
 
   const isLrtOn = (id: string) => (lrtOn ? lrtOn.has(id) : true)
   const isLive = clock
@@ -136,6 +142,11 @@ export function LineLegend({
           {totalFlightCount > 0 && flightsOn && (
             <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-sky-300/80">
               <span>✈</span><span>{flightCount}</span>
+            </span>
+          )}
+          {totalFerryCount > 0 && ferriesOn && (
+            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-red-300/80">
+              <span>{'\u2693\uFE0E'}</span><span>{ferryCount}</span>
             </span>
           )}
         </button>
@@ -348,7 +359,7 @@ export function LineLegend({
                            : 'hover:bg-white/[0.03] opacity-50'}
                          ${onToggleFlights ? '' : 'cursor-default'}`}
             >
-              <span className={`text-[10px] leading-none ${flightsOn ? 'text-sky-300' : 'text-white/40'}`}>✈</span>
+              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${flightsOn ? 'text-white/45' : 'text-white/40'}`}>✈</span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(125,211,252,0.35) 0 1px, transparent 1px 3px)' }}
@@ -361,6 +372,36 @@ export function LineLegend({
               </span>
               <span className={`mm-mono text-[8px] tracking-[0.2em] ${flightsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
                 {flightsOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
+
+          {/* SEA — toggleable */}
+          {totalFerryCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleFerries}
+              disabled={!onToggleFerries}
+              aria-pressed={ferriesOn}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+                         ${ferriesOn
+                           ? 'bg-red-400/[0.05] hover:bg-red-400/[0.1]'
+                           : 'hover:bg-white/[0.03] opacity-50'}
+                         ${onToggleFerries ? '' : 'cursor-default'}`}
+            >
+              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${ferriesOn ? 'text-red-400' : 'text-white/40'}`}>⚓</span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+                SEA · 船運
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${ferriesOn ? 'text-red-300/80' : 'text-white/25'}`}>
+                {ferryCount}
+              </span>
+              <span className={`mm-mono text-[8px] tracking-[0.2em] ${ferriesOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                {ferriesOn ? 'ON' : 'OFF'}
               </span>
             </button>
           )}
@@ -426,6 +467,23 @@ export function LineLegend({
                            : 'border-white/10 text-white/40 hover:border-white/25'}`}
           >
             <span className="text-[14px] leading-none">✈</span>
+          </button>
+        )}
+
+        {/* SEA chip */}
+        {totalFerryCount > 0 && (
+          <button
+            onClick={() => togglePanel('sea')}
+            aria-label={t.ferries}
+            className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
+                       border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+                       ${mobilePanel === 'sea'
+                         ? 'border-red-400/60 text-red-300'
+                         : ferriesOn
+                           ? 'border-red-400/25 text-red-300/80 hover:border-red-400/50 active:scale-95'
+                           : 'border-white/10 text-white/40 hover:border-white/25'}`}
+          >
+            <span className="text-[14px] leading-none">⚓</span>
           </button>
         )}
 
@@ -627,6 +685,46 @@ export function LineLegend({
               </span>
               <span className={`mm-mono text-[9px] tracking-[0.2em] ${flightsOn ? 'text-emerald-300' : 'text-white/25'}`}>
                 {flightsOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          </div>
+        )}
+
+        {/* SEA popover */}
+        {mobilePanel === 'sea' && (
+          <div className="absolute top-full right-0 mt-2 bg-[#0b0b0c] backdrop-blur-md
+                          border border-red-400/25 rounded-sm overflow-hidden
+                          shadow-[0_8px_24px_rgba(0,0,0,0.6)] w-52 max-w-[calc(100vw-5rem)]">
+            <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+              <span className="flex items-center gap-1.5 text-red-300/80">
+                <span className="text-[10px] leading-none">⚓</span>
+                <span
+                  className="inline-block w-[8px] h-[8px]"
+                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
+                />
+                <span className="mm-mono text-[9px] tracking-[0.25em]">SEA · 船運</span>
+              </span>
+              <span className="mm-mono mm-tabular text-[8px] text-white/30">
+                {ferriesOn ? ferryCount : 0}/{totalFerryCount}
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={onToggleFerries}
+              disabled={!onToggleFerries}
+              aria-pressed={ferriesOn}
+              className={`w-full px-3 py-2.5 flex items-center justify-between transition
+                         ${ferriesOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                         ${onToggleFerries ? '' : 'cursor-default'}`}
+            >
+              <span className="flex items-center gap-2">
+                <span className={ferriesOn ? 'text-red-400' : 'text-white/40'}>⚓</span>
+                <span className="mm-mono mm-tabular text-[11px] text-white/80">
+                  {ferryCount} {t.ferries}
+                </span>
+              </span>
+              <span className={`mm-mono text-[9px] tracking-[0.2em] ${ferriesOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                {ferriesOn ? 'ON' : 'OFF'}
               </span>
             </button>
           </div>
