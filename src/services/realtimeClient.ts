@@ -36,17 +36,40 @@ export interface BusObservation {
 }
 
 export type FetchResult =
-  | { ok: true; data: DsatRouteResponse }
+  | { ok: true; data: DsatRouteResponse; etag: string | null; lastModified: string | null }
+  | { ok: true; notModified: true }
   | { ok: false; reason: 'network' | 'http' | 'bad-payload' }
 
-export async function fetchDsatRouteResult(routeName: string, dir: 0 | 1 = 0): Promise<FetchResult> {
+export interface FetchOptions {
+  etag?: string | null
+  lastModified?: string | null
+}
+
+export async function fetchDsatRouteResult(
+  routeName: string,
+  dir: 0 | 1 = 0,
+  opts?: FetchOptions,
+): Promise<FetchResult> {
   const url = `/api/dsat/routestation/bus?routeName=${encodeURIComponent(routeName)}&dir=${dir}`
   try {
-    const r = await fetch(url)
+    // Conditional GET: if DSAT (or our proxy) honours ETag / Last-Modified,
+    // a 304 response lets us skip the JSON parse + observation ingest
+    // entirely. When the upstream doesn't return caching headers this is
+    // just ignored, so it's always safe to send.
+    const headers: Record<string, string> = {}
+    if (opts?.etag) headers['If-None-Match'] = opts.etag
+    if (opts?.lastModified) headers['If-Modified-Since'] = opts.lastModified
+    const r = await fetch(url, { headers })
+    if (r.status === 304) return { ok: true, notModified: true }
     if (!r.ok) return { ok: false, reason: 'http' }
     const json = await r.json()
     if (json?.header !== '000') return { ok: false, reason: 'bad-payload' }
-    return { ok: true, data: json as DsatRouteResponse }
+    return {
+      ok: true,
+      data: json as DsatRouteResponse,
+      etag: r.headers.get('etag'),
+      lastModified: r.headers.get('last-modified'),
+    }
   } catch {
     return { ok: false, reason: 'network' }
   }
@@ -54,7 +77,9 @@ export async function fetchDsatRouteResult(routeName: string, dir: 0 | 1 = 0): P
 
 export async function fetchDsatRoute(routeName: string, dir: 0 | 1 = 0): Promise<DsatRouteResponse | null> {
   const res = await fetchDsatRouteResult(routeName, dir)
-  return res.ok ? res.data : null
+  if (!res.ok) return null
+  if ('notModified' in res) return null
+  return res.data
 }
 
 export function extractObservations(resp: DsatRouteResponse, now = Date.now()): BusObservation[] {
@@ -78,15 +103,27 @@ export function extractObservations(resp: DsatRouteResponse, now = Date.now()): 
 
 type Subscriber = (obs: BusObservation[], raw: DsatRouteResponse) => void
 
+// After this many consecutive polls with zero buses reported, the poller
+// drops from the base cadence to the slow cadence. A night route at noon,
+// or a route that's genuinely idle, costs one request per slow-interval
+// instead of one per base-interval. Reset to base on the first observation.
+const ADAPTIVE_EMPTY_THRESHOLD = 3
+
 export class RouteRealtimePoller {
   readonly routeName: string
   readonly dir: 0 | 1
-  private readonly intervalMs: number
+  private readonly baseIntervalMs: number
+  private readonly slowIntervalMs: number
   private readonly maxBackoffMs: number
   private timer: number | null = null
   private running = false
   private paused = false
   private failures = 0
+  // Consecutive polls with zero buses. Used to slow the cadence for idle
+  // routes — we don't need to hammer DSAT for a night bus at noon.
+  private emptyStreak = 0
+  private etag: string | null = null
+  private lastModified: string | null = null
   private subs = new Set<Subscriber>()
   private lastObs: BusObservation[] = []
   private visibilityHandler: (() => void) | null = null
@@ -94,8 +131,18 @@ export class RouteRealtimePoller {
   constructor(routeName: string, dir: 0 | 1, intervalMs: number = 15_000, maxBackoffMs: number = 5 * 60_000) {
     this.routeName = routeName
     this.dir = dir
-    this.intervalMs = intervalMs
+    this.baseIntervalMs = intervalMs
+    // Slow cadence = 4× base (15 s → 60 s). Still fresh enough that the
+    // first bus of the evening shows up within a minute of entering
+    // service, but cuts idle-route load by 75 %.
+    this.slowIntervalMs = intervalMs * 4
     this.maxBackoffMs = maxBackoffMs
+  }
+
+  private get intervalMs(): number {
+    return this.emptyStreak >= ADAPTIVE_EMPTY_THRESHOLD
+      ? this.slowIntervalMs
+      : this.baseIntervalMs
   }
 
   subscribe(fn: Subscriber): () => void {
@@ -166,7 +213,10 @@ export class RouteRealtimePoller {
       this.schedule(this.intervalMs)
       return
     }
-    const res = await fetchDsatRouteResult(this.routeName, this.dir)
+    const res = await fetchDsatRouteResult(this.routeName, this.dir, {
+      etag: this.etag,
+      lastModified: this.lastModified,
+    })
     if (!this.running) return
     if (!res.ok) {
       if (res.reason === 'http' || res.reason === 'network') this.failures++
@@ -174,7 +224,21 @@ export class RouteRealtimePoller {
       return
     }
     this.failures = 0
+    if ('notModified' in res) {
+      // Upstream confirmed nothing changed — keep the cached observations,
+      // skip the parse + fan-out to subscribers. Treat it as "no-news,
+      // same as before" for adaptive cadence: if the previous payload
+      // was empty we stay on slow; if it had buses we stay on base.
+      this.schedule(this.nextDelay())
+      return
+    }
+    this.etag = res.etag
+    this.lastModified = res.lastModified
     const obs = extractObservations(res.data)
+    // Adaptive cadence: count consecutive empty payloads and slow the
+    // cadence once we're confident the route is idle.
+    if (obs.length === 0) this.emptyStreak++
+    else this.emptyStreak = 0
     this.lastObs = obs
     for (const fn of this.subs) fn(obs, res.data)
     this.schedule(this.nextDelay())
