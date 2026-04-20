@@ -29,18 +29,40 @@ HENGQIN_LAT_MAX = 22.170
 # between Cotai and Hengqin Port. The public OSRM demo refuses to route
 # over it (no profile recognises it as drivable; it falls back to a
 # 6km detour up to Macau peninsula via Sai Van Bridge), so we splice
-# this hand-built polyline in whenever a stop pair would otherwise
+# these hand-built polylines in whenever a stop pair would otherwise
 # either traverse Hengqin or fall back to a straight line across the
 # Shizimen waterway.
 #
-# Coordinates are sampled along the bridge centreline from west
-# (Hengqin Port ramp) to east (Cotai roundabout).
-LOTUS_BRIDGE_POLYLINE = [
-    [113.5478, 22.1413],
-    [113.5535, 22.1418],
-    [113.5588, 22.1428],
+# Two polylines because the bus uses different roads in each direction:
+# returning from the port loops through several Hengqin Port internal
+# roads before crossing the bridge, while the outbound trip enters the
+# port from a different ramp. RETURN ordered Hengqin Port → Cotai,
+# OUTBOUND ordered Cotai → Hengqin Port.
+LOTUS_BRIDGE_RETURN_POLYLINE = [
+    [113.54577, 22.13767],
+    [113.54722, 22.13787],
+    [113.54748, 22.14083],
+    [113.54694, 22.14140],
+    [113.54634, 22.14115],
+    [113.54632, 22.14069],
+    [113.54651, 22.14041],
+    [113.54734, 22.14026],
+    [113.55019, 22.14003],
+    [113.55608, 22.13949],
+    [113.55736, 22.13944],
+    [113.55783, 22.13973],
+    [113.55930, 22.13962],
+    [113.56005, 22.13908],
+    [113.56078, 22.13918],
+    [113.56119, 22.13931],
 ]
-LOTUS_BRIDGE_ANCHOR = LOTUS_BRIDGE_POLYLINE[1]
+# Outbound is the reverse of the return path until precise outbound
+# waypoints are sourced. The Hengqin Port loop is approximate this way
+# but visually still follows the bridge alignment correctly.
+LOTUS_BRIDGE_OUTBOUND_POLYLINE = list(reversed(LOTUS_BRIDGE_RETURN_POLYLINE))
+# Anchor used as a "via" hint when probing OSRM — picked from the bridge
+# centreline crossing, which is the lat where the actual span sits.
+LOTUS_BRIDGE_ANCHOR = [113.55313, 22.13976]
 
 
 def lotus_bridge_segment(a: list[float], b: list[float]) -> list[list[float]]:
@@ -49,7 +71,7 @@ def lotus_bridge_segment(a: list[float], b: list[float]) -> list[list[float]]:
     Hengqin — gives a geometry that visibly crosses the bridge rather than
     a straight line over the waterway.
     """
-    poly = LOTUS_BRIDGE_POLYLINE if a[0] < b[0] else list(reversed(LOTUS_BRIDGE_POLYLINE))
+    poly = LOTUS_BRIDGE_OUTBOUND_POLYLINE if a[0] > b[0] else LOTUS_BRIDGE_RETURN_POLYLINE
     return [a] + [list(p) for p in poly] + [b]
 
 
