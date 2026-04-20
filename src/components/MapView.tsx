@@ -1123,10 +1123,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 <span className="mm-mono text-[9px] tracking-[0.15em] text-amber-300/60 leading-none pt-[1px] shrink-0">⚠</span>
                 <p className="text-[10px] leading-[1.55] text-white/45">
                   {lang === 'zh'
-                    ? '本地圖為概略顯示，數據不保證完全反映此時此刻的真實狀況。'
+                    ? '本地圖為模擬顯示，數據不保證完全反映此時此刻的真實狀況。'
                     : lang === 'pt'
-                      ? 'Este mapa é uma representação aproximada; os dados podem não refletir a realidade em tempo real.'
-                      : 'Map shown is approximate; data may not reflect real-time conditions exactly.'}
+                      ? 'Este mapa é uma simulação; os dados podem não refletir a realidade em tempo real.'
+                      : 'Map shown is simulated; data may not reflect real-time conditions exactly.'}
                 </p>
               </div>
             </div>
