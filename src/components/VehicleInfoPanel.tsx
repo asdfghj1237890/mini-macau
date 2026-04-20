@@ -40,6 +40,7 @@ function computeBusStopETAs(
   dirSec: number,
   returning: boolean,
   nowMinutes: number,
+  isSunBucket: boolean,
 ): BusStopETA[] {
   const stops = returning ? schedule.backwardStops : schedule.forwardStops
   const rtStopIndex = vehicle.rt?.stopIndex
@@ -56,7 +57,11 @@ function computeBusStopETAs(
     const tripDurationMin = schedule.tripDurationSec / 60
     const dirOffsetMin = returning ? tripDurationMin : 0
     const impliedTripStartMin = nowMinutes - dirOffsetMin - currentStopArriveMin
-    const startMin = route.serviceHoursStart * 60
+    const useSun = isSunBucket
+      && route.serviceHoursStartSun !== undefined
+      && route.serviceHoursEndSun !== undefined
+    const startHr = useSun ? route.serviceHoursStartSun! : route.serviceHoursStart
+    const startMin = startHr * 60
     const freq = route.frequency > 0 ? route.frequency : 1
     const k = Math.round((impliedTripStartMin - startMin) / freq)
     const snappedTripStartMin = startMin + k * freq
@@ -142,11 +147,12 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicle?.id, vehicle?.rt?.stopIndex, vehicle?.rt?.observedAt, vehicle?.rt?.dir, nowMinutesForETA, busStopMap, transitData.busRoutes])
 
+  const isSunBucket = clock.currentTime.getDay() === 0
   const busETAs: BusStopETA[] = useMemo(() => {
     if (!vehicle || !busCtx) return []
-    return computeBusStopETAs(vehicle, busCtx.route, busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA)
+    return computeBusStopETAs(vehicle, busCtx.route, busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA, isSunBucket)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, busCtx, busStopMap, nowMinutesForETA])
+  }, [vehicle?.id, busCtx, busStopMap, nowMinutesForETA, isSunBucket])
 
   if (!vehicle) return null
 

@@ -465,7 +465,8 @@ const QUEUE_OFFSET_KM = 0.028 // ~28m per queue slot (22m bus + ~6m gap)
 function computeBusVehicles(
   busRoutes: BusRoute[],
   busStopMap: Map<string, BusStop>,
-  nowMinutes: number
+  nowMinutes: number,
+  isSunBucket: boolean,
 ): VehiclePosition[] {
   type Raw = {
     route: BusRoute
@@ -485,8 +486,13 @@ function computeBusVehicles(
     const tripDurationMin = schedule.tripDurationSec / 60
     const cycleMin = schedule.cycleSec / 60
 
-    const startMin = route.serviceHoursStart * 60
-    let endMin = route.serviceHoursEnd * 60
+    const useSun = isSunBucket
+      && route.serviceHoursStartSun !== undefined
+      && route.serviceHoursEndSun !== undefined
+    const startHr = useSun ? route.serviceHoursStartSun! : route.serviceHoursStart
+    const endHr = useSun ? route.serviceHoursEndSun! : route.serviceHoursEnd
+    const startMin = startHr * 60
+    let endMin = endHr * 60
     // Route crosses midnight (serviceHoursEnd may be >24 or <start)
     if (endMin <= startMin) endMin += 1440
     // Pick the effective "now" that falls inside the window; wrap-around
@@ -1195,7 +1201,8 @@ export function computeVehiclePositions(
   const busVehicles = computeBusVehicles(
     transitData.busRoutes,
     busStopMap,
-    nowMinutes
+    nowMinutes,
+    time.getDay() === 0,
   )
 
   const flightVehicles = computeFlightVehicles(

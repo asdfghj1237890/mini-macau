@@ -19,11 +19,15 @@ const LS_KEY = 'mini-macau-visible-routes'
 // scheduled end, so buses still finishing their last trip don't vanish.
 const SERVICE_TAIL_MIN = 60
 
-function isRouteInService(route: BusRoute, hour: number, minute: number = 0): boolean {
-  const nowMin = hour * 60 + minute
-  const startMin = route.serviceHoursStart * 60
-  let endWithTail = route.serviceHoursEnd * 60 + SERVICE_TAIL_MIN
-  // Route crosses midnight when end wraps past start (either end<start or end>=24 with ends-next-day)
+function isRouteInService(route: BusRoute, date: Date): boolean {
+  const nowMin = date.getHours() * 60 + date.getMinutes()
+  const useSun = date.getDay() === 0
+    && route.serviceHoursStartSun !== undefined
+    && route.serviceHoursEndSun !== undefined
+  const start = useSun ? route.serviceHoursStartSun! : route.serviceHoursStart
+  const end = useSun ? route.serviceHoursEndSun! : route.serviceHoursEnd
+  const startMin = start * 60
+  let endWithTail = end * 60 + SERVICE_TAIL_MIN
   if (endWithTail <= startMin) endWithTail += 1440
   return (nowMin >= startMin && nowMin < endWithTail)
     || (nowMin + 1440 >= startMin && nowMin + 1440 < endWithTail)
@@ -118,10 +122,11 @@ export default function App() {
     if (isAutoMode) {
       setVisibleRoutes(new Set(
         transitData.busRoutes
-          .filter(r => !inactiveRoutes.has(r.id) && isRouteInService(r, currentHour, currentMinute))
+          .filter(r => !inactiveRoutes.has(r.id) && isRouteInService(r, clock.currentTime))
           .map(r => r.id)
       ))
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transitData.busRoutes.length, currentHour, currentMinute, isAutoMode, inactiveRoutes])
 
   useEffect(() => {
