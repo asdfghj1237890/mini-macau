@@ -293,6 +293,7 @@ function buildFlightFeatures(flights: VehiclePosition[]): FF[] {
 
 export class Flight3DLayer {
   private map: MapLibreMap | null = null
+  private isEmpty = true
 
   attach(map: MapLibreMap): void {
     this.map = map
@@ -416,10 +417,14 @@ export class Flight3DLayer {
     if (!map) return
     const src = map.getSource(FLIGHT_3D_SOURCE_ID) as unknown as { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
     if (!src?.setData) return
-    if (map.getZoom() < MIN_ZOOM - 0.5) {
+    const belowMin = map.getZoom() < MIN_ZOOM - 0.5
+    if (belowMin || flights.length === 0) {
+      if (this.isEmpty) return
       src.setData({ type: 'FeatureCollection', features: [] })
+      this.isEmpty = true
       return
     }
     src.setData({ type: 'FeatureCollection', features: buildFlightFeatures(flights) })
+    this.isEmpty = false
   }
 }

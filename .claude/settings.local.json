@@ -59,7 +59,9 @@
       "Bash(gh api *)",
       "Bash(gh workflow *)",
       "Bash(ls Dockerfile* nginx*)",
-      "Bash(ls deploy/)"
+      "Bash(ls deploy/)",
+      "Bash(grep -oE '\"id\":\"[a-zA-Z0-9_-]+\"\\\\s*$\\\\|batch.*requestId[^,]*' \"C:\\\\Users\\\\TOMMY\\\\.claude\\\\projects\\\\C--Users-TOMMY-Desktop-side-projects-mini-macau\\\\af24b359-12ad-459a-9e58-ca2915162744\\\\tool-results\\\\b0p005mdp.txt\")",
+      "Bash(grep -oE \"updateData[^;{]{0,300}\" node_modules/maplibre-gl/dist/maplibre-gl-dev.js)"
     ]
   }
 }

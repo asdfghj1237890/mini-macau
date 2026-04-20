@@ -147,6 +147,7 @@ function buildBusFeatures(buses: VehiclePosition[]): BusFeature[] {
 
 export class Bus3DLayer {
   private map: MapLibreMap | null = null
+  private isEmpty = true
 
   attach(map: MapLibreMap): void {
     this.map = map
@@ -244,10 +245,16 @@ export class Bus3DLayer {
     if (!map) return
     const src = map.getSource(BUS_3D_SOURCE_ID) as unknown as { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
     if (!src?.setData) return
-    if (map.getZoom() < MIN_ZOOM - 0.5) {
+    const belowMin = map.getZoom() < MIN_ZOOM - 0.5
+    if (belowMin || buses.length === 0) {
+      // Skip the setData storm: if the source is already empty, don't spam
+      // the worker with empty-FC postMessages every heavy tick.
+      if (this.isEmpty) return
       src.setData({ type: 'FeatureCollection', features: [] })
+      this.isEmpty = true
       return
     }
     src.setData({ type: 'FeatureCollection', features: buildBusFeatures(buses) })
+    this.isEmpty = false
   }
 }
