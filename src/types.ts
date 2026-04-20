@@ -28,8 +28,12 @@ export interface BusRoute {
   stopsBackward: string[]
   geometry: Feature<LineString>
   frequency: number // minutes between departures
-  serviceHoursStart: number // hour (0-23)
-  serviceHoursEnd: number // hour (0-23)
+  // Fractional hour (5.75 = 05:45). End may exceed 24 when service crosses
+  // midnight — simulation & service checks treat end<=start as +1440min.
+  serviceHoursStart: number      // Mon-Sat (weekday)
+  serviceHoursEnd: number        // Mon-Sat (weekday)
+  serviceHoursStartSun?: number  // Sun + public holidays; falls back to weekday
+  serviceHoursEndSun?: number
   routeType: 'bilateral' | 'circular'
 }
 
