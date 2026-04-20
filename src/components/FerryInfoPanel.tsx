@@ -1,5 +1,5 @@
 import type { VehiclePosition, SimulationClock, Ferry } from '../types'
-import { useI18n, type Lang } from '../i18n'
+import { useI18n, localName } from '../i18n'
 
 interface Props {
   vehicle: VehiclePosition
@@ -12,54 +12,6 @@ function formatMinutes(totalMinutes: number): string {
   const h = Math.floor(wrapped / 60)
   const m = Math.floor(wrapped % 60)
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
-}
-
-const FERRY_LABELS = {
-  en: {
-    departure: 'DEP',
-    arrival: 'ARR',
-    destination: 'TO',
-    origin: 'FROM',
-    operator: 'OPER',
-    journey: 'JRNY',
-    departing: 'DEPARTING',
-    arriving: 'ARRIVED',
-    route: 'ROUTE',
-    min: 'min',
-    note: 'NOTE',
-  },
-  zh: {
-    departure: '離澳',
-    arrival: '抵澳',
-    destination: '目的地',
-    origin: '出發地',
-    operator: '承運',
-    journey: '航程',
-    departing: '準備離港',
-    arriving: '剛抵港',
-    route: '航線',
-    min: '分鐘',
-    note: '備註',
-  },
-  pt: {
-    departure: 'PART',
-    arrival: 'CHEG',
-    destination: 'DEST',
-    origin: 'ORIG',
-    operator: 'OPER',
-    journey: 'VIAG',
-    departing: 'SAINDO',
-    arriving: 'CHEG.',
-    route: 'ROTA',
-    min: 'min',
-    note: 'NOTA',
-  },
-} as const
-
-// Port labels per Macau terminal, per language.
-const PORT_LABEL: Record<Ferry['terminal'], Record<Lang, string>> = {
-  outer_harbour: { en: 'OHT', zh: '外港', pt: 'OHT' },
-  taipa:         { en: 'TMT', zh: '氹仔', pt: 'TMT' },
 }
 
 // Each operator ships its own brand palette; classes are spelled out as
@@ -108,17 +60,28 @@ const OPERATOR_THEME: Record<Ferry['operator'], OperatorTheme> = {
 }
 
 export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
-  const { lang } = useI18n()
-  const fl = FERRY_LABELS[lang as Lang]
+  const { lang, t } = useI18n()
   const ferry = vehicle.ferryData
   if (!ferry) return null
 
   const isDeparture = ferry.type === 'departure'
-  const statusLabel = isDeparture ? fl.departing : fl.arriving
-  const routeName = lang === 'en' ? ferry.routeNameEn : ferry.routeNameZh
+  const statusLabel = isDeparture ? t.ferryDeparting : t.ferryArriving
+  // Ferry route/port names. `localName` handles nameCn/namePt fallback chain
+  // automatically, so callers with only Chinese data (current upstream) still
+  // render cleanly in pt/en by falling back to `name` / the cn form.
+  const routeName = localName(lang, {
+    name: ferry.routeName,
+    nameCn: ferry.routeNameCn,
+    namePt: ferry.routeNamePt,
+  })
+  const otherPortName = localName(lang, {
+    name: ferry.otherPort,
+    nameCn: ferry.otherPortCn,
+    namePt: ferry.otherPortPt,
+  })
   const isLive = !clock.paused && clock.speed === 1 && Math.abs(clock.currentTime.getTime() - Date.now()) < 3000
   const theme = OPERATOR_THEME[ferry.operator]
-  const portLabel = PORT_LABEL[ferry.terminal][lang as Lang]
+  const portLabel = ferry.terminal === 'outer_harbour' ? t.portOuterHarbour : t.portTaipa
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
@@ -132,7 +95,7 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
           <div className={`px-3 py-2 flex items-center gap-2 border-r border-white/10 ${theme.pillBg}`}>
             <div className={`w-1 h-7 shrink-0 ${theme.accentBar}`} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">⚓ FERRY</div>
+              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">⚓ {t.ferryLabel}</div>
               <div className="mm-mono mm-tabular text-[13px] font-bold text-white leading-tight">
                 {theme.name}
               </div>
@@ -141,17 +104,17 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
             <div className={`mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] ${theme.statusText} flex items-center gap-1.5`}>
               <span className={`w-1.5 h-1.5 rounded-full ${theme.statusDot} mm-led-pulse`} />
-              {isDeparture ? fl.destination.toUpperCase() : fl.origin.toUpperCase()} · {statusLabel}
+              {isDeparture ? t.ferryDestination.toUpperCase() : t.ferryOrigin.toUpperCase()} · {statusLabel}
             </div>
             <div className={`text-[14px] font-bold ${theme.titleText} truncate`}>
-              {ferry.otherPortZh}
+              {otherPortName}
             </div>
           </div>
           <button
             onClick={onClose}
             className="px-3 text-white/40 hover:text-white hover:bg-white/5 border-l border-white/10
                        mm-mono text-[13px] transition-colors"
-            aria-label="Close"
+            aria-label={t.cancel}
           >
             ✕
           </button>
@@ -161,16 +124,16 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
         <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
           <div className="px-3 py-1.5 border-r border-white/8">
             <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35">
-              {isDeparture ? fl.departure : fl.arrival}
+              {isDeparture ? t.ferryDeparture : t.ferryArrival}
             </div>
             <div className={`mm-mono mm-tabular text-[14px] font-bold ${theme.timeText} leading-tight`}>
               {formatMinutes(ferry.scheduledTime)}
             </div>
           </div>
           <div className="px-3 py-1.5">
-            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35">{fl.journey}</div>
+            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35">{t.ferryJourney}</div>
             <div className="mm-mono text-[11px] font-bold text-white/90 leading-tight truncate">
-              {ferry.journeyMinutes} {fl.min}
+              {ferry.journeyMinutes} {t.ferryMin}
             </div>
           </div>
         </div>
@@ -178,20 +141,20 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
         {/* Detail rows */}
         <div className="px-3 py-2 space-y-1">
           <div className="flex items-center justify-between gap-3">
-            <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">{fl.route}</span>
+            <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">{t.ferryRoute}</span>
             <span className="text-[10px] text-white/80 truncate text-right mm-han">
               {routeName}
             </span>
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">
-              {isDeparture ? fl.origin : fl.destination}
+              {isDeparture ? t.ferryOrigin : t.ferryDestination}
             </span>
             <span className="text-[10px] text-white/80">{portLabel}</span>
           </div>
           {ferry.markers && (
             <div className="flex items-center justify-between gap-3">
-              <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">{fl.note}</span>
+              <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">{t.ferryNote}</span>
               <span className={`mm-mono text-[9px] ${theme.noteText}`}>{ferry.markers}</span>
             </div>
           )}
@@ -200,11 +163,11 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between">
           <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35 uppercase">
-            {isDeparture ? 'DEPARTURE · 離港' : 'ARRIVAL · 抵港'}
+            {isDeparture ? t.ferryFooterDep : t.ferryFooterArr}
           </span>
           <span className={`mm-mono text-[9px] max-sm:text-[7px] flex items-center gap-1.5 tracking-wider ${isLive ? theme.footerLiveText : 'text-white/30'}`}>
             <span className={`w-1 h-1 rounded-full ${isLive ? theme.footerLiveDot : 'bg-white/25'}`} />
-            {isLive ? 'LIVE' : 'SIM'}
+            {isLive ? t.live : t.simShort}
           </span>
         </div>
       </div>

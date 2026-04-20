@@ -59,6 +59,40 @@ html, body, #root {
   .mm-ui-scale { zoom: 1.2; }
 }
 
+/* Theme the MapLibre +/- / compass control to match the hamburger menu button
+   (dark #0a0a0b body, amber-300/25 border, amber-200-tinted icons). Width is
+   pinned to 36px so its left edge aligns with the w-9 hamburger above it. */
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group {
+  background: #0a0a0b;
+  border: 1px solid rgba(252, 196, 65, 0.25);
+  border-radius: 0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+}
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button {
+  width: 36px;
+  height: 36px;
+  background-color: transparent;
+  transition: background-color 0.15s ease;
+}
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button + button {
+  border-top: 1px solid rgba(252, 196, 65, 0.15);
+}
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button:hover {
+  background-color: rgba(252, 196, 65, 0.10);
+}
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button:active {
+  background-color: rgba(252, 196, 65, 0.18);
+}
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button:focus:not(:focus-visible) {
+  box-shadow: none;
+}
+/* Tint the default black SVG icons to amber-200 (#fde68a) so they match
+   the menu button's text-amber-200 icon. Recipe generated via the standard
+   "color → filter" conversion (CodePen/Pjoqqp). */
+.maplibregl-ctrl-top-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: invert(92%) sepia(16%) saturate(1193%) hue-rotate(321deg) brightness(103%) contrast(96%);
+}
+
 @supports (padding: env(safe-area-inset-bottom)) {
   #root {
     padding-top: env(safe-area-inset-top);
@@ -75,11 +109,6 @@ html, body, #root {
   }
   .maplibregl-ctrl-top-right .maplibregl-ctrl {
     margin: 0.25rem 0 0 0;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-  }
-  .maplibregl-ctrl-top-right .maplibregl-ctrl-group button {
-    width: 36px;
-    height: 36px;
   }
   .maplibregl-ctrl-bottom-left {
     bottom: 3rem;
