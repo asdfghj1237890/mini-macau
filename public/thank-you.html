@@ -343,6 +343,7 @@
 
         <div class="panel">
           <a
+            id="star-btn"
             class="star-btn"
             href="https://github.com/asdfghj1237890/mini-macau"
             target="_blank"
@@ -366,7 +367,7 @@
           </div>
         </div>
 
-        <a class="back" href="/">
+        <a id="back-link" class="back" href="/">
           <span class="back-arrow">←</span>
           <span data-i18n="back">Back to the map</span>
         </a>
@@ -377,6 +378,18 @@
         <span>v0.1.49</span>
       </footer>
     </div>
+
+    <!-- GA4 stub — must precede the IIFE so window.gtag exists when any
+         early tracking calls fire. The real library loads async further
+         down; queued calls flush when it arrives. -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-754JZVPQB2');
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-754JZVPQB2"></script>
 
     <script>
       (function () {
@@ -459,14 +472,123 @@
           try { localStorage.setItem('mm_lang', lang); } catch (e) { /* ignore */ }
         }
 
-        var btns = document.querySelectorAll('.lang button');
-        for (var i = 0; i < btns.length; i++) {
-          btns[i].addEventListener('click', function (e) {
-            apply(e.currentTarget.getAttribute('data-lang'));
+        // ---- Small GA4 helper — never throws -----------------------------
+        function track(name, params) {
+          try {
+            if (typeof window.gtag === 'function') {
+              window.gtag('event', name, params || {});
+            }
+          } catch (e) { /* swallow */ }
+        }
+
+        var currentLang = detectLang();
+        apply(currentLang);
+
+        var langBtns = document.querySelectorAll('.lang button');
+        for (var i = 0; i < langBtns.length; i++) {
+          langBtns[i].addEventListener('click', function (e) {
+            var next = e.currentTarget.getAttribute('data-lang');
+            if (next && next !== currentLang) {
+              track('language_changed', {
+                lang_from: currentLang,
+                lang_to: next,
+                source: 'thank_you',
+              });
+              currentLang = next;
+            }
+            apply(next);
           });
         }
 
-        apply(detectLang());
+        // ---- CTA click tracking ------------------------------------------
+        var starBtn = document.getElementById('star-btn');
+        if (starBtn) {
+          starBtn.addEventListener('click', function () {
+            track('star_github_clicked', { lang: currentLang });
+          });
+        }
+        var backLink = document.getElementById('back-link');
+        if (backLink) {
+          backLink.addEventListener('click', function () {
+            track('back_to_map_clicked', { lang: currentLang });
+          });
+        }
+
+        // ---- Engagement tracker ------------------------------------------
+        // Visibility- and idle-aware dwell counter. Same model as
+        // src/analytics/ga.ts in the main app, trimmed to vanilla JS.
+        (function startEngagement() {
+          var MILESTONES = [15000, 30000, 60000, 120000, 300000];
+          var IDLE_MS = 20000;
+          var TICK_MS = 1000;
+          var ACTIVITY = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'pointerdown', 'wheel', 'scroll'];
+
+          var dwellMs = 0;
+          var lastActivityAt = Date.now();
+          var lastTickAt = Date.now();
+          var nextIdx = 0;
+          var idle = false;
+          var hidden = document.visibilityState === 'hidden';
+
+          function onActivity() {
+            lastActivityAt = Date.now();
+            if (idle) {
+              idle = false;
+              track('dwell_idle_end', { page: 'thank_you', dwell_sec: Math.round(dwellMs / 1000) });
+            }
+          }
+
+          function onVisibility() {
+            var h = document.visibilityState === 'hidden';
+            if (h === hidden) return;
+            hidden = h;
+            track(h ? 'tab_backgrounded' : 'tab_foregrounded', {
+              page: 'thank_you',
+              dwell_sec: Math.round(dwellMs / 1000),
+            });
+            if (!h) {
+              lastActivityAt = Date.now();
+              lastTickAt = Date.now();
+            }
+          }
+
+          function tick() {
+            var now = Date.now();
+            var dt = now - lastTickAt;
+            lastTickAt = now;
+            var active = !hidden && (now - lastActivityAt) < IDLE_MS;
+            if (active) {
+              dwellMs += dt;
+              while (nextIdx < MILESTONES.length && dwellMs >= MILESTONES[nextIdx]) {
+                track('engaged_time_milestone', {
+                  page: 'thank_you',
+                  milestone_sec: Math.round(MILESTONES[nextIdx] / 1000),
+                  dwell_sec: Math.round(dwellMs / 1000),
+                });
+                nextIdx++;
+              }
+            } else if (!idle && !hidden) {
+              idle = true;
+              track('dwell_idle_start', {
+                page: 'thank_you',
+                dwell_sec: Math.round(dwellMs / 1000),
+              });
+            }
+          }
+
+          setInterval(tick, TICK_MS);
+          for (var a = 0; a < ACTIVITY.length; a++) {
+            window.addEventListener(ACTIVITY[a], onActivity, { passive: true, capture: true });
+          }
+          document.addEventListener('visibilitychange', onVisibility);
+          window.addEventListener('pagehide', function () {
+            track('session_end', {
+              page: 'thank_you',
+              dwell_sec: Math.round(dwellMs / 1000),
+              milestones_hit: nextIdx,
+            });
+          });
+        })();
 
         // ---- Google Ads conversion tracking ------------------------------
         // Uncomment and replace with your own conversion ID / label once
@@ -479,15 +601,5 @@
       })();
     </script>
 
-    <!-- GA4 — mirrors the main app's property so this landing page also
-         records a PV. Deferred/defensive stub so any early gtag() calls
-         queue before the real script arrives. -->
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-754JZVPQB2');
-    </script>
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-754JZVPQB2"></script>
   </body>
 </html>

@@ -4,8 +4,10 @@ import {
   useState,
   useCallback,
   useEffect,
+  useRef,
   type ReactNode,
 } from 'react'
+import { ga } from './analytics/ga'
 
 export type Lang = 'en' | 'zh' | 'pt'
 
@@ -561,6 +563,11 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   // tech (screen readers) and browser auto-translate rely on this attribute
   // to pick correct pronunciation / translation pairs; if we don't update it
   // it stays stuck at zh-Hant from index.html regardless of the user's choice.
+  //
+  // Also emit a `language_changed` GA4 event on every switch EXCEPT the
+  // initial mount value — we want to measure user-initiated changes, not
+  // the hydrated-from-localStorage default.
+  const prevLangRef = useRef<Lang | null>(null)
   useEffect(() => {
     try {
       localStorage.setItem(LS_LANG_KEY, lang)
@@ -568,6 +575,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     if (typeof document !== 'undefined') {
       document.documentElement.lang = HTML_LANG_TAG[lang]
     }
+    if (prevLangRef.current !== null && prevLangRef.current !== lang) {
+      ga.languageChanged(prevLangRef.current, lang, 'app')
+    }
+    prevLangRef.current = lang
   }, [lang])
 
   const t = translations[lang]
