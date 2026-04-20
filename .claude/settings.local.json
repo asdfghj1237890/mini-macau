@@ -55,7 +55,11 @@
       "Bash(node -e \"const r=require\\('./public/data/bus-routes.json'\\); console.log\\(JSON.stringify\\(r.find\\(x=>x.id==='1'\\),null,2\\).slice\\(0,500\\)\\)\")",
       "Bash(node -e \"const r=require\\('./public/data/bus-routes.json'\\); const one=r.find\\(x=>x.id==='1'\\); console.log\\('start:', one.serviceHoursStart, 'end:', one.serviceHoursEnd, 'startSun:', one.serviceHoursStartSun, 'endSun:', one.serviceHoursEndSun\\); console.log\\('freq:', one.frequency\\);\")",
       "Bash(gh run *)",
-      "Bash(python -c \"import sys, json; data=json.loads\\(sys.stdin.read\\(\\)\\); lines=data[0]['text'].split\\('\\\\n'\\); dsat=[l for l in lines if 'dsat' in l.lower\\(\\)]; print\\(f'Total lines: {len\\(lines\\)}'\\); print\\(f'DSAT requests: {len\\(dsat\\)}'\\); print\\('First 5 DSAT:'\\); [print\\(l[:250]\\) for l in dsat[:5]]\")"
+      "Bash(python -c \"import sys, json; data=json.loads\\(sys.stdin.read\\(\\)\\); lines=data[0]['text'].split\\('\\\\n'\\); dsat=[l for l in lines if 'dsat' in l.lower\\(\\)]; print\\(f'Total lines: {len\\(lines\\)}'\\); print\\(f'DSAT requests: {len\\(dsat\\)}'\\); print\\('First 5 DSAT:'\\); [print\\(l[:250]\\) for l in dsat[:5]]\")",
+      "Bash(gh api *)",
+      "Bash(gh workflow *)",
+      "Bash(ls Dockerfile* nginx*)",
+      "Bash(ls deploy/)"
     ]
   }
 }
