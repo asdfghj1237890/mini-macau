@@ -135,7 +135,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
               >
                 {active && <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-amber-300 mm-led-pulse" />}
                 <div className={`mm-mono text-[9px] tracking-[0.2em] ${active ? 'text-amber-300' : 'text-white/40'}`}>{s.en}</div>
-                <div className={`mm-han text-[13px] font-semibold mt-0.5 ${active ? 'text-amber-100' : 'text-white/75'}`}>{s.zh}</div>
+                <div className={`mm-han text-[13px] font-bold mt-0.5 ${active ? 'text-amber-100' : 'text-white/75'}`}>{s.zh}</div>
                 <div className={`text-[9px] mt-0.5 ${active ? 'text-amber-200/70' : 'text-white/35'}`}>{s.note}</div>
               </button>
             )
@@ -267,7 +267,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
                     : 'border-white/10 bg-white/[0.02] text-white/60 hover:border-white/25 hover:text-white/85'
                 }`}
               >
-                <span className="mm-mono mm-tabular text-[10px] font-semibold leading-none">{q.t}</span>
+                <span className="mm-mono mm-tabular text-[10px] font-bold leading-none">{q.t}</span>
                 <span className="mm-han text-[9px] leading-none mt-0.5 opacity-75">{q.zh}</span>
               </button>
             )

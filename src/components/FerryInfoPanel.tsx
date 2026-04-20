@@ -143,7 +143,7 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
               <span className={`w-1.5 h-1.5 rounded-full ${theme.statusDot} mm-led-pulse`} />
               {isDeparture ? fl.destination.toUpperCase() : fl.origin.toUpperCase()} · {statusLabel}
             </div>
-            <div className={`text-[14px] font-semibold ${theme.titleText} truncate`}>
+            <div className={`text-[14px] font-bold ${theme.titleText} truncate`}>
               {ferry.otherPortZh}
             </div>
           </div>

@@ -93,7 +93,7 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
               <span className="w-1.5 h-1.5 rounded-full bg-sky-300 mm-led-pulse" />
               {isDeparture ? fl.destination.toUpperCase() : fl.origin.toUpperCase()} · {statusLabel}
             </div>
-            <div className="text-lg font-semibold text-sky-100 truncate">
+            <div className="text-lg font-bold text-sky-100 truncate">
               {airportDisplayName(airport, lang)}
               {airport?.iata && (
                 <span className="text-sky-200/60 font-normal text-[14px] ml-1.5">{airport.iata}</span>
