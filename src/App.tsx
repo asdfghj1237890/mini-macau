@@ -8,30 +8,14 @@ import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
 import type { VehiclePosition, Station, BusRoute } from './types'
 
-// Inject a preconnect <link> once — timed at the moment MapView starts
-// loading, so the TCP/TLS handshake races alongside the MapLibre chunk
-// download instead of sitting idle in <head> (where it expires before
-// the lazy chunk even finishes).
-function preconnect(href: string) {
-  if (typeof document === 'undefined') return
-  if (document.querySelector(`link[rel="preconnect"][href="${href}"]`)) return
-  const link = document.createElement('link')
-  link.rel = 'preconnect'
-  link.href = href
-  link.crossOrigin = ''
-  document.head.appendChild(link)
-}
-
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
-// MapLibre parses.
-const MapView = lazy(() => {
-  // Warm up sockets for CARTO basemap style + OpenFreeMap building tiles
-  // right before MapLibre starts fetching them.
-  preconnect('https://basemaps.cartocdn.com')
-  preconnect('https://tiles.openfreemap.org')
-  return import('./components/MapView').then(m => ({ default: m.MapView }))
-})
+// MapLibre parses. No preconnect hint for CARTO/OpenFreeMap — the tile
+// fetch happens well after LCP (behind the splash), and Lighthouse flags
+// head-level preconnects as unused because they expire before MapLibre
+// ever reaches the fetch. Letting the browser do DNS+TLS on-demand is a
+// sub-100ms hit a user won't perceive during the splash.
+const MapView = lazy(() => import('./components/MapView').then(m => ({ default: m.MapView })))
 const VehicleInfoPanel = lazy(() => import('./components/VehicleInfoPanel').then(m => ({ default: m.VehicleInfoPanel })))
 const StationInfoPanel = lazy(() => import('./components/StationInfoPanel').then(m => ({ default: m.StationInfoPanel })))
 const FlightInfoPanel = lazy(() => import('./components/FlightInfoPanel').then(m => ({ default: m.FlightInfoPanel })))
