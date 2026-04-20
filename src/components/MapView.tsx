@@ -256,7 +256,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           const projected = nearestPointOnLine(geometry, stop.coordinates, { units: 'kilometers' })
           return Math.max(0, Math.min(1, (projected.properties.location ?? 0) / totalLenKm))
         })
-        const tracker = new BusTracker(stopProgress, route.routeType === 'circular')
+        const tracker = new BusTracker(stopProgress, route.routeType === 'circular', totalLenKm)
         const poller = new RouteRealtimePoller(route.id, dir, 15_000)
         const unsub = poller.subscribe(obs => { tracker.ingest(obs) })
         current.set(key, { route, dir, geometry, tracker, poller, unsub })

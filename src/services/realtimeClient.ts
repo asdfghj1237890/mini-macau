@@ -199,16 +199,28 @@ export interface TrackedBusState {
 
 const STALE_MS = 60_000
 const TRANSITION_MS = 2_500
+// How long after the last observation we still trust dead-reckoning to
+// advance the bus. Past this we assume the feed is stale and freeze
+// the position instead of flying the bus off into the sunset.
+const DR_MAX_AGE_MS = 45_000
+// City-bus hard cap on reported speed (km/h). DSAT occasionally returns
+// garbage like 99 or stale speeds from a previous segment.
+const DR_SPEED_CAP_KMH = 60
+// Leave a tiny gap before the next stop so the bus never appears to
+// "arrive" without an actual observation confirming it.
+const DR_STOP_EPSILON = 0.0005
 
 export class BusTracker {
   private readonly stopProgress: number[]
   private readonly isCircular: boolean
+  private readonly totalKm: number
   private buses = new Map<string, TrackedBusState>()
   private cachedStates: TrackedBusState[] | null = null
 
-  constructor(stopProgress: number[], isCircular: boolean) {
+  constructor(stopProgress: number[], isCircular: boolean, totalKm: number = 0) {
     this.stopProgress = stopProgress
     this.isCircular = isCircular
+    this.totalKm = totalKm
   }
 
   ingest(obs: BusObservation[], now: number = Date.now()): void {
@@ -231,21 +243,34 @@ export class BusTracker {
           transitionFromProgress: null,
           transitionStartAt: null,
         })
-      } else if (o.stopIndex !== existing.lastStopIdx) {
-        existing.transitionFromProgress = existing.lastProgress
-        existing.transitionStartAt = o.observedAt
-        existing.prevStopIdx = existing.lastStopIdx
-        existing.prevProgress = existing.lastProgress
-        existing.prevAt = existing.lastAt
-        existing.lastStopIdx = o.stopIndex
-        existing.lastProgress = prog
-        existing.lastAt = o.observedAt
-        existing.speed = o.speed
-        existing.status = o.status
       } else {
-        existing.lastAt = o.observedAt
-        existing.speed = o.speed
-        existing.status = o.status
+        // Snapshot the current dead-reckoned position *before* rewriting any
+        // state. This is what the user currently sees; tween/baseline must
+        // start from here to avoid visible backward jumps.
+        const currentEstimate = this.estimateProgress(existing, o.observedAt)
+        if (o.stopIndex !== existing.lastStopIdx) {
+          existing.transitionFromProgress = currentEstimate
+          existing.transitionStartAt = o.observedAt
+          existing.prevStopIdx = existing.lastStopIdx
+          existing.prevProgress = existing.lastProgress
+          existing.prevAt = existing.lastAt
+          existing.lastStopIdx = o.stopIndex
+          existing.lastProgress = prog
+          existing.lastAt = o.observedAt
+          existing.speed = o.speed
+          existing.status = o.status
+        } else {
+          // Same-stop re-observation: "commit" the DR progress so the next
+          // estimateProgress call continues forward from the visible
+          // position instead of snapping back to the stop itself.
+          existing.lastProgress = currentEstimate
+          existing.lastAt = o.observedAt
+          existing.speed = o.speed
+          existing.status = o.status
+          // Clear any stale transition; we're now fully DR-driven.
+          existing.transitionFromProgress = null
+          existing.transitionStartAt = null
+        }
       }
     }
     for (const [plate, state] of this.buses) {
@@ -255,18 +280,48 @@ export class BusTracker {
   }
 
   estimateProgress(state: TrackedBusState, now: number): number {
-    if (state.transitionFromProgress == null || state.transitionStartAt == null) {
-      return state.lastProgress
+    // Phase 1: if we just observed a stop change, tween from the previous
+    // position to the newly observed stop over TRANSITION_MS. This absorbs
+    // any error built up by dead-reckoning before the new observation.
+    if (state.transitionFromProgress != null && state.transitionStartAt != null) {
+      const elapsed = now - state.transitionStartAt
+      if (elapsed >= 0 && elapsed < TRANSITION_MS) {
+        const t = elapsed / TRANSITION_MS
+        let from = state.transitionFromProgress
+        const to = state.lastProgress
+        if (this.isCircular && to - from < -0.5) from -= 1
+        const raw = from + (to - from) * t
+        return this.isCircular ? ((raw % 1) + 1) % 1 : Math.max(0, Math.min(1, raw))
+      }
     }
-    const elapsed = now - state.transitionStartAt
-    if (elapsed >= TRANSITION_MS) return state.lastProgress
-    if (elapsed <= 0) return state.transitionFromProgress
-    const t = elapsed / TRANSITION_MS
-    let from = state.transitionFromProgress
-    const to = state.lastProgress
-    if (this.isCircular && to - from < -0.5) from -= 1
-    const raw = from + (to - from) * t
-    return this.isCircular ? ((raw % 1) + 1) % 1 : Math.max(0, Math.min(1, raw))
+
+    // Phase 2: dead-reckon forward from the last observed stop, using the
+    // reported speed. We cap the advance at the next stop's progress so
+    // the bus never "passes" a stop without the feed confirming it.
+    const base = state.lastProgress
+    const speed = state.speed
+    const age = now - state.lastAt
+    if (speed <= 0 || age <= 0 || age > DR_MAX_AGE_MS || this.totalKm <= 0) {
+      return base
+    }
+    const cappedSpeedKmh = Math.min(speed, DR_SPEED_CAP_KMH)
+    const kmAdvanced = (cappedSpeedKmh / 3600) * (age / 1000)
+    const progressAdvance = kmAdvanced / this.totalKm
+
+    const nextIdx = state.lastStopIdx + 1
+    let cap: number
+    if (nextIdx < this.stopProgress.length) {
+      cap = this.stopProgress[nextIdx] - DR_STOP_EPSILON
+    } else if (this.isCircular && this.stopProgress.length > 0) {
+      // After the last stop on a circular route, the "next" stop wraps
+      // back to index 0, which lives at progress 0 — unwrap by +1.
+      cap = this.stopProgress[0] + 1 - DR_STOP_EPSILON
+    } else {
+      cap = 1
+    }
+
+    const advanced = Math.min(base + progressAdvance, cap)
+    return this.isCircular ? ((advanced % 1) + 1) % 1 : Math.max(0, Math.min(1, advanced))
   }
 
   getStates(): TrackedBusState[] {
