@@ -86,11 +86,19 @@ export function LineLegend({
   }, [busRoutes])
 
   if (transitData.loading) {
+    // The loading chip must occupy the *exact* same bounding box the real
+    // LAYERS panel will take once data arrives — same position, same width.
+    // Previously it was content-sized (~90px) while the full panel is 240px
+    // with the same right-3 anchor, so the left edge jumped ~150px inward
+    // on load, which Lighthouse attributed as the 0.140 layout shift
+    // (amplified further by the mm-ui-scale zoom: 1.2-1.3). Height doesn't
+    // need to match — top-anchored absolute elements don't register as CLS
+    // when only the bottom edge moves.
     return (
-      <div className="bg-[#0b0b0c]/95 backdrop-blur-md rounded-sm
+      <div className="mm-ui-scale absolute top-3 right-3 z-20 hidden sm:block landscape:hidden
+                      bg-[#0b0b0c]/95 backdrop-blur-md rounded-sm
                       px-3 py-2 border border-white/10 text-amber-300/80
-                      mm-mono text-[10px] tracking-[0.25em]
-                      max-sm:hidden landscape:hidden">
+                      mm-mono text-[10px] tracking-[0.25em] w-[240px] text-center">
         {t.loading}
       </div>
     )
