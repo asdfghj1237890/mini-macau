@@ -206,6 +206,12 @@ const DR_MAX_AGE_MS = 45_000
 // City-bus hard cap on reported speed (km/h). DSAT occasionally returns
 // garbage like 99 or stale speeds from a previous segment.
 const DR_SPEED_CAP_KMH = 60
+// DSAT reports instantaneous speed, which doesn't account for the traffic
+// lights, congestion, and stop dwells the bus will hit between polls. Using
+// it at face value makes the map bus race ahead and "arrive" at the next
+// stop 3–4 minutes before the feed actually confirms it. Scale down so the
+// DR bus stays behind the real bus until the next observation catches up.
+const DR_SPEED_SCALE = 0.4
 // Leave a tiny gap before the next stop so the bus never appears to
 // "arrive" without an actual observation confirming it.
 const DR_STOP_EPSILON = 0.0005
@@ -304,7 +310,7 @@ export class BusTracker {
     if (speed <= 0 || age <= 0 || age > DR_MAX_AGE_MS || this.totalKm <= 0) {
       return base
     }
-    const cappedSpeedKmh = Math.min(speed, DR_SPEED_CAP_KMH)
+    const cappedSpeedKmh = Math.min(speed, DR_SPEED_CAP_KMH) * DR_SPEED_SCALE
     const kmAdvanced = (cappedSpeedKmh / 3600) * (age / 1000)
     const progressAdvance = kmAdvanced / this.totalKm
 
