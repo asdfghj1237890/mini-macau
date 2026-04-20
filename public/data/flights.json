@@ -1,22 +1,5 @@
 [
   {
-    "id": "NX959-arr-0005",
-    "flightNumber": "NX959",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 5,
-    "origin": {
-      "iata": "HAN",
-      "name": "Ha Noi",
-      "bearing": 264.1,
-      "nameCn": "河內"
-    },
-    "aircraftType": "A320"
-  },
-  {
     "id": "NX977-arr-0015",
     "flightNumber": "NX977",
     "airline": {
@@ -31,17 +14,17 @@
       "bearing": 220.8,
       "nameCn": "峴港"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
-    "id": "NX227-arr-0025",
+    "id": "NX227-arr-0030",
     "flightNumber": "NX227",
     "airline": {
       "name": "",
       "iata": "NX"
     },
     "type": "arrival",
-    "scheduledTime": 25,
+    "scheduledTime": 30,
     "origin": {
       "iata": "HGH",
       "name": "Hangzhou",
@@ -51,38 +34,21 @@
     "aircraftType": "A321"
   },
   {
-    "id": "TW649-arr-0045",
-    "flightNumber": "TW649",
+    "id": "BX381-arr-0040",
+    "flightNumber": "BX381",
     "airline": {
       "name": "",
-      "iata": "TW"
+      "iata": "BX"
     },
     "type": "arrival",
-    "scheduledTime": 45,
+    "scheduledTime": 40,
     "origin": {
-      "iata": "CJU",
-      "name": "Jeju",
-      "bearing": 42.3,
-      "nameCn": "濟州"
+      "iata": "PUS",
+      "name": "Busan",
+      "bearing": 42.5,
+      "nameCn": "釜山"
     },
-    "aircraftType": "B38M"
-  },
-  {
-    "id": "NX105-arr-0050",
-    "flightNumber": "NX105",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 50,
-    "origin": {
-      "iata": "SHA",
-      "name": "Shanghai",
-      "bearing": 35.7,
-      "nameCn": "上海"
-    },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX991-arr-0110",
@@ -99,7 +65,24 @@
       "bearing": 237.4,
       "nameCn": "曼谷"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
+  },
+  {
+    "id": "BX382-dep-0115",
+    "flightNumber": "BX382",
+    "airline": {
+      "name": "",
+      "iata": "BX"
+    },
+    "type": "departure",
+    "scheduledTime": 115,
+    "destination": {
+      "iata": "PUS",
+      "name": "Busan",
+      "bearing": 42.5,
+      "nameCn": "釜山"
+    },
+    "aircraftType": "A321"
   },
   {
     "id": "NX949-arr-0115",
@@ -116,24 +99,7 @@
       "bearing": 264.1,
       "nameCn": "河內"
     },
-    "aircraftType": "A20N"
-  },
-  {
-    "id": "TW650-dep-0135",
-    "flightNumber": "TW650",
-    "airline": {
-      "name": "",
-      "iata": "TW"
-    },
-    "type": "departure",
-    "scheduledTime": 135,
-    "destination": {
-      "iata": "CJU",
-      "name": "Jeju",
-      "bearing": 42.3,
-      "nameCn": "濟州"
-    },
-    "aircraftType": "B38M"
+    "aircraftType": "A321"
   },
   {
     "id": "NX985-arr-0140",
@@ -150,22 +116,22 @@
       "bearing": 220.8,
       "nameCn": "峴港"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
-    "id": "NX9997-arr-0180",
-    "flightNumber": "NX9997",
+    "id": "NX961-arr-0170",
+    "flightNumber": "NX961",
     "airline": {
       "name": "",
       "iata": "NX"
     },
     "type": "arrival",
-    "scheduledTime": 180,
+    "scheduledTime": 170,
     "origin": {
-      "iata": "BKK",
-      "name": "Bangkok",
-      "bearing": 237.4,
-      "nameCn": "曼谷"
+      "iata": "HAN",
+      "name": "Ha Noi",
+      "bearing": 264.1,
+      "nameCn": "河內"
     },
     "aircraftType": "A321"
   },
@@ -184,7 +150,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX996-dep-0465",
@@ -204,6 +170,23 @@
     "aircraftType": "A321"
   },
   {
+    "id": "NX910-dep-0485",
+    "flightNumber": "NX910",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 485,
+    "destination": {
+      "iata": "CGK",
+      "name": "Jakarta",
+      "bearing": 194.3,
+      "nameCn": "雅加達"
+    },
+    "aircraftType": "A321"
+  },
+  {
     "id": "NX006-dep-0490",
     "flightNumber": "NX006",
     "airline": {
@@ -218,7 +201,7 @@
       "bearing": 7.4,
       "nameCn": "北京首都"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX856-dep-0500",
@@ -235,7 +218,7 @@
       "bearing": 52.4,
       "nameCn": "大阪關西"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX822-dep-0515",
@@ -252,7 +235,7 @@
       "bearing": 33.0,
       "nameCn": "首爾仁川"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX862-dep-0570",
@@ -269,7 +252,7 @@
       "bearing": 53.7,
       "nameCn": "東京成田"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "JX201-arr-0585",
@@ -286,7 +269,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A339"
   },
   {
     "id": "NX672-dep-0590",
@@ -303,7 +286,7 @@
       "bearing": 70.5,
       "nameCn": "台中"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX112-dep-0625",
@@ -337,7 +320,7 @@
       "bearing": 84.8,
       "nameCn": "高雄"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "9C8875-arr-0630",
@@ -354,7 +337,7 @@
       "bearing": 37.5,
       "nameCn": "上海浦東"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "BR829-arr-0635",
@@ -388,7 +371,7 @@
       "bearing": 33.0,
       "nameCn": "首爾仁川"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX673-arr-0645",
@@ -405,7 +388,7 @@
       "bearing": 70.5,
       "nameCn": "台中"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX371-arr-0650",
@@ -439,7 +422,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A339"
   },
   {
     "id": "NX165-arr-0655",
@@ -456,7 +439,7 @@
       "bearing": 41.0,
       "nameCn": "寧波"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX631-arr-0660",
@@ -473,7 +456,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX221-arr-0675",
@@ -490,7 +473,7 @@
       "bearing": 35.8,
       "nameCn": "杭州"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "9C8876-dep-0690",
@@ -507,7 +490,7 @@
       "bearing": 37.5,
       "nameCn": "上海浦東"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "NX936-dep-0695",
@@ -524,24 +507,7 @@
       "bearing": 237.4,
       "nameCn": "曼谷"
     },
-    "aircraftType": "A21N"
-  },
-  {
-    "id": "KR503-arr-0695",
-    "flightNumber": "KR503",
-    "airline": {
-      "name": "",
-      "iata": "KR"
-    },
-    "type": "arrival",
-    "scheduledTime": 695,
-    "origin": {
-      "iata": "KTI",
-      "name": "Kandal Stueng",
-      "bearing": 219.7,
-      "nameCn": "德崇"
-    },
-    "aircraftType": "A319"
+    "aircraftType": "A321"
   },
   {
     "id": "NX385-arr-0700",
@@ -558,7 +524,7 @@
       "bearing": 317.7,
       "nameCn": "成都天府"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "BR830-dep-0705",
@@ -609,7 +575,7 @@
       "bearing": 321.9,
       "nameCn": "重慶"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "BR801-arr-0710",
@@ -626,7 +592,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A321"
+    "aircraftType": "A333"
   },
   {
     "id": "NX002-dep-0715",
@@ -660,7 +626,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX908-dep-0725",
@@ -677,7 +643,7 @@
       "bearing": 205.5,
       "nameCn": "新加坡"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX222-dep-0730",
@@ -728,7 +694,7 @@
       "bearing": 7.4,
       "nameCn": "北京首都"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX388-dep-0740",
@@ -745,7 +711,7 @@
       "bearing": 317.7,
       "nameCn": "成都天府"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX668-dep-0745",
@@ -762,7 +728,7 @@
       "bearing": 84.8,
       "nameCn": "高雄"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "FM805-arr-0745",
@@ -782,23 +748,6 @@
     "aircraftType": "B738"
   },
   {
-    "id": "KR5561-dep-0750",
-    "flightNumber": "KR5561",
-    "airline": {
-      "name": "",
-      "iata": "KR"
-    },
-    "type": "departure",
-    "scheduledTime": 750,
-    "destination": {
-      "iata": "ROR",
-      "name": "Koror",
-      "bearing": 123.0,
-      "nameCn": "科羅爾"
-    },
-    "aircraftType": "A319"
-  },
-  {
     "id": "AK188-arr-0755",
     "flightNumber": "AK188",
     "airline": {
@@ -813,7 +762,7 @@
       "bearing": 212.4,
       "nameCn": "吉隆坡"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "NX162-dep-0760",
@@ -830,7 +779,7 @@
       "bearing": 41.0,
       "nameCn": "寧波"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "FM817-arr-0760",
@@ -864,7 +813,7 @@
       "bearing": 24.9,
       "nameCn": "南京"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "7C6001-arr-0770",
@@ -915,7 +864,7 @@
       "bearing": 212.4,
       "nameCn": "吉隆坡"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "ZH9098-dep-0790",
@@ -949,7 +898,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A321"
+    "aircraftType": "A333"
   },
   {
     "id": "NX116-dep-0800",
@@ -966,11 +915,11 @@
       "bearing": 37.5,
       "nameCn": "上海浦東"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
-    "id": "MU865-arr-0800",
-    "flightNumber": "MU865",
+    "id": "MU5055-arr-0800",
+    "flightNumber": "MU5055",
     "airline": {
       "name": "",
       "iata": "MU"
@@ -978,12 +927,12 @@
     "type": "arrival",
     "scheduledTime": 800,
     "origin": {
-      "iata": "KHN",
-      "name": "Nanchang",
-      "bearing": 16.8,
-      "nameCn": "南昌"
+      "iata": "HFE",
+      "name": "Hefei",
+      "bearing": 18.1,
+      "nameCn": "合肥"
     },
-    "aircraftType": "AJ27"
+    "aircraftType": "A20N"
   },
   {
     "id": "FM806-dep-0805",
@@ -1020,23 +969,6 @@
     "aircraftType": "A321"
   },
   {
-    "id": "NX258-dep-0815",
-    "flightNumber": "NX258",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 815,
-    "destination": {
-      "iata": "WNZ",
-      "name": "Wenzhou",
-      "bearing": 47.3,
-      "nameCn": "溫州"
-    },
-    "aircraftType": "A321"
-  },
-  {
     "id": "MU9797-arr-0815",
     "flightNumber": "MU9797",
     "airline": {
@@ -1051,7 +983,7 @@
       "bearing": 24.9,
       "nameCn": "南京"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "FM818-dep-0820",
@@ -1085,7 +1017,7 @@
       "bearing": 238.5,
       "nameCn": "曼谷廊曼"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "7C6002-dep-0830",
@@ -1119,7 +1051,7 @@
       "bearing": 238.5,
       "nameCn": "曼谷廊曼"
     },
-    "aircraftType": "B738"
+    "aircraftType": "B739"
   },
   {
     "id": "MF8681-arr-0840",
@@ -1170,7 +1102,7 @@
       "bearing": 238.5,
       "nameCn": "曼谷廊曼"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX671-arr-0855",
@@ -1187,11 +1119,11 @@
       "bearing": 70.5,
       "nameCn": "台中"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
-    "id": "MU866-dep-0860",
-    "flightNumber": "MU866",
+    "id": "MU5056-dep-0860",
+    "flightNumber": "MU5056",
     "airline": {
       "name": "",
       "iata": "MU"
@@ -1199,12 +1131,12 @@
     "type": "departure",
     "scheduledTime": 860,
     "destination": {
-      "iata": "KHN",
-      "name": "Nanchang",
-      "bearing": 16.8,
-      "nameCn": "南昌"
+      "iata": "HFE",
+      "name": "Hefei",
+      "bearing": 18.1,
+      "nameCn": "合肥"
     },
-    "aircraftType": "AJ27"
+    "aircraftType": "A20N"
   },
   {
     "id": "NX995-arr-0860",
@@ -1238,7 +1170,7 @@
       "bearing": 24.9,
       "nameCn": "南京"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "SL373-dep-0890",
@@ -1255,7 +1187,7 @@
       "bearing": 238.5,
       "nameCn": "曼谷廊曼"
     },
-    "aircraftType": "B738"
+    "aircraftType": "B739"
   },
   {
     "id": "VJ8890-arr-0890",
@@ -1323,7 +1255,7 @@
       "bearing": 259.5,
       "nameCn": "海防"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX022-dep-0915",
@@ -1340,7 +1272,7 @@
       "bearing": 21.2,
       "nameCn": "青島"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX010-dep-0920",
@@ -1357,7 +1289,7 @@
       "bearing": 7.4,
       "nameCn": "北京首都"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "QH9588-arr-0920",
@@ -1425,7 +1357,7 @@
       "bearing": 31.7,
       "nameCn": "無錫"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "CZ6082-dep-0955",
@@ -1459,7 +1391,7 @@
       "bearing": 259.5,
       "nameCn": "海防"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX005-arr-0965",
@@ -1476,7 +1408,7 @@
       "bearing": 7.4,
       "nameCn": "北京首都"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX667-arr-0975",
@@ -1493,7 +1425,7 @@
       "bearing": 84.8,
       "nameCn": "高雄"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "AK186-arr-0980",
@@ -1510,7 +1442,7 @@
       "bearing": 212.4,
       "nameCn": "吉隆坡"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "CA119-arr-0990",
@@ -1544,7 +1476,7 @@
       "bearing": 84.8,
       "nameCn": "高雄"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX611-arr-0995",
@@ -1561,7 +1493,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "QH9589-dep-1000",
@@ -1646,7 +1578,7 @@
       "bearing": 31.7,
       "nameCn": "無錫"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "MU2015-arr-1010",
@@ -1680,7 +1612,7 @@
       "bearing": 52.4,
       "nameCn": "大阪關西"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "AK187-dep-1020",
@@ -1697,7 +1629,7 @@
       "bearing": 212.4,
       "nameCn": "吉隆坡"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "VJ5530-arr-1020",
@@ -1714,7 +1646,7 @@
       "bearing": 203.1,
       "nameCn": "芽莊"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX118-dep-1025",
@@ -1748,7 +1680,7 @@
       "bearing": 33.0,
       "nameCn": "首爾仁川"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "MF8719-arr-1030",
@@ -1782,24 +1714,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A320"
-  },
-  {
-    "id": "MF8671-arr-1045",
-    "flightNumber": "MF8671",
-    "airline": {
-      "name": "",
-      "iata": "MF"
-    },
-    "type": "arrival",
-    "scheduledTime": 1045,
-    "origin": {
-      "iata": "FOC",
-      "name": "Fuzhou",
-      "bearing": 54.5,
-      "nameCn": "福州"
-    },
-    "aircraftType": "B738"
+    "aircraftType": "A321"
   },
   {
     "id": "CA120-dep-1050",
@@ -1833,7 +1748,7 @@
       "bearing": 321.9,
       "nameCn": "重慶"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "ZH9090-dep-1060",
@@ -1867,7 +1782,7 @@
       "bearing": 59.2,
       "nameCn": "廈門"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX225-arr-1065",
@@ -1904,6 +1819,23 @@
     "aircraftType": "A20N"
   },
   {
+    "id": "JX205-arr-1070",
+    "flightNumber": "JX205",
+    "airline": {
+      "name": "",
+      "iata": "JX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1070,
+    "origin": {
+      "iata": "TPE",
+      "name": "Taipei",
+      "bearing": 65.8,
+      "nameCn": "台北"
+    },
+    "aircraftType": "A21N"
+  },
+  {
     "id": "TR904-arr-1075",
     "flightNumber": "TR904",
     "airline": {
@@ -1918,7 +1850,7 @@
       "bearing": 205.5,
       "nameCn": "新加坡"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
   },
   {
     "id": "VJ5531-dep-1080",
@@ -1935,7 +1867,7 @@
       "bearing": 203.1,
       "nameCn": "芽莊"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX372-dep-1085",
@@ -1986,7 +1918,7 @@
       "bearing": 33.0,
       "nameCn": "首爾仁川"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX161-arr-1090",
@@ -2003,7 +1935,7 @@
       "bearing": 41.0,
       "nameCn": "寧波"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX387-arr-1095",
@@ -2020,7 +1952,7 @@
       "bearing": 317.7,
       "nameCn": "成都天府"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "MF8720-dep-1100",
@@ -2054,7 +1986,7 @@
       "bearing": 35.8,
       "nameCn": "杭州"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX935-arr-1105",
@@ -2071,24 +2003,7 @@
       "bearing": 237.4,
       "nameCn": "曼谷"
     },
-    "aircraftType": "A21N"
-  },
-  {
-    "id": "MF8672-dep-1110",
-    "flightNumber": "MF8672",
-    "airline": {
-      "name": "",
-      "iata": "MF"
-    },
-    "type": "departure",
-    "scheduledTime": 1110,
-    "destination": {
-      "iata": "FOC",
-      "name": "Fuzhou",
-      "bearing": 54.5,
-      "nameCn": "福州"
-    },
-    "aircraftType": "B738"
+    "aircraftType": "A321"
   },
   {
     "id": "Z2092-arr-1110",
@@ -2122,7 +2037,7 @@
       "bearing": 70.5,
       "nameCn": "台中"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "BR805-arr-1115",
@@ -2139,24 +2054,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A321"
-  },
-  {
-    "id": "NX257-arr-1120",
-    "flightNumber": "NX257",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1120,
-    "origin": {
-      "iata": "WNZ",
-      "name": "Wenzhou",
-      "bearing": 47.3,
-      "nameCn": "溫州"
-    },
-    "aircraftType": "A321"
+    "aircraftType": "A333"
   },
   {
     "id": "TR905-dep-1125",
@@ -2173,7 +2071,41 @@
       "bearing": 205.5,
       "nameCn": "新加坡"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A320"
+  },
+  {
+    "id": "NX909-arr-1125",
+    "flightNumber": "NX909",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1125,
+    "origin": {
+      "iata": "CGK",
+      "name": "Jakarta",
+      "bearing": 194.3,
+      "nameCn": "雅加達"
+    },
+    "aircraftType": "A321"
+  },
+  {
+    "id": "NX106-dep-1130",
+    "flightNumber": "NX106",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1130,
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai",
+      "bearing": 35.7,
+      "nameCn": "上海"
+    },
+    "aircraftType": "A321"
   },
   {
     "id": "NX992-dep-1135",
@@ -2207,7 +2139,7 @@
       "bearing": 24.9,
       "nameCn": "南京"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "MU2055-arr-1140",
@@ -2224,7 +2156,7 @@
       "bearing": 35.7,
       "nameCn": "上海"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A333"
   },
   {
     "id": "Z2093-dep-1150",
@@ -2309,7 +2241,7 @@
       "bearing": 35.7,
       "nameCn": "上海"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX622-dep-1170",
@@ -2326,7 +2258,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX169-arr-1175",
@@ -2360,24 +2292,7 @@
       "bearing": 220.8,
       "nameCn": "峴港"
     },
-    "aircraftType": "A21N"
-  },
-  {
-    "id": "JX205-arr-1180",
-    "flightNumber": "JX205",
-    "airline": {
-      "name": "",
-      "iata": "JX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1180,
-    "origin": {
-      "iata": "TPE",
-      "name": "Taipei",
-      "bearing": 65.8,
-      "nameCn": "台北"
-    },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX117-arr-1185",
@@ -2394,7 +2309,7 @@
       "bearing": 37.5,
       "nameCn": "上海浦東"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX001-arr-1190",
@@ -2428,7 +2343,7 @@
       "bearing": 35.7,
       "nameCn": "上海"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A333"
   },
   {
     "id": "NX861-arr-1205",
@@ -2445,7 +2360,7 @@
       "bearing": 53.7,
       "nameCn": "東京成田"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "BR806-dep-1210",
@@ -2462,7 +2377,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A321"
+    "aircraftType": "A333"
   },
   {
     "id": "MU240-dep-1220",
@@ -2496,7 +2411,7 @@
       "bearing": 37.5,
       "nameCn": "上海浦東"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX659-arr-1230",
@@ -2512,23 +2427,6 @@
       "name": "Kaohsiung",
       "bearing": 84.8,
       "nameCn": "高雄"
-    },
-    "aircraftType": "A320"
-  },
-  {
-    "id": "NX166-dep-1235",
-    "flightNumber": "NX166",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 1235,
-    "destination": {
-      "iata": "NGB",
-      "name": "Ningbo",
-      "bearing": 41.0,
-      "nameCn": "寧波"
     },
     "aircraftType": "A321"
   },
@@ -2547,7 +2445,7 @@
       "bearing": 35.8,
       "nameCn": "杭州"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "VZ3732-arr-1240",
@@ -2564,24 +2462,24 @@
       "bearing": 237.4,
       "nameCn": "曼谷"
     },
-    "aircraftType": "B38M"
+    "aircraftType": "B738"
   },
   {
-    "id": "HU7935-arr-1245",
-    "flightNumber": "HU7935",
+    "id": "NX964-dep-1245",
+    "flightNumber": "NX964",
     "airline": {
       "name": "",
-      "iata": "HU"
+      "iata": "NX"
     },
-    "type": "arrival",
+    "type": "departure",
     "scheduledTime": 1245,
-    "origin": {
-      "iata": "HAK",
-      "name": "Haikou",
-      "bearing": 233.4,
-      "nameCn": "海口"
+    "destination": {
+      "iata": "HAN",
+      "name": "Ha Noi",
+      "bearing": 264.1,
+      "nameCn": "河內"
     },
-    "aircraftType": "B38M"
+    "aircraftType": "A321"
   },
   {
     "id": "JX206-dep-1250",
@@ -2615,7 +2513,7 @@
       "bearing": 205.5,
       "nameCn": "新加坡"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX950-dep-1265",
@@ -2632,7 +2530,7 @@
       "bearing": 264.1,
       "nameCn": "河內"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "SL370-arr-1265",
@@ -2649,24 +2547,7 @@
       "bearing": 238.5,
       "nameCn": "曼谷廊曼"
     },
-    "aircraftType": "B738"
-  },
-  {
-    "id": "NX962-dep-1275",
-    "flightNumber": "NX962",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 1275,
-    "destination": {
-      "iata": "HAN",
-      "name": "Ha Noi",
-      "bearing": 264.1,
-      "nameCn": "河內"
-    },
-    "aircraftType": "A321"
+    "aircraftType": "B739"
   },
   {
     "id": "VJ8892-arr-1280",
@@ -2700,7 +2581,7 @@
       "bearing": 220.8,
       "nameCn": "峴港"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "5J362-arr-1285",
@@ -2734,7 +2615,7 @@
       "bearing": 84.8,
       "nameCn": "高雄"
     },
-    "aircraftType": "A21N"
+    "aircraftType": "A321"
   },
   {
     "id": "VZ3733-dep-1300",
@@ -2751,24 +2632,7 @@
       "bearing": 237.4,
       "nameCn": "曼谷"
     },
-    "aircraftType": "B38M"
-  },
-  {
-    "id": "KR5562-arr-1300",
-    "flightNumber": "KR5562",
-    "airline": {
-      "name": "",
-      "iata": "KR"
-    },
-    "type": "arrival",
-    "scheduledTime": 1300,
-    "origin": {
-      "iata": "ROR",
-      "name": "Koror",
-      "bearing": 123.0,
-      "nameCn": "科羅爾"
-    },
-    "aircraftType": "A319"
+    "aircraftType": "B738"
   },
   {
     "id": "MU9992-dep-1305",
@@ -2785,7 +2649,7 @@
       "bearing": 37.5,
       "nameCn": "上海浦東"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX131-arr-1305",
@@ -2802,24 +2666,7 @@
       "bearing": 59.2,
       "nameCn": "廈門"
     },
-    "aircraftType": "A320"
-  },
-  {
-    "id": "HU7936-dep-1310",
-    "flightNumber": "HU7936",
-    "airline": {
-      "name": "",
-      "iata": "HU"
-    },
-    "type": "departure",
-    "scheduledTime": 1310,
-    "destination": {
-      "iata": "HAK",
-      "name": "Haikou",
-      "bearing": 233.4,
-      "nameCn": "海口"
-    },
-    "aircraftType": "B38M"
+    "aircraftType": "A321"
   },
   {
     "id": "NX386-dep-1320",
@@ -2853,7 +2700,7 @@
       "bearing": 238.5,
       "nameCn": "曼谷廊曼"
     },
-    "aircraftType": "B738"
+    "aircraftType": "B739"
   },
   {
     "id": "NX615-arr-1325",
@@ -2870,7 +2717,7 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "VJ8893-dep-1340",
@@ -2907,23 +2754,6 @@
     "aircraftType": "A20N"
   },
   {
-    "id": "KR502-dep-1360",
-    "flightNumber": "KR502",
-    "airline": {
-      "name": "",
-      "iata": "KR"
-    },
-    "type": "departure",
-    "scheduledTime": 1360,
-    "destination": {
-      "iata": "KTI",
-      "name": "Kandal Stueng",
-      "bearing": 219.7,
-      "nameCn": "德崇"
-    },
-    "aircraftType": "A319"
-  },
-  {
     "id": "NX009-arr-1390",
     "flightNumber": "NX009",
     "airline": {
@@ -2938,7 +2768,7 @@
       "bearing": 7.4,
       "nameCn": "北京首都"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   },
   {
     "id": "NX021-arr-1395",
@@ -2955,7 +2785,7 @@
       "bearing": 21.2,
       "nameCn": "青島"
     },
-    "aircraftType": "A20N"
+    "aircraftType": "A321"
   },
   {
     "id": "NX119-arr-1425",
@@ -2989,6 +2819,6 @@
       "bearing": 65.8,
       "nameCn": "台北"
     },
-    "aircraftType": "A320"
+    "aircraftType": "A321"
   }
 ]
