@@ -56,10 +56,28 @@ LOTUS_BRIDGE_RETURN_POLYLINE = [
     [113.56078, 22.13918],
     [113.56119, 22.13931],
 ]
-# Outbound is the reverse of the return path until precise outbound
-# waypoints are sourced. The Hengqin Port loop is approximate this way
-# but visually still follows the bridge alignment correctly.
-LOTUS_BRIDGE_OUTBOUND_POLYLINE = list(reversed(LOTUS_BRIDGE_RETURN_POLYLINE))
+LOTUS_BRIDGE_OUTBOUND_POLYLINE = [
+    [113.56143, 22.13927],
+    [113.56144, 22.13901],
+    [113.56077, 22.13901],
+    [113.55984, 22.13902],
+    [113.55893, 22.13870],
+    [113.55743, 22.13893],
+    [113.55671, 22.13929],
+    [113.55330, 22.13961],
+    [113.54783, 22.14011],
+    [113.54643, 22.14013],
+    [113.54615, 22.13982],
+    [113.54625, 22.13928],
+    [113.54670, 22.13914],
+    [113.54712, 22.13934],
+    [113.54724, 22.13970],
+    [113.54732, 22.14176],
+    [113.54728, 22.14311],
+    [113.54688, 22.14347],
+    [113.54564, 22.14343],
+    [113.54536, 22.14336],
+]
 # Anchor used as a "via" hint when probing OSRM — picked from the bridge
 # centreline crossing, which is the lat where the actual span sits.
 LOTUS_BRIDGE_ANCHOR = [113.55313, 22.13976]
