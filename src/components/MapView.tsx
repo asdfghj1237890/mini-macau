@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from 'react'
+import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, ScheduleType } from '../types'
@@ -134,8 +134,17 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const [is3D, setIs3D] = useState(true)
   const [showBuildings, setShowBuildings] = useState(true)
   const [isDark, setIsDark] = useState(true)
-  const [zoom, setZoom] = useState<number>(MACAU_ZOOM)
   const [menuOpen, setMenuOpen] = useState(false)
+  const zoomStoreRef = useRef<{ value: number; listeners: Set<() => void> }>({
+    value: MACAU_ZOOM,
+    listeners: new Set(),
+  })
+  const subscribeZoom = useCallback((cb: () => void) => {
+    const s = zoomStoreRef.current
+    s.listeners.add(cb)
+    return () => { s.listeners.delete(cb) }
+  }, [])
+  const getZoomSnapshot = useCallback(() => zoomStoreRef.current.value, [])
   const [rtUnlocked, setRtUnlocked] = useState(() =>
     RT_BUILD && typeof window !== 'undefined' && localStorage.getItem('mm_rt_unlocked') === '1')
   const [rtEnabled, setRtEnabled] = useState(() =>
@@ -307,7 +316,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     let zoomTimer = 0
     map.on('zoom', () => {
       cancelAnimationFrame(zoomTimer)
-      zoomTimer = requestAnimationFrame(() => setZoom(map.getZoom()))
+      zoomTimer = requestAnimationFrame(() => {
+        const s = zoomStoreRef.current
+        s.value = map.getZoom()
+        for (const l of s.listeners) l()
+      })
     })
 
     const canvasEl = map.getCanvas()
@@ -437,12 +450,32 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         }
       }
 
-      for (const route of allTransitData.busRoutes) {
-        if (!route.geometry?.geometry?.coordinates?.length) continue
-        m.addSource(`bus-route-${route.id}`, { type: 'geojson', data: route.geometry })
+      const busRouteFeatures = allTransitData.busRoutes
+        .filter(r => r.geometry?.geometry?.coordinates?.length)
+        .map(r => ({
+          type: 'Feature' as const,
+          id: r.id,
+          geometry: r.geometry.geometry,
+          properties: { id: r.id, color: r.color },
+        }))
+      if (busRouteFeatures.length > 0) {
+        m.addSource('bus-routes', {
+          type: 'geojson',
+          data: { type: 'FeatureCollection', features: busRouteFeatures },
+        })
         m.addLayer({
-          id: `bus-route-${route.id}`, type: 'line', source: `bus-route-${route.id}`,
-          paint: { 'line-color': route.color, 'line-width': 2, 'line-opacity': BUS_LINE_OPACITY, 'line-dasharray': [2, 2] },
+          id: 'bus-routes', type: 'line', source: 'bus-routes',
+          paint: {
+            'line-color': ['get', 'color'],
+            'line-width': 2,
+            'line-opacity': [
+              'case',
+              ['==', ['feature-state', 'inService'], false],
+              BUS_LINE_OPACITY_DIM,
+              BUS_LINE_OPACITY,
+            ],
+            'line-dasharray': [2, 2],
+          },
         })
       }
 
@@ -625,6 +658,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
 
+  const mapBusyRef = useRef(false)
+
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
@@ -634,15 +669,22 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       userInteractingUntilRef.current = performance.now() + PAUSE_MS
     }
 
+    const onMoveStart = () => { mapBusyRef.current = true }
+    const onMoveEnd = () => { mapBusyRef.current = false }
+
     const canvas = map.getCanvas()
     canvas.addEventListener('wheel', markInteracting, { passive: true })
     canvas.addEventListener('mousedown', markInteracting)
     canvas.addEventListener('touchstart', markInteracting, { passive: true })
+    map.on('movestart', onMoveStart)
+    map.on('moveend', onMoveEnd)
 
     return () => {
       canvas.removeEventListener('wheel', markInteracting)
       canvas.removeEventListener('mousedown', markInteracting)
       canvas.removeEventListener('touchstart', markInteracting)
+      map.off('movestart', onMoveStart)
+      map.off('moveend', onMoveEnd)
     }
   }, [allTransitData.lrtLines.length])
 
@@ -651,12 +693,22 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const TRACK_ZOOM = 16
     const FLY_DURATION = 1200
     const EASE_BACK_DURATION = 400
+    const SIM_TICK_MS = 50
+    const HEAVY_TICK_MS_BUSY = 160
     let lastCountReport = 0
+    let lastSimTick = 0
+    let lastHeavyTick = 0
 
     const animate = () => {
       const map = mapRef.current
       const td = transitRef.current
       if (map && !td.loading && layersAddedRef.current) {
+        const nowTick = performance.now()
+        const shouldTick = nowTick - lastSimTick >= SIM_TICK_MS
+        const heavyInterval = mapBusyRef.current ? HEAVY_TICK_MS_BUSY : SIM_TICK_MS
+        const shouldHeavy = nowTick - lastHeavyTick >= heavyInterval
+        if (shouldTick) {
+          lastSimTick = nowTick
         let vehicles = computeVehiclePositions(td, clock.timeRef.current)
         if (RT_BUILD && rtEnabledRef.current && rtStatesRef.current.size > 0) {
           const rtNow = performance.now()
@@ -709,16 +761,20 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           }
         }
         vehiclesRef.current = vehicles
-        bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
-        lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
-        flight3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'flight'))
-        ferry3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'ferry'))
         updateVehicleData(map, vehicles)
+        if (shouldHeavy) {
+          lastHeavyTick = nowTick
+          bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
+          lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
+          flight3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'flight'))
+          ferry3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'ferry'))
+        }
+        }
 
         const now = performance.now()
         if (now - lastCountReport > 5000) {
           lastCountReport = now
-          onVehicleCountRef.current?.(vehicles.length)
+          onVehicleCountRef.current?.(vehiclesRef.current.length)
         }
 
         const perfNow = performance.now()
@@ -762,21 +818,23 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             }
           }
 
-          for (const route of td.busRoutes) {
-            const layerId = `bus-route-${route.id}`
-            if (!map.getLayer(layerId)) continue
-            const inService = isBusInService(route, hour, simTime.getMinutes())
-            const prev = serviceStatusRef.current.get(layerId)
-            if (prev !== inService) {
-              serviceStatusRef.current.set(layerId, inService)
-              map.setPaintProperty(layerId, 'line-opacity', inService ? BUS_LINE_OPACITY : BUS_LINE_OPACITY_DIM)
+          if (map.getLayer('bus-routes')) {
+            const minutes = simTime.getMinutes()
+            for (const route of td.busRoutes) {
+              const key = `bus-route-${route.id}`
+              const inService = isBusInService(route, hour, minutes)
+              const prev = serviceStatusRef.current.get(key)
+              if (prev !== inService) {
+                serviceStatusRef.current.set(key, inService)
+                map.setFeatureState({ source: 'bus-routes', id: route.id }, { inService })
+              }
             }
           }
         }
 
         const tid = trackedRef.current
         if (tid) {
-          const tracked = vehicles.find(v => v.id === tid)
+          const tracked = vehiclesRef.current.find(v => v.id === tid)
           if (tracked) {
             if (tracked.rt) {
               const sync = lastTrackedSyncRef.current
@@ -902,7 +960,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           aria-label="zoom level"
         >
           <span className="mm-mono text-[8px] tracking-[0.2em] text-white/40">ZOOM</span>
-          <span className="mm-mono mm-tabular text-[11px] text-amber-200">{zoom.toFixed(1)}</span>
+          <ZoomText subscribe={subscribeZoom} getSnapshot={getZoomSnapshot} precision={1}
+                    className="mm-mono mm-tabular text-[11px] text-amber-200" />
         </div>
       </div>
 
@@ -1101,7 +1160,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               <span className="text-white/55">{RT_BUILD && rtEnabled ? 'GTFS · RT*' : 'GTFS · SIM'}</span>
             </div>
             <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
-              <span>ZOOM</span><span className="mm-tabular text-amber-200/80">{zoom.toFixed(2)}</span>
+              <span>ZOOM</span>
+              <ZoomText subscribe={subscribeZoom} getSnapshot={getZoomSnapshot} precision={2}
+                        className="mm-tabular text-amber-200/80" />
             </div>
             <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
               <span>MODE</span><span className="text-emerald-300/70">{is3D ? '3D.LIVE' : '2D.LIVE'}</span>
@@ -1111,6 +1172,21 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       </div>
     </>
   )
+}
+
+function ZoomText({
+  subscribe,
+  getSnapshot,
+  precision,
+  className,
+}: {
+  subscribe: (cb: () => void) => () => void
+  getSnapshot: () => number
+  precision: number
+  className?: string
+}) {
+  const z = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
+  return <span className={className}>{z.toFixed(precision)}</span>
 }
 
 interface DrawerRowProps {

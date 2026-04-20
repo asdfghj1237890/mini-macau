@@ -1,5 +1,3 @@
-import along from '@turf/along'
-import length from '@turf/length'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { Feature, LineString } from 'geojson'
 import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute, BusStop, Flight, Ferry, ScheduleType } from '../types'
@@ -19,34 +17,105 @@ function timeToMinutes(date: Date): number {
   return date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60 + date.getMilliseconds() / 60000
 }
 
-const lineLengthCache = new WeakMap<Feature<LineString>, number>()
+// Per-polyline precomputation for fast progress → (position, bearing) lookup.
+//
+// Hot path: interpolateOnLine runs once per vehicle per sim tick (~20 Hz ×
+// 300–400 vehicles). The naive implementation — turf's along() — walks the
+// coordinate array from index 0 and sums haversine distances until it hits
+// the target km. That's O(n) haversines per call, and the engine originally
+// invoked it twice per vehicle (position + lookahead for bearing), giving
+// ~12k full-route scans per second. For 100–150 point bus routes this was
+// the single biggest CPU sink on the main thread.
+//
+// Key insight: the geometry is immutable, so the per-segment work (length
+// and heading) only needs to happen once. We cache:
+//   - cumKm[i]       cumulative km from coords[0] to coords[i]
+//   - segBearing[i]  heading of the segment coords[i] → coords[i+1]
+//
+// Per-call cost then drops to:
+//   - one binary search on cumKm to locate the segment   (O(log n) compares)
+//   - one linear interpolation between two lat/lng pairs (plain arithmetic)
+//   - one table lookup for bearing                       (no second along())
+//
+// No trig in the hot loop, no walking the array, no WeakMap miss after the
+// first touch. We intentionally do NOT cache a per-line lastIdx hint:
+// multiple vehicles share a line at wildly different progress values, so a
+// shared hint would thrash. log₂(150) ≈ 8 comparisons is already cheap
+// enough that per-vehicle hints aren't worth the state.
+type LineCache = {
+  coords: [number, number][]
+  cumKm: Float64Array
+  segBearing: Float64Array
+  totalKm: number
+}
+
+const lineCache = new WeakMap<Feature<LineString>, LineCache>()
+
+const EARTH_KM = 6371
+function haversineKm(a: [number, number], b: [number, number]): number {
+  const dLat = ((b[1] - a[1]) * Math.PI) / 180
+  const dLng = ((b[0] - a[0]) * Math.PI) / 180
+  const lat1 = (a[1] * Math.PI) / 180
+  const lat2 = (b[1] * Math.PI) / 180
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.sin(dLng / 2) ** 2 * Math.cos(lat1) * Math.cos(lat2)
+  return 2 * EARTH_KM * Math.asin(Math.sqrt(h))
+}
+
+function getLineCache(line: Feature<LineString>): LineCache {
+  let c = lineCache.get(line)
+  if (c) return c
+  const coords = line.geometry.coordinates as [number, number][]
+  const n = coords.length
+  const cumKm = new Float64Array(n)
+  const segBearing = new Float64Array(Math.max(0, n - 1))
+  for (let i = 1; i < n; i++) {
+    cumKm[i] = cumKm[i - 1] + haversineKm(coords[i - 1], coords[i])
+    const dx = coords[i][0] - coords[i - 1][0]
+    const dy = coords[i][1] - coords[i - 1][1]
+    segBearing[i - 1] = (Math.atan2(dx, dy) * 180) / Math.PI
+  }
+  c = { coords, cumKm, segBearing, totalKm: n > 0 ? cumKm[n - 1] : 0 }
+  lineCache.set(line, c)
+  return c
+}
 
 function getLineLength(line: Feature<LineString>): number {
-  let len = lineLengthCache.get(line)
-  if (len === undefined) {
-    len = length(line, { units: 'kilometers' })
-    lineLengthCache.set(line, len)
-  }
-  return len
+  return getLineCache(line).totalKm
 }
 
 export function interpolateOnLine(
   line: Feature<LineString>,
   progress: number
 ): { coordinates: [number, number]; bearing: number } {
-  const totalLen = getLineLength(line)
-  const dist = Math.max(0, Math.min(totalLen, progress * totalLen))
-  const point = along(line, dist, { units: 'kilometers' })
-  const coords = point.geometry.coordinates as [number, number]
+  const c = getLineCache(line)
+  const coords = c.coords
+  const n = coords.length
+  if (n < 2) return { coordinates: coords[0] ?? [0, 0], bearing: 0 }
 
-  const epsilon = 0.001
-  const distAhead = Math.min(totalLen, dist + epsilon)
-  const pointAhead = along(line, distAhead, { units: 'kilometers' })
-  const dx = pointAhead.geometry.coordinates[0] - coords[0]
-  const dy = pointAhead.geometry.coordinates[1] - coords[1]
-  const bearing = (Math.atan2(dx, dy) * 180) / Math.PI
+  const totalKm = c.totalKm
+  const targetKm = Math.max(0, Math.min(totalKm, progress * totalKm))
 
-  return { coordinates: coords, bearing }
+  // Binary search: find largest i such that cumKm[i] <= targetKm (0..n-2)
+  const cum = c.cumKm
+  let lo = 0
+  let hi = n - 1
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >>> 1
+    if (cum[mid] <= targetKm) lo = mid
+    else hi = mid - 1
+  }
+  const i = Math.min(lo, n - 2)
+
+  const segKm = cum[i + 1] - cum[i]
+  const t = segKm > 0 ? (targetKm - cum[i]) / segKm : 0
+  const [x0, y0] = coords[i]
+  const [x1, y1] = coords[i + 1]
+  return {
+    coordinates: [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t],
+    bearing: c.segBearing[i],
+  }
 }
 
 function computeLRTVehicles(
@@ -391,7 +460,7 @@ export function computeBusDirSec(
   return { dirSec: cycleSec - schedule.tripDurationSec, returning: true }
 }
 
-const QUEUE_OFFSET_KM = 0.015 // ~15m gap per queued bus at a shared stop
+const QUEUE_OFFSET_KM = 0.028 // ~28m per queue slot (22m bus + ~6m gap)
 
 function computeBusVehicles(
   busRoutes: BusRoute[],
@@ -481,25 +550,32 @@ function computeBusVehicles(
     for (let i = 0; i < group.length; i++) queueIdx.set(group[i].id, i)
   }
 
-  const QUEUE_PERP_M = 4 // small right-of-travel nudge so clamped endpoint queues still separate
+  const QUEUE_PERP_M = 7 // right-of-travel nudge when longitudinal shift is clamped at an endpoint
 
   const vehicles: VehiclePosition[] = []
   for (const r of raws) {
     let finalProgress = r.progress
+    let clampedSlot = 0
     const qi = queueIdx.get(r.id) ?? 0
     if (qi > 0) {
       const delta = (QUEUE_OFFSET_KM * qi) / r.schedule.totalLenKm
-      finalProgress = r.returning
-        ? Math.min(1, r.progress + delta)
-        : Math.max(0, r.progress - delta)
+      if (r.returning) {
+        const shifted = r.progress + delta
+        if (shifted > 1) { finalProgress = 1; clampedSlot = qi }
+        else finalProgress = shifted
+      } else {
+        const shifted = r.progress - delta
+        if (shifted < 0) { finalProgress = 0; clampedSlot = qi }
+        else finalProgress = shifted
+      }
     }
 
     const pos = interpolateOnLine(r.route.geometry, finalProgress)
     let [lng, lat] = pos.coordinates
-    if (qi > 0) {
+    if (clampedSlot > 0) {
       const bearingRad = (pos.bearing * Math.PI) / 180
-      const eastM = Math.cos(bearingRad) * QUEUE_PERP_M * qi
-      const northM = -Math.sin(bearingRad) * QUEUE_PERP_M * qi
+      const eastM = Math.cos(bearingRad) * QUEUE_PERP_M * clampedSlot
+      const northM = -Math.sin(bearingRad) * QUEUE_PERP_M * clampedSlot
       const latRad = lat * Math.PI / 180
       lng += eastM / (111320 * Math.cos(latRad))
       lat += northM / 110574
