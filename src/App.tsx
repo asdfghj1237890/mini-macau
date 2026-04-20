@@ -1,13 +1,17 @@
 import { useState, useCallback, useMemo, useRef, useEffect, lazy, Suspense } from 'react'
-import { MapView } from './components/MapView'
 import { ControlPanel } from './components/ControlPanel'
 import { LineLegend } from './components/LineLegend'
 import { TimeDisplay } from './components/TimeDisplay'
+import { MapSplash } from './components/MapSplash'
 import { useSimulationClock } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
 import type { VehiclePosition, Station, BusRoute } from './types'
 
+// MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
+// first paint. The <MapSplash/> fallback keeps the HUD interactive while
+// MapLibre parses.
+const MapView = lazy(() => import('./components/MapView').then(m => ({ default: m.MapView })))
 const VehicleInfoPanel = lazy(() => import('./components/VehicleInfoPanel').then(m => ({ default: m.VehicleInfoPanel })))
 const StationInfoPanel = lazy(() => import('./components/StationInfoPanel').then(m => ({ default: m.StationInfoPanel })))
 const FlightInfoPanel = lazy(() => import('./components/FlightInfoPanel').then(m => ({ default: m.FlightInfoPanel })))
@@ -249,19 +253,21 @@ export default function App() {
 
   return (
     <div className="relative w-full h-full">
-      <MapView
-        clock={clock}
-        transitData={filteredTransitData}
-        allTransitData={transitData}
-        onVehicleClick={onVehicleClick}
-        onTrackedVehicleUpdate={onTrackedVehicleUpdate}
-        onStationClick={onStationClick}
-        onClearSelection={clearSelection}
-        trackedVehicleId={trackedVehicleId}
-        onVehicleCount={onVehicleCount}
-        showTimeBar={showTimeBar}
-        onToggleTimeBar={toggleTimeBar}
-      />
+      <Suspense fallback={<MapSplash />}>
+        <MapView
+          clock={clock}
+          transitData={filteredTransitData}
+          allTransitData={transitData}
+          onVehicleClick={onVehicleClick}
+          onTrackedVehicleUpdate={onTrackedVehicleUpdate}
+          onStationClick={onStationClick}
+          onClearSelection={clearSelection}
+          trackedVehicleId={trackedVehicleId}
+          onVehicleCount={onVehicleCount}
+          showTimeBar={showTimeBar}
+          onToggleTimeBar={toggleTimeBar}
+        />
+      </Suspense>
       {showTimeBar && <TimeDisplay clock={clock} vehicleCount={vehicleCount} />}
       <LineLegend
         transitData={filteredTransitData}
