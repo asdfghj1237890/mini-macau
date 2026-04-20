@@ -296,15 +296,22 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
   }, [rtEnabled, rtDataReady, transitData.busRoutes])
 
+  // Gate RT pollers by clock-paused AND route service hours. A poller for
+  // a route whose feed is guaranteed empty (e.g. a night bus at noon, or
+  // any daytime route past its close) is pure DSAT load with no useful
+  // output, so we pause it until the sim time re-enters the window.
+  const simMinuteKey = `${clock.currentTime.getDay()}-${clock.currentTime.getHours()}-${clock.currentTime.getMinutes()}`
   useEffect(() => {
     if (!RT_BUILD) return
-    if (clock.paused) {
-      for (const s of rtStatesRef.current.values()) s.poller.pause()
-    } else {
-      for (const s of rtStatesRef.current.values()) s.poller.resume()
-      rtLastTickAtRef.current = 0
+    const anyResumed = !clock.paused
+    for (const s of rtStatesRef.current.values()) {
+      const shouldRun = anyResumed && isBusInService(s.route, clock.currentTime)
+      if (shouldRun) s.poller.resume()
+      else s.poller.pause()
     }
-  }, [clock.paused])
+    if (anyResumed) rtLastTickAtRef.current = 0
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clock.paused, simMinuteKey])
 
   useEffect(() => {
     if (!containerRef.current) return
