@@ -116,21 +116,44 @@ export function useTransitData(): TransitData {
   })
 
   useEffect(() => {
+    // All 7 fetches kick off in parallel to saturate the network, but each
+    // commits to state *as it arrives* (instead of waiting for Promise.all).
+    // This spreads the big JSON.parse cost — trips.json and bus-routes.json
+    // are ~2.8 MB each — across multiple React commits so the browser can
+    // paint/interact between them rather than freeze on one fat setState.
+    let cancelled = false
+
+    function commit<K extends keyof TransitData>(key: K, value: TransitData[K]) {
+      if (cancelled) return
+      setData(prev => ({ ...prev, [key]: value }))
+    }
+
+    // Core data gates the `loading` flag — MapView's sim loop waits on it.
+    // Flights + ferries are non-critical overlays, so they load independently
+    // and do not block the first render of vehicles on the map.
     Promise.all([
-      loadJson<LRTLine[]>('/data/lrt-lines.json'),
-      loadJson<Station[]>('/data/stations.json'),
-      loadJson<Trip[]>('/data/trips.json'),
-      loadJson<BusRoute[]>('/data/bus-routes.json').catch(() => []),
-      loadJson<BusStop[]>('/data/bus-stops.json').catch(() => []),
-      loadJson<Flight[]>('/data/flights.json').catch(() => []),
-      loadJson<FerryScheduleFile>('/data/ferry-schedules.json').catch(() => null),
-    ]).then(([lrtLines, stations, trips, busRoutes, busStops, flights, ferrySchedules]) => {
-      const ferries = flattenFerrySchedules(ferrySchedules)
-      setData({ lrtLines, stations, trips, busRoutes, busStops, flights, ferries, loading: false })
+      loadJson<LRTLine[]>('/data/lrt-lines.json').then(v => commit('lrtLines', v)),
+      loadJson<Station[]>('/data/stations.json').then(v => commit('stations', v)),
+      loadJson<Trip[]>('/data/trips.json').then(v => commit('trips', v)),
+      loadJson<BusRoute[]>('/data/bus-routes.json').then(v => commit('busRoutes', v)).catch(() => commit('busRoutes', [])),
+      loadJson<BusStop[]>('/data/bus-stops.json').then(v => commit('busStops', v)).catch(() => commit('busStops', [])),
+    ]).then(() => {
+      if (cancelled) return
+      setData(prev => (prev.loading ? { ...prev, loading: false } : prev))
     }).catch(err => {
-      console.error('Failed to load transit data:', err)
-      setData(prev => ({ ...prev, loading: false }))
+      console.error('Failed to load core transit data:', err)
+      if (!cancelled) setData(prev => ({ ...prev, loading: false }))
     })
+
+    loadJson<Flight[]>('/data/flights.json')
+      .then(v => commit('flights', v))
+      .catch(() => {})
+
+    loadJson<FerryScheduleFile>('/data/ferry-schedules.json')
+      .then(file => commit('ferries', flattenFerrySchedules(file)))
+      .catch(() => {})
+
+    return () => { cancelled = true }
   }, [])
 
   return data
