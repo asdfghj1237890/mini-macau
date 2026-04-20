@@ -360,7 +360,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
               <span className="w-1.5 h-1.5 rounded-full bg-amber-300 mm-led-pulse" />
               {t.towards.toUpperCase()} · BOUND FOR
             </div>
-            <div className={`mm-han font-semibold text-amber-100 truncate ${lang === 'zh' ? 'text-lg' : 'text-[15px]'}`}>
+            <div className={`mm-han font-bold text-amber-100 truncate ${lang === 'zh' ? 'text-lg' : 'text-[15px]'}`}>
               {destName}
             </div>
           </div>
@@ -439,9 +439,9 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
                     {/* Station */}
                     <div className="flex flex-col min-w-0">
                       <span className={`mm-han truncate ${lang === 'zh' ? 'text-[14px]' : 'text-[12px]'} ${
-                        r.status === 'dwelling' ? 'text-amber-200 font-semibold'
+                        r.status === 'dwelling' ? 'text-amber-200 font-bold'
                           : r.status === 'arriving' ? 'text-white font-medium'
-                          : r.status === 'future' ? (r.isLast ? 'text-white font-semibold' : 'text-white/80')
+                          : r.status === 'future' ? (r.isLast ? 'text-white font-bold' : 'text-white/80')
                           : 'text-white/50'
                       }`}>{r.primary}</span>
                       {r.secondary && (

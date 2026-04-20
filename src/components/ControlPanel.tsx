@@ -309,7 +309,7 @@ export function ControlPanel({ clock }: Props) {
                 className="h-11 px-3 flex items-center gap-1 text-amber-200
                            active:bg-white/10 rounded-sm"
               >
-                <span className="mm-mono mm-tabular text-[13px] font-semibold">{speed}×</span>
+                <span className="mm-mono mm-tabular text-[13px] font-bold">{speed}×</span>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
                   <polyline points="6 15 12 9 18 15" />
@@ -364,7 +364,7 @@ export function ControlPanel({ clock }: Props) {
                      strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
-                <span className="mm-mono mm-tabular text-[12px] font-semibold">{hoverLabel}</span>
+                <span className="mm-mono mm-tabular text-[12px] font-bold">{hoverLabel}</span>
               </div>
             )}
           </div>
