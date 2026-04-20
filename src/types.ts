@@ -14,6 +14,9 @@ export interface LRTLine {
   id: string
   name: string
   nameCn: string
+  // Portuguese name (optional — upstream DSAT/MLM data isn't always trilingual
+  // for every line; falls back to `name` via localName()).
+  namePt?: string
   color: string
   stations: string[]
   geometry: Feature<LineString>
@@ -23,6 +26,7 @@ export interface BusRoute {
   id: string
   name: string
   nameCn: string
+  namePt?: string
   color: string
   stopsForward: string[]
   stopsBackward: string[]
@@ -41,6 +45,7 @@ export interface BusStop {
   id: string
   name: string
   nameCn: string
+  namePt?: string
   coordinates: [number, number]
   routeIds: string[]
 }
@@ -65,6 +70,7 @@ export interface FlightAirport {
   iata: string
   name: string
   nameCn?: string
+  namePt?: string
   bearing: number
 }
 
@@ -82,13 +88,23 @@ export interface Flight {
 export interface Ferry {
   id: string
   routeId: string // e.g. "hkgmacroute"
-  routeNameZh: string
-  routeNameEn: string
+  // Route display names. `routeName` = English (from upstream `nameEn`),
+  // `routeNameCn` = 繁中 (from upstream `nameZh`). Portuguese is optional
+  // — upstream TurboJET / Cotai schedules don't publish pt names today, so
+  // we fall back to English via localName() when pt is undefined.
+  routeName: string
+  routeNameCn: string
+  routeNamePt?: string
   operator: 'turbojet' | 'cotai'
   terminal: 'outer_harbour' | 'taipa'
   type: 'departure' | 'arrival' // relative to the Macau terminal
   scheduledTime: number // minutes since midnight; berth time at Macau
-  otherPortZh: string // e.g. "香港(上環)"
+  // The non-Macau endpoint of this leg. Only the Chinese form is reliably
+  // in the source JSON (direction.from/to are Chinese); English/Portuguese
+  // are optional and fall back via localName().
+  otherPortCn: string // e.g. "香港(上環)"
+  otherPort?: string
+  otherPortPt?: string
   journeyMinutes: number
   markers?: string // e.g. "*", "#", "@"
   berthIndex: number // index within FERRY_BERTHS_BY_TERMINAL[terminal]

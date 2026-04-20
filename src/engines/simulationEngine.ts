@@ -1011,12 +1011,16 @@ function computeFlightVehicles(
 
 let cachedProgressMap: Map<string, { progress: number }> | null = null
 let cachedBusStopMap: Map<string, BusStop> | null = null
+let cachedFilteredTrips: Trip[] | null = null
+let cachedFilteredScheduleType: ScheduleType | null = null
 let cachedTransitRef: TransitData | null = null
 
 function resetTransitCachesIfStale(transitData: TransitData) {
   if (cachedTransitRef !== transitData) {
     cachedProgressMap = null
     cachedBusStopMap = null
+    cachedFilteredTrips = null
+    cachedFilteredScheduleType = null
     cachedTransitRef = transitData
   }
 }
@@ -1028,6 +1032,23 @@ function getBusStopMap(transitData: TransitData): Map<string, BusStop> {
   for (const s of transitData.busStops) map.set(s.id, s)
   cachedBusStopMap = map
   return map
+}
+
+function getFilteredTrips(transitData: TransitData, scheduleType: ScheduleType): Trip[] {
+  resetTransitCachesIfStale(transitData)
+  if (cachedFilteredTrips && cachedFilteredScheduleType === scheduleType) {
+    return cachedFilteredTrips
+  }
+  // Filter once per (transitData ref, scheduleType). computeVehiclePositions
+  // runs every sim tick (~20 Hz), and this used to re-walk all ~10k trips on
+  // every call for nothing — scheduleType only flips at midnight (or when the
+  // user drags the DateTimePicker across day boundaries).
+  const filtered = transitData.trips.filter(
+    t => !t.scheduleType || t.scheduleType === scheduleType
+  )
+  cachedFilteredTrips = filtered
+  cachedFilteredScheduleType = scheduleType
+  return filtered
 }
 
 function getStationProgressMap(transitData: TransitData): Map<string, { progress: number }> {
@@ -1120,15 +1141,17 @@ function computeFerryVehicles(
     const offsets = [0, -1440, 1440]
     let phase: 'berth' | 'journey' | null = null
     let journeyFrac = 0
+    let matchedT = 0  // the specific scheduledTime + dayOffset that matched
     for (const off of offsets) {
       const t = f.scheduledTime + off
       if (f.type === 'departure') {
         if (nowMinutes >= t - FERRY_DWELL_BEFORE_DEP_MIN && nowMinutes < t) {
-          phase = 'berth'; break
+          phase = 'berth'; matchedT = t; break
         }
         if (effectivePath && nowMinutes >= t && nowMinutes < t + pathMin) {
           phase = 'journey'
           journeyFrac = (nowMinutes - t) / pathMin
+          matchedT = t
           break
         }
       } else {
@@ -1136,10 +1159,11 @@ function computeFerryVehicles(
           phase = 'journey'
           // Arrivals travel the reverse path; convert fraction accordingly.
           journeyFrac = 1 - (nowMinutes - (t - pathMin)) / pathMin
+          matchedT = t
           break
         }
         if (nowMinutes >= t && nowMinutes < t + FERRY_DWELL_AFTER_ARR_MIN) {
-          phase = 'berth'; break
+          phase = 'berth'; matchedT = t; break
         }
       }
     }
@@ -1150,10 +1174,16 @@ function computeFerryVehicles(
     let progress = 0
     if (phase === 'berth') {
       coord = [berth.coord[0], berth.coord[1]]
-      // Departures turn to face outbound (first waypoint); arrivals keep the
-      // original docked orientation (NW toward shore) from ferryBerths.
-      bearing = route && f.type === 'departure'
-        ? ferryBowToward(berth.coord, route.waypoints[0])
+      // While docked, ferries keep the berth's fixed bow direction (set by
+      // the mooring geometry in ferryBerths.ts). Departures pivot to face
+      // their outbound heading only in the final minute before cast-off,
+      // so the "about to leave" moment is telegraphed visually without
+      // the hull yawing for the entire 90-minute dwell. Arrivals never
+      // pivot — they hold the docked bearing until they vanish.
+      const castOffSoon =
+        f.type === 'departure' && route !== undefined && matchedT - nowMinutes <= 1
+      bearing = castOffSoon
+        ? ferryBowToward(berth.coord, route!.waypoints[0])
         : berth.bearing
     } else {
       // journey along path (berth → waypoints for departures, reversed for arrivals)
@@ -1194,10 +1224,7 @@ export function computeVehiclePositions(
   const nowMinutes = timeToMinutes(time)
   const stationProgressMap = getStationProgressMap(transitData)
   const scheduleType = getScheduleType(time)
-
-  const filteredTrips = transitData.trips.filter(
-    t => !t.scheduleType || t.scheduleType === scheduleType
-  )
+  const filteredTrips = getFilteredTrips(transitData, scheduleType)
 
   const lrtVehicles = computeLRTVehicles(
     filteredTrips,

@@ -63,7 +63,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **Cyberpunk-styled menu** — Hamburger menu with Orbitron-font title and gradient branding
 - **Responsive mobile UI** — Hamburger menu for map controls, compact legend buttons (LRT/Bus), optimized touch layout with safe-area support
 - **Lazy loading** — Code-split panels (VehicleInfoPanel, StationInfoPanel, FlightInfoPanel) for fast initial load
-- **Automated flight data** — GitHub Actions workflow scrapes the official Macau Airport timetable daily and optionally cross-verifies against AviationStack API
+- **Automated flight data** — GitHub Actions workflow syncs MFM flight schedules from the [AviationStack](https://aviationstack.com/) API daily
 
 </details>
 
@@ -77,7 +77,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 | Styling | Tailwind CSS v4 |
 | Fonts | Orbitron, JetBrains Mono, Noto Sans HK (Google Fonts) |
 | Data pipeline | Python 3.13+, uv, OpenStreetMap Overpass API, OSRM |
-| Flight data | [Macau Airport](https://www.macau-airport.com/) timetable (web scraper) + AviationStack API (cross-verification) |
+| Flight data | [AviationStack API](https://aviationstack.com/) (daily sync) |
 | Ferry data | [TurboJET](https://www2.turbojet.com.hk/) + [CotaiJet](https://www.cotaiwaterjet.com/) timetables (monthly web scraper) |
 | Deployment | Cloudflare Pages (via GitHub Actions) |
 | Analytics | Google Analytics (gtag.js) |
@@ -136,27 +136,23 @@ Then copy the output to `public/data/`.
 </details>
 
 <details>
-<summary><strong>Flight data scraper</strong></summary>
+<summary><strong>Flight data sync</strong></summary>
 
-Flight schedules are scraped from the official [Macau International Airport](https://www.macau-airport.com/) timetable (both English and Chinese pages) and stored as a static JSON file:
+Flight schedules are fetched from the [AviationStack](https://aviationstack.com/) API and stored as a static JSON file:
 
 ```bash
 cd data
 
-# Scrape today's flights (no API key needed)
-uv run python scripts/fetch_flights.py
-
-# Scrape a specific date
-uv run python scripts/fetch_flights.py 2026-04-19
-
-# Optional: cross-verify against AviationStack API
+# Fetch today's MFM flights (requires API key)
 AVIATIONSTACK_API_KEY=your_key uv run python scripts/fetch_flights.py
+
+# Fetch a specific date
+AVIATIONSTACK_API_KEY=your_key uv run python scripts/fetch_flights.py 2026-04-19
 ```
 
-The scraper:
-- Fetches both EN and ZH timetable pages to build localized destination names
-- Filters by the target date's active schedule range and day-of-week
-- Deduplicates overlapping schedule periods
+The sync:
+- Pulls arrivals and departures for MFM (IATA: `MFM`) from the AviationStack flights endpoint
+- Filters by the target date's active schedule
 - Validates aircraft type codes (ICAO format like A320, B738)
 - Outputs `public/data/flights.json` with times in Macau local (UTC+8)
 
@@ -189,10 +185,11 @@ Automated via GitHub Actions (`.github/workflows/update-ferry-schedules.yml`), w
 ## Data Sources
 
 - **LRT tracks & stations** — [OpenStreetMap](https://www.openstreetmap.org/) (railway=light_rail relations)
+- **LRT timetables** — [MLM 澳門輕軌股份有限公司](https://www.mlm.com.mo/) official per-station timetable publications (Taipa / Seac Pai Van / Hengqin lines)
 - **Bus routes & stops** — OpenStreetMap + [motransportinfo.com](https://www.motransportinfo.com) curated stop data
 - **Road-snapped routes** — [OSRM](http://project-osrm.org/) with custom bridge approach geometry
-- **Timetables** — Based on published service frequencies
-- **Flight schedules** — [Macau International Airport](https://www.macau-airport.com/) official timetable (EN + ZH), with optional [AviationStack](https://aviationstack.com/) cross-verification
+- **Bus timetables** — Based on published DSAT service frequencies
+- **Flight schedules** — [AviationStack API](https://aviationstack.com/) (MFM arrivals + departures)
 - **Ferry schedules** — [TurboJET](https://www2.turbojet.com.hk/zh-tw/%E6%B5%B7-%E8%88%B9/) + [CotaiJet](https://m.cotaiwaterjet.com/hk/ferry-schedule/hongkong-macau-taipa.html) official monthly timetables
 
 ## Project Structure
@@ -250,7 +247,7 @@ mini-macau/
 │   │   ├── extract_bus_data.py
 │   │   ├── fetch_bus_data.py
 │   │   ├── fetch_bridge_geometry.py
-│   │   ├── fetch_flights.py      # MFM timetable scraper + AviationStack cross-verifier
+│   │   ├── fetch_flights.py      # AviationStack flight data sync (MFM)
 │   │   ├── fetch_ferry_schedules.py # TurboJET + CotaiJet monthly scraper
 │   │   ├── osrm_route.py
 │   │   ├── patch_bus_bridges.py
@@ -330,10 +327,10 @@ The zoom indicator in the HUD used to be a `useState`, so every `map.on('zoom', 
 <summary><strong>Data sources</strong></summary>
 
 - [OpenStreetMap](https://www.openstreetmap.org/) — LRT track geometry, bus routes, and stop locations
+- [MLM 澳門輕軌股份有限公司](https://www.mlm.com.mo/) — Official per-station LRT timetables (used to hand-transcribe `data/scripts/generate_timetable.py` for the Taipa / Seac Pai Van / Hengqin lines)
 - [MoTransport Info](https://motransportinfo.com/zh/search) — Curated Macau bus stop reference data
 - [DSAT 巴士資訊](https://bis.dsat.gov.mo/macauweb/index.html?language=zh-tw&fromDzzp=false) — Official Macau bus realtime feed (live bus positions in RT mode)
-- [Macau International Airport](https://www.macau-airport.com/) — Flight timetable (EN + ZH)
-- [AviationStack](https://aviationstack.com/) — Flight data cross-verification
+- [AviationStack](https://aviationstack.com/) — MFM flight schedule data (arrivals + departures)
 - [TurboJET](https://www2.turbojet.com.hk/) — Ferry timetable (Hong Kong, HKIA, Shenzhen Airport, Shekou routes)
 - [CotaiJet](https://www.cotaiwaterjet.com/) — Ferry timetable (Hong Kong ↔ Macau Taipa route)
 

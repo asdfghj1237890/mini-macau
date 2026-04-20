@@ -113,6 +113,8 @@ function DensityBand({
   lastFrac,
   density,
   small = false,
+  amPeakLabel,
+  pmPeakLabel,
 }: {
   bins: number
   heightPx: number
@@ -123,6 +125,8 @@ function DensityBand({
   lastFrac: number
   density: ReadonlyArray<number>
   small?: boolean
+  amPeakLabel: string
+  pmPeakLabel: string
 }) {
   return (
     <div
@@ -154,13 +158,13 @@ function DensityBand({
             className="absolute top-[2px] mm-mono text-[7px] text-amber-200/90 tracking-widest pointer-events-none"
             style={{ left: `${(7.5 / 24) * 100}%`, transform: 'translateX(-50%)' }}
           >
-            AM PEAK
+            {amPeakLabel}
           </div>
           <div
             className="absolute top-[2px] mm-mono text-[7px] text-amber-200/90 tracking-widest pointer-events-none"
             style={{ left: `${(18 / 24) * 100}%`, transform: 'translateX(-50%)' }}
           >
-            PM PEAK
+            {pmPeakLabel}
           </div>
         </>
       )}
@@ -286,7 +290,7 @@ export function ControlPanel({ clock }: Props) {
               setHoverFrac(null)
             }}
           >
-            <DensityBand bins={48} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} />
+            <DensityBand bins={48} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} amPeakLabel={t.amPeak} pmPeakLabel={t.pmPeak} />
           </div>
           {/* Bottom row */}
           <div className="flex items-stretch gap-0 px-1 pb-1 pt-0.5 border-t border-white/8">
@@ -331,7 +335,7 @@ export function ControlPanel({ clock }: Props) {
                         role="menuitemradio"
                         aria-checked={s === speed}
                         disabled={locked}
-                        title={locked ? 'RT · 鎖定 1×' : undefined}
+                        title={locked ? t.rtLocked : undefined}
                         onClick={() => { if (locked) return; clock.setSpeed(s); setSpeedMenuOpen(false) }}
                         className={`h-10 px-3 text-left mm-mono mm-tabular text-[13px]
                                     ${locked ? 'text-white/20 cursor-not-allowed' : 'active:bg-white/10'}
@@ -355,7 +359,7 @@ export function ControlPanel({ clock }: Props) {
                          active:bg-white/10 active:text-amber-200 rounded-sm"
             >
               <ClockIcon size={12} />
-              <span className="mm-mono text-[10px] tracking-wider">NOW</span>
+              <span className="mm-mono text-[10px] tracking-wider">{t.nowShort}</span>
             </button>
             <div className="flex-1" />
             {hoverLabel && (
@@ -404,7 +408,7 @@ export function ControlPanel({ clock }: Props) {
             onMouseLeave={() => setHoverFrac(null)}
             onClick={handleClick}
           >
-            <DensityBand bins={48} heightPx={14} showPeaks={false} nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} small />
+            <DensityBand bins={48} heightPx={14} showPeaks={false} nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} small amPeakLabel={t.amPeak} pmPeakLabel={t.pmPeak} />
           </div>
           <div className={`mm-mono text-[10px] mm-tabular px-2 flex items-center gap-1 shrink-0 ${isLive ? 'text-amber-200/90' : 'text-white/45'}`}>
             <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
@@ -413,8 +417,8 @@ export function ControlPanel({ clock }: Props) {
           <button
             type="button"
             onClick={() => setExpanded(true)}
-            title="Expand"
-            aria-label="Expand"
+            title={t.expand}
+            aria-label={t.expand}
             className="w-7 h-7 flex items-center justify-center text-white/40
                        hover:text-amber-200 hover:bg-white/5 rounded-sm shrink-0"
           >
@@ -454,7 +458,7 @@ export function ControlPanel({ clock }: Props) {
                 type="button"
                 onClick={() => { if (!locked) clock.setSpeed(s) }}
                 disabled={locked}
-                title={locked ? 'RT · 鎖定 1×' : undefined}
+                title={locked ? t.rtLocked : undefined}
                 aria-pressed={active}
                 className={`mm-mono mm-tabular text-[10px] px-1.5 h-6 rounded-sm transition
                            ${locked
@@ -476,18 +480,18 @@ export function ControlPanel({ clock }: Props) {
             className="h-6 px-2 flex items-center gap-1 text-white/55 hover:text-white rounded-sm"
           >
             <ClockIcon size={10} />
-            <span className="mm-mono text-[9px] tracking-wider">NOW</span>
+            <span className="mm-mono text-[9px] tracking-wider">{t.nowShort}</span>
           </button>
           <div className="flex-1" />
           <div className={`mm-mono mm-tabular text-[9px] pr-2 flex items-center gap-1.5 ${isLive ? 'text-amber-200/80' : 'text-white/40'}`}>
             <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
-            <span>{hoverLabel ?? (isLive ? `${nowLabel} · NOW` : `${nowLabel} · SIM`)}</span>
+            <span>{hoverLabel ?? (isLive ? `${nowLabel} · ${t.nowShort}` : `${nowLabel} · ${t.simShort}`)}</span>
           </div>
           <button
             type="button"
             onClick={() => setExpanded(false)}
-            title="Collapse"
-            aria-label="Collapse"
+            title={t.collapse}
+            aria-label={t.collapse}
             className="w-7 h-7 flex items-center justify-center text-white/40
                        hover:text-amber-200 hover:bg-white/5 rounded-sm"
           >
@@ -522,19 +526,19 @@ export function ControlPanel({ clock }: Props) {
                 )
               })}
             </div>
-            <DensityBand bins={96} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} />
+            <DensityBand bins={96} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} amPeakLabel={t.amPeak} pmPeakLabel={t.pmPeak} />
             <div className="relative h-4 mt-0.5">
               <div
                 className="absolute mm-mono text-[9px] text-emerald-300/70 tracking-widest whitespace-nowrap"
                 style={{ left: `${sched.firstFrac * 100}%`, transform: 'translateX(-50%)' }}
               >
-                首班 {sched.first}
+                {t.firstBusLabel} {sched.first}
               </div>
               <div
                 className="absolute mm-mono text-[9px] text-emerald-300/70 tracking-widest whitespace-nowrap"
                 style={{ left: `${sched.lastFrac * 100}%`, transform: 'translateX(-100%)' }}
               >
-                末班 {sched.last}
+                {t.lastBusLabel} {sched.last}
               </div>
             </div>
           </div>

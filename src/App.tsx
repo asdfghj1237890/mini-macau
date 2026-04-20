@@ -6,6 +6,7 @@ import { MapSplash } from './components/MapSplash'
 import { useSimulationClock } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
+import { getScheduleType } from './engines/simulationEngine'
 import type { VehiclePosition, Station, BusRoute } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
@@ -68,7 +69,19 @@ const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 export default function App() {
   const clock = useSimulationClock()
   const transitData = useTransitData()
+  const { ensureScheduleTypeLoaded } = transitData
   const serviceStatus = useServiceStatus()
+
+  // On-demand safety net for Plan C cross-day handling: if the user drags
+  // DateTimePicker into a different schedule type and the background
+  // prefetch hasn't finished that type yet, this kicks off the fetch.
+  // ensureScheduleTypeLoaded is idempotent, so repeat calls are no-ops once
+  // the type is loaded or in-flight. We derive the type from the simulated
+  // clock each render but only fire the effect when it actually changes.
+  const currentScheduleType = getScheduleType(clock.currentTime)
+  useEffect(() => {
+    ensureScheduleTypeLoaded(currentScheduleType)
+  }, [currentScheduleType, ensureScheduleTypeLoaded])
   const [visibleRoutes, setVisibleRoutes] = useState<Set<string>>(new Set())
   const [isAutoMode, setIsAutoMode] = useState(() => loadSavedRoutes() === null)
   const [selectedVehicle, setSelectedVehicle] = useState<VehiclePosition | null>(null)

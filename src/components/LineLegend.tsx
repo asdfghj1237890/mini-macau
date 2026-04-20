@@ -168,7 +168,7 @@ export function LineLegend({
             <div className="flex items-center gap-2">
               <span className={`flex items-center gap-1 mm-mono text-[9px] tracking-[0.2em] ${isLive ? 'text-emerald-300/80' : 'text-white/30'}`}>
                 <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
-                {isLive ? 'LIVE' : 'SIM'}
+                {isLive ? t.live : t.simShort}
               </span>
               <button
                 type="button"
