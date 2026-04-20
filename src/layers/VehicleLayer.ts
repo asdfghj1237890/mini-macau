@@ -5,6 +5,7 @@ import type { Lang } from '../i18n'
 const SOURCE_ID = 'vehicles-source'
 const CIRCLE_LAYER_ID = 'vehicles-circle'
 const LABEL_LAYER_ID = 'vehicles-label'
+const FLIGHT_LABEL_LAYER_ID = 'vehicles-flight-label'
 const PULSE_LAYER_ID = 'vehicles-pulse'
 
 const LINE_LABELS: Record<string, { en: string; zh: string }> = {
@@ -87,19 +88,11 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
     id: LABEL_LAYER_ID,
     type: 'symbol',
     source: SOURCE_ID,
-    filter: ['in', ['get', 'type'], ['literal', ['lrt', 'flight']]],
+    filter: ['==', ['get', 'type'], 'lrt'],
     layout: {
       'text-field': ['get', lang === 'zh' ? 'labelZh' : 'labelEn'],
-      'text-size': [
-        'case',
-        ['==', ['get', 'type'], 'flight'], 9,
-        8,
-      ],
-      'text-letter-spacing': [
-        'case',
-        ['==', ['get', 'type'], 'flight'], 0.25,
-        0,
-      ],
+      'text-size': 8,
+      'text-letter-spacing': 0,
       'text-offset': [0, -1.5],
       'text-anchor': 'bottom',
       'text-allow-overlap': true,
@@ -109,7 +102,28 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
       'text-halo-color': '#000000',
       'text-halo-width': 1,
     },
-    minzoom: 12,
+    minzoom: 14,
+  })
+
+  map.addLayer({
+    id: FLIGHT_LABEL_LAYER_ID,
+    type: 'symbol',
+    source: SOURCE_ID,
+    filter: ['==', ['get', 'type'], 'flight'],
+    layout: {
+      'text-field': ['get', lang === 'zh' ? 'labelZh' : 'labelEn'],
+      'text-size': 9,
+      'text-letter-spacing': 0.25,
+      'text-offset': [0, -1.5],
+      'text-anchor': 'bottom',
+      'text-allow-overlap': true,
+    },
+    paint: {
+      'text-color': '#ffffff',
+      'text-halo-color': '#000000',
+      'text-halo-width': 1,
+    },
+    minzoom: 15.9,
   })
 }
 
@@ -122,12 +136,17 @@ export function updateVehicleData(map: MapLibreMap, vehicles: VehiclePosition[])
 }
 
 export function updateVehicleLabelLang(map: MapLibreMap, lang: Lang) {
+  const field = ['get', lang === 'zh' ? 'labelZh' : 'labelEn']
   if (map.getLayer(LABEL_LAYER_ID)) {
-    map.setLayoutProperty(LABEL_LAYER_ID, 'text-field', ['get', lang === 'zh' ? 'labelZh' : 'labelEn'])
+    map.setLayoutProperty(LABEL_LAYER_ID, 'text-field', field)
+  }
+  if (map.getLayer(FLIGHT_LABEL_LAYER_ID)) {
+    map.setLayoutProperty(FLIGHT_LABEL_LAYER_ID, 'text-field', field)
   }
 }
 
 export function removeVehicleLayers(map: MapLibreMap) {
+  if (map.getLayer(FLIGHT_LABEL_LAYER_ID)) map.removeLayer(FLIGHT_LABEL_LAYER_ID)
   if (map.getLayer(LABEL_LAYER_ID)) map.removeLayer(LABEL_LAYER_ID)
   if (map.getLayer(CIRCLE_LAYER_ID)) map.removeLayer(CIRCLE_LAYER_ID)
   if (map.getLayer(PULSE_LAYER_ID)) map.removeLayer(PULSE_LAYER_ID)
