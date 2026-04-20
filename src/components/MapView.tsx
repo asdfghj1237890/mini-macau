@@ -211,6 +211,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const rtCachedVehiclesRef = useRef<VehiclePosition[]>([])
   const rtCachedLiveIdsRef = useRef<Set<string>>(new Set())
   const rtVisibleIdsRef = useRef<Set<string>>(new Set())
+  // Pool of reusable VehiclePosition objects keyed by vehicle id, so the
+  // RT tick can mutate in place instead of allocating ~300 fresh objects
+  // (plus their .rt sub-objects) five times a second. Entries for plates
+  // that are no longer tracked get evicted at the end of each tick.
+  const rtVehiclePoolRef = useRef<Map<string, VehiclePosition>>(new Map())
   const rtVisibleIdsSourceRef = useRef<BusRoute[] | null>(null)
   const rtLastTickAtRef = useRef(0)
   const { lang, setLang } = useI18n()
@@ -279,6 +284,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       rtStatesRef.current = new Map()
       rtCachedVehiclesRef.current = []
       rtCachedLiveIdsRef.current = new Set()
+      rtVehiclePoolRef.current = new Map()
       rtLastTickAtRef.current = 0
     }
   }, [rtEnabled, rtDataReady])
@@ -850,6 +856,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               const visibleRouteIds = rtVisibleIdsRef.current
               const liveRouteIds = new Set<string>()
               const rtVehicles: VehiclePosition[] = []
+              const pool = rtVehiclePoolRef.current
+              const seenIds = new Set<string>()
               const wallNow = Date.now()
               for (const s of rtStatesRef.current.values()) {
                 if (!visibleRouteIds.has(s.route.id)) continue
@@ -859,22 +867,50 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 for (const state of states) {
                   const p = s.tracker.estimateProgress(state, wallNow)
                   const pos = interpolateOnLine(s.geometry, p)
-                  rtVehicles.push({
-                    id: `${s.route.id}-rt-${s.dir}-${state.plate}`,
-                    lineId: s.route.id,
-                    type: 'bus',
-                    coordinates: pos.coordinates,
-                    bearing: pos.bearing,
-                    progress: p,
-                    color: s.route.color,
-                    rt: {
-                      plate: state.plate,
-                      speed: state.speed,
-                      stopIndex: state.lastStopIdx,
-                      dir: s.dir,
-                      observedAt: state.lastAt,
-                    },
-                  })
+                  const id = `${s.route.id}-rt-${s.dir}-${state.plate}`
+                  seenIds.add(id)
+                  // Pool lookup: mutate-in-place for existing buses, fall
+                  // back to a fresh object only on first sight. Downstream
+                  // consumers (vehiclesToGeoJson, info panel) snapshot the
+                  // fields they need each tick so in-place mutation is
+                  // safe.
+                  let v = pool.get(id)
+                  if (!v) {
+                    v = {
+                      id,
+                      lineId: s.route.id,
+                      type: 'bus',
+                      coordinates: pos.coordinates,
+                      bearing: pos.bearing,
+                      progress: p,
+                      color: s.route.color,
+                      rt: {
+                        plate: state.plate,
+                        speed: state.speed,
+                        stopIndex: state.lastStopIdx,
+                        dir: s.dir,
+                        observedAt: state.lastAt,
+                      },
+                    }
+                    pool.set(id, v)
+                  } else {
+                    v.coordinates = pos.coordinates
+                    v.bearing = pos.bearing
+                    v.progress = p
+                    const rt = v.rt!
+                    rt.speed = state.speed
+                    rt.stopIndex = state.lastStopIdx
+                    rt.observedAt = state.lastAt
+                  }
+                  rtVehicles.push(v)
+                }
+              }
+              // Evict pooled entries for plates that disappeared from the
+              // feed this tick — otherwise the pool would grow forever as
+              // buses come off service.
+              if (pool.size > seenIds.size) {
+                for (const id of pool.keys()) {
+                  if (!seenIds.has(id)) pool.delete(id)
                 }
               }
               rtCachedVehiclesRef.current = rtVehicles
