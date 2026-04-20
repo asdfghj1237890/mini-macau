@@ -541,7 +541,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       layersAddedRef.current = true
       serviceStatusRef.current = new Map()
-      lastServiceCheckRef.current = 0
+      lastServiceMinuteRef.current = ''
     }
 
     addCustomLayersRef.current = addCustomLayers
@@ -602,7 +602,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
     mapRef.current = map
     serviceStatusRef.current = new Map()
-    lastServiceCheckRef.current = 0
+    lastServiceMinuteRef.current = ''
     return () => {
       layersAddedRef.current = false
       bus3DRef.current = null
@@ -666,7 +666,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const userInteractingUntilRef = useRef(0)
   const wasUserBusyRef = useRef(false)
   const serviceStatusRef = useRef<Map<string, boolean>>(new Map())
-  const lastServiceCheckRef = useRef(0)
+  // Sim-minute key of the last service-status sweep. Service windows flip
+  // on minute boundaries, so there's no point re-running the ~90-route
+  // scan at 1 Hz real time when nothing has changed. Empty string forces
+  // a sweep after layer/data swaps.
+  const lastServiceMinuteRef = useRef('')
   const lrtWindowCacheRef = useRef<{ td: TransitData | null; schedule: ScheduleType | null; map: Map<string, [number, number] | null> }>(
     { td: null, schedule: null, map: new Map() }
   )
@@ -730,13 +734,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         const shouldHeavy = nowTick - lastHeavyTick >= heavyInterval
         if (shouldTick) {
           lastSimTick = nowTick
-        let vehicles = computeVehiclePositions(td, clock.timeRef.current)
-        if (RT_BUILD && rtEnabledRef.current) {
-          // In RT mode the map shows ONLY DSAT-observed buses. Drop every
-          // sim bus — whether on a route with no RT subscription, or on a
-          // route whose feed currently reports zero buses — so we never
-          // render a phantom vehicle that doesn't exist in DSAT.
-          vehicles = vehicles.filter(v => v.type !== 'bus')
+        const rtActive = RT_BUILD && rtEnabledRef.current
+        // In RT mode every sim bus is discarded (the map shows only
+        // DSAT-observed buses) so we skip the per-route bus rollup entirely
+        // — no point computing positions that will be filtered out.
+        const vehicles = computeVehiclePositions(td, clock.timeRef.current, rtActive ? { skipBuses: true } : undefined)
+        if (rtActive) {
           if (rtStatesRef.current.size > 0) {
             const rtNow = performance.now()
             if (rtVisibleIdsSourceRef.current !== td.busRoutes) {
@@ -746,7 +749,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               rtVisibleIdsRef.current = next
               rtLastTickAtRef.current = 0
             }
-            if (!pausedRef.current && rtNow - rtLastTickAtRef.current >= 100) {
+            // RT tick at 5 Hz. DSAT polls at 15 s and dead-reckoning runs
+            // between polls; 5 Hz is smooth (~3 m at 60 km/h between
+            // frames) and halves the per-tick cost vs the old 10 Hz.
+            if (!pausedRef.current && rtNow - rtLastTickAtRef.current >= 200) {
               rtLastTickAtRef.current = rtNow
               const visibleRouteIds = rtVisibleIdsRef.current
               const liveRouteIds = new Set<string>()
@@ -801,10 +807,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           onVehicleCountRef.current?.(vehiclesRef.current.length)
         }
 
-        const perfNow = performance.now()
-        if (perfNow - lastServiceCheckRef.current > 1000) {
-          lastServiceCheckRef.current = perfNow
-          const simTime = clock.timeRef.current
+        const simTime = clock.timeRef.current
+        const simMinuteKey = `${simTime.getDay()}-${simTime.getHours()}-${simTime.getMinutes()}`
+        if (simMinuteKey !== lastServiceMinuteRef.current) {
+          lastServiceMinuteRef.current = simMinuteKey
           const schedule = getScheduleType(simTime)
           const nowMinutes = simTime.getHours() * 60 + simTime.getMinutes()
 
