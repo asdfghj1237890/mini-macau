@@ -333,6 +333,8 @@ The zoom indicator in the HUD used to be a `useState`, so every `map.on('zoom', 
 - [AviationStack](https://aviationstack.com/) — Flight data cross-verification
 - [TurboJET](https://www2.turbojet.com.hk/) — Ferry timetable data (Hong Kong, HKIA, Shenzhen Airport, Shekou routes)
 - [CotaiJet](https://www.cotaiwaterjet.com/) — Ferry timetable data (Hong Kong ↔ Macau Taipa route)
+- [DSAT 巴士資訊](https://bis.dsat.gov.mo/macauweb/index.html?language=zh-tw&fromDzzp=false) — Official Macau bus realtime feed (live bus positions in RT mode)
+- [MoTransport Info](https://motransportinfo.com/zh/search) — Curated Macau bus stop reference data
 - [Google Fonts](https://fonts.google.com/specimen/Orbitron) — Orbitron, JetBrains Mono, Noto Sans HK
 
 </details>
