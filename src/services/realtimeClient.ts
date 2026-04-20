@@ -35,51 +35,24 @@ export interface BusObservation {
   observedAt: number
 }
 
-export type FetchResult =
-  | { ok: true; data: DsatRouteResponse; etag: string | null; lastModified: string | null }
-  | { ok: true; notModified: true }
-  | { ok: false; reason: 'network' | 'http' | 'bad-payload' }
-
-export interface FetchOptions {
-  etag?: string | null
-  lastModified?: string | null
+interface BatchItem {
+  key: string
+  status: number
+  data: DsatRouteResponse | null
 }
 
-export async function fetchDsatRouteResult(
-  routeName: string,
-  dir: 0 | 1 = 0,
-  opts?: FetchOptions,
-): Promise<FetchResult> {
-  const url = `/api/dsat/routestation/bus?routeName=${encodeURIComponent(routeName)}&dir=${dir}`
+async function fetchBatch(keys: string[]): Promise<BatchItem[] | null> {
+  if (keys.length === 0) return []
+  const url = '/api/dsat/batch?routes=' + encodeURIComponent(keys.join(','))
   try {
-    // Conditional GET: if DSAT (or our proxy) honours ETag / Last-Modified,
-    // a 304 response lets us skip the JSON parse + observation ingest
-    // entirely. When the upstream doesn't return caching headers this is
-    // just ignored, so it's always safe to send.
-    const headers: Record<string, string> = {}
-    if (opts?.etag) headers['If-None-Match'] = opts.etag
-    if (opts?.lastModified) headers['If-Modified-Since'] = opts.lastModified
-    const r = await fetch(url, { headers })
-    if (r.status === 304) return { ok: true, notModified: true }
-    if (!r.ok) return { ok: false, reason: 'http' }
-    const json = await r.json()
-    if (json?.header !== '000') return { ok: false, reason: 'bad-payload' }
-    return {
-      ok: true,
-      data: json as DsatRouteResponse,
-      etag: r.headers.get('etag'),
-      lastModified: r.headers.get('last-modified'),
-    }
+    const r = await fetch(url)
+    if (!r.ok) return null
+    const json = (await r.json()) as unknown
+    if (!Array.isArray(json)) return null
+    return json as BatchItem[]
   } catch {
-    return { ok: false, reason: 'network' }
+    return null
   }
-}
-
-export async function fetchDsatRoute(routeName: string, dir: 0 | 1 = 0): Promise<DsatRouteResponse | null> {
-  const res = await fetchDsatRouteResult(routeName, dir)
-  if (!res.ok) return null
-  if ('notModified' in res) return null
-  return res.data
 }
 
 export function extractObservations(resp: DsatRouteResponse, now = Date.now()): BusObservation[] {
@@ -103,46 +76,97 @@ export function extractObservations(resp: DsatRouteResponse, now = Date.now()): 
 
 type Subscriber = (obs: BusObservation[], raw: DsatRouteResponse) => void
 
-// After this many consecutive polls with zero buses reported, the poller
-// drops from the base cadence to the slow cadence. A night route at noon,
-// or a route that's genuinely idle, costs one request per slow-interval
-// instead of one per base-interval. Reset to base on the first observation.
+// Adaptive cadence: a poller that returns zero buses ADAPTIVE_EMPTY_THRESHOLD
+// ticks in a row drops from every-tick to every-Nth-tick participation in
+// the batch. Keeps night-route / idle-route cost near zero without losing
+// the first-observation latency once buses start running.
 const ADAPTIVE_EMPTY_THRESHOLD = 3
+const SLOW_TICK_FACTOR = 4
+
+class BusRealtimeBatcher {
+  private readonly pollers = new Map<string, RouteRealtimePoller>()
+  private timer: number | null = null
+  private readonly tickMs: number = 15_000
+  private tickCounter = 0
+  private firstKickTimer: number | null = null
+
+  register(p: RouteRealtimePoller): void {
+    this.pollers.set(p.key, p)
+    this.ensureRunning()
+  }
+
+  unregister(p: RouteRealtimePoller): void {
+    this.pollers.delete(p.key)
+    if (this.pollers.size === 0) this.stopTimer()
+  }
+
+  private ensureRunning(): void {
+    if (this.timer !== null || this.firstKickTimer !== null) return
+    // Give the app ~500 ms after the first poller registers before the first
+    // batch fires, so a burst of register() calls during startup collapses
+    // into a single batch instead of triggering a mid-startup fetch.
+    this.firstKickTimer = window.setTimeout(() => {
+      this.firstKickTimer = null
+      void this.fire()
+      this.timer = window.setInterval(() => { void this.fire() }, this.tickMs)
+    }, 500)
+  }
+
+  private stopTimer(): void {
+    if (this.firstKickTimer !== null) {
+      clearTimeout(this.firstKickTimer)
+      this.firstKickTimer = null
+    }
+    if (this.timer !== null) {
+      clearInterval(this.timer)
+      this.timer = null
+    }
+  }
+
+  private async fire(): Promise<void> {
+    if (typeof document !== 'undefined' && document.hidden) return
+    const tick = ++this.tickCounter
+    const participating: RouteRealtimePoller[] = []
+    for (const p of this.pollers.values()) {
+      if (p._shouldParticipate(tick)) participating.push(p)
+    }
+    if (participating.length === 0) return
+    const keys = participating.map(p => p.key)
+    const results = await fetchBatch(keys)
+    const now = Date.now()
+    if (!results) return
+    const byKey = new Map<string, BatchItem>()
+    for (const r of results) byKey.set(r.key, r)
+    for (const p of participating) {
+      const r = byKey.get(p.key)
+      if (!r || r.status !== 200 || !r.data || r.data.header !== '000') continue
+      p._deliver(r.data, now)
+    }
+  }
+}
+
+const batcher = new BusRealtimeBatcher()
 
 export class RouteRealtimePoller {
   readonly routeName: string
   readonly dir: 0 | 1
-  private readonly baseIntervalMs: number
-  private readonly slowIntervalMs: number
-  private readonly maxBackoffMs: number
-  private timer: number | null = null
+  readonly key: string
   private running = false
   private paused = false
-  private failures = 0
-  // Consecutive polls with zero buses. Used to slow the cadence for idle
-  // routes — we don't need to hammer DSAT for a night bus at noon.
   private emptyStreak = 0
-  private etag: string | null = null
-  private lastModified: string | null = null
+  // Stagger slow-cadence pollers across the 4-tick cycle so we don't dump
+  // all idle routes into the same batch.
+  private readonly slowOffset: number
   private subs = new Set<Subscriber>()
   private lastObs: BusObservation[] = []
-  private visibilityHandler: (() => void) | null = null
 
-  constructor(routeName: string, dir: 0 | 1, intervalMs: number = 15_000, maxBackoffMs: number = 5 * 60_000) {
+  constructor(routeName: string, dir: 0 | 1, _intervalMs?: number) {
     this.routeName = routeName
     this.dir = dir
-    this.baseIntervalMs = intervalMs
-    // Slow cadence = 4× base (15 s → 60 s). Still fresh enough that the
-    // first bus of the evening shows up within a minute of entering
-    // service, but cuts idle-route load by 75 %.
-    this.slowIntervalMs = intervalMs * 4
-    this.maxBackoffMs = maxBackoffMs
-  }
-
-  private get intervalMs(): number {
-    return this.emptyStreak >= ADAPTIVE_EMPTY_THRESHOLD
-      ? this.slowIntervalMs
-      : this.baseIntervalMs
+    this.key = `${routeName}:${dir}`
+    let h = 0
+    for (let i = 0; i < this.key.length; i++) h = (h * 31 + this.key.charCodeAt(i)) | 0
+    this.slowOffset = Math.abs(h) % SLOW_TICK_FACTOR
   }
 
   subscribe(fn: Subscriber): () => void {
@@ -152,96 +176,36 @@ export class RouteRealtimePoller {
 
   getLatest(): BusObservation[] { return this.lastObs }
 
-  start() {
+  start(): void {
     if (this.running) return
     this.running = true
     this.paused = false
-    this.failures = 0
-    if (typeof document !== 'undefined') {
-      this.visibilityHandler = () => {
-        if (!document.hidden && this.running && !this.paused && this.timer === null) this.schedule(0)
-      }
-      document.addEventListener('visibilitychange', this.visibilityHandler)
-    }
-    this.schedule(0)
+    batcher.register(this)
   }
 
-  pause() {
-    if (this.paused) return
-    this.paused = true
-    if (this.timer !== null) {
-      clearTimeout(this.timer)
-      this.timer = null
-    }
-  }
+  pause(): void { this.paused = true }
 
-  resume() {
-    if (!this.paused) return
-    this.paused = false
-    if (this.running && this.timer === null) this.schedule(0)
-  }
+  resume(): void { this.paused = false }
 
-  stop() {
+  stop(): void {
     this.running = false
-    if (this.timer !== null) {
-      clearTimeout(this.timer)
-      this.timer = null
-    }
-    if (this.visibilityHandler && typeof document !== 'undefined') {
-      document.removeEventListener('visibilitychange', this.visibilityHandler)
-      this.visibilityHandler = null
-    }
+    batcher.unregister(this)
   }
 
-  private schedule(delay: number) {
-    if (!this.running || this.paused) return
-    this.timer = window.setTimeout(() => {
-      this.timer = null
-      void this.tick()
-    }, delay)
+  _shouldParticipate(tick: number): boolean {
+    if (!this.running || this.paused) return false
+    if (this.emptyStreak >= ADAPTIVE_EMPTY_THRESHOLD) {
+      return ((tick % SLOW_TICK_FACTOR) === this.slowOffset)
+    }
+    return true
   }
 
-  private nextDelay(): number {
-    if (this.failures === 0) return this.intervalMs
-    const backoff = this.intervalMs * Math.pow(2, Math.min(this.failures - 1, 6))
-    return Math.min(backoff, this.maxBackoffMs)
-  }
-
-  private async tick() {
-    if (!this.running || this.paused) return
-    if (typeof document !== 'undefined' && document.hidden) {
-      this.schedule(this.intervalMs)
-      return
-    }
-    const res = await fetchDsatRouteResult(this.routeName, this.dir, {
-      etag: this.etag,
-      lastModified: this.lastModified,
-    })
-    if (!this.running) return
-    if (!res.ok) {
-      if (res.reason === 'http' || res.reason === 'network') this.failures++
-      this.schedule(this.nextDelay())
-      return
-    }
-    this.failures = 0
-    if ('notModified' in res) {
-      // Upstream confirmed nothing changed — keep the cached observations,
-      // skip the parse + fan-out to subscribers. Treat it as "no-news,
-      // same as before" for adaptive cadence: if the previous payload
-      // was empty we stay on slow; if it had buses we stay on base.
-      this.schedule(this.nextDelay())
-      return
-    }
-    this.etag = res.etag
-    this.lastModified = res.lastModified
-    const obs = extractObservations(res.data)
-    // Adaptive cadence: count consecutive empty payloads and slow the
-    // cadence once we're confident the route is idle.
+  _deliver(resp: DsatRouteResponse, now: number): void {
+    const obs = extractObservations(resp, now)
     if (obs.length === 0) this.emptyStreak++
     else this.emptyStreak = 0
     this.lastObs = obs
-    for (const fn of this.subs) fn(obs, res.data)
-    this.schedule(this.nextDelay())
+    for (const fn of this.subs) fn(obs, resp)
   }
 }
 
@@ -406,4 +370,3 @@ export class BusTracker {
     this.cachedStates = null
   }
 }
-
