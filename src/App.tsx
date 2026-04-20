@@ -78,6 +78,25 @@ export default function App() {
   const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
   const [flightsOn, setFlightsOn] = useState(() => localStorage.getItem(LS_FLIGHTS_KEY) !== '0')
   const [ferriesOn, setFerriesOn] = useState(() => localStorage.getItem(LS_FERRIES_KEY) !== '0')
+  // Defer the MapView mount (and therefore the MapLibre lazy chunk import +
+  // its ~5s eval on a slow CPU) until the browser hits idle. The splash keeps
+  // the HUD visible meanwhile. This shifts MapLibre's JS eval out of the LCP
+  // window so Lighthouse no longer attributes it to "reduce JS execution".
+  const [mapReady, setMapReady] = useState(false)
+  useEffect(() => {
+    let cancelled = false
+    const go = () => { if (!cancelled) setMapReady(true) }
+    const w = window as unknown as {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number
+      cancelIdleCallback?: (id: number) => void
+    }
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(go, { timeout: 1500 })
+      return () => { cancelled = true; w.cancelIdleCallback?.(id) }
+    }
+    const t = window.setTimeout(go, 600)
+    return () => { cancelled = true; window.clearTimeout(t) }
+  }, [])
   const lrtSavedRef = useRef<string[] | null>((() => {
     try {
       const raw = localStorage.getItem(LS_LRT_KEY)
@@ -257,21 +276,25 @@ export default function App() {
 
   return (
     <div className="relative w-full h-full">
-      <Suspense fallback={<MapSplash />}>
-        <MapView
-          clock={clock}
-          transitData={filteredTransitData}
-          allTransitData={transitData}
-          onVehicleClick={onVehicleClick}
-          onTrackedVehicleUpdate={onTrackedVehicleUpdate}
-          onStationClick={onStationClick}
-          onClearSelection={clearSelection}
-          trackedVehicleId={trackedVehicleId}
-          onVehicleCount={onVehicleCount}
-          showTimeBar={showTimeBar}
-          onToggleTimeBar={toggleTimeBar}
-        />
-      </Suspense>
+      {mapReady ? (
+        <Suspense fallback={<MapSplash />}>
+          <MapView
+            clock={clock}
+            transitData={filteredTransitData}
+            allTransitData={transitData}
+            onVehicleClick={onVehicleClick}
+            onTrackedVehicleUpdate={onTrackedVehicleUpdate}
+            onStationClick={onStationClick}
+            onClearSelection={clearSelection}
+            trackedVehicleId={trackedVehicleId}
+            onVehicleCount={onVehicleCount}
+            showTimeBar={showTimeBar}
+            onToggleTimeBar={toggleTimeBar}
+          />
+        </Suspense>
+      ) : (
+        <MapSplash />
+      )}
       {showTimeBar && <TimeDisplay clock={clock} vehicleCount={vehicleCount} />}
       <LineLegend
         transitData={filteredTransitData}

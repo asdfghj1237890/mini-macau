@@ -55,13 +55,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <!-- Non-blocking webfont load: preload the stylesheet, apply via
-         media="print" → onload swap to "all". Paired with display=swap this
-         paints text in the system fallback immediately (Lighthouse flagged
-         the previous blocking <link> as ~1950ms of blocked render). -->
-    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+HK:wght@400;500;700&display=swap" />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+HK:wght@400;500;700&display=swap" media="print" onload="this.media='all'" />
+         media="print" → onload swap to "all". display=optional (not swap)
+         avoids CLS entirely — the browser uses fallback if the webfont
+         hasn't arrived in ~100ms and never swaps mid-session. Repeat
+         visitors hit cache within the block period and see webfonts
+         normally. Noto Sans HK streams in many CJK subset files and each
+         would have caused its own reflow under swap. -->
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+HK:wght@400;500;700&display=optional" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+HK:wght@400;500;700&display=optional" media="print" onload="this.media='all'" />
     <noscript>
-      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+HK:wght@400;500;700&display=swap" />
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+HK:wght@400;500;700&display=optional" />
     </noscript>
 
     <!-- Basemap/tile preconnects are injected just-in-time when MapView
