@@ -710,53 +710,56 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         if (shouldTick) {
           lastSimTick = nowTick
         let vehicles = computeVehiclePositions(td, clock.timeRef.current)
-        if (RT_BUILD && rtEnabledRef.current && rtStatesRef.current.size > 0) {
-          const rtNow = performance.now()
-          if (rtVisibleIdsSourceRef.current !== td.busRoutes) {
-            rtVisibleIdsSourceRef.current = td.busRoutes
-            const next = new Set<string>()
-            for (const r of td.busRoutes) next.add(r.id)
-            rtVisibleIdsRef.current = next
-            rtLastTickAtRef.current = 0
-          }
-          if (!pausedRef.current && rtNow - rtLastTickAtRef.current >= 100) {
-            rtLastTickAtRef.current = rtNow
-            const visibleRouteIds = rtVisibleIdsRef.current
-            const liveRouteIds = new Set<string>()
-            const rtVehicles: VehiclePosition[] = []
-            const wallNow = Date.now()
-            for (const s of rtStatesRef.current.values()) {
-              if (!visibleRouteIds.has(s.route.id)) continue
-              const states = s.tracker.getStates()
-              if (states.length === 0) continue
-              liveRouteIds.add(s.route.id)
-              for (const state of states) {
-                const p = s.tracker.estimateProgress(state, wallNow)
-                const pos = interpolateOnLine(s.geometry, p)
-                rtVehicles.push({
-                  id: `${s.route.id}-rt-${s.dir}-${state.plate}`,
-                  lineId: s.route.id,
-                  type: 'bus',
-                  coordinates: pos.coordinates,
-                  bearing: pos.bearing,
-                  progress: p,
-                  color: s.route.color,
-                  rt: {
-                    plate: state.plate,
-                    speed: state.speed,
-                    stopIndex: state.lastStopIdx,
-                    dir: s.dir,
-                    observedAt: state.lastAt,
-                  },
-                })
-              }
+        if (RT_BUILD && rtEnabledRef.current) {
+          // In RT mode the map shows ONLY DSAT-observed buses. Drop every
+          // sim bus — whether on a route with no RT subscription, or on a
+          // route whose feed currently reports zero buses — so we never
+          // render a phantom vehicle that doesn't exist in DSAT.
+          vehicles = vehicles.filter(v => v.type !== 'bus')
+          if (rtStatesRef.current.size > 0) {
+            const rtNow = performance.now()
+            if (rtVisibleIdsSourceRef.current !== td.busRoutes) {
+              rtVisibleIdsSourceRef.current = td.busRoutes
+              const next = new Set<string>()
+              for (const r of td.busRoutes) next.add(r.id)
+              rtVisibleIdsRef.current = next
+              rtLastTickAtRef.current = 0
             }
-            rtCachedVehiclesRef.current = rtVehicles
-            rtCachedLiveIdsRef.current = liveRouteIds
-          }
-          const liveIds = rtCachedLiveIdsRef.current
-          if (liveIds.size > 0) {
-            vehicles = vehicles.filter(v => !liveIds.has(v.lineId))
+            if (!pausedRef.current && rtNow - rtLastTickAtRef.current >= 100) {
+              rtLastTickAtRef.current = rtNow
+              const visibleRouteIds = rtVisibleIdsRef.current
+              const liveRouteIds = new Set<string>()
+              const rtVehicles: VehiclePosition[] = []
+              const wallNow = Date.now()
+              for (const s of rtStatesRef.current.values()) {
+                if (!visibleRouteIds.has(s.route.id)) continue
+                const states = s.tracker.getStates()
+                if (states.length === 0) continue
+                liveRouteIds.add(s.route.id)
+                for (const state of states) {
+                  const p = s.tracker.estimateProgress(state, wallNow)
+                  const pos = interpolateOnLine(s.geometry, p)
+                  rtVehicles.push({
+                    id: `${s.route.id}-rt-${s.dir}-${state.plate}`,
+                    lineId: s.route.id,
+                    type: 'bus',
+                    coordinates: pos.coordinates,
+                    bearing: pos.bearing,
+                    progress: p,
+                    color: s.route.color,
+                    rt: {
+                      plate: state.plate,
+                      speed: state.speed,
+                      stopIndex: state.lastStopIdx,
+                      dir: s.dir,
+                      observedAt: state.lastAt,
+                    },
+                  })
+                }
+              }
+              rtCachedVehiclesRef.current = rtVehicles
+              rtCachedLiveIdsRef.current = liveRouteIds
+            }
             for (const v of rtCachedVehiclesRef.current) vehicles.push(v)
           }
         }
