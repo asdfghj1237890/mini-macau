@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { SimulationClock } from '../types'
+import { ga } from '../analytics/ga'
 
 const UI_UPDATE_INTERVAL = 100
 
@@ -31,8 +32,16 @@ export function useSimulationClock(): SimulationClock {
     return () => cancelAnimationFrame(raf)
   }, [speed, paused])
 
-  const setSpeed = useCallback((s: number) => setSpeedState(s), [])
-  const togglePause = useCallback(() => setPaused(p => !p), [])
+  const setSpeed = useCallback((s: number) => {
+    setSpeedState(s)
+    ga.simSpeedChanged(s)
+  }, [])
+  const togglePause = useCallback(() => {
+    setPaused(p => {
+      ga.simPauseToggled(!p)
+      return !p
+    })
+  }, [])
   const reset = useCallback(() => {
     const now = new Date()
     timeRef.current = now
@@ -42,9 +51,11 @@ export function useSimulationClock(): SimulationClock {
   }, [])
 
   const setTime = useCallback((date: Date) => {
+    const prev = timeRef.current.getTime()
     timeRef.current = date
     setDisplayTime(date)
     lastTickRef.current = performance.now()
+    ga.timeJumped((date.getTime() - prev) / 3_600_000)
   }, [])
 
   return { currentTime: displayTime, timeRef, speed, paused, setSpeed, togglePause, reset, setTime }

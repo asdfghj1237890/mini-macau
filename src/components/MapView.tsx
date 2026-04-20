@@ -11,6 +11,7 @@ import { computeVehiclePositions, getScheduleType, interpolateOnLine } from '../
 import length from '@turf/length'
 import { useI18n } from '../i18n'
 import type { BusTracker, RouteRealtimePoller } from '../services/realtimeClient'
+import { ga } from '../analytics/ga'
 
 const RT_BUILD = import.meta.env.VITE_ENABLE_RT === '1'
 
@@ -234,7 +235,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
       if (e.key === 'Escape') {
-        setMenuOpen(o => !o)
+        setMenuOpen(o => {
+          if (!o) ga.drawerOpened()
+          return !o
+        })
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -1054,6 +1058,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const toggle3D = useCallback(() => {
     setIs3D(prev => {
       const next = !prev
+      ga.viewModeChanged(next ? '3d' : '2d')
       const map = mapRef.current
       map?.easeTo({ pitch: next ? 45 : 0, duration: 500 })
       if (map?.getLayer(BUILDINGS_LAYER_ID)) {
@@ -1091,7 +1096,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   }, [is3D])
 
   const toggleTheme = useCallback(() => {
-    setIsDark(prev => !prev)
+    setIsDark(prev => {
+      const next = !prev
+      ga.themeChanged(next ? 'dark' : 'light')
+      return next
+    })
   }, [])
 
   return (
@@ -1102,7 +1111,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                       top-3 left-3
                       max-sm:top-[50px] max-sm:left-2">
         <button
-          onClick={() => setMenuOpen(o => !o)}
+          onClick={() => setMenuOpen(o => {
+            if (!o) ga.drawerOpened()
+            return !o
+          })}
           aria-label="menu"
           aria-expanded={menuOpen}
           className="w-9 h-9 flex items-center justify-center

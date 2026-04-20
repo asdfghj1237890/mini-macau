@@ -7,6 +7,7 @@ import { useSimulationClock } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
 import { getScheduleType } from './engines/simulationEngine'
+import { startEngagementTracker, ga } from './analytics/ga'
 import type { VehiclePosition, Station, BusRoute } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
@@ -71,6 +72,13 @@ export default function App() {
   const transitData = useTransitData()
   const { ensureScheduleTypeLoaded } = transitData
   const serviceStatus = useServiceStatus()
+
+  // Start the visibility- and idle-aware engagement tracker. See
+  // src/analytics/ga.ts for event taxonomy + rationale.
+  useEffect(() => {
+    const dispose = startEngagementTracker()
+    return dispose
+  }, [])
 
   // On-demand safety net for Plan C cross-day handling: if the user drags
   // DateTimePicker into a different schedule type and the background
@@ -244,6 +252,7 @@ export default function App() {
     setSelectedVehicle(vehicle)
     setSelectedStation(null)
     setTrackedVehicleId(vehicle?.id ?? null)
+    if (vehicle) ga.vehicleSelected(vehicle.type, vehicle.id)
   }, [])
 
   const onTrackedVehicleUpdate = useCallback((vehicle: VehiclePosition) => {
@@ -254,6 +263,7 @@ export default function App() {
     setSelectedStation(station)
     setSelectedVehicle(null)
     setTrackedVehicleId(null)
+    if (station) ga.stationSelected(station.id)
   }, [])
 
   const clearSelection = useCallback(() => {
@@ -267,13 +277,23 @@ export default function App() {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
+      ga.layerToggled(`lrt_${id}`, next.has(id))
       return next
     })
   }, [])
 
-  const toggleFlights = useCallback(() => setFlightsOn(v => !v), [])
-  const toggleFerries = useCallback(() => setFerriesOn(v => !v), [])
-  const toggleTimeBar = useCallback(() => setShowTimeBar(v => !v), [])
+  const toggleFlights = useCallback(() => setFlightsOn(v => {
+    ga.layerToggled('flights', !v)
+    return !v
+  }), [])
+  const toggleFerries = useCallback(() => setFerriesOn(v => {
+    ga.layerToggled('ferries', !v)
+    return !v
+  }), [])
+  const toggleTimeBar = useCallback(() => setShowTimeBar(v => {
+    ga.layerToggled('time_bar', !v)
+    return !v
+  }), [])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
