@@ -288,6 +288,7 @@ function makeExtrusion(id: string, kind: PartKind, opacity: number) {
 
 export class Ferry3DLayer {
   private map: MapLibreMap | null = null
+  private isEmpty = true
 
   attach(map: MapLibreMap): void {
     this.map = map
@@ -330,10 +331,14 @@ export class Ferry3DLayer {
     if (!map) return
     const src = map.getSource(FERRY_3D_SOURCE_ID) as unknown as { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
     if (!src?.setData) return
-    if (map.getZoom() < MIN_ZOOM - 0.5) {
+    const belowMin = map.getZoom() < MIN_ZOOM - 0.5
+    if (belowMin || ferries.length === 0) {
+      if (this.isEmpty) return
       src.setData({ type: 'FeatureCollection', features: [] })
+      this.isEmpty = true
       return
     }
     src.setData({ type: 'FeatureCollection', features: buildFerryFeatures(ferries) })
+    this.isEmpty = false
   }
 }
