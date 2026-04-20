@@ -22,6 +22,10 @@ jobs:
         run: uv run python scripts/fetch_flights.py
         env:
           AVIATIONSTACK_API_KEY: ${{ secrets.AVIATIONSTACK_API_KEY }}
+          UPSTREAM_DEP_EN_URL: ${{ secrets.UPSTREAM_DEP_EN_URL }}
+          UPSTREAM_DEP_ZH_URL: ${{ secrets.UPSTREAM_DEP_ZH_URL }}
+          UPSTREAM_ARR_EN_URL: ${{ secrets.UPSTREAM_ARR_EN_URL }}
+          UPSTREAM_ARR_ZH_URL: ${{ secrets.UPSTREAM_ARR_ZH_URL }}
 
       - name: Check for changes
         id: diff
