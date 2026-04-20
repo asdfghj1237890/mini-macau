@@ -58,7 +58,7 @@ async function fetchBatch(keys: string[]): Promise<BatchItem[] | null> {
 export function extractObservations(resp: DsatRouteResponse, now = Date.now()): BusObservation[] {
   const out: BusObservation[] = []
   resp.data.routeInfo.forEach((station, stopIndex) => {
-    for (const b of station.busInfo) {
+    for (const b of station.busInfo ?? []) {
       if (!b.busPlate) continue
       out.push({
         plate: b.busPlate,
