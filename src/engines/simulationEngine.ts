@@ -1055,9 +1055,10 @@ function getStationProgressMap(transitData: TransitData): Map<string, { progress
 }
 
 // How long before its scheduled departure a ferry is visible at the berth.
-const FERRY_DWELL_BEFORE_DEP_MIN = 20
+const FERRY_DWELL_BEFORE_DEP_MIN = 90
 // How long a just-arrived ferry remains at the berth before vanishing.
-const FERRY_DWELL_AFTER_ARR_MIN = 20
+// 0 = vanish immediately on arrival (no post-arrival dwell).
+const FERRY_DWELL_AFTER_ARR_MIN = 0
 // Visible cruise speed along the waypoint path (km/h). Faster than buses
 // (~20 km/h) and a bit below the flight cruise segment (~120 km/h).
 const FERRY_CRUISE_KMH = 80
