@@ -115,6 +115,39 @@ function isBusInService(route: BusRoute, date: Date): boolean {
     || (nowMin + 1440 >= startMin && nowMin + 1440 < endWithTail)
 }
 
+// Bbox = [minLng, minLat, maxLng, maxLat]. Cached per route geometry since
+// coordinates never change after load. Used to skip DSAT polling for routes
+// whose entire path lies outside the current viewport (+buffer).
+type Bbox = [number, number, number, number]
+const routeBboxCache = new WeakMap<BusRoute, Bbox>()
+function getRouteBbox(route: BusRoute): Bbox {
+  const cached = routeBboxCache.get(route)
+  if (cached) return cached
+  let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity
+  for (const [lng, lat] of route.geometry.geometry.coordinates) {
+    if (lng < minLng) minLng = lng
+    if (lat < minLat) minLat = lat
+    if (lng > maxLng) maxLng = lng
+    if (lat > maxLat) maxLat = lat
+  }
+  const bb: Bbox = [minLng, minLat, maxLng, maxLat]
+  routeBboxCache.set(route, bb)
+  return bb
+}
+
+function bboxIntersects(a: Bbox, b: Bbox): boolean {
+  return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1]
+}
+
+// Expand a viewport bbox by km so routes just outside the visible area still
+// poll — reduces "pop-in" when the user pans slowly.
+function expandBbox(b: Bbox, km: number): Bbox {
+  const degLat = km / 111
+  const midLat = (b[1] + b[3]) / 2
+  const degLng = km / (111 * Math.max(Math.cos((midLat * Math.PI) / 180), 1e-6))
+  return [b[0] - degLng, b[1] - degLat, b[2] + degLng, b[3] + degLat]
+}
+
 const MACAU_CENTER: [number, number] = [113.55920888434439, 22.160440018223373]
 const MACAU_ZOOM = 13
 const STYLES = {
@@ -209,6 +242,35 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const rtModuleRef = useRef<typeof import('../services/realtimeClient') | null>(null)
   const pausedRef = useRef(clock.paused)
   pausedRef.current = clock.paused
+  const tabVisibleRef = useRef(typeof document === 'undefined' || !document.hidden)
+  // Current viewport bbox (expanded by buffer). null = "show everything"
+  // — used before the map reports its first bounds.
+  const viewBboxRef = useRef<Bbox | null>(null)
+
+  // Single source of truth for "should this poller be running right now?".
+  // A poller costs one DSAT request per ~15 s, so pausing pollers whose
+  // output the user can't see (tab hidden, outside viewport, outside
+  // service hours, clock paused) cuts the network bill dramatically without
+  // changing what the user sees. Every gate is evaluated here; all
+  // handlers (clock pause, tab visibility, map move, sim-minute flip) just
+  // re-invoke this.
+  const reconcilePollersRef = useRef<() => void>(() => {})
+  reconcilePollersRef.current = () => {
+    if (!RT_BUILD) return
+    const simTime = clock.timeRef.current
+    const paused = pausedRef.current
+    const tabVisible = tabVisibleRef.current
+    const view = viewBboxRef.current
+    let anyRunning = false
+    for (const s of rtStatesRef.current.values()) {
+      const inService = isBusInService(s.route, simTime)
+      const inView = view === null || bboxIntersects(getRouteBbox(s.route), view)
+      const shouldRun = !paused && tabVisible && inService && inView
+      if (shouldRun) { s.poller.resume(); anyRunning = true }
+      else s.poller.pause()
+    }
+    if (anyRunning) rtLastTickAtRef.current = 0
+  }
 
   useEffect(() => {
     if (!RT_BUILD) return
@@ -279,7 +341,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         const t = window.setTimeout(() => {
           if (cancelled) return
           poller.start()
-          if (pausedRef.current) poller.pause()
+          // Apply current gating (tab visibility, viewport, service hours,
+          // clock pause) so a newly-spawned poller doesn't fire a request
+          // we'd immediately throw away.
+          reconcilePollersRef.current()
         }, delay)
         staggerTimers.push(t)
         staggerIdx++
@@ -296,22 +361,27 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
   }, [rtEnabled, rtDataReady, transitData.busRoutes])
 
-  // Gate RT pollers by clock-paused AND route service hours. A poller for
-  // a route whose feed is guaranteed empty (e.g. a night bus at noon, or
-  // any daytime route past its close) is pure DSAT load with no useful
-  // output, so we pause it until the sim time re-enters the window.
+  // Kick the reconciler on clock-pause and on every sim-minute flip.
+  // Service windows change on minute boundaries, so a single re-evaluation
+  // per minute is enough.
   const simMinuteKey = `${clock.currentTime.getDay()}-${clock.currentTime.getHours()}-${clock.currentTime.getMinutes()}`
   useEffect(() => {
     if (!RT_BUILD) return
-    const anyResumed = !clock.paused
-    for (const s of rtStatesRef.current.values()) {
-      const shouldRun = anyResumed && isBusInService(s.route, clock.currentTime)
-      if (shouldRun) s.poller.resume()
-      else s.poller.pause()
-    }
-    if (anyResumed) rtLastTickAtRef.current = 0
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    reconcilePollersRef.current()
   }, [clock.paused, simMinuteKey])
+
+  // Tab visibility: pause every poller the moment the user switches tabs
+  // and restore proper state on return. visibilitychange fires on
+  // blur/focus, window minimize, and mobile background.
+  useEffect(() => {
+    if (!RT_BUILD) return
+    const onVis = () => {
+      tabVisibleRef.current = !document.hidden
+      reconcilePollersRef.current()
+    }
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -695,7 +765,29 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
 
     const onMoveStart = () => { mapBusyRef.current = true }
-    const onMoveEnd = () => { mapBusyRef.current = false }
+
+    // Update the gating viewport bbox on pan/zoom end, then ask the poller
+    // reconciler to pause routes that scrolled offscreen and wake ones
+    // that scrolled into view. 300 ms debounce swallows the flurry of
+    // moveends that fire during a flyTo or a momentum-scroll spindown.
+    const VIEW_BUFFER_KM = 2
+    let reconcileTimer: number | null = null
+    const updateViewAndReconcile = () => {
+      const b = map.getBounds()
+      viewBboxRef.current = expandBbox(
+        [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()],
+        VIEW_BUFFER_KM,
+      )
+      reconcilePollersRef.current()
+    }
+    const onMoveEnd = () => {
+      mapBusyRef.current = false
+      if (reconcileTimer !== null) clearTimeout(reconcileTimer)
+      reconcileTimer = window.setTimeout(updateViewAndReconcile, 300)
+    }
+    // Initialize viewport bbox once the map has its first bounds so the
+    // reconciler can gate pollers on the very first pass.
+    updateViewAndReconcile()
 
     const canvas = map.getCanvas()
     canvas.addEventListener('wheel', markInteracting, { passive: true })
@@ -705,6 +797,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     map.on('moveend', onMoveEnd)
 
     return () => {
+      if (reconcileTimer !== null) clearTimeout(reconcileTimer)
       canvas.removeEventListener('wheel', markInteracting)
       canvas.removeEventListener('mousedown', markInteracting)
       canvas.removeEventListener('touchstart', markInteracting)
