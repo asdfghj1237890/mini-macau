@@ -86,13 +86,45 @@ def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> 
     MAX_WP = 80
     all_coords: list[list[float]] = []
 
-    def _route_pair(a: list[float], b: list[float]) -> list[list[float]]:
-        """Per-pair OSRM with Hengqin veto. If the direct path crosses Hengqin,
-        retry once via the Lotus Bridge anchor; if OSRM still detours through
-        Hengqin (the public demo refuses to drive the bridge), splice the
-        manual bridge polyline so the visual crosses on the bridge instead
-        of cutting straight across the Shizimen waterway.
+    def _has_bridge_gap(coords: list[list[float]], threshold_m: float = 300) -> bool:
+        """Detect a straight-line segment >threshold_m fully inside the
+        Lotus Bridge corridor — sign that OSRM's response stitched across
+        the canal at the wrong latitude even though the path didn't enter
+        Hengqin proper. Triggers per-pair rebuild so _is_lotus_bridge_pair
+        can substitute the manual polyline.
         """
+        for i in range(1, len(coords)):
+            pa, pb = coords[i - 1], coords[i]
+            if not (22.135 <= pa[1] <= 22.150 and 22.135 <= pb[1] <= 22.150):
+                continue
+            if not (113.540 <= pa[0] <= 113.570 and 113.540 <= pb[0] <= 113.570):
+                continue
+            dlng = (pb[0] - pa[0]) * 100000
+            dlat = (pb[1] - pa[1]) * 111000
+            if (dlng * dlng + dlat * dlat) ** 0.5 > threshold_m:
+                return True
+        return False
+
+    def _is_lotus_bridge_pair(a: list[float], b: list[float]) -> bool:
+        """A pair straddles the Shizimen Waterway in the Lotus Bridge band:
+        one stop near Hengqin Port (lng < 113.550), the other on Cotai
+        mainland (lng > 113.557), both within lat 22.135–22.150 and
+        outside the Hengqin exclusion. Such pairs have no legal Macau
+        crossing other than Ponte Flor de Lótus, and OSRM is unreliable
+        for them — it either detours through Hengqin or returns a path
+        with internal straight-line jumps cutting across the canal at
+        the wrong latitude. Force the manual bridge polyline.
+        """
+        in_band = lambda p: 22.135 <= p[1] <= 22.150 and not is_in_hengqin(p)
+        if not (in_band(a) and in_band(b)):
+            return False
+        return min(a[0], b[0]) < 113.550 and max(a[0], b[0]) > 113.557
+
+    def _route_pair(a: list[float], b: list[float]) -> list[list[float]]:
+        """Per-pair OSRM with Hengqin veto + Lotus Bridge override."""
+        if _is_lotus_bridge_pair(a, b):
+            print(f"    NOTE: pair {a}->{b} forced via Lotus Bridge polyline")
+            return lotus_bridge_segment(a, b)
         rc = get_road_geometry([a, b], profile="driving")
         time.sleep(0.4)
         if rc and len(rc) >= 2 and not path_enters_hengqin(rc):
@@ -102,15 +134,7 @@ def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> 
             time.sleep(0.4)
             if rc2 and len(rc2) >= 2 and not path_enters_hengqin(rc2):
                 return rc2
-            # Both endpoints near the bridge → use the manual bridge polyline.
-            # Heuristic: both within the Cotai/Hengqin-Port latitude band
-            # (22.135–22.150) AND straddling the waterway (one side of
-            # lng 113.553, other side of it).
-            in_band = lambda p: 22.135 <= p[1] <= 22.150 and not is_in_hengqin(p)
-            if in_band(a) and in_band(b) and (a[0] - 113.553) * (b[0] - 113.553) <= 0:
-                print(f"    NOTE: pair {a}->{b} stitched via Lotus Bridge polyline")
-                return lotus_bridge_segment(a, b)
-            print(f"    WARN: pair {a}->{b} routes through Hengqin and not on Lotus Bridge corridor; using straight line")
+            print(f"    WARN: pair {a}->{b} routes through Hengqin (no bridge corridor match); using straight line")
         return [a, b]
 
     for chunk_start in range(0, len(waypoints), MAX_WP - 1):
@@ -124,11 +148,17 @@ def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> 
         time.sleep(0.6)
 
         # Public OSRM sometimes optimises multi-waypoint paths through
-        # Hengqin (mainland China) when it finds a shorter road. Macau
-        # buses cannot cross that border, so fall back to per-pair routing
-        # whenever the bulk response contains Hengqin coords.
-        if road_coords and len(road_coords) >= 2 and path_enters_hengqin(road_coords):
-            print(f"    bulk OSRM routed through Hengqin; retrying per-pair ({len(chunk)} waypoints)")
+        # Hengqin (mainland China) when it finds a shorter road, and
+        # other times returns a path with internal straight-line gaps
+        # in the Lotus Bridge area (the bridge is bus-only in OSM, so
+        # OSRM stitches across the canal at the wrong latitude). Either
+        # way, fall back to per-pair routing so _route_pair can splice
+        # the manual bridge polyline at canal-straddling pairs.
+        if road_coords and len(road_coords) >= 2 and (
+            path_enters_hengqin(road_coords) or _has_bridge_gap(road_coords)
+        ):
+            why = "Hengqin" if path_enters_hengqin(road_coords) else "Lotus Bridge gap"
+            print(f"    bulk OSRM bad ({why}); retrying per-pair ({len(chunk)} waypoints)")
             rebuilt: list[list[float]] = []
             for i in range(len(chunk) - 1):
                 pair = _route_pair(chunk[i], chunk[i + 1])
