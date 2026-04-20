@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>Thank You · Mini Map Macau</title>
+    <meta name="description" content="Thanks for trying Mini Map Macau — a real-time 3D simulation of Macau's public transit. Star the project on GitHub to help more people discover it." />
+    <!-- Conversion landing page; we don't want it in search results. -->
+    <meta name="robots" content="noindex,nofollow" />
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Mini Map Macau" />
+    <meta property="og:title" content="Thank You · Mini Map Macau" />
+    <meta property="og:description" content="Thanks for trying Mini Map Macau — star the project on GitHub." />
+    <meta property="og:url" content="https://mini-map-macau.app/thank-you" />
+    <meta property="og:image" content="https://mini-map-macau.app/og-image.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+HK:wght@400;500;700&display=swap"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+HK:wght@400;500;700&display=swap"
+      />
+    </noscript>
+
+    <style>
+      *, *::before, *::after { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; min-height: 100%; }
+      body {
+        background: #0a0a0a;
+        color: #eaeaea;
+        font-family: -apple-system, BlinkMacSystemFont, 'Noto Sans HK', 'Noto Sans TC', 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.55;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      /* Two background layers — radial glow + grid — fixed so they stay put on scroll */
+      body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background:
+          radial-gradient(ellipse 70% 50% at 50% 0%, rgba(252, 196, 65, 0.10) 0%, transparent 70%),
+          radial-gradient(ellipse 60% 40% at 100% 100%, rgba(139, 92, 246, 0.06) 0%, transparent 60%);
+        pointer-events: none;
+        z-index: 0;
+      }
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(252, 196, 65, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(252, 196, 65, 0.035) 1px, transparent 1px);
+        background-size: 32px 32px;
+        mask-image: radial-gradient(ellipse 90% 80% at 50% 45%, black 30%, transparent 85%);
+        -webkit-mask-image: radial-gradient(ellipse 90% 80% at 50% 45%, black 30%, transparent 85%);
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .page {
+        position: relative;
+        z-index: 1;
+        max-width: 560px;
+        margin: 0 auto;
+        padding: 48px 24px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Brand: animated LED dot + domain */
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 56px;
+      }
+      .brand-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #fcc441;
+        box-shadow: 0 0 10px rgba(252, 196, 65, 0.9), 0 0 2px rgba(252, 196, 65, 1);
+        animation: led-pulse 1.6s ease-in-out infinite;
+      }
+      .brand-domain {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+      }
+
+      /* Language toggle, pinned top-right */
+      .lang {
+        position: absolute;
+        top: 40px;
+        right: 24px;
+        display: inline-flex;
+        background: #0a0a0b;
+        border: 1px solid rgba(252, 196, 65, 0.2);
+      }
+      .lang button {
+        background: transparent;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        padding: 7px 11px;
+        cursor: pointer;
+        transition: color 0.15s ease, background-color 0.15s ease;
+      }
+      .lang button + button { border-left: 1px solid rgba(252, 196, 65, 0.15); }
+      .lang button:hover { color: rgba(252, 196, 65, 0.9); }
+      .lang button.active {
+        background: rgba(252, 196, 65, 0.15);
+        color: #fcc441;
+      }
+
+      /* Transmission label */
+      .label {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 10px;
+        letter-spacing: 0.32em;
+        color: rgba(252, 196, 65, 0.7);
+        margin-bottom: 14px;
+        text-transform: uppercase;
+      }
+
+      /* Title (gradient Orbitron with CJK fallback via .cjk class) */
+      h1 {
+        font-family: 'Orbitron', ui-monospace, monospace;
+        font-weight: 900;
+        font-size: clamp(44px, 10vw, 72px);
+        letter-spacing: 0.04em;
+        line-height: 1;
+        margin: 0 0 14px;
+        background: linear-gradient(135deg, #fde68a 0%, #fcc441 55%, #f59e0b 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      h1 .cjk {
+        font-family: 'Noto Sans HK', 'Noto Sans TC', sans-serif;
+        font-weight: 700;
+      }
+
+      .subtitle {
+        font-size: 17px;
+        color: rgba(255, 255, 255, 0.78);
+        margin: 16px 0 24px;
+        line-height: 1.5;
+      }
+      .description {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.56);
+        line-height: 1.7;
+        margin: 0 0 32px;
+      }
+
+      /* Feature panel with amber corner brackets */
+      .panel {
+        background: #0a0a0b;
+        border: 1px solid rgba(252, 196, 65, 0.22);
+        padding: 28px 24px;
+        margin-bottom: 24px;
+        position: relative;
+      }
+      .panel::before, .panel::after {
+        content: '';
+        position: absolute;
+        width: 14px;
+        height: 14px;
+      }
+      .panel::before {
+        top: -1px;
+        left: -1px;
+        border-top: 2px solid rgba(252, 196, 65, 0.9);
+        border-left: 2px solid rgba(252, 196, 65, 0.9);
+      }
+      .panel::after {
+        bottom: -1px;
+        right: -1px;
+        border-bottom: 2px solid rgba(252, 196, 65, 0.9);
+        border-right: 2px solid rgba(252, 196, 65, 0.9);
+      }
+
+      /* Primary CTA — the star button */
+      .star-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        padding: 15px 24px;
+        background: linear-gradient(180deg, #fde68a 0%, #fcc441 55%, #f59e0b 100%);
+        color: #0a0a0a;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-weight: 700;
+        font-size: 14px;
+        letter-spacing: 0.14em;
+        text-decoration: none;
+        text-transform: uppercase;
+        border: 1px solid rgba(252, 196, 65, 0.5);
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+        box-shadow: 0 4px 20px rgba(252, 196, 65, 0.22);
+      }
+      .star-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 32px rgba(252, 196, 65, 0.42);
+        filter: brightness(1.06);
+      }
+      .star-btn:active { transform: translateY(0); }
+      .star-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+      /* Repo meta row under the star button */
+      .repo-meta {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding-top: 18px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        margin-top: 22px;
+      }
+      .repo-meta-item { flex: 1; min-width: 0; }
+      .repo-meta-item.right { text-align: right; }
+      .repo-meta-label {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 9px;
+        letter-spacing: 0.22em;
+        color: rgba(255, 255, 255, 0.32);
+        margin-bottom: 5px;
+        text-transform: uppercase;
+      }
+      .repo-meta-value {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 12.5px;
+        color: rgba(253, 230, 138, 0.82);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* Back link */
+      .back {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        color: rgba(255, 255, 255, 0.52);
+        text-decoration: none;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 12px;
+        letter-spacing: 0.1em;
+        padding: 12px 0;
+        transition: color 0.15s ease, transform 0.15s ease;
+      }
+      .back:hover {
+        color: rgba(252, 196, 65, 0.9);
+      }
+      .back:hover .back-arrow { transform: translateX(-3px); }
+      .back-arrow { display: inline-block; transition: transform 0.2s ease; }
+
+      /* Footer */
+      .footer {
+        margin-top: auto;
+        padding-top: 48px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 9px;
+        letter-spacing: 0.24em;
+        color: rgba(255, 255, 255, 0.24);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-transform: uppercase;
+      }
+
+      /* Entrance animation: stagger children of .main */
+      @keyframes led-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+      @keyframes fade-up {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .main > * { animation: fade-up 0.55s cubic-bezier(.2,.7,.2,1) backwards; }
+      .main > *:nth-child(1) { animation-delay: 0.05s; }
+      .main > *:nth-child(2) { animation-delay: 0.14s; }
+      .main > *:nth-child(3) { animation-delay: 0.22s; }
+      .main > *:nth-child(4) { animation-delay: 0.30s; }
+      .main > *:nth-child(5) { animation-delay: 0.38s; }
+      .main > *:nth-child(6) { animation-delay: 0.46s; }
+
+      @media (max-width: 479px) {
+        .page { padding: 32px 18px; }
+        .lang { top: 24px; right: 16px; }
+        .brand { margin-bottom: 36px; }
+        .panel { padding: 22px 18px; }
+        .subtitle { font-size: 16px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .brand-dot, .main > * { animation: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <header class="brand">
+        <span class="brand-dot" aria-hidden="true"></span>
+        <span class="brand-domain">mini-map-macau.app</span>
+      </header>
+
+      <nav class="lang" aria-label="Language">
+        <button data-lang="en" type="button">EN</button>
+        <button data-lang="zh" type="button">繁中</button>
+        <button data-lang="pt" type="button">PT</button>
+      </nav>
+
+      <main class="main">
+        <div class="label" data-i18n="label">— TRANSMISSION RECEIVED —</div>
+        <h1 data-i18n-html="title">Thank You</h1>
+        <p class="subtitle" data-i18n="subtitle">Thanks for trying Mini Map Macau.</p>
+        <p class="description" data-i18n="description">
+          This is an open-source, real-time 3D visualization of Macau's public transit — built in spare time. If you found it fun or useful, a star on GitHub genuinely helps more people discover the project.
+        </p>
+
+        <div class="panel">
+          <a
+            class="star-btn"
+            href="https://github.com/asdfghj1237890/mini-macau"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .587l3.668 7.43 8.2 1.192-5.934 5.787 1.4 8.168L12 19.201l-7.334 3.863 1.4-8.168L.132 9.21l8.2-1.192z"/>
+            </svg>
+            <span data-i18n="cta">STAR ON GITHUB</span>
+          </a>
+
+          <div class="repo-meta">
+            <div class="repo-meta-item">
+              <div class="repo-meta-label" data-i18n="repoLabel">REPO</div>
+              <div class="repo-meta-value">asdfghj1237890/mini-macau</div>
+            </div>
+            <div class="repo-meta-item right">
+              <div class="repo-meta-label" data-i18n="licenseLabel">LICENSE</div>
+              <div class="repo-meta-value">MIT</div>
+            </div>
+          </div>
+        </div>
+
+        <a class="back" href="/">
+          <span class="back-arrow">←</span>
+          <span data-i18n="back">Back to the map</span>
+        </a>
+      </main>
+
+      <footer class="footer">
+        <span data-i18n="footerLeft">MINI MAP MACAU · OPEN SOURCE</span>
+        <span>v0.1.49</span>
+      </footer>
+    </div>
+
+    <script>
+      (function () {
+        var translations = {
+          en: {
+            label: '— TRANSMISSION RECEIVED —',
+            title: 'Thank You',
+            subtitle: 'Thanks for trying Mini Map Macau.',
+            description:
+              "This is an open-source, real-time 3D visualization of Macau's public transit — built in spare time. If you found it fun or useful, a star on GitHub genuinely helps more people discover the project.",
+            cta: 'STAR ON GITHUB',
+            repoLabel: 'REPO',
+            licenseLabel: 'LICENSE',
+            back: 'Back to the map',
+            footerLeft: 'MINI MAP MACAU · OPEN SOURCE',
+            docTitle: 'Thank You · Mini Map Macau',
+          },
+          zh: {
+            label: '— 收到訊號 —',
+            title: '<span class="cjk">感謝</span>',
+            subtitle: '謝謝你試用 Mini Map Macau。',
+            description:
+              '這是一個開源的澳門公共運輸即時 3D 可視化專案，由一個開發者在業餘時間做出來。如果你覺得好玩或有幫助，希望你可以在 GitHub 上給這個專案一顆 star ⭐ — 會讓更多澳門人有機會看到這個專案，對我是很大的鼓勵！',
+            cta: 'GITHUB 按個 STAR',
+            repoLabel: '儲存庫',
+            licenseLabel: '授權',
+            back: '返回地圖',
+            footerLeft: 'MINI MAP MACAU · 開源專案',
+            docTitle: '感謝 · Mini Map Macau',
+          },
+          pt: {
+            label: '— TRANSMISSÃO RECEBIDA —',
+            title: 'Obrigado',
+            subtitle: 'Obrigado por experimentar o Mini Map Macau.',
+            description:
+              'Este é um projecto open-source de visualização 3D em tempo real dos transportes públicos de Macau, feito nas horas livres. Se gostou ou lhe foi útil, uma star no GitHub ajuda realmente mais pessoas a descobrir o projecto.',
+            cta: 'STAR NO GITHUB',
+            repoLabel: 'REPO',
+            licenseLabel: 'LICENÇA',
+            back: 'Voltar ao mapa',
+            footerLeft: 'MINI MAP MACAU · OPEN SOURCE',
+            docTitle: 'Obrigado · Mini Map Macau',
+          },
+        };
+
+        var HTML_LANG = { zh: 'zh-Hant', pt: 'pt-PT', en: 'en' };
+
+        function detectLang() {
+          try {
+            var saved = localStorage.getItem('mm_lang');
+            if (saved === 'en' || saved === 'zh' || saved === 'pt') return saved;
+          } catch (e) { /* storage unavailable */ }
+          var nav = ((navigator.language || navigator.userLanguage || 'zh') + '').toLowerCase();
+          if (nav.indexOf('zh') === 0) return 'zh';
+          if (nav.indexOf('pt') === 0) return 'pt';
+          return 'en';
+        }
+
+        function apply(lang) {
+          var t = translations[lang] || translations.en;
+          document.documentElement.lang = HTML_LANG[lang] || 'en';
+
+          var textNodes = document.querySelectorAll('[data-i18n]');
+          for (var i = 0; i < textNodes.length; i++) {
+            var key = textNodes[i].getAttribute('data-i18n');
+            if (t[key]) textNodes[i].textContent = t[key];
+          }
+          var htmlNodes = document.querySelectorAll('[data-i18n-html]');
+          for (var j = 0; j < htmlNodes.length; j++) {
+            var hkey = htmlNodes[j].getAttribute('data-i18n-html');
+            if (t[hkey]) htmlNodes[j].innerHTML = t[hkey];
+          }
+
+          var btns = document.querySelectorAll('.lang button');
+          for (var k = 0; k < btns.length; k++) {
+            btns[k].classList.toggle('active', btns[k].getAttribute('data-lang') === lang);
+          }
+
+          document.title = t.docTitle;
+          try { localStorage.setItem('mm_lang', lang); } catch (e) { /* ignore */ }
+        }
+
+        var btns = document.querySelectorAll('.lang button');
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].addEventListener('click', function (e) {
+            apply(e.currentTarget.getAttribute('data-lang'));
+          });
+        }
+
+        apply(detectLang());
+
+        // ---- Google Ads conversion tracking ------------------------------
+        // Uncomment and replace with your own conversion ID / label once
+        // Google Ads has issued them. The GA4 gtag() stub below is loaded,
+        // so this will work without any extra script tag:
+        //
+        //   gtag('event', 'conversion', { send_to: 'AW-XXXXXXX/YYYYYYY' });
+        //
+        // -----------------------------------------------------------------
+      })();
+    </script>
+
+    <!-- GA4 — mirrors the main app's property so this landing page also
+         records a PV. Deferred/defensive stub so any early gtag() calls
+         queue before the real script arrives. -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-754JZVPQB2');
+    </script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-754JZVPQB2"></script>
+  </body>
+</html>
