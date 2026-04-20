@@ -196,7 +196,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
         primary,
         secondary,
         arr: isFirst ? '—' : formatMinutes(arr),
-        dep: isLast ? (lang === 'zh' ? '終站' : lang === 'pt' ? 'Terminal' : 'End') : formatMinutes(dep),
+        dep: isLast ? t.terminalStop : formatMinutes(dep),
         status,
         isLast,
       })
@@ -212,7 +212,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
         primary,
         secondary,
         arr: etaStr,
-        dep: isLast ? (lang === 'zh' ? '終站' : lang === 'pt' ? 'Terminal' : 'End') : etaStr,
+        dep: isLast ? t.terminalStop : etaStr,
         status: s.status,
         isLast,
       })

@@ -45,7 +45,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
   const sched = SCHEDULE_EN[getScheduleType(time)]
   const schedLabel = t[`schedule${getScheduleType(time) === 'mon_thu' ? 'MonThu' : getScheduleType(time) === 'friday' ? 'Friday' : 'SatSun'}` as const]
   const isLive = !clock.paused && clock.speed === 1 && Math.abs(time.getTime() - Date.now()) < 3000
-  const vehUnit = lang === 'zh' ? '輛' : lang === 'pt' ? 'v' : 'veh'
+  const vehUnit = t.vehicleUnit
 
   const handleApply = useCallback((newDate: Date) => {
     clock.setTime(newDate)
@@ -71,7 +71,11 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
             {pad2(mo)}·{pad2(d)}
           </span>
           <span className="mm-mono text-[7px] leading-none tracking-[0.2em] text-white/40 mt-[2px]">
-            {lang === 'zh' ? WEEKDAY_ZH[time.getDay()] : WEEKDAY_EN[time.getDay()]}
+            {lang === 'zh'
+              ? WEEKDAY_ZH[time.getDay()]
+              : lang === 'pt'
+                ? WEEKDAY_PT[time.getDay()]
+                : WEEKDAY_EN[time.getDay()]}
           </span>
         </div>
         <div className="flex items-center gap-[2px] px-2 bg-gradient-to-b from-[#131314] to-[#0a0a0b]">
@@ -108,7 +112,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
             )}
             <span className={`flex items-center gap-1 ${isLive ? 'text-emerald-300/90' : 'text-white/30'}`}>
               <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
-              {isLive ? 'LIVE' : 'SIM'}
+              {isLive ? t.live : t.simShort}
             </span>
           </span>
         </div>
@@ -128,7 +132,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
                   style={{ letterSpacing: '0.02em' }}>{m}</span>
           </div>
           <div className="flex-1 flex flex-col justify-between items-start py-1.5 px-2 bg-[#08080a] min-w-[42px]">
-            <span className="mm-mono text-[8px] tracking-[0.2em] text-white/35">SEC</span>
+            <span className="mm-mono text-[8px] tracking-[0.2em] text-white/35">{t.sec}</span>
             <div className="flex items-baseline gap-1">
               <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-300/80">{s}</span>
               {clock.speed !== 1 && (
@@ -140,7 +144,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
         {/* Bottom schedule strip */}
         <div className="flex items-center justify-center gap-2 px-3 py-[5px] bg-white/[0.02] border-t border-white/8">
           <span className="mm-mono text-[9px] tracking-[0.18em] text-white/55 uppercase">
-            {schedLabel} · {sched} TIMETABLE
+            {schedLabel} · {sched} {t.timetable}
           </span>
         </div>
       </button>

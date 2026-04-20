@@ -218,7 +218,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const rtVehiclePoolRef = useRef<Map<string, VehiclePosition>>(new Map())
   const rtVisibleIdsSourceRef = useRef<BusRoute[] | null>(null)
   const rtLastTickAtRef = useRef(0)
-  const { lang, setLang } = useI18n()
+  const { lang, t, setLang } = useI18n()
   const isDarkRef = useRef(isDark)
   const langRef = useRef(lang)
   const is3DRef = useRef(is3D)
@@ -671,9 +671,17 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       })
     }
 
+    // addCustomLayers needs the style loaded (addLayer would throw otherwise),
+    // so it stays gated on 'load'. Click handlers use delegated listeners
+    // (layer-id is a queryRenderedFeatures filter, not an addLayer precondition),
+    // so they can — and MUST — be attached synchronously up front: otherwise
+    // a setStyle({diff:false}) that races the initial load (see the [isDark]
+    // effect below, which runs on mount) can swallow the 'load' event and
+    // the click callback never fires. That was the "vehicles aren't clickable"
+    // regression — no delegated click listeners ever registered on the map.
+    attachClickHandlers(map)
     map.on('load', () => {
       addCustomLayers(map)
-      attachClickHandlers(map)
     })
 
     mapRef.current = map
@@ -1173,40 +1181,38 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 className="inline-block w-[8px] h-[8px]"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.35) 0 1px, transparent 1px 3px)' }}
               />
-              {(lang === 'zh' ? '地圖設定' : lang === 'pt' ? 'Definições' : 'Map Settings').toUpperCase()}
+              {t.mapSettings.toUpperCase()}
             </div>
             <div className="pt-1 space-y-0.5">
               <DrawerRow
                 code="2D"
-                label={lang === 'zh' ? '2D 平面' : lang === 'pt' ? '2D Plano' : '2D Plan'}
+                label={t.plan2D}
                 active={!is3D}
                 onClick={() => { if (is3D) toggle3D(); setMenuOpen(false) }}
               />
               <DrawerRow
                 code="3D"
-                label={lang === 'zh' ? '3D 立體' : lang === 'pt' ? '3D Relevo' : '3D Terrain'}
+                label={t.terrain3D}
                 active={is3D}
                 onClick={() => { if (!is3D) toggle3D(); setMenuOpen(false) }}
               />
               <DrawerRow
                 code="BLD"
-                label={lang === 'zh' ? '建築群' : lang === 'pt' ? 'Edifícios' : 'Buildings'}
+                label={t.buildings}
                 active={showBuildings}
                 onClick={() => { toggleBuildings(); setMenuOpen(false) }}
                 disabled={!is3D}
               />
               <DrawerRow
                 code={isDark ? 'DRK' : 'LGT'}
-                label={isDark
-                  ? (lang === 'zh' ? '深色模式' : lang === 'pt' ? 'Modo Escuro' : 'Dark Mode')
-                  : (lang === 'zh' ? '淺色模式' : lang === 'pt' ? 'Modo Claro' : 'Light Mode')}
+                label={isDark ? t.darkMode : t.lightMode}
                 active
                 onClick={() => { toggleTheme(); setMenuOpen(false) }}
               />
               {onToggleTimeBar && (
                 <DrawerRow
                   code="TIM"
-                  label={lang === 'zh' ? '時間列' : lang === 'pt' ? 'Barra de Hora' : 'Time Bar'}
+                  label={t.timeBar}
                   active={showTimeBar}
                   onClick={() => { onToggleTimeBar() }}
                 />
@@ -1214,7 +1220,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               {RT_BUILD && rtUnlocked && (
                 <DrawerRow
                   code="RT*"
-                  label={lang === 'zh' ? '實時巴士 (實驗)' : lang === 'pt' ? 'Bus Tempo Real (β)' : 'Realtime Bus (β)'}
+                  label={t.realtimeBus}
                   active={rtEnabled}
                   onClick={() => {
                     setRtEnabled(e => {
@@ -1236,7 +1242,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 className="inline-block w-[8px] h-[8px]"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.35) 0 1px, transparent 1px 3px)' }}
               />
-              {(lang === 'zh' ? '語系' : lang === 'pt' ? 'Idioma' : 'Language').toUpperCase()} · LANG
+              {t.language.toUpperCase()} · LANG
             </div>
             <div className="pt-2">
               <div className="relative flex items-stretch bg-[#050506] border border-white/10">
@@ -1266,7 +1272,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               </div>
               <div className="flex items-center justify-between mt-1.5 px-0.5">
                 <span className="mm-mono text-[9px] tracking-wider text-amber-300/60">
-                  ▸ {lang === 'zh' ? '繁體中文' : lang === 'pt' ? 'Português' : 'English'}
+                  ▸ {lang === 'zh' ? t.langNameZh : lang === 'pt' ? t.langNamePt : t.langNameEn}
                 </span>
                 <span className="mm-mono text-[7px] tracking-[0.2em] text-white/30">LANG.SET</span>
               </div>
@@ -1279,13 +1285,69 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               <div className="flex items-start gap-1.5">
                 <span className="mm-mono text-[9px] tracking-[0.15em] text-amber-300/60 leading-none pt-[1px] shrink-0">⚠</span>
                 <p className="text-[10px] leading-[1.55] text-white/45">
-                  {lang === 'zh'
-                    ? '本地圖為模擬顯示，數據不保證完全反映此時此刻的真實狀況。'
-                    : lang === 'pt'
-                      ? 'Este mapa é uma simulação; os dados podem não refletir a realidade em tempo real.'
-                      : 'Map shown is simulated; data may not reflect real-time conditions exactly.'}
+                  {t.simDisclaimer}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Data sources — label column localised, right column is proper
+              nouns (DSAT / MLM / AviationStack / TurboJET / CotaiJet) that
+              stay in Latin script across all three languages. */}
+          <div className="pt-2">
+            <div className="bg-[#050506] border border-white/8 px-2.5 py-2">
+              <div className="mm-mono text-[8px] tracking-[0.25em] text-amber-300/60 mb-2 flex items-center gap-1.5">
+                <span className="w-1 h-1 bg-amber-300/70 rounded-full shrink-0" />
+                <span>{t.dataSources}</span>
+                <span className="flex-1 h-px bg-gradient-to-r from-amber-300/20 to-transparent" />
+              </div>
+              <ul className="space-y-[6px]">
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceBusLabel}</span>
+                  <a
+                    href="https://www.dsat.gov.mo/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 hover:text-amber-200 transition-colors shrink-0"
+                  >DSAT</a>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceLrtLabel}</span>
+                  <a
+                    href="https://www.mlm.com.mo/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 hover:text-amber-200 transition-colors shrink-0"
+                  >MLM</a>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceFlightLabel}</span>
+                  <a
+                    href="https://aviationstack.com/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 hover:text-amber-200 transition-colors shrink-0"
+                  >AviationStack</a>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceFerryLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                    <a
+                      href="https://www2.turbojet.com.hk/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >TurboJET</a>
+                    <span className="text-white/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.cotaiwaterjet.com/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >CotaiJet</a>
+                  </span>
+                </li>
+              </ul>
             </div>
           </div>
 

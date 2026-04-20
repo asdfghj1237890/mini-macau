@@ -1145,10 +1145,21 @@ def run():
         all_trips.extend(hq)
         print(f"  {hf}F + {hb}B = {len(hq)} trips")
 
-    out_path = OUTPUT_DIR / "trips.json"
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(all_trips, f, ensure_ascii=False, indent=2)
-    print(f"\nTotal: {len(all_trips)} trips written to {out_path}")
+    # Split output by scheduleType so the client can load only the day's
+    # active schedule first (~65% smaller first-load payload) and
+    # background-prefetch the other two types after primary renders.
+    by_type: dict[str, list] = {"mon_thu": [], "friday": [], "sat_sun": []}
+    for trip in all_trips:
+        stype = trip.get("scheduleType", "mon_thu")
+        by_type.setdefault(stype, []).append(trip)
+
+    print()
+    for stype, trips in by_type.items():
+        out_path = OUTPUT_DIR / f"trips-{stype}.json"
+        with open(out_path, "w", encoding="utf-8") as f:
+            json.dump(trips, f, ensure_ascii=False, indent=2)
+        print(f"  {stype:8s}: {len(trips):5d} trips → {out_path}")
+    print(f"\nTotal: {len(all_trips)} trips written across 3 files")
 
 
 if __name__ == "__main__":

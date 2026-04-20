@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, type RefObject } from 'react'
 import { useI18n } from '../i18n'
+import type { Translations } from '../i18n'
 import { getScheduleType } from '../engines/simulationEngine'
 import { getScheduleDensity } from '../data/hourDensity'
 
@@ -10,18 +11,21 @@ interface Props {
   anchorRef?: RefObject<HTMLElement | null>
 }
 
+// Schedule cards. `en` column stays a fixed code (MON–THU / FRIDAY / SAT–SUN)
+// because the dense tracking-[0.2em] display reads as a universal 24h-style
+// abbreviation across locales. Human-readable header + note come from i18n.
 const SCHEDULES = [
-  { key: 'mon_thu' as const, en: 'MON–THU', zh: '週一至四', note: '常規班表', targetDow: 2 },
-  { key: 'friday' as const, en: 'FRIDAY', zh: '週五', note: '略有加班', targetDow: 5 },
-  { key: 'sat_sun' as const, en: 'SAT–SUN', zh: '週末', note: '延長末班', targetDow: 6 },
+  { key: 'mon_thu' as const, code: 'MON–THU', descKey: 'mtDescMonThu' as const, noteKey: 'scheduleNoteMonThu' as const, targetDow: 2 },
+  { key: 'friday' as const, code: 'FRIDAY', descKey: 'mtDescFriday' as const, noteKey: 'scheduleNoteFriday' as const, targetDow: 5 },
+  { key: 'sat_sun' as const, code: 'SAT–SUN', descKey: 'mtDescSatSun' as const, noteKey: 'scheduleNoteSatSun' as const, targetDow: 6 },
 ]
 
-const QUICK = [
-  { t: '06:30', zh: '首班' },
-  { t: '08:00', zh: '早尖峰' },
-  { t: '12:00', zh: '午' },
-  { t: '18:00', zh: '晚尖峰' },
-  { t: '22:00', zh: '夜' },
+const QUICK: ReadonlyArray<{ t: string; labelKey: keyof Translations }> = [
+  { t: '06:30', labelKey: 'quickFirst' },
+  { t: '08:00', labelKey: 'quickMorningPeak' },
+  { t: '12:00', labelKey: 'quickNoon' },
+  { t: '18:00', labelKey: 'quickEveningPeak' },
+  { t: '22:00', labelKey: 'quickNight' },
 ]
 
 function pad2(n: number) { return String(n).padStart(2, '0') }
@@ -119,7 +123,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
     <div className={`${isPhone ? 'space-y-4' : 'w-[380px] space-y-3'}`}>
       {/* Schedule cards */}
       <div>
-        <div className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/60 mb-1.5">◣ SCHEDULE · 班表</div>
+        <div className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/60 mb-1.5">◣ SCHEDULE · {t.scheduleCategoryLabel}</div>
         <div className="grid grid-cols-3 gap-1.5">
           {SCHEDULES.map(s => {
             const active = schedType === s.key
@@ -134,9 +138,9 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
                 }`}
               >
                 {active && <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-amber-300 mm-led-pulse" />}
-                <div className={`mm-mono text-[9px] tracking-[0.2em] ${active ? 'text-amber-300' : 'text-white/40'}`}>{s.en}</div>
-                <div className={`mm-han text-[13px] font-bold mt-0.5 ${active ? 'text-amber-100' : 'text-white/75'}`}>{s.zh}</div>
-                <div className={`text-[9px] mt-0.5 ${active ? 'text-amber-200/70' : 'text-white/35'}`}>{s.note}</div>
+                <div className={`mm-mono text-[9px] tracking-[0.2em] ${active ? 'text-amber-300' : 'text-white/40'}`}>{s.code}</div>
+                <div className={`mm-han text-[13px] font-bold mt-0.5 ${active ? 'text-amber-100' : 'text-white/75'}`}>{t[s.descKey]}</div>
+                <div className={`text-[9px] mt-0.5 ${active ? 'text-amber-200/70' : 'text-white/35'}`}>{t[s.noteKey]}</div>
               </button>
             )
           })}
@@ -146,7 +150,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
       {/* Date stepper */}
       <div>
         <div className="flex items-end justify-between mb-1.5">
-          <div className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/60">◣ DATE · 日期</div>
+          <div className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/60">◣ DATE · {t.dateCategoryLabel}</div>
           <div className="mm-mono mm-tabular text-[10px] text-amber-200">
             {selected.getFullYear()}/{pad2(selected.getMonth() + 1)}/{pad2(selected.getDate())} · {weekdayShort(selected)}
           </div>
@@ -162,7 +166,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
 
       {/* Time */}
       <div>
-        <div className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/60 mb-1.5">◣ TIME · 時間</div>
+        <div className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/60 mb-1.5">◣ TIME · {t.timeCategoryLabel}</div>
         <div className="bg-[#050505] border border-amber-300/20 rounded-sm px-3 py-2.5 flex items-center justify-between">
           <div className="flex items-end gap-0.5">
             <span className="mm-seg7 mm-tabular font-bold text-[34px] leading-none text-amber-200"
@@ -206,13 +210,13 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
               className="absolute top-[2px] mm-mono text-[7px] text-amber-200/90 tracking-widest pointer-events-none"
               style={{ left: `${(7.5 / 24) * 100}%`, transform: 'translateX(-50%)' }}
             >
-              AM PEAK
+              {t.amPeak}
             </div>
             <div
               className="absolute top-[2px] mm-mono text-[7px] text-amber-200/90 tracking-widest pointer-events-none"
               style={{ left: `${(18 / 24) * 100}%`, transform: 'translateX(-50%)' }}
             >
-              PM PEAK
+              {t.pmPeak}
             </div>
             <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50 pointer-events-none" style={{ left: `${schedDensity.firstFrac * 100}%` }} />
             <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50 pointer-events-none" style={{ left: `${schedDensity.lastFrac * 100}%` }} />
@@ -241,13 +245,13 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
               className="absolute mm-mono text-[8px] text-emerald-300/70 tracking-widest whitespace-nowrap"
               style={{ left: `${schedDensity.firstFrac * 100}%`, transform: 'translateX(-50%)' }}
             >
-              首班 {schedDensity.first}
+              {t.firstBusLabel} {schedDensity.first}
             </div>
             <div
               className="absolute mm-mono text-[8px] text-emerald-300/70 tracking-widest whitespace-nowrap"
               style={{ left: `${schedDensity.lastFrac * 100}%`, transform: 'translateX(-100%)' }}
             >
-              末班 {schedDensity.last}
+              {t.lastBusLabel} {schedDensity.last}
             </div>
           </div>
         </div>
@@ -257,6 +261,10 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
           {QUICK.map(q => {
             const [h2, m2] = q.t.split(':').map(Number)
             const active = hh === h2 && mm === m2
+            const label = t[q.labelKey]
+            // All quick-preset labels in the Translations table are plain
+            // strings (never functions), so we can safely render them as-is.
+            const labelStr = typeof label === 'string' ? label : ''
             return (
               <button
                 key={q.t}
@@ -268,7 +276,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
                 }`}
               >
                 <span className="mm-mono mm-tabular text-[10px] font-bold leading-none">{q.t}</span>
-                <span className="mm-han text-[9px] leading-none mt-0.5 opacity-75">{q.zh}</span>
+                <span className="mm-han text-[9px] leading-none mt-0.5 opacity-75">{labelStr}</span>
               </button>
             )
           })}
@@ -302,7 +310,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
                 className="inline-block w-[8px] h-[8px]"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.7) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/80">SET TIME · 設定時間</span>
+              <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/80">SET TIME · {t.setTimeLabel}</span>
             </div>
           </div>
           <div className="mx-auto w-10 h-1 rounded-full bg-white/12 mt-2" />
@@ -347,7 +355,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
                 className="inline-block w-[8px] h-[8px]"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.7) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/80">SET TIME · 設定時間</span>
+              <span className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/80">SET TIME · {t.setTimeLabel}</span>
         </div>
       </div>
       <div className="p-3 overflow-y-auto mm-scrollbar">{body}</div>

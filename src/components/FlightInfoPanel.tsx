@@ -1,5 +1,5 @@
 import type { VehiclePosition, FlightAirport, SimulationClock } from '../types'
-import { useI18n, type Lang } from '../i18n'
+import { useI18n, localName } from '../i18n'
 
 interface Props {
   vehicle: VehiclePosition
@@ -14,60 +14,21 @@ function formatMinutes(totalMinutes: number): string {
   return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
 }
 
-function airportDisplayName(airport: FlightAirport | undefined, lang: Lang): string {
-  if (!airport) return '—'
-  if (lang === 'zh' && airport.nameCn) return airport.nameCn
-  return airport.name || '—'
-}
-
-const FLIGHT_LABELS = {
-  en: {
-    departure: 'DEP',
-    arrival: 'ARR',
-    scheduled: 'SCHED',
-    destination: 'TO',
-    origin: 'FROM',
-    aircraft: 'ACFT',
-    airline: 'OPER',
-    departing: 'DEPARTING',
-    arriving: 'ARRIVING',
-    airport: 'MFM',
-  },
-  zh: {
-    departure: '離澳',
-    arrival: '抵澳',
-    scheduled: '預定',
-    destination: '目的地',
-    origin: '出發地',
-    aircraft: '機型',
-    airline: '航司',
-    departing: '起飛中',
-    arriving: '降落中',
-    airport: 'MFM',
-  },
-  pt: {
-    departure: 'PART',
-    arrival: 'CHEG',
-    scheduled: 'HORA',
-    destination: 'DEST',
-    origin: 'ORIG',
-    aircraft: 'AERN',
-    airline: 'OPER',
-    departing: 'DESC',
-    arriving: 'ATER',
-    airport: 'MFM',
-  },
-} as const
-
 export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
-  const { lang } = useI18n()
-  const fl = FLIGHT_LABELS[lang]
+  const { lang, t } = useI18n()
   const flight = vehicle.flightData
   if (!flight) return null
 
   const isDeparture = flight.type === 'departure'
-  const airport = isDeparture ? flight.destination : flight.origin
-  const statusLabel = isDeparture ? fl.departing : fl.arriving
+  const airport: FlightAirport | undefined = isDeparture ? flight.destination : flight.origin
+  const airportName = airport
+    ? localName(lang, {
+        name: airport.name,
+        nameCn: airport.nameCn,
+        namePt: airport.namePt,
+      }) || '—'
+    : '—'
+  const statusLabel = isDeparture ? t.flightDeparting : t.flightArriving
   const isLive = !clock.paused && clock.speed === 1 && Math.abs(clock.currentTime.getTime() - Date.now()) < 3000
 
   return (
@@ -82,7 +43,7 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
           <div className="px-3 py-2 flex items-center gap-2 border-r border-white/10 bg-sky-400/[0.08]">
             <div className="w-1 h-7 shrink-0 bg-sky-300" />
             <div>
-              <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/50">✈ FLIGHT</div>
+              <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/50">✈ {t.flightLabel}</div>
               <div className="mm-mono mm-tabular text-[16px] font-bold text-white leading-tight">
                 {flight.flightNumber}
               </div>
@@ -91,10 +52,10 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
             <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-sky-300/80 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-sky-300 mm-led-pulse" />
-              {isDeparture ? fl.destination.toUpperCase() : fl.origin.toUpperCase()} · {statusLabel}
+              {isDeparture ? t.flightDestination.toUpperCase() : t.flightOrigin.toUpperCase()} · {statusLabel}
             </div>
             <div className="text-lg font-bold text-sky-100 truncate">
-              {airportDisplayName(airport, lang)}
+              {airportName}
               {airport?.iata && (
                 <span className="text-sky-200/60 font-normal text-[14px] ml-1.5">{airport.iata}</span>
               )}
@@ -104,7 +65,7 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
             onClick={onClose}
             className="px-3 text-white/40 hover:text-white hover:bg-white/5 border-l border-white/10
                        mm-mono text-[16px] transition-colors"
-            aria-label="Close"
+            aria-label={t.cancel}
           >
             ✕
           </button>
@@ -114,14 +75,14 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
         <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
           <div className="px-3 py-1.5 border-r border-white/8">
             <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">
-              {isDeparture ? fl.departure : fl.arrival}
+              {isDeparture ? t.flightDeparture : t.flightArrival}
             </div>
             <div className="mm-mono mm-tabular text-[17px] font-bold text-sky-200 leading-tight">
               {formatMinutes(flight.scheduledTime)}
             </div>
           </div>
           <div className="px-3 py-1.5">
-            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">{fl.aircraft}</div>
+            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">{t.flightAircraft}</div>
             <div className="mm-mono text-[14px] font-bold text-white/90 leading-tight truncate">
               {flight.aircraftType ?? '—'}
             </div>
@@ -132,7 +93,7 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
         <div className="px-3 py-2 space-y-1">
           {flight.airline.name && (
             <div className="flex items-center justify-between gap-3">
-              <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/35">{fl.airline}</span>
+              <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/35">{t.flightAirline}</span>
               <span className="text-[13px] text-white/80 truncate text-right">
                 {flight.airline.name}
                 {flight.airline.iata && (
@@ -143,20 +104,20 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
           )}
           <div className="flex items-center justify-between gap-3">
             <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/35">
-              {isDeparture ? fl.origin : fl.destination}
+              {isDeparture ? t.flightOrigin : t.flightDestination}
             </span>
-            <span className="text-[13px] text-white/80">{fl.airport}</span>
+            <span className="text-[13px] text-white/80">{t.flightAirportCode}</span>
           </div>
         </div>
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between">
           <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 uppercase">
-            {isDeparture ? 'DEPARTURE · 離境' : 'ARRIVAL · 抵境'}
+            {isDeparture ? t.flightFooterDep : t.flightFooterArr}
           </span>
           <span className={`mm-mono text-[11px] max-sm:text-[9px] flex items-center gap-1.5 tracking-wider ${isLive ? 'text-sky-300/80' : 'text-white/30'}`}>
             <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-sky-300 mm-led-pulse' : 'bg-white/25'}`} />
-            {isLive ? 'LIVE' : 'SIM'}
+            {isLive ? t.live : t.simShort}
           </span>
         </div>
       </div>
