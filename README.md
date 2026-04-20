@@ -34,7 +34,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, and **MFM a
 |-------|-----------|
 | Frontend | React 19, TypeScript 6, Vite 8 |
 | 3D Map | MapLibre GL JS, custom WebGL fill-extrusion layers |
-| Geo utilities | Turf.js (along, length, nearest-point-on-line) |
+| Geo utilities | Turf.js (nearest-point-on-line) + custom precomputed-polyline cache |
 | Styling | Tailwind CSS v4 |
 | Fonts | Orbitron, JetBrains Mono, Noto Sans HK (Google Fonts) |
 | Data pipeline | Python 3.13+, uv, OpenStreetMap Overpass API, OSRM |
@@ -185,6 +185,41 @@ mini-macau/
 │   └── update-flights.yml        # Daily flight data update
 └── index.html
 ```
+
+## Performance Notes
+
+Simulating 300–400 moving vehicles at 20 Hz while MapLibre re-draws 3D extrusions every frame puts real pressure on the main thread. A few optimizations worth calling out:
+
+### Polyline progress lookup — `cumKm` + binary search
+
+The simulation asks the same question once per vehicle per tick: *given a route and a progress ∈ [0, 1], where on the polyline is the vehicle, and which way is it facing?*
+
+The original implementation used Turf's [`along`](https://turfjs.org/docs/api/along) twice per vehicle (once for position, once for a 1-metre-ahead lookahead to derive bearing). `along` walks the coordinate array from index 0 and sums haversine distances until it reaches the target km — **O(n) haversines per call**. At ~400 vehicles × 2 calls × 20 Hz × 100-point routes, that worked out to roughly **12 000 full-route scans per second**, all on the main thread.
+
+Key observation: each route's geometry is immutable, so the per-segment work only needs to happen once. On first touch we cache:
+
+- `cumKm[i]` — cumulative kilometres from `coords[0]` to `coords[i]` (`Float64Array`)
+- `segBearing[i]` — heading of segment `coords[i] → coords[i+1]` (`Float64Array`)
+
+Per-call cost then collapses to a binary search on `cumKm` (≈ 8 comparisons for a 150-point route), a linear interpolation between two lat/lng pairs, and a table lookup for bearing. No trig in the hot loop, and no second `along` call since the segment index already tells us the heading.
+
+We deliberately don't cache a per-line "last index" hint: multiple vehicles share the same polyline at different progress values, so a shared hint would thrash. `O(log n)` is cheap enough that per-vehicle state isn't worth it. See [`simulationEngine.ts`](src/engines/simulationEngine.ts) (`getLineCache` / `interpolateOnLine`).
+
+### One bus-routes source instead of 92
+
+MapLibre GeoJSON sources are **tiled in a web worker**: the worker clips each source's features to tile boundaries, tessellates lines into triangle strips, and ships vertex buffers back to the main thread. Originally each of the 92 bus routes was its own `addSource` + `addLayer`, meaning every zoom level change forced 92 separate `postMessage` round-trips and 92 independent tile-index rebuilds.
+
+Consolidating into a single `bus-routes` source (one tile index, one round-trip per reindex) drastically cut worker chatter during zoom. Per-route dimming — previously `setPaintProperty('bus-route-${id}', 'line-opacity', …)` against 92 layers — became `setFeatureState({ source: 'bus-routes', id }, { inService })` on one layer, with opacity driven by a `['case', ['==', ['feature-state', 'inService'], false], DIM, FULL]` paint expression. `setFeatureState` doesn't recompile paint; `setPaintProperty` does.
+
+### Two-tier animation throttle
+
+Moving 300+ buses as 3D fill-extrusion polygons is heavy (each bus is 8 quads × lat/lng math). Moving them as 2D circles is almost free (just a `setData` on a Point FeatureCollection).
+
+The animate loop splits them: simulation + 2D circle updates run every 50 ms unconditionally, while 3D polygon rebuilds throttle to 160 ms whenever the map is actively moving (`movestart` / `moveend` set a `mapBusy` flag). During zoom gestures the 2D layer keeps vehicles visibly moving at full cadence while the expensive 3D rebuild backs off, leaving MapLibre's own render pipeline more time to finish zoom frames.
+
+### Decouple zoom display from React re-renders
+
+The zoom indicator in the HUD used to be a `useState`, so every `map.on('zoom', …)` event caused `<MapView>` to re-render — which is a *huge* component with map refs, ETA panels, and layer toggles. Now zoom lives in an external store read via [`useSyncExternalStore`](https://react.dev/reference/react/useSyncExternalStore), and only a tiny `<ZoomText>` leaf subscribes. The rest of `<MapView>` stays stable during pinch/scroll zoom.
 
 ## Acknowledgements
 
