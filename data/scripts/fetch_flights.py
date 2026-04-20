@@ -1,19 +1,23 @@
 """
-Fetch MFM (Macau International Airport) flight timetable from the official
-Macau Airport website and generate a static flights.json for Mini Macau.
+Build a static flights.json for Mini Macau covering MFM departures and
+arrivals for a given date.
 
-Scrapes both departure and arrival timetables, filters for schedules active
-on the target date, deduplicates, and outputs times in Macau local (UTC+8)
-as minutes since midnight.
+The primary data source is configured via four opaque env vars (kept out
+of source as GitHub Actions secrets). The script parses departure +
+arrival timetables, filters for schedules active on the target date,
+deduplicates, and outputs times in Macau local (UTC+8) as minutes since
+midnight.
 
-When AVIATIONSTACK_API_KEY is set, also fetches data from the AviationStack
-API and cross-references both sources to verify correctness.
+When AVIATIONSTACK_API_KEY is set, the AviationStack API is also queried
+and both sources are cross-referenced to verify correctness.
 
 Usage:
     uv run python data/scripts/fetch_flights.py [YYYY-MM-DD]
 
     If no date is given, defaults to today.
-    Set AVIATIONSTACK_API_KEY env var to enable cross-verification.
+    Required env:  UPSTREAM_DEP_EN_URL, UPSTREAM_DEP_ZH_URL,
+                   UPSTREAM_ARR_EN_URL, UPSTREAM_ARR_ZH_URL
+    Optional env:  AVIATIONSTACK_API_KEY  (enables cross-verification)
 
 Output: public/data/flights.json
 """
@@ -30,7 +34,19 @@ import requests
 
 OUTPUT_PATH = Path(__file__).resolve().parent.parent.parent / "public" / "data" / "flights.json"
 
-_BASE_URL = "https://www.macau-airport.com/{lang}/flights/timetable/{page}"
+# Upstream URLs are injected via four opaque env vars (kept out of source
+# as GitHub Actions secrets). The code treats them as black-box strings —
+# no URL shape, path structure, or query form is hard-coded here.
+_UPSTREAM_URLS: dict[str, str] = {
+    "dep_en": os.environ.get("UPSTREAM_DEP_EN_URL", ""),
+    "dep_zh": os.environ.get("UPSTREAM_DEP_ZH_URL", ""),
+    "arr_en": os.environ.get("UPSTREAM_ARR_EN_URL", ""),
+    "arr_zh": os.environ.get("UPSTREAM_ARR_ZH_URL", ""),
+}
+
+
+def _upstream_ready() -> bool:
+    return all(_UPSTREAM_URLS.values())
 
 MFM_LAT = 22.1494
 MFM_LON = 113.5914
@@ -115,7 +131,7 @@ def compute_bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float
 
 def fetch_page(url: str) -> str:
     resp = requests.get(url, timeout=30, headers={
-        "User-Agent": "Mozilla/5.0 (Mini Macau flight data fetcher)",
+        "User-Agent": "Mozilla/5.0 (compatible; flight-data-sync/1.0)",
     })
     resp.raise_for_status()
     return resp.text
@@ -382,14 +398,21 @@ def cross_verify(flights: list[dict], api_key: str) -> None:
 
 
 def _build_cn_mapping(target_date: date) -> dict[str, str]:
-    """Fetch Chinese timetable pages and build {english_name: chinese_name} mapping."""
+    """Fetch both localized timetables and build {english_name: chinese_name} mapping."""
     mapping: dict[str, str] = {}
+    if not _upstream_ready():
+        return mapping
     en_by_fnum: dict[str, str] = {}
     zh_by_fnum: dict[str, str] = {}
 
-    for page in ("departures", "arrivals"):
-        en_html = fetch_page(_BASE_URL.format(lang="en", page=page))
-        zh_html = fetch_page(_BASE_URL.format(lang="zh", page=page))
+    pairs = (
+        (_UPSTREAM_URLS["dep_en"], _UPSTREAM_URLS["dep_zh"]),
+        (_UPSTREAM_URLS["arr_en"], _UPSTREAM_URLS["arr_zh"]),
+    )
+
+    for en_url, zh_url in pairs:
+        en_html = fetch_page(en_url)
+        zh_html = fetch_page(zh_url)
 
         for row_match in _ROW_RE.finditer(en_html):
             row = row_match.group(0)
@@ -421,20 +444,27 @@ def main():
 
     print(f"Target date: {target_date}")
 
+    if not _upstream_ready():
+        missing = [k for k, v in _UPSTREAM_URLS.items() if not v]
+        print(
+            f"Upstream URL env vars not fully set ({', '.join(missing)} missing) —\n"
+            "  legacy backup source disabled. Set the env vars (or GitHub Actions\n"
+            "  secrets) to enable timetable sync.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     print("Building Chinese name mapping...")
     cn_map = _build_cn_mapping(target_date)
     print(f"  Mapped {len(cn_map)} destination names")
 
-    dep_url = _BASE_URL.format(lang="en", page="departures")
-    arr_url = _BASE_URL.format(lang="en", page="arrivals")
-
-    print("Fetching MFM departures timetable...")
-    dep_html = fetch_page(dep_url)
+    print("Fetching departures timetable...")
+    dep_html = fetch_page(_UPSTREAM_URLS["dep_en"])
     dep_rows = parse_timetable_html(dep_html, target_date)
     print(f"  Found {len(dep_rows)} active departure entries")
 
-    print("Fetching MFM arrivals timetable...")
-    arr_html = fetch_page(arr_url)
+    print("Fetching arrivals timetable...")
+    arr_html = fetch_page(_UPSTREAM_URLS["arr_en"])
     arr_rows = parse_timetable_html(arr_html, target_date)
     print(f"  Found {len(arr_rows)} active arrival entries")
 
