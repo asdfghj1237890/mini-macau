@@ -38,7 +38,24 @@
       "Bash(VITE_ENABLE_RT=1 npx vite build)",
       "Bash(node -e \"const d=require\\('./data/bus-routes.json'\\); console.log\\('routes:',d.length\\); const c=d.reduce\\(\\(a,r\\)=>{a[r.routeType]=\\(a[r.routeType]||0\\)+1;return a},{}\\); console.log\\('by type:',c\\)\")",
       "Bash(node -e \"const d=require\\('./public/data/bus-routes.json'\\); console.log\\('routes:',d.length\\); const c=d.reduce\\(\\(a,r\\)=>{a[r.routeType]=\\(a[r.routeType]||0\\)+1;return a},{}\\); console.log\\('by type:',c\\); console.log\\('sample ids:', d.slice\\(0,10\\).map\\(r=>r.id\\).join\\(','\\)\\)\")",
-      "Bash(node -e \"const d=require\\('C:/Users/TOMMY/Desktop/side-projects/mini-macau/data/output/bus-routes.json'\\); console.log\\('routes:', d.length\\); let pts=0; for\\(const r of d\\){ if\\(r.geometry?.geometry?.coordinates\\) pts+=r.geometry.geometry.coordinates.length; } console.log\\('total bus line coords:', pts\\);\")"
+      "Bash(node -e \"const d=require\\('C:/Users/TOMMY/Desktop/side-projects/mini-macau/data/output/bus-routes.json'\\); console.log\\('routes:', d.length\\); let pts=0; for\\(const r of d\\){ if\\(r.geometry?.geometry?.coordinates\\) pts+=r.geometry.geometry.coordinates.length; } console.log\\('total bus line coords:', pts\\);\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git tag *)",
+      "Bash(git push *)",
+      "Bash(node -e \"const data=require\\('./public/data/routes.json'\\); const routes=data.busRoutes||data.routes||data; const inSvc=routes.filter\\(r=>{const n=21*60+32;const s=r.serviceHoursStart*60;let e=r.serviceHoursEnd*60+60;if\\(e<=s\\)e+=1440;return \\(n>=s&&n<e\\)||\\(n+1440>=s&&n+1440<e\\)}\\); const outSvc=routes.filter\\(r=>!inSvc.includes\\(r\\)\\); console.log\\('Total routes:',routes.length\\); console.log\\('In service at 21:32 \\(+60min tail\\):',inSvc.length\\); console.log\\('Out of service:',outSvc.length\\); console.log\\('\\\\nSample OUT-OF-SERVICE routes:'\\); outSvc.slice\\(0,15\\).forEach\\(r=>console.log\\(' ',r.id,r.name||r.nameCn||'',r.serviceHoursStart+'h-'+r.serviceHoursEnd+'h'\\)\\);\")",
+      "Bash(node -e \"const routes=require\\('./public/data/bus-routes.json'\\); const n=21*60+32; const check=r=>{const s=r.serviceHoursStart*60;let e=r.serviceHoursEnd*60+60;if\\(e<=s\\)e+=1440;return \\(n>=s&&n<e\\)||\\(n+1440>=s&&n+1440<e\\)}; const inSvc=routes.filter\\(check\\); const outSvc=routes.filter\\(r=>!check\\(r\\)\\); console.log\\('Total:',routes.length,' In-svc \\(21:32\\):',inSvc.length,' Out:',outSvc.length\\); console.log\\('\\\\\\\\nOut-of-service routes:'\\); outSvc.forEach\\(r=>console.log\\(' ',r.id,\\(r.name||r.nameCn||''\\).slice\\(0,30\\),r.serviceHoursStart+'h-'+r.serviceHoursEnd+'h'\\)\\);\")",
+      "Bash(node -e \"const routes=require\\('./public/data/bus-routes.json'\\); const ends={}; routes.forEach\\(r=>ends[r.serviceHoursEnd]=\\(ends[r.serviceHoursEnd]||0\\)+1\\); console.log\\('End-hour distribution:'\\); Object.keys\\(ends\\).sort\\(\\(a,b\\)=>+a-+b\\).forEach\\(h=>console.log\\(' ',h+'h:',ends[h]\\)\\)\")",
+      "WebFetch(domain:motransportinfo.com)",
+      "Bash(ls scripts/)",
+      "Bash(ls pyproject.toml uv.lock)",
+      "Bash(node -e \"const ref=require\\('./data/bus_reference/routes.json'\\); const r1=ref.find\\(r=>r.id==='1'\\); console.log\\('Route 1 schedule:', JSON.stringify\\(r1?.schedule, null, 2\\)\\);\")",
+      "Bash(node -e \"const ref=require\\('./data/bus_reference/routes.json'\\); const periods={}; ref.forEach\\(r=>\\(r.schedule||[]\\).forEach\\(e=>periods[e.period]=\\(periods[e.period]||0\\)+1\\)\\); console.log\\(JSON.stringify\\(periods, null, 2\\)\\);\")",
+      "Bash(uv run *)",
+      "Bash(node -e \"const r=require\\('./public/data/bus-routes.json'\\); console.log\\(JSON.stringify\\(r.find\\(x=>x.id==='1'\\),null,2\\).slice\\(0,500\\)\\)\")",
+      "Bash(node -e \"const r=require\\('./public/data/bus-routes.json'\\); const one=r.find\\(x=>x.id==='1'\\); console.log\\('start:', one.serviceHoursStart, 'end:', one.serviceHoursEnd, 'startSun:', one.serviceHoursStartSun, 'endSun:', one.serviceHoursEndSun\\); console.log\\('freq:', one.frequency\\);\")",
+      "Bash(gh run *)",
+      "Bash(python -c \"import sys, json; data=json.loads\\(sys.stdin.read\\(\\)\\); lines=data[0]['text'].split\\('\\\\n'\\); dsat=[l for l in lines if 'dsat' in l.lower\\(\\)]; print\\(f'Total lines: {len\\(lines\\)}'\\); print\\(f'DSAT requests: {len\\(dsat\\)}'\\); print\\('First 5 DSAT:'\\); [print\\(l[:250]\\) for l in dsat[:5]]\")"
     ]
   }
 }
