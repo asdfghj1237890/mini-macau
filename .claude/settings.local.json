@@ -37,7 +37,8 @@
       "Bash(cd \"C:\\\\\\\\Users\\\\\\\\TOMMY\\\\\\\\Desktop\\\\\\\\side-projects\\\\\\\\mini-macau\")",
       "Bash(VITE_ENABLE_RT=1 npx vite build)",
       "Bash(node -e \"const d=require\\('./data/bus-routes.json'\\); console.log\\('routes:',d.length\\); const c=d.reduce\\(\\(a,r\\)=>{a[r.routeType]=\\(a[r.routeType]||0\\)+1;return a},{}\\); console.log\\('by type:',c\\)\")",
-      "Bash(node -e \"const d=require\\('./public/data/bus-routes.json'\\); console.log\\('routes:',d.length\\); const c=d.reduce\\(\\(a,r\\)=>{a[r.routeType]=\\(a[r.routeType]||0\\)+1;return a},{}\\); console.log\\('by type:',c\\); console.log\\('sample ids:', d.slice\\(0,10\\).map\\(r=>r.id\\).join\\(','\\)\\)\")"
+      "Bash(node -e \"const d=require\\('./public/data/bus-routes.json'\\); console.log\\('routes:',d.length\\); const c=d.reduce\\(\\(a,r\\)=>{a[r.routeType]=\\(a[r.routeType]||0\\)+1;return a},{}\\); console.log\\('by type:',c\\); console.log\\('sample ids:', d.slice\\(0,10\\).map\\(r=>r.id\\).join\\(','\\)\\)\")",
+      "Bash(node -e \"const d=require\\('C:/Users/TOMMY/Desktop/side-projects/mini-macau/data/output/bus-routes.json'\\); console.log\\('routes:', d.length\\); let pts=0; for\\(const r of d\\){ if\\(r.geometry?.geometry?.coordinates\\) pts+=r.geometry.geometry.coordinates.length; } console.log\\('total bus line coords:', pts\\);\")"
     ]
   }
 }

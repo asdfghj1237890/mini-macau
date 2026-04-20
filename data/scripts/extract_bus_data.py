@@ -10,12 +10,21 @@ Output schemas:
 
   bus-routes.json: [{
     id, name, nameCn, color,
-    stopsForward:  string[],   // DSAT IDs including /N suffix
-    stopsBackward: string[],   // [] for circular routes
-    geometry,                  // road-snapped LineString of forward path
+    stopsForward:  string[],   // DSAT IDs in chronological visit order
+                               // (dir[0] stops + dir[1] stops if backward exists)
+    stopsBackward: string[],   // always [] now — see below
+    geometry,                  // road-snapped LineString of full trip cycle
+                               // (dir[0] + dir[1] for routes with backward)
     frequency, serviceHoursStart, serviceHoursEnd,
-    routeType: "bilateral" | "circular"
+    routeType: "circular"      // always — geometry is one full loop
   }]
+
+NOTE on bilateral routes: in Macau, "bilateral" routes (those with separate
+DSAT forward+backward stop lists) generally use *different* roads in each
+direction, not just the reverse of one. We model them as a single circular
+loop covering both legs back-to-back. This matches reality (the bus does
+one full out-and-back per cycle) and avoids the broken assumption that
+dir[1] is reversed(dir[0]).
 
   bus-stops.json: [{
     id: "M172/14",             // full DSAT platform code
@@ -44,6 +53,23 @@ ROUTE_COLORS = [
     "#00b894", "#6c5ce7", "#fd79a8", "#0984e3", "#00cec9",
     "#636e72", "#b2bec3", "#d63031", "#74b9ff", "#a29bfe",
 ]
+
+# Per-route OSRM waypoint hints. After the listed stop, insert the given
+# [lng, lat] as an extra OSRM waypoint to force routing through a specific
+# road segment. Used to fix cases where OSRM's driving profile snaps a stop
+# to the wrong side of a one-way / multi-level junction and routes a long
+# detour (e.g. 亞馬喇前地: driving profile takes a 1km westward loop through
+# 議事亭/新馬路 because the direct east-bound exit is bus-only in OSM).
+#
+# Each hint coord must be a valid road-snappable point near the desired
+# exit. Only the (route_id, stop_id) pairs listed here are affected.
+AMARAL_EAST_EXIT = [113.54390, 22.18893]
+WAYPOINT_HINTS: dict[tuple[str, str], list[float]] = {
+    ("MT1", "M172/13"): AMARAL_EAST_EXIT,
+    ("MT2", "M172/12"): AMARAL_EAST_EXIT,
+    ("MT5", "M172/10"): AMARAL_EAST_EXIT,
+    ("39",  "M172/10"): AMARAL_EAST_EXIT,
+}
 
 
 def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> dict:
@@ -211,25 +237,59 @@ def run():
                 centroid_lookup,
             )
 
-        waypoints = [[lng, lat] for _, lng, lat, _ in fwd_aligned if lng and lat]
-        if len(waypoints) < 2:
+        # Build geometry for each direction SEPARATELY, then concatenate.
+        # Routing dir[0]+dir[1] as a single OSRM call lets the solver
+        # "optimize" the transition, sometimes producing huge cross-channel
+        # detours (e.g. 102: deep-Taipa->brief-Macau->deep-Taipa loops).
+        # Per-direction routing keeps each leg on the roads it actually uses.
+        def _waypoints_of(aligned: list[tuple[str, float, float, str]]) -> list[list[float]]:
+            wps: list[list[float]] = []
+            for did, lng, lat, _ in aligned:
+                if not (lng and lat):
+                    continue
+                wps.append([lng, lat])
+                hint = WAYPOINT_HINTS.get((rid, did))
+                if hint:
+                    wps.append(list(hint))
+            return wps
+
+        fwd_wps = _waypoints_of(fwd_aligned)
+        bwd_wps = _waypoints_of(bwd_aligned)
+        if len(fwd_wps) < 2:
             print("SKIP (<2 waypoints)")
             continue
 
-        geometry = build_route_geometry(waypoints, rid)
+        fwd_geom = build_route_geometry(fwd_wps, rid)
+        if bwd_wps and len(bwd_wps) >= 2:
+            bwd_geom = build_route_geometry(bwd_wps, rid + " (bwd)")
+            fwd_coords = fwd_geom.get("geometry", {}).get("coordinates", [])
+            bwd_coords = bwd_geom.get("geometry", {}).get("coordinates", [])
+            geometry = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": list(fwd_coords) + list(bwd_coords),
+                },
+                "properties": {},
+            }
+        else:
+            geometry = fwd_geom
 
         color = ROUTE_COLORS[i % len(ROUTE_COLORS)]
         stops_fwd = [did for did, _, _, _ in fwd_aligned]
         stops_bwd = [did for did, _, _, _ in bwd_aligned]
-        route_type = "bilateral" if stops_bwd else "circular"
+        # Geometry is the full out+back loop; treat as circular and put all
+        # stops into stopsForward in visit order.
+        stops_combined = stops_fwd + stops_bwd
+        route_type = "circular"
 
         bus_routes.append({
             "id": rid,
             "name": rid,
             "nameCn": route.get("description", ""),
             "color": color,
-            "stopsForward": stops_fwd,
-            "stopsBackward": stops_bwd,
+            "stopsForward": stops_combined,
+            "stopsBackward": [],
             "geometry": geometry,
             "frequency": route.get("avg_freq", 12),
             "serviceHoursStart": route.get("service_start", 6),
