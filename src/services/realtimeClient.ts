@@ -57,8 +57,14 @@ async function fetchBatch(keys: string[]): Promise<BatchItem[] | null> {
 
 export function extractObservations(resp: DsatRouteResponse, now = Date.now()): BusObservation[] {
   const out: BusObservation[] = []
-  resp.data.routeInfo.forEach((station, stopIndex) => {
-    for (const b of station.busInfo ?? []) {
+  const routeInfo = resp?.data?.routeInfo
+  if (!Array.isArray(routeInfo)) return out
+  routeInfo.forEach((station, stopIndex) => {
+    // DSAT sometimes returns busInfo as a non-array object (e.g. {}) instead
+    // of missing/empty; `??` only catches null/undefined, so guard explicitly
+    // to avoid "object is not iterable" in for…of.
+    const busInfo = Array.isArray(station?.busInfo) ? station.busInfo : []
+    for (const b of busInfo) {
       if (!b.busPlate) continue
       out.push({
         plate: b.busPlate,
