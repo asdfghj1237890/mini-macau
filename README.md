@@ -1,10 +1,21 @@
-# Mini Map Macau 🚈🚌✈️
+# Mini Map Macau 🚈🚌✈️🛥️
 
 > **[mini-map-macau.app](https://mini-map-macau.app/)**
 
-Real-time 3D visualization of Macau's public transit and aviation system, inspired by [Mini Tokyo 3D](https://minitokyo3d.com) and [Mini Taiwan](https://minitaiwan.net).
+[![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmini-map-macau.app&label=live&up_message=online&down_message=offline)](https://mini-map-macau.app/)
+[![Latest release](https://img.shields.io/github/v/tag/asdfghj1237890/mini-macau?label=release&sort=semver)](https://github.com/asdfghj1237890/mini-macau/tags)
+[![Deploy](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/deploy.yml?label=deploy&branch=master)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/deploy.yml)
+[![Flights sync](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-flights.yml?label=flights%20sync)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-flights.yml)
+[![Ferries sync](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-ferry-schedules.yml?label=ferries%20sync)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-ferry-schedules.yml)
+[![License](https://img.shields.io/github/license/asdfghj1237890/mini-macau)](./LICENSE)
+[![Made with React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
+[![MapLibre GL](https://img.shields.io/badge/MapLibre_GL-5-396CB2?logo=maplibre&logoColor=white)](https://maplibre.org/)
 
-Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, and **MFM airport flights** on an interactive 3D map with simulated vehicle movements along actual routes, synchronized to real-world timetables.
+Real-time 3D visualization of Macau's public transit, ferry, and aviation system, inspired by [Mini Tokyo 3D](https://minitokyo3d.com) and [Mini Taiwan](https://minitaiwan.net).
+
+Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Macau ferry routes**, and **MFM airport flights** on an interactive 3D map with simulated vehicle movements along actual routes, synchronized to real-world timetables.
 
 ![og-image](https://mini-map-macau.app/og-image.png)
 
@@ -25,6 +36,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, and **MFM a
 - **3D LRT vehicles** — 3 lines, 15 stations, real track geometry and elevated viaducts
 - **3D Bus fleet** — 92 routes, road-snapped via OSRM, with accurate cross-harbour bridge geometry
 - **3D Aircraft** — 176 real MFM flights (87 dep + 89 arr) with detailed airplane models, apron stands, and taxi paths
+- **3D Ferries** — 6 HK/Shenzhen ↔ Macau sea routes (TurboJET + CotaiJet) with jetfoil-shaped hull, red belly belt, and multi-deck cabin
 - **Real-time simulation** — Timetable-driven playback with ETAs, service status, and trilingual labels (EN / 繁中 / PT)
 - **Time controls** — Play/pause, 1×–60× speed, jump-to-now, free date/time picker
 - **Vehicle tracking** — Click-to-follow with smooth camera and free zoom/pan
@@ -36,9 +48,12 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, and **MFM a
 - **3D Bus fleet** — 92 routes with road-snapped paths via OSRM, including accurate bridge geometry (Macau–Taipa bridges)
 - **3D Aircraft** — 176 real MFM airport flights (87 departures + 89 arrivals) with detailed airplane models (fuselage, swept wings, vertical tail in airline colors, engine nacelles, window rows, cockpit windshield); aircraft park at 12 apron stands before departure and taxi along waypoint paths before takeoff
 - **Landing & holding patterns** — Aircraft approach from North or South with multi-waypoint landing routes; when the runway is occupied, arriving flights enter a realistic circular holding pattern above the airport and smoothly transition back to the landing route when clear
+- **3D Ferries** — 6 sea routes (Hong Kong Outer Harbour / Taipa / Sheung Wan, HKIA, Shenzhen Airport, Shekou) served by TurboJET and CotaiJet, rendered as jetfoil models (pontoon hull, red belt, white TurboJET band, cabin, windows, wheelhouse, roof) following great-circle paths with wake-aware headings
 - **Real-time simulation** — Vehicles move along routes based on timetables, service frequencies, and schedule types (Mon–Thu / Friday / Sat–Sun)
 - **ETA & vehicle info** — Click any vehicle or station to see live ETAs, next arrivals, route details, and service status
 - **Flight info** — Click any aircraft to see flight number, airline, destination/origin (with localized names), scheduled time, aircraft type, and live/sim status
+- **Ferry info** — Click any ferry to see operator, route, origin/destination port (localized), scheduled departure, crossing time, and live progress
+- **Automated ferry data** — GitHub Actions workflow scrapes TurboJET and CotaiJet timetables monthly and commits updated schedules if changed
 - **Time controls** — Play, pause (spacebar), speed up (1×–60×), jump to current time, or pick any date/time with the DateTimePicker; Esc toggles the sidebar menu
 - **Vehicle tracking** — Click a vehicle to follow it with smooth camera animation; freely zoom/pan while tracking
 - **Route visibility** — Toggle individual bus routes by group (Peninsula, Cross-Harbour, Taipa/Cotai, Night, Special); auto-mode shows only routes currently in service
@@ -63,6 +78,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, and **MFM a
 | Fonts | Orbitron, JetBrains Mono, Noto Sans HK (Google Fonts) |
 | Data pipeline | Python 3.13+, uv, OpenStreetMap Overpass API, OSRM |
 | Flight data | [Macau Airport](https://www.macau-airport.com/) timetable (web scraper) + AviationStack API (cross-verification) |
+| Ferry data | [TurboJET](https://www2.turbojet.com.hk/) + [CotaiJet](https://www.cotaiwaterjet.com/) timetables (monthly web scraper) |
 | Deployment | Cloudflare Pages (via GitHub Actions) |
 | Analytics | Google Analytics (gtag.js) |
 
@@ -148,6 +164,28 @@ This is also automated via GitHub Actions (`.github/workflows/update-flights.yml
 
 </details>
 
+<details>
+<summary><strong>Ferry schedule scraper</strong></summary>
+
+Ferry timetables are scraped from the operator sites and stored as a single static JSON file with 6 routes across two operators (TurboJET and CotaiJet):
+
+```bash
+cd data
+
+# Scrape the current month's schedules for all routes
+uv run python scripts/fetch_ferry_schedules.py
+```
+
+The scraper:
+- Pulls TurboJET schedules for Hong Kong (Outer Harbour), Hong Kong (Taipa), HKIA, Shenzhen Airport, and Shekou
+- Pulls CotaiJet schedule for Hong Kong (Sheung Wan) ↔ Macau Taipa
+- Records `fetchedAtUtc` and `effectiveAs` metadata so stale data is easy to spot
+- Outputs `public/data/ferry-schedules.json`
+
+Automated via GitHub Actions (`.github/workflows/update-ferry-schedules.yml`), which runs on the 1st of each month at 00:00 UTC (08:00 Macau) and commits updates if changed.
+
+</details>
+
 ## Data Sources
 
 - **LRT tracks & stations** — [OpenStreetMap](https://www.openstreetmap.org/) (railway=light_rail relations)
@@ -155,6 +193,7 @@ This is also automated via GitHub Actions (`.github/workflows/update-flights.yml
 - **Road-snapped routes** — [OSRM](http://project-osrm.org/) with custom bridge approach geometry
 - **Timetables** — Based on published service frequencies
 - **Flight schedules** — [Macau International Airport](https://www.macau-airport.com/) official timetable (EN + ZH), with optional [AviationStack](https://aviationstack.com/) cross-verification
+- **Ferry schedules** — [TurboJET](https://www2.turbojet.com.hk/zh-tw/%E6%B5%B7-%E8%88%B9/) + [CotaiJet](https://m.cotaiwaterjet.com/hk/ferry-schedule/hongkong-macau-taipa.html) official monthly timetables
 
 ## Project Structure
 
@@ -172,7 +211,8 @@ mini-macau/
 │   │   ├── LineLegend.tsx        # LRT/Bus/Flight legend (desktop + mobile)
 │   │   ├── VehicleInfoPanel.tsx  # Vehicle detail + ETA
 │   │   ├── StationInfoPanel.tsx  # Station detail + next arrivals
-│   │   └── FlightInfoPanel.tsx   # Flight detail panel
+│   │   ├── FlightInfoPanel.tsx   # Flight detail panel
+│   │   └── FerryInfoPanel.tsx    # Ferry detail panel
 │   ├── engines/
 │   │   └── simulationEngine.ts   # Timetable-driven vehicle + flight position computation
 │   ├── hooks/
@@ -182,6 +222,7 @@ mini-macau/
 │   │   ├── Bus3DLayer.ts         # 3D bus model (fill-extrusion)
 │   │   ├── LRT3DLayer.ts         # 3D LRT model (fill-extrusion)
 │   │   ├── Flight3DLayer.ts      # 3D airplane model (fill-extrusion)
+│   │   ├── Ferry3DLayer.ts       # 3D jetfoil model (fill-extrusion, 8 layers)
 │   │   └── VehicleLayer.ts       # 2D vehicle circles + labels
 │   ├── App.tsx                   # Root layout + state management
 │   ├── main.tsx                  # React entry point with I18nProvider
@@ -196,7 +237,8 @@ mini-macau/
 │   │   ├── trips.json
 │   │   ├── bus-routes.json
 │   │   ├── bus-stops.json
-│   │   └── flights.json          # MFM flight schedules (with localized names)
+│   │   ├── flights.json          # MFM flight schedules (with localized names)
+│   │   └── ferry-schedules.json  # TurboJET + CotaiJet monthly timetables
 │   ├── favicon.svg
 │   ├── icons.svg
 │   ├── og-image.png
@@ -209,6 +251,7 @@ mini-macau/
 │   │   ├── fetch_bus_data.py
 │   │   ├── fetch_bridge_geometry.py
 │   │   ├── fetch_flights.py      # MFM timetable scraper + AviationStack cross-verifier
+│   │   ├── fetch_ferry_schedules.py # TurboJET + CotaiJet monthly scraper
 │   │   ├── osrm_route.py
 │   │   ├── patch_bus_bridges.py
 │   │   └── generate_timetable.py
@@ -216,8 +259,11 @@ mini-macau/
 │   ├── output/
 │   └── main.py
 ├── .github/workflows/
-│   ├── deploy.yml                # Cloudflare Pages CI/CD
-│   └── update-flights.yml        # Daily flight data update
+│   ├── deploy.yml                  # Cloudflare Pages CI/CD
+│   ├── docker-release.yml          # Docker image release on new tag
+│   ├── service-status.yml          # Upstream service availability check
+│   ├── update-flights.yml          # Daily flight data update
+│   └── update-ferry-schedules.yml  # Monthly ferry data update
 └── index.html
 ```
 
@@ -285,6 +331,8 @@ The zoom indicator in the HUD used to be a `useState`, so every `map.on('zoom', 
 - [OpenFreeMap](https://openfreemap.org/) — 3D building tiles
 - [Macau International Airport](https://www.macau-airport.com/) — Flight timetable data
 - [AviationStack](https://aviationstack.com/) — Flight data cross-verification
+- [TurboJET](https://www2.turbojet.com.hk/) — Ferry timetable data (Hong Kong, HKIA, Shenzhen Airport, Shekou routes)
+- [CotaiJet](https://www.cotaiwaterjet.com/) — Ferry timetable data (Hong Kong ↔ Macau Taipa route)
 - [Google Fonts](https://fonts.google.com/specimen/Orbitron) — Orbitron, JetBrains Mono, Noto Sans HK
 
 </details>
