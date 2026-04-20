@@ -1,4 +1,4 @@
-import type { VehiclePosition, TransitData, SimulationClock, Trip, BusStop } from '../types'
+import type { VehiclePosition, TransitData, SimulationClock, Trip, BusStop, BusRoute } from '../types'
 import { useI18n, localName } from '../i18n'
 import { useMemo, useRef, useEffect } from 'react'
 import length from '@turf/length'
@@ -34,6 +34,7 @@ interface BusStopETA {
 
 function computeBusStopETAs(
   vehicle: VehiclePosition,
+  route: BusRoute,
   schedule: BusSchedule,
   busStopMap: Map<string, BusStop>,
   dirSec: number,
@@ -42,6 +43,25 @@ function computeBusStopETAs(
 ): BusStopETA[] {
   const stops = returning ? schedule.backwardStops : schedule.forwardStops
   const rtStopIndex = vehicle.rt?.stopIndex
+  // For RT buses, `dirSec` from `computeBusCycleSec` is derived from a phantom
+  // vehicle index (the real DSAT plate doesn't encode a trip slot), so its
+  // times are not the scheduled departure. To align with the actual DSAT
+  // service run we snap the implied trip start to the nearest scheduled slot
+  // `serviceHoursStart + k × frequency`, then display each stop's *scheduled*
+  // wall-clock time for that trip. The observed delay is implicit in the
+  // difference between now and the scheduled time at the current stop.
+  let rtDirectionStartMin: number | null = null
+  if (rtStopIndex !== undefined && rtStopIndex >= 0 && rtStopIndex < stops.length) {
+    const currentStopArriveMin = stops[rtStopIndex].arriveSec / 60
+    const tripDurationMin = schedule.tripDurationSec / 60
+    const dirOffsetMin = returning ? tripDurationMin : 0
+    const impliedTripStartMin = nowMinutes - dirOffsetMin - currentStopArriveMin
+    const startMin = route.serviceHoursStart * 60
+    const freq = route.frequency > 0 ? route.frequency : 1
+    const k = Math.round((impliedTripStartMin - startMin) / freq)
+    const snappedTripStartMin = startMin + k * freq
+    rtDirectionStartMin = snappedTripStartMin + dirOffsetMin
+  }
 
   const result: BusStopETA[] = []
   for (let i = 0; i < stops.length; i++) {
@@ -49,8 +69,9 @@ function computeBusStopETAs(
     const stop = busStopMap.get(s.stopId)
     if (!stop) continue
 
-    const deltaSec = s.arriveSec - dirSec
-    const etaMin = deltaSec / 60
+    const etaMin = rtDirectionStartMin != null
+      ? (rtDirectionStartMin + s.arriveSec / 60) - nowMinutes
+      : (s.arriveSec - dirSec) / 60
 
     let status: 'past' | 'dwelling' | 'arriving' | 'future'
     if (rtStopIndex !== undefined) {
@@ -123,7 +144,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
 
   const busETAs: BusStopETA[] = useMemo(() => {
     if (!vehicle || !busCtx) return []
-    return computeBusStopETAs(vehicle, busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA)
+    return computeBusStopETAs(vehicle, busCtx.route, busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicle?.id, busCtx, busStopMap, nowMinutesForETA])
 
