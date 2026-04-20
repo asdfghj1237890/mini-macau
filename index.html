@@ -104,12 +104,29 @@
       }
     </script>
 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-754JZVPQB2"></script>
     <script>
+      // GA4 — defer the tag script until the browser is idle so it does not
+      // compete with MapLibre parsing + React hydration on the main thread.
+      // dataLayer and gtag() stubs are ready immediately so any early
+      // gtag('event', ...) calls still queue correctly; they drain once the
+      // real gtag.js script loads.
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
       gtag('config', 'G-754JZVPQB2');
+      (function(){
+        function loadGA(){
+          var s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.googletagmanager.com/gtag/js?id=G-754JZVPQB2';
+          document.head.appendChild(s);
+        }
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(loadGA, { timeout: 4000 });
+        } else {
+          setTimeout(loadGA, 3000);
+        }
+      })();
     </script>
   </head>
   <body>
