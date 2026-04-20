@@ -27,7 +27,13 @@ import math
 import time
 from pathlib import Path
 
-from osrm_route import get_road_geometry, path_enters_hengqin
+from osrm_route import (
+    LOTUS_BRIDGE_ANCHOR,
+    get_road_geometry,
+    is_in_hengqin,
+    lotus_bridge_segment,
+    path_enters_hengqin,
+)
 
 REFERENCE_DIR = Path(__file__).parent.parent / "bus_reference"
 PUBLIC_DIR = Path(__file__).parent.parent.parent / "public" / "data"
@@ -218,7 +224,19 @@ def osrm_or_straight(
         coords = get_road_geometry(waypoints, profile="driving")
         time.sleep(OSRM_DELAY_S)
         if coords and len(coords) >= 2 and path_enters_hengqin(coords):
-            print(f"      OSRM rejected: path enters Hengqin")
+            # Retry once via Lotus Bridge anchor before giving up — this
+            # rescues legitimate Cotai↔Hengqin Port pairs whose direct
+            # OSRM result would otherwise be discarded as a Hengqin detour.
+            retry_wps = [a] + list(via_hints or []) + [LOTUS_BRIDGE_ANCHOR, b]
+            retry = get_road_geometry(retry_wps, profile="driving")
+            time.sleep(OSRM_DELAY_S)
+            if retry and len(retry) >= 2 and not path_enters_hengqin(retry):
+                return retry
+            in_band = lambda p: 22.135 <= p[1] <= 22.150 and not is_in_hengqin(p)
+            if in_band(a) and in_band(b) and (a[0] - 113.553) * (b[0] - 113.553) <= 0:
+                print(f"      OSRM rejected: stitching Lotus Bridge polyline")
+                return lotus_bridge_segment(a, b)
+            print(f"      OSRM rejected: path enters Hengqin (Lotus Bridge retry also failed)")
             return [a, b]
         if via_hints and coords and len(coords) >= 2:
             return coords

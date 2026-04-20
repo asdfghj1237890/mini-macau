@@ -41,7 +41,13 @@ import json
 import time
 from pathlib import Path
 
-from osrm_route import get_road_geometry, path_enters_hengqin
+from osrm_route import (
+    LOTUS_BRIDGE_ANCHOR,
+    get_road_geometry,
+    is_in_hengqin,
+    lotus_bridge_segment,
+    path_enters_hengqin,
+)
 
 REFERENCE_DIR = Path(__file__).parent.parent / "bus_reference"
 PUBLIC_DIR = Path(__file__).parent.parent.parent / "public" / "data"
@@ -81,15 +87,30 @@ def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> 
     all_coords: list[list[float]] = []
 
     def _route_pair(a: list[float], b: list[float]) -> list[list[float]]:
-        """Per-pair OSRM with Hengqin veto. Falls back to a 2-point straight
-        line if the pair would traverse Hengqin (no clean Macau route known).
+        """Per-pair OSRM with Hengqin veto. If the direct path crosses Hengqin,
+        retry once via the Lotus Bridge anchor; if OSRM still detours through
+        Hengqin (the public demo refuses to drive the bridge), splice the
+        manual bridge polyline so the visual crosses on the bridge instead
+        of cutting straight across the Shizimen waterway.
         """
         rc = get_road_geometry([a, b], profile="driving")
         time.sleep(0.4)
         if rc and len(rc) >= 2 and not path_enters_hengqin(rc):
             return rc
         if rc and path_enters_hengqin(rc):
-            print(f"    WARN: pair {a}->{b} routes through Hengqin; using straight line")
+            rc2 = get_road_geometry([a, LOTUS_BRIDGE_ANCHOR, b], profile="driving")
+            time.sleep(0.4)
+            if rc2 and len(rc2) >= 2 and not path_enters_hengqin(rc2):
+                return rc2
+            # Both endpoints near the bridge → use the manual bridge polyline.
+            # Heuristic: both within the Cotai/Hengqin-Port latitude band
+            # (22.135–22.150) AND straddling the waterway (one side of
+            # lng 113.553, other side of it).
+            in_band = lambda p: 22.135 <= p[1] <= 22.150 and not is_in_hengqin(p)
+            if in_band(a) and in_band(b) and (a[0] - 113.553) * (b[0] - 113.553) <= 0:
+                print(f"    NOTE: pair {a}->{b} stitched via Lotus Bridge polyline")
+                return lotus_bridge_segment(a, b)
+            print(f"    WARN: pair {a}->{b} routes through Hengqin and not on Lotus Bridge corridor; using straight line")
         return [a, b]
 
     for chunk_start in range(0, len(waypoints), MAX_WP - 1):
