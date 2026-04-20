@@ -25,6 +25,33 @@ HENGQIN_LNG_MAX = 113.535
 HENGQIN_LAT_MIN = 22.130
 HENGQIN_LAT_MAX = 22.170
 
+# Ponte Flor de Lótus (蓮花大橋) — the only legal Macau bus crossing
+# between Cotai and Hengqin Port. The public OSRM demo refuses to route
+# over it (no profile recognises it as drivable; it falls back to a
+# 6km detour up to Macau peninsula via Sai Van Bridge), so we splice
+# this hand-built polyline in whenever a stop pair would otherwise
+# either traverse Hengqin or fall back to a straight line across the
+# Shizimen waterway.
+#
+# Coordinates are sampled along the bridge centreline from west
+# (Hengqin Port ramp) to east (Cotai roundabout).
+LOTUS_BRIDGE_POLYLINE = [
+    [113.5478, 22.1413],
+    [113.5535, 22.1418],
+    [113.5588, 22.1428],
+]
+LOTUS_BRIDGE_ANCHOR = LOTUS_BRIDGE_POLYLINE[1]
+
+
+def lotus_bridge_segment(a: list[float], b: list[float]) -> list[list[float]]:
+    """Return [a, ...bridge polyline..., b] oriented to match a→b direction.
+    Used as a final fallback when OSRM cannot route a pair without entering
+    Hengqin — gives a geometry that visibly crosses the bridge rather than
+    a straight line over the waterway.
+    """
+    poly = LOTUS_BRIDGE_POLYLINE if a[0] < b[0] else list(reversed(LOTUS_BRIDGE_POLYLINE))
+    return [a] + [list(p) for p in poly] + [b]
+
 
 def is_in_hengqin(coord: list[float]) -> bool:
     lng, lat = coord[0], coord[1]
