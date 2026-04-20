@@ -41,7 +41,7 @@ import json
 import time
 from pathlib import Path
 
-from osrm_route import get_road_geometry
+from osrm_route import get_road_geometry, path_enters_hengqin
 
 REFERENCE_DIR = Path(__file__).parent.parent / "bus_reference"
 PUBLIC_DIR = Path(__file__).parent.parent.parent / "public" / "data"
@@ -80,6 +80,18 @@ def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> 
     MAX_WP = 80
     all_coords: list[list[float]] = []
 
+    def _route_pair(a: list[float], b: list[float]) -> list[list[float]]:
+        """Per-pair OSRM with Hengqin veto. Falls back to a 2-point straight
+        line if the pair would traverse Hengqin (no clean Macau route known).
+        """
+        rc = get_road_geometry([a, b], profile="driving")
+        time.sleep(0.4)
+        if rc and len(rc) >= 2 and not path_enters_hengqin(rc):
+            return rc
+        if rc and path_enters_hengqin(rc):
+            print(f"    WARN: pair {a}->{b} routes through Hengqin; using straight line")
+        return [a, b]
+
     for chunk_start in range(0, len(waypoints), MAX_WP - 1):
         chunk = waypoints[chunk_start:chunk_start + MAX_WP]
         if len(chunk) < 2:
@@ -89,6 +101,21 @@ def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> 
 
         road_coords = get_road_geometry(chunk, profile="driving")
         time.sleep(0.6)
+
+        # Public OSRM sometimes optimises multi-waypoint paths through
+        # Hengqin (mainland China) when it finds a shorter road. Macau
+        # buses cannot cross that border, so fall back to per-pair routing
+        # whenever the bulk response contains Hengqin coords.
+        if road_coords and len(road_coords) >= 2 and path_enters_hengqin(road_coords):
+            print(f"    bulk OSRM routed through Hengqin; retrying per-pair ({len(chunk)} waypoints)")
+            rebuilt: list[list[float]] = []
+            for i in range(len(chunk) - 1):
+                pair = _route_pair(chunk[i], chunk[i + 1])
+                if i == 0:
+                    rebuilt = list(pair)
+                else:
+                    rebuilt.extend(pair[1:])
+            road_coords = rebuilt
 
         if road_coords and len(road_coords) >= 2:
             if all_coords:

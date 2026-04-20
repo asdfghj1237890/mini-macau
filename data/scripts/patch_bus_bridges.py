@@ -27,7 +27,7 @@ import math
 import time
 from pathlib import Path
 
-from osrm_route import get_road_geometry
+from osrm_route import get_road_geometry, path_enters_hengqin
 
 REFERENCE_DIR = Path(__file__).parent.parent / "bus_reference"
 PUBLIC_DIR = Path(__file__).parent.parent.parent / "public" / "data"
@@ -217,6 +217,9 @@ def osrm_or_straight(
     try:
         coords = get_road_geometry(waypoints, profile="driving")
         time.sleep(OSRM_DELAY_S)
+        if coords and len(coords) >= 2 and path_enters_hengqin(coords):
+            print(f"      OSRM rejected: path enters Hengqin")
+            return [a, b]
         if via_hints and coords and len(coords) >= 2:
             return coords
         if coords and len(coords) >= 2:
