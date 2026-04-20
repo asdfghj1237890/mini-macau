@@ -92,10 +92,24 @@ function getLRTLineWindow(
 
 const BUS_SERVICE_TAIL_MIN = 60
 
-function isBusInService(route: BusRoute, hour: number, minute: number = 0): boolean {
-  const nowMin = hour * 60 + minute
-  const startMin = route.serviceHoursStart * 60
-  let endWithTail = route.serviceHoursEnd * 60 + BUS_SERVICE_TAIL_MIN
+function getServiceHours(route: BusRoute, date: Date): { start: number; end: number } {
+  // Sunday (getDay() === 0) uses the Sun+PH bucket if present. We don't have
+  // a public-holiday calendar wired in yet, so weekdays fall through to the
+  // Mon-Sat window.
+  const isSunBucket = date.getDay() === 0
+    && route.serviceHoursStartSun !== undefined
+    && route.serviceHoursEndSun !== undefined
+  if (isSunBucket) {
+    return { start: route.serviceHoursStartSun!, end: route.serviceHoursEndSun! }
+  }
+  return { start: route.serviceHoursStart, end: route.serviceHoursEnd }
+}
+
+function isBusInService(route: BusRoute, date: Date): boolean {
+  const nowMin = date.getHours() * 60 + date.getMinutes()
+  const { start, end } = getServiceHours(route, date)
+  const startMin = start * 60
+  let endWithTail = end * 60 + BUS_SERVICE_TAIL_MIN
   if (endWithTail <= startMin) endWithTail += 1440
   return (nowMin >= startMin && nowMin < endWithTail)
     || (nowMin + 1440 >= startMin && nowMin + 1440 < endWithTail)
@@ -786,7 +800,6 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           const simTime = clock.timeRef.current
           const schedule = getScheduleType(simTime)
           const nowMinutes = simTime.getHours() * 60 + simTime.getMinutes()
-          const hour = simTime.getHours()
 
           const cache = lrtWindowCacheRef.current
           if (cache.td !== td || cache.schedule !== schedule) {
@@ -822,10 +835,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           }
 
           if (map.getLayer('bus-routes')) {
-            const minutes = simTime.getMinutes()
             for (const route of td.busRoutes) {
               const key = `bus-route-${route.id}`
-              const inService = isBusInService(route, hour, minutes)
+              const inService = isBusInService(route, simTime)
               const prev = serviceStatusRef.current.get(key)
               if (prev !== inService) {
                 serviceStatusRef.current.set(key, inService)
