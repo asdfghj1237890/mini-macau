@@ -8,7 +8,29 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, and **MFM a
 
 ![og-image](https://mini-map-macau.app/og-image.png)
 
+## Contents
+
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Data Pipeline](#data-pipeline)
+- [Data Sources](#data-sources)
+- [Project Structure](#project-structure)
+- [Performance Notes](#performance-notes)
+- [Acknowledgements](#acknowledgements)
+- [License](#license)
+
 ## Features
+
+- **3D LRT vehicles** — 3 lines, 15 stations, real track geometry and elevated viaducts
+- **3D Bus fleet** — 92 routes, road-snapped via OSRM, with accurate cross-harbour bridge geometry
+- **3D Aircraft** — 176 real MFM flights (87 dep + 89 arr) with detailed airplane models, apron stands, and taxi paths
+- **Real-time simulation** — Timetable-driven playback with ETAs, service status, and trilingual labels (EN / 繁中 / PT)
+- **Time controls** — Play/pause, 1×–60× speed, jump-to-now, free date/time picker
+- **Vehicle tracking** — Click-to-follow with smooth camera and free zoom/pan
+
+<details>
+<summary><strong>Full feature list</strong></summary>
 
 - **3D LRT vehicles** — All 3 lines (Taipa, Seac Pai Van, Hengqin) with 15 stations, rendered as 3D models with real track geometry and elevated viaducts
 - **3D Bus fleet** — 92 routes with road-snapped paths via OSRM, including accurate bridge geometry (Macau–Taipa bridges)
@@ -27,6 +49,8 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, and **MFM a
 - **Responsive mobile UI** — Hamburger menu for map controls, compact legend buttons (LRT/Bus), optimized touch layout with safe-area support
 - **Lazy loading** — Code-split panels (VehicleInfoPanel, StationInfoPanel, FlightInfoPanel) for fast initial load
 - **Automated flight data** — GitHub Actions workflow scrapes the official Macau Airport timetable daily and optionally cross-verifies against AviationStack API
+
+</details>
 
 ## Tech Stack
 
@@ -68,7 +92,10 @@ npm run preview
 
 ## Data Pipeline
 
-Transit data is pre-generated and included in `public/data/`. To regenerate:
+Transit data is pre-generated and included in `public/data/`.
+
+<details>
+<summary><strong>Regenerate transit data</strong></summary>
 
 ```bash
 cd data
@@ -90,7 +117,10 @@ This will:
 
 Then copy the output to `public/data/`.
 
-### Flight Data
+</details>
+
+<details>
+<summary><strong>Flight data scraper</strong></summary>
 
 Flight schedules are scraped from the official [Macau International Airport](https://www.macau-airport.com/) timetable (both English and Chinese pages) and stored as a static JSON file:
 
@@ -116,6 +146,8 @@ The scraper:
 
 This is also automated via GitHub Actions (`.github/workflows/update-flights.yml`), which runs daily at 04:00 Macau time (UTC+8) and commits updated flight data if changed.
 
+</details>
+
 ## Data Sources
 
 - **LRT tracks & stations** — [OpenStreetMap](https://www.openstreetmap.org/) (railway=light_rail relations)
@@ -125,6 +157,9 @@ This is also automated via GitHub Actions (`.github/workflows/update-flights.yml
 - **Flight schedules** — [Macau International Airport](https://www.macau-airport.com/) official timetable (EN + ZH), with optional [AviationStack](https://aviationstack.com/) cross-verification
 
 ## Project Structure
+
+<details>
+<summary><strong>File tree</strong></summary>
 
 ```
 mini-macau/
@@ -186,11 +221,14 @@ mini-macau/
 └── index.html
 ```
 
+</details>
+
 ## Performance Notes
 
 Simulating 300–400 moving vehicles at 20 Hz while MapLibre re-draws 3D extrusions every frame puts real pressure on the main thread. A few optimizations worth calling out:
 
-### Polyline progress lookup — `cumKm` + binary search
+<details>
+<summary><strong>Polyline progress lookup — <code>cumKm</code> + binary search</strong></summary>
 
 The simulation asks the same question once per vehicle per tick: *given a route and a progress ∈ [0, 1], where on the polyline is the vehicle, and which way is it facing?*
 
@@ -205,23 +243,37 @@ Per-call cost then collapses to a binary search on `cumKm` (≈ 8 comparisons fo
 
 We deliberately don't cache a per-line "last index" hint: multiple vehicles share the same polyline at different progress values, so a shared hint would thrash. `O(log n)` is cheap enough that per-vehicle state isn't worth it. See [`simulationEngine.ts`](src/engines/simulationEngine.ts) (`getLineCache` / `interpolateOnLine`).
 
-### One bus-routes source instead of 92
+</details>
+
+<details>
+<summary><strong>One bus-routes source instead of 92</strong></summary>
 
 MapLibre GeoJSON sources are **tiled in a web worker**: the worker clips each source's features to tile boundaries, tessellates lines into triangle strips, and ships vertex buffers back to the main thread. Originally each of the 92 bus routes was its own `addSource` + `addLayer`, meaning every zoom level change forced 92 separate `postMessage` round-trips and 92 independent tile-index rebuilds.
 
 Consolidating into a single `bus-routes` source (one tile index, one round-trip per reindex) drastically cut worker chatter during zoom. Per-route dimming — previously `setPaintProperty('bus-route-${id}', 'line-opacity', …)` against 92 layers — became `setFeatureState({ source: 'bus-routes', id }, { inService })` on one layer, with opacity driven by a `['case', ['==', ['feature-state', 'inService'], false], DIM, FULL]` paint expression. `setFeatureState` doesn't recompile paint; `setPaintProperty` does.
 
-### Two-tier animation throttle
+</details>
+
+<details>
+<summary><strong>Two-tier animation throttle</strong></summary>
 
 Moving 300+ buses as 3D fill-extrusion polygons is heavy (each bus is 8 quads × lat/lng math). Moving them as 2D circles is almost free (just a `setData` on a Point FeatureCollection).
 
 The animate loop splits them: simulation + 2D circle updates run every 50 ms unconditionally, while 3D polygon rebuilds throttle to 160 ms whenever the map is actively moving (`movestart` / `moveend` set a `mapBusy` flag). During zoom gestures the 2D layer keeps vehicles visibly moving at full cadence while the expensive 3D rebuild backs off, leaving MapLibre's own render pipeline more time to finish zoom frames.
 
-### Decouple zoom display from React re-renders
+</details>
+
+<details>
+<summary><strong>Decouple zoom display from React re-renders</strong></summary>
 
 The zoom indicator in the HUD used to be a `useState`, so every `map.on('zoom', …)` event caused `<MapView>` to re-render — which is a *huge* component with map refs, ETA panels, and layer toggles. Now zoom lives in an external store read via [`useSyncExternalStore`](https://react.dev/reference/react/useSyncExternalStore), and only a tiny `<ZoomText>` leaf subscribes. The rest of `<MapView>` stays stable during pinch/scroll zoom.
 
+</details>
+
 ## Acknowledgements
+
+<details>
+<summary><strong>Libraries, data, and inspiration</strong></summary>
 
 - [Mini Tokyo 3D](https://github.com/nagix/mini-tokyo-3d) — Original inspiration
 - [Mini Taiwan](https://minitaiwan.net) — Sister project inspiration
@@ -234,6 +286,8 @@ The zoom indicator in the HUD used to be a `useState`, so every `map.on('zoom', 
 - [Macau International Airport](https://www.macau-airport.com/) — Flight timetable data
 - [AviationStack](https://aviationstack.com/) — Flight data cross-verification
 - [Google Fonts](https://fonts.google.com/specimen/Orbitron) — Orbitron, JetBrains Mono, Noto Sans HK
+
+</details>
 
 ## License
 
