@@ -268,7 +268,7 @@ export function ControlPanel({ clock }: Props) {
   if (compact) {
     const MOBILE_SPEEDS = [1, 2, 5, 10, 30]
     return (
-      <div className="absolute bottom-3 left-3 right-3 z-10 mm-fade
+      <div className="absolute bottom-14 left-3 right-3 z-10 mm-fade
                       pb-[max(0px,env(safe-area-inset-bottom))]">
         <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
                         shadow-2xl shadow-black/60 overflow-visible">
@@ -378,8 +378,8 @@ export function ControlPanel({ clock }: Props) {
   // ====================================================
   if (!expanded) {
     return (
-      <div className="mm-ui-scale absolute bottom-4 left-4 right-4 z-10 mx-auto mm-fade
-                      landscape:bottom-3" style={{ maxWidth: 480 }}>
+      <div className="mm-ui-scale absolute bottom-8 left-4 right-4 z-10 mx-auto mm-fade
+                      landscape:bottom-6" style={{ maxWidth: 480 }}>
         <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
                         shadow-2xl overflow-hidden flex items-center gap-0 px-1 py-1">
           <button
@@ -429,8 +429,8 @@ export function ControlPanel({ clock }: Props) {
   // DESKTOP — expanded: full scrubber with hour axis
   // ====================================================
   return (
-    <div className="mm-ui-scale absolute bottom-4 left-4 right-4 z-10 mx-auto mm-fade
-                    landscape:bottom-3" style={{ maxWidth: 720 }}>
+    <div className="mm-ui-scale absolute bottom-8 left-4 right-4 z-10 mx-auto mm-fade
+                    landscape:bottom-6" style={{ maxWidth: 720 }}>
       <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
                       shadow-2xl overflow-hidden">
         {/* Top row */}
