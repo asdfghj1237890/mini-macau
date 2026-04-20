@@ -35,9 +35,40 @@ PUBLIC_DIR = Path(__file__).parent.parent.parent / "public" / "data"
 CHANNEL_LAT_NORTH = 22.187
 CHANNEL_LAT_SOUTH = 22.158
 ANCHOR_SEARCH_WINDOW = 15
+# NB post-anchor needs a much larger window: when extract used Sai Van Bridge
+# (the OSRM default), the original geometry after the channel run wanders
+# through 議事亭/西灣 for 100+ coords before reaching the actual destination
+# stop (e.g., 葡京). The default 15-coord window finds only Sai Van approach
+# coords that are 500+m from MACAU_NB_EXIT, triggering OSRM detour rejection
+# and skipping the whole patch. 200 reaches past the longest peninsula loop.
+ANCHOR_POST_NB_WINDOW = 200
+# SB pre-anchor mirror: routes whose last Macau stop is OUTSIDE the Amaral
+# ring (e.g. 102 ends at M263 仙德麗街 east of the ring) cause OSRM to detour
+# CCW around the ring + west to 西灣 + south to Sai Van before entering the
+# channel. The 15-coord window then anchors on the Sai Van approach (lng
+# ~113.532) far from Amaral, and leg_in routes a 1km loop NE back to
+# macau_approach via AMARAL_EAST_EXIT — visible as a zigzag across 亞馬喇.
+# 200 reaches back to an Amaral-area coord and trims the entire detour.
+ANCHOR_PRE_SB_WINDOW = 200
 BRIDGE_DENSIFY_M = 50.0
 OSRM_DELAY_S = 0.7
 METERS_PER_DEG_LAT = 111320.0
+
+# East exit of 亞馬喇前地. Used as an OSRM via-hint when routing legs that
+# start or end at macau_approach: the approach point is on the bridge ramp
+# and OSRM driving profile cannot reliably route from it onto the peninsula
+# road network (the natural east exit is bus-only in OSM). Forcing OSRM
+# through this point makes leg_in/leg_out follow real roads instead of
+# falling back to a long straight line through buildings.
+AMARAL_EAST_EXIT: list[float] = [113.54390, 22.18893]
+
+# NB ramp lands at macau_approach (north edge of 亞馬喇 ring), but OSRM
+# treats that exact node as one-way SB-only — any leg_out from there detours
+# 7–14× through 議事亭/南灣 before circling back. MACAU_NB_EXIT is 60m east,
+# on a road OSRM can drive eastbound from cleanly (1.0× to 葡京). For NB
+# crossings we extend the bridge polyline to here and OSRM the leg_out from
+# this point instead of macau_approach.
+MACAU_NB_EXIT: list[float] = [113.543897, 22.188927]
 
 
 def dist_m2(a: list[float], b: list[float]) -> float:
@@ -148,7 +179,12 @@ MIN_PERP_FOR_TRIM_M = 200.0
 SAFE_TRIM_GAP_M = 200.0
 
 
-def osrm_or_straight(a: list[float], b: list[float]) -> list[list[float]]:
+def osrm_or_straight(
+    a: list[float],
+    b: list[float],
+    via_hints: list[list[float]] | None = None,
+    accept_detour: bool = False,
+) -> list[list[float]]:
     """OSRM-route a -> b; fall back to straight segment if OSRM fails,
     detours grossly (>4x), OR backtracks too far (>150m opposite direction
     of the straight line in the first half of the path).
@@ -164,11 +200,28 @@ def osrm_or_straight(a: list[float], b: list[float]) -> list[list[float]]:
 
     Straight-line fallback isn't perfect (can cross buildings) but is
     better than visible backtrack loops in the bridge approach area.
+
+    via_hints: optional list of intermediate [lng, lat] coords to insert
+    between a and b in the OSRM call. When provided, the detour/loop
+    filters are skipped — the hint is the caller asserting they know
+    the right corridor (e.g. forcing macau_approach legs through 亞馬喇
+    east exit instead of OSRM picking a one-way knot).
+
+    accept_detour: when True, disables the detour-ratio rejection. Use
+    this for legs where a large detour is LEGITIMATE road behaviour (e.g.
+    MACAU_NB_EXIT → anchor_post on the opposite side of the Amaral ring
+    naturally requires circling the ring — 4-6x straight, but any
+    fallback to straight would cut through Amaral's buildings).
     """
+    waypoints = [a] + list(via_hints or []) + [b]
     try:
-        coords = get_road_geometry([a, b], profile="driving")
+        coords = get_road_geometry(waypoints, profile="driving")
         time.sleep(OSRM_DELAY_S)
+        if via_hints and coords and len(coords) >= 2:
+            return coords
         if coords and len(coords) >= 2:
+            if accept_detour:
+                return coords
             road_len = 0.0
             for i in range(len(coords) - 1):
                 road_len += math.sqrt(dist_m2(coords[i], coords[i + 1]))
@@ -274,19 +327,58 @@ def replace_run(
         bridge_directed = list(polyline_south)
     else:
         pre_target = taipa_approach
-        post_target = macau_approach
+        # NB: end of bridge polyline is MACAU_NB_EXIT (drivable),
+        # not macau_approach (one-way SB-only ramp tip). anchor_post and
+        # leg_out OSRM target this point so the post-bridge segment
+        # follows a real road eastbound instead of looping the ring.
+        post_target = MACAU_NB_EXIT
         bridge_directed = list(polyline_north)
 
-    pre_search_start = max(min_pre_idx, start - ANCHOR_SEARCH_WINDOW)
+    # SB direction needs the wider window (mirror of NB post-window): when
+    # extract used Sai Van Bridge (OSRM default), the pre-channel coords
+    # wander west through 西灣 for 100+ pts before entering the channel. The
+    # default 15-coord window anchors on the Sai Van approach far from
+    # Amaral, producing a 1km leg_in loop back NE through 亞馬喇.
+    #
+    # Within that wider window we want the EARLIEST coord near Amaral
+    # (the entry point), not the closest to macau_approach. Pristine OSRM
+    # from M263 sweeps Amaral CCW (E→S→W→NW) and the closest-to-N coord is
+    # the NW exit — anchoring there leaves the CCW sweep in coords[:anchor]
+    # while the bridge polyline adds a CW sweep on top, producing the same
+    # zigzag we're trying to fix. Anchoring at the entry trims the CCW
+    # sweep and lets the bridge polyline do the only ring traversal.
+    pre_window = ANCHOR_PRE_SB_WINDOW if pre_target is macau_approach else ANCHOR_SEARCH_WINDOW
+    pre_search_start = max(min_pre_idx, start - pre_window)
+    NEAR_AMARAL_M2 = 200 * 200  # 200m radius
     anchor_pre_idx = start - 1
-    best_d = dist_m2(coords[anchor_pre_idx], pre_target)
-    for i in range(pre_search_start, start):
-        d = dist_m2(coords[i], pre_target)
-        if d < best_d:
-            best_d = d
-            anchor_pre_idx = i
+    if pre_target is macau_approach:
+        for i in range(pre_search_start, start):
+            if dist_m2(coords[i], pre_target) < NEAR_AMARAL_M2:
+                anchor_pre_idx = i
+                break
+        else:
+            # No Amaral-area coord in window — fall back to closest in default
+            # 15-coord window (preserves prior behaviour for routes that don't
+            # detour through Amaral).
+            best_d = dist_m2(coords[anchor_pre_idx], pre_target)
+            for i in range(max(min_pre_idx, start - ANCHOR_SEARCH_WINDOW), start):
+                d = dist_m2(coords[i], pre_target)
+                if d < best_d:
+                    best_d = d
+                    anchor_pre_idx = i
+    else:
+        best_d = dist_m2(coords[anchor_pre_idx], pre_target)
+        for i in range(pre_search_start, start):
+            d = dist_m2(coords[i], pre_target)
+            if d < best_d:
+                best_d = d
+                anchor_pre_idx = i
 
-    post_search_end = min(len(coords), end + 1 + ANCHOR_SEARCH_WINDOW)
+    # NB direction needs the wider window to skip past the Sai Van peninsula
+    # detour (~100 coords) that the OSRM extract laid down before reaching
+    # the actual post-bridge stop (e.g., 葡京 for MT1, MT2, MT5).
+    post_window = ANCHOR_POST_NB_WINDOW if post_target is MACAU_NB_EXIT else ANCHOR_SEARCH_WINDOW
+    post_search_end = min(len(coords), end + 1 + post_window)
     if max_post_idx is not None:
         post_search_end = min(post_search_end, max_post_idx)
     anchor_post_idx = end + 1
@@ -300,10 +392,17 @@ def replace_run(
     anchor_pre = coords[anchor_pre_idx]
     anchor_post = coords[anchor_post_idx]
 
-    print(f"    OSRM connector A: {anchor_pre} -> {pre_target}")
-    leg_in = osrm_or_straight(anchor_pre, pre_target)
-    print(f"    OSRM connector B: {post_target} -> {anchor_post}")
-    leg_out = osrm_or_straight(post_target, anchor_post)
+    leg_in_hints = [AMARAL_EAST_EXIT] if pre_target is macau_approach else None
+    leg_out_hints = [AMARAL_EAST_EXIT] if post_target is macau_approach else None
+    # NB leg_out: post_target is MACAU_NB_EXIT and legitimate road paths from
+    # there to anchor_post almost always require circling the Amaral ring
+    # (4-6x straight). Accept the detour rather than fall back to a straight
+    # that cuts through Amaral's buildings.
+    leg_out_accept_detour = post_target is MACAU_NB_EXIT
+    print(f"    OSRM connector A: {anchor_pre} -> {pre_target}" + (" via Amaral" if leg_in_hints else ""))
+    leg_in = osrm_or_straight(anchor_pre, pre_target, via_hints=leg_in_hints)
+    print(f"    OSRM connector B: {post_target} -> {anchor_post}" + (" via Amaral" if leg_out_hints else "") + (" accept-detour" if leg_out_accept_detour else ""))
+    leg_out = osrm_or_straight(post_target, anchor_post, via_hints=leg_out_hints, accept_detour=leg_out_accept_detour)
 
     # If either leg fell back to a long straight (OSRM rejected and the
     # gap is significant), skip patching this run. Otherwise the straight
@@ -345,12 +444,14 @@ def patch_route(
     if len(coords) < 2:
         return False
 
-    # Idempotency guard: user-provided Y-junction has unique precision
-    # that never appears in OSRM-native coords.
-    sig_lng, sig_lat = 113.54378841447661, 22.187214667083378
+    # Idempotency guard: MACAU_NB_EXIT is the last coord of polyline_north
+    # (preserved by Chaikin since endpoints are fixed). Its high-precision
+    # value never appears in pristine OSRM output. The previous Y-junction
+    # check was broken because Chaikin smooths interior points.
+    sig_lng, sig_lat = MACAU_NB_EXIT
     for c in coords:
         if abs(c[0] - sig_lng) < 1e-9 and abs(c[1] - sig_lat) < 1e-9:
-            print(f"    skip: already patched (Y-junction signature found)")
+            print(f"    skip: already patched (MACAU_NB_EXIT signature found)")
             return False
 
     runs = find_channel_runs(coords)
@@ -359,9 +460,6 @@ def patch_route(
         return False
 
     print(f"    {len(runs)} channel run(s)")
-
-    is_bilateral = route.get("routeType") == "bilateral"
-    pristine_coords = list(coords) if is_bilateral else None
 
     # Process runs in FORWARD (chronological) order with offset tracking.
     # Clamp each run's anchor search window so it cannot intrude into an
@@ -397,27 +495,6 @@ def patch_route(
         # run's anchor_pre search.
         prev_splice_end = e_adj + size_diff + 1
         coords = new_coords
-
-    # For bilateral routes (direction-0 is one-way), build the return leg
-    # by reversing the pristine direction-0 geometry and patching its
-    # (now NB-direction) channel runs with the west Y-arm. This mirrors
-    # how a real bilateral bus drives: forward through stops to terminus,
-    # then back through the SAME stops in reverse, using the opposite
-    # bridge arm. No OSRM cross-Taipa transition needed.
-    if is_bilateral and pristine_coords is not None:
-        print(f"    bilateral: building return leg from reversed pristine")
-        reversed_pristine = list(reversed(pristine_coords))
-        rev_runs = find_channel_runs(reversed_pristine)
-        for rev_run in reversed(rev_runs):
-            reversed_pristine = replace_run(
-                reversed_pristine, rev_run, polyline_south, polyline_north,
-                macau_approach, taipa_approach,
-            )
-        # Append return leg, skip first to avoid duplicating the last
-        # forward coord (they're geographically identical = the terminus).
-        coords = coords + reversed_pristine[1:]
-        # Mark as circular so simulation engine does forward-only loop.
-        route["routeType"] = "circular"
 
     route["geometry"]["geometry"]["coordinates"] = coords
     return True
@@ -462,12 +539,13 @@ def run():
     )
     # North-bound (Taipa -> Macau): Taipa approach -> Taipa west ramp
     # (上橋點) -> bridge span reversed -> 橋端點 -> 下橋位 (west) ->
-    # Macau roundabout CW -> Macau terminal
+    # Macau roundabout CW -> Macau terminal -> east exit (drivable point)
     polyline_north_raw = (
         list(taipa_nb_ramp)
         + list(reversed(bridge_span))[1:]
         + [y_junction, y_down]
         + list(nb_roundabout)
+        + [MACAU_NB_EXIT]
     )
 
     # Chaikin-smooth the hand-built bridge polylines to remove visual
