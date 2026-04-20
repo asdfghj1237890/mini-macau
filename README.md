@@ -7,6 +7,7 @@
 [![Deploy](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/deploy.yml?label=deploy&branch=master)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/deploy.yml)
 [![Flights sync](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-flights.yml?label=flights%20sync)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-flights.yml)
 [![Ferries sync](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-ferry-schedules.yml?label=ferries%20sync)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-ferry-schedules.yml)
+
 [![License](https://img.shields.io/github/license/asdfghj1237890/mini-macau)](./LICENSE)
 [![Made with React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
