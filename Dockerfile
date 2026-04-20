@@ -9,6 +9,10 @@ ENV VITE_ENABLE_RT=1
 RUN npm run build
 
 FROM openresty/openresty:1.27.1.2-alpine AS runtime
+# proxy_cache_path only auto-creates the final directory; the parent
+# /var/cache/nginx doesn't exist in the openresty alpine image. Create
+# it up front and give the worker user write access.
+RUN mkdir -p /var/cache/nginx/dsat && chown -R nobody:nobody /var/cache/nginx
 COPY docker/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=build /app/dist /usr/share/nginx/html
 EXPOSE 80
