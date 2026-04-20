@@ -13,7 +13,7 @@
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![MapLibre GL](https://img.shields.io/badge/MapLibre_GL-5-396CB2?logo=maplibre&logoColor=white)](https://maplibre.org/)
 
-Real-time 3D visualization of Macau's public transit, ferry, and aviation system, inspired by [Mini Tokyo 3D](https://minitokyo3d.com) and [Mini Taiwan](https://minitaiwan.net).
+Real-time 3D visualization of Macau's public transit, ferry, and aviation system, inspired by [Mini Tokyo 3D](https://minitokyo3d.com) and [Mini Taiwan](https://mini-taiwan-learning-project.itsmigu.com/).
 
 Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Macau ferry routes**, and **MFM airport flights** on an interactive 3D map with simulated vehicle movements along actual routes, synchronized to real-world timetables.
 
@@ -319,22 +319,34 @@ The zoom indicator in the HUD used to be a `useState`, so every `map.on('zoom', 
 ## Acknowledgements
 
 <details>
-<summary><strong>Libraries, data, and inspiration</strong></summary>
+<summary><strong>Inspiration</strong></summary>
 
-- [Mini Tokyo 3D](https://github.com/nagix/mini-tokyo-3d) — Original inspiration
-- [Mini Taiwan](https://minitaiwan.net) — Sister project inspiration
+- [Mini Tokyo 3D](https://github.com/nagix/mini-tokyo-3d) — Original inspiration for the concept
+- [Mini Taiwan](https://mini-taiwan-learning-project.itsmigu.com/) — Sister project inspiration
+
+</details>
+
+<details>
+<summary><strong>Data sources</strong></summary>
+
+- [OpenStreetMap](https://www.openstreetmap.org/) — LRT track geometry, bus routes, and stop locations
+- [MoTransport Info](https://motransportinfo.com/zh/search) — Curated Macau bus stop reference data
+- [DSAT 巴士資訊](https://bis.dsat.gov.mo/macauweb/index.html?language=zh-tw&fromDzzp=false) — Official Macau bus realtime feed (live bus positions in RT mode)
+- [Macau International Airport](https://www.macau-airport.com/) — Flight timetable (EN + ZH)
+- [AviationStack](https://aviationstack.com/) — Flight data cross-verification
+- [TurboJET](https://www2.turbojet.com.hk/) — Ferry timetable (Hong Kong, HKIA, Shenzhen Airport, Shekou routes)
+- [CotaiJet](https://www.cotaiwaterjet.com/) — Ferry timetable (Hong Kong ↔ Macau Taipa route)
+
+</details>
+
+<details>
+<summary><strong>Libraries, tiles, and fonts</strong></summary>
+
 - [MapLibre GL JS](https://maplibre.org/) — Open-source map rendering
-- [OpenStreetMap](https://www.openstreetmap.org/) — Transit data
 - [CARTO](https://carto.com/) — Basemap tiles (Dark Matter / Positron)
+- [OpenFreeMap](https://openfreemap.org/) — 3D building tiles
 - [OSRM](http://project-osrm.org/) — Road routing engine
 - [Turf.js](https://turfjs.org/) — Geospatial analysis
-- [OpenFreeMap](https://openfreemap.org/) — 3D building tiles
-- [Macau International Airport](https://www.macau-airport.com/) — Flight timetable data
-- [AviationStack](https://aviationstack.com/) — Flight data cross-verification
-- [TurboJET](https://www2.turbojet.com.hk/) — Ferry timetable data (Hong Kong, HKIA, Shenzhen Airport, Shekou routes)
-- [CotaiJet](https://www.cotaiwaterjet.com/) — Ferry timetable data (Hong Kong ↔ Macau Taipa route)
-- [DSAT 巴士資訊](https://bis.dsat.gov.mo/macauweb/index.html?language=zh-tw&fromDzzp=false) — Official Macau bus realtime feed (live bus positions in RT mode)
-- [MoTransport Info](https://motransportinfo.com/zh/search) — Curated Macau bus stop reference data
 - [Google Fonts](https://fonts.google.com/specimen/Orbitron) — Orbitron, JetBrains Mono, Noto Sans HK
 
 </details>
