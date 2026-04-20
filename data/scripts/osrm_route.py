@@ -86,13 +86,32 @@ LOTUS_BRIDGE_ANCHOR = [113.55313, 22.13976]
 
 
 def lotus_bridge_segment(a: list[float], b: list[float]) -> list[list[float]]:
-    """Return [a, ...bridge polyline..., b] oriented to match a→b direction.
-    Used as a final fallback when OSRM cannot route a pair without entering
-    Hengqin — gives a geometry that visibly crosses the bridge rather than
-    a straight line over the waterway.
+    """Return [a, ...routed head..., bridge polyline, ...routed tail..., b]
+    oriented to match a→b direction. The polyline covers only the bridge
+    span itself; the connections from the stop `a` to the bridge entrance
+    and from the bridge exit to stop `b` are OSRM-routed on ordinary roads
+    (which OSRM handles correctly — the issue is only the bridge itself).
+    Without routed tails, a straight line can cut across buildings between
+    the polyline endpoint and the stop (e.g. 102 dropping off the bridge
+    into the 協和醫院 roundabout area).
     """
     poly = LOTUS_BRIDGE_OUTBOUND_POLYLINE if a[0] > b[0] else LOTUS_BRIDGE_RETURN_POLYLINE
-    return [a] + [list(p) for p in poly] + [b]
+    poly_coords = [list(p) for p in poly]
+    head = _route_tail(a, poly_coords[0])
+    tail = _route_tail(poly_coords[-1], b)
+    return head + poly_coords + tail[1:]
+
+
+def _route_tail(p: list[float], q: list[float]) -> list[list[float]]:
+    """OSRM-route p→q; fall back to straight [p, q] on failure or if the
+    response would stray through Hengqin. Used to connect stops to the
+    Lotus Bridge polyline endpoints without cutting across buildings.
+    Returns a list starting with p and ending with q.
+    """
+    rc = get_road_geometry([p, q], profile="driving")
+    if rc and len(rc) >= 2 and not path_enters_hengqin(rc):
+        return rc
+    return [p, q]
 
 
 def is_in_hengqin(coord: list[float]) -> bool:
