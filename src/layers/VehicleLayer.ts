@@ -24,6 +24,7 @@ function vehicleToFeature(v: VehiclePosition): GeoJSON.Feature<GeoJSON.Point> {
   const labels = labelsFor(v)
   return {
     type: 'Feature',
+    id: v.id,
     geometry: { type: 'Point', coordinates: v.coordinates },
     properties: {
       id: v.id,
@@ -46,9 +47,23 @@ function vehiclesToGeoJson(vehicles: VehiclePosition[]): GeoJSON.FeatureCollecti
 
 type PrevState = { lng: number; lat: number; bearing: number | null }
 const prevStateBySource = new WeakMap<MapLibreMap, Map<string, PrevState>>()
+const lastFlushBySource = new WeakMap<MapLibreMap, number>()
+
+// Skip position changes below ~0.11m — sub-pixel at any practical zoom.
+// Dead-reckoning between DSAT polls produces sub-metre increments five
+// times a second per bus; filtering them out cuts the worker-update
+// firehose without any visible effect.
+const MOVE_EPS_DEG_SQ = 1e-12
+
+// Coalesce flushes to the worker at 10 Hz. updateVehicleData may be called
+// at 20 Hz (sim tick) but the visual delta between back-to-back flushes
+// is negligible, while the postMessage + re-tile cost shows up as 30–75
+// ms hitches on the main thread when 250 RT buses all move at once.
+const FLUSH_MIN_MS = 100
 
 export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
   prevStateBySource.delete(map)
+  lastFlushBySource.delete(map)
   map.addSource(SOURCE_ID, {
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] },
@@ -156,6 +171,14 @@ export function updateVehicleData(map: MapLibreMap, vehicles: VehiclePosition[])
     return
   }
 
+  // Adds and removes must flush immediately (otherwise the source holds a
+  // stale feature set). Position/bearing updates are the firehose and get
+  // coalesced to FLUSH_MIN_MS — between flushes we skip both the diff
+  // emit and the prev mutation so the next call re-picks-up the delta.
+  const now = performance.now()
+  const lastFlush = lastFlushBySource.get(map) ?? 0
+  const canDeferUpdates = now - lastFlush < FLUSH_MIN_MS
+
   const add: GeoJSON.Feature<GeoJSON.Point>[] = []
   const update: GeoJSONFeatureDiff[] = []
   const seen = new Set<string>()
@@ -171,16 +194,22 @@ export function updateVehicleData(map: MapLibreMap, vehicles: VehiclePosition[])
       prev.set(v.id, { lng, lat, bearing })
       continue
     }
-    const moved = old.lng !== lng || old.lat !== lat
+    const dx = lng - old.lng
+    const dy = lat - old.lat
+    const moved = dx * dx + dy * dy > MOVE_EPS_DEG_SQ
     const turned = old.bearing !== bearing
     if (!moved && !turned) continue
+    if (canDeferUpdates) continue
     const diff: GeoJSONFeatureDiff = { id: v.id }
-    if (moved) diff.newGeometry = { type: 'Point', coordinates: v.coordinates }
-    if (turned) diff.addOrUpdateProperties = [{ key: 'bearing', value: bearing }]
+    if (moved) {
+      diff.newGeometry = { type: 'Point', coordinates: v.coordinates }
+      old.lng = lng; old.lat = lat
+    }
+    if (turned) {
+      diff.addOrUpdateProperties = [{ key: 'bearing', value: bearing }]
+      old.bearing = bearing
+    }
     update.push(diff)
-    old.lng = lng
-    old.lat = lat
-    old.bearing = bearing
   }
 
   const remove: string[] = []
@@ -193,6 +222,7 @@ export function updateVehicleData(map: MapLibreMap, vehicles: VehiclePosition[])
 
   if (add.length === 0 && update.length === 0 && remove.length === 0) return
   source.updateData({ add, update, remove })
+  lastFlushBySource.set(map, now)
 }
 
 export function updateVehicleLabelLang(map: MapLibreMap, lang: Lang) {
@@ -212,4 +242,5 @@ export function removeVehicleLayers(map: MapLibreMap) {
   if (map.getLayer(PULSE_LAYER_ID)) map.removeLayer(PULSE_LAYER_ID)
   if (map.getSource(SOURCE_ID)) map.removeSource(SOURCE_ID)
   prevStateBySource.delete(map)
+  lastFlushBySource.delete(map)
 }
