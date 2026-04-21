@@ -290,8 +290,7 @@ export function LineLegend({
                   if (routes.length === 0) return null
                   const groupActive = routes.filter(r => visibleRoutes.has(r.id)).length
                   const eligibleInGroup = routes.filter(r => !(inactiveRoutes?.has(r.id) ?? false))
-                  const groupOn = eligibleInGroup.length > 0
-                    && eligibleInGroup.every(r => visibleRoutes.has(r.id))
+                  const groupOn = groupActive > 0
                   const collapsed = collapsedGroups.has(groupKey)
                   return (
                     <div key={groupKey} className="border-t border-white/5">
@@ -668,8 +667,7 @@ export function LineLegend({
                   if (routes.length === 0) return null
                   const groupActive = routes.filter(r => visibleRoutes.has(r.id)).length
                   const eligibleInGroup = routes.filter(r => !(inactiveRoutes?.has(r.id) ?? false))
-                  const groupOn = eligibleInGroup.length > 0
-                    && eligibleInGroup.every(r => visibleRoutes.has(r.id))
+                  const groupOn = groupActive > 0
                   const collapsed = collapsedGroups.has(groupKey)
                   return (
                     <div key={groupKey} className="border-t border-white/5">
