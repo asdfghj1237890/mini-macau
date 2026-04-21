@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import type { TransitData, SimulationClock } from '../types'
 import { useI18n, localName } from '../i18n'
-import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS } from '../routeGroups'
+import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS, type GroupKey } from '../routeGroups'
 
 const LS_DESKTOP_OPEN = 'mm-layers-desktop-open'
 const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
@@ -23,6 +23,7 @@ interface Props {
   onToggleAll?: () => void
   onShowAll?: () => void
   onHideAll?: () => void
+  onToggleGroup?: (groupKey: GroupKey) => void
   onResetAuto?: () => void
 }
 
@@ -44,6 +45,7 @@ export function LineLegend({
   onToggleRoute,
   onShowAll,
   onHideAll,
+  onToggleGroup,
   onResetAuto,
 }: Props) {
   const { lang, t } = useI18n()
@@ -287,28 +289,47 @@ export function LineLegend({
                   const routes = grouped.get(groupKey) || []
                   if (routes.length === 0) return null
                   const groupActive = routes.filter(r => visibleRoutes.has(r.id)).length
+                  const eligibleInGroup = routes.filter(r => !(inactiveRoutes?.has(r.id) ?? false))
+                  const groupOn = eligibleInGroup.length > 0
+                    && eligibleInGroup.every(r => visibleRoutes.has(r.id))
                   const collapsed = collapsedGroups.has(groupKey)
                   return (
                     <div key={groupKey} className="border-t border-white/5">
-                      <button
-                        type="button"
-                        onClick={() => toggleGroupCollapse(groupKey)}
-                        className="w-full px-2 py-1 flex items-center gap-2 bg-white/[0.015]
-                                   hover:bg-white/[0.04] transition"
-                      >
-                        <span className={`w-1.5 h-1.5 rounded-full shrink-0
-                                          ${groupActive > 0 ? 'bg-amber-300' : 'bg-white/15'}`}
-                              style={groupActive > 0 ? { boxShadow: '0 0 5px rgba(252,196,65,0.8)' } : undefined} />
-                        <span className="mm-mono text-[9px] tracking-[0.2em] text-white/55 uppercase flex-1 text-left">
-                          {t[GROUP_LABEL_KEYS[groupKey]]}
-                        </span>
-                        <span className="mm-mono mm-tabular text-[9px] text-white/35">
-                          {groupActive}/{routes.length}
-                        </span>
-                        <span className="text-white/30 mm-mono text-[8px] w-3 text-center">
-                          {collapsed ? '▸' : '▾'}
-                        </span>
-                      </button>
+                      <div className="w-full flex items-stretch bg-white/[0.015]">
+                        <button
+                          type="button"
+                          onClick={() => toggleGroupCollapse(groupKey)}
+                          className="flex-1 min-w-0 px-2 py-1 flex items-center gap-2
+                                     hover:bg-white/[0.04] transition"
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0
+                                            ${groupActive > 0 ? 'bg-amber-300' : 'bg-white/15'}`}
+                                style={groupActive > 0 ? { boxShadow: '0 0 5px rgba(252,196,65,0.8)' } : undefined} />
+                          <span className="mm-mono text-[9px] tracking-[0.2em] text-white/55 uppercase flex-1 text-left">
+                            {t[GROUP_LABEL_KEYS[groupKey]]}
+                          </span>
+                          <span className="mm-mono mm-tabular text-[9px] text-white/35 w-10 text-right">
+                            {groupActive}/{routes.length}
+                          </span>
+                          <span className="text-white/30 mm-mono text-[8px] w-3 text-center">
+                            {collapsed ? '▸' : '▾'}
+                          </span>
+                        </button>
+                        {onToggleGroup && eligibleInGroup.length > 0 && (
+                          <button
+                            type="button"
+                            onClick={() => onToggleGroup(groupKey)}
+                            aria-pressed={groupOn}
+                            className={`shrink-0 w-10 mm-mono text-[8px] tracking-[0.2em]
+                                        border-l border-white/8 transition text-center
+                                        ${groupOn
+                                          ? 'text-emerald-300/80 hover:bg-emerald-300/10'
+                                          : 'text-white/30 hover:text-white/80 hover:bg-white/[0.05]'}`}
+                          >
+                            {groupOn ? 'ON' : 'OFF'}
+                          </button>
+                        )}
+                      </div>
                       {!collapsed && (
                         <div className="bg-[#060607]">
                           {routes.map(route => {
@@ -416,8 +437,12 @@ export function LineLegend({
         </div>
       )}
 
-      {/* Mobile: 3-icon stack — LRT / BUS / AIR, below map +/- zoom controls */}
-      <div className="mm-ui-scale absolute top-[9rem] right-[0.5rem] z-10 flex flex-col gap-1.5
+      {/* Mobile: 4-icon stack — LRT / BUS / AIR / SEA, below MapLibre +/- zoom
+          controls. Uses top-[8rem] (visual ~154px) so it sits just under the
+          MapLibre nav control (bottom ~141px visual) without overlap, and
+          still leaves enough room above the bottom timeline for popovers on
+          short viewports. */}
+      <div className="mm-ui-scale absolute top-[8rem] right-[0.5rem] z-10 flex flex-col gap-1.5
                       sm:hidden landscape:top-[6rem]">
         {/* LRT chip */}
         <button
@@ -494,261 +519,346 @@ export function LineLegend({
             <span className="text-[14px] leading-none">⚓</span>
           </button>
         )}
+      </div>
 
-        {/* LRT popover */}
-        {mobilePanel === 'lrt' && (
-          <div className="absolute top-full right-0 mt-2 bg-[#0b0b0c] backdrop-blur-md
-                          border border-amber-300/25 rounded-sm overflow-hidden
-                          shadow-[0_8px_24px_rgba(0,0,0,0.6)] w-48 max-w-[calc(100vw-5rem)]">
-            <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-amber-300/75">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                  <rect x="4" y="3" width="16" height="14" rx="2" />
-                  <path d="M4 11h16" /><path d="M12 3v8" />
-                  <path d="M8 21l2-4h4l2 4" />
-                </svg>
-                <span
-                  className="inline-block w-[8px] h-[8px]"
-                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.35) 0 1px, transparent 1px 3px)' }}
-                />
-                <span className="mm-mono text-[9px] tracking-[0.25em]">LRT · 輕軌</span>
-              </span>
-              <span className="mm-mono mm-tabular text-[8px] text-white/30">{lrtActive}/{lrtTotal}</span>
-            </div>
-            <div className="py-0.5">
-              {allLrtLines.map(line => {
-                const on = isLrtOn(line.id)
-                return (
+      {/* Mobile centered modal for LRT/BUS/AIR/SEA. Rendered OUTSIDE the
+          mm-ui-scale chip stack so CSS `zoom` on that ancestor doesn't
+          trap `fixed` descendants — the modal must anchor to the viewport
+          to dodge the MapLibre nav control (top-right) and the bottom
+          timeline/speed bar simultaneously. The backdrop button closes
+          on outside tap; stopPropagation on the panel keeps taps inside
+          from bubbling up. */}
+      {mobilePanel !== null && (
+        <div className="sm:hidden fixed inset-0 z-40 flex items-center justify-center p-4">
+          <button
+            type="button"
+            onClick={() => setMobilePanel(null)}
+            aria-label="close"
+            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+          />
+
+          {/* LRT */}
+          {mobilePanel === 'lrt' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[320px] max-h-[80dvh] bg-[#0b0b0c]
+                         border border-amber-300/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex flex-col"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-amber-300/80">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <rect x="4" y="3" width="16" height="14" rx="2" />
+                    <path d="M4 11h16" /><path d="M12 3v8" />
+                    <path d="M8 21l2-4h4l2 4" />
+                  </svg>
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.35) 0 1px, transparent 1px 3px)' }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">LRT · 輕軌</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">{lrtActive}/{lrtTotal}</span>
                   <button
-                    key={line.id}
                     type="button"
-                    onClick={() => onToggleLrt?.(line.id)}
-                    aria-pressed={on}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 border-l-2 transition
-                               ${on
-                                 ? 'border-amber-300/60 bg-amber-300/[0.04] active:bg-amber-300/[0.08]'
-                                 : 'border-transparent active:bg-white/[0.04] opacity-40'}`}
-                  >
-                    <div className="w-3 h-[3px] shrink-0" style={{ backgroundColor: on ? line.color : '#555' }} />
-                    <span className={`mm-han text-[11px] flex-1 text-left truncate
-                                      ${on ? 'text-white/90' : 'text-white/40'}`}>
-                      {localName(lang, line)}
-                    </span>
-                    <span className={`mm-mono text-[8px] tracking-[0.2em] shrink-0
-                                      ${on ? 'text-emerald-300/80' : 'text-white/25'}`}>
-                      {on ? 'ON' : 'OFF'}
-                    </span>
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* BUS popover */}
-        {mobilePanel === 'bus' && visibleRoutes && (
-          <div className="absolute top-full right-0 mt-2 bg-[#0b0b0c] backdrop-blur-md
-                          border border-emerald-300/25 rounded-sm overflow-hidden
-                          shadow-[0_8px_24px_rgba(0,0,0,0.6)] w-[220px] max-w-[calc(100vw-5rem)]">
-            <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-emerald-300/75">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                  <path d="M8 6v6" /><path d="M16 6v6" />
-                  <path d="M2 12h20" />
-                  <rect x="2" y="4" width="20" height="14" rx="3" />
-                  <circle cx="7" cy="20" r="1" /><circle cx="17" cy="20" r="1" />
-                </svg>
-                <span
-                  className="inline-block w-[8px] h-[8px]"
-                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(110,231,183,0.35) 0 1px, transparent 1px 3px)' }}
-                />
-                <span className="mm-mono text-[9px] tracking-[0.25em]">BUS · 巴士</span>
-              </span>
-              <span className="mm-mono mm-tabular text-[8px] text-emerald-300/80">
-                {visibleRoutes.size}<span className="text-white/30">/{busRoutes.length}</span>
-              </span>
-            </div>
-            <div className="grid grid-cols-3 border-b border-white/8">
-              <button
-                onClick={onResetAuto}
-                className={`px-1 py-1 mm-mono text-[9px] tracking-[0.1em] transition-colors text-center
-                           ${isAutoMode
-                             ? 'bg-emerald-300/10 text-emerald-200'
-                             : 'text-white/45 hover:text-white hover:bg-white/5'}`}
-                style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 rgba(110,231,183,0.7)' } : undefined}
-              >
-                {t.autoByTime}
-              </button>
-              <button
-                onClick={onShowAll}
-                className="px-1 py-1 mm-mono text-[9px] tracking-[0.15em] text-white/45 hover:text-white
-                           hover:bg-white/5 transition-colors text-center border-l border-white/8"
-              >
-                {t.showAll}
-              </button>
-              <button
-                onClick={onHideAll}
-                className="px-1 py-1 mm-mono text-[9px] tracking-[0.15em] text-white/45 hover:text-white
-                           hover:bg-white/5 transition-colors text-center border-l border-white/8"
-              >
-                {t.hideAll}
-              </button>
-            </div>
-            <div className="overflow-y-auto max-h-[200px]">
-              {GROUP_ORDER.map(groupKey => {
-                const routes = grouped.get(groupKey) || []
-                if (routes.length === 0) return null
-                const groupActive = routes.filter(r => visibleRoutes.has(r.id)).length
-                const collapsed = collapsedGroups.has(groupKey)
-                return (
-                  <div key={groupKey} className="border-t border-white/5">
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <div className="overflow-y-auto flex-1 min-h-0">
+                {allLrtLines.map(line => {
+                  const on = isLrtOn(line.id)
+                  return (
                     <button
+                      key={line.id}
                       type="button"
-                      onClick={() => toggleGroupCollapse(groupKey)}
-                      className="w-full px-2 py-1 flex items-center gap-2 bg-white/[0.015]
-                                 active:bg-white/[0.04] transition"
+                      onClick={() => onToggleLrt?.(line.id)}
+                      aria-pressed={on}
+                      className={`w-full flex items-center gap-2 px-3 py-2 border-l-2 transition
+                                 ${on
+                                   ? 'border-amber-300/60 bg-amber-300/[0.04] active:bg-amber-300/[0.08]'
+                                   : 'border-transparent active:bg-white/[0.04] opacity-40'}`}
                     >
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0
-                                        ${groupActive > 0 ? 'bg-emerald-300' : 'bg-white/15'}`} />
-                      <span className="mm-mono text-[9px] tracking-[0.2em] text-white/55 uppercase flex-1 text-left">
-                        {t[GROUP_LABEL_KEYS[groupKey]]}
+                      <div className="w-3 h-[3px] shrink-0" style={{ backgroundColor: on ? line.color : '#555' }} />
+                      <span className={`mm-han text-[12px] flex-1 text-left truncate
+                                        ${on ? 'text-white/90' : 'text-white/40'}`}>
+                        {localName(lang, line)}
                       </span>
-                      <span className="mm-mono mm-tabular text-[9px] text-white/35">
-                        {groupActive}/{routes.length}
-                      </span>
-                      <span className="text-white/30 mm-mono text-[8px] w-3 text-center">
-                        {collapsed ? '▸' : '▾'}
+                      <span className={`mm-mono text-[9px] tracking-[0.2em] shrink-0
+                                        ${on ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                        {on ? 'ON' : 'OFF'}
                       </span>
                     </button>
-                    {!collapsed && (
-                    <div className="bg-[#060607]">
-                      {routes.map(route => {
-                        const inactive = inactiveRoutes?.has(route.id) ?? false
-                        const on = visibleRoutes.has(route.id)
-                        return (
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* BUS */}
+          {mobilePanel === 'bus' && visibleRoutes && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[340px] max-h-[80dvh] bg-[#0b0b0c]
+                         border border-emerald-300/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex flex-col"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-emerald-300/80">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <path d="M8 6v6" /><path d="M16 6v6" />
+                    <path d="M2 12h20" />
+                    <rect x="2" y="4" width="20" height="14" rx="3" />
+                    <circle cx="7" cy="20" r="1" /><circle cx="17" cy="20" r="1" />
+                  </svg>
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(110,231,183,0.35) 0 1px, transparent 1px 3px)' }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">BUS · 巴士</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-emerald-300/80">
+                    {visibleRoutes.size}<span className="text-white/30">/{busRoutes.length}</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 border-b border-white/8 shrink-0">
+                <button
+                  onClick={onResetAuto}
+                  className={`px-1 py-1.5 mm-mono text-[10px] tracking-[0.1em] transition-colors text-center
+                             ${isAutoMode
+                               ? 'bg-emerald-300/10 text-emerald-200'
+                               : 'text-white/45 active:text-white active:bg-white/5'}`}
+                  style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 rgba(110,231,183,0.7)' } : undefined}
+                >
+                  {t.autoByTime}
+                </button>
+                <button
+                  onClick={onShowAll}
+                  className="px-1 py-1.5 mm-mono text-[10px] tracking-[0.15em] text-white/45 active:text-white
+                             active:bg-white/5 transition-colors text-center border-l border-white/8"
+                >
+                  {t.showAll}
+                </button>
+                <button
+                  onClick={onHideAll}
+                  className="px-1 py-1.5 mm-mono text-[10px] tracking-[0.15em] text-white/45 active:text-white
+                             active:bg-white/5 transition-colors text-center border-l border-white/8"
+                >
+                  {t.hideAll}
+                </button>
+              </div>
+              <div className="overflow-y-auto flex-1 min-h-0">
+                {GROUP_ORDER.map(groupKey => {
+                  const routes = grouped.get(groupKey) || []
+                  if (routes.length === 0) return null
+                  const groupActive = routes.filter(r => visibleRoutes.has(r.id)).length
+                  const eligibleInGroup = routes.filter(r => !(inactiveRoutes?.has(r.id) ?? false))
+                  const groupOn = eligibleInGroup.length > 0
+                    && eligibleInGroup.every(r => visibleRoutes.has(r.id))
+                  const collapsed = collapsedGroups.has(groupKey)
+                  return (
+                    <div key={groupKey} className="border-t border-white/5">
+                      <div className="w-full flex items-stretch bg-white/[0.015]">
+                        <button
+                          type="button"
+                          onClick={() => toggleGroupCollapse(groupKey)}
+                          className="flex-1 min-w-0 px-2 py-1.5 flex items-center gap-2
+                                     active:bg-white/[0.04] transition"
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full shrink-0
+                                            ${groupActive > 0 ? 'bg-emerald-300' : 'bg-white/15'}`} />
+                          <span className="mm-mono text-[10px] tracking-[0.2em] text-white/55 uppercase flex-1 text-left">
+                            {t[GROUP_LABEL_KEYS[groupKey]]}
+                          </span>
+                          <span className="mm-mono mm-tabular text-[10px] text-white/35 w-10 text-right">
+                            {groupActive}/{routes.length}
+                          </span>
+                          <span className="text-white/30 mm-mono text-[9px] w-3 text-center">
+                            {collapsed ? '▸' : '▾'}
+                          </span>
+                        </button>
+                        {onToggleGroup && eligibleInGroup.length > 0 && (
                           <button
-                            key={route.id}
-                            onClick={() => !inactive && onToggleRoute?.(route.id)}
-                            disabled={inactive}
-                            className={`w-full px-2 py-[3px] flex items-center gap-2 transition-colors
-                                       ${inactive
-                                         ? 'opacity-30 cursor-not-allowed'
-                                         : on ? 'hover:bg-white/[0.04]' : 'opacity-35'}`}
+                            type="button"
+                            onClick={() => onToggleGroup(groupKey)}
+                            aria-pressed={groupOn}
+                            className={`shrink-0 w-11 mm-mono text-[9px] tracking-[0.2em]
+                                        border-l border-white/8 transition text-center
+                                        ${groupOn
+                                          ? 'text-emerald-300/80 active:bg-emerald-300/10'
+                                          : 'text-white/30 active:bg-white/[0.05]'}`}
                           >
-                            <span
-                              className="mm-mono mm-tabular text-[10px] font-bold text-center shrink-0"
-                              style={{
-                                width: 34,
-                                color: inactive ? '#444' : on ? route.color : '#555',
-                                textShadow: !inactive && on ? `0 0 6px ${route.color}66` : 'none',
-                                textDecoration: inactive ? 'line-through' : 'none',
-                              }}
-                            >
-                              {route.name}
-                            </span>
-                            <span className={`text-[10px] flex-1 text-left truncate mm-han
-                                              ${inactive ? 'text-white/25' : on ? 'text-white/75' : 'text-white/30'}`}>
-                              {inactive
-                                ? t.noServiceToday
-                                : (lang !== 'en' && route.nameCn ? route.nameCn : '')}
-                            </span>
+                            {groupOn ? 'ON' : 'OFF'}
                           </button>
-                        )
-                      })}
+                        )}
+                      </div>
+                      {!collapsed && (
+                      <div className="bg-[#060607]">
+                        {routes.map(route => {
+                          const inactive = inactiveRoutes?.has(route.id) ?? false
+                          const on = visibleRoutes.has(route.id)
+                          return (
+                            <button
+                              key={route.id}
+                              onClick={() => !inactive && onToggleRoute?.(route.id)}
+                              disabled={inactive}
+                              className={`w-full px-2 py-1 flex items-center gap-2 transition-colors
+                                         ${inactive
+                                           ? 'opacity-30 cursor-not-allowed'
+                                           : on ? 'active:bg-white/[0.04]' : 'opacity-35'}`}
+                            >
+                              <span
+                                className="mm-mono mm-tabular text-[11px] font-bold text-center shrink-0"
+                                style={{
+                                  width: 36,
+                                  color: inactive ? '#444' : on ? route.color : '#555',
+                                  textShadow: !inactive && on ? `0 0 6px ${route.color}66` : 'none',
+                                  textDecoration: inactive ? 'line-through' : 'none',
+                                }}
+                              >
+                                {route.name}
+                              </span>
+                              <span className={`text-[11px] flex-1 text-left truncate mm-han
+                                                ${inactive ? 'text-white/25' : on ? 'text-white/75' : 'text-white/30'}`}>
+                                {inactive
+                                  ? t.noServiceToday
+                                  : (lang !== 'en' && route.nameCn ? route.nameCn : '')}
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
+                      )}
                     </div>
-                    )}
-                  </div>
-                )
-              })}
+                  )
+                })}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* AIR popover */}
-        {mobilePanel === 'air' && (
-          <div className="absolute top-full right-0 mt-2 bg-[#0b0b0c] backdrop-blur-md
-                          border border-sky-300/25 rounded-sm overflow-hidden
-                          shadow-[0_8px_24px_rgba(0,0,0,0.6)] w-52 max-w-[calc(100vw-5rem)]">
-            <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-sky-300/75">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                  <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
-                </svg>
-                <span
-                  className="inline-block w-[8px] h-[8px]"
-                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(125,211,252,0.35) 0 1px, transparent 1px 3px)' }}
-                />
-                <span className="mm-mono text-[9px] tracking-[0.25em]">AIR · 航班</span>
-              </span>
-              <span className="mm-mono mm-tabular text-[8px] text-white/30">
-                {flightsOn ? flightCount : 0}/{totalFlightCount}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={onToggleFlights}
-              disabled={!onToggleFlights}
-              aria-pressed={flightsOn}
-              className={`w-full px-3 py-2.5 flex items-center justify-between transition
-                         ${flightsOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
-                         ${onToggleFlights ? '' : 'cursor-default'}`}
+          {/* AIR */}
+          {mobilePanel === 'air' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-sky-300/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
             >
-              <span className="flex items-center gap-2">
-                <span className={flightsOn ? 'text-sky-300' : 'text-white/40'}>✈</span>
-                <span className="mm-mono mm-tabular text-[11px] text-white/80">
-                  {flightCount} {t.flights}
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-sky-300/80">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                    <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
+                  </svg>
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(125,211,252,0.35) 0 1px, transparent 1px 3px)' }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">AIR · 航班</span>
                 </span>
-              </span>
-              <span className={`mm-mono text-[9px] tracking-[0.2em] ${flightsOn ? 'text-emerald-300' : 'text-white/25'}`}>
-                {flightsOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          </div>
-        )}
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                    {flightsOn ? flightCount : 0}/{totalFlightCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleFlights}
+                disabled={!onToggleFlights}
+                aria-pressed={flightsOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${flightsOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${onToggleFlights ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={flightsOn ? 'text-sky-300' : 'text-white/40'}>✈</span>
+                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                    {flightCount} {t.flights}
+                  </span>
+                </span>
+                <span className={`mm-mono text-[10px] tracking-[0.2em] ${flightsOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                  {flightsOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+            </div>
+          )}
 
-        {/* SEA popover */}
-        {mobilePanel === 'sea' && (
-          <div className="absolute top-full right-0 mt-2 bg-[#0b0b0c] backdrop-blur-md
-                          border border-red-400/25 rounded-sm overflow-hidden
-                          shadow-[0_8px_24px_rgba(0,0,0,0.6)] w-52 max-w-[calc(100vw-5rem)]">
-            <div className="px-3 py-1.5 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-              <span className="flex items-center gap-1.5 text-red-300/80">
-                <span className="text-[10px] leading-none">⚓</span>
-                <span
-                  className="inline-block w-[8px] h-[8px]"
-                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
-                />
-                <span className="mm-mono text-[9px] tracking-[0.25em]">SEA · 船運</span>
-              </span>
-              <span className="mm-mono mm-tabular text-[8px] text-white/30">
-                {ferriesOn ? ferryCount : 0}/{totalFerryCount}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={onToggleFerries}
-              disabled={!onToggleFerries}
-              aria-pressed={ferriesOn}
-              className={`w-full px-3 py-2.5 flex items-center justify-between transition
-                         ${ferriesOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
-                         ${onToggleFerries ? '' : 'cursor-default'}`}
+          {/* SEA */}
+          {mobilePanel === 'sea' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-red-400/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
             >
-              <span className="flex items-center gap-2">
-                <span className={ferriesOn ? 'text-red-400' : 'text-white/40'}>⚓</span>
-                <span className="mm-mono mm-tabular text-[11px] text-white/80">
-                  {ferryCount} {t.ferries}
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-red-300/85">
+                  <span className="text-[12px] leading-none">⚓</span>
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">SEA · 船運</span>
                 </span>
-              </span>
-              <span className={`mm-mono text-[9px] tracking-[0.2em] ${ferriesOn ? 'text-emerald-300' : 'text-white/25'}`}>
-                {ferriesOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          </div>
-        )}
-      </div>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                    {ferriesOn ? ferryCount : 0}/{totalFerryCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleFerries}
+                disabled={!onToggleFerries}
+                aria-pressed={ferriesOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${ferriesOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${onToggleFerries ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={ferriesOn ? 'text-red-400' : 'text-white/40'}>⚓</span>
+                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                    {ferryCount} {t.ferries}
+                  </span>
+                </span>
+                <span className={`mm-mono text-[10px] tracking-[0.2em] ${ferriesOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                  {ferriesOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
     </>
   )
 }

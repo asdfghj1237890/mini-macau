@@ -8,6 +8,7 @@ import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
 import { getScheduleType } from './engines/simulationEngine'
 import { startEngagementTracker, ga } from './analytics/ga'
+import { getRouteGroup, type GroupKey } from './routeGroups'
 import type { VehiclePosition, Station, BusRoute } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
@@ -243,6 +244,26 @@ export default function App() {
     setIsAutoMode(false)
   }, [])
 
+  const onToggleGroup = useCallback((groupKey: GroupKey) => {
+    const groupRoutes = transitData.busRoutes.filter(
+      r => getRouteGroup(r) === groupKey && !inactiveRoutes.has(r.id)
+    )
+    if (groupRoutes.length === 0) return
+    setVisibleRoutes(prev => {
+      const allOn = groupRoutes.every(r => prev.has(r.id))
+      const next = new Set(prev)
+      if (allOn) {
+        for (const r of groupRoutes) next.delete(r.id)
+      } else {
+        for (const r of groupRoutes) next.add(r.id)
+      }
+      saveRoutes(next)
+      ga.layerToggled(`bus_group_${groupKey}`, !allOn)
+      return next
+    })
+    setIsAutoMode(false)
+  }, [transitData.busRoutes, inactiveRoutes])
+
   const onResetAuto = useCallback(() => {
     clearSavedRoutes()
     setIsAutoMode(true)
@@ -346,6 +367,7 @@ export default function App() {
         onToggleAll={onToggleAll}
         onShowAll={onShowAll}
         onHideAll={onHideAll}
+        onToggleGroup={onToggleGroup}
         onResetAuto={onResetAuto}
       />
       <ControlPanel clock={clock} />
