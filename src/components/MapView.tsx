@@ -829,7 +829,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const TRACK_ZOOM = 16
     const FLY_DURATION = 1200
     const EASE_BACK_DURATION = 400
-    const SIM_TICK_MS = 50
+    // 30 Hz sim tick. 20 Hz (50 ms) was fine at 1× but at ≥5× sim speed the
+    // per-tick LRT step grew to ~5 m, held for ~3 render frames — visible as
+    // 前後抖動. 33 ms halves that step without piling re-tessellations on
+    // the MapLibre worker the way a full 60 Hz would.
+    const SIM_TICK_MS = 33
     const HEAVY_TICK_MS_BUSY = 160
     let lastCountReport = 0
     let lastSimTick = 0
