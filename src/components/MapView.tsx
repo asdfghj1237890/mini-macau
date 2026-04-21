@@ -7,7 +7,7 @@ import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
 import { Flight3DLayer, ALL_FLIGHT_3D_LAYERS } from '../layers/Flight3DLayer'
 import { Ferry3DLayer, ALL_FERRY_3D_LAYERS } from '../layers/Ferry3DLayer'
-import { computeVehiclePositions, getScheduleType, interpolateOnLine } from '../engines/simulationEngine'
+import { computeVehiclePositions, computeFlightOnly, getScheduleType, interpolateOnLine } from '../engines/simulationEngine'
 import length from '@turf/length'
 import { useI18n } from '../i18n'
 import type { BusTracker, RouteRealtimePoller } from '../services/realtimeClient'
@@ -174,6 +174,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
+  // Per-RAF flight snapshot. Used as the fallback source for the tracked
+  // plane's live position when we still need one outside the dedicated
+  // per-RAF recompute path.
+  const flightVehiclesRef = useRef<VehiclePosition[]>([])
   const layersAddedRef = useRef(false)
   const bus3DRef = useRef<Bus3DLayer | null>(null)
   const lrt3DRef = useRef<LRT3DLayer | null>(null)
@@ -251,6 +255,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const rtModuleRef = useRef<typeof import('../services/realtimeClient') | null>(null)
   const pausedRef = useRef(clock.paused)
   pausedRef.current = clock.paused
+  const speedRef = useRef(clock.speed)
+  speedRef.current = clock.speed
   const tabVisibleRef = useRef(typeof document === 'undefined' || !document.hidden)
   // Current viewport bbox (expanded by buffer). null = "show everything"
   // — used before the map reports its first bounds.
@@ -838,6 +844,15 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     let lastCountReport = 0
     let lastSimTick = 0
     let lastHeavyTick = 0
+    let lastFlightTick = 0
+    // Local smooth time for flight computation: the clock hook advances
+    // timeRef in its own RAF loop which can fire after this animate loop
+    // in the same browser frame, causing a stale read (zero delta) followed
+    // by a double-delta on the next frame. At >=10x the alternating 0/2x
+    // steps are visible as 前後抖動. Maintaining our own time from
+    // performance.now() delta guarantees monotonic per-frame advancement.
+    let flightPerfLast = 0
+    let flightSimMs = 0
 
     const animate = () => {
       const map = mapRef.current
@@ -941,9 +956,40 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           lastHeavyTick = nowTick
           bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
           lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
-          flight3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'flight'))
           ferry3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'ferry'))
         }
+        }
+
+        // Advance local flight time smoothly from performance.now() delta.
+        if (flightPerfLast === 0) {
+          flightPerfLast = nowTick
+          flightSimMs = clock.timeRef.current.getTime()
+        } else {
+          const perfDelta = nowTick - flightPerfLast
+          flightPerfLast = nowTick
+          if (!pausedRef.current) {
+            flightSimMs += perfDelta * speedRef.current
+          }
+          const clockMs = clock.timeRef.current.getTime()
+          if (Math.abs(flightSimMs - clockMs) > 2000) {
+            flightSimMs = clockMs
+          }
+        }
+
+        if (flight3DRef.current && !td.loading) {
+          const flightVehicles = computeFlightOnly(td, new Date(flightSimMs))
+          flightVehiclesRef.current = flightVehicles
+          const flightNow = performance.now()
+          const busyOk = !mapBusyRef.current || flightNow - lastFlightTick >= HEAVY_TICK_MS_BUSY
+          if (shouldHeavy && busyOk) {
+            lastFlightTick = flightNow
+            flight3DRef.current.setVehicles(flightVehicles)
+          }
+          const tid = trackedRef.current
+          const trackedFlight = tid
+            ? flightVehicles.find(v => v.id === tid && v.type === 'flight') ?? null
+            : null
+          flight3DRef.current.setTrackedVehicle(trackedFlight)
         }
 
         const now = performance.now()
@@ -1007,7 +1053,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
         const tid = trackedRef.current
         if (tid) {
-          const tracked = vehiclesRef.current.find(v => v.id === tid)
+          // Prefer the per-RAF flight snapshot for planes so the camera
+          // follows the same position the mesh is rendered at.
+          const tracked =
+            flightVehiclesRef.current.find(v => v.id === tid) ??
+            vehiclesRef.current.find(v => v.id === tid)
           if (tracked) {
             if (tracked.rt) {
               const sync = lastTrackedSyncRef.current
@@ -1045,6 +1095,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                   duration: EASE_BACK_DURATION,
                 })
               } else {
+                // Flights: tracked mesh just got setData'd into the 1-feature
+                // tracked source and will land on this same paint, so the
+                // camera can move synchronously with it. Non-flights go
+                // through heavy-tick 3D layers whose step is small enough
+                // that a per-RAF setCenter is likewise fine.
                 map.setCenter([tracked.coordinates[0], tracked.coordinates[1]])
               }
             }

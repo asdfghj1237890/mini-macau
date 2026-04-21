@@ -11,3 +11,4 @@ data/raw/
 tmp_*
 .claude/scheduled_tasks.lock
 .env.development
+.claude/settings.local.json

@@ -764,11 +764,12 @@ function taxiPathTotalDist(path: [number, number][]): number {
 
 function interpolateTaxiPath(
   path: [number, number][],
-  route: TaxiWaypoint[],
+  _route: TaxiWaypoint[],
   t: number,
 ): { pos: [number, number]; bearing: number } {
   const totalDist = taxiPathTotalDist(path)
   let targetDist = t * totalDist
+
   for (let i = 1; i < path.length; i++) {
     const segDist = distDeg(path[i - 1], path[i])
     if (targetDist <= segDist || i === path.length - 1) {
@@ -776,20 +777,15 @@ function interpolateTaxiPath(
       const lon = path[i - 1][0] + (path[i][0] - path[i - 1][0]) * segT
       const lat = path[i - 1][1] + (path[i][1] - path[i - 1][1]) * segT
 
-      let bearing: number
-      if (i - 1 === 0) {
-        bearing = route.length > 0
-          ? bearingTo(lon, lat, route[0].noseTarget[0], route[0].noseTarget[1])
-          : bearingTo(path[0][0], path[0][1], path[1][0], path[1][1])
-      } else {
-        const waypointIdx = i - 2
-        if (waypointIdx >= 0 && waypointIdx < route.length) {
-          bearing = bearingTo(lon, lat, route[waypointIdx].noseTarget[0], route[waypointIdx].noseTarget[1])
-        } else {
-          bearing = bearingTo(path[i - 1][0], path[i - 1][1], path[i][0], path[i][1])
-        }
-      }
-      return { pos: [lon, lat], bearing }
+      // Use segment direction (path[i-1] → path[i]) as the bearing — this is
+      // constant along the segment, so it's numerically stable. The earlier
+      // "bearingTo(plane_pos, noseTarget)" approach was unstable: as the
+      // plane approached noseTarget the displacement vector shrank toward
+      // zero and sub-metre position noise caused multi-degree bearing swings
+      // per frame, which the eye reads as 前後抖動 even though position
+      // itself is continuous.
+      const curBearing = bearingTo(path[i - 1][0], path[i - 1][1], path[i][0], path[i][1])
+      return { pos: [lon, lat], bearing: curBearing }
     }
     targetDist -= segDist
   }
@@ -811,9 +807,8 @@ function interpolateLandingRoute(
       const segT = segDist > 0 ? Math.min(1, targetDist / segDist) : 0
       const lon = path[i - 1][0] + (path[i][0] - path[i - 1][0]) * segT
       const lat = path[i - 1][1] + (path[i][1] - path[i - 1][1]) * segT
-      const wp = route[i - 1]
-      const bearing = bearingTo(lon, lat, wp.noseTarget[0], wp.noseTarget[1])
-      return { pos: [lon, lat], bearing }
+      const curBearing = bearingTo(path[i - 1][0], path[i - 1][1], path[i][0], path[i][1])
+      return { pos: [lon, lat], bearing: curBearing }
     }
     targetDist -= segDist
   }
@@ -1328,4 +1323,15 @@ export function computeVehiclePositions(
   )
 
   return [...lrtVehicles, ...busVehicles, ...flightVehicles, ...ferryVehicles]
+}
+
+// Flights only. Called every RAF frame from the render loop so the 3D plane
+// position tracks continuous time instead of stepping once per sim tick — the
+// tick-held position was the 前後抖動 source at ≥5× sim speed (per-tick step
+// 3–25 m depending on taxi vs approach phase).
+export function computeFlightOnly(
+  transitData: TransitData,
+  time: Date,
+): VehiclePosition[] {
+  return computeFlightVehicles(transitData.flights, timeToMinutes(time))
 }
