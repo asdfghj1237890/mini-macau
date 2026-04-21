@@ -1106,10 +1106,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   return (
     <>
       <div ref={containerRef} className="w-full h-full" />
-      {/* Hamburger + zoom (desktop top-left; phone top-[50px] next to TimeDisplay) */}
+      {/* Hamburger + zoom (desktop top-left; phone top-1 next to TimeDisplay,
+          horizontally aligned with MapLibre +/- zoom controls on the right) */}
       <div className="mm-ui-scale absolute z-10 flex items-center gap-1.5
                       top-3 left-3
-                      max-sm:top-[50px] max-sm:left-2">
+                      max-sm:top-2 max-sm:left-2">
         <button
           onClick={() => setMenuOpen(o => {
             if (!o) ga.drawerOpened()
@@ -1150,9 +1151,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         />
       )}
 
-      {/* Slide-out drawer — CRT / Platform style */}
+      {/* Slide-out drawer — CRT / Platform style.
+          100dvh (dynamic viewport height) keeps the drawer flush with the
+          visible viewport on mobile browsers where the URL bar expands/
+          collapses. 100vh overshoots into the hidden-under-URL-bar area,
+          leaving bottom content unreachable by scroll. */}
       <div
-        style={{ zoom: 1.2, height: 'calc(100vh / 1.2)' }}
+        style={{ zoom: 1.2, height: 'calc(100dvh / 1.2)' }}
         className={`fixed top-0 left-0 z-40 w-60
                     bg-[#0b0b0d] border-r border-amber-300/20
                     shadow-[8px_0_32px_rgba(0,0,0,0.8)]

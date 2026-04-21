@@ -61,7 +61,18 @@
       "Bash(ls Dockerfile* nginx*)",
       "Bash(ls deploy/)",
       "Bash(grep -oE '\"id\":\"[a-zA-Z0-9_-]+\"\\\\s*$\\\\|batch.*requestId[^,]*' \"C:\\\\Users\\\\TOMMY\\\\.claude\\\\projects\\\\C--Users-TOMMY-Desktop-side-projects-mini-macau\\\\af24b359-12ad-459a-9e58-ca2915162744\\\\tool-results\\\\b0p005mdp.txt\")",
-      "Bash(grep -oE \"updateData[^;{]{0,300}\" node_modules/maplibre-gl/dist/maplibre-gl-dev.js)"
+      "Bash(grep -oE \"updateData[^;{]{0,300}\" node_modules/maplibre-gl/dist/maplibre-gl-dev.js)",
+      "Bash(curl -s -m 10 http://192.168.50.181:853/)",
+      "Bash(curl -s -m 10 http://192.168.50.181:853/debug)",
+      "Bash(curl -s -m 10 http://192.168.50.181:853/logs)",
+      "Bash(curl -s -m 10 http://192.168.50.181:853/api/debug)",
+      "Bash(curl -s -m 5 -o /dev/null -w 'HTTP %{http_code}\\\\n' http://192.168.50.181:853__TRACKED_VAR__)",
+      "Bash(curl -s -m 5 \"http://192.168.50.181:853/api/debug/dsat\")",
+      "Bash(curl -s -m 5 \"http://192.168.50.181:853/api/logs\")",
+      "Bash(curl -s -m 10 \"http://192.168.50.181:853/api/dsat/batch?routes=1:0,25:0,26A:0,MT1:0,N1A:0\")",
+      "Bash(python -c \"import sys,json; data=json.loads\\(sys.stdin.read\\(\\)\\); print\\('items:', len\\(data\\)\\); [print\\(r['key'], 'status='+str\\(r['status']\\), 'data?', bool\\(r.get\\('data'\\)\\), 'header='+\\(r.get\\('data',{}\\) or {}\\).get\\('header','?'\\), 'routeInfoType='+type\\(\\(r.get\\('data',{}\\) or {}\\).get\\('data',{}\\).get\\('routeInfo'\\)\\).__name__\\) for r in data]\")",
+      "Bash(python -c \"import sys,json; pkg=json.load\\(sys.stdin\\); print\\('scripts:'\\); [print\\(' ', k, '=', v\\) for k,v in pkg.get\\('scripts',{}\\).items\\(\\)]\")",
+      "Bash(python -c \"import json,sys; d=json.load\\(open\\('public/data/ferry-schedules.json',encoding='utf-8'\\)\\); print\\('keys:', list\\(d.keys\\(\\)\\)[:10] if isinstance\\(d,dict\\) else 'array'\\); print\\('len:', len\\(d\\) if hasattr\\(d,'__len__'\\) else 'n/a'\\); print\\(json.dumps\\(d[0] if isinstance\\(d,list\\) else d[list\\(d.keys\\(\\)\\)[0]], ensure_ascii=False, indent=2\\)[:400]\\)\")"
     ]
   }
 }
