@@ -272,7 +272,7 @@ export function ControlPanel({ clock }: Props) {
   if (compact) {
     const MOBILE_SPEEDS = [1, 2, 5, 10, 30]
     return (
-      <div className="absolute bottom-14 left-3 right-3 z-10 mm-fade
+      <div className="absolute bottom-14 left-3 right-3 z-30 mm-fade
                       pb-[max(0px,env(safe-area-inset-bottom))]">
         <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
                         shadow-2xl shadow-black/60 overflow-visible">
@@ -322,7 +322,7 @@ export function ControlPanel({ clock }: Props) {
               {speedMenuOpen && (
                 <div
                   role="menu"
-                  className="absolute bottom-full left-0 mb-1 bg-[#0b0b0c]
+                  className="absolute bottom-full left-0 mb-1 z-50 bg-[#0b0b0c]
                              border border-white/15 shadow-2xl flex flex-col min-w-[64px]
                              overflow-hidden"
                 >
