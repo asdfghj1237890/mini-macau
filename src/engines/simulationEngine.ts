@@ -118,6 +118,61 @@ export function interpolateOnLine(
   }
 }
 
+// Position + tangent bearing sampled as the chord from (progress − δ) to
+// (progress + δ) along the line. The per-segment `segBearing` lookup in
+// `interpolateOnLine` is piecewise-constant, so a long rigid body (e.g. the
+// 57 m two-car LRT) snaps visibly each time its pivot crosses a segment
+// boundary on a curved viaduct. Averaging a short arc window smooths those
+// step transitions into a continuous heading. windowKm controls the arc
+// length (±), default 15 m — small enough to still track real curves, large
+// enough to hide segment steps in the source polyline.
+function pointAtKm(coords: [number, number][], cum: Float64Array, km: number): [number, number] {
+  const n = coords.length
+  let lo = 0
+  let hi = n - 1
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >>> 1
+    if (cum[mid] <= km) lo = mid
+    else hi = mid - 1
+  }
+  const i = Math.min(lo, n - 2)
+  const segKm = cum[i + 1] - cum[i]
+  const t = segKm > 0 ? (km - cum[i]) / segKm : 0
+  const [x0, y0] = coords[i]
+  const [x1, y1] = coords[i + 1]
+  return [x0 + (x1 - x0) * t, y0 + (y1 - y0) * t]
+}
+
+export function interpolateOnLineSmooth(
+  line: Feature<LineString>,
+  progress: number,
+  windowKm = 0.015,
+): { coordinates: [number, number]; bearing: number } {
+  const c = getLineCache(line)
+  const coords = c.coords
+  const n = coords.length
+  if (n < 2) return { coordinates: coords[0] ?? [0, 0], bearing: 0 }
+
+  const totalKm = c.totalKm
+  const targetKm = Math.max(0, Math.min(totalKm, progress * totalKm))
+  const cum = c.cumKm
+
+  const here = pointAtKm(coords, cum, targetKm)
+  const aKm = Math.max(0, targetKm - windowKm)
+  const bKm = Math.min(totalKm, targetKm + windowKm)
+  // Fall back to the segment bearing if the window collapses (at endpoints
+  // the tangent would degenerate).
+  if (bKm - aKm < 1e-6) {
+    return { coordinates: here, bearing: c.segBearing[Math.min(n - 2, Math.max(0, n - 2))] }
+  }
+  const pa = pointAtKm(coords, cum, aKm)
+  const pb = pointAtKm(coords, cum, bKm)
+  const dx = pb[0] - pa[0]
+  const dy = pb[1] - pa[1]
+  const bearing = (Math.atan2(dx, dy) * 180) / Math.PI
+  return { coordinates: here, bearing }
+}
+
 function computeLRTVehicles(
   trips: Trip[],
   lines: LRTLine[],
@@ -176,7 +231,7 @@ function computeLRTVehicles(
     if (overallProgress === null) continue
 
     overallProgress = Math.max(0, Math.min(1, overallProgress))
-    const pos = interpolateOnLine(line.geometry, overallProgress)
+    const pos = interpolateOnLineSmooth(line.geometry, overallProgress)
     vehicles.push({
       id: trip.id,
       lineId: trip.lineId,
