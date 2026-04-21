@@ -28330,278 +28330,6 @@
     "scheduleType": "sat_sun",
     "entries": [
       {
-        "stationId": "Airport",
-        "arrivalMinutes": 1402,
-        "departureMinutes": 1402
-      },
-      {
-        "stationId": "MUST",
-        "arrivalMinutes": 1407,
-        "departureMinutes": 1407
-      },
-      {
-        "stationId": "Cotai_East",
-        "arrivalMinutes": 1408,
-        "departureMinutes": 1408
-      },
-      {
-        "stationId": "East_Asian_Games",
-        "arrivalMinutes": 1409,
-        "departureMinutes": 1409
-      },
-      {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 1410,
-        "departureMinutes": 1410
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1412,
-        "departureMinutes": 1412
-      },
-      {
-        "stationId": "Cotai_West",
-        "arrivalMinutes": 1414,
-        "departureMinutes": 1414
-      },
-      {
-        "stationId": "Pai_Kok",
-        "arrivalMinutes": 1416,
-        "departureMinutes": 1416
-      },
-      {
-        "stationId": "Stadium",
-        "arrivalMinutes": 1418,
-        "departureMinutes": 1418
-      },
-      {
-        "stationId": "Jockey_Club",
-        "arrivalMinutes": 1421,
-        "departureMinutes": 1421
-      },
-      {
-        "stationId": "Ocean",
-        "arrivalMinutes": 1423,
-        "departureMinutes": 1423
-      },
-      {
-        "stationId": "Barra",
-        "arrivalMinutes": 1427,
-        "departureMinutes": 1427
-      }
-    ]
-  },
-  {
-    "id": "taipa_ssh_XB0029",
-    "lineId": "taipa",
-    "direction": "backward",
-    "scheduleType": "sat_sun",
-    "entries": [
-      {
-        "stationId": "Airport",
-        "arrivalMinutes": 1408,
-        "departureMinutes": 1408
-      },
-      {
-        "stationId": "MUST",
-        "arrivalMinutes": 1413,
-        "departureMinutes": 1413
-      },
-      {
-        "stationId": "Cotai_East",
-        "arrivalMinutes": 1414,
-        "departureMinutes": 1414
-      },
-      {
-        "stationId": "East_Asian_Games",
-        "arrivalMinutes": 1415,
-        "departureMinutes": 1415
-      },
-      {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 1416,
-        "departureMinutes": 1416
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1418,
-        "departureMinutes": 1418
-      },
-      {
-        "stationId": "Cotai_West",
-        "arrivalMinutes": 1420,
-        "departureMinutes": 1420
-      },
-      {
-        "stationId": "Pai_Kok",
-        "arrivalMinutes": 1422,
-        "departureMinutes": 1422
-      },
-      {
-        "stationId": "Stadium",
-        "arrivalMinutes": 1424,
-        "departureMinutes": 1424
-      },
-      {
-        "stationId": "Jockey_Club",
-        "arrivalMinutes": 1427,
-        "departureMinutes": 1427
-      },
-      {
-        "stationId": "Ocean",
-        "arrivalMinutes": 1429,
-        "departureMinutes": 1429
-      },
-      {
-        "stationId": "Barra",
-        "arrivalMinutes": 1433,
-        "departureMinutes": 1433
-      }
-    ]
-  },
-  {
-    "id": "taipa_ssh_XB0030",
-    "lineId": "taipa",
-    "direction": "backward",
-    "scheduleType": "sat_sun",
-    "entries": [
-      {
-        "stationId": "Airport",
-        "arrivalMinutes": 1414,
-        "departureMinutes": 1414
-      },
-      {
-        "stationId": "MUST",
-        "arrivalMinutes": 1419,
-        "departureMinutes": 1419
-      },
-      {
-        "stationId": "Cotai_East",
-        "arrivalMinutes": 1420,
-        "departureMinutes": 1420
-      },
-      {
-        "stationId": "East_Asian_Games",
-        "arrivalMinutes": 1421,
-        "departureMinutes": 1421
-      },
-      {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 1422,
-        "departureMinutes": 1422
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1424,
-        "departureMinutes": 1424
-      },
-      {
-        "stationId": "Cotai_West",
-        "arrivalMinutes": 1426,
-        "departureMinutes": 1426
-      },
-      {
-        "stationId": "Pai_Kok",
-        "arrivalMinutes": 1428,
-        "departureMinutes": 1428
-      },
-      {
-        "stationId": "Stadium",
-        "arrivalMinutes": 1430,
-        "departureMinutes": 1430
-      },
-      {
-        "stationId": "Jockey_Club",
-        "arrivalMinutes": 1433,
-        "departureMinutes": 1433
-      },
-      {
-        "stationId": "Ocean",
-        "arrivalMinutes": 1435,
-        "departureMinutes": 1435
-      },
-      {
-        "stationId": "Barra",
-        "arrivalMinutes": 1439,
-        "departureMinutes": 1439
-      }
-    ]
-  },
-  {
-    "id": "taipa_ssh_XB0031",
-    "lineId": "taipa",
-    "direction": "backward",
-    "scheduleType": "sat_sun",
-    "entries": [
-      {
-        "stationId": "Airport",
-        "arrivalMinutes": 1420,
-        "departureMinutes": 1420
-      },
-      {
-        "stationId": "MUST",
-        "arrivalMinutes": 1422,
-        "departureMinutes": 1422
-      },
-      {
-        "stationId": "Cotai_East",
-        "arrivalMinutes": 1424,
-        "departureMinutes": 1424
-      },
-      {
-        "stationId": "East_Asian_Games",
-        "arrivalMinutes": 1426,
-        "departureMinutes": 1426
-      },
-      {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 1428,
-        "departureMinutes": 1428
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1430,
-        "departureMinutes": 1430
-      },
-      {
-        "stationId": "Cotai_West",
-        "arrivalMinutes": 1432,
-        "departureMinutes": 1432
-      },
-      {
-        "stationId": "Pai_Kok",
-        "arrivalMinutes": 1434,
-        "departureMinutes": 1434
-      },
-      {
-        "stationId": "Stadium",
-        "arrivalMinutes": 1436,
-        "departureMinutes": 1436
-      },
-      {
-        "stationId": "Jockey_Club",
-        "arrivalMinutes": 1439,
-        "departureMinutes": 1439
-      },
-      {
-        "stationId": "Ocean",
-        "arrivalMinutes": 1441,
-        "departureMinutes": 1441
-      },
-      {
-        "stationId": "Barra",
-        "arrivalMinutes": 1445,
-        "departureMinutes": 1445
-      }
-    ]
-  },
-  {
-    "id": "taipa_ssh_XB0032",
-    "lineId": "taipa",
-    "direction": "backward",
-    "scheduleType": "sat_sun",
-    "entries": [
-      {
         "stationId": "MUST",
         "arrivalMinutes": 535,
         "departureMinutes": 535
@@ -28659,7 +28387,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0033",
+    "id": "taipa_ssh_XB0029",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -28717,7 +28445,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0034",
+    "id": "taipa_ssh_XB0030",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -28775,7 +28503,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0035",
+    "id": "taipa_ssh_XB0031",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -28833,7 +28561,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0036",
+    "id": "taipa_ssh_XB0032",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -28891,7 +28619,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0037",
+    "id": "taipa_ssh_XB0033",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -28949,7 +28677,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0038",
+    "id": "taipa_ssh_XB0034",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29007,7 +28735,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0039",
+    "id": "taipa_ssh_XB0035",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29065,7 +28793,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0040",
+    "id": "taipa_ssh_XB0036",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29123,7 +28851,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0041",
+    "id": "taipa_ssh_XB0037",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29176,7 +28904,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0042",
+    "id": "taipa_ssh_XB0038",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29229,7 +28957,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0043",
+    "id": "taipa_ssh_XB0039",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29282,7 +29010,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0044",
+    "id": "taipa_ssh_XB0040",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29335,7 +29063,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0045",
+    "id": "taipa_ssh_XB0041",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29388,7 +29116,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0046",
+    "id": "taipa_ssh_XB0042",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29441,7 +29169,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0047",
+    "id": "taipa_ssh_XB0043",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29489,7 +29217,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0048",
+    "id": "taipa_ssh_XB0044",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29537,7 +29265,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0049",
+    "id": "taipa_ssh_XB0045",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29585,7 +29313,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0050",
+    "id": "taipa_ssh_XB0046",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29633,7 +29361,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0051",
+    "id": "taipa_ssh_XB0047",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29681,7 +29409,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0052",
+    "id": "taipa_ssh_XB0048",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29729,7 +29457,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0053",
+    "id": "taipa_ssh_XB0049",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29777,7 +29505,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0054",
+    "id": "taipa_ssh_XB0050",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29825,7 +29553,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0055",
+    "id": "taipa_ssh_XB0051",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29873,7 +29601,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0056",
+    "id": "taipa_ssh_XB0052",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29921,7 +29649,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0057",
+    "id": "taipa_ssh_XB0053",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -29964,7 +29692,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0058",
+    "id": "taipa_ssh_XB0054",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30007,7 +29735,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0059",
+    "id": "taipa_ssh_XB0055",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30050,7 +29778,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0060",
+    "id": "taipa_ssh_XB0056",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30093,7 +29821,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0061",
+    "id": "taipa_ssh_XB0057",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30136,7 +29864,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0062",
+    "id": "taipa_ssh_XB0058",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30179,7 +29907,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0063",
+    "id": "taipa_ssh_XB0059",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30222,7 +29950,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0064",
+    "id": "taipa_ssh_XB0060",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30265,7 +29993,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0065",
+    "id": "taipa_ssh_XB0061",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30308,7 +30036,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0066",
+    "id": "taipa_ssh_XB0062",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30351,7 +30079,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0067",
+    "id": "taipa_ssh_XB0063",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30394,7 +30122,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0068",
+    "id": "taipa_ssh_XB0064",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30437,7 +30165,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0069",
+    "id": "taipa_ssh_XB0065",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30480,7 +30208,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0070",
+    "id": "taipa_ssh_XB0066",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30523,7 +30251,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0071",
+    "id": "taipa_ssh_XB0067",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30566,7 +30294,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0072",
+    "id": "taipa_ssh_XB0068",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30604,7 +30332,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0073",
+    "id": "taipa_ssh_XB0069",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30637,7 +30365,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0074",
+    "id": "taipa_ssh_XB0070",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30670,7 +30398,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0075",
+    "id": "taipa_ssh_XB0071",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30703,7 +30431,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0076",
+    "id": "taipa_ssh_XB0072",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30736,7 +30464,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0077",
+    "id": "taipa_ssh_XB0073",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30769,7 +30497,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0078",
+    "id": "taipa_ssh_XB0074",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30802,7 +30530,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0079",
+    "id": "taipa_ssh_XB0075",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30835,7 +30563,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0080",
+    "id": "taipa_ssh_XB0076",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30868,7 +30596,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0081",
+    "id": "taipa_ssh_XB0077",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30901,7 +30629,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0082",
+    "id": "taipa_ssh_XB0078",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30934,7 +30662,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0083",
+    "id": "taipa_ssh_XB0079",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -30967,7 +30695,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0084",
+    "id": "taipa_ssh_XB0080",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31000,7 +30728,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0085",
+    "id": "taipa_ssh_XB0081",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31028,7 +30756,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0086",
+    "id": "taipa_ssh_XB0082",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31056,7 +30784,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0087",
+    "id": "taipa_ssh_XB0083",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31084,7 +30812,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0088",
+    "id": "taipa_ssh_XB0084",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31112,7 +30840,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0089",
+    "id": "taipa_ssh_XB0085",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31140,7 +30868,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0090",
+    "id": "taipa_ssh_XB0086",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31168,7 +30896,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0091",
+    "id": "taipa_ssh_XB0087",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31191,7 +30919,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0092",
+    "id": "taipa_ssh_XB0088",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31214,7 +30942,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0093",
+    "id": "taipa_ssh_XB0089",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31232,7 +30960,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0094",
+    "id": "taipa_ssh_XB0090",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31250,7 +30978,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0095",
+    "id": "taipa_ssh_XB0091",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31268,7 +30996,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0096",
+    "id": "taipa_ssh_XB0092",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",
@@ -31286,7 +31014,7 @@
     ]
   },
   {
-    "id": "taipa_ssh_XB0097",
+    "id": "taipa_ssh_XB0093",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "sat_sun",

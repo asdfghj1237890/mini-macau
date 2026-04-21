@@ -24960,278 +24960,6 @@
     "scheduleType": "mon_thu",
     "entries": [
       {
-        "stationId": "Airport",
-        "arrivalMinutes": 1402,
-        "departureMinutes": 1402
-      },
-      {
-        "stationId": "MUST",
-        "arrivalMinutes": 1407,
-        "departureMinutes": 1407
-      },
-      {
-        "stationId": "Cotai_East",
-        "arrivalMinutes": 1408,
-        "departureMinutes": 1408
-      },
-      {
-        "stationId": "East_Asian_Games",
-        "arrivalMinutes": 1409,
-        "departureMinutes": 1409
-      },
-      {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 1410,
-        "departureMinutes": 1410
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1412,
-        "departureMinutes": 1412
-      },
-      {
-        "stationId": "Cotai_West",
-        "arrivalMinutes": 1414,
-        "departureMinutes": 1414
-      },
-      {
-        "stationId": "Pai_Kok",
-        "arrivalMinutes": 1416,
-        "departureMinutes": 1416
-      },
-      {
-        "stationId": "Stadium",
-        "arrivalMinutes": 1418,
-        "departureMinutes": 1418
-      },
-      {
-        "stationId": "Jockey_Club",
-        "arrivalMinutes": 1421,
-        "departureMinutes": 1421
-      },
-      {
-        "stationId": "Ocean",
-        "arrivalMinutes": 1423,
-        "departureMinutes": 1423
-      },
-      {
-        "stationId": "Barra",
-        "arrivalMinutes": 1427,
-        "departureMinutes": 1427
-      }
-    ]
-  },
-  {
-    "id": "taipa_XB0001",
-    "lineId": "taipa",
-    "direction": "backward",
-    "scheduleType": "mon_thu",
-    "entries": [
-      {
-        "stationId": "Airport",
-        "arrivalMinutes": 1408,
-        "departureMinutes": 1408
-      },
-      {
-        "stationId": "MUST",
-        "arrivalMinutes": 1413,
-        "departureMinutes": 1413
-      },
-      {
-        "stationId": "Cotai_East",
-        "arrivalMinutes": 1414,
-        "departureMinutes": 1414
-      },
-      {
-        "stationId": "East_Asian_Games",
-        "arrivalMinutes": 1415,
-        "departureMinutes": 1415
-      },
-      {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 1416,
-        "departureMinutes": 1416
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1418,
-        "departureMinutes": 1418
-      },
-      {
-        "stationId": "Cotai_West",
-        "arrivalMinutes": 1420,
-        "departureMinutes": 1420
-      },
-      {
-        "stationId": "Pai_Kok",
-        "arrivalMinutes": 1422,
-        "departureMinutes": 1422
-      },
-      {
-        "stationId": "Stadium",
-        "arrivalMinutes": 1424,
-        "departureMinutes": 1424
-      },
-      {
-        "stationId": "Jockey_Club",
-        "arrivalMinutes": 1427,
-        "departureMinutes": 1427
-      },
-      {
-        "stationId": "Ocean",
-        "arrivalMinutes": 1429,
-        "departureMinutes": 1429
-      },
-      {
-        "stationId": "Barra",
-        "arrivalMinutes": 1433,
-        "departureMinutes": 1433
-      }
-    ]
-  },
-  {
-    "id": "taipa_XB0002",
-    "lineId": "taipa",
-    "direction": "backward",
-    "scheduleType": "mon_thu",
-    "entries": [
-      {
-        "stationId": "Airport",
-        "arrivalMinutes": 1414,
-        "departureMinutes": 1414
-      },
-      {
-        "stationId": "MUST",
-        "arrivalMinutes": 1419,
-        "departureMinutes": 1419
-      },
-      {
-        "stationId": "Cotai_East",
-        "arrivalMinutes": 1420,
-        "departureMinutes": 1420
-      },
-      {
-        "stationId": "East_Asian_Games",
-        "arrivalMinutes": 1421,
-        "departureMinutes": 1421
-      },
-      {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 1422,
-        "departureMinutes": 1422
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1424,
-        "departureMinutes": 1424
-      },
-      {
-        "stationId": "Cotai_West",
-        "arrivalMinutes": 1426,
-        "departureMinutes": 1426
-      },
-      {
-        "stationId": "Pai_Kok",
-        "arrivalMinutes": 1428,
-        "departureMinutes": 1428
-      },
-      {
-        "stationId": "Stadium",
-        "arrivalMinutes": 1430,
-        "departureMinutes": 1430
-      },
-      {
-        "stationId": "Jockey_Club",
-        "arrivalMinutes": 1433,
-        "departureMinutes": 1433
-      },
-      {
-        "stationId": "Ocean",
-        "arrivalMinutes": 1435,
-        "departureMinutes": 1435
-      },
-      {
-        "stationId": "Barra",
-        "arrivalMinutes": 1439,
-        "departureMinutes": 1439
-      }
-    ]
-  },
-  {
-    "id": "taipa_XB0003",
-    "lineId": "taipa",
-    "direction": "backward",
-    "scheduleType": "mon_thu",
-    "entries": [
-      {
-        "stationId": "Airport",
-        "arrivalMinutes": 1420,
-        "departureMinutes": 1420
-      },
-      {
-        "stationId": "MUST",
-        "arrivalMinutes": 1422,
-        "departureMinutes": 1422
-      },
-      {
-        "stationId": "Cotai_East",
-        "arrivalMinutes": 1424,
-        "departureMinutes": 1424
-      },
-      {
-        "stationId": "East_Asian_Games",
-        "arrivalMinutes": 1426,
-        "departureMinutes": 1426
-      },
-      {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 1428,
-        "departureMinutes": 1428
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1430,
-        "departureMinutes": 1430
-      },
-      {
-        "stationId": "Cotai_West",
-        "arrivalMinutes": 1432,
-        "departureMinutes": 1432
-      },
-      {
-        "stationId": "Pai_Kok",
-        "arrivalMinutes": 1434,
-        "departureMinutes": 1434
-      },
-      {
-        "stationId": "Stadium",
-        "arrivalMinutes": 1436,
-        "departureMinutes": 1436
-      },
-      {
-        "stationId": "Jockey_Club",
-        "arrivalMinutes": 1439,
-        "departureMinutes": 1439
-      },
-      {
-        "stationId": "Ocean",
-        "arrivalMinutes": 1441,
-        "departureMinutes": 1441
-      },
-      {
-        "stationId": "Barra",
-        "arrivalMinutes": 1445,
-        "departureMinutes": 1445
-      }
-    ]
-  },
-  {
-    "id": "taipa_XB0004",
-    "lineId": "taipa",
-    "direction": "backward",
-    "scheduleType": "mon_thu",
-    "entries": [
-      {
         "stationId": "Cotai_East",
         "arrivalMinutes": 401,
         "departureMinutes": 401
@@ -25284,7 +25012,7 @@
     ]
   },
   {
-    "id": "taipa_XB0005",
+    "id": "taipa_XB0001",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25342,7 +25070,7 @@
     ]
   },
   {
-    "id": "taipa_XB0006",
+    "id": "taipa_XB0002",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25400,7 +25128,7 @@
     ]
   },
   {
-    "id": "taipa_XB0007",
+    "id": "taipa_XB0003",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25458,7 +25186,7 @@
     ]
   },
   {
-    "id": "taipa_XB0008",
+    "id": "taipa_XB0004",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25516,7 +25244,7 @@
     ]
   },
   {
-    "id": "taipa_XB0009",
+    "id": "taipa_XB0005",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25574,7 +25302,7 @@
     ]
   },
   {
-    "id": "taipa_XB0010",
+    "id": "taipa_XB0006",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25627,7 +25355,7 @@
     ]
   },
   {
-    "id": "taipa_XB0011",
+    "id": "taipa_XB0007",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25680,7 +25408,7 @@
     ]
   },
   {
-    "id": "taipa_XB0012",
+    "id": "taipa_XB0008",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25733,7 +25461,7 @@
     ]
   },
   {
-    "id": "taipa_XB0013",
+    "id": "taipa_XB0009",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25786,7 +25514,7 @@
     ]
   },
   {
-    "id": "taipa_XB0014",
+    "id": "taipa_XB0010",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25839,7 +25567,7 @@
     ]
   },
   {
-    "id": "taipa_XB0015",
+    "id": "taipa_XB0011",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25887,7 +25615,7 @@
     ]
   },
   {
-    "id": "taipa_XB0016",
+    "id": "taipa_XB0012",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25935,7 +25663,7 @@
     ]
   },
   {
-    "id": "taipa_XB0017",
+    "id": "taipa_XB0013",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -25983,7 +25711,7 @@
     ]
   },
   {
-    "id": "taipa_XB0018",
+    "id": "taipa_XB0014",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26031,7 +25759,7 @@
     ]
   },
   {
-    "id": "taipa_XB0019",
+    "id": "taipa_XB0015",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26079,7 +25807,7 @@
     ]
   },
   {
-    "id": "taipa_XB0020",
+    "id": "taipa_XB0016",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26127,7 +25855,7 @@
     ]
   },
   {
-    "id": "taipa_XB0021",
+    "id": "taipa_XB0017",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26175,7 +25903,7 @@
     ]
   },
   {
-    "id": "taipa_XB0022",
+    "id": "taipa_XB0018",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26223,7 +25951,7 @@
     ]
   },
   {
-    "id": "taipa_XB0023",
+    "id": "taipa_XB0019",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26271,7 +25999,7 @@
     ]
   },
   {
-    "id": "taipa_XB0024",
+    "id": "taipa_XB0020",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26319,7 +26047,7 @@
     ]
   },
   {
-    "id": "taipa_XB0025",
+    "id": "taipa_XB0021",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26367,7 +26095,7 @@
     ]
   },
   {
-    "id": "taipa_XB0026",
+    "id": "taipa_XB0022",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26415,7 +26143,7 @@
     ]
   },
   {
-    "id": "taipa_XB0027",
+    "id": "taipa_XB0023",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26458,7 +26186,7 @@
     ]
   },
   {
-    "id": "taipa_XB0028",
+    "id": "taipa_XB0024",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26501,7 +26229,7 @@
     ]
   },
   {
-    "id": "taipa_XB0029",
+    "id": "taipa_XB0025",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26544,7 +26272,7 @@
     ]
   },
   {
-    "id": "taipa_XB0030",
+    "id": "taipa_XB0026",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26587,7 +26315,7 @@
     ]
   },
   {
-    "id": "taipa_XB0031",
+    "id": "taipa_XB0027",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26630,7 +26358,7 @@
     ]
   },
   {
-    "id": "taipa_XB0032",
+    "id": "taipa_XB0028",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26673,7 +26401,7 @@
     ]
   },
   {
-    "id": "taipa_XB0033",
+    "id": "taipa_XB0029",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26716,7 +26444,7 @@
     ]
   },
   {
-    "id": "taipa_XB0034",
+    "id": "taipa_XB0030",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26759,7 +26487,7 @@
     ]
   },
   {
-    "id": "taipa_XB0035",
+    "id": "taipa_XB0031",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26802,7 +26530,7 @@
     ]
   },
   {
-    "id": "taipa_XB0036",
+    "id": "taipa_XB0032",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26845,7 +26573,7 @@
     ]
   },
   {
-    "id": "taipa_XB0037",
+    "id": "taipa_XB0033",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26888,7 +26616,7 @@
     ]
   },
   {
-    "id": "taipa_XB0038",
+    "id": "taipa_XB0034",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26931,7 +26659,7 @@
     ]
   },
   {
-    "id": "taipa_XB0039",
+    "id": "taipa_XB0035",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -26974,7 +26702,7 @@
     ]
   },
   {
-    "id": "taipa_XB0040",
+    "id": "taipa_XB0036",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27017,7 +26745,7 @@
     ]
   },
   {
-    "id": "taipa_XB0041",
+    "id": "taipa_XB0037",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27060,7 +26788,7 @@
     ]
   },
   {
-    "id": "taipa_XB0042",
+    "id": "taipa_XB0038",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27103,7 +26831,7 @@
     ]
   },
   {
-    "id": "taipa_XB0043",
+    "id": "taipa_XB0039",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27146,7 +26874,7 @@
     ]
   },
   {
-    "id": "taipa_XB0044",
+    "id": "taipa_XB0040",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27189,7 +26917,7 @@
     ]
   },
   {
-    "id": "taipa_XB0045",
+    "id": "taipa_XB0041",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27232,7 +26960,7 @@
     ]
   },
   {
-    "id": "taipa_XB0046",
+    "id": "taipa_XB0042",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27270,7 +26998,7 @@
     ]
   },
   {
-    "id": "taipa_XB0047",
+    "id": "taipa_XB0043",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27308,7 +27036,7 @@
     ]
   },
   {
-    "id": "taipa_XB0048",
+    "id": "taipa_XB0044",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27341,7 +27069,7 @@
     ]
   },
   {
-    "id": "taipa_XB0049",
+    "id": "taipa_XB0045",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27374,7 +27102,7 @@
     ]
   },
   {
-    "id": "taipa_XB0050",
+    "id": "taipa_XB0046",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27407,7 +27135,7 @@
     ]
   },
   {
-    "id": "taipa_XB0051",
+    "id": "taipa_XB0047",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27440,7 +27168,7 @@
     ]
   },
   {
-    "id": "taipa_XB0052",
+    "id": "taipa_XB0048",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27473,7 +27201,7 @@
     ]
   },
   {
-    "id": "taipa_XB0053",
+    "id": "taipa_XB0049",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27506,7 +27234,7 @@
     ]
   },
   {
-    "id": "taipa_XB0054",
+    "id": "taipa_XB0050",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27539,7 +27267,7 @@
     ]
   },
   {
-    "id": "taipa_XB0055",
+    "id": "taipa_XB0051",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27567,7 +27295,7 @@
     ]
   },
   {
-    "id": "taipa_XB0056",
+    "id": "taipa_XB0052",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27595,7 +27323,7 @@
     ]
   },
   {
-    "id": "taipa_XB0057",
+    "id": "taipa_XB0053",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27623,7 +27351,7 @@
     ]
   },
   {
-    "id": "taipa_XB0058",
+    "id": "taipa_XB0054",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27651,7 +27379,7 @@
     ]
   },
   {
-    "id": "taipa_XB0059",
+    "id": "taipa_XB0055",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27679,7 +27407,7 @@
     ]
   },
   {
-    "id": "taipa_XB0060",
+    "id": "taipa_XB0056",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27707,7 +27435,7 @@
     ]
   },
   {
-    "id": "taipa_XB0061",
+    "id": "taipa_XB0057",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27730,7 +27458,7 @@
     ]
   },
   {
-    "id": "taipa_XB0062",
+    "id": "taipa_XB0058",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27753,7 +27481,7 @@
     ]
   },
   {
-    "id": "taipa_XB0063",
+    "id": "taipa_XB0059",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27776,7 +27504,7 @@
     ]
   },
   {
-    "id": "taipa_XB0064",
+    "id": "taipa_XB0060",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27794,7 +27522,7 @@
     ]
   },
   {
-    "id": "taipa_XB0065",
+    "id": "taipa_XB0061",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27812,7 +27540,7 @@
     ]
   },
   {
-    "id": "taipa_XB0066",
+    "id": "taipa_XB0062",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
@@ -27830,7 +27558,7 @@
     ]
   },
   {
-    "id": "taipa_XB0067",
+    "id": "taipa_XB0063",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
