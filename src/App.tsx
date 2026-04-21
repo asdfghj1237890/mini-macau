@@ -249,20 +249,36 @@ export default function App() {
       r => getRouteGroup(r) === groupKey && !inactiveRoutes.has(r.id)
     )
     if (groupRoutes.length === 0) return
-    setVisibleRoutes(prev => {
-      const allOn = groupRoutes.every(r => prev.has(r.id))
-      const next = new Set(prev)
-      if (allOn) {
-        for (const r of groupRoutes) next.delete(r.id)
-      } else {
-        for (const r of groupRoutes) next.add(r.id)
+    const autoSet = new Set(
+      transitData.busRoutes
+        .filter(r => !inactiveRoutes.has(r.id) && isRouteInService(r, clock.currentTime))
+        .map(r => r.id)
+    )
+    const anyOn = groupRoutes.some(r => visibleRoutes.has(r.id))
+    const next = new Set(visibleRoutes)
+    if (anyOn) {
+      for (const r of groupRoutes) next.delete(r.id)
+    } else {
+      // Only add routes currently in service so re-enabling matches
+      // what the auto-by-time view was showing (e.g. 30/31, not 31/31).
+      for (const r of groupRoutes) {
+        if (isRouteInService(r, clock.currentTime)) next.add(r.id)
       }
+    }
+    setVisibleRoutes(next)
+    // If the resulting set exactly equals the auto-by-time view, snap
+    // back into auto mode so the tab re-highlights.
+    const matchesAuto = next.size === autoSet.size
+      && [...next].every(id => autoSet.has(id))
+    if (matchesAuto) {
+      clearSavedRoutes()
+      setIsAutoMode(true)
+    } else {
       saveRoutes(next)
-      ga.layerToggled(`bus_group_${groupKey}`, !allOn)
-      return next
-    })
-    setIsAutoMode(false)
-  }, [transitData.busRoutes, inactiveRoutes])
+      setIsAutoMode(false)
+    }
+    ga.layerToggled(`bus_group_${groupKey}`, !anyOn)
+  }, [transitData.busRoutes, inactiveRoutes, clock, visibleRoutes])
 
   const onResetAuto = useCallback(() => {
     clearSavedRoutes()
