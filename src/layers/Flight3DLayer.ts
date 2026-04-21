@@ -2,6 +2,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { VehiclePosition } from '../types'
 
 export const FLIGHT_3D_SOURCE_ID = 'flight-3d-source'
+export const FLIGHT_3D_TRACKED_SOURCE_ID = 'flight-3d-tracked-source'
 export const FLIGHT_3D_FUSELAGE_LAYER = 'flight-3d-fuselage'
 export const FLIGHT_3D_WING_LAYER = 'flight-3d-wing'
 export const FLIGHT_3D_TAIL_LAYER = 'flight-3d-tail'
@@ -9,6 +10,14 @@ export const FLIGHT_3D_ENGINE_LAYER = 'flight-3d-engine'
 export const FLIGHT_3D_VTAIL_LAYER = 'flight-3d-vtail'
 export const FLIGHT_3D_WINDOW_LAYER = 'flight-3d-window'
 export const FLIGHT_3D_NOSE_LAYER = 'flight-3d-nose'
+
+export const FLIGHT_3D_TRACKED_FUSELAGE_LAYER = 'flight-3d-tracked-fuselage'
+export const FLIGHT_3D_TRACKED_WING_LAYER = 'flight-3d-tracked-wing'
+export const FLIGHT_3D_TRACKED_TAIL_LAYER = 'flight-3d-tracked-tail'
+export const FLIGHT_3D_TRACKED_ENGINE_LAYER = 'flight-3d-tracked-engine'
+export const FLIGHT_3D_TRACKED_VTAIL_LAYER = 'flight-3d-tracked-vtail'
+export const FLIGHT_3D_TRACKED_WINDOW_LAYER = 'flight-3d-tracked-window'
+export const FLIGHT_3D_TRACKED_NOSE_LAYER = 'flight-3d-tracked-nose'
 
 export const ALL_FLIGHT_3D_LAYERS = [
   FLIGHT_3D_VTAIL_LAYER,
@@ -18,6 +27,13 @@ export const ALL_FLIGHT_3D_LAYERS = [
   FLIGHT_3D_WING_LAYER,
   FLIGHT_3D_TAIL_LAYER,
   FLIGHT_3D_FUSELAGE_LAYER,
+  FLIGHT_3D_TRACKED_VTAIL_LAYER,
+  FLIGHT_3D_TRACKED_ENGINE_LAYER,
+  FLIGHT_3D_TRACKED_NOSE_LAYER,
+  FLIGHT_3D_TRACKED_WINDOW_LAYER,
+  FLIGHT_3D_TRACKED_WING_LAYER,
+  FLIGHT_3D_TRACKED_TAIL_LAYER,
+  FLIGHT_3D_TRACKED_FUSELAGE_LAYER,
 ]
 
 const FUSE_LEN = 220
@@ -141,7 +157,11 @@ function htailPolygon(lng: number, lat: number, b: number, side: 1 | -1, sc = 1)
   ]
 }
 
-const VTAIL_SLICES = 24
+// Reduced from 24 to 6: the vertical fin is tessellated as a stack of N
+// rectangular slices so fill-extrusion can fake its taper. 24 × N planes × per-RAF
+// updates saturated the MapLibre worker on 240 Hz displays; 6 is visually
+// indistinguishable at airport zoom but cuts 3D-flight feature count by ~33%.
+const VTAIL_SLICES = 6
 
 function vtailSlices(
   lng: number, lat: number, b: number, sc = 1,
@@ -263,13 +283,6 @@ function buildFlightFeatures(flights: VehiclePosition[]): FF[] {
       alt + bh * 0.4, alt + bh * 0.75))
 
     for (const side of [-1, 1] as const) {
-      for (const poly of windowDots(lng, lat, b, side, sc)) {
-        out.push(mk(poly, 'window', c, id,
-          alt + bh * 0.5, alt + bh * 0.72))
-      }
-    }
-
-    for (const side of [-1, 1] as const) {
       out.push(mk(wingPolygon(lng, lat, b, side, sc), 'wing', c, id,
         alt + bh * 0.28, alt + bh * 0.42))
     }
@@ -291,9 +304,41 @@ function buildFlightFeatures(flights: VehiclePosition[]): FF[] {
   return out
 }
 
+// Layer paint definitions are identical for the main source (all planes) and
+// the tracked source (at most one plane). We list them once and stamp out two
+// copies — the second points at the tracked source and sits above the main
+// layers so the tracked plane always paints on top of itself while it's still
+// in the main source during the one-frame handover.
+type LayerSpec = {
+  idMain: string
+  idTracked: string
+  kind: PartKind
+  color: string | ['get', string]
+  opacity: number
+}
+
+const LAYER_SPECS: LayerSpec[] = [
+  { idMain: FLIGHT_3D_FUSELAGE_LAYER, idTracked: FLIGHT_3D_TRACKED_FUSELAGE_LAYER, kind: 'fuselage', color: '#f8fafc', opacity: 0.97 },
+  { idMain: FLIGHT_3D_WING_LAYER,     idTracked: FLIGHT_3D_TRACKED_WING_LAYER,     kind: 'wing',     color: '#e2e8f0', opacity: 0.94 },
+  { idMain: FLIGHT_3D_TAIL_LAYER,     idTracked: FLIGHT_3D_TRACKED_TAIL_LAYER,     kind: 'tail',     color: '#e2e8f0', opacity: 0.94 },
+  { idMain: FLIGHT_3D_ENGINE_LAYER,   idTracked: FLIGHT_3D_TRACKED_ENGINE_LAYER,   kind: 'engine',   color: '#94a3b8', opacity: 0.95 },
+  { idMain: FLIGHT_3D_WINDOW_LAYER,   idTracked: FLIGHT_3D_TRACKED_WINDOW_LAYER,   kind: 'window',   color: '#334155', opacity: 0.85 },
+  { idMain: FLIGHT_3D_NOSE_LAYER,     idTracked: FLIGHT_3D_TRACKED_NOSE_LAYER,     kind: 'nose',     color: '#1e293b', opacity: 0.88 },
+  { idMain: FLIGHT_3D_VTAIL_LAYER,    idTracked: FLIGHT_3D_TRACKED_VTAIL_LAYER,    kind: 'vtail',    color: ['get', 'color'], opacity: 0.96 },
+]
+
 export class Flight3DLayer {
   private map: MapLibreMap | null = null
   private isEmpty = true
+  private trackedEmpty = true
+  // Tracked plane lives in a dedicated 1-feature source so its setData round
+  // trip through the MapLibre worker is sub-frame. The 160-plane main source
+  // takes ~37 ms per tessellation cycle, which at 10× sim speed produced the
+  // 前後抖動 — camera moved per-RAF but mesh moved per-worker-cycle. Putting
+  // the tracked plane in its own source lets camera and tracked mesh advance
+  // in lockstep every frame without dragging the 160-plane mesh along.
+  private trackedId: string | null = null
+  private lastFlights: VehiclePosition[] = []
 
   attach(map: MapLibreMap): void {
     this.map = map
@@ -302,104 +347,42 @@ export class Flight3DLayer {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
     })
-
-    map.addLayer({
-      id: FLIGHT_3D_FUSELAGE_LAYER,
-      type: 'fill-extrusion',
-      source: FLIGHT_3D_SOURCE_ID,
-      filter: ['==', ['get', 'kind'], 'fuselage'],
-      minzoom: MIN_ZOOM,
-      paint: {
-        'fill-extrusion-color': '#f8fafc',
-        'fill-extrusion-base': ['get', 'baseM'],
-        'fill-extrusion-height': ['get', 'heightM'],
-        'fill-extrusion-opacity': 0.97,
-      },
+    map.addSource(FLIGHT_3D_TRACKED_SOURCE_ID, {
+      type: 'geojson',
+      data: { type: 'FeatureCollection', features: [] },
     })
 
-    map.addLayer({
-      id: FLIGHT_3D_WING_LAYER,
-      type: 'fill-extrusion',
-      source: FLIGHT_3D_SOURCE_ID,
-      filter: ['==', ['get', 'kind'], 'wing'],
-      minzoom: MIN_ZOOM,
-      paint: {
-        'fill-extrusion-color': '#e2e8f0',
-        'fill-extrusion-base': ['get', 'baseM'],
-        'fill-extrusion-height': ['get', 'heightM'],
-        'fill-extrusion-opacity': 0.94,
-      },
-    })
+    for (const spec of LAYER_SPECS) {
+      map.addLayer({
+        id: spec.idMain,
+        type: 'fill-extrusion',
+        source: FLIGHT_3D_SOURCE_ID,
+        filter: ['==', ['get', 'kind'], spec.kind],
+        minzoom: MIN_ZOOM,
+        paint: {
+          'fill-extrusion-color': spec.color,
+          'fill-extrusion-base': ['get', 'baseM'],
+          'fill-extrusion-height': ['get', 'heightM'],
+          'fill-extrusion-opacity': spec.opacity,
+        },
+      })
+    }
 
-    map.addLayer({
-      id: FLIGHT_3D_TAIL_LAYER,
-      type: 'fill-extrusion',
-      source: FLIGHT_3D_SOURCE_ID,
-      filter: ['==', ['get', 'kind'], 'tail'],
-      minzoom: MIN_ZOOM,
-      paint: {
-        'fill-extrusion-color': '#e2e8f0',
-        'fill-extrusion-base': ['get', 'baseM'],
-        'fill-extrusion-height': ['get', 'heightM'],
-        'fill-extrusion-opacity': 0.94,
-      },
-    })
-
-    map.addLayer({
-      id: FLIGHT_3D_ENGINE_LAYER,
-      type: 'fill-extrusion',
-      source: FLIGHT_3D_SOURCE_ID,
-      filter: ['==', ['get', 'kind'], 'engine'],
-      minzoom: MIN_ZOOM,
-      paint: {
-        'fill-extrusion-color': '#94a3b8',
-        'fill-extrusion-base': ['get', 'baseM'],
-        'fill-extrusion-height': ['get', 'heightM'],
-        'fill-extrusion-opacity': 0.95,
-      },
-    })
-
-    map.addLayer({
-      id: FLIGHT_3D_WINDOW_LAYER,
-      type: 'fill-extrusion',
-      source: FLIGHT_3D_SOURCE_ID,
-      filter: ['==', ['get', 'kind'], 'window'],
-      minzoom: MIN_ZOOM,
-      paint: {
-        'fill-extrusion-color': '#334155',
-        'fill-extrusion-base': ['get', 'baseM'],
-        'fill-extrusion-height': ['get', 'heightM'],
-        'fill-extrusion-opacity': 0.85,
-      },
-    })
-
-    map.addLayer({
-      id: FLIGHT_3D_NOSE_LAYER,
-      type: 'fill-extrusion',
-      source: FLIGHT_3D_SOURCE_ID,
-      filter: ['==', ['get', 'kind'], 'nose'],
-      minzoom: MIN_ZOOM,
-      paint: {
-        'fill-extrusion-color': '#1e293b',
-        'fill-extrusion-base': ['get', 'baseM'],
-        'fill-extrusion-height': ['get', 'heightM'],
-        'fill-extrusion-opacity': 0.88,
-      },
-    })
-
-    map.addLayer({
-      id: FLIGHT_3D_VTAIL_LAYER,
-      type: 'fill-extrusion',
-      source: FLIGHT_3D_SOURCE_ID,
-      filter: ['==', ['get', 'kind'], 'vtail'],
-      minzoom: MIN_ZOOM,
-      paint: {
-        'fill-extrusion-color': ['get', 'color'],
-        'fill-extrusion-base': ['get', 'baseM'],
-        'fill-extrusion-height': ['get', 'heightM'],
-        'fill-extrusion-opacity': 0.96,
-      },
-    })
+    for (const spec of LAYER_SPECS) {
+      map.addLayer({
+        id: spec.idTracked,
+        type: 'fill-extrusion',
+        source: FLIGHT_3D_TRACKED_SOURCE_ID,
+        filter: ['==', ['get', 'kind'], spec.kind],
+        minzoom: MIN_ZOOM,
+        paint: {
+          'fill-extrusion-color': spec.color,
+          'fill-extrusion-base': ['get', 'baseM'],
+          'fill-extrusion-height': ['get', 'heightM'],
+          'fill-extrusion-opacity': spec.opacity,
+        },
+      })
+    }
   }
 
   detach(): void {
@@ -409,22 +392,71 @@ export class Flight3DLayer {
       if (map.getLayer(id)) map.removeLayer(id)
     }
     if (map.getSource(FLIGHT_3D_SOURCE_ID)) map.removeSource(FLIGHT_3D_SOURCE_ID)
+    if (map.getSource(FLIGHT_3D_TRACKED_SOURCE_ID)) map.removeSource(FLIGHT_3D_TRACKED_SOURCE_ID)
     this.map = null
   }
 
   setVehicles(flights: VehiclePosition[]): void {
+    this.lastFlights = flights
     const map = this.map
     if (!map) return
     const src = map.getSource(FLIGHT_3D_SOURCE_ID) as unknown as { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
     if (!src?.setData) return
     const belowMin = map.getZoom() < MIN_ZOOM - 0.5
-    if (belowMin || flights.length === 0) {
+    const filtered = this.trackedId
+      ? flights.filter(f => f.id !== this.trackedId)
+      : flights
+    if (belowMin || filtered.length === 0) {
       if (this.isEmpty) return
       src.setData({ type: 'FeatureCollection', features: [] })
       this.isEmpty = true
       return
     }
-    src.setData({ type: 'FeatureCollection', features: buildFlightFeatures(flights) })
+    src.setData({ type: 'FeatureCollection', features: buildFlightFeatures(filtered) })
     this.isEmpty = false
+  }
+
+  // Called every RAF while a flight is being tracked. `flight` is the tracked
+  // plane with a freshly computed position; pass null to clear. Because the
+  // tracked source holds only this one plane, the worker finishes in well
+  // under a frame, so callers can setCenter immediately after and camera +
+  // mesh stay in lockstep.
+  setTrackedVehicle(flight: VehiclePosition | null): void {
+    const map = this.map
+    if (!map) return
+    const src = map.getSource(FLIGHT_3D_TRACKED_SOURCE_ID) as unknown as { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    if (!src?.setData) return
+
+    const newId = flight?.id ?? null
+    const idChanged = newId !== this.trackedId
+
+    if (!flight) {
+      this.trackedId = null
+      if (!this.trackedEmpty) {
+        src.setData({ type: 'FeatureCollection', features: [] })
+        this.trackedEmpty = true
+      }
+      // Plane went back into the main source — rebuild so it reappears there
+      // instead of winking out until the next heavy tick.
+      if (idChanged) this.setVehicles(this.lastFlights)
+      return
+    }
+
+    this.trackedId = newId
+    const belowMin = map.getZoom() < MIN_ZOOM - 0.5
+    if (belowMin) {
+      if (!this.trackedEmpty) {
+        src.setData({ type: 'FeatureCollection', features: [] })
+        this.trackedEmpty = true
+      }
+      return
+    }
+
+    src.setData({ type: 'FeatureCollection', features: buildFlightFeatures([flight]) })
+    this.trackedEmpty = false
+    // On track-change, refresh the main source immediately so the newly
+    // tracked plane is excluded (avoids a 1-heavy-tick window where it would
+    // render in both sources, producing a double image).
+    if (idChanged) this.setVehicles(this.lastFlights)
   }
 }

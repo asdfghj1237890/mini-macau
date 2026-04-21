@@ -85,7 +85,7 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
-                    max-sm:top-auto max-sm:bottom-[calc(env(safe-area-inset-bottom,0px)+112px)] max-sm:left-2 max-sm:right-2 max-sm:w-auto
+                    max-sm:top-auto max-sm:bottom-[calc(env(safe-area-inset-bottom,0px)+168px)] max-sm:left-2 max-sm:right-2 max-sm:w-auto
                     landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]"
          style={{ zoom: 1.2 }}>
       <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm

@@ -1025,6 +1025,7 @@ def build_extra_trips(
                 "departureMinutes": dep_min,
             }]
             prev_time = dep_min
+            past_service = False
 
             for si in range(start_idx + 1, 12):
                 next_station = stations[si]
@@ -1035,6 +1036,9 @@ def build_extra_trips(
                 est_off = est_offsets[si] - est_offsets[start_idx]
                 expected = dep_min + est_off
                 matched = find_closest(expected, next_deps, window=3, min_val=prev_time + 1)
+                if matched is None and next_deps and expected > next_deps[-1] + 3:
+                    past_service = True
+                    break
                 arr = matched if matched is not None else max(expected, prev_time + 1)
                 entries.append({
                     "stationId": next_station,
@@ -1042,6 +1046,9 @@ def build_extra_trips(
                     "departureMinutes": arr,
                 })
                 prev_time = arr
+
+            if past_service:
+                continue
 
             dest_arr = prev_time + last_seg
             entries.append({
