@@ -498,9 +498,25 @@ export function computeBusCycleSec(
   schedule: BusSchedule,
   route: BusRoute,
   nowMinutes: number,
+  isSunBucket = false,
 ): number {
   const vIndex = parseInt(vehicleId.split('-').pop() ?? '0', 10) || 0
-  const elapsed = nowMinutes - route.serviceHoursStart * 60 - vIndex * route.frequency
+  const useSun = isSunBucket
+    && route.serviceHoursStartSun !== undefined
+    && route.serviceHoursEndSun !== undefined
+  const startHr = useSun ? route.serviceHoursStartSun! : route.serviceHoursStart
+  const endHr = useSun ? route.serviceHoursEndSun! : route.serviceHoursEnd
+  const startMin = startHr * 60
+  let endMin = endHr * 60
+  if (endMin <= startMin) endMin += 1440
+  const cycleMin = schedule.cycleSec / 60
+
+  let effectiveNow = nowMinutes
+  if (effectiveNow < startMin && effectiveNow + 1440 <= endMin + cycleMin) {
+    effectiveNow += 1440
+  }
+
+  const elapsed = effectiveNow - startMin - vIndex * route.frequency
   if (elapsed < 0) return 0
   const elapsedSec = elapsed * 60
   return ((elapsedSec % schedule.cycleSec) + schedule.cycleSec) % schedule.cycleSec
