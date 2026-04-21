@@ -629,12 +629,21 @@ const LANDING_ROUTE_NORTH: TaxiWaypoint[] = [
   { pos: [113.57856068951732, 22.161223277911876], noseTarget: [113.57856068951732, 22.161223277911876] },
 ]
 
-// Holding pattern center above the airport for go-arounds
-const HOLDING_CENTER: [number, number] = [113.585, 22.152]
-const HOLDING_RADIUS_DEG = 0.018
+// Two non-overlapping traffic circuits over water east of the runway. Each
+// circle's west side sits on the runway extended centerline (same longitude as
+// the corresponding firstWp), so orbit exit → short straight inbound leg →
+// final approach all share the same heading.
+//   South-landing (from south/east): CCW circle north of runway north threshold.
+//     Entry east → north (base) → exit west heading south → inbound → LANDING_ROUTE_SOUTH.
+//   North-landing (from north/west): CW circle south of runway south threshold.
+//     Entry east → south (base) → exit west heading north → inbound → LANDING_ROUTE_NORTH.
+const HOLDING_CENTER_S: [number, number] = [113.60778, 22.175]
+const HOLDING_CENTER_N: [number, number] = [113.61812, 22.125]
+const HOLDING_RADIUS_DEG = 0.020
 const HOLDING_ALTITUDE_M = 600
 const HOLDING_CIRCLE_MINUTES = 2
-const HOLD_TRANSITION_MINUTES = 0.8
+const HOLD_EXIT_FRACTION = 0.5
+const HOLD_INBOUND_MINUTES = 0.5
 const RUNWAY_BUSY_BUFFER_MINUTES = 0.8
 
 const APRON_STANDS: [number, number][] = [
@@ -772,16 +781,20 @@ function isRunwayBusy(flights: Flight[], nowMinutes: number): boolean {
   return false
 }
 
-function holdingPosition(fraction: number): { lon: number; lat: number; bearing: number } {
-  const angle = fraction * Math.PI * 2
-  const degPerKmLon = DEG_PER_KM_LAT / Math.cos((HOLDING_CENTER[1] * Math.PI) / 180)
+function holdingPosition(
+  fraction: number,
+  center: [number, number],
+  clockwise: boolean,
+): { lon: number; lat: number; bearing: number } {
+  const theta = (clockwise ? -1 : 1) * fraction * Math.PI * 2
+  const degPerKmLon = DEG_PER_KM_LAT / Math.cos((center[1] * Math.PI) / 180)
   const lonScale = degPerKmLon / DEG_PER_KM_LAT
-  const lon = HOLDING_CENTER[0] + Math.cos(angle) * HOLDING_RADIUS_DEG * lonScale
-  const lat = HOLDING_CENTER[1] + Math.sin(angle) * HOLDING_RADIUS_DEG
-  const bearing = ((Math.atan2(
-    -Math.sin(angle) * lonScale,
-    Math.cos(angle),
-  ) * 180) / Math.PI + 360) % 360
+  const lon = center[0] + Math.cos(theta) * HOLDING_RADIUS_DEG * lonScale
+  const lat = center[1] + Math.sin(theta) * HOLDING_RADIUS_DEG
+  const sign = clockwise ? -1 : 1
+  const vEast = -Math.sin(theta) * lonScale * sign
+  const vNorth = Math.cos(theta) * sign
+  const bearing = ((Math.atan2(vEast, vNorth) * 180) / Math.PI + 360) % 360
   return { lon, lat, bearing }
 }
 
@@ -889,30 +902,35 @@ function computeFlightVehicles(
     } else {
       const untilArrival = flight.scheduledTime - nowMinutes
       const landingDuration = LANDING_ROUTE_MINUTES
-      const maxExtraTime = HOLDING_CIRCLE_MINUTES * 10 + HOLD_TRANSITION_MINUTES + landingDuration
+      const maxExtraTime = HOLDING_CIRCLE_MINUTES * 10 + HOLD_INBOUND_MINUTES + landingDuration
       if (untilArrival > FLIGHT_VISIBLE_MINUTES) continue
       if (untilArrival < -maxExtraTime) continue
 
       const elapsedMin = FLIGHT_VISIBLE_MINUTES - untilArrival
       const airport = flight.origin
       const originBearing = airport?.bearing ?? 180
+      // Mirror the pattern by origin side: planes from south/east fly a CCW
+      // circuit and land heading south; planes from north/west fly a CW circuit
+      // and land heading north. Approach direction aligns with orbit direction
+      // at the east-side entry either way.
       const fromSouth = isSouthbound(originBearing)
-      const landingRoute = fromSouth ? LANDING_ROUTE_NORTH : LANDING_ROUTE_SOUTH
-      const firstWp = landingRoute[0].pos
-      const holdExit = holdingPosition(0)
+      const landingRoute = fromSouth ? LANDING_ROUTE_SOUTH : LANDING_ROUTE_NORTH
+      const holdingCenter = fromSouth ? HOLDING_CENTER_S : HOLDING_CENTER_N
+      const clockwise = !fromSouth
+      const holdEntry = holdingPosition(0, holdingCenter, clockwise)
 
       if (elapsedMin < APPROACH_END_MIN) {
-        // Phase 1: Fly from far away toward the hold circle start point
+        // Phase 1: Fly from far away toward the downwind entry point
         const phaseProgress = elapsedMin / APPROACH_END_MIN
 
         const bearingRad = (originBearing * Math.PI) / 180
         const dist = (1 - phaseProgress) * FLIGHT_MAX_DISTANCE_KM
-        const degPerKmLon = DEG_PER_KM_LAT / Math.cos((holdExit.lat * Math.PI) / 180)
-        const lon = holdExit.lon + Math.sin(bearingRad) * dist * degPerKmLon
-        const lat = holdExit.lat + Math.cos(bearingRad) * dist * DEG_PER_KM_LAT
+        const degPerKmLon = DEG_PER_KM_LAT / Math.cos((holdEntry.lat * Math.PI) / 180)
+        const lon = holdEntry.lon + Math.sin(bearingRad) * dist * degPerKmLon
+        const lat = holdEntry.lat + Math.cos(bearingRad) * dist * DEG_PER_KM_LAT
         const altitude = (1 - phaseProgress) * FLIGHT_MAX_ALTITUDE_M + phaseProgress * HOLDING_ALTITUDE_M
 
-        const noseBearing = bearingTo(lon, lat, holdExit.lon, holdExit.lat)
+        const noseBearing = bearingTo(lon, lat, holdEntry.lon, holdEntry.lat)
 
         vehicles.push({
           id: flight.id,
@@ -929,25 +947,25 @@ function computeFlightVehicles(
         const timeAfterApproach = elapsedMin - APPROACH_END_MIN
 
         const C = HOLDING_CIRCLE_MINUTES
-        const T = HOLD_TRANSITION_MINUTES
         const orbitFraction = ((timeAfterApproach % C) + C) % C / C
 
-        // Find the deterministic exit time: the first orbit boundary
-        // (n*C, n>=1) where the runway is clear.
+        // Exit the circle at fraction=HOLD_EXIT_FRACTION (west side, heading south).
+        // First exit opportunity is HOLD_EXIT_FRACTION*C after entry; subsequent
+        // opportunities repeat every full orbit.
         const orbitStartAbsolute = nowMinutes - timeAfterApproach
-        let exitOrbitN = 1
+        let exitN = 0
         const maxOrbits = 20
-        while (exitOrbitN < maxOrbits) {
-          const boundaryTime = orbitStartAbsolute + exitOrbitN * C
+        while (exitN < maxOrbits) {
+          const boundaryTime = orbitStartAbsolute + (HOLD_EXIT_FRACTION + exitN) * C
           if (!isRunwayBusy(flights, boundaryTime)) break
-          exitOrbitN++
+          exitN++
         }
-        const exitTimeAbsolute = orbitStartAbsolute + exitOrbitN * C
+        const exitTimeAbsolute = orbitStartAbsolute + (HOLD_EXIT_FRACTION + exitN) * C
         const postTime = nowMinutes - exitTimeAbsolute
 
         if (postTime < 0) {
-          // Still in orbit (mandatory or waiting for runway)
-          const hp = holdingPosition(orbitFraction)
+          // Still in orbit (mandatory half-orbit or waiting for runway)
+          const hp = holdingPosition(orbitFraction, holdingCenter, clockwise)
           vehicles.push({
             id: flight.id,
             lineId: flight.flightNumber,
@@ -959,25 +977,27 @@ function computeFlightVehicles(
             altitude: HOLDING_ALTITUDE_M,
             flightData: flight,
           })
-        } else if (postTime < T) {
-          const t = postTime / T
-          const lon = holdExit.lon + (firstWp[0] - holdExit.lon) * t
-          const lat = holdExit.lat + (firstWp[1] - holdExit.lat) * t
-          const noseBearing = bearingTo(lon, lat, firstWp[0], firstWp[1])
-
+        } else if (postTime < HOLD_INBOUND_MINUTES) {
+          // Straight inbound leg from circle exit to firstWp, aligned with the
+          // runway extended centerline (same longitude, exit tangent = runway heading).
+          const t = postTime / HOLD_INBOUND_MINUTES
+          const exitPos = holdingPosition(HOLD_EXIT_FRACTION, holdingCenter, clockwise)
+          const firstWp = landingRoute[0].pos
+          const lon = exitPos.lon + (firstWp[0] - exitPos.lon) * t
+          const lat = exitPos.lat + (firstWp[1] - exitPos.lat) * t
           vehicles.push({
             id: flight.id,
             lineId: flight.flightNumber,
             type: 'flight',
             coordinates: [lon, lat],
-            bearing: noseBearing,
+            bearing: exitPos.bearing,
             progress: 0.6,
             color: FLIGHT_COLOR,
             altitude: HOLDING_ALTITUDE_M,
             flightData: flight,
           })
         } else {
-          const landingElapsed = postTime - T
+          const landingElapsed = postTime - HOLD_INBOUND_MINUTES
           const phaseProgress = landingElapsed / landingDuration
           if (phaseProgress >= 1) continue
 
