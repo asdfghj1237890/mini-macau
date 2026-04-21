@@ -853,6 +853,15 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     // performance.now() delta guarantees monotonic per-frame advancement.
     let flightPerfLast = 0
     let flightSimMs = 0
+    // Exponential camera smoothing for tracked vehicles. setCenter is
+    // synchronous but setData (3D mesh) goes through the worker; the
+    // 1-2 frame latency variance makes the mesh oscillate relative to
+    // the viewport center. Smoothing the camera with alpha < 1 acts as
+    // a low-pass filter, damping that high-frequency oscillation to
+    // sub-pixel levels at the cost of a tiny consistent lag (~0.3 m at
+    // 10× taxi speed).
+    let smoothCam: [number, number] | null = null
+    const CAM_ALPHA = 0.8
 
     const animate = () => {
       const map = mapRef.current
@@ -951,7 +960,6 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           }
         }
         vehiclesRef.current = vehicles
-        updateVehicleData(map, vehicles)
         if (shouldHeavy) {
           lastHeavyTick = nowTick
           bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
@@ -990,6 +998,25 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             ? flightVehicles.find(v => v.id === tid && v.type === 'flight') ?? null
             : null
           flight3DRef.current.setTrackedVehicle(trackedFlight)
+        }
+
+        // Merge per-RAF flight positions into the 2D marker source so the
+        // dot tracks the 3D model at the same rate. Non-flight vehicles
+        // keep their shouldTick-rate positions (bus/LRT/ferry move slowly
+        // enough that 30 Hz is imperceptible).
+        const freshFlights = flightVehiclesRef.current
+        if (freshFlights.length > 0) {
+          const flightIds = new Set<string>()
+          for (const f of freshFlights) flightIds.add(f.id)
+          const base = vehiclesRef.current
+          const merged: VehiclePosition[] = []
+          for (let i = 0; i < base.length; i++) {
+            if (!flightIds.has(base[i].id)) merged.push(base[i])
+          }
+          for (const f of freshFlights) merged.push(f)
+          updateVehicleData(map, merged)
+        } else {
+          updateVehicleData(map, vehiclesRef.current)
         }
 
         const now = performance.now()
@@ -1081,6 +1108,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
             if (isNewTrack) {
               prevTrackedRef.current = tid
+              smoothCam = null
               flyingUntilRef.current = now + FLY_DURATION
               map.flyTo({
                 center: [tracked.coordinates[0], tracked.coordinates[1]],
@@ -1089,23 +1117,25 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               })
             } else if (now > flyingUntilRef.current && !userBusy) {
               if (justResumed) {
+                smoothCam = null
                 flyingUntilRef.current = now + EASE_BACK_DURATION
                 map.easeTo({
                   center: [tracked.coordinates[0], tracked.coordinates[1]],
                   duration: EASE_BACK_DURATION,
                 })
+              } else if (smoothCam) {
+                smoothCam[0] += (tracked.coordinates[0] - smoothCam[0]) * CAM_ALPHA
+                smoothCam[1] += (tracked.coordinates[1] - smoothCam[1]) * CAM_ALPHA
+                map.setCenter(smoothCam)
               } else {
-                // Flights: tracked mesh just got setData'd into the 1-feature
-                // tracked source and will land on this same paint, so the
-                // camera can move synchronously with it. Non-flights go
-                // through heavy-tick 3D layers whose step is small enough
-                // that a per-RAF setCenter is likewise fine.
-                map.setCenter([tracked.coordinates[0], tracked.coordinates[1]])
+                smoothCam = [tracked.coordinates[0], tracked.coordinates[1]]
+                map.setCenter(smoothCam)
               }
             }
           }
         } else if (prevTrackedRef.current !== null) {
           prevTrackedRef.current = null
+          smoothCam = null
         }
       }
       raf = requestAnimationFrame(animate)
