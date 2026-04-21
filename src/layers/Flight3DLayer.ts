@@ -216,7 +216,7 @@ function enginePolygon(lng: number, lat: number, b: number, side: 1 | -1, sc = 1
   return pts
 }
 
-function windowDots(
+export function windowDots(
   lng: number, lat: number, b: number, side: 1 | -1, sc = 1,
 ): [number, number][][] {
   const t = xf(lng, lat, b, sc)
