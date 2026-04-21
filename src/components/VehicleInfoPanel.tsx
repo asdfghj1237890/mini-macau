@@ -134,20 +134,20 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     + clock.currentTime.getMinutes()
     + clock.currentTime.getSeconds() / 60
 
+  const isSunBucket = clock.currentTime.getDay() === 0
+
   const busCtx = useMemo(() => {
     if (!vehicle || vehicle.type !== 'bus') return null
     const route = transitData.busRoutes.find(r => r.id === vehicle.lineId)
     if (!route) return null
     const schedule = getBusSchedule(route, busStopMap)
     if (!schedule) return null
-    const cycleSec = computeBusCycleSec(vehicle.id, schedule, route, nowMinutesForETA)
+    const cycleSec = computeBusCycleSec(vehicle.id, schedule, route, nowMinutesForETA, isSunBucket)
     const { dirSec, returning } = computeBusDirSec(cycleSec, schedule)
     const effectiveReturning = vehicle.rt ? vehicle.rt.dir === 1 : returning
     return { route, schedule, dirSec, returning: effectiveReturning }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, vehicle?.rt?.stopIndex, vehicle?.rt?.observedAt, vehicle?.rt?.dir, nowMinutesForETA, busStopMap, transitData.busRoutes])
-
-  const isSunBucket = clock.currentTime.getDay() === 0
+  }, [vehicle?.id, vehicle?.rt?.stopIndex, vehicle?.rt?.observedAt, vehicle?.rt?.dir, nowMinutesForETA, isSunBucket, busStopMap, transitData.busRoutes])
   const busETAs: BusStopETA[] = useMemo(() => {
     if (!vehicle || !busCtx) return []
     return computeBusStopETAs(vehicle, busCtx.route, busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA, isSunBucket)
@@ -263,7 +263,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
   const nextSub = nextRow?.status === 'dwelling' ? 'dwell' : 'arr'
 
   const speed = useMemo(() => {
-    if (vehicle.rt) return vehicle.rt.speed
+    if (vehicle.rt && vehicle.rt.speed > 0) return vehicle.rt.speed
     if (vehicle.type === 'lrt' && trip && line) {
       const totalLenKm = length(line.geometry, { units: 'kilometers' })
       for (let i = 0; i < trip.entries.length; i++) {
@@ -298,13 +298,21 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
       return 0
     }
     if (vehicle.type === 'bus' && busCtx) {
-      const { schedule, dirSec, returning } = busCtx
+      const { schedule, returning } = busCtx
       const stops = returning ? schedule.backwardStops : schedule.forwardStops
+
+      let dirSec = busCtx.dirSec
+      if (vehicle.rt) {
+        const idx = vehicle.rt.stopIndex
+        if (idx >= 0 && idx < stops.length) {
+          dirSec = stops[idx].departSec + 0.5
+        }
+      }
+
       for (const s of stops) {
         if (dirSec >= s.arriveSec && dirSec <= s.departSec) return 0
       }
 
-      // Locate driving segment (between two stops, or endpoint leg)
       let segStart = 0
       let segEnd = schedule.tripDurationSec
       let segProgressDelta = 1
@@ -336,7 +344,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     }
     return 0
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle.id, vehicle.type, nowMinutes, trip, line, busCtx])
+  }, [vehicle.id, vehicle.type, vehicle.rt?.speed, vehicle.rt?.stopIndex, nowMinutes, trip, line, busCtx])
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
