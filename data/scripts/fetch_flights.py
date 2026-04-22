@@ -27,6 +27,7 @@ import math
 import os
 import re
 import sys
+import time
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -130,11 +131,43 @@ def compute_bearing(lat1: float, lon1: float, lat2: float, lon2: float) -> float
 
 
 def fetch_page(url: str) -> str:
-    resp = requests.get(url, timeout=30, headers={
-        "User-Agent": "Mozilla/5.0 (compatible; flight-data-sync/1.0)",
-    })
-    resp.raise_for_status()
-    return resp.text
+    """Fetch upstream HTML with 3-attempt retry (5s, 10s backoff).
+
+    Retries on HTTP errors AND on degenerate responses — too-short body or
+    missing `<table>`. The real timetable pages are ~40–80 KB with at least
+    one table; short responses we've observed during transient upstream
+    flakes include brief maintenance HTML, empty 200s, and cached error
+    pages. Those shouldn't be trusted as "today has no flights."
+    """
+    last_err: Exception | None = None
+    for attempt in range(1, 4):  # 3 attempts total
+        try:
+            resp = requests.get(url, timeout=30, headers={
+                "User-Agent": "Mozilla/5.0 (compatible; flight-data-sync/1.0)",
+            })
+            resp.raise_for_status()
+            html = resp.text
+            if len(html) < 2000 or "<table" not in html:
+                raise RuntimeError(
+                    f"degenerate HTML (len={len(html)}, has_table={'<table' in html})"
+                )
+            return html
+        except (requests.RequestException, RuntimeError) as e:
+            last_err = e
+            if attempt < 3:
+                wait = 5 * (2 ** (attempt - 1))  # 5s, 10s
+                print(
+                    f"  fetch attempt {attempt}/3 failed: {e} — retry in {wait}s",
+                    file=sys.stderr,
+                )
+                time.sleep(wait)
+            else:
+                print(
+                    f"  fetch attempt {attempt}/3 failed: {e} — giving up",
+                    file=sys.stderr,
+                )
+    assert last_err is not None
+    raise last_err
 
 
 _ROW_RE = re.compile(r"<tr\s+class=['\"]detail['\"][^>]*>.*?</tr>", re.DOTALL)
