@@ -149,7 +149,10 @@ export interface SimulationClock {
   paused: boolean
   setSpeed: (s: number) => void
   togglePause: () => void
-  reset: () => void
+  // Re-lock the sim to wall time: sim = Date.now(), speed = 1, not paused.
+  // This is what "live" means — use it whenever the user asks to return to
+  // the current moment, not for clearing state.
+  syncToNow: () => void
   setTime: (date: Date) => void
 }
 
