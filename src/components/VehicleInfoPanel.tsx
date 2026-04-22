@@ -1,4 +1,4 @@
-import type { VehiclePosition, TransitData, SimulationClock, Trip, BusStop, BusRoute } from '../types'
+import type { VehiclePosition, TransitData, SimulationClock, Trip, BusStop } from '../types'
 import { useI18n, localName } from '../i18n'
 import { useMemo, useRef, useEffect } from 'react'
 import length from '@turf/length'
@@ -34,38 +34,31 @@ interface BusStopETA {
 
 function computeBusStopETAs(
   vehicle: VehiclePosition,
-  route: BusRoute,
   schedule: BusSchedule,
   busStopMap: Map<string, BusStop>,
   dirSec: number,
   returning: boolean,
   nowMinutes: number,
-  isSunBucket: boolean,
 ): BusStopETA[] {
   const stops = returning ? schedule.backwardStops : schedule.forwardStops
   const rtStopIndex = vehicle.rt?.stopIndex
-  // For RT buses, `dirSec` from `computeBusCycleSec` is derived from a phantom
-  // vehicle index (the real DSAT plate doesn't encode a trip slot), so its
-  // times are not the scheduled departure. To align with the actual DSAT
-  // service run we snap the implied trip start to the nearest scheduled slot
-  // `serviceHoursStart + k × frequency`, then display each stop's *scheduled*
-  // wall-clock time for that trip. The observed delay is implicit in the
-  // difference between now and the scheduled time at the current stop.
+  // RT-anchored display: the bus is at `stops[rtStopIndex]` NOW, so we pin
+  // displayed[rtStopIndex] = nowMinutes and extrapolate every other stop
+  // using the scheduled inter-stop duration deltas (`stops[i].arriveSec -
+  // stops[rtStopIndex].arriveSec`). This means past stops show a plausible
+  // "when we were there" time in the past and future stops show an ETA
+  // derived from RT reality — regardless of whether the bus is running
+  // ahead of or behind its scheduled slot.
+  //
+  // An earlier implementation snapped the implied trip start to the nearest
+  // scheduled slot (`serviceHoursStart + k × frequency`) and printed the
+  // schedule for that slot. That looked "canonical" but made past stops
+  // show future times (and vice versa) whenever the bus was off schedule
+  // by more than ~15–30 seconds, which is essentially always.
   let rtDirectionStartMin: number | null = null
   if (rtStopIndex !== undefined && rtStopIndex >= 0 && rtStopIndex < stops.length) {
     const currentStopArriveMin = stops[rtStopIndex].arriveSec / 60
-    const tripDurationMin = schedule.tripDurationSec / 60
-    const dirOffsetMin = returning ? tripDurationMin : 0
-    const impliedTripStartMin = nowMinutes - dirOffsetMin - currentStopArriveMin
-    const useSun = isSunBucket
-      && route.serviceHoursStartSun !== undefined
-      && route.serviceHoursEndSun !== undefined
-    const startHr = useSun ? route.serviceHoursStartSun! : route.serviceHoursStart
-    const startMin = startHr * 60
-    const freq = route.frequency > 0 ? route.frequency : 1
-    const k = Math.round((impliedTripStartMin - startMin) / freq)
-    const snappedTripStartMin = startMin + k * freq
-    rtDirectionStartMin = snappedTripStartMin + dirOffsetMin
+    rtDirectionStartMin = nowMinutes - currentStopArriveMin
   }
 
   const result: BusStopETA[] = []
@@ -150,7 +143,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
   }, [vehicle?.id, vehicle?.rt?.stopIndex, vehicle?.rt?.observedAt, vehicle?.rt?.dir, nowMinutesForETA, isSunBucket, busStopMap, transitData.busRoutes])
   const busETAs: BusStopETA[] = useMemo(() => {
     if (!vehicle || !busCtx) return []
-    return computeBusStopETAs(vehicle, busCtx.route, busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA, isSunBucket)
+    return computeBusStopETAs(vehicle, busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicle?.id, busCtx, busStopMap, nowMinutesForETA, isSunBucket])
 
