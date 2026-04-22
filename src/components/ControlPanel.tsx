@@ -353,7 +353,7 @@ export function ControlPanel({ clock }: Props) {
             <div className="w-px bg-white/8 my-1.5" />
             <button
               type="button"
-              onClick={clock.reset}
+              onClick={clock.syncToNow}
               title={t.resetNorth}
               className="h-11 px-3 flex items-center gap-1.5 text-white/60
                          active:bg-white/10 active:text-amber-200 rounded-sm"
@@ -475,7 +475,7 @@ export function ControlPanel({ clock }: Props) {
           <div className="w-px h-4 bg-white/10 mx-1" />
           <button
             type="button"
-            onClick={clock.reset}
+            onClick={clock.syncToNow}
             title={t.resetNorth}
             className="h-6 px-2 flex items-center gap-1 text-white/55 hover:text-white rounded-sm"
           >
