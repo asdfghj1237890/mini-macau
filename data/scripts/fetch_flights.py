@@ -485,6 +485,24 @@ def main():
 
     flights.sort(key=lambda x: x["scheduledTime"])
 
+    # Safety guard: MFM never actually has zero flights in a day. A fully
+    # empty result means the upstream HTML layout changed, the fetch was
+    # blocked, or the parser broke — not a real schedule. Refuse to clobber
+    # the last good flights.json in that case so the app keeps rendering
+    # yesterday's schedule until the script is fixed. The GitHub Actions
+    # workflow checks `git diff --quiet` after this script runs, so exiting
+    # non-zero here also prevents the (now unchanged) file from triggering
+    # a commit.
+    if not flights:
+        print(
+            "\nERROR: parsed 0 flights from both departure and arrival timetables.\n"
+            "  This almost certainly means the upstream page structure changed or\n"
+            "  the fetch was blocked. Refusing to overwrite the existing\n"
+            f"  {OUTPUT_PATH.name} with an empty list.",
+            file=sys.stderr,
+        )
+        sys.exit(2)
+
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT_PATH.write_text(json.dumps(flights, indent=2, ensure_ascii=False), encoding="utf-8")
 
