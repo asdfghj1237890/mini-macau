@@ -17,9 +17,25 @@ jobs:
         with:
           version: latest
 
-      - name: Fetch MFM flight data
+      - name: Fetch MFM flight data (with retry)
         working-directory: data
-        run: uv run python scripts/fetch_flights.py
+        # Outer retry on top of fetch_page's in-process 3-attempt retry.
+        # If the script still exits non-zero (safety guard tripped — 0 rows
+        # parsed across both timetables) we wait 60s and try once more.
+        # Covers the "upstream flaked for a minute straight" window seen on
+        # 2026-04-21 20:25 UTC without overwriting flights.json with [].
+        run: |
+          attempt=1
+          max_attempts=2
+          until uv run python scripts/fetch_flights.py; do
+            if [ $attempt -ge $max_attempts ]; then
+              echo "::error::fetch_flights.py failed after $attempt attempts"
+              exit 1
+            fi
+            echo "::warning::fetch_flights.py attempt $attempt failed — retrying in 60s"
+            sleep 60
+            attempt=$((attempt + 1))
+          done
         env:
           AVIATIONSTACK_API_KEY: ${{ secrets.AVIATIONSTACK_API_KEY }}
           UPSTREAM_DEP_EN_URL: ${{ secrets.UPSTREAM_DEP_EN_URL }}
