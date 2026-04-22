@@ -10,7 +10,7 @@ import { Ferry3DLayer, ALL_FERRY_3D_LAYERS } from '../layers/Ferry3DLayer'
 import { computeVehiclePositions, computeFlightOnly, getScheduleType, interpolateOnLine } from '../engines/simulationEngine'
 import length from '@turf/length'
 import { useI18n } from '../i18n'
-import type { BusTracker, RouteRealtimePoller } from '../services/realtimeClient'
+import type { BusTracker, RouteRealtimePoller, TrackedBusState } from '../services/realtimeClient'
 import { ga } from '../analytics/ga'
 
 const RT_BUILD = import.meta.env.VITE_ENABLE_RT === '1'
@@ -899,51 +899,92 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               const pool = rtVehiclePoolRef.current
               const seenIds = new Set<string>()
               const wallNow = Date.now()
+              // DSAT returns the same physical bus in every route whose
+              // path passes through the bus's current stop. Shared
+              // transit-dense stops (M12, M16/1, relevant termini) are
+              // on 20–40 routes each, so iterating route × plate naively
+              // inflates the displayed vehicle count by 1–2 orders of
+              // magnitude (5 real buses → 300–700 phantom rows). Dedup
+              // by plate, keeping the tracker most likely to be the
+              // bus's actual assigned route: one that has already seen
+              // a stop transition (prevStopIdx set) beats one that has
+              // only ever seen a single stop — because a ghost tracker
+              // on a non-assigned route usually sees the bus at one
+              // shared stop and then loses it, never accumulating
+              // progression. Tiebreak on newest lastAt.
+              type PlateBest = { s: RtDirState; state: TrackedBusState }
+              const bestByPlate = new Map<string, PlateBest>()
               for (const s of rtStatesRef.current.values()) {
                 if (!visibleRouteIds.has(s.route.id)) continue
                 const states = s.tracker.getStates()
                 if (states.length === 0) continue
                 liveRouteIds.add(s.route.id)
                 for (const state of states) {
-                  const p = s.tracker.estimateProgress(state, wallNow)
-                  const pos = interpolateOnLine(s.geometry, p)
-                  const id = `${s.route.id}-rt-${s.dir}-${state.plate}`
-                  seenIds.add(id)
-                  // Pool lookup: mutate-in-place for existing buses, fall
-                  // back to a fresh object only on first sight. Downstream
-                  // consumers (vehiclesToGeoJson, info panel) snapshot the
-                  // fields they need each tick so in-place mutation is
-                  // safe.
-                  let v = pool.get(id)
-                  if (!v) {
-                    v = {
-                      id,
-                      lineId: s.route.id,
-                      type: 'bus',
-                      coordinates: pos.coordinates,
-                      bearing: pos.bearing,
-                      progress: p,
-                      color: s.route.color,
-                      rt: {
-                        plate: state.plate,
-                        speed: state.speed,
-                        stopIndex: state.lastStopIdx,
-                        dir: s.dir,
-                        observedAt: state.lastAt,
-                      },
-                    }
-                    pool.set(id, v)
-                  } else {
-                    v.coordinates = pos.coordinates
-                    v.bearing = pos.bearing
-                    v.progress = p
-                    const rt = v.rt!
-                    rt.speed = state.speed
-                    rt.stopIndex = state.lastStopIdx
-                    rt.observedAt = state.lastAt
+                  const prev = bestByPlate.get(state.plate)
+                  if (!prev) {
+                    bestByPlate.set(state.plate, { s, state })
+                    continue
                   }
-                  rtVehicles.push(v)
+                  const prevHasProg = prev.state.prevStopIdx !== null
+                  const curHasProg = state.prevStopIdx !== null
+                  if (curHasProg && !prevHasProg) {
+                    bestByPlate.set(state.plate, { s, state })
+                  } else if (curHasProg === prevHasProg && state.lastAt > prev.state.lastAt) {
+                    bestByPlate.set(state.plate, { s, state })
+                  }
                 }
+              }
+              for (const { s, state } of bestByPlate.values()) {
+                const p = s.tracker.estimateProgress(state, wallNow)
+                const pos = interpolateOnLine(s.geometry, p)
+                // ID is plate-only — route-independent — because the
+                // "best" route can change tick-to-tick as the bus
+                // progresses. Keeping the pool entry across route
+                // swaps lets us preserve tracked-vehicle focus and
+                // avoids a fresh allocation every time the winning
+                // route flips.
+                const id = `rt-${state.plate}`
+                seenIds.add(id)
+                // Pool lookup: mutate-in-place for existing buses,
+                // fall back to a fresh object only on first sight.
+                // Downstream consumers (vehiclesToGeoJson, info
+                // panel) snapshot the fields they need each tick so
+                // in-place mutation is safe.
+                let v = pool.get(id)
+                if (!v) {
+                  v = {
+                    id,
+                    lineId: s.route.id,
+                    type: 'bus',
+                    coordinates: pos.coordinates,
+                    bearing: pos.bearing,
+                    progress: p,
+                    color: s.route.color,
+                    rt: {
+                      plate: state.plate,
+                      speed: state.speed,
+                      stopIndex: state.lastStopIdx,
+                      dir: s.dir,
+                      observedAt: state.lastAt,
+                    },
+                  }
+                  pool.set(id, v)
+                } else {
+                  // Winning route can change; keep lineId/color in
+                  // sync so the map dot and 3D mesh inherit the right
+                  // colour and the info panel shows the correct line.
+                  v.lineId = s.route.id
+                  v.color = s.route.color
+                  v.coordinates = pos.coordinates
+                  v.bearing = pos.bearing
+                  v.progress = p
+                  const rt = v.rt!
+                  rt.speed = state.speed
+                  rt.stopIndex = state.lastStopIdx
+                  rt.dir = s.dir
+                  rt.observedAt = state.lastAt
+                }
+                rtVehicles.push(v)
               }
               // Evict pooled entries for plates that disappeared from the
               // feed this tick — otherwise the pool would grow forever as
