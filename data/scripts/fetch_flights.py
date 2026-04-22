@@ -165,17 +165,43 @@ def _operates_on_weekday(row: str, weekday: int) -> bool:
     return "fa-plane" in day_cell
 
 
-def parse_timetable_html(html: str, target_date: date) -> list[tuple[str, str, str, str]]:
+def parse_timetable_html(html: str, target_date: date, *, label: str = "") -> list[tuple[str, str, str, str]]:
     """Extract (time, dest, flight_no, aircraft) tuples from timetable HTML.
 
     Uses positional extraction: the 3 'd-md-table-cell' columns are always
     [destination, time, aircraft] in that order. Aircraft is validated against
     known ICAO/IATA type codes (3-4 uppercase alphanumerics like A320, B38M).
+
+    On parse failure (0 rows matched) emits diagnostics to stderr so the
+    GitHub Actions log shows enough to debug an upstream layout change
+    without needing the secret URLs locally.
     """
     results = []
     weekday = target_date.weekday()
+    all_rows = list(_ROW_RE.finditer(html))
 
-    for row_match in _ROW_RE.finditer(html):
+    if not all_rows:
+        print(
+            f"\n[diag:{label or 'timetable'}] _ROW_RE matched 0 <tr class='detail'> rows.\n"
+            f"  html length: {len(html)} chars\n"
+            f"  <tr count: {html.count('<tr')}\n"
+            f"  <table count: {html.count('<table')}\n"
+            f"  first 2000 chars:\n{html[:2000]}\n"
+            f"  last 500 chars:\n{html[-500:]}",
+            file=sys.stderr,
+        )
+        # Also try a looser pattern to show what rows DO exist so we can
+        # update the regex from the log output.
+        loose = re.search(r"<tr[^>]*>.*?</tr>", html, re.DOTALL)
+        if loose:
+            print(
+                f"[diag:{label or 'timetable'}] first <tr> block (loose match, first 800 chars):\n"
+                f"  {loose.group(0)[:800]}",
+                file=sys.stderr,
+            )
+        return results
+
+    for row_match in all_rows:
         row = row_match.group(0)
 
         date_m = _DATE_RE.search(row)
@@ -460,12 +486,12 @@ def main():
 
     print("Fetching departures timetable...")
     dep_html = fetch_page(_UPSTREAM_URLS["dep_en"])
-    dep_rows = parse_timetable_html(dep_html, target_date)
+    dep_rows = parse_timetable_html(dep_html, target_date, label="dep_en")
     print(f"  Found {len(dep_rows)} active departure entries")
 
     print("Fetching arrivals timetable...")
     arr_html = fetch_page(_UPSTREAM_URLS["arr_en"])
-    arr_rows = parse_timetable_html(arr_html, target_date)
+    arr_rows = parse_timetable_html(arr_html, target_date, label="arr_en")
     print(f"  Found {len(arr_rows)} active arrival entries")
 
     flights: list[dict] = []
