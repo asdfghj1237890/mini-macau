@@ -131,6 +131,7 @@ export interface VehiclePosition {
   color: string
   altitude?: number
   scale?: number
+  flightPhase?: 'apron' | 'taxi' | 'climb'
   flightData?: Flight
   ferryData?: Ferry
   rt?: {

@@ -136,3 +136,15 @@ html, body, #root {
     font-size: 9px;
   }
 }
+
+/* Very short landscape (e.g. iPhone SE 568x320): the 4-button mobile mode
+   stack in flex-col would clip below the viewport. Rewrap to 2x2 so its
+   vertical footprint halves. Width accommodates 2 buttons + gap at unscaled
+   (w-9 = 36px) since mm-ui-scale zoom applies after layout. */
+@media (orientation: landscape) and (max-height: 360px) {
+  .mm-mode-stack {
+    flex-direction: row;
+    flex-wrap: wrap;
+    width: 5rem;
+  }
+}
