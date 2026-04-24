@@ -70,9 +70,10 @@ def main(ids: list[str]):
                 if not (lng and lat):
                     continue
                 wps.append([lng, lat])
-                hint = WAYPOINT_HINTS.get((rid, did))
-                if hint:
-                    wps.append(list(hint))
+                hints = WAYPOINT_HINTS.get((rid, did))
+                if hints:
+                    for h in hints:
+                        wps.append(list(h))
             return wps
 
         fwd_wps = _wps(fwd_aligned)
@@ -105,7 +106,7 @@ def main(ids: list[str]):
         print(f"OK ({len(stops_fwd) + len(stops_bwd)} stops, {coord_count} coords)")
 
     with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(bus_routes, f, ensure_ascii=False, indent=2)
+        json.dump(bus_routes, f, ensure_ascii=False, separators=(",", ":"))
     print(f"\nWrote {out_path}")
 
 
