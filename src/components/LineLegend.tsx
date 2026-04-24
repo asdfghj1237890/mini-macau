@@ -417,7 +417,7 @@ export function LineLegend({
                            : 'hover:bg-white/[0.03] opacity-50'}
                          ${onToggleFerries ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${ferriesOn ? 'text-red-400' : 'text-white/40'}`}>⚓</span>
+              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${ferriesOn ? 'text-red-400' : 'text-white/40'}`}>{'\u2693\uFE0E'}</span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
@@ -441,8 +441,8 @@ export function LineLegend({
           MapLibre nav control (bottom ~141px visual) without overlap, and
           still leaves enough room above the bottom timeline for popovers on
           short viewports. */}
-      <div className="mm-ui-scale absolute top-[8rem] right-[0.5rem] z-10 flex flex-col gap-1.5
-                      sm:hidden landscape:top-[6rem]">
+      <div className="mm-mode-stack mm-ui-scale absolute top-[8rem] right-[0.5rem] z-10 flex flex-col gap-1.5
+                      sm:hidden">
         {/* LRT chip */}
         <button
           onClick={() => togglePanel('lrt')}
@@ -515,7 +515,7 @@ export function LineLegend({
                            ? 'border-red-400/25 text-red-300/80 hover:border-red-400/50 active:scale-95'
                            : 'border-white/10 text-white/40 hover:border-white/25'}`}
           >
-            <span className="text-[14px] leading-none">⚓</span>
+            <span className="text-[14px] leading-none">{'\u2693\uFE0E'}</span>
           </button>
         )}
       </div>
@@ -814,7 +814,7 @@ export function LineLegend({
             >
               <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-red-300/85">
-                  <span className="text-[12px] leading-none">⚓</span>
+                  <span className="text-[12px] leading-none">{'\u2693\uFE0E'}</span>
                   <span
                     className="inline-block w-[8px] h-[8px]"
                     style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
@@ -844,7 +844,7 @@ export function LineLegend({
                            ${onToggleFerries ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={ferriesOn ? 'text-red-400' : 'text-white/40'}>⚓</span>
+                  <span className={ferriesOn ? 'text-red-400' : 'text-white/40'}>{'\u2693\uFE0E'}</span>
                   <span className="mm-mono mm-tabular text-[12px] text-white/80">
                     {ferryCount} {t.ferries}
                   </span>

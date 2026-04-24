@@ -142,6 +142,7 @@ const translations = {
     flightAircraft: 'ACFT',
     flightAirline: 'OPER',
     flightDeparting: 'DEPARTING',
+    flightAwaitingTakeoff: 'AWAITING TKOF',
     flightArriving: 'ARRIVING',
     flightAirportCode: 'MFM',
     flightFooterDep: 'DEPARTURE',
@@ -267,6 +268,7 @@ const translations = {
     flightAircraft: '機型',
     flightAirline: '航司',
     flightDeparting: '起飛中',
+    flightAwaitingTakeoff: '等候起飛',
     flightArriving: '降落中',
     flightAirportCode: 'MFM',
     flightFooterDep: '離境',
@@ -390,6 +392,7 @@ const translations = {
     flightAircraft: 'AERN',
     flightAirline: 'OPER',
     flightDeparting: 'A DESC.',
+    flightAwaitingTakeoff: 'A AGUARD.',
     flightArriving: 'A ATER.',
     flightAirportCode: 'MFM',
     flightFooterDep: 'PARTIDA',
@@ -515,6 +518,7 @@ export interface Translations {
   flightAircraft: string
   flightAirline: string
   flightDeparting: string
+  flightAwaitingTakeoff: string
   flightArriving: string
   flightAirportCode: string
   flightFooterDep: string

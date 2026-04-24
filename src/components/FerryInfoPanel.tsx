@@ -95,7 +95,7 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
           <div className={`px-3 py-2 flex items-center gap-2 border-r border-white/10 ${theme.pillBg}`}>
             <div className={`w-1 h-7 shrink-0 ${theme.accentBar}`} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">⚓ {t.ferryLabel}</div>
+              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">{'\u2693\uFE0E'} {t.ferryLabel}</div>
               <div className="mm-mono mm-tabular text-[13px] font-bold text-white leading-tight">
                 {theme.name}
               </div>
