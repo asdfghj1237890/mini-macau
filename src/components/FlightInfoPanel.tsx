@@ -28,7 +28,9 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
         namePt: airport.namePt,
       }) || '—'
     : '—'
-  const statusLabel = isDeparture ? t.flightDeparting : t.flightArriving
+  const statusLabel = isDeparture
+    ? (vehicle.flightPhase === 'apron' ? t.flightAwaitingTakeoff : t.flightDeparting)
+    : t.flightArriving
   const isLive = !clock.paused && clock.speed === 1 && Math.abs(clock.currentTime.getTime() - Date.now()) < 3000
 
   return (

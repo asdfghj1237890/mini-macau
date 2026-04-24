@@ -903,6 +903,7 @@ function computeFlightVehicles(
       color: FLIGHT_COLOR,
       altitude: 0,
       scale: 0.25,
+      flightPhase: 'apron',
       flightData: flight,
     })
   }
@@ -934,6 +935,7 @@ function computeFlightVehicles(
           color: FLIGHT_COLOR,
           altitude: 0,
           scale: 0.25,
+          flightPhase: 'taxi',
           flightData: flight,
         })
         continue
@@ -963,6 +965,7 @@ function computeFlightVehicles(
         progress,
         color: FLIGHT_COLOR,
         altitude,
+        flightPhase: 'climb',
         flightData: flight,
       })
     } else {
