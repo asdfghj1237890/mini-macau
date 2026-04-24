@@ -70,11 +70,15 @@ ROUTE_COLORS = [
 # Each hint coord must be a valid road-snappable point near the desired
 # exit. Only the (route_id, stop_id) pairs listed here are affected.
 AMARAL_EAST_EXIT = [113.54390, 22.18893]
-WAYPOINT_HINTS: dict[tuple[str, str], list[float]] = {
-    ("MT1", "M172/13"): AMARAL_EAST_EXIT,
-    ("MT2", "M172/12"): AMARAL_EAST_EXIT,
-    ("MT5", "M172/10"): AMARAL_EAST_EXIT,
-    ("39",  "M172/10"): AMARAL_EAST_EXIT,
+# Value is a list of [lng, lat] coords — inserted in order after the stop.
+WAYPOINT_HINTS: dict[tuple[str, str], list[list[float]]] = {
+    ("MT1", "M172/13"): [AMARAL_EAST_EXIT],
+    ("MT2", "M172/12"): [AMARAL_EAST_EXIT],
+    ("MT5", "M172/10"): [AMARAL_EAST_EXIT],
+    ("39",  "M172/10"): [AMARAL_EAST_EXIT],
+    ("3",   "M125"): [
+        [113.5365126919918, 22.196423740659974],
+    ],
 }
 
 
@@ -326,9 +330,10 @@ def run():
                 if not (lng and lat):
                     continue
                 wps.append([lng, lat])
-                hint = WAYPOINT_HINTS.get((rid, did))
-                if hint:
-                    wps.append(list(hint))
+                hints = WAYPOINT_HINTS.get((rid, did))
+                if hints:
+                    for h in hints:
+                        wps.append(list(h))
             return wps
 
         fwd_wps = _waypoints_of(fwd_aligned)
@@ -405,7 +410,7 @@ def run():
     routes_path = PUBLIC_DIR / "bus-routes.json"
     stops_path = PUBLIC_DIR / "bus-stops.json"
     with open(routes_path, "w", encoding="utf-8") as f:
-        json.dump(bus_routes, f, ensure_ascii=False, indent=2)
+        json.dump(bus_routes, f, ensure_ascii=False, separators=(",", ":"))
     with open(stops_path, "w", encoding="utf-8") as f:
         json.dump(bus_stops, f, ensure_ascii=False, indent=2)
 
