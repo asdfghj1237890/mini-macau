@@ -7,5 +7,8 @@ dependencies = [
     "beautifulsoup4>=4.14.3",
     "holidays>=0.56",
     "lxml>=6.0.4",
+    "numpy>=2.4.4",
+    "pillow>=12.2.0",
     "requests>=2.33.1",
+    "scipy>=1.17.1",
 ]

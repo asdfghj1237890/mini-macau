@@ -1,0 +1,94 @@
+
+============================================================================================
+  Mon-Thu  |  FWD 往氹仔碼頭  (v7: + COE-END)
+============================================================================================
+  Total chains: 178
+    FULL                      : 176
+    FIRST-HOUR-DEPOT-START    : 1
+    TOO-SHORT                 : 1
+
+  ❗ TOO-SHORT (1):
+     COE   06:30 -> AIR   06:34  (span 2, 3 stations)
+
+============================================================================================
+  Mon-Thu  |  BWD 往媽閣  (v7: + COE-END)
+============================================================================================
+  Total chains: 180
+    FULL                      : 166
+    COE-START                 : 12
+    FIRST-HOUR-DEPOT-START    : 1
+    TOO-SHORT                 : 1
+
+  ❗ TOO-SHORT (1):
+     JOC   06:30 -> OCE   06:32  (span 1, 2 stations)
+
+============================================================================================
+  Friday  |  FWD 往氹仔碼頭  (v7: + COE-END)
+============================================================================================
+  Total chains: 185
+    FULL                      : 183
+    FIRST-HOUR-DEPOT-START    : 1
+    TOO-SHORT                 : 1
+
+  ❗ TOO-SHORT (1):
+     COE   06:30 -> AIR   06:34  (span 2, 3 stations)
+
+============================================================================================
+  Friday  |  BWD 往媽閣  (v7: + COE-END)
+============================================================================================
+  Total chains: 189
+    FULL                      : 171
+    COE-START                 : 13
+    TOO-SHORT                 : 2
+    COE-END                   : 1
+    FIRST-HOUR-DEPOT-START    : 1
+    LAST-HOUR-DEPOT-RETURN    : 1
+
+  ❗ TOO-SHORT (2):
+     STA   23:46 -> OCE   23:51  (span 2, 3 stations)
+     JOC   06:30 -> OCE   06:32  (span 1, 2 stations)
+
+============================================================================================
+  Sat/Sun  |  FWD 往氹仔碼頭  (v7: + COE-END)
+============================================================================================
+  Total chains: 176
+    FULL                      : 174
+    FIRST-HOUR-DEPOT-START    : 1
+    TOO-SHORT                 : 1
+
+  ❗ TOO-SHORT (1):
+     COE   06:30 -> AIR   06:34  (span 2, 3 stations)
+
+============================================================================================
+  Sat/Sun  |  BWD 往媽閣  (v7: + COE-END)
+============================================================================================
+  Total chains: 178
+    FULL                      : 170
+    COE-START                 : 6
+    FIRST-HOUR-DEPOT-START    : 1
+    TOO-SHORT                 : 1
+
+  ❗ TOO-SHORT (1):
+     JOC   06:30 -> OCE   06:32  (span 1, 2 stations)
+
+============================================================================================
+  GRAND TOTAL (v7)
+============================================================================================
+    FULL                      : 1040
+    COE-START                 : 31
+    TOO-SHORT                 : 7
+    FIRST-HOUR-DEPOT-START    : 6
+    COE-END                   : 1
+    LAST-HOUR-DEPOT-RETURN    : 1
+
+  Suspect (≥ 3-span, mid-day partials): 0
+  TOO-SHORT chains: 7
+
+  -- TOO-SHORT chains --
+    Mon-Thu  FWD  COE   06:30 -> AIR   06:34  span=2, 3 st.
+    Mon-Thu  BWD  JOC   06:30 -> OCE   06:32  span=1, 2 st.
+    Friday   FWD  COE   06:30 -> AIR   06:34  span=2, 3 st.
+    Friday   BWD  STA   23:46 -> OCE   23:51  span=2, 3 st.
+    Friday   BWD  JOC   06:30 -> OCE   06:32  span=1, 2 st.
+    Sat/Sun  FWD  COE   06:30 -> AIR   06:34  span=2, 3 st.
+    Sat/Sun  BWD  JOC   06:30 -> OCE   06:32  span=1, 2 st.

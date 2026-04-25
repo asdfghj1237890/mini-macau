@@ -15498,8 +15498,8 @@
       },
       {
         "stationId": "Cotai_East",
-        "arrivalMinutes": 683,
-        "departureMinutes": 683
+        "arrivalMinutes": 682,
+        "departureMinutes": 682
       },
       {
         "stationId": "East_Asian_Games",
@@ -18652,8 +18652,8 @@
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 953,
-        "departureMinutes": 953
+        "arrivalMinutes": 952,
+        "departureMinutes": 952
       },
       {
         "stationId": "Cotai_West",
