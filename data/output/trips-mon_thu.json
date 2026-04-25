@@ -13678,48 +13678,48 @@
       },
       {
         "stationId": "East_Asian_Games",
+        "arrivalMinutes": 483,
+        "departureMinutes": 483
+      },
+      {
+        "stationId": "Union_Hospital",
         "arrivalMinutes": 486,
         "departureMinutes": 486
       },
       {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 489,
-        "departureMinutes": 489
-      },
-      {
         "stationId": "Lotus",
-        "arrivalMinutes": 491,
-        "departureMinutes": 491
+        "arrivalMinutes": 488,
+        "departureMinutes": 488
       },
       {
         "stationId": "Cotai_West",
-        "arrivalMinutes": 493,
-        "departureMinutes": 493
+        "arrivalMinutes": 490,
+        "departureMinutes": 490
       },
       {
         "stationId": "Pai_Kok",
-        "arrivalMinutes": 495,
-        "departureMinutes": 495
+        "arrivalMinutes": 492,
+        "departureMinutes": 492
       },
       {
         "stationId": "Stadium",
-        "arrivalMinutes": 497,
-        "departureMinutes": 497
+        "arrivalMinutes": 494,
+        "departureMinutes": 494
       },
       {
         "stationId": "Jockey_Club",
+        "arrivalMinutes": 496,
+        "departureMinutes": 496
+      },
+      {
+        "stationId": "Ocean",
         "arrivalMinutes": 499,
         "departureMinutes": 499
       },
       {
-        "stationId": "Ocean",
-        "arrivalMinutes": 502,
-        "departureMinutes": 502
-      },
-      {
         "stationId": "Barra",
-        "arrivalMinutes": 506,
-        "departureMinutes": 506
+        "arrivalMinutes": 503,
+        "departureMinutes": 503
       }
     ]
   },
@@ -25069,13 +25069,13 @@
       },
       {
         "stationId": "Airport",
-        "arrivalMinutes": 896,
-        "departureMinutes": 896
+        "arrivalMinutes": 897,
+        "departureMinutes": 897
       },
       {
         "stationId": "Taipa_Ferry_Terminal",
-        "arrivalMinutes": 898,
-        "departureMinutes": 898
+        "arrivalMinutes": 899,
+        "departureMinutes": 899
       }
     ]
   },
@@ -25782,54 +25782,6 @@
     "scheduleType": "mon_thu",
     "entries": [
       {
-        "stationId": "Union_Hospital",
-        "arrivalMinutes": 486,
-        "departureMinutes": 486
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 488,
-        "departureMinutes": 488
-      },
-      {
-        "stationId": "Cotai_West",
-        "arrivalMinutes": 490,
-        "departureMinutes": 490
-      },
-      {
-        "stationId": "Pai_Kok",
-        "arrivalMinutes": 492,
-        "departureMinutes": 492
-      },
-      {
-        "stationId": "Stadium",
-        "arrivalMinutes": 494,
-        "departureMinutes": 494
-      },
-      {
-        "stationId": "Jockey_Club",
-        "arrivalMinutes": 496,
-        "departureMinutes": 496
-      },
-      {
-        "stationId": "Ocean",
-        "arrivalMinutes": 499,
-        "departureMinutes": 499
-      },
-      {
-        "stationId": "Barra",
-        "arrivalMinutes": 503,
-        "departureMinutes": 503
-      }
-    ]
-  },
-  {
-    "id": "taipa_XB0013",
-    "lineId": "taipa",
-    "direction": "backward",
-    "scheduleType": "mon_thu",
-    "entries": [
-      {
         "stationId": "Lotus",
         "arrivalMinutes": 390,
         "departureMinutes": 390
@@ -25867,7 +25819,7 @@
     ]
   },
   {
-    "id": "taipa_XB0014",
+    "id": "taipa_XB0013",
     "lineId": "taipa",
     "direction": "backward",
     "scheduleType": "mon_thu",
