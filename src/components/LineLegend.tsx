@@ -417,7 +417,7 @@ export function LineLegend({
                            : 'hover:bg-white/[0.03] opacity-50'}
                          ${onToggleFerries ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${ferriesOn ? 'text-red-400' : 'text-white/40'}`}>{'\u2693\uFE0E'}</span>
+              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${ferriesOn ? 'text-white/45' : 'text-white/40'}`}>{'\u2693\uFE0E'}</span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
