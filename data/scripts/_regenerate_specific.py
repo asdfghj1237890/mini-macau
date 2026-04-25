@@ -12,7 +12,7 @@ HERE = Path(__file__).parent
 sys.path.insert(0, str(HERE))
 
 from extract_bus_data import (
-    REFERENCE_DIR, PUBLIC_DIR, WAYPOINT_HINTS,
+    REFERENCE_DIR, PUBLIC_DIR, WAYPOINT_HINTS, ROUTING_COORD_OVERRIDES,
     align_direction, build_route_geometry,
 )
 
@@ -69,7 +69,8 @@ def main(ids: list[str]):
             for did, lng, lat, _ in aligned:
                 if not (lng and lat):
                     continue
-                wps.append([lng, lat])
+                override = ROUTING_COORD_OVERRIDES.get((rid, did))
+                wps.append(list(override) if override else [lng, lat])
                 hints = WAYPOINT_HINTS.get((rid, did))
                 if hints:
                     for h in hints:

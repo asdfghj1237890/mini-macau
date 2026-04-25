@@ -81,6 +81,12 @@ WAYPOINT_HINTS: dict[tuple[str, str], list[list[float]]] = {
     ],
 }
 
+# Per-route OSRM *routing* coordinate override. The original stop coordinate
+# (used for display in bus-stops.json) stays unchanged — only the coord fed
+# to OSRM is replaced. Use when a stop's coord snaps to the wrong OSM segment
+# and OSRM routes a detour to "exit" that segment.
+ROUTING_COORD_OVERRIDES: dict[tuple[str, str], list[float]] = {}
+
 
 def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> dict:
     """Build a GeoJSON Feature with LineString snapped to roads via OSRM."""
@@ -329,7 +335,8 @@ def run():
             for did, lng, lat, _ in aligned:
                 if not (lng and lat):
                     continue
-                wps.append([lng, lat])
+                override = ROUTING_COORD_OVERRIDES.get((rid, did))
+                wps.append(list(override) if override else [lng, lat])
                 hints = WAYPOINT_HINTS.get((rid, did))
                 if hints:
                     for h in hints:
