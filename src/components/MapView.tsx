@@ -772,6 +772,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   onVehicleCountRef.current = onVehicleCount
   const onTrackedUpdateRef = useRef(onTrackedVehicleUpdate)
   onTrackedUpdateRef.current = onTrackedVehicleUpdate
+  const onClearSelectionRef = useRef(onClearSelection)
+  onClearSelectionRef.current = onClearSelection
   const lastTrackedSyncRef = useRef<{ id: string | null; observedAt: number | null }>({ id: null, observedAt: null })
   const lastSimSyncRef = useRef<{ id: string | null; at: number }>({ id: null, at: 0 })
   transitRef.current = transitData
@@ -1126,7 +1128,17 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           const tracked =
             flightVehiclesRef.current.find(v => v.id === tid) ??
             vehiclesRef.current.find(v => v.id === tid)
-          if (tracked) {
+          if (!tracked && prevTrackedRef.current === tid) {
+            // Tracked vehicle dropped out of the simulation (service ended,
+            // schedule ran out, RT mode toggle, scrubbed to time outside
+            // its window, etc). Clear the selection so the info panel
+            // closes instead of showing stale extrapolated ETAs.
+            // Reset prevTracked + smoothCam first so this branch fires
+            // exactly once until React rolls trackedVehicleId back to null.
+            prevTrackedRef.current = null
+            smoothCam = null
+            onClearSelectionRef.current?.()
+          } else if (tracked) {
             if (tracked.rt) {
               const sync = lastTrackedSyncRef.current
               if (sync.id !== tid || sync.observedAt !== tracked.rt.observedAt) {
