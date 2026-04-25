@@ -584,6 +584,15 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             'line-dasharray': [2, 2],
           },
         })
+        m.addLayer({
+          id: 'bus-routes-highlighted', type: 'line', source: 'bus-routes',
+          filter: ['==', ['get', 'id'], ''],
+          paint: {
+            'line-color': ['get', 'color'],
+            'line-width': ['interpolate', ['linear'], ['zoom'], 10, 3, 14, 5, 18, 8],
+            'line-opacity': 0.95,
+          },
+        })
       }
 
       const labelField = currentLang === 'zh' ? 'nameCn' : currentLang === 'pt' ? 'namePt' : 'name'
@@ -778,6 +787,25 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const lastSimSyncRef = useRef<{ id: string | null; at: number }>({ id: null, at: 0 })
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
+
+  useEffect(() => {
+    const apply = () => {
+      const m = mapRef.current
+      if (!m || !m.getLayer('bus-routes-highlighted')) return
+      const isWide = window.matchMedia('(min-width: 640px)').matches
+      let lineId = ''
+      if (isWide && trackedVehicleId) {
+        const v = vehiclesRef.current.find(v => v.id === trackedVehicleId)
+        if (v && v.type === 'bus') lineId = v.lineId
+      }
+      m.setFilter('bus-routes-highlighted', ['==', ['get', 'id'], lineId])
+    }
+
+    apply()
+    const mq = window.matchMedia('(min-width: 640px)')
+    mq.addEventListener('change', apply)
+    return () => mq.removeEventListener('change', apply)
+  }, [trackedVehicleId])
 
   const mapBusyRef = useRef(false)
 
