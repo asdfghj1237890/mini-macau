@@ -79,6 +79,19 @@ WAYPOINT_HINTS: dict[tuple[str, str], list[list[float]]] = {
     ("3",   "M125"): [
         [113.5365126919918, 22.196423740659974],
     ],
+    # Route 7 M262 -> M268: OSRM picks a wrong sequence around the
+    # 城市日大馬路 / 城市日前地 area; force three intermediate hints to
+    # constrain the path through the correct lane / one-way segments.
+    ("7",   "M262"): [
+        [113.5490459194342, 22.186513883349047],
+        [113.54890082891934, 22.18644012367224],
+        [113.54874625536429, 22.1867729200024],
+        [113.54864962437155, 22.187016252866197],
+        [113.54783653109915, 22.18704862394665],
+        [113.54742829288034, 22.18697343949034],
+        [113.54764277818285, 22.187124874412934],
+        [113.54777085365346, 22.187188827254264],
+    ],
 }
 
 # Per-route OSRM *routing* coordinate override. The original stop coordinate
