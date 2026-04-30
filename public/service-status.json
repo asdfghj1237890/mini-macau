@@ -1,10 +1,17 @@
 {
-  "date": "2026-04-30",
-  "fetchedAtUtc": "2026-04-29T23:25:53.927823+00:00",
-  "dayOfWeek": 3,
-  "dayCategory": "weekday",
-  "isHoliday": false,
+  "date": "2026-05-01",
+  "fetchedAtUtc": "2026-04-30T23:24:53.238143+00:00",
+  "dayOfWeek": 4,
+  "dayCategory": "holiday",
+  "isHoliday": true,
   "totalRoutes": 92,
-  "inactive": [],
+  "inactive": [
+    "17S",
+    "25AX",
+    "2AS",
+    "51X",
+    "5X",
+    "71S"
+  ],
   "errors": []
 }
