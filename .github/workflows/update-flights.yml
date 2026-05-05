@@ -2,7 +2,11 @@ name: Update Flight Data
 
 on:
   schedule:
-    - cron: '0 20 * * *' # UTC 20:00 = Macau 04:00 (UTC+8)
+    # 23:07 UTC = 07:07 Macau (UTC+8). The off-the-hour minute plus the
+    # in-job random delay below jitters our scrape window so it doesn't
+    # land at a fixed predictable time every day. Combined window lands
+    # somewhere in 07:07–07:57 Macau.
+    - cron: '7 23 * * *'
   workflow_dispatch: # allow manual trigger from GitHub UI
 
 jobs:
@@ -17,11 +21,21 @@ jobs:
         with:
           version: latest
 
+      - name: Random pre-fetch delay (jitter)
+        # Skipped on workflow_dispatch so manual triggers run immediately.
+        # 0–3000s = 0–50 minutes of jitter on top of the cron minute, so the
+        # actual fetch lands somewhere in the 07:07–07:57 Macau window.
+        if: github.event_name == 'schedule'
+        run: |
+          delay=$((RANDOM % 3000))
+          echo "Sleeping ${delay}s before fetching..."
+          sleep "$delay"
+
       - name: Fetch MFM flight data (with retry)
         working-directory: data
         # Outer retry on top of fetch_page's in-process 3-attempt retry.
         # If the script still exits non-zero (safety guard tripped — 0 rows
-        # parsed across both timetables) we wait 60s and try once more.
+        # parsed across both upstream pages) we wait 60s and try once more.
         # Covers the "upstream flaked for a minute straight" window seen on
         # 2026-04-21 20:25 UTC without overwriting flights.json with [].
         run: |
@@ -38,6 +52,18 @@ jobs:
           done
         env:
           AVIATIONSTACK_API_KEY: ${{ secrets.AVIATIONSTACK_API_KEY }}
+          # `realtime` URLs — used when target_date == today in Macau (UTC+8).
+          UPSTREAM_DEP_EN_URL_REALTIME: ${{ secrets.UPSTREAM_DEP_EN_URL_REALTIME }}
+          UPSTREAM_DEP_ZH_URL_REALTIME: ${{ secrets.UPSTREAM_DEP_ZH_URL_REALTIME }}
+          UPSTREAM_ARR_EN_URL_REALTIME: ${{ secrets.UPSTREAM_ARR_EN_URL_REALTIME }}
+          UPSTREAM_ARR_ZH_URL_REALTIME: ${{ secrets.UPSTREAM_ARR_ZH_URL_REALTIME }}
+          # `timetable` URLs — used for any non-today target_date.
+          UPSTREAM_DEP_EN_URL_TIMETABLE: ${{ secrets.UPSTREAM_DEP_EN_URL_TIMETABLE }}
+          UPSTREAM_DEP_ZH_URL_TIMETABLE: ${{ secrets.UPSTREAM_DEP_ZH_URL_TIMETABLE }}
+          UPSTREAM_ARR_EN_URL_TIMETABLE: ${{ secrets.UPSTREAM_ARR_EN_URL_TIMETABLE }}
+          UPSTREAM_ARR_ZH_URL_TIMETABLE: ${{ secrets.UPSTREAM_ARR_ZH_URL_TIMETABLE }}
+          # Legacy unsuffixed names — the script falls back to these for
+          # `timetable` mode if the *_TIMETABLE secrets aren't rotated yet.
           UPSTREAM_DEP_EN_URL: ${{ secrets.UPSTREAM_DEP_EN_URL }}
           UPSTREAM_DEP_ZH_URL: ${{ secrets.UPSTREAM_DEP_ZH_URL }}
           UPSTREAM_ARR_EN_URL: ${{ secrets.UPSTREAM_ARR_EN_URL }}
