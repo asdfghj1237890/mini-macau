@@ -384,11 +384,22 @@ def build_flight(
     flight_type: str,
     name_cn: str = "",
     date_str: str = "",
+    *,
+    multi_day: bool = False,
 ) -> dict:
-    """Build a flight record. When `date_str` is non-empty (multi-day mode),
-    the date is folded into `id` so day-N and day-M of the same flight do
-    not collapse during dedup, and a `date` field is added to the output.
-    Single-day callers leave `date_str=""` for backwards compat."""
+    """Build a flight record.
+
+    `date_str` (YYYY-MM-DD, Macau-local) is always emitted as the
+    flight's `date` field when non-empty. The frontend trusts this
+    field as the record's authoritative source date — it lets the
+    resolver tell apart "today's realtime" from "yesterday's stale
+    realtime that hasn't been refreshed yet".
+
+    `multi_day=True` additionally folds the date into `id` so day-N
+    and day-M of the same flight do not collapse during dedup. Single
+    day mode keeps the legacy id format (`flightNo-prefix-time`) so
+    URLs/anchors that reference today's id keep working.
+    """
     h, m = map(int, time_str.split(":"))
     scheduled = h * 60 + m
 
@@ -407,7 +418,7 @@ def build_flight(
     prefix = "dep" if flight_type == "departure" else "arr"
     fid = (
         f"{flight_no}-{prefix}-{date_str}-{scheduled:04d}"
-        if date_str
+        if multi_day and date_str
         else f"{flight_no}-{prefix}-{scheduled:04d}"
     )
 
@@ -704,16 +715,28 @@ def main():
             dep_rows = parse_timetable_html(dep_html, date_i, label=label_dep)
             arr_rows = parse_timetable_html(arr_html, date_i, label=label_arr)
 
-        date_str = date_i.isoformat() if days > 1 else ""
+        # Always emit the date as a per-record field so the frontend can
+        # tell apart fresh data from a stale file (e.g. realtime that
+        # hasn't been refreshed yet on the new Macau day). Only fold the
+        # date into the `id` in multi-day mode — single-day URLs stay
+        # backwards-compatible.
+        date_str = date_i.isoformat()
+        multi_day = days > 1
 
         before = len(flights)
         for time_str, dest, fno, acft in dep_rows:
-            f = build_flight(time_str, dest, fno, acft, "departure", cn_map.get(dest, ""), date_str)
+            f = build_flight(
+                time_str, dest, fno, acft, "departure",
+                cn_map.get(dest, ""), date_str, multi_day=multi_day,
+            )
             if f["id"] not in seen_ids:
                 flights.append(f)
                 seen_ids.add(f["id"])
         for time_str, orig, fno, acft in arr_rows:
-            f = build_flight(time_str, orig, fno, acft, "arrival", cn_map.get(orig, ""), date_str)
+            f = build_flight(
+                time_str, orig, fno, acft, "arrival",
+                cn_map.get(orig, ""), date_str, multi_day=multi_day,
+            )
             if f["id"] not in seen_ids:
                 flights.append(f)
                 seen_ids.add(f["id"])
