@@ -15,9 +15,16 @@ the AviationStack API is also queried and both sources are
 cross-referenced to verify correctness.
 
 Usage:
-    uv run python data/scripts/fetch_flights.py [YYYY-MM-DD]
+    uv run python data/scripts/fetch_flights.py \
+        [YYYY-MM-DD] [--output PATH] [--days N]
 
     If no date is given, defaults to today in Macau time (UTC+8).
+    --output overrides the default `public/data/flights.json` write target,
+    useful when running a separate workflow for non-today previews so the
+    daily realtime file is not clobbered.
+    --days N (default 1) emits flights for N consecutive days starting at
+    the target date. When N>1 each flight gets a `date` field and the
+    script always uses timetable mode (realtime only covers today).
 
     Required env (8 total, all opaque URL strings):
       UPSTREAM_DEP_EN_URL_REALTIME, UPSTREAM_DEP_ZH_URL_REALTIME,
@@ -32,9 +39,10 @@ Usage:
 
     Optional env: AVIATIONSTACK_API_KEY  (enables cross-verification).
 
-Output: public/data/flights.json
+Output: public/data/flights.json (override with --output).
 """
 
+import argparse
 import json
 import math
 import os
@@ -46,7 +54,7 @@ from pathlib import Path
 
 import requests
 
-OUTPUT_PATH = Path(__file__).resolve().parent.parent.parent / "public" / "data" / "flights.json"
+DEFAULT_OUTPUT_PATH = Path(__file__).resolve().parent.parent.parent / "public" / "data" / "flights.json"
 
 # Upstream URLs are injected via opaque env vars (kept out of source as
 # GitHub Actions secrets). The code treats them as black-box strings —
@@ -375,7 +383,12 @@ def build_flight(
     aircraft: str,
     flight_type: str,
     name_cn: str = "",
+    date_str: str = "",
 ) -> dict:
+    """Build a flight record. When `date_str` is non-empty (multi-day mode),
+    the date is folded into `id` so day-N and day-M of the same flight do
+    not collapse during dedup, and a `date` field is added to the output.
+    Single-day callers leave `date_str=""` for backwards compat."""
     h, m = map(int, time_str.split(":"))
     scheduled = h * 60 + m
 
@@ -392,7 +405,11 @@ def build_flight(
         airport_data["nameCn"] = name_cn
 
     prefix = "dep" if flight_type == "departure" else "arr"
-    fid = f"{flight_no}-{prefix}-{scheduled:04d}"
+    fid = (
+        f"{flight_no}-{prefix}-{date_str}-{scheduled:04d}"
+        if date_str
+        else f"{flight_no}-{prefix}-{scheduled:04d}"
+    )
 
     result: dict = {
         "id": fid,
@@ -401,6 +418,9 @@ def build_flight(
         "type": flight_type,
         "scheduledTime": scheduled,
     }
+
+    if date_str:
+        result["date"] = date_str
 
     if flight_type == "departure":
         result["destination"] = airport_data
@@ -589,18 +609,61 @@ def _build_cn_mapping(target_date: date, mode: str) -> dict[str, str]:
     return mapping
 
 
+def _parse_args(argv: list[str]) -> tuple[date, Path, int]:
+    parser = argparse.ArgumentParser(
+        description="Fetch MFM flight data and write a static flights.json.",
+    )
+    parser.add_argument(
+        "date",
+        nargs="?",
+        default=None,
+        help="Target (start) date as YYYY-MM-DD. Defaults to today in Macau (UTC+8).",
+    )
+    parser.add_argument(
+        "--output",
+        default=None,
+        help=(
+            "Output JSON path. Defaults to "
+            f"{DEFAULT_OUTPUT_PATH.relative_to(DEFAULT_OUTPUT_PATH.parent.parent.parent)}."
+        ),
+    )
+    parser.add_argument(
+        "--days",
+        type=int,
+        default=1,
+        help=(
+            "Number of consecutive days to emit, starting at the target "
+            "date. When >1 each flight gains a `date` field and the script "
+            "always uses timetable mode."
+        ),
+    )
+    args = parser.parse_args(argv)
+    if args.days < 1:
+        parser.error("--days must be >= 1")
+    target_date = (
+        date.fromisoformat(args.date)
+        if args.date
+        else datetime.now(MACAU_TZ).date()
+    )
+    output_path = Path(args.output) if args.output else DEFAULT_OUTPUT_PATH
+    return target_date, output_path, args.days
+
+
 def main():
+    target_date, output_path, days = _parse_args(sys.argv[1:])
     today_macau = datetime.now(MACAU_TZ).date()
-    if len(sys.argv) > 1:
-        target_date = date.fromisoformat(sys.argv[1])
+
+    # Multi-day always uses timetable; realtime only covers today.
+    if days > 1:
+        mode = "timetable"
     else:
-        target_date = today_macau
+        mode = "realtime" if target_date == today_macau else "timetable"
 
-    # `realtime` only covers today (Macau-local). For any other date we
-    # need the full schedule from `timetable`.
-    mode = "realtime" if target_date == today_macau else "timetable"
-
-    print(f"Target date: {target_date} (today in Macau: {today_macau})")
+    end_date = target_date + timedelta(days=days - 1)
+    if days > 1:
+        print(f"Target window: {target_date} → {end_date} ({days} days)  (today in Macau: {today_macau})")
+    else:
+        print(f"Target date: {target_date} (today in Macau: {today_macau})")
     print(f"Source mode: {mode}")
 
     if not _upstream_ready(mode):
@@ -619,41 +682,53 @@ def main():
     cn_map = _build_cn_mapping(target_date, mode)
     print(f"  Mapped {len(cn_map)} destination names")
 
-    label_dep = f"dep_en_{mode}"
-    label_arr = f"arr_en_{mode}"
-
+    # Fetch upstream HTMLs once; for multi-day we re-apply per-date filters
+    # in memory rather than refetching N times.
     print(f"Fetching departures ({mode})...")
     dep_html = fetch_page(_UPSTREAM_URLS[("dep", "en", mode)])
-    if mode == "realtime":
-        dep_rows = parse_realtime_html(dep_html, label=label_dep)
-    else:
-        dep_rows = parse_timetable_html(dep_html, target_date, label=label_dep)
-    print(f"  Found {len(dep_rows)} active departure entries")
-
     print(f"Fetching arrivals ({mode})...")
     arr_html = fetch_page(_UPSTREAM_URLS[("arr", "en", mode)])
-    if mode == "realtime":
-        arr_rows = parse_realtime_html(arr_html, label=label_arr)
-    else:
-        arr_rows = parse_timetable_html(arr_html, target_date, label=label_arr)
-    print(f"  Found {len(arr_rows)} active arrival entries")
 
     flights: list[dict] = []
     seen_ids: set[str] = set()
 
-    for time_str, dest, fno, acft in dep_rows:
-        f = build_flight(time_str, dest, fno, acft, "departure", cn_map.get(dest, ""))
-        if f["id"] not in seen_ids:
-            flights.append(f)
-            seen_ids.add(f["id"])
+    for offset in range(days):
+        date_i = target_date + timedelta(days=offset)
+        label_dep = f"dep_en_{mode}"
+        label_arr = f"arr_en_{mode}"
 
-    for time_str, orig, fno, acft in arr_rows:
-        f = build_flight(time_str, orig, fno, acft, "arrival", cn_map.get(orig, ""))
-        if f["id"] not in seen_ids:
-            flights.append(f)
-            seen_ids.add(f["id"])
+        if mode == "realtime":
+            dep_rows = parse_realtime_html(dep_html, label=label_dep)
+            arr_rows = parse_realtime_html(arr_html, label=label_arr)
+        else:
+            dep_rows = parse_timetable_html(dep_html, date_i, label=label_dep)
+            arr_rows = parse_timetable_html(arr_html, date_i, label=label_arr)
 
-    flights.sort(key=lambda x: x["scheduledTime"])
+        date_str = date_i.isoformat() if days > 1 else ""
+
+        before = len(flights)
+        for time_str, dest, fno, acft in dep_rows:
+            f = build_flight(time_str, dest, fno, acft, "departure", cn_map.get(dest, ""), date_str)
+            if f["id"] not in seen_ids:
+                flights.append(f)
+                seen_ids.add(f["id"])
+        for time_str, orig, fno, acft in arr_rows:
+            f = build_flight(time_str, orig, fno, acft, "arrival", cn_map.get(orig, ""), date_str)
+            if f["id"] not in seen_ids:
+                flights.append(f)
+                seen_ids.add(f["id"])
+        added = len(flights) - before
+
+        if days > 1:
+            print(f"  {date_i}: {len(dep_rows)} dep + {len(arr_rows)} arr → {added} flights kept")
+        else:
+            print(f"  Found {len(dep_rows)} active departure entries")
+            print(f"  Found {len(arr_rows)} active arrival entries")
+
+    if days > 1:
+        flights.sort(key=lambda x: (x["date"], x["scheduledTime"]))
+    else:
+        flights.sort(key=lambda x: x["scheduledTime"])
 
     # Safety guard: MFM never actually has zero flights in a day. A fully
     # empty result means the upstream HTML layout changed, the fetch was
@@ -668,22 +743,29 @@ def main():
             "\nERROR: parsed 0 flights from both departure and arrival timetables.\n"
             "  This almost certainly means the upstream page structure changed or\n"
             "  the fetch was blocked. Refusing to overwrite the existing\n"
-            f"  {OUTPUT_PATH.name} with an empty list.",
+            f"  {output_path.name} with an empty list.",
             file=sys.stderr,
         )
         sys.exit(2)
 
-    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(json.dumps(flights, indent=2, ensure_ascii=False), encoding="utf-8")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_text(json.dumps(flights, indent=2, ensure_ascii=False), encoding="utf-8")
 
     deps = sum(1 for f in flights if f["type"] == "departure")
     arrs = sum(1 for f in flights if f["type"] == "arrival")
-    print(f"\nWrote {len(flights)} flights to {OUTPUT_PATH}")
-    print(f"  {deps} departures, {arrs} arrivals")
+    print(f"\nWrote {len(flights)} flights to {output_path}")
+    if days > 1:
+        print(f"  {deps} departures, {arrs} arrivals across {days} days")
+    else:
+        print(f"  {deps} departures, {arrs} arrivals")
 
     api_key = os.environ.get("AVIATIONSTACK_API_KEY", "")
-    if api_key:
+    if api_key and days == 1:
         cross_verify(flights, api_key)
+    elif api_key and days > 1:
+        # AviationStack only has a near-future window and our key matches
+        # by flightNumber alone, which would conflict across days.
+        print("\n  Skipping AviationStack cross-verification (only meaningful for single-day output).")
     else:
         print("\n  Set AVIATIONSTACK_API_KEY to enable cross-verification with API data.")
 
