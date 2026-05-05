@@ -116,6 +116,169 @@ export interface UseTransitDataResult extends TransitData {
   // boundary — if the user lands on Friday and friday-trips hasn't
   // finished prefetching yet, this triggers a fetch on demand.
   ensureScheduleTypeLoaded: (stype: ScheduleType) => void
+
+  // Resolve flights for a given calendar date.
+  //
+  // Two upstream files feed this:
+  //   • `flights.json` — realtime, today only (Macau-local), no `date` field.
+  //   • `flights-timetable.json` — multi-day window starting tomorrow, each
+  //      record carries `date: YYYY-MM-DD`.
+  //
+  // Resolution order for a target date `d`:
+  //   1. Exact match in the 8-day window (today + 7 days) → that day's
+  //      records (realtime if today, timetable bucket otherwise).
+  //   2. Weekday fallback — pick the latest day in the window with the
+  //      same weekday as `d`. (We have ≥1 representative for every
+  //      weekday because the window spans 8 consecutive days.)
+  //   3. Whatever's loaded (realtime if available, else first timetable
+  //      bucket) — only hit when both fetches haven't finished or both
+  //      failed.
+  //
+  // Date keys are formatted using `d`'s LOCAL Y/M/D, so user-picked
+  // dates from the DateTimePicker line up with the upstream `date`
+  // strings (which are Macau-local YYYY-MM-DD).
+  getFlightsForDate: (d: Date) => Flight[]
+}
+
+// Two date helpers, used in two distinct contexts:
+//
+// 1. `ymdMacau(d)` — formats `d` (an instant) as a YYYY-MM-DD calendar
+//    date in **Macau time** (UTC+8). Used to seed `today` inside
+//    `buildFlightIndex`: the realtime file's authoritative `date`
+//    field is written by `fetch_flights.py` in Macau-local time, and
+//    the legacy-file fallback path needs a Macau-aligned key to
+//    match.
+//
+// 2. `ymdLocal(d)` — formats `d` using the **viewer's local**
+//    components (`getFullYear` / `getMonth` / `getDate`). Used by
+//    `getFlightsForDate` to look flights up for a picker-selected
+//    date. The DateTimePicker preserves the user's local Y/M/D when
+//    they pick a date, and the rest of the simulation (buses, LRT,
+//    schedule type via `getDay()`, hour/minute display) reads
+//    `clock.currentTime` via the same local getters. Using a Macau
+//    formatter for the lookup would put flight rendering on a
+//    different calendar day than every other overlay around timezone
+//    boundaries — see Codex review on
+//    `useTransitData.ts:397`.
+//
+// `en-CA` locale is used purely because it produces `YYYY-MM-DD`
+// natively, matching the upstream `date` field shape.
+const MACAU_YMD_FMT = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Macau',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+})
+
+export function ymdMacau(d: Date): string {
+  return MACAU_YMD_FMT.format(d)
+}
+
+export function ymdLocal(d: Date): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
+// Weekday (0=Sun..6=Sat) of a YYYY-MM-DD calendar date. Constructed
+// from a local-tz Date at midnight, but since the calendar weekday is
+// timezone-invariant for any given Y/M/D, the result is the right
+// weekday regardless of the viewer's timezone. Used inside
+// `buildFlightIndex` to derive weekdays from Macau-dated index keys.
+export function weekdayOf(ymd: string): number {
+  const [y, m, day] = ymd.split('-').map(Number)
+  return new Date(y, m - 1, day).getDay()
+}
+
+export interface FlightDataIndex {
+  // YYYY-MM-DD → flights for that exact date.
+  byDate: Map<string, Flight[]>
+  // 0..6 (Sun..Sat) → representative day's flights (latest matching date
+  // within the window).
+  byWeekday: Map<number, Flight[]>
+  // Last-resort list when no index entry matches and no fetches landed.
+  fallback: Flight[]
+}
+
+// Build the date-keyed flight index. Pure / exported for unit tests.
+//
+// `realtime`: today-only records from /data/flights.json. Modern files
+// carry `date: YYYY-MM-DD` (Macau-local) on every record. Legacy files
+// generated before that field existed have no `date`.
+// `timetable`: multi-day records from /data/flights-timetable.json,
+// each with a `date: YYYY-MM-DD` field.
+//
+// `today` is the Macau-local YYYY-MM-DD used as the "best-effort"
+// bucket key for legacy realtime files (those lacking a `date` field).
+// Tests inject a fixed value so they don't depend on wall-clock time.
+//
+// **Realtime trust rule** (fix for the "Macau-midnight to morning
+// realtime refresh" stale-file window):
+//   * If realtime carries `date`, bucket it under THAT date — even
+//     when it doesn't equal today_macau. So a stale realtime file
+//     from yesterday lands in yesterday's bucket and today's bucket
+//     keeps the timetable record (which has the correct future
+//     schedule). When realtime IS fresh, it correctly overwrites
+//     today's timetable bucket and the user sees richer realtime
+//     info.
+//   * If realtime carries no `date` (legacy file), only fill today's
+//     bucket if no timetable bucket exists for today. We never let
+//     an unverifiable realtime file shadow a trusted timetable bucket.
+export function buildFlightIndex(
+  realtime: Flight[],
+  timetable: Flight[],
+  today: string = ymdMacau(new Date()),
+): FlightDataIndex {
+  const byDate = new Map<string, Flight[]>()
+
+  // Bucket multi-day timetable records by their `date` field.
+  for (const f of timetable) {
+    if (!f.date) continue
+    let bucket = byDate.get(f.date)
+    if (!bucket) {
+      bucket = []
+      byDate.set(f.date, bucket)
+    }
+    bucket.push(f)
+  }
+
+  if (realtime.length) {
+    const claimedDate = realtime[0]?.date
+    if (claimedDate) {
+      // Trusted source date: place under the date the file claims,
+      // overwriting the timetable bucket only for that exact date.
+      byDate.set(claimedDate, realtime)
+    } else if (!byDate.has(today)) {
+      // Legacy file with no date: only used as today's bucket if the
+      // timetable hasn't already filled it. Avoids shadowing a
+      // trusted timetable record with an unverifiable realtime file.
+      byDate.set(today, realtime)
+    }
+  }
+
+  // For each weekday, remember the latest date in the window with that
+  // weekday (so out-of-window dates get the freshest matching schedule).
+  const latestByWeekday = new Map<number, string>()
+  for (const dateStr of byDate.keys()) {
+    const wd = weekdayOf(dateStr)
+    const prev = latestByWeekday.get(wd)
+    if (!prev || dateStr > prev) latestByWeekday.set(wd, dateStr)
+  }
+  const byWeekday = new Map<number, Flight[]>()
+  for (const [wd, dateStr] of latestByWeekday) {
+    const flights = byDate.get(dateStr)
+    if (flights) byWeekday.set(wd, flights)
+  }
+
+  // Last-resort fallback: prefer realtime, then any timetable day.
+  let fallback: Flight[] = realtime
+  if (!fallback.length) {
+    const firstBucket = byDate.values().next()
+    if (!firstBucket.done) fallback = firstBucket.value
+  }
+
+  return { byDate, byWeekday, fallback }
 }
 
 export function useTransitData(): UseTransitDataResult {
@@ -129,6 +292,10 @@ export function useTransitData(): UseTransitDataResult {
     ferries: [],
     loading: true,
   })
+  // Multi-day timetable lives in its own state slot rather than on
+  // TransitData — only the resolver needs it, and pulling it out keeps
+  // the existing `flights` field semantically "today's realtime".
+  const [flightsTimetable, setFlightsTimetable] = useState<Flight[]>([])
 
   // Track scheduleTypes we've started loading so repeated triggers don't
   // kick off duplicate fetches. Refs (not state) because we only need
@@ -215,6 +382,17 @@ export function useTransitData(): UseTransitDataResult {
       .then(v => commit('flights', v))
       .catch(() => {})
 
+    // The multi-day timetable file is produced by a separate workflow
+    // (`update-flights-timetable`) and may legitimately not exist on
+    // first deployment — swallow 404s/parse errors and let the resolver
+    // fall back to today's realtime schedule.
+    loadJson<Flight[]>('/data/flights-timetable.json')
+      .then(v => {
+        if (cancelledRef.current) return
+        setFlightsTimetable(v)
+      })
+      .catch(() => {})
+
     loadJson<FerryScheduleFile>('/data/ferry-schedules.json')
       .then(file => commit('ferries', flattenFerrySchedules(file)))
       .catch(() => {})
@@ -222,12 +400,41 @@ export function useTransitData(): UseTransitDataResult {
     return () => { cancelledRef.current = true }
   }, [ensureScheduleTypeLoaded])
 
+  // Build the date-keyed flight index once whenever either source
+  // changes, so getFlightsForDate is a cheap Map lookup at call time.
+  const flightIndex = useMemo(
+    () => buildFlightIndex(data.flights, flightsTimetable),
+    [data.flights, flightsTimetable]
+  )
+
+  const getFlightsForDate = useCallback(
+    (d: Date): Flight[] => {
+      // Look up by the picker's LOCAL calendar Y/M/D (and weekday) so
+      // flight rendering stays on the same calendar day as the rest of
+      // the simulation — buses/LRT/UI all read `clock.currentTime` via
+      // local getters, and DateTimePicker preserves the user's local
+      // Y/M/D. For UTC+0..UTC+12 viewers selecting a calendar date,
+      // local Y/M/D matches the Macau-keyed bucket. The realtime file
+      // is still bucketed under its claimed Macau date inside
+      // `buildFlightIndex`; for non-UTC+8 viewers near midnight that
+      // bucket may not match the picker's local date, in which case
+      // the weekday fallback covers it.
+      const ymd = ymdLocal(d)
+      const exact = flightIndex.byDate.get(ymd)
+      if (exact) return exact
+      const wd = flightIndex.byWeekday.get(d.getDay())
+      if (wd) return wd
+      return flightIndex.fallback
+    },
+    [flightIndex]
+  )
+
   // Memoise the wrapper so consumers (App.tsx's filteredTransitData useMemo,
   // MapView's deps, etc.) keep a stable object identity across renders.
   // Without this, every App render would spread a fresh object and invalidate
   // every downstream memo that depends on `transitData`.
   return useMemo(
-    () => ({ ...data, ensureScheduleTypeLoaded }),
-    [data, ensureScheduleTypeLoaded]
+    () => ({ ...data, ensureScheduleTypeLoaded, getFlightsForDate }),
+    [data, ensureScheduleTypeLoaded, getFlightsForDate]
   )
 }
