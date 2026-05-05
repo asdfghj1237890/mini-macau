@@ -192,13 +192,22 @@ export default function App() {
     })
   }, [inactiveRoutes, isAutoMode])
 
+  // Resolve flights for the simulated date. Inside the 8-day window
+  // (today + 7 days from the timetable workflow) returns that day's
+  // records; outside the window falls back to the latest day in the
+  // window with the same weekday. See useTransitData.getFlightsForDate.
+  const dateAwareFlights = useMemo(
+    () => transitData.getFlightsForDate(clock.currentTime),
+    [transitData, clock.currentTime]
+  )
+
   const filteredTransitData = useMemo(() => ({
     ...transitData,
     busRoutes: transitData.busRoutes.filter(r => visibleRoutes.has(r.id)),
     lrtLines: transitData.lrtLines.filter(l => lrtOn.has(l.id)),
-    flights: flightsOn ? transitData.flights : [],
+    flights: flightsOn ? dateAwareFlights : [],
     ferries: ferriesOn ? transitData.ferries : [],
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, ferriesOn])
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn])
 
   const onVehicleCount = useCallback((count: number) => {
     setVehicleCount(count)
@@ -368,7 +377,10 @@ export default function App() {
       {showTimeBar && <TimeDisplay clock={clock} vehicleCount={vehicleCount} />}
       <LineLegend
         transitData={filteredTransitData}
-        allTransitData={transitData}
+        // Pass the date-aware total here too so the "active / total"
+        // flight count tracks the picker; using raw `transitData` would
+        // always show today's realtime count even on a future date.
+        allTransitData={{ ...transitData, flights: dateAwareFlights }}
         visibleRoutes={visibleRoutes}
         inactiveRoutes={inactiveRoutes}
         isAutoMode={isAutoMode}

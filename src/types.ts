@@ -83,6 +83,11 @@ export interface Flight {
   destination?: FlightAirport
   origin?: FlightAirport
   aircraftType?: string
+  // Present only on records produced by the multi-day timetable workflow
+  // (`fetch_flights.py --days N>1`). Format: YYYY-MM-DD in Macau-local
+  // time. Absent on the per-day realtime file. Used by the `useTransitData`
+  // hook to bucket records into a `byDate` lookup.
+  date?: string
 }
 
 export interface Ferry {
