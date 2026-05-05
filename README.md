@@ -22,9 +22,13 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 
 ![og-image](https://mini-map-macau.app/og-image.png)
 
-![demo](./docs/demo-01.gif)
+<video src="./docs/demo-01.mp4" autoplay loop muted playsinline width="100%">
+  <a href="./docs/demo-01.mp4">demo-01.mp4</a>
+</video>
 
-![demo](./docs/demo-02.gif)
+<video src="./docs/demo-02.mp4" autoplay loop muted playsinline width="100%">
+  <a href="./docs/demo-02.mp4">demo-02.mp4</a>
+</video>
 
 ## Contents
 
