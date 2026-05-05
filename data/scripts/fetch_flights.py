@@ -2,22 +2,35 @@
 Build a static flights.json for Mini Macau covering MFM departures and
 arrivals for a given date.
 
-The primary data source is configured via four opaque env vars (kept out
-of source as GitHub Actions secrets). The script parses departure +
-arrival timetables, filters for schedules active on the target date,
-deduplicates, and outputs times in Macau local (UTC+8) as minutes since
-midnight.
+Two upstream sources are used depending on the target date:
 
-When AVIATIONSTACK_API_KEY is set, the AviationStack API is also queried
-and both sources are cross-referenced to verify correctness.
+* **realtime** (preferred for *today* in Macau time): per-day actual
+  schedule for today only, no date-range or weekday filter needed.
+* **timetable**: full schedule with date-range + weekday columns;
+  needed for any non-today target date (backfill or future lookup).
+
+URLs for both sources are configured via opaque env vars (kept out of
+source as GitHub Actions secrets). When AVIATIONSTACK_API_KEY is set,
+the AviationStack API is also queried and both sources are
+cross-referenced to verify correctness.
 
 Usage:
     uv run python data/scripts/fetch_flights.py [YYYY-MM-DD]
 
-    If no date is given, defaults to today.
-    Required env:  UPSTREAM_DEP_EN_URL, UPSTREAM_DEP_ZH_URL,
-                   UPSTREAM_ARR_EN_URL, UPSTREAM_ARR_ZH_URL
-    Optional env:  AVIATIONSTACK_API_KEY  (enables cross-verification)
+    If no date is given, defaults to today in Macau time (UTC+8).
+
+    Required env (8 total, all opaque URL strings):
+      UPSTREAM_DEP_EN_URL_REALTIME, UPSTREAM_DEP_ZH_URL_REALTIME,
+      UPSTREAM_ARR_EN_URL_REALTIME, UPSTREAM_ARR_ZH_URL_REALTIME,
+      UPSTREAM_DEP_EN_URL_TIMETABLE, UPSTREAM_DEP_ZH_URL_TIMETABLE,
+      UPSTREAM_ARR_EN_URL_TIMETABLE, UPSTREAM_ARR_ZH_URL_TIMETABLE.
+
+    Backwards-compat: the legacy 4-var set
+      UPSTREAM_{DEP,ARR}_{EN,ZH}_URL
+    is still honoured as a fallback for the *_TIMETABLE slot when the
+    suffixed variant is empty, so secret rotation can be incremental.
+
+    Optional env: AVIATIONSTACK_API_KEY  (enables cross-verification).
 
 Output: public/data/flights.json
 """
@@ -35,19 +48,54 @@ import requests
 
 OUTPUT_PATH = Path(__file__).resolve().parent.parent.parent / "public" / "data" / "flights.json"
 
-# Upstream URLs are injected via four opaque env vars (kept out of source
-# as GitHub Actions secrets). The code treats them as black-box strings —
+# Upstream URLs are injected via opaque env vars (kept out of source as
+# GitHub Actions secrets). The code treats them as black-box strings —
 # no URL shape, path structure, or query form is hard-coded here.
-_UPSTREAM_URLS: dict[str, str] = {
-    "dep_en": os.environ.get("UPSTREAM_DEP_EN_URL", ""),
-    "dep_zh": os.environ.get("UPSTREAM_DEP_ZH_URL", ""),
-    "arr_en": os.environ.get("UPSTREAM_ARR_EN_URL", ""),
-    "arr_zh": os.environ.get("UPSTREAM_ARR_ZH_URL", ""),
+#
+# Keys are (direction, lang, mode) triples:
+#   direction ∈ {"dep", "arr"},  lang ∈ {"en", "zh"},
+#   mode      ∈ {"realtime", "timetable"}.
+#
+# `realtime` URLs are required; `timetable` URLs fall back to the legacy
+# unsuffixed names so that incomplete secret rotation still keeps the
+# timetable path working.
+_DIRECTIONS = ("dep", "arr")
+_LANGS = ("en", "zh")
+_MODES = ("realtime", "timetable")
+
+
+def _read_upstream(direction: str, lang: str, mode: str) -> str:
+    primary = f"UPSTREAM_{direction.upper()}_{lang.upper()}_URL_{mode.upper()}"
+    val = os.environ.get(primary, "")
+    if val:
+        return val
+    if mode == "timetable":
+        # Legacy unsuffixed name — used when the new `_TIMETABLE` secret
+        # has not been added yet.
+        legacy = f"UPSTREAM_{direction.upper()}_{lang.upper()}_URL"
+        return os.environ.get(legacy, "")
+    return ""
+
+
+_UPSTREAM_URLS: dict[tuple[str, str, str], str] = {
+    (d, l, m): _read_upstream(d, l, m)
+    for d in _DIRECTIONS
+    for l in _LANGS
+    for m in _MODES
 }
 
 
-def _upstream_ready() -> bool:
-    return all(_UPSTREAM_URLS.values())
+def _upstream_ready(mode: str) -> bool:
+    return all(_UPSTREAM_URLS[(d, l, mode)] for d in _DIRECTIONS for l in _LANGS)
+
+
+def _missing_upstream(mode: str) -> list[str]:
+    return [
+        f"UPSTREAM_{d.upper()}_{l.upper()}_URL_{mode.upper()}"
+        for d in _DIRECTIONS
+        for l in _LANGS
+        if not _UPSTREAM_URLS[(d, l, mode)]
+    ]
 
 MFM_LAT = 22.1494
 MFM_LON = 113.5914
@@ -198,6 +246,62 @@ def _operates_on_weekday(row: str, weekday: int) -> bool:
     return "fa-plane" in day_cell
 
 
+def _diag_no_rows(html: str, label: str) -> None:
+    """Emit diagnostics when _ROW_RE matched zero rows."""
+    print(
+        f"\n[diag:{label}] _ROW_RE matched 0 <tr class='detail'> rows.\n"
+        f"  html length: {len(html)} chars\n"
+        f"  <tr count: {html.count('<tr')}\n"
+        f"  <table count: {html.count('<table')}\n"
+        f"  first 2000 chars:\n{html[:2000]}\n"
+        f"  last 500 chars:\n{html[-500:]}",
+        file=sys.stderr,
+    )
+    loose = re.search(r"<tr[^>]*>.*?</tr>", html, re.DOTALL)
+    if loose:
+        print(
+            f"[diag:{label}] first <tr> block (loose match, first 800 chars):\n"
+            f"  {loose.group(0)[:800]}",
+            file=sys.stderr,
+        )
+
+
+def parse_realtime_html(html: str, *, label: str = "") -> list[tuple[str, str, str, str]]:
+    """Extract (time, place, flight_no, aircraft) tuples from real-time HTML.
+
+    The real-time page lists today's flights only. Each `<tr class='detail'>`
+    has `d-none d-md-table-cell` columns in the order
+    [time, place, terminal, gate]. (Some pages omit the gate or comment out
+    the terminal cell, but the first two are stable.) Aircraft type is not
+    present, returned as "".
+
+    No date-range / weekday filtering is needed — every row is by
+    definition active today. Cancelled flights are kept (matches the
+    timetable parser's behaviour of not filtering by status).
+
+    On parse failure (0 rows matched) emits diagnostics to stderr.
+    """
+    results: list[tuple[str, str, str, str]] = []
+    all_rows = list(_ROW_RE.finditer(html))
+    if not all_rows:
+        _diag_no_rows(html, label or "realtime")
+        return results
+
+    for row_match in all_rows:
+        row = row_match.group(0)
+        md_cells = _MD_CELL_RE.findall(row)
+        fnum_m = _FNUM_RE.search(row)
+        if len(md_cells) < 2 or not fnum_m:
+            continue
+        time_str = md_cells[0].strip()
+        place = md_cells[1].strip()
+        if not re.match(r"\d{2}:\d{2}$", time_str):
+            continue
+        results.append((time_str, place, fnum_m.group(1), ""))
+
+    return results
+
+
 def parse_timetable_html(html: str, target_date: date, *, label: str = "") -> list[tuple[str, str, str, str]]:
     """Extract (time, dest, flight_no, aircraft) tuples from timetable HTML.
 
@@ -214,24 +318,7 @@ def parse_timetable_html(html: str, target_date: date, *, label: str = "") -> li
     all_rows = list(_ROW_RE.finditer(html))
 
     if not all_rows:
-        print(
-            f"\n[diag:{label or 'timetable'}] _ROW_RE matched 0 <tr class='detail'> rows.\n"
-            f"  html length: {len(html)} chars\n"
-            f"  <tr count: {html.count('<tr')}\n"
-            f"  <table count: {html.count('<table')}\n"
-            f"  first 2000 chars:\n{html[:2000]}\n"
-            f"  last 500 chars:\n{html[-500:]}",
-            file=sys.stderr,
-        )
-        # Also try a looser pattern to show what rows DO exist so we can
-        # update the regex from the log output.
-        loose = re.search(r"<tr[^>]*>.*?</tr>", html, re.DOTALL)
-        if loose:
-            print(
-                f"[diag:{label or 'timetable'}] first <tr> block (loose match, first 800 chars):\n"
-                f"  {loose.group(0)[:800]}",
-                file=sys.stderr,
-            )
+        _diag_no_rows(html, label or "timetable")
         return results
 
     for row_match in all_rows:
@@ -456,17 +543,24 @@ def cross_verify(flights: list[dict], api_key: str) -> None:
     print("=" * 60)
 
 
-def _build_cn_mapping(target_date: date) -> dict[str, str]:
-    """Fetch both localized timetables and build {english_name: chinese_name} mapping."""
+def _build_cn_mapping(target_date: date, mode: str) -> dict[str, str]:
+    """Fetch both localized pages and build {english_name: chinese_name} mapping.
+
+    The place-name lives in different cell positions depending on mode:
+      timetable: cells[0] (cells = [destination, time, aircraft])
+      realtime:  cells[1] (cells = [time, place, terminal, gate])
+    """
     mapping: dict[str, str] = {}
-    if not _upstream_ready():
+    if not _upstream_ready(mode):
         return mapping
     en_by_fnum: dict[str, str] = {}
     zh_by_fnum: dict[str, str] = {}
 
+    name_idx = 0 if mode == "timetable" else 1
+
     pairs = (
-        (_UPSTREAM_URLS["dep_en"], _UPSTREAM_URLS["dep_zh"]),
-        (_UPSTREAM_URLS["arr_en"], _UPSTREAM_URLS["arr_zh"]),
+        (_UPSTREAM_URLS[("dep", "en", mode)], _UPSTREAM_URLS[("dep", "zh", mode)]),
+        (_UPSTREAM_URLS[("arr", "en", mode)], _UPSTREAM_URLS[("arr", "zh", mode)]),
     )
 
     for en_url, zh_url in pairs:
@@ -477,15 +571,15 @@ def _build_cn_mapping(target_date: date) -> dict[str, str]:
             row = row_match.group(0)
             cells = _MD_CELL_RE.findall(row)
             fnum_m = _FNUM_RE.search(row)
-            if cells and fnum_m:
-                en_by_fnum[fnum_m.group(1)] = cells[0].strip()
+            if len(cells) > name_idx and fnum_m:
+                en_by_fnum[fnum_m.group(1)] = cells[name_idx].strip()
 
         for row_match in _ROW_RE.finditer(zh_html):
             row = row_match.group(0)
             cells = _MD_CELL_RE.findall(row)
             fnum_m = _FNUM_RE.search(row)
-            if cells and fnum_m:
-                zh_by_fnum[fnum_m.group(1)] = cells[0].strip()
+            if len(cells) > name_idx and fnum_m:
+                zh_by_fnum[fnum_m.group(1)] = cells[name_idx].strip()
 
     for fnum, en_name in en_by_fnum.items():
         zh_name = zh_by_fnum.get(fnum, "")
@@ -496,35 +590,52 @@ def _build_cn_mapping(target_date: date) -> dict[str, str]:
 
 
 def main():
+    today_macau = datetime.now(MACAU_TZ).date()
     if len(sys.argv) > 1:
         target_date = date.fromisoformat(sys.argv[1])
     else:
-        target_date = date.today()
+        target_date = today_macau
 
-    print(f"Target date: {target_date}")
+    # `realtime` only covers today (Macau-local). For any other date we
+    # need the full schedule from `timetable`.
+    mode = "realtime" if target_date == today_macau else "timetable"
 
-    if not _upstream_ready():
-        missing = [k for k, v in _UPSTREAM_URLS.items() if not v]
+    print(f"Target date: {target_date} (today in Macau: {today_macau})")
+    print(f"Source mode: {mode}")
+
+    if not _upstream_ready(mode):
+        missing = _missing_upstream(mode)
         print(
-            f"Upstream URL env vars not fully set ({', '.join(missing)} missing) —\n"
-            "  legacy backup source disabled. Set the env vars (or GitHub Actions\n"
-            "  secrets) to enable timetable sync.",
+            f"Upstream URL env vars for mode={mode} not fully set "
+            f"({', '.join(missing)} missing) —\n"
+            "  cannot fetch flight data. Set the env vars (or GitHub Actions\n"
+            "  secrets) and retry. For `timetable` mode the legacy unsuffixed\n"
+            "  names (UPSTREAM_DEP_EN_URL etc.) are also accepted.",
             file=sys.stderr,
         )
         sys.exit(1)
 
     print("Building Chinese name mapping...")
-    cn_map = _build_cn_mapping(target_date)
+    cn_map = _build_cn_mapping(target_date, mode)
     print(f"  Mapped {len(cn_map)} destination names")
 
-    print("Fetching departures timetable...")
-    dep_html = fetch_page(_UPSTREAM_URLS["dep_en"])
-    dep_rows = parse_timetable_html(dep_html, target_date, label="dep_en")
+    label_dep = f"dep_en_{mode}"
+    label_arr = f"arr_en_{mode}"
+
+    print(f"Fetching departures ({mode})...")
+    dep_html = fetch_page(_UPSTREAM_URLS[("dep", "en", mode)])
+    if mode == "realtime":
+        dep_rows = parse_realtime_html(dep_html, label=label_dep)
+    else:
+        dep_rows = parse_timetable_html(dep_html, target_date, label=label_dep)
     print(f"  Found {len(dep_rows)} active departure entries")
 
-    print("Fetching arrivals timetable...")
-    arr_html = fetch_page(_UPSTREAM_URLS["arr_en"])
-    arr_rows = parse_timetable_html(arr_html, target_date, label="arr_en")
+    print(f"Fetching arrivals ({mode})...")
+    arr_html = fetch_page(_UPSTREAM_URLS[("arr", "en", mode)])
+    if mode == "realtime":
+        arr_rows = parse_realtime_html(arr_html, label=label_arr)
+    else:
+        arr_rows = parse_timetable_html(arr_html, target_date, label=label_arr)
     print(f"  Found {len(arr_rows)} active arrival entries")
 
     flights: list[dict] = []
