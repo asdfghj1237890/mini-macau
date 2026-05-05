@@ -22,12 +22,12 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 
 ![og-image](https://mini-map-macau.app/og-image.png)
 
-<video src="./docs/demo-01.mp4" autoplay loop muted playsinline width="100%">
-  <a href="./docs/demo-01.mp4">demo-01.mp4</a>
+<video src="https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-01.mp4" autoplay loop muted playsinline width="100%">
+  <a href="https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-01.mp4">demo-01.mp4</a>
 </video>
 
-<video src="./docs/demo-02.mp4" autoplay loop muted playsinline width="100%">
-  <a href="./docs/demo-02.mp4">demo-02.mp4</a>
+<video src="https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-02.mp4" autoplay loop muted playsinline width="100%">
+  <a href="https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-02.mp4">demo-02.mp4</a>
 </video>
 
 ## Contents
