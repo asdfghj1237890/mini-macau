@@ -1,0 +1,89 @@
+name: Update Flight Timetable (next 7 days)
+
+on:
+  schedule:
+    # 03:23 UTC = 11:23 Macau (UTC+8). Off-the-hour minute plus the
+    # in-job random delay below puts the actual fetch somewhere in
+    # 11:23–11:53 Macau, separated from the realtime workflow's
+    # 07:07–07:57 Macau window.
+    - cron: '23 3 * * *'
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v4
+        with:
+          version: latest
+
+      - name: Random pre-fetch delay (jitter)
+        # Skipped on workflow_dispatch so manual triggers run immediately.
+        # 0–1800s = 0–30 minutes of jitter on top of the cron minute, so
+        # the actual fetch lands somewhere in 11:23–11:53 Macau.
+        if: github.event_name == 'schedule'
+        run: |
+          delay=$((RANDOM % 1800))
+          echo "Sleeping ${delay}s before fetching..."
+          sleep "$delay"
+
+      - name: Fetch MFM timetable for next 7 days (with retry)
+        working-directory: data
+        # 7-day window starting tomorrow (Macau-local). Today is already
+        # covered by the realtime workflow, so we don't duplicate it here.
+        # `--days 7` forces timetable mode and emits one record per
+        # flight per day with a `date` field, written to a separate
+        # output file so the realtime workflow's flights.json is untouched.
+        run: |
+          target=$(TZ=Asia/Macau date -d '+1 day' +%Y-%m-%d)
+          echo "target_date: $target (window: 7 days)"
+          attempt=1
+          max_attempts=2
+          until uv run python scripts/fetch_flights.py "$target" --days 7 \
+              --output ../public/data/flights-timetable.json; do
+            if [ $attempt -ge $max_attempts ]; then
+              echo "::error::fetch_flights.py failed after $attempt attempts"
+              exit 1
+            fi
+            echo "::warning::fetch_flights.py attempt $attempt failed — retrying in 60s"
+            sleep 60
+            attempt=$((attempt + 1))
+          done
+        env:
+          AVIATIONSTACK_API_KEY: ${{ secrets.AVIATIONSTACK_API_KEY }}
+          # `timetable` URLs — required for non-today target_date.
+          UPSTREAM_DEP_EN_URL_TIMETABLE: ${{ secrets.UPSTREAM_DEP_EN_URL_TIMETABLE }}
+          UPSTREAM_DEP_ZH_URL_TIMETABLE: ${{ secrets.UPSTREAM_DEP_ZH_URL_TIMETABLE }}
+          UPSTREAM_ARR_EN_URL_TIMETABLE: ${{ secrets.UPSTREAM_ARR_EN_URL_TIMETABLE }}
+          UPSTREAM_ARR_ZH_URL_TIMETABLE: ${{ secrets.UPSTREAM_ARR_ZH_URL_TIMETABLE }}
+          # Legacy unsuffixed names — script falls back to these for
+          # `timetable` mode if the *_TIMETABLE secrets aren't set.
+          UPSTREAM_DEP_EN_URL: ${{ secrets.UPSTREAM_DEP_EN_URL }}
+          UPSTREAM_DEP_ZH_URL: ${{ secrets.UPSTREAM_DEP_ZH_URL }}
+          UPSTREAM_ARR_EN_URL: ${{ secrets.UPSTREAM_ARR_EN_URL }}
+          UPSTREAM_ARR_ZH_URL: ${{ secrets.UPSTREAM_ARR_ZH_URL }}
+
+      - name: Check for changes
+        id: diff
+        # `git status --porcelain` reports both tracked-file modifications
+        # AND untracked files, so it correctly detects the very first run
+        # where flights-timetable.json doesn't exist yet in the repo.
+        run: |
+          if [ -n "$(git status --porcelain public/data/flights-timetable.json)" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit and push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/flights-timetable.json
+          git commit -m "chore: update MFM flight timetable (next 7 days)"
+          git push
