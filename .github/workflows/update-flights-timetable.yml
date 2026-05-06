@@ -81,9 +81,31 @@ jobs:
 
       - name: Commit and push
         if: steps.diff.outputs.changed == 'true'
+        # Retries on push race conditions: when another workflow or manual
+        # commit lands on master between our checkout and our push, the
+        # naive `git push` is rejected. We fetch + rebase on origin/master
+        # and retry up to 5 times. Each scheduled job touches a different
+        # JSON file so rebase conflicts are unexpected; if one happens we
+        # abort and fail the run.
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add public/data/flights-timetable.json
           git commit -m "chore: update MFM flight timetable (next 7 days)"
-          git push
+          n=0
+          max=5
+          until git push; do
+            n=$((n + 1))
+            if [ "$n" -ge "$max" ]; then
+              echo "::error::push failed after $n attempts"
+              exit 1
+            fi
+            echo "::warning::push rejected — fetching origin/master and rebasing (attempt $n/$max)"
+            git fetch origin master
+            if ! git rebase origin/master; then
+              echo "::error::rebase conflict — aborting"
+              git rebase --abort || true
+              exit 1
+            fi
+            sleep $((RANDOM % 5 + 1))
+          done
