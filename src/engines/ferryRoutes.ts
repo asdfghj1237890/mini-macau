@@ -55,8 +55,17 @@ export const FERRY_ROUTES: Record<string, FerryRoute> = {
   },
   // 澳門(氹仔) → 香港(上環) route exits Taipa Temporary Terminal heading
   // WSW into open water, then bends ENE across the estuary toward Sheung Wan.
+  // Shared by TurboJET (hkgtaiparoute) and CotaiJet (cotai_hkg_taipa) — same
+  // terminal pair, same waterway.
   cotai_hkg_taipa: {
     id: 'cotai_hkg_taipa',
+    waypoints: [
+      [113.57917685453981, 22.1723704230209],
+      [113.64477958629995, 22.175364389301873],
+    ],
+  },
+  hkgtaiparoute: {
+    id: 'hkgtaiparoute',
     waypoints: [
       [113.57917685453981, 22.1723704230209],
       [113.64477958629995, 22.175364389301873],
