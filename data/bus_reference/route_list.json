@@ -236,8 +236,8 @@
     "description": "海擎天 - 蝴蝶谷大馬路"
   },
   {
-    "id": "51X",
-    "description": "關閘 - 蝴蝶谷大馬路快線"
+    "id": "51B",
+    "description": "蝴蝶谷大馬路 - 關閘"
   },
   {
     "id": "52",
@@ -306,10 +306,6 @@
   {
     "id": "AP1",
     "description": "青茂 - 澳門機場"
-  },
-  {
-    "id": "AP1X",
-    "description": "關閘 - 澳門機場快線"
   },
   {
     "id": "H1",
