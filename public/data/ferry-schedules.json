@@ -187,7 +187,7 @@
       "nameZh": "香港 - 澳門(氹仔)線",
       "nameEn": "Hong Kong - Macau (Taipa)",
       "journeyMinutes": 60,
-      "effectiveDate": "2026-04-09",
+      "effectiveDate": "2026-05-09",
       "directions": [
         {
           "header": "香港(上環) -> 澳門(氹仔)",
@@ -196,18 +196,9 @@
           "day": [
             {
               "time": "11:30"
-            },
-            {
-              "time": "18:00",
-              "markers": "*"
             }
           ],
-          "night": [
-            {
-              "time": "21:00",
-              "markers": "*"
-            }
-          ]
+          "night": []
         },
         {
           "header": "澳門(氹仔) -> 香港(上環)",
@@ -218,21 +209,10 @@
               "time": "17:30"
             }
           ],
-          "night": [
-            {
-              "time": "19:30",
-              "markers": "*"
-            },
-            {
-              "time": "23:30",
-              "markers": "*"
-            }
-          ]
+          "night": []
         }
       ],
-      "notes": [
-        "*逢周六、日之特別航班"
-      ]
+      "notes": []
     },
     {
       "id": "maczykroute",
