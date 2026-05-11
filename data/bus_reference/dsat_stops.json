@@ -1,6 +1,6 @@
 {
   "fetchedAtUtc": "2026-04-19T11:50:21.076590+00:00",
-  "totalRoutes": 92,
+  "totalRoutes": 91,
   "emptyRoutes": [],
   "routes": {
     "1": {
@@ -2389,28 +2389,36 @@
       "forwardOk": true,
       "backwardOk": true
     },
-    "51X": {
+    "51B": {
       "forward": [
-        "M9/5",
+        "C690/1",
+        "C689/1",
+        "T360",
+        "T376/1",
+        "T363/1",
+        "T306",
+        "T314/1",
+        "T408/5",
+        "T343",
         "T316",
+        "M802",
+        "M804",
+        "M247",
+        "M9/5",
+        "M801",
         "T354",
+        "T344",
         "T356/1",
+        "T358",
         "T373/1",
         "T375",
         "T380",
+        "T379",
+        "T359",
         "C688/2",
-        "C690/2"
+        "C690/6"
       ],
-      "backward": [
-        "C690/2",
-        "C689/2",
-        "T360",
-        "T376/2",
-        "T374",
-        "T317",
-        "M247",
-        "M9/5"
-      ],
+      "backward": [],
       "forwardOk": true,
       "backwardOk": true
     },
@@ -2937,22 +2945,6 @@
         "M63",
         "M67",
         "M23"
-      ],
-      "backward": [],
-      "forwardOk": true,
-      "backwardOk": true
-    },
-    "AP1X": {
-      "forward": [
-        "M9/5",
-        "T316",
-        "T354",
-        "T356/2",
-        "T373/1",
-        "T314/2",
-        "T343",
-        "M247",
-        "M9/5"
       ],
       "backward": [],
       "forwardOk": true,
