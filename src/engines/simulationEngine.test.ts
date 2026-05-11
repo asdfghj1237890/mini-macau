@@ -1,8 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import type { Feature, LineString } from 'geojson'
-import type { BusRoute, BusStop } from '../types'
+import type { BusRoute, BusStop, TransitData } from '../types'
 import {
+  computeVehiclePositions,
   getScheduleType,
+  getBusServiceWindow,
   interpolateOnLine,
   interpolateOnLineSmooth,
   progressAtCycle,
@@ -305,6 +307,72 @@ describe('computeBusCycleSec', () => {
     expect(computeBusCycleSec('test-route-0', schedule, sunRoute, 8 * 60, true)).toBe(0)
     // 8:30 Sunday: 30 min in.
     expect(computeBusCycleSec('test-route-0', schedule, sunRoute, 8 * 60 + 30, true)).toBe(1800)
+  })
+
+  it('treats an explicit null Sunday bucket as no service', () => {
+    const noSundayRoute = minimalRoute({
+      serviceHoursStartSun: null,
+      serviceHoursEndSun: null,
+    })
+
+    expect(getBusServiceWindow(noSundayRoute, false)).toEqual({ start: 6, end: 22 })
+    expect(getBusServiceWindow(noSundayRoute, true)).toBeNull()
+    expect(computeBusCycleSec('test-route-0', schedule, noSundayRoute, 10 * 60, true)).toBe(0)
+  })
+
+  it('treats an explicit null Saturday bucket as no service', () => {
+    const noSaturdayRoute = minimalRoute({
+      serviceHoursStartSat: null,
+      serviceHoursEndSat: null,
+    })
+
+    expect(getBusServiceWindow(noSaturdayRoute, 'weekday')).toEqual({ start: 6, end: 22 })
+    expect(getBusServiceWindow(noSaturdayRoute, 'sat')).toBeNull()
+    expect(computeBusCycleSec('test-route-0', schedule, noSaturdayRoute, 10 * 60, 'sat')).toBe(0)
+  })
+
+  it('does not generate buses on Sunday when the Sunday bucket has no service', () => {
+    const noSundayRoute = minimalRoute({
+      serviceHoursStartSun: null,
+      serviceHoursEndSun: null,
+    })
+    const transitData: TransitData = {
+      lrtLines: [],
+      stations: [],
+      trips: [],
+      busRoutes: [noSundayRoute],
+      busStops: [],
+      flights: [],
+      ferries: [],
+      loading: false,
+    }
+
+    const sunday = computeVehiclePositions(transitData, new Date(2026, 4, 10, 10, 0))
+    const monday = computeVehiclePositions(transitData, new Date(2026, 4, 11, 10, 0))
+    expect(sunday.filter(v => v.type === 'bus')).toHaveLength(0)
+    expect(monday.filter(v => v.type === 'bus').length).toBeGreaterThan(0)
+  })
+
+  it('does not generate buses on Saturday when the Saturday bucket has no service', () => {
+    const noSaturdayRoute = minimalRoute({
+      serviceHoursStartSat: null,
+      serviceHoursEndSat: null,
+    })
+    const transitData: TransitData = {
+      lrtLines: [],
+      stations: [],
+      trips: [],
+      busRoutes: [noSaturdayRoute],
+      busStops: [],
+      flights: [],
+      ferries: [],
+      loading: false,
+    }
+
+    const saturday = computeVehiclePositions(transitData, new Date(2026, 4, 9, 10, 0))
+    const monday = computeVehiclePositions(transitData, new Date(2026, 4, 11, 10, 0))
+    expect(saturday.filter(v => v.type === 'bus')).toHaveLength(0)
+    expect(monday.filter(v => v.type === 'bus').length).toBeGreaterThan(0)
   })
 })
 

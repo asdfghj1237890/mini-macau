@@ -6,7 +6,7 @@ import { MapSplash } from './components/MapSplash'
 import { useSimulationClock } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
-import { getScheduleType } from './engines/simulationEngine'
+import { getBusServiceBucket, getBusServiceWindow, getScheduleType } from './engines/simulationEngine'
 import { startEngagementTracker, ga } from './analytics/ga'
 import { getRouteGroup, type GroupKey } from './routeGroups'
 import type { VehiclePosition, Station, BusRoute } from './types'
@@ -32,13 +32,10 @@ const SERVICE_TAIL_MIN = 60
 
 function isRouteInService(route: BusRoute, date: Date): boolean {
   const nowMin = date.getHours() * 60 + date.getMinutes()
-  const useSun = date.getDay() === 0
-    && route.serviceHoursStartSun !== undefined
-    && route.serviceHoursEndSun !== undefined
-  const start = useSun ? route.serviceHoursStartSun! : route.serviceHoursStart
-  const end = useSun ? route.serviceHoursEndSun! : route.serviceHoursEnd
-  const startMin = start * 60
-  let endWithTail = end * 60 + SERVICE_TAIL_MIN
+  const window = getBusServiceWindow(route, getBusServiceBucket(date))
+  if (!window) return false
+  const startMin = window.start * 60
+  let endWithTail = window.end * 60 + SERVICE_TAIL_MIN
   if (endWithTail <= startMin) endWithTail += 1440
   return (nowMin >= startMin && nowMin < endWithTail)
     || (nowMin + 1440 >= startMin && nowMin + 1440 < endWithTail)

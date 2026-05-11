@@ -130,18 +130,28 @@ def parse_schedule(soup: BeautifulSoup) -> list[dict]:
             continue
 
         tds = tr.find_all("td")
+        if tds:
+            row_text = " ".join(td.get_text(strip=True) for td in tds)
+            if "不設服務" in row_text and current_period:
+                schedule.append({
+                    "period": current_period,
+                    "no_service": True,
+                })
+                continue
         if len(tds) >= 2:
             time_range = tds[0].get_text(strip=True)
             freq_text = tds[1].get_text(strip=True)
             time_m = re.match(r"(\d{2}:\d{2})\s*-\s*(\d{2}:\d{2})", time_range)
-            freq_m = re.match(r"(\d+)\s*-\s*(\d+)", freq_text)
+            freq_m = re.match(r"(\d+)(?:\s*-\s*(\d+))?", freq_text)
             if time_m and freq_m:
+                freq_min = int(freq_m.group(1))
+                freq_max = int(freq_m.group(2) or freq_m.group(1))
                 schedule.append({
                     "period": current_period,
                     "start": time_m.group(1),
                     "end": time_m.group(2),
-                    "freq_min": int(freq_m.group(1)),
-                    "freq_max": int(freq_m.group(2)),
+                    "freq_min": freq_min,
+                    "freq_max": freq_max,
                 })
 
     return schedule
@@ -158,6 +168,8 @@ def compute_service_summary(schedule: list[dict]) -> dict:
     count = 0
 
     for entry in schedule:
+        if entry.get("no_service"):
+            continue
         sh, sm = map(int, entry["start"].split(":"))
         eh, em = map(int, entry["end"].split(":"))
         start_min = sh * 60 + sm
@@ -170,6 +182,9 @@ def compute_service_summary(schedule: list[dict]) -> dict:
         avg = (entry["freq_min"] + entry["freq_max"]) / 2
         total_freq += avg
         count += 1
+
+    if not all_starts:
+        return {"start_hour": 6, "end_hour": 23, "avg_freq": 12}
 
     earliest_start = min(all_starts)
     latest_end = max(all_ends)
@@ -186,6 +201,27 @@ def compute_service_summary(schedule: list[dict]) -> dict:
     avg_freq = round(total_freq / count) if count else 12
 
     return {"start_hour": start_hour, "end_hour": end_hour, "avg_freq": avg_freq}
+
+
+def merge_direction_schedules(directions: list[dict]) -> list[dict]:
+    """Merge schedule rows from both directions, preserving first-seen order."""
+    merged = []
+    seen = set()
+    for direction in directions:
+        for entry in direction.get("schedule") or []:
+            key = (
+                entry.get("period", ""),
+                entry.get("start"),
+                entry.get("end"),
+                entry.get("freq_min"),
+                entry.get("freq_max"),
+                bool(entry.get("no_service")),
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            merged.append(entry)
+    return merged
 
 
 def fetch_route_data(route_no: str) -> dict:
@@ -242,11 +278,9 @@ def run():
             all_routes.append(rd)
             continue
 
-        sched_summary = {}
+        route_schedule = merge_direction_schedules(rd["directions"])
+        sched_summary = compute_service_summary(route_schedule) if route_schedule else {}
         for d in rd["directions"]:
-            if d["schedule"] and not sched_summary:
-                sched_summary = compute_service_summary(d["schedule"])
-
             for j, stop_id in enumerate(d["stops"]):
                 if stop_id not in all_stops:
                     station_name = d["stations"][j] if j < len(d["stations"]) else ""
@@ -269,7 +303,7 @@ def run():
             "service_start": sched_summary.get("start_hour", 6),
             "service_end": sched_summary.get("end_hour", 23),
             "avg_freq": sched_summary.get("avg_freq", 12),
-            "schedule": rd["directions"][0]["schedule"] if rd["directions"] else [],
+            "schedule": route_schedule,
             "directions": [],
         }
         for d in rd["directions"]:

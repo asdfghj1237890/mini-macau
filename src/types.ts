@@ -34,10 +34,16 @@ export interface BusRoute {
   frequency: number // minutes between departures
   // Fractional hour (5.75 = 05:45). End may exceed 24 when service crosses
   // midnight — simulation & service checks treat end<=start as +1440min.
-  serviceHoursStart: number      // Mon-Sat (weekday)
-  serviceHoursEnd: number        // Mon-Sat (weekday)
-  serviceHoursStartSun?: number  // Sun + public holidays; falls back to weekday
-  serviceHoursEndSun?: number
+  serviceHoursStart: number      // Weekday/default window
+  serviceHoursEnd: number        // Weekday/default window
+  // Saturday override; falls back to weekday when absent. Explicit null means
+  // this bucket exists but has no service.
+  serviceHoursStartSat?: number | null
+  serviceHoursEndSat?: number | null
+  // Sunday override; falls back to weekday when absent. Explicit null means
+  // this bucket exists but has no service.
+  serviceHoursStartSun?: number | null
+  serviceHoursEndSun?: number | null
   routeType: 'bilateral' | 'circular'
 }
 
