@@ -56,7 +56,7 @@ getScheduleType(date: Date): 'mon_thu' | 'friday' | 'sat_sun'
 
 - **環狀 vs 雙向**（`routeType: 'circular' | 'bilateral'`）
 - **服務時段跨午夜**（`serviceHoursEnd <= serviceHoursStart` 視為 +1440 min）
-- **週日/假日獨立窗口**（`serviceHoursStartSun` / `serviceHoursEndSun`，當 `getDay() === 0` 才生效）
+- **週六、週日獨立窗口**（`serviceHoursStartSat` / `serviceHoursEndSat` 與 `serviceHoursStartSun` / `serviceHoursEndSun`；`null/null` 代表該 bucket 明確不設服務）
 - **多輛車間隔發車**：同一條路線同時有 N 輛車，間隔 `route.frequency` 分鐘，車輛 ID `routeId-0..N-1`。
 - **同站排隊**：兩台車同時 dwell 在同一站時，後到的會沿行進方向往後 shift `QUEUE_OFFSET_KM ≈ 28 m`（[`simulationEngine.ts:534`](../../src/engines/simulationEngine.ts)）。如果端點 clamp 了就改成側向 perpendicular nudge。
 

@@ -7,7 +7,14 @@ import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
 import { Flight3DLayer, ALL_FLIGHT_3D_LAYERS } from '../layers/Flight3DLayer'
 import { Ferry3DLayer, ALL_FERRY_3D_LAYERS } from '../layers/Ferry3DLayer'
-import { computeVehiclePositions, computeFlightOnly, getScheduleType, interpolateOnLine } from '../engines/simulationEngine'
+import {
+  computeVehiclePositions,
+  computeFlightOnly,
+  getBusServiceBucket,
+  getBusServiceWindow,
+  getScheduleType,
+  interpolateOnLine,
+} from '../engines/simulationEngine'
 import length from '@turf/length'
 import { useI18n } from '../i18n'
 import type { BusTracker, RouteRealtimePoller, TrackedBusState } from '../services/realtimeClient'
@@ -93,24 +100,12 @@ function getLRTLineWindow(
 
 const BUS_SERVICE_TAIL_MIN = 60
 
-function getServiceHours(route: BusRoute, date: Date): { start: number; end: number } {
-  // Sunday (getDay() === 0) uses the Sun+PH bucket if present. We don't have
-  // a public-holiday calendar wired in yet, so weekdays fall through to the
-  // Mon-Sat window.
-  const isSunBucket = date.getDay() === 0
-    && route.serviceHoursStartSun !== undefined
-    && route.serviceHoursEndSun !== undefined
-  if (isSunBucket) {
-    return { start: route.serviceHoursStartSun!, end: route.serviceHoursEndSun! }
-  }
-  return { start: route.serviceHoursStart, end: route.serviceHoursEnd }
-}
-
 function isBusInService(route: BusRoute, date: Date): boolean {
   const nowMin = date.getHours() * 60 + date.getMinutes()
-  const { start, end } = getServiceHours(route, date)
-  const startMin = start * 60
-  let endWithTail = end * 60 + BUS_SERVICE_TAIL_MIN
+  const window = getBusServiceWindow(route, getBusServiceBucket(date))
+  if (!window) return false
+  const startMin = window.start * 60
+  let endWithTail = window.end * 60 + BUS_SERVICE_TAIL_MIN
   if (endWithTail <= startMin) endWithTail += 1440
   return (nowMin >= startMin && nowMin < endWithTail)
     || (nowMin + 1440 >= startMin && nowMin + 1440 < endWithTail)

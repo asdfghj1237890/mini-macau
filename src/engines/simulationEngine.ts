@@ -13,6 +13,53 @@ function getScheduleType(date: Date): ScheduleType {
 
 export { getScheduleType }
 
+export interface BusServiceWindow {
+  start: number
+  end: number
+}
+
+export type BusServiceBucket = 'weekday' | 'sat' | 'sun'
+
+export function getBusServiceBucket(date: Date): BusServiceBucket {
+  const day = date.getDay()
+  if (day === 0) return 'sun'
+  if (day === 6) return 'sat'
+  return 'weekday'
+}
+
+function normalizeBusServiceBucket(bucket: BusServiceBucket | boolean = 'weekday'): BusServiceBucket {
+  if (bucket === true) return 'sun'
+  if (bucket === false) return 'weekday'
+  return bucket
+}
+
+export function getBusServiceWindow(
+  route: BusRoute,
+  bucket: BusServiceBucket | boolean = 'weekday',
+): BusServiceWindow | null {
+  const serviceBucket = normalizeBusServiceBucket(bucket)
+  if (
+    serviceBucket === 'sat'
+    && route.serviceHoursStartSat !== undefined
+    && route.serviceHoursEndSat !== undefined
+  ) {
+    if (route.serviceHoursStartSat === null || route.serviceHoursEndSat === null) return null
+    return { start: route.serviceHoursStartSat, end: route.serviceHoursEndSat }
+  }
+  if (
+    serviceBucket === 'sun'
+    && route.serviceHoursStartSun !== undefined
+    && route.serviceHoursEndSun !== undefined
+  ) {
+    if (route.serviceHoursStartSun === null || route.serviceHoursEndSun === null) return null
+    return { start: route.serviceHoursStartSun, end: route.serviceHoursEndSun }
+  }
+  const start = route.serviceHoursStart
+  const end = route.serviceHoursEnd
+  if (start === null || end === null) return null
+  return { start, end }
+}
+
 function timeToMinutes(date: Date): number {
   return date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60 + date.getMilliseconds() / 60000
 }
@@ -498,16 +545,13 @@ export function computeBusCycleSec(
   schedule: BusSchedule,
   route: BusRoute,
   nowMinutes: number,
-  isSunBucket = false,
+  serviceBucket: BusServiceBucket | boolean = 'weekday',
 ): number {
   const vIndex = parseInt(vehicleId.split('-').pop() ?? '0', 10) || 0
-  const useSun = isSunBucket
-    && route.serviceHoursStartSun !== undefined
-    && route.serviceHoursEndSun !== undefined
-  const startHr = useSun ? route.serviceHoursStartSun! : route.serviceHoursStart
-  const endHr = useSun ? route.serviceHoursEndSun! : route.serviceHoursEnd
-  const startMin = startHr * 60
-  let endMin = endHr * 60
+  const window = getBusServiceWindow(route, serviceBucket)
+  if (!window) return 0
+  const startMin = window.start * 60
+  let endMin = window.end * 60
   if (endMin <= startMin) endMin += 1440
   const cycleMin = schedule.cycleSec / 60
 
@@ -537,7 +581,7 @@ function computeBusVehicles(
   busRoutes: BusRoute[],
   busStopMap: Map<string, BusStop>,
   nowMinutes: number,
-  isSunBucket: boolean,
+  serviceBucket: BusServiceBucket,
 ): VehiclePosition[] {
   type Raw = {
     route: BusRoute
@@ -557,13 +601,10 @@ function computeBusVehicles(
     const tripDurationMin = schedule.tripDurationSec / 60
     const cycleMin = schedule.cycleSec / 60
 
-    const useSun = isSunBucket
-      && route.serviceHoursStartSun !== undefined
-      && route.serviceHoursEndSun !== undefined
-    const startHr = useSun ? route.serviceHoursStartSun! : route.serviceHoursStart
-    const endHr = useSun ? route.serviceHoursEndSun! : route.serviceHoursEnd
-    const startMin = startHr * 60
-    let endMin = endHr * 60
+    const window = getBusServiceWindow(route, serviceBucket)
+    if (!window) continue
+    const startMin = window.start * 60
+    let endMin = window.end * 60
     // Route crosses midnight (serviceHoursEnd may be >24 or <start)
     if (endMin <= startMin) endMin += 1440
     // Pick the effective "now" that falls inside the window; wrap-around
@@ -1328,7 +1369,7 @@ export function computeVehiclePositions(
         transitData.busRoutes,
         getBusStopMap(transitData),
         nowMinutes,
-        time.getDay() === 0,
+        getBusServiceBucket(time),
       )
 
   const flightVehicles = computeFlightVehicles(
