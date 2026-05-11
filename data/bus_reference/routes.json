@@ -3,8 +3,8 @@
     "id": "1",
     "description": "關閘 - 媽閣",
     "route_type": "bilateral",
-    "service_start": 6,
-    "service_end": 20,
+    "service_start": 5,
+    "service_end": 26,
     "avg_freq": 9,
     "schedule": [
       {
@@ -53,6 +53,34 @@
         "period": "星期日及公眾假期",
         "start": "20:00",
         "end": "01:15",
+        "freq_min": 10,
+        "freq_max": 12
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "05:45",
+        "end": "10:00",
+        "freq_min": 4,
+        "freq_max": 8
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "00:45",
+        "freq_min": 10,
+        "freq_max": 12
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "05:45",
+        "end": "09:00",
+        "freq_min": 8,
+        "freq_max": 12
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "20:00",
+        "end": "00:45",
         "freq_min": 10,
         "freq_max": 12
       }
@@ -205,7 +233,7 @@
     "description": "筷子基街 - 新口岸／科英布拉街",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 11,
     "schedule": [
       {
@@ -406,7 +434,7 @@
     "description": "永寧廣場 - 媽閣",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 19,
+    "service_end": 24,
     "avg_freq": 9,
     "schedule": [
       {
@@ -829,6 +857,10 @@
         "end": "09:30",
         "freq_min": 5,
         "freq_max": 15
+      },
+      {
+        "period": "星期六、日及公眾假期",
+        "no_service": true
       }
     ],
     "directions": [
@@ -874,8 +906,8 @@
     "id": "3",
     "description": "關閘 - 外港碼頭",
     "route_type": "bilateral",
-    "service_start": 6,
-    "service_end": 20,
+    "service_start": 5,
+    "service_end": 26,
     "avg_freq": 6,
     "schedule": [
       {
@@ -924,6 +956,34 @@
         "period": "星期日及公眾假期",
         "start": "20:00",
         "end": "01:15",
+        "freq_min": 4,
+        "freq_max": 8
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "05:45",
+        "end": "10:00",
+        "freq_min": 4,
+        "freq_max": 7
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "00:45",
+        "freq_min": 5,
+        "freq_max": 8
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "05:45",
+        "end": "09:00",
+        "freq_min": 5,
+        "freq_max": 8
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "20:00",
+        "end": "00:45",
         "freq_min": 4,
         "freq_max": 8
       }
@@ -1084,7 +1144,7 @@
     "description": "司打口 - 關閘",
     "route_type": "circular",
     "service_start": 5,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 10,
     "schedule": [
       {
@@ -1324,6 +1384,10 @@
         "end": "20:00",
         "freq_min": 8,
         "freq_max": 10
+      },
+      {
+        "period": "星期日及強制性假日",
+        "no_service": true
       }
     ],
     "directions": [
@@ -1554,7 +1618,7 @@
     "description": "筷子基 - 新馬路",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 12,
     "schedule": [
       {
@@ -1715,7 +1779,7 @@
     "description": "媽閣 - 華大新村",
     "route_type": "circular",
     "service_start": 5,
-    "service_end": 23,
+    "service_end": 25,
     "avg_freq": 10,
     "schedule": [
       {
@@ -1919,6 +1983,10 @@
         "end": "19:30",
         "freq_min": 5,
         "freq_max": 10
+      },
+      {
+        "period": "星期六、日及公眾假期",
+        "no_service": true
       }
     ],
     "directions": [
@@ -2275,6 +2343,10 @@
         "end": "23:30",
         "freq_min": 15,
         "freq_max": 18
+      },
+      {
+        "period": "星期日及強制性假日",
+        "no_service": true
       }
     ],
     "directions": [
@@ -2389,7 +2461,7 @@
     "description": "東方明珠街 - 城市日前地",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 24,
+    "service_end": 25,
     "avg_freq": 7,
     "schedule": [
       {
@@ -2438,6 +2510,34 @@
         "period": "星期日及公眾假期",
         "start": "20:00",
         "end": "23:50",
+        "freq_min": 7,
+        "freq_max": 10
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "06:25",
+        "end": "10:00",
+        "freq_min": 4,
+        "freq_max": 8
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "00:10",
+        "freq_min": 7,
+        "freq_max": 10
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "06:25",
+        "end": "10:00",
+        "freq_min": 7,
+        "freq_max": 8
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "20:00",
+        "end": "00:10",
         "freq_min": 7,
         "freq_max": 10
       }
@@ -2606,8 +2706,8 @@
     "description": "工業園街 - 回力",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 20,
-    "avg_freq": 9,
+    "service_end": 25,
+    "avg_freq": 10,
     "schedule": [
       {
         "period": "星期一至六（公眾假期除外）",
@@ -2655,6 +2755,34 @@
         "period": "星期日及公眾假期",
         "start": "19:00",
         "end": "00:00",
+        "freq_min": 10,
+        "freq_max": 12
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "06:30",
+        "end": "10:00",
+        "freq_min": 4,
+        "freq_max": 10
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "00:10",
+        "freq_min": 10,
+        "freq_max": 12
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "06:30",
+        "end": "10:00",
+        "freq_min": 10,
+        "freq_max": 12
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "19:00",
+        "end": "00:10",
         "freq_min": 10,
         "freq_max": 12
       }
@@ -3037,7 +3165,7 @@
     "description": "牧場街 - 媽閣",
     "route_type": "circular",
     "service_start": 5,
-    "service_end": 19,
+    "service_end": 26,
     "avg_freq": 13,
     "schedule": [
       {
@@ -3257,7 +3385,7 @@
     "description": "青茂 - 旅遊塔",
     "route_type": "circular",
     "service_start": 5,
-    "service_end": 20,
+    "service_end": 26,
     "avg_freq": 13,
     "schedule": [
       {
@@ -3463,8 +3591,8 @@
     "id": "10",
     "description": "關閘 - 媽閣",
     "route_type": "bilateral",
-    "service_start": 6,
-    "service_end": 20,
+    "service_start": 5,
+    "service_end": 26,
     "avg_freq": 8,
     "schedule": [
       {
@@ -3513,6 +3641,34 @@
         "period": "星期日及公眾假期",
         "start": "20:00",
         "end": "01:15",
+        "freq_min": 8,
+        "freq_max": 12
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "05:45",
+        "end": "10:00",
+        "freq_min": 5,
+        "freq_max": 9
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "00:40",
+        "freq_min": 8,
+        "freq_max": 12
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "05:45",
+        "end": "15:00",
+        "freq_min": 6,
+        "freq_max": 8
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "20:00",
+        "end": "00:40",
         "freq_min": 8,
         "freq_max": 12
       }
@@ -3709,7 +3865,7 @@
     "description": "馬場大馬路 - 殷皇子馬路",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 26,
     "avg_freq": 12,
     "schedule": [
       {
@@ -3905,7 +4061,7 @@
     "description": "媽閣 - 氹仔官也街",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 24,
     "avg_freq": 9,
     "schedule": [
       {
@@ -4539,7 +4695,7 @@
     "description": "牧場街 - 下環街市",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 23,
+    "service_end": 25,
     "avg_freq": 12,
     "schedule": [
       {
@@ -4888,7 +5044,7 @@
     "description": "白鴿巢 - 宋玉生廣場",
     "route_type": "circular",
     "service_start": 5,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 9,
     "schedule": [
       {
@@ -5104,6 +5260,17 @@
         "end": "20:00",
         "freq_min": 10,
         "freq_max": 15
+      },
+      {
+        "period": "星期日及公眾假期",
+        "no_service": true
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "15:30",
+        "end": "19:30",
+        "freq_min": 10,
+        "freq_max": 15
       }
     ],
     "directions": [
@@ -5221,8 +5388,8 @@
     "id": "18",
     "description": "牧場街 - 媽閣",
     "route_type": "bilateral",
-    "service_start": 6,
-    "service_end": 20,
+    "service_start": 5,
+    "service_end": 26,
     "avg_freq": 19,
     "schedule": [
       {
@@ -5264,6 +5431,34 @@
         "period": "星期日及公眾假期",
         "start": "20:00",
         "end": "01:10",
+        "freq_min": 20,
+        "freq_max": 24
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "05:45",
+        "end": "10:00",
+        "freq_min": 14,
+        "freq_max": 18
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "00:40",
+        "freq_min": 18,
+        "freq_max": 22
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "05:45",
+        "end": "20:00",
+        "freq_min": 18,
+        "freq_max": 22
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "20:00",
+        "end": "00:40",
         "freq_min": 20,
         "freq_max": 24
       }
@@ -5906,7 +6101,7 @@
     "description": "永寧廣場 - 新馬路",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 24,
     "avg_freq": 9,
     "schedule": [
       {
@@ -6065,8 +6260,8 @@
     "description": "媽閣 - 九澳油庫",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 24,
-    "avg_freq": 22,
+    "service_end": 25,
+    "avg_freq": 23,
     "schedule": [
       {
         "period": "星期一至六（公眾假期除外）",
@@ -6121,6 +6316,34 @@
         "period": "星期日及公眾假期",
         "start": "20:00",
         "end": "23:30",
+        "freq_min": 26,
+        "freq_max": 30
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "07:20",
+        "end": "10:00",
+        "freq_min": 20,
+        "freq_max": 24
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "00:30",
+        "freq_min": 26,
+        "freq_max": 30
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "07:20",
+        "end": "10:00",
+        "freq_min": 20,
+        "freq_max": 24
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "20:00",
+        "end": "00:30",
         "freq_min": 26,
         "freq_max": 30
       }
@@ -6469,7 +6692,7 @@
     "description": "祐漢第二街 - 柯維納馬路",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 8,
     "schedule": [
       {
@@ -6931,7 +7154,7 @@
     "description": "關閘 - 路環市區",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 26,
     "avg_freq": 11,
     "schedule": [
       {
@@ -7236,8 +7459,8 @@
   },
   {
     "id": "25AX",
-    "description": "關閘 - 蝴蝶谷大馬路快線",
-    "route_type": "bilateral",
+    "description": "蝴蝶谷大馬路 - 關閘快線",
+    "route_type": "circular",
     "service_start": 6,
     "service_end": 19,
     "avg_freq": 11,
@@ -7255,6 +7478,10 @@
         "end": "19:00",
         "freq_min": 10,
         "freq_max": 15
+      },
+      {
+        "period": "星期六、日及公眾假期",
+        "no_service": true
       }
     ],
     "directions": [
@@ -7357,7 +7584,7 @@
     "description": "關閘 - 橫琴澳方口岸",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 10,
     "schedule": [
       {
@@ -7681,6 +7908,10 @@
         "end": "19:00",
         "freq_min": 8,
         "freq_max": 13
+      },
+      {
+        "period": "星期日及強制性假日",
+        "no_service": true
       }
     ],
     "directions": [
@@ -8121,7 +8352,7 @@
     "description": "筷子基北灣 - 黑沙海灘",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 12,
     "schedule": [
       {
@@ -8177,6 +8408,20 @@
         "period": "星期日及公眾假期",
         "start": "20:00",
         "end": "00:30",
+        "freq_min": 12,
+        "freq_max": 16
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "01:00",
+        "freq_min": 12,
+        "freq_max": 15
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "20:00",
+        "end": "01:00",
         "freq_min": 12,
         "freq_max": 16
       }
@@ -8513,7 +8758,7 @@
     "description": "望廈 - 青洲",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 24,
     "avg_freq": 13,
     "schedule": [
       {
@@ -8651,7 +8896,7 @@
     "description": "外港碼頭 - 柯維納馬路",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 19,
+    "service_end": 25,
     "avg_freq": 15,
     "schedule": [
       {
@@ -9102,7 +9347,7 @@
     "description": "回力 - 騎士馬路",
     "route_type": "circular",
     "service_start": 5,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 14,
     "schedule": [
       {
@@ -9521,7 +9766,7 @@
     "description": "青洲坊 - 氹仔中央公園",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 26,
     "avg_freq": 9,
     "schedule": [
       {
@@ -9758,6 +10003,10 @@
         "end": "20:00",
         "freq_min": 6,
         "freq_max": 8
+      },
+      {
+        "period": "星期日及強制性假日",
+        "no_service": true
       }
     ],
     "directions": [
@@ -9856,7 +10105,7 @@
     "description": "筷子基 - 旅遊塔",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 24,
     "avg_freq": 11,
     "schedule": [
       {
@@ -10064,7 +10313,7 @@
     "description": "筷子基 - 柯維納馬路",
     "route_type": "circular",
     "service_start": 5,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 7,
     "schedule": [
       {
@@ -10303,8 +10552,8 @@
     "description": "青洲坊 - 海洋花園",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 20,
-    "avg_freq": 11,
+    "service_end": 25,
+    "avg_freq": 12,
     "schedule": [
       {
         "period": "星期一至六（公眾假期除外）",
@@ -10359,6 +10608,20 @@
         "period": "星期日及公眾假期",
         "start": "20:00",
         "end": "01:00",
+        "freq_min": 12,
+        "freq_max": 15
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "00:35",
+        "freq_min": 12,
+        "freq_max": 15
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "20:00",
+        "end": "00:35",
         "freq_min": 12,
         "freq_max": 15
       }
@@ -11060,7 +11323,7 @@
     "description": "新口岸／科英布拉街 - 湖畔大廈",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 24,
     "avg_freq": 15,
     "schedule": [
       {
@@ -11573,7 +11836,7 @@
     "description": "蝴蝶谷大馬路 - 關閘",
     "route_type": "circular",
     "service_start": 5,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 10,
     "schedule": [
       {
@@ -11747,7 +12010,7 @@
     "description": "海擎天 - 蝴蝶谷大馬路",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 19,
+    "service_end": 24,
     "avg_freq": 12,
     "schedule": [
       {
@@ -12053,6 +12316,10 @@
         "end": "20:00",
         "freq_min": 8,
         "freq_max": 12
+      },
+      {
+        "period": "星期日及強制性假日",
+        "no_service": true
       }
     ],
     "directions": [
@@ -12179,7 +12446,7 @@
     "description": "蝴蝶谷大馬路 - 亞馬喇前地",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 24,
     "avg_freq": 11,
     "schedule": [
       {
@@ -12383,7 +12650,7 @@
     "description": "蝴蝶谷大馬路 - 司打口",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 19,
+    "service_end": 24,
     "avg_freq": 19,
     "schedule": [
       {
@@ -12549,7 +12816,7 @@
     "description": "蝴蝶谷大馬路 - 高士德",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 24,
     "avg_freq": 17,
     "schedule": [
       {
@@ -12708,7 +12975,7 @@
     "description": "關閘 - 聯生圓形地",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 21,
     "avg_freq": 10,
     "schedule": [
       {
@@ -12743,6 +13010,41 @@
         "period": "星期六、日及公眾假期",
         "start": "15:00",
         "end": "19:30",
+        "freq_min": 15,
+        "freq_max": 20
+      },
+      {
+        "period": "星期一至五（公眾假期除外）",
+        "start": "06:50",
+        "end": "10:40",
+        "freq_min": 6,
+        "freq_max": 8
+      },
+      {
+        "period": "星期一至五（公眾假期除外）",
+        "start": "15:40",
+        "end": "19:00",
+        "freq_min": 6,
+        "freq_max": 10
+      },
+      {
+        "period": "星期一至五（公眾假期除外）",
+        "start": "19:00",
+        "end": "20:10",
+        "freq_min": 6,
+        "freq_max": 12
+      },
+      {
+        "period": "星期六、日及公眾假期",
+        "start": "06:50",
+        "end": "10:40",
+        "freq_min": 8,
+        "freq_max": 14
+      },
+      {
+        "period": "星期六、日及公眾假期",
+        "start": "15:40",
+        "end": "20:10",
         "freq_min": 15,
         "freq_max": 20
       }
@@ -13455,10 +13757,36 @@
     "id": "71S",
     "description": "澳門大學 - 俾若翰街／快富樓",
     "route_type": "bilateral",
-    "service_start": 6,
-    "service_end": 23,
-    "avg_freq": 12,
-    "schedule": [],
+    "service_start": 7,
+    "service_end": 10,
+    "avg_freq": 37,
+    "schedule": [
+      {
+        "period": "星期一至五（公眾假期除外）",
+        "start": "08:25",
+        "end": "08:40",
+        "freq_min": 15,
+        "freq_max": 15
+      },
+      {
+        "period": "星期六、日及公眾假期",
+        "no_service": true
+      },
+      {
+        "period": "星期一至五（公眾假期除外）",
+        "start": "07:35",
+        "end": "07:50",
+        "freq_min": 15,
+        "freq_max": 15
+      },
+      {
+        "period": "星期一至五（公眾假期除外）",
+        "start": "07:50",
+        "end": "09:10",
+        "freq_min": 80,
+        "freq_max": 80
+      }
+    ],
     "directions": [
       {
         "direction": 0,
@@ -13627,7 +13955,7 @@
     "description": "澳門大學 - 湖畔大廈",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 15,
     "schedule": [
       {
@@ -13828,7 +14156,7 @@
     "description": "澳門大學 - 黑沙環衛生中心",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 19,
+    "service_end": 25,
     "avg_freq": 12,
     "schedule": [
       {
@@ -14178,7 +14506,7 @@
     "description": "港珠澳大橋邊檢大樓 - 橫琴澳方口岸",
     "route_type": "bilateral",
     "service_start": 6,
-    "service_end": 19,
+    "service_end": 24,
     "avg_freq": 16,
     "schedule": [
       {
@@ -14658,6 +14986,10 @@
         "end": "19:30",
         "freq_min": 15,
         "freq_max": 20
+      },
+      {
+        "period": "星期六、日、公眾假期及澳門大學休假日",
+        "no_service": true
       }
     ],
     "directions": [
@@ -14692,7 +15024,7 @@
     "description": "青茂 - 澳門機場",
     "route_type": "circular",
     "service_start": 6,
-    "service_end": 20,
+    "service_end": 26,
     "avg_freq": 11,
     "schedule": [
       {
@@ -14898,8 +15230,8 @@
     "description": "山頂醫院 - 水坑尾",
     "route_type": "circular",
     "service_start": 7,
-    "service_end": 21,
-    "avg_freq": 13,
+    "service_end": 25,
+    "avg_freq": 17,
     "schedule": [
       {
         "period": "星期一至五（公眾假期除外）",
@@ -14907,6 +15239,13 @@
         "end": "20:30",
         "freq_min": 10,
         "freq_max": 15
+      },
+      {
+        "period": "星期一至五（公眾假期除外）",
+        "start": "20:30",
+        "end": "01:00",
+        "freq_min": 30,
+        "freq_max": 30
       },
       {
         "period": "星期六、日及公眾假期",
@@ -15000,6 +15339,10 @@
         "end": "20:00",
         "freq_min": 25,
         "freq_max": 30
+      },
+      {
+        "period": "星期六、日及強制性假日",
+        "no_service": true
       }
     ],
     "directions": [
@@ -15263,7 +15606,7 @@
     "description": "城市日前地 - 澳門機場",
     "route_type": "circular",
     "service_start": 7,
-    "service_end": 20,
+    "service_end": 24,
     "avg_freq": 14,
     "schedule": [
       {
@@ -15705,7 +16048,7 @@
     "description": "關閘 - 氹仔客運碼頭",
     "route_type": "bilateral",
     "service_start": 5,
-    "service_end": 20,
+    "service_end": 25,
     "avg_freq": 11,
     "schedule": [
       {
@@ -15775,6 +16118,34 @@
         "period": "星期日及公眾假期",
         "start": "20:00",
         "end": "01:00",
+        "freq_min": 12,
+        "freq_max": 18
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "06:00",
+        "end": "07:00",
+        "freq_min": 8,
+        "freq_max": 12
+      },
+      {
+        "period": "星期一至六（公眾假期除外）",
+        "start": "20:00",
+        "end": "00:45",
+        "freq_min": 12,
+        "freq_max": 15
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "06:00",
+        "end": "07:00",
+        "freq_min": 10,
+        "freq_max": 14
+      },
+      {
+        "period": "星期日及公眾假期",
+        "start": "20:00",
+        "end": "00:45",
         "freq_min": 12,
         "freq_max": 18
       }
@@ -16067,6 +16438,10 @@
         "end": "21:00",
         "freq_min": 8,
         "freq_max": 12
+      },
+      {
+        "period": "星期六、日及強制性假日",
+        "no_service": true
       }
     ],
     "directions": [
