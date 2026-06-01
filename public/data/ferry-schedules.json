@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-05-01T00:39:24.910320+00:00",
-  "effectiveAs": "2026-05-01",
+  "fetchedAtUtc": "2026-06-01T00:47:26.101120+00:00",
+  "effectiveAs": "2026-06-01",
   "sources": {
     "turbojet": "https://www2.turbojet.com.hk/zh-tw/%E6%B5%B7-%E8%88%B9/",
     "cotai": "https://m.cotaiwaterjet.com/hk/ferry-schedule/hongkong-macau-taipa.html"
@@ -13,7 +13,7 @@
       "nameZh": "香港 - 澳門(外港)線",
       "nameEn": "Hong Kong - Macau (Outer Harbour)",
       "journeyMinutes": 60,
-      "effectiveDate": "2026-04-15",
+      "effectiveDate": "2026-06-01",
       "directions": [
         {
           "header": "香港(上環) -> 澳門(外港)",
@@ -45,7 +45,8 @@
               "time": "11:00"
             },
             {
-              "time": "11:30"
+              "time": "11:30",
+              "markers": "*"
             },
             {
               "time": "12:00"
@@ -60,16 +61,15 @@
               "time": "14:00"
             },
             {
-              "time": "14:30"
-            },
-            {
-              "time": "15:00"
+              "time": "14:30",
+              "markers": "*"
             },
             {
               "time": "15:30"
             },
             {
-              "time": "16:00"
+              "time": "16:00",
+              "markers": "*"
             },
             {
               "time": "16:30"
@@ -129,22 +129,18 @@
               "time": "12:00"
             },
             {
-              "time": "12:30"
-            },
-            {
               "time": "13:00"
             },
             {
               "time": "14:00"
             },
             {
-              "time": "14:30"
+              "time": "14:30",
+              "markers": "*"
             },
             {
-              "time": "15:00"
-            },
-            {
-              "time": "15:30"
+              "time": "15:00",
+              "markers": "*"
             },
             {
               "time": "16:00"
@@ -154,6 +150,10 @@
             },
             {
               "time": "17:00"
+            },
+            {
+              "time": "17:30",
+              "markers": "*"
             },
             {
               "time": "18:00"
@@ -178,7 +178,9 @@
           ]
         }
       ],
-      "notes": []
+      "notes": [
+        "*此為非固定航班"
+      ]
     },
     {
       "id": "hkgtaiparoute",
@@ -187,7 +189,7 @@
       "nameZh": "香港 - 澳門(氹仔)線",
       "nameEn": "Hong Kong - Macau (Taipa)",
       "journeyMinutes": 60,
-      "effectiveDate": "2026-05-09",
+      "effectiveDate": "2026-06-01",
       "directions": [
         {
           "header": "香港(上環) -> 澳門(氹仔)",
@@ -195,7 +197,16 @@
           "to": "澳門(氹仔)",
           "day": [
             {
+              "time": "10:30"
+            },
+            {
               "time": "11:30"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "15:00"
             }
           ],
           "night": []
@@ -205,6 +216,15 @@
           "from": "澳門(氹仔)",
           "to": "香港(上環)",
           "day": [
+            {
+              "time": "12:30"
+            },
+            {
+              "time": "13:30"
+            },
+            {
+              "time": "16:00"
+            },
             {
               "time": "17:30"
             }
