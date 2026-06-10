@@ -14,6 +14,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+    outputs:
+      # Consumed by the deploy job below.
+      changed: ${{ steps.diff.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
 
@@ -115,3 +118,17 @@ jobs:
             fi
             sleep $((RANDOM % 5 + 1))
           done
+
+  # Pushes made with the default GITHUB_TOKEN don't fire `on: push` workflows
+  # (anti-recursion), so the data commit above would never reach the live site
+  # on its own. Invoke the deploy workflow explicitly when we committed.
+  deploy:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    permissions:
+      contents: read
+      deployments: write
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: master
+    secrets: inherit
