@@ -1410,7 +1410,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 code="NFO"
                 label={t.about}
                 active={false}
-                onClick={() => { window.miniMacauInfo?.open(); setMenuOpen(false) }}
+                onClick={() => { ga.infoPanelOpened(); window.miniMacauInfo?.open(); setMenuOpen(false) }}
               />
               {RT_BUILD && rtUnlocked && (
                 <DrawerRow
