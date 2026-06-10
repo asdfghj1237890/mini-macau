@@ -32,7 +32,12 @@ function parseOrThrow<S extends z.ZodType>(schema: S, raw: unknown, label: strin
 }
 
 function loadJson(root: string, rel: string): unknown {
-  return JSON.parse(fs.readFileSync(path.resolve(root, rel), 'utf8'))
+  const text = fs.readFileSync(path.resolve(root, rel), 'utf8')
+  try {
+    return JSON.parse(text)
+  } catch (e) {
+    throw new Error(`[seo-content] ${rel} is not valid JSON: ${(e as Error).message}`)
+  }
 }
 
 export function seoContentPlugin(): Plugin {
@@ -52,7 +57,7 @@ export function seoContentPlugin(): Plugin {
       const ferry = parseOrThrow(FerryScheduleFileSchema, loadJson(root, 'public/data/ferry-schedules.json'), 'ferry-schedules.json')
       return html.replace(
         SEO_PLACEHOLDER,
-        renderTransitLists({ busRoutes, stations, lrtLines, ferryRoutes: ferry.routes }),
+        () => renderTransitLists({ busRoutes, stations, lrtLines, ferryRoutes: ferry.routes }),
       )
     },
   }
