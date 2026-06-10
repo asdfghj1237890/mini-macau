@@ -97,6 +97,7 @@ const translations = {
     langNameZh: '繁體中文',
     langNamePt: 'Português',
     langNameEn: 'English',
+    about: 'About this site',
     simDisclaimer: 'Map shown is simulated; data may not reflect real-time conditions exactly.',
     // ---- Data sources block ----
     dataSources: 'DATA SOURCES',
@@ -229,6 +230,7 @@ const translations = {
     langNameZh: '繁體中文',
     langNamePt: 'Português',
     langNameEn: 'English',
+    about: '關於本站',
     simDisclaimer: '本地圖為模擬顯示，數據不保證完全反映此時此刻的真實狀況。',
     dataSources: '資料來源',
     dataSourceBusLabel: '巴士路線與車站',
@@ -353,6 +355,7 @@ const translations = {
     langNameZh: '繁體中文',
     langNamePt: 'Português',
     langNameEn: 'English',
+    about: 'Sobre o site',
     simDisclaimer: 'Este mapa é uma simulação; os dados podem não refletir a realidade em tempo real.',
     dataSources: 'FONTES DE DADOS',
     dataSourceBusLabel: 'Rede de autocarros',
@@ -479,6 +482,7 @@ export interface Translations {
   langNameZh: string
   langNamePt: string
   langNameEn: string
+  about: string
   simDisclaimer: string
   dataSources: string
   dataSourceBusLabel: string
