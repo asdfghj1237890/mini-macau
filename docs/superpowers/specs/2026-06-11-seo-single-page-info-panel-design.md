@@ -2,7 +2,7 @@
 
 - **日期**:2026-06-11
 - **狀態**:已與使用者確認設計,待實作
-- **範圍**:`index.html`、`vite.config.ts`(新增 plugin)、`src/components/LineLegend.tsx`(選單入口一行)、新增 plugin 原始碼與測試
+- **範圍**:`index.html`、`vite.config.ts`(新增 plugin)、`src/components/MapView.tsx`(選單入口一行)、新增 plugin 原始碼與測試
 
 ## 背景與目標
 
@@ -39,7 +39,7 @@ index.html
     │   ├─ 語言分頁籤(繁中 / EN / PT)
     │   ├─ 每語言區塊 ×3:h1*/簡介、各節說明、FAQ
     │   ├─ 共用區塊 ×1:輕軌車站表(三語並列)、巴士路線清單、渡輪航線
-    │   │   └─ 由 <!-- %SEO_TRANSIT_LISTS% --> 佔位符在 build 時注入
+    │   │   └─ 由 <!-- SEO:TRANSIT_LISTS --> 佔位符在 build 時注入
     │   └─ 關閉鈕
     ├─ 既有 noscript(不動)
     └─ inline <script>:面板開關 + 分頁切換(數十行 vanilla JS,不進 React bundle)
@@ -49,7 +49,7 @@ plugins/seo-content/
 ├─ index.ts         ← Vite plugin:讀 public/data/*.json → zod 驗證 → 替換佔位符
 └─ render.test.ts   ← vitest
 
-src/components/LineLegend.tsx
+src/components/MapView.tsx
 └─ 選單新增「關於 / About」項目 → window 事件或 getElementById toggle(耦合僅此)
 ```
 
@@ -75,7 +75,7 @@ src/components/LineLegend.tsx
 
 ### 3. 開啟入口與互動
 
-- index.html 的 inline script 定義 `window.miniMacauInfo = { open(), close() }`;`LineLegend` 漢堡選單新增「關於 / About」項目,點擊呼叫 `window.miniMacauInfo?.open()`(React 端耦合僅此一行 + 一個 `declare global` 型別)
+- index.html 的 inline script 定義 `window.miniMacauInfo = { open(), close() }`;`MapView` 漢堡選單新增「關於 / About」項目,點擊呼叫 `window.miniMacauInfo?.open()`(React 端耦合僅此一行 + 一個 `declare global` 型別)
 - 面板為全螢幕 overlay:`role="dialog"`、`aria-modal="true"`、`aria-labelledby` 指向標題;右上關閉鈕、Esc 關閉、點背景關閉
 - 面板內部可捲動(`overflow-y: auto`),不影響 `body` 的 `overflow: hidden` 模型
 - 樣式沿用現有視覺:深色底(`#0a0a0a` 系)、`mm-han`/`mm-mono` 字型 class、與既有面板一致的邊框/圓角;面板樣式寫在 `index.html` 內的 `<style>` 區塊,與靜態面板內聚(不進 `src/index.css`,確保無 JS/無 React 時面板仍完整可用)
@@ -84,15 +84,17 @@ src/components/LineLegend.tsx
 
 - `plugins/seo-content/index.ts` 匯出 Vite plugin,`transformIndexHtml` hook:
   1. 讀 `public/data/bus-routes.json`、`stations.json`、`lrt-lines.json`、`ferry-schedules.json`
-  2. 以 `src/dataSchemas.ts` 的對應 zod schema 驗證(重用 `parseData`)
+  2. 以 `src/dataSchemas.ts` 的對應 zod schema 以 `safeParse` 驗證(不重用 `parseData`:其失敗路徑讀 `import.meta.env.DEV`,在 node 環境執行會拋 TypeError)
   3. 以 `src/routeGroups.ts` 的 `getRouteGroup` / `GROUP_ORDER` 分組
-  4. 呼叫 `renderTransitLists(data)` 產生 HTML 字串,替換 `<!-- %SEO_TRANSIT_LISTS% -->`
+  4. 呼叫 `renderTransitLists(data)` 產生 HTML 字串,替換 `<!-- SEO:TRANSIT_LISTS -->`
 - `renderTransitLists` 為純函式,所有插值經 HTML escape
 - dev server 同樣生效(`transformIndexHtml` 於 dev 也會執行),開發所見即所得
 - 分組標題等 UI 字串由 plugin 自帶小型三語字典(不 import `i18n.tsx`,避免把 React/JSX 拉進 build 設定)
 - 資料 bot 每次 commit 已會觸發 deploy 重 build(見 `.github/workflows/deploy.yml`),清單自動與資料同步
 
 **錯誤處理**:資料缺檔或 zod 驗證失敗時,plugin 直接 throw 使 build 失敗(與現有「資料先驗證再上線」的 CI 哲學一致),不靜默產出空清單。
+
+註:佔位符不用 `%…%` 語法,避免 Vite 內建的 index.html env 變數替換(`%VAR%`)發出未定義警告。
 
 ### 5. 結構化資料
 
