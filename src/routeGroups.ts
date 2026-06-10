@@ -17,7 +17,7 @@ const CROSS_HARBOUR_ROUTES = new Set([
 
 export type GroupKey = 'peninsula' | 'crossHarbour' | 'taipaCotai' | 'night' | 'special'
 
-export function getRouteGroup(route: BusRoute): GroupKey {
+export function getRouteGroup(route: Pick<BusRoute, 'id'>): GroupKey {
   const id = route.id
   if (NIGHT_ROUTES.has(id)) return 'night'
   if (SPECIAL_ROUTES.has(id)) return 'special'
