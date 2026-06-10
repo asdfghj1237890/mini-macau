@@ -21,6 +21,12 @@ jobs:
         working-directory: data
         run: uv run python scripts/fetch_ferry_schedules.py
 
+      - name: Validate output before commit
+        working-directory: data
+        # Hard gate: a malformed scrape fails the run here, before the commit
+        # step, so broken data can never auto-deploy to production.
+        run: uv run python scripts/validate_output.py ferries
+
       - name: Check for changes
         id: diff
         run: |

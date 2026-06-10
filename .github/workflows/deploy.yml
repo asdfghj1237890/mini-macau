@@ -19,6 +19,14 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # Gate the deploy on the same checks as CI, so a direct push to master
+      # that fails lint/tests never reaches production.
+      - name: Lint
+        run: npm run lint
+      - name: Test
+        run: npm test
+
       - run: npm run build
 
       - name: Install Wrangler
