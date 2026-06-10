@@ -3,6 +3,7 @@ import { useI18n } from '../i18n'
 import type { Translations } from '../i18n'
 import { getScheduleType } from '../engines/simulationEngine'
 import { getScheduleDensity } from '../data/hourDensity'
+import { macauParts, macauWeekday, macauWallToInstant } from '../macauTime'
 
 interface Props {
   value: Date
@@ -65,43 +66,40 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
     }
   }, [onCancel, onApply, selected, anchorRef])
 
-  const hh = selected.getHours()
-  const mm = selected.getMinutes()
+  // All date/time fields the picker shows and edits are in Macau wall-clock
+  // time, so a user anywhere on Earth picks the same Macau moment.
+  const sel = macauParts(selected)
+  const hh = sel.hours
+  const mm = sel.minutes
   const schedType = getScheduleType(selected)
-  const schedDensity = getScheduleDensity(selected.getDay())
+  const schedDensity = getScheduleDensity(sel.weekday)
 
   const pickSchedule = useCallback((targetDow: number) => {
     setSelected(prev => {
-      const cur = prev.getDay()
-      const offset = ((targetDow - cur) + 7) % 7
-      const n = new Date(prev)
-      n.setDate(prev.getDate() + offset)
-      return n
+      const offset = ((targetDow - macauWeekday(prev)) + 7) % 7
+      // +offset Macau calendar days; Macau has no DST so a fixed 24h step
+      // advances the wall clock by exactly one day and preserves time-of-day.
+      return new Date(prev.getTime() + offset * 86400000)
     })
   }, [])
 
   const shiftDate = (days: number) => {
-    setSelected(prev => {
-      const n = new Date(prev)
-      n.setDate(prev.getDate() + days)
-      return n
-    })
+    setSelected(prev => new Date(prev.getTime() + days * 86400000))
   }
 
   const setToToday = () => {
     setSelected(prev => {
-      const now = new Date()
-      const n = new Date(prev)
-      n.setFullYear(now.getFullYear(), now.getMonth(), now.getDate())
-      return n
+      const p = macauParts(prev)
+      const today = macauParts(new Date())
+      // Keep the chosen Macau time-of-day, swap to today's Macau date.
+      return macauWallToInstant(today.year, today.month, today.day, p.hours, p.minutes, p.seconds, p.ms)
     })
   }
 
   const setHourMinute = (h: number, m: number) => {
     setSelected(prev => {
-      const n = new Date(prev)
-      n.setHours(h, m, 0, 0)
-      return n
+      const p = macauParts(prev)
+      return macauWallToInstant(p.year, p.month, p.day, h, m)
     })
   }
 
@@ -114,7 +112,8 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
     const zh = ['日', '一', '二', '三', '四', '五', '六']
     const en = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
     const pt = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
-    return lang === 'zh' ? `週${zh[d.getDay()]}` : lang === 'pt' ? pt[d.getDay()] : en[d.getDay()]
+    const wd = macauWeekday(d)
+    return lang === 'zh' ? `週${zh[wd]}` : lang === 'pt' ? pt[wd] : en[wd]
   }
 
   const schedLabel = t[`schedule${schedType === 'mon_thu' ? 'MonThu' : schedType === 'friday' ? 'Friday' : 'SatSun'}` as const]
@@ -152,7 +151,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
         <div className="flex items-end justify-between mb-1.5">
           <div className="mm-mono text-[9px] tracking-[0.25em] text-amber-300/60">◣ DATE · {t.dateCategoryLabel}</div>
           <div className="mm-mono mm-tabular text-[10px] text-amber-200">
-            {selected.getFullYear()}/{pad2(selected.getMonth() + 1)}/{pad2(selected.getDate())} · {weekdayShort(selected)}
+            {sel.year}/{pad2(sel.month + 1)}/{pad2(sel.day)} · {weekdayShort(selected)}
           </div>
         </div>
         <div className="flex items-stretch border border-white/10 rounded-sm overflow-hidden">

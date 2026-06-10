@@ -1,6 +1,7 @@
 import type { Station, TransitData, SimulationClock, ScheduleType } from '../types'
 import { useI18n, localName } from '../i18n'
 import { getScheduleType } from '../engines/simulationEngine'
+import { macauMinutesOfDay } from '../macauTime'
 
 interface Props {
   station: Station | null
@@ -84,9 +85,7 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
 
   if (!station) return null
 
-  const nowMinutes = clock.currentTime.getHours() * 60 +
-    clock.currentTime.getMinutes() +
-    clock.currentTime.getSeconds() / 60
+  const nowMinutes = macauMinutesOfDay(clock.currentTime)
 
   const scheduleType = getScheduleType(clock.currentTime)
   const arrivals = getNextArrivals(station.id, transitData, nowMinutes, scheduleType)

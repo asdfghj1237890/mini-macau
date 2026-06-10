@@ -119,9 +119,7 @@ export function LineLegend({
   const totalFerryCount = allTransitData?.ferries.length ?? ferryCount
 
   const isLrtOn = (id: string) => (lrtOn ? lrtOn.has(id) : true)
-  const isLive = clock
-    ? !clock.paused && clock.speed === 1 && Math.abs(clock.currentTime.getTime() - Date.now()) < 3000
-    : true
+  const isLive = clock ? clock.isLive : true
 
   return (
     <>

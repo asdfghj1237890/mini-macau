@@ -7,6 +7,7 @@ import { useSimulationClock } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
 import { getBusServiceBucket, getBusServiceWindow, getScheduleType } from './engines/simulationEngine'
+import { macauHours, macauMinutes, macauMinutesOfDay } from './macauTime'
 import { startEngagementTracker, ga } from './analytics/ga'
 import { getRouteGroup, type GroupKey } from './routeGroups'
 import type { VehiclePosition, Station, BusRoute } from './types'
@@ -31,7 +32,7 @@ const LS_KEY = 'mini-macau-visible-routes'
 const SERVICE_TAIL_MIN = 60
 
 function isRouteInService(route: BusRoute, date: Date): boolean {
-  const nowMin = date.getHours() * 60 + date.getMinutes()
+  const nowMin = macauMinutesOfDay(date)
   const window = getBusServiceWindow(route, getBusServiceBucket(date))
   if (!window) return false
   const startMin = window.start * 60
@@ -146,8 +147,8 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_FERRIES_KEY, ferriesOn ? '1' : '0') }, [ferriesOn])
   useEffect(() => { localStorage.setItem(LS_LRT_KEY, JSON.stringify([...lrtOn])) }, [lrtOn])
 
-  const currentHour = clock.currentTime.getHours()
-  const currentMinute = clock.currentTime.getMinutes()
+  const currentHour = macauHours(clock.currentTime)
+  const currentMinute = macauMinutes(clock.currentTime)
 
   const inactiveRoutes = serviceStatus.inactive
 

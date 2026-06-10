@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Flight } from '../types'
-import { buildFlightIndex, ymdMacau, ymdLocal, weekdayOf } from './useTransitData'
+import { buildFlightIndex, ymdMacau, weekdayOf } from './useTransitData'
 
 const fl = (id: string, opts: Partial<Flight> = {}): Flight => ({
   id,
@@ -26,30 +26,6 @@ describe('ymdMacau', () => {
     // labelled 5/7. ymdMacau must align with the upstream contract.
     const d = new Date(Date.UTC(2026, 4, 6, 23, 30))
     expect(ymdMacau(d)).toBe('2026-05-07')
-  })
-})
-
-describe('ymdLocal', () => {
-  it('formats local-tz Date components as YYYY-MM-DD', () => {
-    // Local-tz constructor: getDate() returns the components we passed in.
-    expect(ymdLocal(new Date(2026, 0, 5))).toBe('2026-01-05')
-    expect(ymdLocal(new Date(2026, 11, 31))).toBe('2026-12-31')
-  })
-
-  it('returns whatever calendar date the viewer sees, not Macau date', () => {
-    // Same instant the ymdMacau test uses (2026-05-06 23:30 UTC = Macau 5/7),
-    // but ymdLocal MUST return the viewer's local calendar date so the
-    // resolver stays in sync with picker / bus / LRT / getDay() callers.
-    // We can't assert a specific viewer-local string (depends on test
-    // host timezone), but we CAN assert ymdLocal != ymdMacau when the
-    // host is non-Macau.
-    const d = new Date(Date.UTC(2026, 4, 6, 23, 30))
-    const local = ymdLocal(d)
-    const macau = ymdMacau(d)
-    // On a Macau host, both will be '2026-05-07' (after the formatter
-    // converts) — only assert they're both well-formed.
-    expect(local).toMatch(/^\d{4}-\d{2}-\d{2}$/)
-    expect(macau).toBe('2026-05-07')
   })
 })
 

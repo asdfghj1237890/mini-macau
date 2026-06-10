@@ -1,13 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
+import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
+import type { z } from 'zod'
+import {
+  parseData,
+  LRTLinesSchema,
+  StationsSchema,
+  TripsSchema,
+  BusRoutesSchema,
+  BusStopsSchema,
+  FlightsSchema,
+  FerryScheduleFileSchema,
+} from '../dataSchemas'
 
 const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
 
-async function loadJson<T>(path: string): Promise<T> {
+// Fetch + schema-validate a static data file. A non-2xx response throws (so a
+// 404 doesn't get parsed as an HTML error page), and the JSON is run through
+// its zod schema (`parseData` throws in dev, logs in prod) before use.
+async function loadJson<T>(path: string, schema: z.ZodType, label: string): Promise<T> {
   const res = await fetch(path)
-  return res.json() as Promise<T>
+  if (!res.ok) throw new Error(`fetch ${path} → HTTP ${res.status}`)
+  const raw = await res.json()
+  return parseData<T>(schema, raw, label)
 }
 
 interface FerryScheduleTime {
@@ -140,29 +157,16 @@ export interface UseTransitDataResult extends TransitData {
   getFlightsForDate: (d: Date) => Flight[]
 }
 
-// Two date helpers, used in two distinct contexts:
+// `ymdMacau(d)` formats an instant as a YYYY-MM-DD calendar date in **Macau
+// time** (UTC+8). Used both to seed `today` inside `buildFlightIndex` and to
+// resolve picker-selected dates in `getFlightsForDate`. The realtime file's
+// authoritative `date` field is written by `fetch_flights.py` in Macau-local
+// time, and the whole simulation reads wall-clock fields in Macau (see
+// `macauTime.ts`), so a Macau-aligned key keeps every overlay on the same
+// calendar day for every viewer regardless of their browser timezone.
 //
-// 1. `ymdMacau(d)` — formats `d` (an instant) as a YYYY-MM-DD calendar
-//    date in **Macau time** (UTC+8). Used to seed `today` inside
-//    `buildFlightIndex`: the realtime file's authoritative `date`
-//    field is written by `fetch_flights.py` in Macau-local time, and
-//    the legacy-file fallback path needs a Macau-aligned key to
-//    match.
-//
-// 2. `ymdLocal(d)` — formats `d` using the **viewer's local**
-//    components (`getFullYear` / `getMonth` / `getDate`). Used by
-//    `getFlightsForDate` to look flights up for a picker-selected
-//    date. The DateTimePicker preserves the user's local Y/M/D when
-//    they pick a date, and the rest of the simulation (buses, LRT,
-//    schedule type via `getDay()`, hour/minute display) reads
-//    `clock.currentTime` via the same local getters. Using a Macau
-//    formatter for the lookup would put flight rendering on a
-//    different calendar day than every other overlay around timezone
-//    boundaries — see Codex review on
-//    `useTransitData.ts:397`.
-//
-// `en-CA` locale is used purely because it produces `YYYY-MM-DD`
-// natively, matching the upstream `date` field shape.
+// `en-CA` locale is used purely because it produces `YYYY-MM-DD` natively,
+// matching the upstream `date` field shape.
 const MACAU_YMD_FMT = new Intl.DateTimeFormat('en-CA', {
   timeZone: 'Asia/Macau',
   year: 'numeric',
@@ -172,13 +176,6 @@ const MACAU_YMD_FMT = new Intl.DateTimeFormat('en-CA', {
 
 export function ymdMacau(d: Date): string {
   return MACAU_YMD_FMT.format(d)
-}
-
-export function ymdLocal(d: Date): string {
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
 }
 
 // Weekday (0=Sun..6=Sat) of a YYYY-MM-DD calendar date. Constructed
@@ -307,7 +304,7 @@ export function useTransitData(): UseTransitDataResult {
   const ensureScheduleTypeLoaded = useCallback((stype: ScheduleType) => {
     if (loadedRef.current.has(stype) || inFlightRef.current.has(stype)) return
     inFlightRef.current.add(stype)
-    loadJson<Trip[]>(`/data/trips-${stype}.json`)
+    loadJson<Trip[]>(`/data/trips-${stype}.json`, TripsSchema, `trips-${stype}.json`)
       .then(newTrips => {
         if (cancelledRef.current) return
         loadedRef.current.add(stype)
@@ -343,7 +340,7 @@ export function useTransitData(): UseTransitDataResult {
     // type's trips are already in memory.
     const primary = getScheduleType(new Date())
     inFlightRef.current.add(primary)
-    const primaryTripsPromise = loadJson<Trip[]>(`/data/trips-${primary}.json`)
+    const primaryTripsPromise = loadJson<Trip[]>(`/data/trips-${primary}.json`, TripsSchema, `trips-${primary}.json`)
       .then(v => {
         if (cancelledRef.current) return
         loadedRef.current.add(primary)
@@ -359,11 +356,11 @@ export function useTransitData(): UseTransitDataResult {
     // Flights + ferries are non-critical overlays, so they load independently
     // and do not block the first render of vehicles on the map.
     Promise.all([
-      loadJson<LRTLine[]>('/data/lrt-lines.json').then(v => commit('lrtLines', v)),
-      loadJson<Station[]>('/data/stations.json').then(v => commit('stations', v)),
+      loadJson<LRTLine[]>('/data/lrt-lines.json', LRTLinesSchema, 'lrt-lines.json').then(v => commit('lrtLines', v)),
+      loadJson<Station[]>('/data/stations.json', StationsSchema, 'stations.json').then(v => commit('stations', v)),
       primaryTripsPromise,
-      loadJson<BusRoute[]>('/data/bus-routes.json').then(v => commit('busRoutes', v)).catch(() => commit('busRoutes', [])),
-      loadJson<BusStop[]>('/data/bus-stops.json').then(v => commit('busStops', v)).catch(() => commit('busStops', [])),
+      loadJson<BusRoute[]>('/data/bus-routes.json', BusRoutesSchema, 'bus-routes.json').then(v => commit('busRoutes', v)).catch(() => commit('busRoutes', [])),
+      loadJson<BusStop[]>('/data/bus-stops.json', BusStopsSchema, 'bus-stops.json').then(v => commit('busStops', v)).catch(() => commit('busStops', [])),
     ]).then(() => {
       if (cancelledRef.current) return
       setData(prev => (prev.loading ? { ...prev, loading: false } : prev))
@@ -378,7 +375,7 @@ export function useTransitData(): UseTransitDataResult {
       if (!cancelledRef.current) setData(prev => ({ ...prev, loading: false }))
     })
 
-    loadJson<Flight[]>('/data/flights.json')
+    loadJson<Flight[]>('/data/flights.json', FlightsSchema, 'flights.json')
       .then(v => commit('flights', v))
       .catch(() => {})
 
@@ -386,14 +383,14 @@ export function useTransitData(): UseTransitDataResult {
     // (`update-flights-timetable`) and may legitimately not exist on
     // first deployment — swallow 404s/parse errors and let the resolver
     // fall back to today's realtime schedule.
-    loadJson<Flight[]>('/data/flights-timetable.json')
+    loadJson<Flight[]>('/data/flights-timetable.json', FlightsSchema, 'flights-timetable.json')
       .then(v => {
         if (cancelledRef.current) return
         setFlightsTimetable(v)
       })
       .catch(() => {})
 
-    loadJson<FerryScheduleFile>('/data/ferry-schedules.json')
+    loadJson<FerryScheduleFile>('/data/ferry-schedules.json', FerryScheduleFileSchema, 'ferry-schedules.json')
       .then(file => commit('ferries', flattenFerrySchedules(file)))
       .catch(() => {})
 
@@ -409,20 +406,16 @@ export function useTransitData(): UseTransitDataResult {
 
   const getFlightsForDate = useCallback(
     (d: Date): Flight[] => {
-      // Look up by the picker's LOCAL calendar Y/M/D (and weekday) so
-      // flight rendering stays on the same calendar day as the rest of
-      // the simulation — buses/LRT/UI all read `clock.currentTime` via
-      // local getters, and DateTimePicker preserves the user's local
-      // Y/M/D. For UTC+0..UTC+12 viewers selecting a calendar date,
-      // local Y/M/D matches the Macau-keyed bucket. The realtime file
-      // is still bucketed under its claimed Macau date inside
-      // `buildFlightIndex`; for non-UTC+8 viewers near midnight that
-      // bucket may not match the picker's local date, in which case
-      // the weekday fallback covers it.
-      const ymd = ymdLocal(d)
+      // Look up by the Macau calendar Y/M/D (and Macau weekday) of the
+      // instant. The whole simulation now reads wall-clock fields in Macau
+      // time (buses/LRT via the engine, the clock display, the picker), and
+      // the upstream `date` field is Macau-local, so a Macau-keyed lookup
+      // keeps flights on the same calendar day as every other overlay for
+      // every viewer regardless of their browser timezone.
+      const ymd = ymdMacau(d)
       const exact = flightIndex.byDate.get(ymd)
       if (exact) return exact
-      const wd = flightIndex.byWeekday.get(d.getDay())
+      const wd = flightIndex.byWeekday.get(macauWeekday(d))
       if (wd) return wd
       return flightIndex.fallback
     },

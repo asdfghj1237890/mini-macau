@@ -31,7 +31,7 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
   const statusLabel = isDeparture
     ? (vehicle.flightPhase === 'apron' ? t.flightAwaitingTakeoff : t.flightDeparting)
     : t.flightArriving
-  const isLive = !clock.paused && clock.speed === 1 && Math.abs(clock.currentTime.getTime() - Date.now()) < 3000
+  const isLive = clock.isLive
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
