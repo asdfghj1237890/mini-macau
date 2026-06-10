@@ -54,7 +54,12 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Deploy to Cloudflare Pages
-        run: wrangler pages deploy dist/ --project-name=mini-map-macau --commit-dirty=true
+        # --branch=master is required: checkout at a bare sha leaves a
+        # detached HEAD, wrangler then reports the branch as "head" and
+        # Cloudflare files the deploy as a PREVIEW (head.*.pages.dev)
+        # instead of production. Pinning the branch makes every run a
+        # production deployment regardless of checkout state.
+        run: wrangler pages deploy dist/ --project-name=mini-map-macau --branch=master --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
