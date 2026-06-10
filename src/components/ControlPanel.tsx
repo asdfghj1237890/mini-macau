@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SimulationClock } from '../types'
 import { useI18n } from '../i18n'
 import { getScheduleDensity } from '../data/hourDensity'
+import { macauParts, macauWeekday, macauWallToInstant } from '../macauTime'
 
 interface Props {
   clock: SimulationClock
@@ -205,8 +206,9 @@ export function ControlPanel({ clock }: Props) {
   }, [expanded])
 
   const now = clock.currentTime
-  const nowFrac = (now.getHours() * 60 + now.getMinutes()) / (24 * 60)
-  const nowLabel = `${pad2(now.getHours())}:${pad2(now.getMinutes())}`
+  const nowParts = macauParts(now)
+  const nowFrac = (nowParts.hours * 60 + nowParts.minutes) / (24 * 60)
+  const nowLabel = `${pad2(nowParts.hours)}:${pad2(nowParts.minutes)}`
   const hoverHH = hoverFrac != null ? Math.floor(hoverFrac * 24) : null
   const hoverMM = hoverFrac != null ? Math.floor((hoverFrac * 24 * 60) % 60) : null
   const hoverLabel =
@@ -217,8 +219,11 @@ export function ControlPanel({ clock }: Props) {
   const scrubTo = useCallback((frac: number) => {
     const f = Math.max(0, Math.min(1, frac))
     const totalMin = Math.floor(f * 24 * 60)
-    const d = new Date(clock.currentTime)
-    d.setHours(Math.floor(totalMin / 60), totalMin % 60, 0, 0)
+    // The timeline rail spans one Macau day; rebuild the instant from the
+    // selected day's Macau midnight + scrubbed minutes so the scrub means the
+    // same wall-clock time for every viewer.
+    const p = macauParts(clock.currentTime)
+    const d = macauWallToInstant(p.year, p.month, p.day, Math.floor(totalMin / 60), totalMin % 60)
     clock.setTime(d)
   }, [clock])
 
@@ -255,11 +260,11 @@ export function ControlPanel({ clock }: Props) {
     if (f != null) scrubTo(f)
   }, [fracFromRef, scrubTo])
 
-  const sched = getScheduleDensity(now.getDay())
+  const sched = getScheduleDensity(macauWeekday(now))
 
   const isPaused = clock.paused
   const speed = clock.speed
-  const isLive = !isPaused && speed === 1 && Math.abs(now.getTime() - Date.now()) < 3000
+  const isLive = clock.isLive
   const rtActive = useRtActive()
 
   useEffect(() => {

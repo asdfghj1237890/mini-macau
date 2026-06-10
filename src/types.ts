@@ -159,6 +159,10 @@ export interface SimulationClock {
   timeRef: React.RefObject<Date>
   speed: number
   paused: boolean
+  // True when the sim is locked to real wall time (not paused, 1× speed, and
+  // within 3 s of now). Computed in the clock tick so consumers don't each
+  // call Date.now() during render. Drives the "LIVE" badges.
+  isLive: boolean
   setSpeed: (s: number) => void
   togglePause: () => void
   // Re-lock the sim to wall time: sim = Date.now(), speed = 1, not paused.

@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import type { SimulationClock } from '../types'
 import { useI18n } from '../i18n'
 import { getScheduleType } from '../engines/simulationEngine'
+import { macauParts } from '../macauTime'
 import { DateTimePicker } from './DateTimePicker'
 
 interface Props {
@@ -28,23 +29,24 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
   const phoneRef = useRef<HTMLButtonElement>(null)
   const deskRef = useRef<HTMLButtonElement>(null)
   const time = clock.currentTime
+  const parts = macauParts(time)
 
-  const yr = time.getFullYear()
-  const mo = time.getMonth() + 1
-  const d = time.getDate()
+  const yr = parts.year
+  const mo = parts.month + 1
+  const d = parts.day
   const dow = lang === 'zh'
-    ? `${ZH_WEEKDAY_PREFIX}${WEEKDAY_ZH[time.getDay()]}`
+    ? `${ZH_WEEKDAY_PREFIX}${WEEKDAY_ZH[parts.weekday]}`
     : lang === 'pt'
-      ? WEEKDAY_PT[time.getDay()]
-      : WEEKDAY_EN[time.getDay()]
-  const dowShort = lang === 'zh' ? WEEKDAY_ZH[time.getDay()] : dow
+      ? WEEKDAY_PT[parts.weekday]
+      : WEEKDAY_EN[parts.weekday]
+  const dowShort = lang === 'zh' ? WEEKDAY_ZH[parts.weekday] : dow
 
-  const h = pad2(time.getHours())
-  const m = pad2(time.getMinutes())
-  const s = pad2(time.getSeconds())
+  const h = pad2(parts.hours)
+  const m = pad2(parts.minutes)
+  const s = pad2(parts.seconds)
   const sched = SCHEDULE_EN[getScheduleType(time)]
   const schedLabel = t[`schedule${getScheduleType(time) === 'mon_thu' ? 'MonThu' : getScheduleType(time) === 'friday' ? 'Friday' : 'SatSun'}` as const]
-  const isLive = !clock.paused && clock.speed === 1 && Math.abs(time.getTime() - Date.now()) < 3000
+  const isLive = clock.isLive
   const vehUnit = t.vehicleUnit
 
   const handleApply = useCallback((newDate: Date) => {
@@ -72,10 +74,10 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
           </span>
           <span className="mm-mono text-[7px] leading-none tracking-[0.2em] text-white/40 mt-[2px]">
             {lang === 'zh'
-              ? WEEKDAY_ZH[time.getDay()]
+              ? WEEKDAY_ZH[parts.weekday]
               : lang === 'pt'
-                ? WEEKDAY_PT[time.getDay()]
-                : WEEKDAY_EN[time.getDay()]}
+                ? WEEKDAY_PT[parts.weekday]
+                : WEEKDAY_EN[parts.weekday]}
           </span>
         </div>
         <div className="flex items-center gap-[2px] px-2 bg-gradient-to-b from-[#131314] to-[#0a0a0b]">

@@ -22,23 +22,38 @@ const UI_UPDATE_INTERVAL = 100
 //   running → baseSim + (Date.now() - baseWall) * speed
 //
 // "Live" (sim == wall time) iff !paused && speed === 1 && baseSim === baseWall.
+// Whether sim time is locked to real wall time: not paused, 1× speed, and
+// within 3 s of now. Centralized so consumers read `clock.isLive` instead of
+// each recomputing it from Date.now() during render (which the React-purity
+// lint flags, and which duplicated the threshold across five components).
+function computeLive(simMs: number, paused: boolean, speed: number): boolean {
+  return !paused && speed === 1 && Math.abs(simMs - Date.now()) < 3000
+}
+
 export function useSimulationClock(): SimulationClock {
-  const baseWallRef = useRef(Date.now())
-  const baseSimRef = useRef(Date.now())
+  // Lazy initializer (called once) keeps the impure Date.now() out of the
+  // render phase while still typing the refs as plain numbers.
+  const [initialNow] = useState(() => Date.now())
+  const baseWallRef = useRef(initialNow)
+  const baseSimRef = useRef(initialNow)
   const [speed, setSpeedState] = useState(1)
   const [paused, setPaused] = useState(false)
   const [displayTime, setDisplayTime] = useState(() => new Date())
+  const [isLive, setIsLive] = useState(() => computeLive(initialNow, false, 1))
   const timeRef = useRef(new Date())
 
   // Snapshot current sim into baseSim and peg baseWall to Date.now().
   // Callers MUST do this before mutating speed/paused so the perceived sim
   // time stays continuous across the transition. Reads the current `paused`
-  // and `speed` via refs so it can be called from event handlers that were
-  // bound before the latest React state update flushed.
+  // and `speed` via refs so it can be called from event handlers and the RAF
+  // loop that were bound before the latest React state update flushed. The
+  // refs are mirrored in effects (not during render) so they update right
+  // after commit — by which point any event handler or RAF tick reads the
+  // fresh value.
   const pausedRef = useRef(paused)
   const speedRef = useRef(speed)
-  pausedRef.current = paused
-  speedRef.current = speed
+  useEffect(() => { pausedRef.current = paused }, [paused])
+  useEffect(() => { speedRef.current = speed }, [speed])
 
   const rebase = useCallback(() => {
     const simNow = pausedRef.current
@@ -62,6 +77,7 @@ export function useSimulationClock(): SimulationClock {
       timeRef.current = t
       if (now - lastUIUpdate >= UI_UPDATE_INTERVAL) {
         setDisplayTime(t)
+        setIsLive(computeLive(simMs, pausedRef.current, speedRef.current))
         lastUIUpdate = now
       }
       raf = requestAnimationFrame(tick)
@@ -84,6 +100,7 @@ export function useSimulationClock(): SimulationClock {
       const t = new Date(simMs)
       timeRef.current = t
       setDisplayTime(t)
+      setIsLive(computeLive(simMs, pausedRef.current, speedRef.current))
     }
     const iv = setInterval(pump, UI_UPDATE_INTERVAL)
     const onVis = () => { if (document.visibilityState === 'visible') pump() }
@@ -130,5 +147,5 @@ export function useSimulationClock(): SimulationClock {
     ga.timeJumped((date.getTime() - prev) / 3_600_000)
   }, [])
 
-  return { currentTime: displayTime, timeRef, speed, paused, setSpeed, togglePause, syncToNow, setTime }
+  return { currentTime: displayTime, timeRef, speed, paused, isLive, setSpeed, togglePause, syncToNow, setTime }
 }

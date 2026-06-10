@@ -9,12 +9,21 @@ import {
   computeBusDirSec,
   type BusSchedule,
 } from '../engines/simulationEngine'
+import { macauMinutesOfDay, macauWeekday } from '../macauTime'
 
 interface Props {
   vehicle: VehiclePosition | null
   transitData: TransitData
   clock: SimulationClock
   onClose: () => void
+}
+
+// Inner props guarantee a non-null vehicle. The exported wrapper does the
+// null check so every hook below runs unconditionally (React Rules of Hooks):
+// the panel previously called useRef/useEffect/useMemo *after* an early
+// `return null`, which is a latent crash if the selection toggles null↔set.
+interface InnerProps extends Omit<Props, 'vehicle'> {
+  vehicle: VehiclePosition
 }
 
 function formatMinutes(totalMinutes: number): string {
@@ -103,7 +112,7 @@ interface RowData {
   isLast: boolean
 }
 
-export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props) {
+function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerProps) {
   const { lang, t } = useI18n()
 
   const trip: Trip | undefined = useMemo(() => {
@@ -123,11 +132,9 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     return new Map(transitData.busStops.map(s => [s.id, s]))
   }, [transitData.busStops])
 
-  const nowMinutesForETA = clock.currentTime.getHours() * 60
-    + clock.currentTime.getMinutes()
-    + clock.currentTime.getSeconds() / 60
+  const nowMinutesForETA = macauMinutesOfDay(clock.currentTime)
 
-  const isSunBucket = clock.currentTime.getDay() === 0
+  const isSunBucket = macauWeekday(clock.currentTime) === 0
 
   const busCtx = useMemo(() => {
     if (!vehicle || vehicle.type !== 'bus') return null
@@ -147,8 +154,6 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicle?.id, busCtx, busStopMap, nowMinutesForETA, isSunBucket])
 
-  if (!vehicle) return null
-
   const line = vehicle.type === 'lrt'
     ? transitData.lrtLines.find(l => l.id === vehicle.lineId)
     : null
@@ -162,9 +167,7 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
     : route
       ? route.name
       : vehicle.lineId
-  const nowMinutes = clock.currentTime.getHours() * 60
-    + clock.currentTime.getMinutes()
-    + clock.currentTime.getSeconds() / 60
+  const nowMinutes = macauMinutesOfDay(clock.currentTime)
 
   // Build unified rows
   const rows: RowData[] = []
@@ -478,4 +481,10 @@ export function VehicleInfoPanel({ vehicle, transitData, clock, onClose }: Props
       </div>
     </div>
   )
+}
+
+export function VehicleInfoPanel(props: Props) {
+  // Thin wrapper: bail before any hook runs when there's no selection.
+  if (!props.vehicle) return null
+  return <VehicleInfoPanelInner {...props} vehicle={props.vehicle} />
 }

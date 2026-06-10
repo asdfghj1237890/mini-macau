@@ -3,9 +3,10 @@ import type { Feature, LineString } from 'geojson'
 import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute, BusStop, Flight, Ferry, ScheduleType } from '../types'
 import { FERRY_BERTHS_BY_TERMINAL, FERRY_COLOR_BY_OPERATOR } from './ferryBerths'
 import { FERRY_ROUTES, interpolatePath, pathLengthMeters } from './ferryRoutes'
+import { macauWeekday, macauMinutesOfDay } from '../macauTime'
 
 function getScheduleType(date: Date): ScheduleType {
-  const day = date.getDay()
+  const day = macauWeekday(date)
   if (day === 5) return 'friday'
   if (day === 0 || day === 6) return 'sat_sun'
   return 'mon_thu'
@@ -21,7 +22,7 @@ export interface BusServiceWindow {
 export type BusServiceBucket = 'weekday' | 'sat' | 'sun'
 
 export function getBusServiceBucket(date: Date): BusServiceBucket {
-  const day = date.getDay()
+  const day = macauWeekday(date)
   if (day === 0) return 'sun'
   if (day === 6) return 'sat'
   return 'weekday'
@@ -61,7 +62,7 @@ export function getBusServiceWindow(
 }
 
 function timeToMinutes(date: Date): number {
-  return date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60 + date.getMilliseconds() / 60000
+  return macauMinutesOfDay(date)
 }
 
 // Per-polyline precomputation for fast progress → (position, bearing) lookup.

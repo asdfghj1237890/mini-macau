@@ -16,6 +16,7 @@ import {
   interpolateOnLine,
 } from '../engines/simulationEngine'
 import length from '@turf/length'
+import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay } from '../macauTime'
 import { useI18n } from '../i18n'
 import type { BusTracker, RouteRealtimePoller, TrackedBusState } from '../services/realtimeClient'
 import { ga } from '../analytics/ga'
@@ -101,7 +102,7 @@ function getLRTLineWindow(
 const BUS_SERVICE_TAIL_MIN = 60
 
 function isBusInService(route: BusRoute, date: Date): boolean {
-  const nowMin = date.getHours() * 60 + date.getMinutes()
+  const nowMin = macauMinutesOfDay(date)
   const window = getBusServiceWindow(route, getBusServiceBucket(date))
   if (!window) return false
   const startMin = window.start * 60
@@ -375,7 +376,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // Kick the reconciler on clock-pause and on every sim-minute flip.
   // Service windows change on minute boundaries, so a single re-evaluation
   // per minute is enough.
-  const simMinuteKey = `${clock.currentTime.getDay()}-${clock.currentTime.getHours()}-${clock.currentTime.getMinutes()}`
+  const simMinuteKey = `${macauWeekday(clock.currentTime)}-${macauHours(clock.currentTime)}-${macauMinutes(clock.currentTime)}`
   useEffect(() => {
     if (!RT_BUILD) return
     reconcilePollersRef.current()
@@ -1092,11 +1093,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         }
 
         const simTime = clock.timeRef.current
-        const simMinuteKey = `${simTime.getDay()}-${simTime.getHours()}-${simTime.getMinutes()}`
+        const simMinuteKey = `${macauWeekday(simTime)}-${macauHours(simTime)}-${macauMinutes(simTime)}`
         if (simMinuteKey !== lastServiceMinuteRef.current) {
           lastServiceMinuteRef.current = simMinuteKey
           const schedule = getScheduleType(simTime)
-          const nowMinutes = simTime.getHours() * 60 + simTime.getMinutes()
+          const nowMinutes = macauHours(simTime) * 60 + macauMinutes(simTime)
 
           const cache = lrtWindowCacheRef.current
           if (cache.td !== td || cache.schedule !== schedule) {
