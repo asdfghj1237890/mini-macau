@@ -1,0 +1,48 @@
+name: CI
+
+# Quality gate. Runs on every PR and on direct pushes to master so a broken
+# lint, type error, failing test, or malformed data file is caught before it
+# can be merged or deployed. Wire these jobs into the branch-protection
+# "required status checks" to enforce "must pass to merge".
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Test
+        run: npm test
+
+      # `npm run build` is `tsc -b && vite build`, so this also typechecks.
+      - name: Typecheck & build
+        run: npm run build
+
+  data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # validate_output.py is pure stdlib, so a bare Python is enough — no need
+      # to install the scraper dependencies.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Validate committed data files
+        working-directory: data
+        run: python scripts/validate_output.py all
