@@ -144,11 +144,11 @@
          Tailwind: the transit lists are injected at build time and Tailwind
          only generates classes it can see in source files. */
       #site-info-backdrop {
-        position: fixed; inset: 0; z-index: 80;
+        position: fixed; inset: 0; z-index: 100;
         background: rgba(0, 0, 0, 0.65);
       }
       #site-info {
-        position: fixed; z-index: 81;
+        position: fixed; z-index: 101;
         top: 50%; left: 50%; transform: translate(-50%, -50%);
         width: min(720px, calc(100vw - 24px));
         height: min(85dvh, 900px);
@@ -172,7 +172,7 @@
         background: rgba(255, 255, 255, 0.02); color: rgba(255, 255, 255, 0.5);
         border: 1px solid rgba(255, 255, 255, 0.12);
       }
-      .si-tab[aria-selected="true"] {
+      .si-tab[aria-pressed="true"] {
         background: rgba(252, 196, 65, 0.1); color: #fde68a;
         border-color: rgba(252, 196, 65, 0.5);
       }
@@ -182,7 +182,7 @@
         border: 1px solid rgba(255, 255, 255, 0.15); font-size: 13px;
       }
       .si-close:hover { color: #fde68a; border-color: rgba(252, 196, 65, 0.5); }
-      .si-scroll { overflow-y: auto; padding: 14px 16px 28px; }
+      .si-scroll { overflow-y: auto; padding: 14px 16px 28px; overscroll-behavior: contain; }
       #site-info h1 { font-size: 18px; line-height: 1.4; color: #fde68a; margin: 0 0 10px; }
       #site-info h2 {
         font-size: 14px; color: #fcd34d; margin: 22px 0 8px;
@@ -215,10 +215,10 @@
     <div id="site-info-backdrop" hidden></div>
     <aside id="site-info" hidden data-lang="zh" role="dialog" aria-modal="true" aria-labelledby="si-title">
       <header class="si-head">
-        <div class="si-tabs" role="tablist" aria-label="language">
-          <button type="button" class="si-tab" data-lang-tab="zh" aria-selected="true">繁中</button>
-          <button type="button" class="si-tab" data-lang-tab="en" aria-selected="false">EN</button>
-          <button type="button" class="si-tab" data-lang-tab="pt" aria-selected="false">PT</button>
+        <div class="si-tabs">
+          <button type="button" class="si-tab" data-lang-tab="zh" aria-pressed="true">繁中</button>
+          <button type="button" class="si-tab" data-lang-tab="en" aria-pressed="false">EN</button>
+          <button type="button" class="si-tab" data-lang-tab="pt" aria-pressed="false">PT</button>
         </div>
         <button type="button" id="site-info-close" class="si-close" aria-label="close">✕</button>
       </header>
@@ -331,14 +331,16 @@
           panel.setAttribute('data-lang', l);
           var tabs = panel.querySelectorAll('.si-tab');
           for (var i = 0; i < tabs.length; i++) {
-            tabs[i].setAttribute('aria-selected',
+            tabs[i].setAttribute('aria-pressed',
               tabs[i].getAttribute('data-lang-tab') === l ? 'true' : 'false');
           }
         }
+        var lastFocus = null;
         function open() {
           var saved = null;
           try { saved = localStorage.getItem('mm_lang'); } catch (e) { /* private mode */ }
           setLang(saved === 'en' || saved === 'pt' ? saved : 'zh');
+          lastFocus = document.activeElement;
           panel.hidden = false;
           backdrop.hidden = false;
           closeBtn.focus();
@@ -346,6 +348,8 @@
         function close() {
           panel.hidden = true;
           backdrop.hidden = true;
+          if (lastFocus && typeof lastFocus.focus === 'function') lastFocus.focus();
+          lastFocus = null;
         }
 
         panel.addEventListener('click', function (e) {
