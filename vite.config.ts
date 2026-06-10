@@ -1,6 +1,7 @@
 import { defineConfig, type PluginOption, type ViteDevServer } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { seoContentPlugin } from './plugins/seo-content'
 
 // Dev-time /api/dsat/batch that mirrors what the OpenResty prod config
 // does with ngx.location.capture_multi: fan out to per-route DSAT calls
@@ -51,7 +52,7 @@ const dsatBatchDevPlugin = (): PluginOption => ({
 })
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), dsatBatchDevPlugin()],
+  plugins: [react(), tailwindcss(), dsatBatchDevPlugin(), seoContentPlugin()],
   server: {
     proxy: {
       '/api/dsat': {
