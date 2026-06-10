@@ -182,6 +182,18 @@ def run() -> int:
         "errors": errors,
     }
 
+    # Degenerate-scrape guard: if more than half the routes failed to fetch,
+    # the upstream DSAT layout almost certainly changed. Refuse to write or
+    # ship a near-empty status file — exit non-zero so the workflow skips the
+    # commit and the problem surfaces instead of silently marking routes wrong.
+    if len(errors) > len(route_list) * 0.5:
+        print(
+            f"ERROR: {len(errors)}/{len(route_list)} routes errored — "
+            f"upstream likely broken, refusing to write {OUTPUT_PATH.name}",
+            file=sys.stderr,
+        )
+        return 1
+
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
