@@ -139,10 +139,175 @@
         }
       })();
     </script>
+    <style>
+      /* Site info panel — self-contained styles (si-*). Deliberately not
+         Tailwind: the transit lists are injected at build time and Tailwind
+         only generates classes it can see in source files. */
+      #site-info-backdrop {
+        position: fixed; inset: 0; z-index: 80;
+        background: rgba(0, 0, 0, 0.65);
+      }
+      #site-info {
+        position: fixed; z-index: 81;
+        top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: min(720px, calc(100vw - 24px));
+        height: min(85dvh, 900px);
+        background: #0b0b0d; color: #eaeaea;
+        border: 1px solid rgba(252, 196, 65, 0.25);
+        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8);
+        display: flex; flex-direction: column;
+        font-family: 'Noto Sans HK', 'Noto Sans TC', -apple-system, sans-serif;
+      }
+      #site-info[hidden], #site-info-backdrop[hidden] { display: none; }
+      .si-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 12px; border-bottom: 1px solid rgba(252, 196, 65, 0.2);
+        flex-shrink: 0;
+      }
+      .si-tabs { display: flex; gap: 6px; }
+      .si-tab {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 11px; letter-spacing: 0.12em;
+        padding: 5px 12px; cursor: pointer;
+        background: rgba(255, 255, 255, 0.02); color: rgba(255, 255, 255, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .si-tab[aria-selected="true"] {
+        background: rgba(252, 196, 65, 0.1); color: #fde68a;
+        border-color: rgba(252, 196, 65, 0.5);
+      }
+      .si-close {
+        width: 30px; height: 30px; cursor: pointer;
+        background: transparent; color: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.15); font-size: 13px;
+      }
+      .si-close:hover { color: #fde68a; border-color: rgba(252, 196, 65, 0.5); }
+      .si-scroll { overflow-y: auto; padding: 14px 16px 28px; }
+      #site-info h1 { font-size: 18px; line-height: 1.4; color: #fde68a; margin: 0 0 10px; }
+      #site-info h2 {
+        font-size: 14px; color: #fcd34d; margin: 22px 0 8px;
+        padding-bottom: 4px; border-bottom: 1px solid rgba(252, 196, 65, 0.15);
+      }
+      #site-info h3 { font-size: 12.5px; color: rgba(255, 255, 255, 0.85); margin: 14px 0 6px; }
+      #site-info p, #site-info dd { font-size: 12.5px; line-height: 1.7; color: rgba(255, 255, 255, 0.7); margin: 0 0 8px; }
+      #site-info dt { font-size: 12.5px; font-weight: 700; color: rgba(255, 255, 255, 0.9); margin: 12px 0 2px; }
+      #site-info dl { margin: 0; }
+      #site-info a { color: #fcd34d; }
+      .si-stations, .si-routes, .si-ferries {
+        margin: 0 0 6px; padding-left: 20px;
+        font-size: 12px; line-height: 1.8; color: rgba(255, 255, 255, 0.65);
+      }
+      .si-routes { list-style: none; padding-left: 2px; column-width: 200px; column-gap: 18px; }
+      .si-routes b {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        color: #fde68a; font-weight: 700; margin-right: 6px;
+      }
+      /* Language tabs: only the active language block is shown; the shared
+         transit lists below are always visible. */
+      #site-info [data-si-lang] { display: none; }
+      #site-info[data-lang="zh"] [data-si-lang="zh"],
+      #site-info[data-lang="en"] [data-si-lang="en"],
+      #site-info[data-lang="pt"] [data-si-lang="pt"] { display: block; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
-    <!-- SEO:TRANSIT_LISTS -->
+    <div id="site-info-backdrop" hidden></div>
+    <aside id="site-info" hidden data-lang="zh" role="dialog" aria-modal="true" aria-labelledby="si-title">
+      <header class="si-head">
+        <div class="si-tabs" role="tablist" aria-label="language">
+          <button type="button" class="si-tab" data-lang-tab="zh" aria-selected="true">繁中</button>
+          <button type="button" class="si-tab" data-lang-tab="en" aria-selected="false">EN</button>
+          <button type="button" class="si-tab" data-lang-tab="pt" aria-selected="false">PT</button>
+        </div>
+        <button type="button" id="site-info-close" class="si-close" aria-label="close">✕</button>
+      </header>
+      <div class="si-scroll">
+
+        <div data-si-lang="zh" lang="zh-Hant">
+          <h1 id="si-title">Mini Map Macau · 澳門公共交通 3D 即時模擬地圖</h1>
+          <p>Mini Map Macau 是一個互動式澳門公共交通 3D 地圖,以官方時刻表驅動的方式,模擬澳門輕軌(氹仔線、石排灣線、橫琴線)、90+ 條巴士路線(含跨海線與夜間巴士)、港澳/深圳渡輪航線,以及澳門國際機場(MFM)的真實航班動態。點擊任一車輛或車站,即可查看預計到站時間(ETA)、路線詳情與服務狀態;支援 3D/2D 視角、深淺色地圖、時間控制(暫停、1×–60× 加速、任意日期時間)與車輛追蹤。</p>
+          <h2>常見問題</h2>
+          <dl>
+            <dt>地圖上的車輛是即時數據嗎?</dt>
+            <dd>預設為時刻表驅動的模擬:車輛按官方時刻表與班距沿真實路線幾何行駛,並非真實 GPS 位置。巴士可於選單開啟 RT 模式,改用交通事務局(DSAT)即時數據顯示巴士位置;輕軌、航班與渡輪維持模擬。</dd>
+            <dt>如何查詢巴士或輕軌的到站時間?</dt>
+            <dd>點擊地圖上任一車站或車輛,面板會顯示預計到站時間(ETA)、下一班車與路線詳情。</dd>
+            <dt>澳門輕軌有哪些路線和車站?</dt>
+            <dd>共 3 條線:氹仔線、石排灣線與橫琴線,合計 15 個車站,涵蓋媽閣、機場、氹仔碼頭等交通樞紐。完整列表見下方「澳門輕軌路線與車站」。</dd>
+            <dt>網站支援哪些語言?</dt>
+            <dd>繁體中文、英文(English)與葡萄牙文(Português),可於選單切換;站名、路線與航班資訊會同步切換語言。</dd>
+            <dt>資料來源是什麼?</dt>
+            <dd>巴士路線與車站來自澳門交通事務局(DSAT)公開資料;輕軌資訊來自澳門輕軌(MLM);航班時刻來自 AviationStack;渡輪時刻來自 TurboJET 與 CotaiJet 官方網站。</dd>
+            <dt>手機可以使用嗎?需要安裝 App 嗎?</dt>
+            <dd>不需安裝。任何支援 WebGL 的現代瀏覽器(手機或電腦)直接開啟網站即可使用,介面已針對手機觸控優化。</dd>
+            <dt>為什麼有些巴士路線沒有顯示?</dt>
+            <dd>預設「自動模式」只顯示目前營運中的路線,深夜時段日間路線會自動隱藏;可在圖層面板手動開啟任何路線。</dd>
+            <dt>這是澳門政府的官方網站嗎?</dt>
+            <dd>不是。本站為個人開源專案,與澳門特別行政區政府、DSAT、澳門輕軌及各營運商均無從屬關係;資訊僅供參考,實際班次以官方公布為準。</dd>
+          </dl>
+          <h2>資料來源與聲明</h2>
+          <p>本站為開源的非官方專案。巴士資料來自 <a href="https://www.dsat.gov.mo/" target="_blank" rel="noopener noreferrer">DSAT</a>、輕軌資料來自 <a href="https://www.mlm.com.mo/" target="_blank" rel="noopener noreferrer">澳門輕軌</a>、航班資料來自 <a href="https://aviationstack.com/" target="_blank" rel="noopener noreferrer">AviationStack</a>、渡輪時刻來自 <a href="https://www2.turbojet.com.hk/" target="_blank" rel="noopener noreferrer">TurboJET</a> 與 <a href="https://www.cotaiwaterjet.com/" target="_blank" rel="noopener noreferrer">CotaiJet</a>。地圖為時刻表驅動之模擬,僅供參考。</p>
+        </div>
+
+        <div data-si-lang="en" lang="en">
+          <h2>Mini Map Macau — Real-time 3D Macau Public Transport Map</h2>
+          <p>Mini Map Macau is an interactive 3D map of Macau's public transport network. A timetable-driven simulation animates the Macau LRT (Taipa, Seac Pai Van and Hengqin lines), 90+ bus routes including cross-harbour and night services, HK/Shenzhen–Macau ferry routes, and real flights at Macau International Airport (MFM). Click any vehicle or station for live ETAs, route details and service status; switch 3D/2D views, dark/light styles, control time (pause, 1×–60× speed, any date/time) and track vehicles.</p>
+          <h2>FAQ</h2>
+          <dl>
+            <dt>Is the vehicle data real-time?</dt>
+            <dd>By default it is a timetable-driven simulation: vehicles follow real route geometry according to official timetables and headways, not live GPS. An opt-in RT mode replaces simulated bus positions with the DSAT live feed; LRT, flights and ferries remain simulated.</dd>
+            <dt>How do I check arrival times (ETA)?</dt>
+            <dd>Click any station or vehicle on the map to see estimated arrivals, the next departures and route details.</dd>
+            <dt>Which LRT lines and stations are covered?</dt>
+            <dd>All 3 lines — Taipa, Seac Pai Van and Hengqin — with 15 stations including Barra, Airport and Taipa Ferry Terminal. See the full list below.</dd>
+            <dt>Which languages are supported?</dt>
+            <dd>Traditional Chinese, English and Portuguese; station names, routes and flight info all switch with the language.</dd>
+            <dt>What are the data sources?</dt>
+            <dd>Bus routes and stops from Macau's Transport Bureau (DSAT) open data; LRT information from Macao LRT (MLM); flight schedules from AviationStack; ferry timetables from TurboJET and CotaiJet.</dd>
+            <dt>Does it work on mobile? Do I need an app?</dt>
+            <dd>No install needed — any modern browser with WebGL works, and the UI is optimised for touch.</dd>
+            <dt>Why are some bus routes not shown?</dt>
+            <dd>The default auto mode shows only routes currently in service; daytime routes hide late at night. Any route can be enabled manually in the layers panel.</dd>
+            <dt>Is this an official government website?</dt>
+            <dd>No. This is a personal open-source project, unaffiliated with the Macau SAR Government, DSAT, Macao LRT or any operator. For reference only — actual schedules are as officially published.</dd>
+          </dl>
+          <h2>Sources &amp; Disclaimer</h2>
+          <p>An open-source, unofficial project. Bus data from <a href="https://www.dsat.gov.mo/" target="_blank" rel="noopener noreferrer">DSAT</a>, LRT data from <a href="https://www.mlm.com.mo/" target="_blank" rel="noopener noreferrer">Macao LRT</a>, flights from <a href="https://aviationstack.com/" target="_blank" rel="noopener noreferrer">AviationStack</a>, ferry timetables from <a href="https://www2.turbojet.com.hk/" target="_blank" rel="noopener noreferrer">TurboJET</a> and <a href="https://www.cotaiwaterjet.com/" target="_blank" rel="noopener noreferrer">CotaiJet</a>. The map is a timetable-driven simulation, for reference only.</p>
+        </div>
+
+        <div data-si-lang="pt" lang="pt">
+          <h2>Mini Map Macau — Mapa 3D do Transporte Público de Macau</h2>
+          <p>O Mini Map Macau é um mapa 3D interactivo da rede de transportes públicos de Macau. Uma simulação baseada em horários anima o Metro Ligeiro de Macau (linhas da Taipa, de Seac Pai Van e de Hengqin), mais de 90 rotas de autocarro incluindo linhas transfronteiriças e nocturnas, rotas de ferry Hong Kong/Shenzhen–Macau e voos reais do Aeroporto Internacional de Macau (MFM). Clique em qualquer veículo ou estação para ver tempos de chegada (ETA), detalhes da rota e estado do serviço.</p>
+          <h2>Perguntas Frequentes</h2>
+          <dl>
+            <dt>Os dados dos veículos são em tempo real?</dt>
+            <dd>Por defeito é uma simulação baseada em horários: os veículos seguem a geometria real das rotas segundo os horários oficiais, não posições GPS reais. O modo RT (opcional) substitui as posições simuladas dos autocarros pelos dados em tempo real da DSAT; o metro ligeiro, os voos e os ferries permanecem simulados.</dd>
+            <dt>Como consultar os tempos de chegada (ETA)?</dt>
+            <dd>Clique em qualquer estação ou veículo no mapa para ver as próximas chegadas e os detalhes da rota.</dd>
+            <dt>Quais são as linhas e estações do Metro Ligeiro?</dt>
+            <dd>As 3 linhas — Taipa, Seac Pai Van e Hengqin — com 15 estações, incluindo Barra, Aeroporto e Terminal Marítimo da Taipa. Veja a lista completa abaixo.</dd>
+            <dt>Que línguas são suportadas?</dt>
+            <dd>Chinês tradicional, inglês e português; os nomes das estações, rotas e voos mudam com a língua.</dd>
+            <dt>Quais são as fontes de dados?</dt>
+            <dd>Rotas e paragens de autocarro dos dados abertos da DSAT; informação do metro ligeiro da MLM; horários de voos da AviationStack; horários de ferry da TurboJET e CotaiJet.</dd>
+            <dt>Funciona no telemóvel? É preciso instalar uma app?</dt>
+            <dd>Não é preciso instalar — funciona em qualquer navegador moderno com WebGL, com interface optimizada para ecrã táctil.</dd>
+            <dt>Porque é que algumas rotas de autocarro não aparecem?</dt>
+            <dd>O modo automático mostra apenas as rotas actualmente em serviço; as rotas diurnas ficam ocultas durante a madrugada. Qualquer rota pode ser activada manualmente no painel de camadas.</dd>
+            <dt>É um site oficial do Governo?</dt>
+            <dd>Não. É um projecto pessoal de código aberto, sem afiliação com o Governo da RAEM, a DSAT, o Metro Ligeiro de Macau ou qualquer operador. Apenas para referência.</dd>
+          </dl>
+          <h2>Fontes e Aviso</h2>
+          <p>Projecto não oficial de código aberto. Dados de autocarros da <a href="https://www.dsat.gov.mo/" target="_blank" rel="noopener noreferrer">DSAT</a>, metro ligeiro da <a href="https://www.mlm.com.mo/" target="_blank" rel="noopener noreferrer">MLM</a>, voos da <a href="https://aviationstack.com/" target="_blank" rel="noopener noreferrer">AviationStack</a>, ferries da <a href="https://www2.turbojet.com.hk/" target="_blank" rel="noopener noreferrer">TurboJET</a> e <a href="https://www.cotaiwaterjet.com/" target="_blank" rel="noopener noreferrer">CotaiJet</a>. O mapa é uma simulação baseada em horários, apenas para referência.</p>
+        </div>
+
+        <div class="si-shared">
+          <!-- SEO:TRANSIT_LISTS -->
+        </div>
+
+      </div>
+    </aside>
     <noscript>
       <div style="padding:2rem;font-family:system-ui;color:#ddd;background:#111;min-height:100vh;">
         <h1>Mini Map Macau — 澳門公共交通 3D 即時模擬地圖</h1>
@@ -152,5 +317,54 @@
       </div>
     </noscript>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Site info panel controls. Plain JS on purpose: the panel must work
+      // independently of the React bundle, and React only ever calls
+      // window.miniMacauInfo.open().
+      (function () {
+        var panel = document.getElementById('site-info');
+        var backdrop = document.getElementById('site-info-backdrop');
+        var closeBtn = document.getElementById('site-info-close');
+        if (!panel || !backdrop || !closeBtn) return;
+
+        function setLang(l) {
+          panel.setAttribute('data-lang', l);
+          var tabs = panel.querySelectorAll('.si-tab');
+          for (var i = 0; i < tabs.length; i++) {
+            tabs[i].setAttribute('aria-selected',
+              tabs[i].getAttribute('data-lang-tab') === l ? 'true' : 'false');
+          }
+        }
+        function open() {
+          var saved = null;
+          try { saved = localStorage.getItem('mm_lang'); } catch (e) { /* private mode */ }
+          setLang(saved === 'en' || saved === 'pt' ? saved : 'zh');
+          panel.hidden = false;
+          backdrop.hidden = false;
+          closeBtn.focus();
+        }
+        function close() {
+          panel.hidden = true;
+          backdrop.hidden = true;
+        }
+
+        panel.addEventListener('click', function (e) {
+          var t = e.target && e.target.closest ? e.target.closest('[data-lang-tab]') : null;
+          if (t) setLang(t.getAttribute('data-lang-tab'));
+        });
+        closeBtn.addEventListener('click', close);
+        backdrop.addEventListener('click', close);
+        // Capture phase + stopPropagation so Esc closes the panel without
+        // also toggling the app drawer (MapView listens on window bubble).
+        window.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape' && !panel.hidden) {
+            e.stopPropagation();
+            close();
+          }
+        }, true);
+
+        window.miniMacauInfo = { open: open, close: close };
+      })();
+    </script>
   </body>
 </html>
