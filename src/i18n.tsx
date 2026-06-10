@@ -1,3 +1,8 @@
+/* eslint-disable react-refresh/only-export-components --
+   This is the i18n context module: it intentionally co-locates the provider
+   component with its `useI18n` hook and the pure `localName` helper. Splitting
+   them out solely to satisfy the Fast-Refresh "components only" rule would
+   churn every importer for no runtime benefit. */
 import {
   createContext,
   useContext,

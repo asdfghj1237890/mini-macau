@@ -15,6 +15,7 @@ import {
   type BusSchedule,
   type BusStopScheduleEntry,
 } from './simulationEngine'
+import { macauWallToInstant } from '../macauTime'
 
 const line = (coords: [number, number][]): Feature<LineString> => ({
   type: 'Feature',
@@ -24,21 +25,31 @@ const line = (coords: [number, number][]): Feature<LineString> => ({
 
 describe('getScheduleType', () => {
   // 2026-05-04 = Monday, 2026-05-08 = Friday, 2026-05-10 = Sunday.
-  // Use local-time Date constructor to avoid timezone surprises with getDay().
+  // Build explicit Macau-noon instants so the day-type is independent of the
+  // machine timezone the suite runs in (the engine reads Macau wall time).
   it('returns mon_thu for Monday', () => {
-    expect(getScheduleType(new Date(2026, 4, 4))).toBe('mon_thu')
+    expect(getScheduleType(macauWallToInstant(2026, 4, 4, 12, 0))).toBe('mon_thu')
   })
   it('returns mon_thu for Thursday', () => {
-    expect(getScheduleType(new Date(2026, 4, 7))).toBe('mon_thu')
+    expect(getScheduleType(macauWallToInstant(2026, 4, 7, 12, 0))).toBe('mon_thu')
   })
   it('returns friday for Friday', () => {
-    expect(getScheduleType(new Date(2026, 4, 8))).toBe('friday')
+    expect(getScheduleType(macauWallToInstant(2026, 4, 8, 12, 0))).toBe('friday')
   })
   it('returns sat_sun for Saturday', () => {
-    expect(getScheduleType(new Date(2026, 4, 9))).toBe('sat_sun')
+    expect(getScheduleType(macauWallToInstant(2026, 4, 9, 12, 0))).toBe('sat_sun')
   })
   it('returns sat_sun for Sunday', () => {
-    expect(getScheduleType(new Date(2026, 4, 10))).toBe('sat_sun')
+    expect(getScheduleType(macauWallToInstant(2026, 4, 10, 12, 0))).toBe('sat_sun')
+  })
+
+  it('uses Macau time, not the host timezone, at the day boundary', () => {
+    // 2026-05-08T20:00Z is Friday evening in UTC but Saturday 04:00 in Macau.
+    expect(getScheduleType(new Date('2026-05-08T20:00:00Z'))).toBe('sat_sun')
+    // 2026-05-09T15:30Z is Saturday in UTC but Sunday 23:30 in Macau.
+    expect(getScheduleType(new Date('2026-05-09T15:30:00Z'))).toBe('sat_sun')
+    // 2026-05-10T17:00Z is Sunday in UTC but Monday 01:00 in Macau.
+    expect(getScheduleType(new Date('2026-05-10T17:00:00Z'))).toBe('mon_thu')
   })
 })
 
@@ -347,8 +358,8 @@ describe('computeBusCycleSec', () => {
       loading: false,
     }
 
-    const sunday = computeVehiclePositions(transitData, new Date(2026, 4, 10, 10, 0))
-    const monday = computeVehiclePositions(transitData, new Date(2026, 4, 11, 10, 0))
+    const sunday = computeVehiclePositions(transitData, macauWallToInstant(2026, 4, 10, 10, 0))
+    const monday = computeVehiclePositions(transitData, macauWallToInstant(2026, 4, 11, 10, 0))
     expect(sunday.filter(v => v.type === 'bus')).toHaveLength(0)
     expect(monday.filter(v => v.type === 'bus').length).toBeGreaterThan(0)
   })
@@ -369,8 +380,8 @@ describe('computeBusCycleSec', () => {
       loading: false,
     }
 
-    const saturday = computeVehiclePositions(transitData, new Date(2026, 4, 9, 10, 0))
-    const monday = computeVehiclePositions(transitData, new Date(2026, 4, 11, 10, 0))
+    const saturday = computeVehiclePositions(transitData, macauWallToInstant(2026, 4, 9, 10, 0))
+    const monday = computeVehiclePositions(transitData, macauWallToInstant(2026, 4, 11, 10, 0))
     expect(saturday.filter(v => v.type === 'bus')).toHaveLength(0)
     expect(monday.filter(v => v.type === 'bus').length).toBeGreaterThan(0)
   })

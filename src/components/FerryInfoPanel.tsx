@@ -79,7 +79,7 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
     nameCn: ferry.otherPortCn,
     namePt: ferry.otherPortPt,
   })
-  const isLive = !clock.paused && clock.speed === 1 && Math.abs(clock.currentTime.getTime() - Date.now()) < 3000
+  const isLive = clock.isLive
   const theme = OPERATOR_THEME[ferry.operator]
   const portLabel = ferry.terminal === 'outer_harbour' ? t.portOuterHarbour : t.portTaipa
 
