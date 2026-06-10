@@ -259,6 +259,9 @@ export const ga = {
   drawerOpened(): void {
     track('drawer_opened')
   },
+  infoPanelOpened(): void {
+    track('info_panel_opened')
+  },
   timeJumped(deltaHours: number): void {
     track('time_jumped', { delta_hours: Math.round(deltaHours * 10) / 10 })
   },
