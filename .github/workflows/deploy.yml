@@ -3,6 +3,18 @@ name: Deploy to Cloudflare Pages
 on:
   push:
     branches: [master]
+  # Callable from the scheduled data workflows: pushes made with the default
+  # GITHUB_TOKEN don't fire `on: push` workflows (GitHub's anti-recursion
+  # rule), so each data bot invokes this workflow directly after committing
+  # fresh JSON — otherwise the live site would only update on human pushes.
+  workflow_call:
+    inputs:
+      ref:
+        description: >-
+          Ref to deploy. Data bots pass `master` so the checkout includes the
+          commit they pushed mid-run (their github.sha predates it).
+        required: false
+        type: string
 
 jobs:
   deploy:
@@ -12,6 +24,9 @@ jobs:
       deployments: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Empty for push events → falls back to the exact pushed sha.
+          ref: ${{ inputs.ref || github.sha }}
 
       - uses: actions/setup-node@v4
         with:
