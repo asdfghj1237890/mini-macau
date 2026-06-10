@@ -14,6 +14,8 @@ type LdQuestion = {
 }
 type LdBlock = { '@type'?: string; mainEntity?: LdQuestion[] }
 
+const LD_JSON_RE = /<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g
+
 function readIndexHtml(): string {
   const p = fileURLToPath(new URL('../../index.html', import.meta.url))
   return fs.readFileSync(p, 'utf8')
@@ -22,7 +24,7 @@ function readIndexHtml(): string {
 describe('FAQPage JSON-LD', () => {
   it('matches the visible zh FAQ', () => {
     const html = readIndexHtml()
-    const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+    const blocks = [...html.matchAll(LD_JSON_RE)]
       .map(m => JSON.parse(m[1]) as LdBlock)
     const faq = blocks.find(b => b['@type'] === 'FAQPage')
     expect(faq).toBeDefined()
@@ -37,7 +39,10 @@ describe('FAQPage JSON-LD', () => {
 
   it('keeps every ld+json block parseable', () => {
     const html = readIndexHtml()
-    const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+    const blocks = [...html.matchAll(LD_JSON_RE)]
     expect(blocks.length).toBeGreaterThanOrEqual(2)
+    for (const m of blocks) {
+      expect(() => JSON.parse(m[1])).not.toThrow()
+    }
   })
 })
