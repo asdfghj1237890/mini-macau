@@ -115,6 +115,55 @@
       }
     </script>
 
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "地圖上的車輛是即時數據嗎?",
+            "acceptedAnswer": { "@type": "Answer", "text": "預設為時刻表驅動的模擬:車輛按官方時刻表與班距沿真實路線幾何行駛,並非真實 GPS 位置。巴士可於選單開啟 RT 模式,改用交通事務局(DSAT)即時數據顯示巴士位置;輕軌、航班與渡輪維持模擬。" }
+          },
+          {
+            "@type": "Question",
+            "name": "如何查詢巴士或輕軌的到站時間?",
+            "acceptedAnswer": { "@type": "Answer", "text": "點擊地圖上任一車站或車輛,面板會顯示預計到站時間(ETA)、下一班車與路線詳情。" }
+          },
+          {
+            "@type": "Question",
+            "name": "澳門輕軌有哪些路線和車站?",
+            "acceptedAnswer": { "@type": "Answer", "text": "共 3 條線:氹仔線、石排灣線與橫琴線,合計 15 個車站,涵蓋媽閣、機場、氹仔碼頭等交通樞紐。" }
+          },
+          {
+            "@type": "Question",
+            "name": "網站支援哪些語言?",
+            "acceptedAnswer": { "@type": "Answer", "text": "繁體中文、英文(English)與葡萄牙文(Português),可於選單切換;站名、路線與航班資訊會同步切換語言。" }
+          },
+          {
+            "@type": "Question",
+            "name": "資料來源是什麼?",
+            "acceptedAnswer": { "@type": "Answer", "text": "巴士路線與車站來自澳門交通事務局(DSAT)公開資料;輕軌資訊來自澳門輕軌(MLM);航班時刻來自 AviationStack;渡輪時刻來自 TurboJET 與 CotaiJet 官方網站。" }
+          },
+          {
+            "@type": "Question",
+            "name": "手機可以使用嗎?需要安裝 App 嗎?",
+            "acceptedAnswer": { "@type": "Answer", "text": "不需安裝。任何支援 WebGL 的現代瀏覽器(手機或電腦)直接開啟網站即可使用,介面已針對手機觸控優化。" }
+          },
+          {
+            "@type": "Question",
+            "name": "為什麼有些巴士路線沒有顯示?",
+            "acceptedAnswer": { "@type": "Answer", "text": "預設「自動模式」只顯示目前營運中的路線,深夜時段日間路線會自動隱藏;可在圖層面板手動開啟任何路線。" }
+          },
+          {
+            "@type": "Question",
+            "name": "這是澳門政府的官方網站嗎?",
+            "acceptedAnswer": { "@type": "Answer", "text": "不是。本站為個人開源專案,與澳門特別行政區政府、DSAT、澳門輕軌及各營運商均無從屬關係;資訊僅供參考,實際班次以官方公布為準。" }
+          }
+        ]
+      }
+    </script>
+
     <script>
       // GA4 — defer the tag script until the browser is idle so it does not
       // compete with MapLibre parsing + React hydration on the main thread.
