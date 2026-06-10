@@ -1,107 +1,5 @@
 [
   {
-    "id": "NX977A-arr-0015",
-    "flightNumber": "NX977A",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 15,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "DAD",
-      "name": "DaNang",
-      "bearing": 220.8,
-      "nameCn": "峴港"
-    }
-  },
-  {
-    "id": "NX227-arr-0030",
-    "flightNumber": "NX227",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 30,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "HGH",
-      "name": "Hangzhou",
-      "bearing": 35.8,
-      "nameCn": "杭州"
-    }
-  },
-  {
-    "id": "TW649-arr-0045",
-    "flightNumber": "TW649",
-    "airline": {
-      "name": "",
-      "iata": "TW"
-    },
-    "type": "arrival",
-    "scheduledTime": 45,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "CJU",
-      "name": "Jeju",
-      "bearing": 42.3,
-      "nameCn": "濟州"
-    }
-  },
-  {
-    "id": "NX963-arr-0095",
-    "flightNumber": "NX963",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 95,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "HAN",
-      "name": "Ha Noi",
-      "bearing": 264.1,
-      "nameCn": "河內"
-    }
-  },
-  {
-    "id": "NX991-arr-0110",
-    "flightNumber": "NX991",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 110,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "BKK",
-      "name": "Bangkok",
-      "bearing": 237.4,
-      "nameCn": "曼谷"
-    }
-  },
-  {
-    "id": "NX949-arr-0115",
-    "flightNumber": "NX949",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 115,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "HAN",
-      "name": "Ha Noi",
-      "bearing": 264.1,
-      "nameCn": "河內"
-    }
-  },
-  {
     "id": "TW650-dep-0135",
     "flightNumber": "TW650",
     "airline": {
@@ -1785,23 +1683,6 @@
     }
   },
   {
-    "id": "CA120-dep-1050",
-    "flightNumber": "CA120",
-    "airline": {
-      "name": "",
-      "iata": "CA"
-    },
-    "type": "departure",
-    "scheduledTime": 1050,
-    "date": "2026-06-11",
-    "destination": {
-      "iata": "WUH",
-      "name": "Wuhan",
-      "bearing": 3.5,
-      "nameCn": "武漢"
-    }
-  },
-  {
     "id": "ZH9090-dep-1060",
     "flightNumber": "ZH9090",
     "airline": {
@@ -2074,23 +1955,6 @@
     }
   },
   {
-    "id": "MF8672-dep-1110",
-    "flightNumber": "MF8672",
-    "airline": {
-      "name": "",
-      "iata": "MF"
-    },
-    "type": "departure",
-    "scheduledTime": 1110,
-    "date": "2026-06-11",
-    "destination": {
-      "iata": "FOC",
-      "name": "Fuzhou",
-      "bearing": 54.5,
-      "nameCn": "福州"
-    }
-  },
-  {
     "id": "Z2092-arr-1110",
     "flightNumber": "Z2092",
     "airline": {
@@ -2278,23 +2142,6 @@
     }
   },
   {
-    "id": "MU239-arr-1155",
-    "flightNumber": "MU239",
-    "airline": {
-      "name": "",
-      "iata": "MU"
-    },
-    "type": "arrival",
-    "scheduledTime": 1155,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "SHA",
-      "name": "Shanghai",
-      "bearing": 35.7,
-      "nameCn": "上海"
-    }
-  },
-  {
     "id": "NX008-dep-1160",
     "flightNumber": "NX008",
     "airline": {
@@ -2363,23 +2210,6 @@
     }
   },
   {
-    "id": "NX169-arr-1175",
-    "flightNumber": "NX169",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1175,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "HGH",
-      "name": "Changzhou-Benniu",
-      "bearing": 35.8,
-      "nameCn": "常州奔牛"
-    }
-  },
-  {
     "id": "NX978-dep-1180",
     "flightNumber": "NX978",
     "airline": {
@@ -2394,23 +2224,6 @@
       "name": "DaNang",
       "bearing": 220.8,
       "nameCn": "峴港"
-    }
-  },
-  {
-    "id": "JX205-arr-1180",
-    "flightNumber": "JX205",
-    "airline": {
-      "name": "",
-      "iata": "JX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1180,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "TPE",
-      "name": "Taipei",
-      "bearing": 65.8,
-      "nameCn": "台北"
     }
   },
   {
@@ -2465,23 +2278,6 @@
     }
   },
   {
-    "id": "BR834-dep-1200",
-    "flightNumber": "BR834",
-    "airline": {
-      "name": "",
-      "iata": "BR"
-    },
-    "type": "departure",
-    "scheduledTime": 1200,
-    "date": "2026-06-11",
-    "destination": {
-      "iata": "KHH",
-      "name": "Kaohsiung",
-      "bearing": 84.8,
-      "nameCn": "高雄"
-    }
-  },
-  {
     "id": "NX861-arr-1205",
     "flightNumber": "NX861",
     "airline": {
@@ -2513,23 +2309,6 @@
       "name": "Taipei",
       "bearing": 65.8,
       "nameCn": "台北"
-    }
-  },
-  {
-    "id": "MU240-dep-1220",
-    "flightNumber": "MU240",
-    "airline": {
-      "name": "",
-      "iata": "MU"
-    },
-    "type": "departure",
-    "scheduledTime": 1220,
-    "date": "2026-06-11",
-    "destination": {
-      "iata": "SHA",
-      "name": "Shanghai",
-      "bearing": 35.7,
-      "nameCn": "上海"
     }
   },
   {
@@ -2618,40 +2397,6 @@
     }
   },
   {
-    "id": "NX964-dep-1245",
-    "flightNumber": "NX964",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 1245,
-    "date": "2026-06-11",
-    "destination": {
-      "iata": "HAN",
-      "name": "Ha Noi",
-      "bearing": 264.1,
-      "nameCn": "河內"
-    }
-  },
-  {
-    "id": "HU7935-arr-1245",
-    "flightNumber": "HU7935",
-    "airline": {
-      "name": "",
-      "iata": "HU"
-    },
-    "type": "arrival",
-    "scheduledTime": 1245,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "HAK",
-      "name": "Haikou",
-      "bearing": 233.4,
-      "nameCn": "海口"
-    }
-  },
-  {
     "id": "JX206-dep-1250",
     "flightNumber": "JX206",
     "airline": {
@@ -2669,23 +2414,6 @@
     }
   },
   {
-    "id": "VJ8892-arr-1250",
-    "flightNumber": "VJ8892",
-    "airline": {
-      "name": "",
-      "iata": "VJ"
-    },
-    "type": "arrival",
-    "scheduledTime": 1250,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "DAD",
-      "name": "DaNang",
-      "bearing": 220.8,
-      "nameCn": "峴港"
-    }
-  },
-  {
     "id": "NX921-arr-1250",
     "flightNumber": "NX921",
     "airline": {
@@ -2700,6 +2428,23 @@
       "name": "Kuala Lumpur",
       "bearing": 212.4,
       "nameCn": "吉隆坡"
+    }
+  },
+  {
+    "id": "VJ8892-arr-1250",
+    "flightNumber": "VJ8892",
+    "airline": {
+      "name": "",
+      "iata": "VJ"
+    },
+    "type": "arrival",
+    "scheduledTime": 1250,
+    "date": "2026-06-11",
+    "origin": {
+      "iata": "DAD",
+      "name": "DaNang",
+      "bearing": 220.8,
+      "nameCn": "峴港"
     }
   },
   {
@@ -2856,23 +2601,6 @@
     }
   },
   {
-    "id": "HU7936-dep-1310",
-    "flightNumber": "HU7936",
-    "airline": {
-      "name": "",
-      "iata": "HU"
-    },
-    "type": "departure",
-    "scheduledTime": 1310,
-    "date": "2026-06-11",
-    "destination": {
-      "iata": "HAK",
-      "name": "Haikou",
-      "bearing": 233.4,
-      "nameCn": "海口"
-    }
-  },
-  {
     "id": "VJ8893-dep-1315",
     "flightNumber": "VJ8893",
     "airline": {
@@ -2972,23 +2700,6 @@
       "name": "Beijing",
       "bearing": 7.4,
       "nameCn": "北京首都"
-    }
-  },
-  {
-    "id": "NX021-arr-1395",
-    "flightNumber": "NX021",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1395,
-    "date": "2026-06-11",
-    "origin": {
-      "iata": "TAO",
-      "name": "Qingdao",
-      "bearing": 21.2,
-      "nameCn": "青島"
     }
   },
   {
