@@ -21,6 +21,12 @@ import { useI18n } from '../i18n'
 import type { BusTracker, RouteRealtimePoller, TrackedBusState } from '../services/realtimeClient'
 import { ga } from '../analytics/ga'
 
+declare global {
+  interface Window {
+    miniMacauInfo?: { open: () => void; close: () => void }
+  }
+}
+
 const RT_BUILD = import.meta.env.VITE_ENABLE_RT === '1'
 
 const BUILDINGS_SOURCE_ID = 'openfreemap-buildings'
@@ -1400,6 +1406,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                   onClick={() => { onToggleTimeBar() }}
                 />
               )}
+              <DrawerRow
+                code="NFO"
+                label={t.about}
+                active={false}
+                onClick={() => { window.miniMacauInfo?.open(); setMenuOpen(false) }}
+              />
               {RT_BUILD && rtUnlocked && (
                 <DrawerRow
                   code="RT*"
