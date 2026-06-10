@@ -102,14 +102,38 @@ def v_lrt_lines(data: object) -> list[str]:
     errs: list[str] = []
     if not require_nonempty_list(errs, "lrt-lines", data):
         return errs
+    station_ids = load_station_ids(errs, "lrt-lines")
     for i, ln in enumerate(data):
         ctx = f"lrt-lines[{i}]"
         if not require_fields(errs, ctx, ln, ("id", "name", "color", "stations", "geometry")):
             continue
-        if not ln["stations"]:
+        if not (isinstance(ln["stations"], list) and ln["stations"]):
             errs.append(f"{ctx} ({ln['id']}): no stations")
+        elif station_ids is not None:
+            for sid in ln["stations"]:
+                if sid not in station_ids:
+                    errs.append(f"{ctx} ({ln['id']}): station '{sid}' not in stations.json")
         check_geometry(errs, f"{ctx} ({ln['id']})", ln["geometry"])
     return errs
+
+
+def load_station_ids(errs: list[str], name: str) -> set[str] | None:
+    """Station ids from stations.json for cross-file checks; None if unreadable.
+
+    The SEO renderer silently drops station ids it can't resolve, so a dangling
+    reference must fail here at the gate — an unreadable stations.json is an
+    error too, not a reason to skip the check.
+    """
+    path = PUBLIC / "data/stations.json"
+    try:
+        stations = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        errs.append(f"{name}: cannot read stations.json for station-id cross-check — {e}")
+        return None
+    if not isinstance(stations, list):
+        errs.append(f"{name}: stations.json is not a list — cannot cross-check station ids")
+        return None
+    return {s["id"] for s in stations if isinstance(s, dict) and "id" in s}
 
 
 def check_geometry(errs: list[str], ctx: str, geom: object) -> None:
@@ -235,18 +259,31 @@ def v_ferries(data: object) -> list[str]:
         return errs
     for i, r in enumerate(data["routes"]):
         ctx = f"routes[{i}]"
-        if not require_fields(errs, ctx, r, ("id", "operator", "terminal", "directions")):
+        if not require_fields(
+            errs, ctx, r,
+            ("id", "operator", "terminal", "nameZh", "nameEn",
+             "journeyMinutes", "effectiveDate", "directions"),
+        ):
             continue
         if r["operator"] not in ("turbojet", "cotai"):
             errs.append(f"{ctx} ({r['id']}): operator '{r['operator']}' invalid")
         if r["terminal"] not in ("outer_harbour", "taipa"):
             errs.append(f"{ctx} ({r['id']}): terminal '{r['terminal']}' invalid")
+        for key in ("nameZh", "nameEn"):
+            if not (isinstance(r[key], str) and r[key]):
+                errs.append(f"{ctx} ({r['id']}): {key} must be a non-empty string")
+        if r["journeyMinutes"] is not None and not isinstance(r["journeyMinutes"], (int, float)):
+            errs.append(f"{ctx} ({r['id']}): journeyMinutes must be a number or null")
+        if r["effectiveDate"] is not None and not isinstance(r["effectiveDate"], str):
+            errs.append(f"{ctx} ({r['id']}): effectiveDate must be a string or null")
         if not require_nonempty_list(errs, f"{ctx}.directions", r["directions"]):
             continue
         for j, d in enumerate(r["directions"]):
             dctx = f"{ctx}.directions[{j}]"
-            if not require_fields(errs, dctx, d, ("from", "to", "day", "night")):
+            if not require_fields(errs, dctx, d, ("header", "from", "to", "day", "night")):
                 continue
+            if not isinstance(d["header"], str):
+                errs.append(f"{dctx}: header must be a string")
             for slot in ("day", "night"):
                 for k, entry in enumerate(d.get(slot, [])):
                     tm = entry.get("time") if isinstance(entry, dict) else None
