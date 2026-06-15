@@ -27,6 +27,16 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
 DELAY = 0.4
 TIMEOUT = 15
 
+# Transient upstream failures are retried with exponential backoff so a brief
+# edge blip can't fail the whole nightly run. The site is fronted by Cloudflare,
+# whose bot-protection layer can briefly return 415/429/5xx to the runner; a 415
+# on a bodyless GET is one such challenge response, not real content
+# negotiation, so it is treated as retryable. A genuine sustained outage still
+# exhausts retries on every route and trips the degenerate-scrape guard below.
+RETRY_STATUSES = {415, 429, 500, 502, 503, 504}
+MAX_ATTEMPTS = 3
+BACKOFF_BASE = 1.0  # seconds; exponential backoff between attempts: 1s, then 2s
+
 REFERENCE_DIR = Path(__file__).parent.parent / "bus_reference"
 OUTPUT_PATH = Path(__file__).parent.parent.parent / "public" / "service-status.json"
 
@@ -126,10 +136,28 @@ def parse_schedule_status(html: str, dow: int, is_holiday: bool) -> dict:
 
 def fetch_route_status(route_id: str, dow: int, is_holiday: bool) -> dict:
     url = f"{BASE_URL}/route/{route_id}/0"
-    resp = requests.get(url, timeout=TIMEOUT, headers=HEADERS)
-    resp.raise_for_status()
-    status = parse_schedule_status(resp.text, dow, is_holiday)
-    return {"id": route_id, **status}
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            resp = requests.get(url, timeout=TIMEOUT, headers=HEADERS)
+            resp.raise_for_status()
+            status = parse_schedule_status(resp.text, dow, is_holiday)
+            return {"id": route_id, **status}
+        except requests.RequestException as e:
+            # Retry only transient conditions: connection/timeout errors, or the
+            # retryable HTTP statuses. A 404 or other permanent 4xx fails fast.
+            transient = isinstance(e, (requests.ConnectionError, requests.Timeout))
+            if isinstance(e, requests.HTTPError) and e.response is not None:
+                transient = e.response.status_code in RETRY_STATUSES
+            if not transient or attempt == MAX_ATTEMPTS:
+                raise
+            sleep_s = BACKOFF_BASE * (2 ** (attempt - 1))
+            print(
+                f"  [retry] {route_id}: {e} — attempt {attempt}/{MAX_ATTEMPTS}, "
+                f"sleeping {sleep_s:.1f}s",
+                file=sys.stderr,
+            )
+            time.sleep(sleep_s)
+    raise RuntimeError("unreachable")  # loop always returns or raises
 
 
 def run() -> int:
