@@ -98,7 +98,17 @@ WAYPOINT_HINTS: dict[tuple[str, str], list[list[float]]] = {
 # (used for display in bus-stops.json) stays unchanged — only the coord fed
 # to OSRM is replaced. Use when a stop's coord snaps to the wrong OSM segment
 # and OSRM routes a detour to "exit" that segment.
-ROUTING_COORD_OVERRIDES: dict[tuple[str, str], list[float]] = {}
+# Routes 7 and 8 both serve M245 (鏡湖醫院). The stop's display coord snaps to
+# an unnamed service road ~8m away, so OSRM "exits" it by detouring west via
+# 連勝街 (Rua de Coelho do Amaral) before rejoining 鏡湖馬路. Nudging the routing
+# coord ~11m east onto 鏡湖馬路 (Estrada do Repouso) itself (snaps 1.1m away)
+# keeps the leg leaving M245 on 鏡湖馬路 — route 8 continues straight north to
+# M119; route 7 turns onto 連勝馬路 toward M87. Display coord stays unchanged.
+_M245_ON_REPOUSO = [113.54336558580387, 22.199147148915735]
+ROUTING_COORD_OVERRIDES: dict[tuple[str, str], list[float]] = {
+    ("7", "M245"): _M245_ON_REPOUSO,
+    ("8", "M245"): _M245_ON_REPOUSO,
+}
 
 
 def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> dict:
