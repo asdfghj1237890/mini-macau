@@ -33309,13 +33309,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 418,
-        "departureMinutes": 418
+        "arrivalMinutes": 419,
+        "departureMinutes": 419
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 421,
-        "departureMinutes": 421
+        "arrivalMinutes": 422,
+        "departureMinutes": 422
       }
     ]
   },
@@ -33399,13 +33399,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 450,
-        "departureMinutes": 450
+        "arrivalMinutes": 451,
+        "departureMinutes": 451
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 453,
-        "departureMinutes": 453
+        "arrivalMinutes": 454,
+        "departureMinutes": 454
       }
     ]
   },
@@ -33489,13 +33489,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 482,
-        "departureMinutes": 482
+        "arrivalMinutes": 483,
+        "departureMinutes": 483
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 485,
-        "departureMinutes": 485
+        "arrivalMinutes": 486,
+        "departureMinutes": 486
       }
     ]
   },
@@ -33579,13 +33579,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 514,
-        "departureMinutes": 514
+        "arrivalMinutes": 515,
+        "departureMinutes": 515
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 517,
-        "departureMinutes": 517
+        "arrivalMinutes": 518,
+        "departureMinutes": 518
       }
     ]
   },
@@ -33669,13 +33669,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 550,
-        "departureMinutes": 550
+        "arrivalMinutes": 549,
+        "departureMinutes": 549
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 553,
-        "departureMinutes": 553
+        "arrivalMinutes": 552,
+        "departureMinutes": 552
       }
     ]
   },
@@ -33687,13 +33687,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 556,
-        "departureMinutes": 556
+        "arrivalMinutes": 555,
+        "departureMinutes": 555
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 559,
-        "departureMinutes": 559
+        "arrivalMinutes": 558,
+        "departureMinutes": 558
       }
     ]
   },
@@ -33705,13 +33705,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 562,
-        "departureMinutes": 562
+        "arrivalMinutes": 561,
+        "departureMinutes": 561
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 565,
-        "departureMinutes": 565
+        "arrivalMinutes": 564,
+        "departureMinutes": 564
       }
     ]
   },
@@ -33723,13 +33723,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 569,
-        "departureMinutes": 569
+        "arrivalMinutes": 567,
+        "departureMinutes": 567
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 572,
-        "departureMinutes": 572
+        "arrivalMinutes": 570,
+        "departureMinutes": 570
       }
     ]
   },
@@ -33741,13 +33741,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 575,
-        "departureMinutes": 575
+        "arrivalMinutes": 573,
+        "departureMinutes": 573
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 578,
-        "departureMinutes": 578
+        "arrivalMinutes": 576,
+        "departureMinutes": 576
       }
     ]
   },
@@ -33759,13 +33759,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 581,
-        "departureMinutes": 581
+        "arrivalMinutes": 579,
+        "departureMinutes": 579
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 584,
-        "departureMinutes": 584
+        "arrivalMinutes": 582,
+        "departureMinutes": 582
       }
     ]
   },
@@ -33777,13 +33777,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 587,
-        "departureMinutes": 587
+        "arrivalMinutes": 585,
+        "departureMinutes": 585
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 590,
-        "departureMinutes": 590
+        "arrivalMinutes": 588,
+        "departureMinutes": 588
       }
     ]
   },
@@ -33795,13 +33795,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 594,
-        "departureMinutes": 594
+        "arrivalMinutes": 591,
+        "departureMinutes": 591
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 597,
-        "departureMinutes": 597
+        "arrivalMinutes": 594,
+        "departureMinutes": 594
       }
     ]
   },
@@ -33813,13 +33813,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 600,
-        "departureMinutes": 600
+        "arrivalMinutes": 597,
+        "departureMinutes": 597
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 603,
-        "departureMinutes": 603
+        "arrivalMinutes": 600,
+        "departureMinutes": 600
       }
     ]
   },
@@ -33831,13 +33831,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 606,
-        "departureMinutes": 606
+        "arrivalMinutes": 603,
+        "departureMinutes": 603
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 609,
-        "departureMinutes": 609
+        "arrivalMinutes": 606,
+        "departureMinutes": 606
       }
     ]
   },
@@ -33849,13 +33849,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 612,
-        "departureMinutes": 612
+        "arrivalMinutes": 609,
+        "departureMinutes": 609
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 615,
-        "departureMinutes": 615
+        "arrivalMinutes": 612,
+        "departureMinutes": 612
       }
     ]
   },
@@ -33867,13 +33867,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 619,
-        "departureMinutes": 619
+        "arrivalMinutes": 615,
+        "departureMinutes": 615
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 622,
-        "departureMinutes": 622
+        "arrivalMinutes": 618,
+        "departureMinutes": 618
       }
     ]
   },
@@ -33885,13 +33885,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 625,
-        "departureMinutes": 625
+        "arrivalMinutes": 621,
+        "departureMinutes": 621
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 628,
-        "departureMinutes": 628
+        "arrivalMinutes": 624,
+        "departureMinutes": 624
       }
     ]
   },
@@ -33903,13 +33903,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 631,
-        "departureMinutes": 631
+        "arrivalMinutes": 627,
+        "departureMinutes": 627
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 634,
-        "departureMinutes": 634
+        "arrivalMinutes": 630,
+        "departureMinutes": 630
       }
     ]
   },
@@ -33921,13 +33921,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 637,
-        "departureMinutes": 637
+        "arrivalMinutes": 633,
+        "departureMinutes": 633
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 640,
-        "departureMinutes": 640
+        "arrivalMinutes": 636,
+        "departureMinutes": 636
       }
     ]
   },
@@ -33939,13 +33939,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 644,
-        "departureMinutes": 644
+        "arrivalMinutes": 639,
+        "departureMinutes": 639
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 647,
-        "departureMinutes": 647
+        "arrivalMinutes": 642,
+        "departureMinutes": 642
       }
     ]
   },
@@ -33957,13 +33957,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 650,
-        "departureMinutes": 650
+        "arrivalMinutes": 645,
+        "departureMinutes": 645
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 653,
-        "departureMinutes": 653
+        "arrivalMinutes": 648,
+        "departureMinutes": 648
       }
     ]
   },
@@ -33975,13 +33975,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 656,
-        "departureMinutes": 656
+        "arrivalMinutes": 651,
+        "departureMinutes": 651
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 659,
-        "departureMinutes": 659
+        "arrivalMinutes": 654,
+        "departureMinutes": 654
       }
     ]
   },
@@ -33993,13 +33993,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 662,
-        "departureMinutes": 662
+        "arrivalMinutes": 657,
+        "departureMinutes": 657
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 665,
-        "departureMinutes": 665
+        "arrivalMinutes": 660,
+        "departureMinutes": 660
       }
     ]
   },
@@ -34011,18 +34011,36 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 668,
-        "departureMinutes": 668
+        "arrivalMinutes": 663,
+        "departureMinutes": 663
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 671,
-        "departureMinutes": 671
+        "arrivalMinutes": 666,
+        "departureMinutes": 666
       }
     ]
   },
   {
     "id": "hengqin_fri_F0044",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 669,
+        "departureMinutes": 669
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 672,
+        "departureMinutes": 672
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0045",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34040,7 +34058,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0045",
+    "id": "hengqin_fri_F0046",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34058,7 +34076,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0046",
+    "id": "hengqin_fri_F0047",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34076,7 +34094,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0047",
+    "id": "hengqin_fri_F0048",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34094,24 +34112,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0048",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 700,
-        "departureMinutes": 700
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 703,
-        "departureMinutes": 703
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_F0049",
     "lineId": "hengqin",
     "direction": "forward",
@@ -34119,13 +34119,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 706,
-        "departureMinutes": 706
+        "arrivalMinutes": 699,
+        "departureMinutes": 699
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 709,
-        "departureMinutes": 709
+        "arrivalMinutes": 702,
+        "departureMinutes": 702
       }
     ]
   },
@@ -34137,13 +34137,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 712,
-        "departureMinutes": 712
+        "arrivalMinutes": 705,
+        "departureMinutes": 705
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 715,
-        "departureMinutes": 715
+        "arrivalMinutes": 708,
+        "departureMinutes": 708
       }
     ]
   },
@@ -34155,13 +34155,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 718,
-        "departureMinutes": 718
+        "arrivalMinutes": 711,
+        "departureMinutes": 711
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 721,
-        "departureMinutes": 721
+        "arrivalMinutes": 714,
+        "departureMinutes": 714
       }
     ]
   },
@@ -34173,13 +34173,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 725,
-        "departureMinutes": 725
+        "arrivalMinutes": 717,
+        "departureMinutes": 717
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 728,
-        "departureMinutes": 728
+        "arrivalMinutes": 720,
+        "departureMinutes": 720
       }
     ]
   },
@@ -34191,13 +34191,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 731,
-        "departureMinutes": 731
+        "arrivalMinutes": 723,
+        "departureMinutes": 723
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 734,
-        "departureMinutes": 734
+        "arrivalMinutes": 726,
+        "departureMinutes": 726
       }
     ]
   },
@@ -34209,13 +34209,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 737,
-        "departureMinutes": 737
+        "arrivalMinutes": 729,
+        "departureMinutes": 729
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 740,
-        "departureMinutes": 740
+        "arrivalMinutes": 732,
+        "departureMinutes": 732
       }
     ]
   },
@@ -34227,13 +34227,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 743,
-        "departureMinutes": 743
+        "arrivalMinutes": 735,
+        "departureMinutes": 735
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 746,
-        "departureMinutes": 746
+        "arrivalMinutes": 738,
+        "departureMinutes": 738
       }
     ]
   },
@@ -34245,13 +34245,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 749,
-        "departureMinutes": 749
+        "arrivalMinutes": 741,
+        "departureMinutes": 741
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 752,
-        "departureMinutes": 752
+        "arrivalMinutes": 744,
+        "departureMinutes": 744
       }
     ]
   },
@@ -34263,13 +34263,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 756,
-        "departureMinutes": 756
+        "arrivalMinutes": 747,
+        "departureMinutes": 747
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 759,
-        "departureMinutes": 759
+        "arrivalMinutes": 750,
+        "departureMinutes": 750
       }
     ]
   },
@@ -34281,13 +34281,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 762,
-        "departureMinutes": 762
+        "arrivalMinutes": 753,
+        "departureMinutes": 753
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 765,
-        "departureMinutes": 765
+        "arrivalMinutes": 756,
+        "departureMinutes": 756
       }
     ]
   },
@@ -34299,13 +34299,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 768,
-        "departureMinutes": 768
+        "arrivalMinutes": 759,
+        "departureMinutes": 759
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 771,
-        "departureMinutes": 771
+        "arrivalMinutes": 762,
+        "departureMinutes": 762
       }
     ]
   },
@@ -34317,13 +34317,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 774,
-        "departureMinutes": 774
+        "arrivalMinutes": 765,
+        "departureMinutes": 765
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 777,
-        "departureMinutes": 777
+        "arrivalMinutes": 768,
+        "departureMinutes": 768
       }
     ]
   },
@@ -34335,13 +34335,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 781,
-        "departureMinutes": 781
+        "arrivalMinutes": 771,
+        "departureMinutes": 771
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 784,
-        "departureMinutes": 784
+        "arrivalMinutes": 774,
+        "departureMinutes": 774
       }
     ]
   },
@@ -34353,13 +34353,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 787,
-        "departureMinutes": 787
+        "arrivalMinutes": 777,
+        "departureMinutes": 777
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 790,
-        "departureMinutes": 790
+        "arrivalMinutes": 780,
+        "departureMinutes": 780
       }
     ]
   },
@@ -34371,13 +34371,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 793,
-        "departureMinutes": 793
+        "arrivalMinutes": 783,
+        "departureMinutes": 783
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 796,
-        "departureMinutes": 796
+        "arrivalMinutes": 786,
+        "departureMinutes": 786
       }
     ]
   },
@@ -34389,13 +34389,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 799,
-        "departureMinutes": 799
+        "arrivalMinutes": 789,
+        "departureMinutes": 789
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 802,
-        "departureMinutes": 802
+        "arrivalMinutes": 792,
+        "departureMinutes": 792
       }
     ]
   },
@@ -34407,13 +34407,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 806,
-        "departureMinutes": 806
+        "arrivalMinutes": 795,
+        "departureMinutes": 795
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 809,
-        "departureMinutes": 809
+        "arrivalMinutes": 798,
+        "departureMinutes": 798
       }
     ]
   },
@@ -34425,13 +34425,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 812,
-        "departureMinutes": 812
+        "arrivalMinutes": 801,
+        "departureMinutes": 801
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 815,
-        "departureMinutes": 815
+        "arrivalMinutes": 804,
+        "departureMinutes": 804
       }
     ]
   },
@@ -34443,13 +34443,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 818,
-        "departureMinutes": 818
+        "arrivalMinutes": 807,
+        "departureMinutes": 807
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 821,
-        "departureMinutes": 821
+        "arrivalMinutes": 810,
+        "departureMinutes": 810
       }
     ]
   },
@@ -34461,18 +34461,54 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 824,
-        "departureMinutes": 824
+        "arrivalMinutes": 813,
+        "departureMinutes": 813
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 827,
-        "departureMinutes": 827
+        "arrivalMinutes": 816,
+        "departureMinutes": 816
       }
     ]
   },
   {
     "id": "hengqin_fri_F0069",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 819,
+        "departureMinutes": 819
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 822,
+        "departureMinutes": 822
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0070",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 825,
+        "departureMinutes": 825
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 828,
+        "departureMinutes": 828
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0071",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34490,7 +34526,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0070",
+    "id": "hengqin_fri_F0072",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34508,7 +34544,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0071",
+    "id": "hengqin_fri_F0073",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34526,7 +34562,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0072",
+    "id": "hengqin_fri_F0074",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34544,7 +34580,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0073",
+    "id": "hengqin_fri_F0075",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34562,42 +34598,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0074",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 862,
-        "departureMinutes": 862
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 865,
-        "departureMinutes": 865
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0075",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 868,
-        "departureMinutes": 868
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 871,
-        "departureMinutes": 871
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_F0076",
     "lineId": "hengqin",
     "direction": "forward",
@@ -34605,13 +34605,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 874,
-        "departureMinutes": 874
+        "arrivalMinutes": 861,
+        "departureMinutes": 861
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 877,
-        "departureMinutes": 877
+        "arrivalMinutes": 864,
+        "departureMinutes": 864
       }
     ]
   },
@@ -34623,13 +34623,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 880,
-        "departureMinutes": 880
+        "arrivalMinutes": 867,
+        "departureMinutes": 867
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 883,
-        "departureMinutes": 883
+        "arrivalMinutes": 870,
+        "departureMinutes": 870
       }
     ]
   },
@@ -34641,13 +34641,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 887,
-        "departureMinutes": 887
+        "arrivalMinutes": 873,
+        "departureMinutes": 873
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 890,
-        "departureMinutes": 890
+        "arrivalMinutes": 876,
+        "departureMinutes": 876
       }
     ]
   },
@@ -34659,13 +34659,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 893,
-        "departureMinutes": 893
+        "arrivalMinutes": 879,
+        "departureMinutes": 879
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 896,
-        "departureMinutes": 896
+        "arrivalMinutes": 882,
+        "departureMinutes": 882
       }
     ]
   },
@@ -34677,13 +34677,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 899,
-        "departureMinutes": 899
+        "arrivalMinutes": 885,
+        "departureMinutes": 885
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 902,
-        "departureMinutes": 902
+        "arrivalMinutes": 888,
+        "departureMinutes": 888
       }
     ]
   },
@@ -34695,13 +34695,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 905,
-        "departureMinutes": 905
+        "arrivalMinutes": 891,
+        "departureMinutes": 891
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 908,
-        "departureMinutes": 908
+        "arrivalMinutes": 894,
+        "departureMinutes": 894
       }
     ]
   },
@@ -34713,13 +34713,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 912,
-        "departureMinutes": 912
+        "arrivalMinutes": 897,
+        "departureMinutes": 897
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 915,
-        "departureMinutes": 915
+        "arrivalMinutes": 900,
+        "departureMinutes": 900
       }
     ]
   },
@@ -34731,13 +34731,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 918,
-        "departureMinutes": 918
+        "arrivalMinutes": 903,
+        "departureMinutes": 903
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 921,
-        "departureMinutes": 921
+        "arrivalMinutes": 906,
+        "departureMinutes": 906
       }
     ]
   },
@@ -34749,13 +34749,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 924,
-        "departureMinutes": 924
+        "arrivalMinutes": 909,
+        "departureMinutes": 909
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 927,
-        "departureMinutes": 927
+        "arrivalMinutes": 912,
+        "departureMinutes": 912
       }
     ]
   },
@@ -34767,13 +34767,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 930,
-        "departureMinutes": 930
+        "arrivalMinutes": 915,
+        "departureMinutes": 915
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 933,
-        "departureMinutes": 933
+        "arrivalMinutes": 918,
+        "departureMinutes": 918
       }
     ]
   },
@@ -34785,13 +34785,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 936,
-        "departureMinutes": 936
+        "arrivalMinutes": 921,
+        "departureMinutes": 921
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 939,
-        "departureMinutes": 939
+        "arrivalMinutes": 924,
+        "departureMinutes": 924
       }
     ]
   },
@@ -34803,13 +34803,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 943,
-        "departureMinutes": 943
+        "arrivalMinutes": 927,
+        "departureMinutes": 927
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 946,
-        "departureMinutes": 946
+        "arrivalMinutes": 930,
+        "departureMinutes": 930
       }
     ]
   },
@@ -34821,13 +34821,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 949,
-        "departureMinutes": 949
+        "arrivalMinutes": 933,
+        "departureMinutes": 933
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 952,
-        "departureMinutes": 952
+        "arrivalMinutes": 936,
+        "departureMinutes": 936
       }
     ]
   },
@@ -34839,13 +34839,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 955,
-        "departureMinutes": 955
+        "arrivalMinutes": 939,
+        "departureMinutes": 939
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 958,
-        "departureMinutes": 958
+        "arrivalMinutes": 942,
+        "departureMinutes": 942
       }
     ]
   },
@@ -34857,13 +34857,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 961,
-        "departureMinutes": 961
+        "arrivalMinutes": 945,
+        "departureMinutes": 945
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 964,
-        "departureMinutes": 964
+        "arrivalMinutes": 948,
+        "departureMinutes": 948
       }
     ]
   },
@@ -34875,13 +34875,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 968,
-        "departureMinutes": 968
+        "arrivalMinutes": 951,
+        "departureMinutes": 951
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 971,
-        "departureMinutes": 971
+        "arrivalMinutes": 954,
+        "departureMinutes": 954
       }
     ]
   },
@@ -34893,13 +34893,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 974,
-        "departureMinutes": 974
+        "arrivalMinutes": 957,
+        "departureMinutes": 957
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 977,
-        "departureMinutes": 977
+        "arrivalMinutes": 960,
+        "departureMinutes": 960
       }
     ]
   },
@@ -34911,13 +34911,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 980,
-        "departureMinutes": 980
+        "arrivalMinutes": 963,
+        "departureMinutes": 963
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 983,
-        "departureMinutes": 983
+        "arrivalMinutes": 966,
+        "departureMinutes": 966
       }
     ]
   },
@@ -34929,18 +34929,72 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 986,
-        "departureMinutes": 986
+        "arrivalMinutes": 969,
+        "departureMinutes": 969
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 989,
-        "departureMinutes": 989
+        "arrivalMinutes": 972,
+        "departureMinutes": 972
       }
     ]
   },
   {
     "id": "hengqin_fri_F0095",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 975,
+        "departureMinutes": 975
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 978,
+        "departureMinutes": 978
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0096",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 981,
+        "departureMinutes": 981
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 984,
+        "departureMinutes": 984
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0097",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 987,
+        "departureMinutes": 987
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 990,
+        "departureMinutes": 990
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0098",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34958,7 +35012,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0096",
+    "id": "hengqin_fri_F0099",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34976,7 +35030,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0097",
+    "id": "hengqin_fri_F0100",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -34994,7 +35048,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0098",
+    "id": "hengqin_fri_F0101",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -35012,60 +35066,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0099",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1018,
-        "departureMinutes": 1018
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1021,
-        "departureMinutes": 1021
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0100",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1024,
-        "departureMinutes": 1024
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1027,
-        "departureMinutes": 1027
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0101",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1030,
-        "departureMinutes": 1030
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1033,
-        "departureMinutes": 1033
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_F0102",
     "lineId": "hengqin",
     "direction": "forward",
@@ -35073,13 +35073,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1036,
-        "departureMinutes": 1036
+        "arrivalMinutes": 1017,
+        "departureMinutes": 1017
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1039,
-        "departureMinutes": 1039
+        "arrivalMinutes": 1020,
+        "departureMinutes": 1020
       }
     ]
   },
@@ -35091,13 +35091,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1042,
-        "departureMinutes": 1042
+        "arrivalMinutes": 1023,
+        "departureMinutes": 1023
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1045,
-        "departureMinutes": 1045
+        "arrivalMinutes": 1026,
+        "departureMinutes": 1026
       }
     ]
   },
@@ -35109,13 +35109,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1053,
-        "departureMinutes": 1053
+        "arrivalMinutes": 1029,
+        "departureMinutes": 1029
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1056,
-        "departureMinutes": 1056
+        "arrivalMinutes": 1032,
+        "departureMinutes": 1032
       }
     ]
   },
@@ -35127,13 +35127,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1059,
-        "departureMinutes": 1059
+        "arrivalMinutes": 1035,
+        "departureMinutes": 1035
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1062,
-        "departureMinutes": 1062
+        "arrivalMinutes": 1038,
+        "departureMinutes": 1038
       }
     ]
   },
@@ -35145,13 +35145,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1065,
-        "departureMinutes": 1065
+        "arrivalMinutes": 1041,
+        "departureMinutes": 1041
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1068,
-        "departureMinutes": 1068
+        "arrivalMinutes": 1044,
+        "departureMinutes": 1044
       }
     ]
   },
@@ -35163,13 +35163,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1072,
-        "departureMinutes": 1072
+        "arrivalMinutes": 1051,
+        "departureMinutes": 1051
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1075,
-        "departureMinutes": 1075
+        "arrivalMinutes": 1054,
+        "departureMinutes": 1054
       }
     ]
   },
@@ -35181,13 +35181,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1078,
-        "departureMinutes": 1078
+        "arrivalMinutes": 1057,
+        "departureMinutes": 1057
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1081,
-        "departureMinutes": 1081
+        "arrivalMinutes": 1060,
+        "departureMinutes": 1060
       }
     ]
   },
@@ -35199,13 +35199,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1085,
-        "departureMinutes": 1085
+        "arrivalMinutes": 1063,
+        "departureMinutes": 1063
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1088,
-        "departureMinutes": 1088
+        "arrivalMinutes": 1066,
+        "departureMinutes": 1066
       }
     ]
   },
@@ -35217,13 +35217,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1091,
-        "departureMinutes": 1091
+        "arrivalMinutes": 1069,
+        "departureMinutes": 1069
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1094,
-        "departureMinutes": 1094
+        "arrivalMinutes": 1072,
+        "departureMinutes": 1072
       }
     ]
   },
@@ -35235,13 +35235,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1097,
-        "departureMinutes": 1097
+        "arrivalMinutes": 1075,
+        "departureMinutes": 1075
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1100,
-        "departureMinutes": 1100
+        "arrivalMinutes": 1078,
+        "departureMinutes": 1078
       }
     ]
   },
@@ -35253,13 +35253,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1104,
-        "departureMinutes": 1104
+        "arrivalMinutes": 1081,
+        "departureMinutes": 1081
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1107,
-        "departureMinutes": 1107
+        "arrivalMinutes": 1084,
+        "departureMinutes": 1084
       }
     ]
   },
@@ -35271,18 +35271,90 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1110,
-        "departureMinutes": 1110
+        "arrivalMinutes": 1087,
+        "departureMinutes": 1087
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1113,
-        "departureMinutes": 1113
+        "arrivalMinutes": 1090,
+        "departureMinutes": 1090
       }
     ]
   },
   {
     "id": "hengqin_fri_F0114",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1093,
+        "departureMinutes": 1093
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1096,
+        "departureMinutes": 1096
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0115",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1099,
+        "departureMinutes": 1099
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1102,
+        "departureMinutes": 1102
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0116",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1105,
+        "departureMinutes": 1105
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1108,
+        "departureMinutes": 1108
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0117",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1111,
+        "departureMinutes": 1111
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1114,
+        "departureMinutes": 1114
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0118",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -35300,7 +35372,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0115",
+    "id": "hengqin_fri_F0119",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -35318,7 +35390,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0116",
+    "id": "hengqin_fri_F0120",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -35336,78 +35408,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0117",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1136,
-        "departureMinutes": 1136
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1139,
-        "departureMinutes": 1139
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0118",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1142,
-        "departureMinutes": 1142
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1145,
-        "departureMinutes": 1145
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0119",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1149,
-        "departureMinutes": 1149
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1152,
-        "departureMinutes": 1152
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0120",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1155,
-        "departureMinutes": 1155
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1158,
-        "departureMinutes": 1158
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_F0121",
     "lineId": "hengqin",
     "direction": "forward",
@@ -35415,13 +35415,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1161,
-        "departureMinutes": 1161
+        "arrivalMinutes": 1135,
+        "departureMinutes": 1135
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1164,
-        "departureMinutes": 1164
+        "arrivalMinutes": 1138,
+        "departureMinutes": 1138
       }
     ]
   },
@@ -35433,13 +35433,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1168,
-        "departureMinutes": 1168
+        "arrivalMinutes": 1141,
+        "departureMinutes": 1141
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1171,
-        "departureMinutes": 1171
+        "arrivalMinutes": 1144,
+        "departureMinutes": 1144
       }
     ]
   },
@@ -35451,13 +35451,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1174,
-        "departureMinutes": 1174
+        "arrivalMinutes": 1148,
+        "departureMinutes": 1148
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1177,
-        "departureMinutes": 1177
+        "arrivalMinutes": 1151,
+        "departureMinutes": 1151
       }
     ]
   },
@@ -35469,13 +35469,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1181,
-        "departureMinutes": 1181
+        "arrivalMinutes": 1154,
+        "departureMinutes": 1154
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1184,
-        "departureMinutes": 1184
+        "arrivalMinutes": 1157,
+        "departureMinutes": 1157
       }
     ]
   },
@@ -35487,13 +35487,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1187,
-        "departureMinutes": 1187
+        "arrivalMinutes": 1160,
+        "departureMinutes": 1160
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1190,
-        "departureMinutes": 1190
+        "arrivalMinutes": 1163,
+        "departureMinutes": 1163
       }
     ]
   },
@@ -35505,13 +35505,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1193,
-        "departureMinutes": 1193
+        "arrivalMinutes": 1166,
+        "departureMinutes": 1166
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1196,
-        "departureMinutes": 1196
+        "arrivalMinutes": 1169,
+        "departureMinutes": 1169
       }
     ]
   },
@@ -35523,13 +35523,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1200,
-        "departureMinutes": 1200
+        "arrivalMinutes": 1172,
+        "departureMinutes": 1172
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1203,
-        "departureMinutes": 1203
+        "arrivalMinutes": 1175,
+        "departureMinutes": 1175
       }
     ]
   },
@@ -35541,13 +35541,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1206,
-        "departureMinutes": 1206
+        "arrivalMinutes": 1178,
+        "departureMinutes": 1178
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1209,
-        "departureMinutes": 1209
+        "arrivalMinutes": 1181,
+        "departureMinutes": 1181
       }
     ]
   },
@@ -35559,13 +35559,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1213,
-        "departureMinutes": 1213
+        "arrivalMinutes": 1184,
+        "departureMinutes": 1184
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1216,
-        "departureMinutes": 1216
+        "arrivalMinutes": 1187,
+        "departureMinutes": 1187
       }
     ]
   },
@@ -35577,13 +35577,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1219,
-        "departureMinutes": 1219
+        "arrivalMinutes": 1190,
+        "departureMinutes": 1190
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1222,
-        "departureMinutes": 1222
+        "arrivalMinutes": 1193,
+        "departureMinutes": 1193
       }
     ]
   },
@@ -35595,18 +35595,108 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1225,
-        "departureMinutes": 1225
+        "arrivalMinutes": 1196,
+        "departureMinutes": 1196
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1228,
-        "departureMinutes": 1228
+        "arrivalMinutes": 1199,
+        "departureMinutes": 1199
       }
     ]
   },
   {
     "id": "hengqin_fri_F0132",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1202,
+        "departureMinutes": 1202
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1205,
+        "departureMinutes": 1205
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0133",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1208,
+        "departureMinutes": 1208
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1211,
+        "departureMinutes": 1211
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0134",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1214,
+        "departureMinutes": 1214
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1217,
+        "departureMinutes": 1217
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0135",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1220,
+        "departureMinutes": 1220
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1223,
+        "departureMinutes": 1223
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0136",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1226,
+        "departureMinutes": 1226
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1229,
+        "departureMinutes": 1229
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0137",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -35624,7 +35714,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0133",
+    "id": "hengqin_fri_F0138",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -35642,96 +35732,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0134",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1245,
-        "departureMinutes": 1245
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1248,
-        "departureMinutes": 1248
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0135",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1251,
-        "departureMinutes": 1251
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1254,
-        "departureMinutes": 1254
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0136",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1257,
-        "departureMinutes": 1257
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1260,
-        "departureMinutes": 1260
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0137",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1264,
-        "departureMinutes": 1264
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1267,
-        "departureMinutes": 1267
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0138",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1270,
-        "departureMinutes": 1270
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1273,
-        "departureMinutes": 1273
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_F0139",
     "lineId": "hengqin",
     "direction": "forward",
@@ -35739,13 +35739,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1277,
-        "departureMinutes": 1277
+        "arrivalMinutes": 1244,
+        "departureMinutes": 1244
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1280,
-        "departureMinutes": 1280
+        "arrivalMinutes": 1247,
+        "departureMinutes": 1247
       }
     ]
   },
@@ -35757,13 +35757,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1283,
-        "departureMinutes": 1283
+        "arrivalMinutes": 1250,
+        "departureMinutes": 1250
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1286,
-        "departureMinutes": 1286
+        "arrivalMinutes": 1253,
+        "departureMinutes": 1253
       }
     ]
   },
@@ -35775,13 +35775,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1289,
-        "departureMinutes": 1289
+        "arrivalMinutes": 1256,
+        "departureMinutes": 1256
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1292,
-        "departureMinutes": 1292
+        "arrivalMinutes": 1259,
+        "departureMinutes": 1259
       }
     ]
   },
@@ -35793,13 +35793,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1296,
-        "departureMinutes": 1296
+        "arrivalMinutes": 1262,
+        "departureMinutes": 1262
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1299,
-        "departureMinutes": 1299
+        "arrivalMinutes": 1265,
+        "departureMinutes": 1265
       }
     ]
   },
@@ -35811,13 +35811,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1302,
-        "departureMinutes": 1302
+        "arrivalMinutes": 1268,
+        "departureMinutes": 1268
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1305,
-        "departureMinutes": 1305
+        "arrivalMinutes": 1271,
+        "departureMinutes": 1271
       }
     ]
   },
@@ -35829,13 +35829,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1309,
-        "departureMinutes": 1309
+        "arrivalMinutes": 1274,
+        "departureMinutes": 1274
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1312,
-        "departureMinutes": 1312
+        "arrivalMinutes": 1277,
+        "departureMinutes": 1277
       }
     ]
   },
@@ -35847,13 +35847,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1315,
-        "departureMinutes": 1315
+        "arrivalMinutes": 1281,
+        "departureMinutes": 1281
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1318,
-        "departureMinutes": 1318
+        "arrivalMinutes": 1284,
+        "departureMinutes": 1284
       }
     ]
   },
@@ -35865,13 +35865,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1321,
-        "departureMinutes": 1321
+        "arrivalMinutes": 1287,
+        "departureMinutes": 1287
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1324,
-        "departureMinutes": 1324
+        "arrivalMinutes": 1290,
+        "departureMinutes": 1290
       }
     ]
   },
@@ -35883,13 +35883,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1328,
-        "departureMinutes": 1328
+        "arrivalMinutes": 1293,
+        "departureMinutes": 1293
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1331,
-        "departureMinutes": 1331
+        "arrivalMinutes": 1296,
+        "departureMinutes": 1296
       }
     ]
   },
@@ -35901,18 +35901,126 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1334,
-        "departureMinutes": 1334
+        "arrivalMinutes": 1299,
+        "departureMinutes": 1299
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1337,
-        "departureMinutes": 1337
+        "arrivalMinutes": 1302,
+        "departureMinutes": 1302
       }
     ]
   },
   {
     "id": "hengqin_fri_F0149",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1305,
+        "departureMinutes": 1305
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1308,
+        "departureMinutes": 1308
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0150",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1311,
+        "departureMinutes": 1311
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1314,
+        "departureMinutes": 1314
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0151",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1317,
+        "departureMinutes": 1317
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1320,
+        "departureMinutes": 1320
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0152",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1323,
+        "departureMinutes": 1323
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1326,
+        "departureMinutes": 1326
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0153",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1329,
+        "departureMinutes": 1329
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1332,
+        "departureMinutes": 1332
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0154",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1335,
+        "departureMinutes": 1335
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1338,
+        "departureMinutes": 1338
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0155",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -35930,7 +36038,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0150",
+    "id": "hengqin_fri_F0156",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -35948,7 +36056,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0151",
+    "id": "hengqin_fri_F0157",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -35966,114 +36074,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0152",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1364,
-        "departureMinutes": 1364
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1367,
-        "departureMinutes": 1367
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0153",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1370,
-        "departureMinutes": 1370
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1373,
-        "departureMinutes": 1373
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0154",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1377,
-        "departureMinutes": 1377
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1380,
-        "departureMinutes": 1380
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0155",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1383,
-        "departureMinutes": 1383
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1386,
-        "departureMinutes": 1386
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0156",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1390,
-        "departureMinutes": 1390
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1393,
-        "departureMinutes": 1393
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_F0157",
-    "lineId": "hengqin",
-    "direction": "forward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1396,
-        "departureMinutes": 1396
-      },
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1399,
-        "departureMinutes": 1399
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_F0158",
     "lineId": "hengqin",
     "direction": "forward",
@@ -36081,13 +36081,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1403,
-        "departureMinutes": 1403
+        "arrivalMinutes": 1363,
+        "departureMinutes": 1363
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1406,
-        "departureMinutes": 1406
+        "arrivalMinutes": 1366,
+        "departureMinutes": 1366
       }
     ]
   },
@@ -36099,13 +36099,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1409,
-        "departureMinutes": 1409
+        "arrivalMinutes": 1369,
+        "departureMinutes": 1369
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1412,
-        "departureMinutes": 1412
+        "arrivalMinutes": 1372,
+        "departureMinutes": 1372
       }
     ]
   },
@@ -36117,13 +36117,13 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1416,
-        "departureMinutes": 1416
+        "arrivalMinutes": 1375,
+        "departureMinutes": 1375
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1419,
-        "departureMinutes": 1419
+        "arrivalMinutes": 1378,
+        "departureMinutes": 1378
       }
     ]
   },
@@ -36135,18 +36135,144 @@
     "entries": [
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1422,
-        "departureMinutes": 1422
+        "arrivalMinutes": 1381,
+        "departureMinutes": 1381
       },
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1425,
-        "departureMinutes": 1425
+        "arrivalMinutes": 1384,
+        "departureMinutes": 1384
       }
     ]
   },
   {
     "id": "hengqin_fri_F0162",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1387,
+        "departureMinutes": 1387
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1390,
+        "departureMinutes": 1390
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0163",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1393,
+        "departureMinutes": 1393
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1396,
+        "departureMinutes": 1396
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0164",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1399,
+        "departureMinutes": 1399
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1402,
+        "departureMinutes": 1402
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0165",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1405,
+        "departureMinutes": 1405
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1408,
+        "departureMinutes": 1408
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0166",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1411,
+        "departureMinutes": 1411
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1414,
+        "departureMinutes": 1414
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0167",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1417,
+        "departureMinutes": 1417
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1420,
+        "departureMinutes": 1420
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0168",
+    "lineId": "hengqin",
+    "direction": "forward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1423,
+        "departureMinutes": 1423
+      },
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1426,
+        "departureMinutes": 1426
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_F0169",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -36164,7 +36290,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0163",
+    "id": "hengqin_fri_F0170",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -36182,7 +36308,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0164",
+    "id": "hengqin_fri_F0171",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -36200,7 +36326,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0165",
+    "id": "hengqin_fri_F0172",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -36218,7 +36344,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_F0166",
+    "id": "hengqin_fri_F0173",
     "lineId": "hengqin",
     "direction": "forward",
     "scheduleType": "friday",
@@ -36675,13 +36801,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 547,
-        "departureMinutes": 547
+        "arrivalMinutes": 546,
+        "departureMinutes": 546
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 550,
-        "departureMinutes": 550
+        "arrivalMinutes": 549,
+        "departureMinutes": 549
       }
     ]
   },
@@ -36693,13 +36819,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 553,
-        "departureMinutes": 553
+        "arrivalMinutes": 552,
+        "departureMinutes": 552
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 556,
-        "departureMinutes": 556
+        "arrivalMinutes": 555,
+        "departureMinutes": 555
       }
     ]
   },
@@ -36711,13 +36837,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 559,
-        "departureMinutes": 559
+        "arrivalMinutes": 558,
+        "departureMinutes": 558
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 562,
-        "departureMinutes": 562
+        "arrivalMinutes": 561,
+        "departureMinutes": 561
       }
     ]
   },
@@ -36729,13 +36855,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 566,
-        "departureMinutes": 566
+        "arrivalMinutes": 564,
+        "departureMinutes": 564
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 569,
-        "departureMinutes": 569
+        "arrivalMinutes": 567,
+        "departureMinutes": 567
       }
     ]
   },
@@ -36747,13 +36873,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 572,
-        "departureMinutes": 572
+        "arrivalMinutes": 570,
+        "departureMinutes": 570
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 575,
-        "departureMinutes": 575
+        "arrivalMinutes": 573,
+        "departureMinutes": 573
       }
     ]
   },
@@ -36765,13 +36891,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 578,
-        "departureMinutes": 578
+        "arrivalMinutes": 576,
+        "departureMinutes": 576
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 581,
-        "departureMinutes": 581
+        "arrivalMinutes": 579,
+        "departureMinutes": 579
       }
     ]
   },
@@ -36783,13 +36909,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 584,
-        "departureMinutes": 584
+        "arrivalMinutes": 582,
+        "departureMinutes": 582
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 587,
-        "departureMinutes": 587
+        "arrivalMinutes": 585,
+        "departureMinutes": 585
       }
     ]
   },
@@ -36801,13 +36927,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 590,
-        "departureMinutes": 590
+        "arrivalMinutes": 588,
+        "departureMinutes": 588
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 593,
-        "departureMinutes": 593
+        "arrivalMinutes": 591,
+        "departureMinutes": 591
       }
     ]
   },
@@ -36819,13 +36945,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 597,
-        "departureMinutes": 597
+        "arrivalMinutes": 594,
+        "departureMinutes": 594
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 600,
-        "departureMinutes": 600
+        "arrivalMinutes": 597,
+        "departureMinutes": 597
       }
     ]
   },
@@ -36837,13 +36963,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 603,
-        "departureMinutes": 603
+        "arrivalMinutes": 600,
+        "departureMinutes": 600
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 606,
-        "departureMinutes": 606
+        "arrivalMinutes": 603,
+        "departureMinutes": 603
       }
     ]
   },
@@ -36855,13 +36981,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 609,
-        "departureMinutes": 609
+        "arrivalMinutes": 606,
+        "departureMinutes": 606
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 612,
-        "departureMinutes": 612
+        "arrivalMinutes": 609,
+        "departureMinutes": 609
       }
     ]
   },
@@ -36873,13 +36999,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 615,
-        "departureMinutes": 615
+        "arrivalMinutes": 612,
+        "departureMinutes": 612
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 618,
-        "departureMinutes": 618
+        "arrivalMinutes": 615,
+        "departureMinutes": 615
       }
     ]
   },
@@ -36891,13 +37017,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 622,
-        "departureMinutes": 622
+        "arrivalMinutes": 618,
+        "departureMinutes": 618
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 625,
-        "departureMinutes": 625
+        "arrivalMinutes": 621,
+        "departureMinutes": 621
       }
     ]
   },
@@ -36909,13 +37035,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 628,
-        "departureMinutes": 628
+        "arrivalMinutes": 624,
+        "departureMinutes": 624
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 631,
-        "departureMinutes": 631
+        "arrivalMinutes": 627,
+        "departureMinutes": 627
       }
     ]
   },
@@ -36927,13 +37053,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 634,
-        "departureMinutes": 634
+        "arrivalMinutes": 630,
+        "departureMinutes": 630
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 637,
-        "departureMinutes": 637
+        "arrivalMinutes": 633,
+        "departureMinutes": 633
       }
     ]
   },
@@ -36945,13 +37071,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 640,
-        "departureMinutes": 640
+        "arrivalMinutes": 636,
+        "departureMinutes": 636
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 643,
-        "departureMinutes": 643
+        "arrivalMinutes": 639,
+        "departureMinutes": 639
       }
     ]
   },
@@ -36963,13 +37089,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 647,
-        "departureMinutes": 647
+        "arrivalMinutes": 642,
+        "departureMinutes": 642
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 650,
-        "departureMinutes": 650
+        "arrivalMinutes": 645,
+        "departureMinutes": 645
       }
     ]
   },
@@ -36981,13 +37107,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 653,
-        "departureMinutes": 653
+        "arrivalMinutes": 648,
+        "departureMinutes": 648
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 656,
-        "departureMinutes": 656
+        "arrivalMinutes": 651,
+        "departureMinutes": 651
       }
     ]
   },
@@ -36999,13 +37125,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 659,
-        "departureMinutes": 659
+        "arrivalMinutes": 654,
+        "departureMinutes": 654
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 662,
-        "departureMinutes": 662
+        "arrivalMinutes": 657,
+        "departureMinutes": 657
       }
     ]
   },
@@ -37017,18 +37143,36 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 665,
-        "departureMinutes": 665
+        "arrivalMinutes": 660,
+        "departureMinutes": 660
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 668,
-        "departureMinutes": 668
+        "arrivalMinutes": 663,
+        "departureMinutes": 663
       }
     ]
   },
   {
     "id": "hengqin_fri_B0044",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 666,
+        "departureMinutes": 666
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 669,
+        "departureMinutes": 669
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0045",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37046,7 +37190,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0045",
+    "id": "hengqin_fri_B0046",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37064,7 +37208,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0046",
+    "id": "hengqin_fri_B0047",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37082,7 +37226,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0047",
+    "id": "hengqin_fri_B0048",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37100,7 +37244,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0048",
+    "id": "hengqin_fri_B0049",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37118,24 +37262,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0049",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 703,
-        "departureMinutes": 703
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 706,
-        "departureMinutes": 706
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_B0050",
     "lineId": "hengqin",
     "direction": "backward",
@@ -37143,13 +37269,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 709,
-        "departureMinutes": 709
+        "arrivalMinutes": 702,
+        "departureMinutes": 702
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 712,
-        "departureMinutes": 712
+        "arrivalMinutes": 705,
+        "departureMinutes": 705
       }
     ]
   },
@@ -37161,13 +37287,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 715,
-        "departureMinutes": 715
+        "arrivalMinutes": 708,
+        "departureMinutes": 708
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 718,
-        "departureMinutes": 718
+        "arrivalMinutes": 711,
+        "departureMinutes": 711
       }
     ]
   },
@@ -37179,13 +37305,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 721,
-        "departureMinutes": 721
+        "arrivalMinutes": 714,
+        "departureMinutes": 714
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 724,
-        "departureMinutes": 724
+        "arrivalMinutes": 717,
+        "departureMinutes": 717
       }
     ]
   },
@@ -37197,13 +37323,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 728,
-        "departureMinutes": 728
+        "arrivalMinutes": 720,
+        "departureMinutes": 720
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 731,
-        "departureMinutes": 731
+        "arrivalMinutes": 723,
+        "departureMinutes": 723
       }
     ]
   },
@@ -37215,13 +37341,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 734,
-        "departureMinutes": 734
+        "arrivalMinutes": 726,
+        "departureMinutes": 726
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 737,
-        "departureMinutes": 737
+        "arrivalMinutes": 729,
+        "departureMinutes": 729
       }
     ]
   },
@@ -37233,13 +37359,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 740,
-        "departureMinutes": 740
+        "arrivalMinutes": 732,
+        "departureMinutes": 732
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 743,
-        "departureMinutes": 743
+        "arrivalMinutes": 735,
+        "departureMinutes": 735
       }
     ]
   },
@@ -37251,13 +37377,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 746,
-        "departureMinutes": 746
+        "arrivalMinutes": 738,
+        "departureMinutes": 738
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 749,
-        "departureMinutes": 749
+        "arrivalMinutes": 741,
+        "departureMinutes": 741
       }
     ]
   },
@@ -37269,13 +37395,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 753,
-        "departureMinutes": 753
+        "arrivalMinutes": 744,
+        "departureMinutes": 744
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 756,
-        "departureMinutes": 756
+        "arrivalMinutes": 747,
+        "departureMinutes": 747
       }
     ]
   },
@@ -37287,13 +37413,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 759,
-        "departureMinutes": 759
+        "arrivalMinutes": 750,
+        "departureMinutes": 750
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 762,
-        "departureMinutes": 762
+        "arrivalMinutes": 753,
+        "departureMinutes": 753
       }
     ]
   },
@@ -37305,13 +37431,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 765,
-        "departureMinutes": 765
+        "arrivalMinutes": 756,
+        "departureMinutes": 756
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 768,
-        "departureMinutes": 768
+        "arrivalMinutes": 759,
+        "departureMinutes": 759
       }
     ]
   },
@@ -37323,13 +37449,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 771,
-        "departureMinutes": 771
+        "arrivalMinutes": 762,
+        "departureMinutes": 762
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 774,
-        "departureMinutes": 774
+        "arrivalMinutes": 765,
+        "departureMinutes": 765
       }
     ]
   },
@@ -37341,13 +37467,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 777,
-        "departureMinutes": 777
+        "arrivalMinutes": 768,
+        "departureMinutes": 768
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 780,
-        "departureMinutes": 780
+        "arrivalMinutes": 771,
+        "departureMinutes": 771
       }
     ]
   },
@@ -37359,13 +37485,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 784,
-        "departureMinutes": 784
+        "arrivalMinutes": 774,
+        "departureMinutes": 774
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 787,
-        "departureMinutes": 787
+        "arrivalMinutes": 777,
+        "departureMinutes": 777
       }
     ]
   },
@@ -37377,13 +37503,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 790,
-        "departureMinutes": 790
+        "arrivalMinutes": 780,
+        "departureMinutes": 780
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 793,
-        "departureMinutes": 793
+        "arrivalMinutes": 783,
+        "departureMinutes": 783
       }
     ]
   },
@@ -37395,13 +37521,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 796,
-        "departureMinutes": 796
+        "arrivalMinutes": 786,
+        "departureMinutes": 786
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 799,
-        "departureMinutes": 799
+        "arrivalMinutes": 789,
+        "departureMinutes": 789
       }
     ]
   },
@@ -37413,13 +37539,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 802,
-        "departureMinutes": 802
+        "arrivalMinutes": 792,
+        "departureMinutes": 792
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 805,
-        "departureMinutes": 805
+        "arrivalMinutes": 795,
+        "departureMinutes": 795
       }
     ]
   },
@@ -37431,13 +37557,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 809,
-        "departureMinutes": 809
+        "arrivalMinutes": 798,
+        "departureMinutes": 798
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 812,
-        "departureMinutes": 812
+        "arrivalMinutes": 801,
+        "departureMinutes": 801
       }
     ]
   },
@@ -37449,13 +37575,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 815,
-        "departureMinutes": 815
+        "arrivalMinutes": 804,
+        "departureMinutes": 804
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 818,
-        "departureMinutes": 818
+        "arrivalMinutes": 807,
+        "departureMinutes": 807
       }
     ]
   },
@@ -37467,13 +37593,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 821,
-        "departureMinutes": 821
+        "arrivalMinutes": 810,
+        "departureMinutes": 810
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 824,
-        "departureMinutes": 824
+        "arrivalMinutes": 813,
+        "departureMinutes": 813
       }
     ]
   },
@@ -37485,18 +37611,54 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 827,
-        "departureMinutes": 827
+        "arrivalMinutes": 816,
+        "departureMinutes": 816
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 830,
-        "departureMinutes": 830
+        "arrivalMinutes": 819,
+        "departureMinutes": 819
       }
     ]
   },
   {
     "id": "hengqin_fri_B0070",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 822,
+        "departureMinutes": 822
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 825,
+        "departureMinutes": 825
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0071",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 828,
+        "departureMinutes": 828
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 831,
+        "departureMinutes": 831
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0072",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37514,7 +37676,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0071",
+    "id": "hengqin_fri_B0073",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37532,7 +37694,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0072",
+    "id": "hengqin_fri_B0074",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37550,7 +37712,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0073",
+    "id": "hengqin_fri_B0075",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37568,42 +37730,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0074",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 859,
-        "departureMinutes": 859
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 862,
-        "departureMinutes": 862
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0075",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 865,
-        "departureMinutes": 865
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 868,
-        "departureMinutes": 868
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_B0076",
     "lineId": "hengqin",
     "direction": "backward",
@@ -37611,13 +37737,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 871,
-        "departureMinutes": 871
+        "arrivalMinutes": 858,
+        "departureMinutes": 858
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 874,
-        "departureMinutes": 874
+        "arrivalMinutes": 861,
+        "departureMinutes": 861
       }
     ]
   },
@@ -37629,13 +37755,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 877,
-        "departureMinutes": 877
+        "arrivalMinutes": 864,
+        "departureMinutes": 864
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 880,
-        "departureMinutes": 880
+        "arrivalMinutes": 867,
+        "departureMinutes": 867
       }
     ]
   },
@@ -37647,13 +37773,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 883,
-        "departureMinutes": 883
+        "arrivalMinutes": 870,
+        "departureMinutes": 870
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 886,
-        "departureMinutes": 886
+        "arrivalMinutes": 873,
+        "departureMinutes": 873
       }
     ]
   },
@@ -37665,13 +37791,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 890,
-        "departureMinutes": 890
+        "arrivalMinutes": 876,
+        "departureMinutes": 876
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 893,
-        "departureMinutes": 893
+        "arrivalMinutes": 879,
+        "departureMinutes": 879
       }
     ]
   },
@@ -37683,13 +37809,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 896,
-        "departureMinutes": 896
+        "arrivalMinutes": 882,
+        "departureMinutes": 882
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 899,
-        "departureMinutes": 899
+        "arrivalMinutes": 885,
+        "departureMinutes": 885
       }
     ]
   },
@@ -37701,13 +37827,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 902,
-        "departureMinutes": 902
+        "arrivalMinutes": 888,
+        "departureMinutes": 888
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 905,
-        "departureMinutes": 905
+        "arrivalMinutes": 891,
+        "departureMinutes": 891
       }
     ]
   },
@@ -37719,13 +37845,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 908,
-        "departureMinutes": 908
+        "arrivalMinutes": 894,
+        "departureMinutes": 894
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 911,
-        "departureMinutes": 911
+        "arrivalMinutes": 897,
+        "departureMinutes": 897
       }
     ]
   },
@@ -37737,13 +37863,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 915,
-        "departureMinutes": 915
+        "arrivalMinutes": 900,
+        "departureMinutes": 900
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 918,
-        "departureMinutes": 918
+        "arrivalMinutes": 903,
+        "departureMinutes": 903
       }
     ]
   },
@@ -37755,13 +37881,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 921,
-        "departureMinutes": 921
+        "arrivalMinutes": 906,
+        "departureMinutes": 906
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 924,
-        "departureMinutes": 924
+        "arrivalMinutes": 909,
+        "departureMinutes": 909
       }
     ]
   },
@@ -37773,13 +37899,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 927,
-        "departureMinutes": 927
+        "arrivalMinutes": 912,
+        "departureMinutes": 912
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 930,
-        "departureMinutes": 930
+        "arrivalMinutes": 915,
+        "departureMinutes": 915
       }
     ]
   },
@@ -37791,13 +37917,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 933,
-        "departureMinutes": 933
+        "arrivalMinutes": 918,
+        "departureMinutes": 918
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 936,
-        "departureMinutes": 936
+        "arrivalMinutes": 921,
+        "departureMinutes": 921
       }
     ]
   },
@@ -37809,13 +37935,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 940,
-        "departureMinutes": 940
+        "arrivalMinutes": 924,
+        "departureMinutes": 924
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 943,
-        "departureMinutes": 943
+        "arrivalMinutes": 927,
+        "departureMinutes": 927
       }
     ]
   },
@@ -37827,13 +37953,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 946,
-        "departureMinutes": 946
+        "arrivalMinutes": 930,
+        "departureMinutes": 930
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 949,
-        "departureMinutes": 949
+        "arrivalMinutes": 933,
+        "departureMinutes": 933
       }
     ]
   },
@@ -37845,13 +37971,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 952,
-        "departureMinutes": 952
+        "arrivalMinutes": 936,
+        "departureMinutes": 936
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 955,
-        "departureMinutes": 955
+        "arrivalMinutes": 939,
+        "departureMinutes": 939
       }
     ]
   },
@@ -37863,13 +37989,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 958,
-        "departureMinutes": 958
+        "arrivalMinutes": 942,
+        "departureMinutes": 942
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 961,
-        "departureMinutes": 961
+        "arrivalMinutes": 945,
+        "departureMinutes": 945
       }
     ]
   },
@@ -37881,13 +38007,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 964,
-        "departureMinutes": 964
+        "arrivalMinutes": 948,
+        "departureMinutes": 948
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 967,
-        "departureMinutes": 967
+        "arrivalMinutes": 951,
+        "departureMinutes": 951
       }
     ]
   },
@@ -37899,13 +38025,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 971,
-        "departureMinutes": 971
+        "arrivalMinutes": 954,
+        "departureMinutes": 954
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 974,
-        "departureMinutes": 974
+        "arrivalMinutes": 957,
+        "departureMinutes": 957
       }
     ]
   },
@@ -37917,13 +38043,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 977,
-        "departureMinutes": 977
+        "arrivalMinutes": 960,
+        "departureMinutes": 960
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 980,
-        "departureMinutes": 980
+        "arrivalMinutes": 963,
+        "departureMinutes": 963
       }
     ]
   },
@@ -37935,13 +38061,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 983,
-        "departureMinutes": 983
+        "arrivalMinutes": 966,
+        "departureMinutes": 966
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 986,
-        "departureMinutes": 986
+        "arrivalMinutes": 969,
+        "departureMinutes": 969
       }
     ]
   },
@@ -37953,18 +38079,72 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 989,
-        "departureMinutes": 989
+        "arrivalMinutes": 972,
+        "departureMinutes": 972
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 992,
-        "departureMinutes": 992
+        "arrivalMinutes": 975,
+        "departureMinutes": 975
       }
     ]
   },
   {
     "id": "hengqin_fri_B0096",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 978,
+        "departureMinutes": 978
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 981,
+        "departureMinutes": 981
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0097",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 984,
+        "departureMinutes": 984
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 987,
+        "departureMinutes": 987
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0098",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 990,
+        "departureMinutes": 990
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 993,
+        "departureMinutes": 993
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0099",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -37982,7 +38162,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0097",
+    "id": "hengqin_fri_B0100",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38000,7 +38180,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0098",
+    "id": "hengqin_fri_B0101",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38018,7 +38198,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0099",
+    "id": "hengqin_fri_B0102",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38036,60 +38216,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0100",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1021,
-        "departureMinutes": 1021
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1024,
-        "departureMinutes": 1024
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0101",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1027,
-        "departureMinutes": 1027
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1030,
-        "departureMinutes": 1030
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0102",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1033,
-        "departureMinutes": 1033
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1036,
-        "departureMinutes": 1036
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_B0103",
     "lineId": "hengqin",
     "direction": "backward",
@@ -38097,13 +38223,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1039,
-        "departureMinutes": 1039
+        "arrivalMinutes": 1020,
+        "departureMinutes": 1020
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1042,
-        "departureMinutes": 1042
+        "arrivalMinutes": 1023,
+        "departureMinutes": 1023
       }
     ]
   },
@@ -38115,13 +38241,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1049,
-        "departureMinutes": 1049
+        "arrivalMinutes": 1026,
+        "departureMinutes": 1026
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1052,
-        "departureMinutes": 1052
+        "arrivalMinutes": 1029,
+        "departureMinutes": 1029
       }
     ]
   },
@@ -38133,13 +38259,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1056,
-        "departureMinutes": 1056
+        "arrivalMinutes": 1032,
+        "departureMinutes": 1032
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1059,
-        "departureMinutes": 1059
+        "arrivalMinutes": 1035,
+        "departureMinutes": 1035
       }
     ]
   },
@@ -38151,13 +38277,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1062,
-        "departureMinutes": 1062
+        "arrivalMinutes": 1038,
+        "departureMinutes": 1038
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1065,
-        "departureMinutes": 1065
+        "arrivalMinutes": 1041,
+        "departureMinutes": 1041
       }
     ]
   },
@@ -38169,13 +38295,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1069,
-        "departureMinutes": 1069
+        "arrivalMinutes": 1048,
+        "departureMinutes": 1048
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1072,
-        "departureMinutes": 1072
+        "arrivalMinutes": 1051,
+        "departureMinutes": 1051
       }
     ]
   },
@@ -38187,13 +38313,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1075,
-        "departureMinutes": 1075
+        "arrivalMinutes": 1054,
+        "departureMinutes": 1054
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1078,
-        "departureMinutes": 1078
+        "arrivalMinutes": 1057,
+        "departureMinutes": 1057
       }
     ]
   },
@@ -38205,13 +38331,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1081,
-        "departureMinutes": 1081
+        "arrivalMinutes": 1060,
+        "departureMinutes": 1060
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1084,
-        "departureMinutes": 1084
+        "arrivalMinutes": 1063,
+        "departureMinutes": 1063
       }
     ]
   },
@@ -38223,13 +38349,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1088,
-        "departureMinutes": 1088
+        "arrivalMinutes": 1066,
+        "departureMinutes": 1066
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1091,
-        "departureMinutes": 1091
+        "arrivalMinutes": 1069,
+        "departureMinutes": 1069
       }
     ]
   },
@@ -38241,13 +38367,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1094,
-        "departureMinutes": 1094
+        "arrivalMinutes": 1072,
+        "departureMinutes": 1072
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1097,
-        "departureMinutes": 1097
+        "arrivalMinutes": 1075,
+        "departureMinutes": 1075
       }
     ]
   },
@@ -38259,13 +38385,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1101,
-        "departureMinutes": 1101
+        "arrivalMinutes": 1078,
+        "departureMinutes": 1078
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1104,
-        "departureMinutes": 1104
+        "arrivalMinutes": 1081,
+        "departureMinutes": 1081
       }
     ]
   },
@@ -38277,13 +38403,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1107,
-        "departureMinutes": 1107
+        "arrivalMinutes": 1084,
+        "departureMinutes": 1084
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1110,
-        "departureMinutes": 1110
+        "arrivalMinutes": 1087,
+        "departureMinutes": 1087
       }
     ]
   },
@@ -38295,18 +38421,90 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1113,
-        "departureMinutes": 1113
+        "arrivalMinutes": 1090,
+        "departureMinutes": 1090
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1116,
-        "departureMinutes": 1116
+        "arrivalMinutes": 1093,
+        "departureMinutes": 1093
       }
     ]
   },
   {
     "id": "hengqin_fri_B0115",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1096,
+        "departureMinutes": 1096
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1099,
+        "departureMinutes": 1099
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0116",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1102,
+        "departureMinutes": 1102
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1105,
+        "departureMinutes": 1105
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0117",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1108,
+        "departureMinutes": 1108
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1111,
+        "departureMinutes": 1111
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0118",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1114,
+        "departureMinutes": 1114
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1117,
+        "departureMinutes": 1117
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0119",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38324,7 +38522,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0116",
+    "id": "hengqin_fri_B0120",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38342,43 +38540,43 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0117",
+    "id": "hengqin_fri_B0121",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1133,
-        "departureMinutes": 1133
+        "arrivalMinutes": 1132,
+        "departureMinutes": 1132
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1136,
-        "departureMinutes": 1136
+        "arrivalMinutes": 1135,
+        "departureMinutes": 1135
       }
     ]
   },
   {
-    "id": "hengqin_fri_B0118",
+    "id": "hengqin_fri_B0122",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1139,
-        "departureMinutes": 1139
+        "arrivalMinutes": 1138,
+        "departureMinutes": 1138
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1142,
-        "departureMinutes": 1142
+        "arrivalMinutes": 1141,
+        "departureMinutes": 1141
       }
     ]
   },
   {
-    "id": "hengqin_fri_B0119",
+    "id": "hengqin_fri_B0123",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38396,78 +38594,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0120",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1152,
-        "departureMinutes": 1152
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1155,
-        "departureMinutes": 1155
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0121",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1158,
-        "departureMinutes": 1158
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1161,
-        "departureMinutes": 1161
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0122",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1165,
-        "departureMinutes": 1165
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1168,
-        "departureMinutes": 1168
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0123",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1171,
-        "departureMinutes": 1171
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1174,
-        "departureMinutes": 1174
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_B0124",
     "lineId": "hengqin",
     "direction": "backward",
@@ -38475,13 +38601,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1177,
-        "departureMinutes": 1177
+        "arrivalMinutes": 1151,
+        "departureMinutes": 1151
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1180,
-        "departureMinutes": 1180
+        "arrivalMinutes": 1154,
+        "departureMinutes": 1154
       }
     ]
   },
@@ -38493,13 +38619,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1184,
-        "departureMinutes": 1184
+        "arrivalMinutes": 1157,
+        "departureMinutes": 1157
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1187,
-        "departureMinutes": 1187
+        "arrivalMinutes": 1160,
+        "departureMinutes": 1160
       }
     ]
   },
@@ -38511,13 +38637,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1190,
-        "departureMinutes": 1190
+        "arrivalMinutes": 1163,
+        "departureMinutes": 1163
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1193,
-        "departureMinutes": 1193
+        "arrivalMinutes": 1166,
+        "departureMinutes": 1166
       }
     ]
   },
@@ -38529,13 +38655,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1197,
-        "departureMinutes": 1197
+        "arrivalMinutes": 1169,
+        "departureMinutes": 1169
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1200,
-        "departureMinutes": 1200
+        "arrivalMinutes": 1172,
+        "departureMinutes": 1172
       }
     ]
   },
@@ -38547,13 +38673,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1203,
-        "departureMinutes": 1203
+        "arrivalMinutes": 1175,
+        "departureMinutes": 1175
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1206,
-        "departureMinutes": 1206
+        "arrivalMinutes": 1178,
+        "departureMinutes": 1178
       }
     ]
   },
@@ -38565,13 +38691,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1209,
-        "departureMinutes": 1209
+        "arrivalMinutes": 1181,
+        "departureMinutes": 1181
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1212,
-        "departureMinutes": 1212
+        "arrivalMinutes": 1184,
+        "departureMinutes": 1184
       }
     ]
   },
@@ -38583,13 +38709,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1216,
-        "departureMinutes": 1216
+        "arrivalMinutes": 1187,
+        "departureMinutes": 1187
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1219,
-        "departureMinutes": 1219
+        "arrivalMinutes": 1190,
+        "departureMinutes": 1190
       }
     ]
   },
@@ -38601,18 +38727,108 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1222,
-        "departureMinutes": 1222
+        "arrivalMinutes": 1193,
+        "departureMinutes": 1193
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1225,
-        "departureMinutes": 1225
+        "arrivalMinutes": 1196,
+        "departureMinutes": 1196
       }
     ]
   },
   {
     "id": "hengqin_fri_B0132",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1199,
+        "departureMinutes": 1199
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1202,
+        "departureMinutes": 1202
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0133",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1205,
+        "departureMinutes": 1205
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1208,
+        "departureMinutes": 1208
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0134",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1211,
+        "departureMinutes": 1211
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1214,
+        "departureMinutes": 1214
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0135",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1217,
+        "departureMinutes": 1217
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1220,
+        "departureMinutes": 1220
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0136",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1223,
+        "departureMinutes": 1223
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1226,
+        "departureMinutes": 1226
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0137",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38630,7 +38846,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0133",
+    "id": "hengqin_fri_B0138",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38648,7 +38864,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0134",
+    "id": "hengqin_fri_B0139",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38666,96 +38882,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0135",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1248,
-        "departureMinutes": 1248
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1251,
-        "departureMinutes": 1251
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0136",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1254,
-        "departureMinutes": 1254
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1257,
-        "departureMinutes": 1257
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0137",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1261,
-        "departureMinutes": 1261
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1264,
-        "departureMinutes": 1264
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0138",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1267,
-        "departureMinutes": 1267
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1270,
-        "departureMinutes": 1270
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0139",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1273,
-        "departureMinutes": 1273
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1276,
-        "departureMinutes": 1276
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_B0140",
     "lineId": "hengqin",
     "direction": "backward",
@@ -38763,13 +38889,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1280,
-        "departureMinutes": 1280
+        "arrivalMinutes": 1247,
+        "departureMinutes": 1247
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1283,
-        "departureMinutes": 1283
+        "arrivalMinutes": 1250,
+        "departureMinutes": 1250
       }
     ]
   },
@@ -38781,13 +38907,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1286,
-        "departureMinutes": 1286
+        "arrivalMinutes": 1253,
+        "departureMinutes": 1253
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1289,
-        "departureMinutes": 1289
+        "arrivalMinutes": 1256,
+        "departureMinutes": 1256
       }
     ]
   },
@@ -38799,13 +38925,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1293,
-        "departureMinutes": 1293
+        "arrivalMinutes": 1259,
+        "departureMinutes": 1259
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1296,
-        "departureMinutes": 1296
+        "arrivalMinutes": 1262,
+        "departureMinutes": 1262
       }
     ]
   },
@@ -38817,13 +38943,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1299,
-        "departureMinutes": 1299
+        "arrivalMinutes": 1266,
+        "departureMinutes": 1266
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1302,
-        "departureMinutes": 1302
+        "arrivalMinutes": 1269,
+        "departureMinutes": 1269
       }
     ]
   },
@@ -38835,13 +38961,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1305,
-        "departureMinutes": 1305
+        "arrivalMinutes": 1272,
+        "departureMinutes": 1272
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1308,
-        "departureMinutes": 1308
+        "arrivalMinutes": 1275,
+        "departureMinutes": 1275
       }
     ]
   },
@@ -38853,13 +38979,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1312,
-        "departureMinutes": 1312
+        "arrivalMinutes": 1278,
+        "departureMinutes": 1278
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1315,
-        "departureMinutes": 1315
+        "arrivalMinutes": 1281,
+        "departureMinutes": 1281
       }
     ]
   },
@@ -38871,13 +38997,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1318,
-        "departureMinutes": 1318
+        "arrivalMinutes": 1284,
+        "departureMinutes": 1284
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1321,
-        "departureMinutes": 1321
+        "arrivalMinutes": 1287,
+        "departureMinutes": 1287
       }
     ]
   },
@@ -38889,13 +39015,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1325,
-        "departureMinutes": 1325
+        "arrivalMinutes": 1290,
+        "departureMinutes": 1290
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1328,
-        "departureMinutes": 1328
+        "arrivalMinutes": 1293,
+        "departureMinutes": 1293
       }
     ]
   },
@@ -38907,13 +39033,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1331,
-        "departureMinutes": 1331
+        "arrivalMinutes": 1296,
+        "departureMinutes": 1296
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1334,
-        "departureMinutes": 1334
+        "arrivalMinutes": 1299,
+        "departureMinutes": 1299
       }
     ]
   },
@@ -38925,18 +39051,126 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1337,
-        "departureMinutes": 1337
+        "arrivalMinutes": 1302,
+        "departureMinutes": 1302
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1340,
-        "departureMinutes": 1340
+        "arrivalMinutes": 1305,
+        "departureMinutes": 1305
       }
     ]
   },
   {
     "id": "hengqin_fri_B0150",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1308,
+        "departureMinutes": 1308
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1311,
+        "departureMinutes": 1311
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0151",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1314,
+        "departureMinutes": 1314
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1317,
+        "departureMinutes": 1317
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0152",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1320,
+        "departureMinutes": 1320
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1323,
+        "departureMinutes": 1323
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0153",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1326,
+        "departureMinutes": 1326
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1329,
+        "departureMinutes": 1329
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0154",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1332,
+        "departureMinutes": 1332
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1335,
+        "departureMinutes": 1335
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0155",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1338,
+        "departureMinutes": 1338
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1341,
+        "departureMinutes": 1341
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0156",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38954,7 +39188,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0151",
+    "id": "hengqin_fri_B0157",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38972,7 +39206,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0152",
+    "id": "hengqin_fri_B0158",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -38990,114 +39224,6 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0153",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1367,
-        "departureMinutes": 1367
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1370,
-        "departureMinutes": 1370
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0154",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1373,
-        "departureMinutes": 1373
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1376,
-        "departureMinutes": 1376
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0155",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1380,
-        "departureMinutes": 1380
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1383,
-        "departureMinutes": 1383
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0156",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1386,
-        "departureMinutes": 1386
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1389,
-        "departureMinutes": 1389
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0157",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1393,
-        "departureMinutes": 1393
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1396,
-        "departureMinutes": 1396
-      }
-    ]
-  },
-  {
-    "id": "hengqin_fri_B0158",
-    "lineId": "hengqin",
-    "direction": "backward",
-    "scheduleType": "friday",
-    "entries": [
-      {
-        "stationId": "Hengqin",
-        "arrivalMinutes": 1399,
-        "departureMinutes": 1399
-      },
-      {
-        "stationId": "Lotus",
-        "arrivalMinutes": 1402,
-        "departureMinutes": 1402
-      }
-    ]
-  },
-  {
     "id": "hengqin_fri_B0159",
     "lineId": "hengqin",
     "direction": "backward",
@@ -39105,13 +39231,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1406,
-        "departureMinutes": 1406
+        "arrivalMinutes": 1366,
+        "departureMinutes": 1366
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1409,
-        "departureMinutes": 1409
+        "arrivalMinutes": 1369,
+        "departureMinutes": 1369
       }
     ]
   },
@@ -39123,13 +39249,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1412,
-        "departureMinutes": 1412
+        "arrivalMinutes": 1372,
+        "departureMinutes": 1372
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1415,
-        "departureMinutes": 1415
+        "arrivalMinutes": 1375,
+        "departureMinutes": 1375
       }
     ]
   },
@@ -39141,13 +39267,13 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1419,
-        "departureMinutes": 1419
+        "arrivalMinutes": 1378,
+        "departureMinutes": 1378
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1422,
-        "departureMinutes": 1422
+        "arrivalMinutes": 1381,
+        "departureMinutes": 1381
       }
     ]
   },
@@ -39159,18 +39285,144 @@
     "entries": [
       {
         "stationId": "Hengqin",
-        "arrivalMinutes": 1425,
-        "departureMinutes": 1425
+        "arrivalMinutes": 1384,
+        "departureMinutes": 1384
       },
       {
         "stationId": "Lotus",
-        "arrivalMinutes": 1428,
-        "departureMinutes": 1428
+        "arrivalMinutes": 1387,
+        "departureMinutes": 1387
       }
     ]
   },
   {
     "id": "hengqin_fri_B0163",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1390,
+        "departureMinutes": 1390
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1393,
+        "departureMinutes": 1393
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0164",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1396,
+        "departureMinutes": 1396
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1399,
+        "departureMinutes": 1399
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0165",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1402,
+        "departureMinutes": 1402
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1405,
+        "departureMinutes": 1405
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0166",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1408,
+        "departureMinutes": 1408
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1411,
+        "departureMinutes": 1411
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0167",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1414,
+        "departureMinutes": 1414
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1417,
+        "departureMinutes": 1417
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0168",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1420,
+        "departureMinutes": 1420
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1423,
+        "departureMinutes": 1423
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0169",
+    "lineId": "hengqin",
+    "direction": "backward",
+    "scheduleType": "friday",
+    "entries": [
+      {
+        "stationId": "Hengqin",
+        "arrivalMinutes": 1426,
+        "departureMinutes": 1426
+      },
+      {
+        "stationId": "Lotus",
+        "arrivalMinutes": 1429,
+        "departureMinutes": 1429
+      }
+    ]
+  },
+  {
+    "id": "hengqin_fri_B0170",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
@@ -39188,7 +39440,7 @@
     ]
   },
   {
-    "id": "hengqin_fri_B0164",
+    "id": "hengqin_fri_B0171",
     "lineId": "hengqin",
     "direction": "backward",
     "scheduleType": "friday",
