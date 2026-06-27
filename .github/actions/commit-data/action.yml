@@ -1,0 +1,67 @@
+name: Commit data file
+description: >-
+  Commit a freshly-regenerated data file to master and push, retrying on the
+  push race that happens when another scheduled workflow lands a commit between
+  our checkout and our push. No-ops (changed=false) when the file is unchanged.
+
+inputs:
+  file:
+    description: Path to the file to stage and commit (relative to repo root).
+    required: true
+  message:
+    description: Commit message.
+    required: true
+  max-retries:
+    description: Max push attempts before failing the run.
+    required: false
+    default: '5'
+
+outputs:
+  changed:
+    description: '"true" if a commit was made and pushed, "false" if the file was unchanged.'
+    value: ${{ steps.commit.outputs.changed }}
+
+runs:
+  using: composite
+  steps:
+    - id: commit
+      shell: bash
+      env:
+        FILE: ${{ inputs.file }}
+        MESSAGE: ${{ inputs.message }}
+        MAX: ${{ inputs.max-retries }}
+      # `git status --porcelain` reports both tracked-file modifications AND
+      # untracked files, so it also detects the very first run where the output
+      # file doesn't exist in the repo yet.
+      run: |
+        if [ -z "$(git status --porcelain "$FILE")" ]; then
+          echo "changed=false" >> "$GITHUB_OUTPUT"
+          echo "No changes to $FILE — nothing to commit."
+          exit 0
+        fi
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git add "$FILE"
+        git commit -m "$MESSAGE"
+        # Retry on push race conditions: when another workflow or manual commit
+        # lands on master between our checkout and our push, the naive push is
+        # rejected. Fetch + rebase on origin/master and retry. Each scheduled
+        # job touches a different file so a real rebase conflict is unexpected;
+        # if one happens we abort and fail the run.
+        n=0
+        until git push; do
+          n=$((n + 1))
+          if [ "$n" -ge "$MAX" ]; then
+            echo "::error::push failed after $n attempts"
+            exit 1
+          fi
+          echo "::warning::push rejected — fetching origin/master and rebasing (attempt $n/$MAX)"
+          git fetch origin master
+          if ! git rebase origin/master; then
+            echo "::error::rebase conflict — aborting"
+            git rebase --abort || true
+            exit 1
+          fi
+          sleep $((RANDOM % 5 + 1))
+        done
+        echo "changed=true" >> "$GITHUB_OUTPUT"
