@@ -76,7 +76,9 @@ export function LineLegend({
     return next
   })
 
-  const busRoutes = allTransitData?.busRoutes ?? []
+  // Memoize so the `?? []` fallback doesn't hand `grouped` a fresh array
+  // every render (which would make its useMemo recompute each time).
+  const busRoutes = useMemo(() => allTransitData?.busRoutes ?? [], [allTransitData])
   const allLrtLines = allTransitData?.lrtLines ?? transitData.lrtLines
   const grouped = useMemo(() => {
     const groups = new Map<typeof GROUP_ORDER[number], typeof busRoutes>()

@@ -259,6 +259,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   pausedRef.current = clock.paused
   const speedRef = useRef(clock.speed)
   speedRef.current = clock.speed
+  // `timeRef` is a stable ref off the clock. Pull it out as a plain identifier
+  // so effects can depend on it without depending on the whole `clock` object
+  // (which is a fresh literal every render and would restart RAF loops).
+  const { timeRef } = clock
   const tabVisibleRef = useRef(typeof document === 'undefined' || !document.hidden)
   // Current viewport bbox (expanded by buffer). null = "show everything"
   // — used before the map reports its first bounds.
@@ -274,7 +278,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const reconcilePollersRef = useRef<() => void>(() => {})
   reconcilePollersRef.current = () => {
     if (!RT_BUILD) return
-    const simTime = clock.timeRef.current
+    const simTime = timeRef.current
     const paused = pausedRef.current
     const tabVisible = tabVisibleRef.current
     const view = viewBboxRef.current
@@ -721,6 +725,15 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       window.removeEventListener('mouseup', onWindowMiddleUp)
       map.remove()
     }
+    // Initialize the map once, when transit data first loads (these array
+    // lengths flip 0 → N). It deliberately must NOT re-run when callbacks,
+    // is3D, or the data-array identities change: that would tear down and
+    // rebuild the entire MapLibre instance and re-attach the delegated click
+    // handlers (the source of a past "vehicles aren't clickable" regression).
+    // The parent's onVehicleClick / onStationClick / onClearSelection are
+    // stable useCallback refs, and only is3D's initial value is needed at
+    // construction, so capturing them once here is correct.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allTransitData.lrtLines.length, allTransitData.stations.length, allTransitData.busRoutes.length])
 
   useEffect(() => {
@@ -909,7 +922,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         // In RT mode every sim bus is discarded (the map shows only
         // DSAT-observed buses) so we skip the per-route bus rollup entirely
         // — no point computing positions that will be filtered out.
-        const vehicles = computeVehiclePositions(td, clock.timeRef.current, rtActive ? { skipBuses: true } : undefined)
+        const vehicles = computeVehiclePositions(td, timeRef.current, rtActive ? { skipBuses: true } : undefined)
         if (rtActive) {
           if (rtStatesRef.current.size > 0) {
             const rtNow = performance.now()
@@ -1044,14 +1057,14 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         // Advance local flight time smoothly from performance.now() delta.
         if (flightPerfLast === 0) {
           flightPerfLast = nowTick
-          flightSimMs = clock.timeRef.current.getTime()
+          flightSimMs = timeRef.current.getTime()
         } else {
           const perfDelta = nowTick - flightPerfLast
           flightPerfLast = nowTick
           if (!pausedRef.current) {
             flightSimMs += perfDelta * speedRef.current
           }
-          const clockMs = clock.timeRef.current.getTime()
+          const clockMs = timeRef.current.getTime()
           if (Math.abs(flightSimMs - clockMs) > 2000) {
             flightSimMs = clockMs
           }
@@ -1098,7 +1111,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           onVehicleCountRef.current?.(vehiclesRef.current.length)
         }
 
-        const simTime = clock.timeRef.current
+        const simTime = timeRef.current
         const simMinuteKey = `${macauWeekday(simTime)}-${macauHours(simTime)}-${macauMinutes(simTime)}`
         if (simMinuteKey !== lastServiceMinuteRef.current) {
           lastServiceMinuteRef.current = simMinuteKey
@@ -1225,7 +1238,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
     raf = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(raf)
-  }, [])
+  }, [timeRef])
 
   const toggle3D = useCallback(() => {
     setIs3D(prev => {

@@ -115,10 +115,15 @@ interface RowData {
 function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerProps) {
   const { lang, t } = useI18n()
 
+  // `vehicle` is a fresh object every sim tick; key memos/effects on the stable
+  // id (+ type) so they don't recompute every frame.
+  const vehicleId = vehicle?.id
+  const vehicleType = vehicle?.type
+
   const trip: Trip | undefined = useMemo(() => {
-    if (!vehicle || vehicle.type !== 'lrt') return undefined
-    return transitData.trips.find(tr => tr.id === vehicle.id)
-  }, [vehicle?.id, transitData.trips])
+    if (vehicleType !== 'lrt' || vehicleId == null) return undefined
+    return transitData.trips.find(tr => tr.id === vehicleId)
+  }, [vehicleId, vehicleType, transitData.trips])
 
   const stationMap = useMemo(() => {
     const map = new Map<string, { name: string; nameCn: string; namePt: string }>()
@@ -229,9 +234,9 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
   const prevVehicleIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (!vehicle || focusIdx < 0) return
-    const isNewVehicle = prevVehicleIdRef.current !== vehicle.id
-    prevVehicleIdRef.current = vehicle.id
+    if (vehicleId == null || focusIdx < 0) return
+    const isNewVehicle = prevVehicleIdRef.current !== vehicleId
+    prevVehicleIdRef.current = vehicleId
     const el = scrollRef.current
     if (!el) return
     const targetRow = el.children[focusIdx] as HTMLElement | undefined
@@ -245,7 +250,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
         targetRow.scrollIntoView({ block: 'center', behavior: 'smooth' })
       }
     }
-  }, [vehicle?.id, focusIdx])
+  }, [vehicleId, focusIdx])
 
   // Find next destination (last entry for lrt, last future stop for bus)
   const destRow = trip
