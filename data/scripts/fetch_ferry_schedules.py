@@ -57,8 +57,8 @@ TARGET_TABS = [
      "nameZh": "香港 - 澳門(氹仔)線", "nameEn": "Hong Kong - Macau (Taipa)"},
     {"num": 2, "id": "maczykroute",        "terminal": "outer_harbour",
      "nameZh": "澳門 - 蛇口線",         "nameEn": "Macau - Shekou"},
-    {"num": 3, "id": "shenzhenmacauroute", "terminal": "outer_harbour",
-     "nameZh": "深圳機場 - 澳門線",     "nameEn": "Shenzhen Airport - Macau"},
+    {"num": 3, "id": "shenzhenmacauroute", "terminal": "taipa",
+     "nameZh": "深圳機場 - 澳門(氹仔)線", "nameEn": "Shenzhen Airport - Macau (Taipa)"},
     {"num": 4, "id": "clkmacroute",        "terminal": "outer_harbour",
      "nameZh": "香港國際機場 - 澳門線",  "nameEn": "HK Intl Airport - Macau"},
 ]
