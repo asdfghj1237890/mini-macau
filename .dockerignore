@@ -7,4 +7,3 @@ dist
 .DS_Store
 *.log
 tmp_*
-claude_design
