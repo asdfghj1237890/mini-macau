@@ -39,6 +39,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - [Performance Notes](#performance-notes)
 - [Acknowledgements](#acknowledgements)
 - [License](#license)
+- [Developer Docs 開發筆記 (繁中)](docs/development/README.md)
 
 ## Features
 
