@@ -2,7 +2,13 @@ name: Bus Service Status
 
 on:
   schedule:
-    - cron: '0 23 * * *' # UTC 23:00 = Macau 07:00 (UTC+8)
+    # One primary scrape plus two catch-ups: the runner IP is occasionally
+    # Cloudflare-blocked (415 on all routes), and the block can persist for
+    # hours. Catch-up runs no-op in seconds when the primary already landed
+    # today's data (freshness check below).
+    - cron: '0 23 * * *' # UTC 23:00 = Macau 07:00 (UTC+8) — primary
+    - cron: '0 4 * * *'  # UTC 04:00 = Macau 12:00 — catch-up
+    - cron: '0 10 * * *' # UTC 10:00 = Macau 18:00 — catch-up
   workflow_dispatch:
 
 jobs:
@@ -16,15 +22,32 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
+      - name: Skip if today's data already landed
+        id: fresh
+        # Scheduled catch-up runs only re-scrape when an earlier slot failed.
+        # Manual dispatches skip this check on purpose — they're the escape
+        # hatch for re-scraping after a mid-day service change.
+        if: github.event_name == 'schedule'
+        run: |
+          today=$(TZ=Asia/Macau date +%F)
+          committed=$(jq -r '.date // empty' public/service-status.json 2>/dev/null || true)
+          echo "Macau today: $today — committed: ${committed:-none}"
+          if [ "$committed" = "$today" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: astral-sh/setup-uv@v7
+        if: steps.fresh.outputs.skip != 'true'
         with:
           version: latest
 
       - name: Scrape today's service status
+        if: steps.fresh.outputs.skip != 'true'
         working-directory: data
         run: uv run python scripts/fetch_service_status.py
 
       - name: Validate output before commit
+        if: steps.fresh.outputs.skip != 'true'
         working-directory: data
         # Hard gate: a malformed scrape fails the run here, before the commit
         # step, so broken data can never auto-deploy to production.
@@ -32,6 +55,7 @@ jobs:
 
       - name: Commit and push if changed
         id: commit
+        if: steps.fresh.outputs.skip != 'true'
         uses: ./.github/actions/commit-data
         with:
           file: public/service-status.json
