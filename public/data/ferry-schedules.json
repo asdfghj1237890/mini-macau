@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-06-01T00:47:26.101120+00:00",
-  "effectiveAs": "2026-06-01",
+  "fetchedAtUtc": "2026-08-01T00:32:26.991090+00:00",
+  "effectiveAs": "2026-08-01",
   "sources": {
     "turbojet": "https://www2.turbojet.com.hk/zh-tw/%E6%B5%B7-%E8%88%B9/",
     "cotai": "https://m.cotaiwaterjet.com/hk/ferry-schedule/hongkong-macau-taipa.html"
@@ -50,9 +50,6 @@
             },
             {
               "time": "12:00"
-            },
-            {
-              "time": "12:30"
             },
             {
               "time": "13:00"
@@ -146,9 +143,6 @@
               "time": "16:00"
             },
             {
-              "time": "16:30"
-            },
-            {
               "time": "17:00"
             },
             {
@@ -203,6 +197,10 @@
               "time": "11:30"
             },
             {
+              "time": "12:30",
+              "markers": "*"
+            },
+            {
               "time": "13:30"
             },
             {
@@ -223,6 +221,10 @@
               "time": "13:30"
             },
             {
+              "time": "14:30",
+              "markers": "*"
+            },
+            {
               "time": "16:00"
             },
             {
@@ -232,7 +234,9 @@
           "night": []
         }
       ],
-      "notes": []
+      "notes": [
+        "*此為非固定航班"
+      ]
     },
     {
       "id": "maczykroute",
@@ -293,15 +297,15 @@
     {
       "id": "shenzhenmacauroute",
       "operator": "turbojet",
-      "terminal": "outer_harbour",
-      "nameZh": "深圳機場 - 澳門線",
-      "nameEn": "Shenzhen Airport - Macau",
+      "terminal": "taipa",
+      "nameZh": "深圳機場 - 澳門(氹仔)線",
+      "nameEn": "Shenzhen Airport - Macau (Taipa)",
       "journeyMinutes": 80,
-      "effectiveDate": "2026-04-17",
+      "effectiveDate": "2026-06-15",
       "directions": [
         {
-          "header": "澳門 (外港) -> 深圳機場",
-          "from": "澳門 (外港)",
+          "header": "澳門 (氹仔) -> 深圳機場",
+          "from": "澳門 (氹仔)",
           "to": "深圳機場",
           "day": [
             {
@@ -309,40 +313,60 @@
               "markers": "*"
             },
             {
+              "time": "11:30"
+            },
+            {
               "time": "13:00"
             },
             {
-              "time": "16:15"
+              "time": "14:45"
             },
             {
-              "time": "19:15"
+              "time": "16:30"
+            },
+            {
+              "time": "18:45"
+            },
+            {
+              "time": "20:00"
             }
           ],
           "night": []
         },
         {
-          "header": "深圳機場 -> 澳門 (外港)",
+          "header": "深圳機場 -> 澳門 (氹仔)",
           "from": "深圳機場",
-          "to": "澳門 (外港)",
+          "to": "澳門 (氹仔)",
           "day": [
             {
               "time": "08:30",
               "markers": "*"
             },
             {
+              "time": "10:00"
+            },
+            {
               "time": "11:30"
+            },
+            {
+              "time": "13:00"
             },
             {
               "time": "14:30"
             },
             {
-              "time": "17:45"
+              "time": "16:30"
+            },
+            {
+              "time": "18:30"
             }
           ],
           "night": []
         }
       ],
-      "notes": []
+      "notes": [
+        "註：由2026年6月15日起，原有外港客運碼頭航線航班服務移往澳門氹仔客運碼頭。"
+      ]
     },
     {
       "id": "clkmacroute",
@@ -402,7 +426,8 @@
               "time": "08:30"
             },
             {
-              "time": "09:00"
+              "time": "09:00",
+              "markers": "*"
             },
             {
               "time": "09:30"
@@ -417,7 +442,8 @@
               "time": "11:30"
             },
             {
-              "time": "12:00"
+              "time": "12:00",
+              "markers": "*"
             },
             {
               "time": "12:30"
@@ -432,7 +458,8 @@
               "time": "15:00"
             },
             {
-              "time": "15:30"
+              "time": "15:30",
+              "markers": "*"
             },
             {
               "time": "16:00"
@@ -457,6 +484,15 @@
             },
             {
               "time": "22:30"
+            },
+            {
+              "time": "09:00"
+            },
+            {
+              "time": "12:00"
+            },
+            {
+              "time": "15:30"
             }
           ],
           "night": []
@@ -473,7 +509,8 @@
               "time": "10:00"
             },
             {
-              "time": "10:30"
+              "time": "10:30",
+              "markers": "*"
             },
             {
               "time": "11:00"
@@ -488,7 +525,8 @@
               "time": "13:30"
             },
             {
-              "time": "14:00"
+              "time": "14:00",
+              "markers": "*"
             },
             {
               "time": "14:30"
@@ -503,7 +541,8 @@
               "time": "16:30"
             },
             {
-              "time": "17:00"
+              "time": "17:00",
+              "markers": "*"
             },
             {
               "time": "17:30"
@@ -528,6 +567,15 @@
             },
             {
               "time": "23:59"
+            },
+            {
+              "time": "10:30"
+            },
+            {
+              "time": "14:00"
+            },
+            {
+              "time": "17:00"
             }
           ],
           "night": []
