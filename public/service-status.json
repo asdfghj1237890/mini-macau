@@ -1,8 +1,8 @@
 {
-  "date": "2026-08-16",
-  "fetchedAtUtc": "2026-08-15T23:23:33.146884+00:00",
-  "dayOfWeek": 6,
-  "dayCategory": "sunday",
+  "date": "2026-08-17",
+  "fetchedAtUtc": "2026-08-16T23:23:18.124976+00:00",
+  "dayOfWeek": 0,
+  "dayCategory": "weekday",
   "isHoliday": false,
   "totalRoutes": 91,
   "inactive": [],
