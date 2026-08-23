@@ -17,8 +17,10 @@ sys.path.insert(0, str(HERE))
 
 from extract_bus_data import (
     REFERENCE_DIR, PUBLIC_DIR, ROUTE_COLORS, WAYPOINT_HINTS,
+    ROUTING_COORD_OVERRIDES,
     align_direction, build_route_geometry,
 )
+from route_offsets import align_stop_offsets
 
 
 def main():
@@ -76,10 +78,12 @@ def main():
             for did, lng, lat, _ in aligned:
                 if not (lng and lat):
                     continue
-                wps.append([lng, lat])
-                hint = WAYPOINT_HINTS.get((rid, did))
-                if hint:
-                    wps.append(list(hint))
+                override = ROUTING_COORD_OVERRIDES.get((rid, did))
+                wps.append(list(override) if override else [lng, lat])
+                hints = WAYPOINT_HINTS.get((rid, did))
+                if hints:
+                    for hint in hints:
+                        wps.append(list(hint))
             return wps
 
         fwd_wps = _wps(fwd_aligned)
@@ -113,6 +117,16 @@ def main():
         target = by_id[rid]
         target["stopsForward"] = stops_combined
         target["stopsBackward"] = []
+        stop_offsets, stop_distances = align_stop_offsets(
+            geometry["geometry"]["coordinates"],
+            [
+                list(ROUTING_COORD_OVERRIDES.get((rid, did), [lng, lat]))
+                for did, lng, lat, _ in combined_aligned
+            ],
+            route_name=rid,
+        )
+        target["stopOffsets"] = stop_offsets
+        target["directionSplitIndex"] = len(stops_fwd)
         target["geometry"] = geometry
         target["routeType"] = "circular"
 
@@ -133,7 +147,10 @@ def main():
             if rid not in entry["routeIds"]:
                 entry["routeIds"].append(rid)
 
-        print(f"OK ({len(stops_combined)} stops, {coord_count} geo coords)")
+        print(
+            f"OK ({len(stops_combined)} stops, {coord_count} geo coords, "
+            f"max-stop={max(stop_distances, default=0):.0f}m)"
+        )
 
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(bus_routes, f, ensure_ascii=False, indent=2)

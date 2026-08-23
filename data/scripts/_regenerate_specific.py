@@ -15,6 +15,7 @@ from extract_bus_data import (
     REFERENCE_DIR, PUBLIC_DIR, WAYPOINT_HINTS, ROUTING_COORD_OVERRIDES,
     align_direction, build_route_geometry,
 )
+from route_offsets import align_stop_offsets
 
 
 def main(ids: list[str]):
@@ -99,12 +100,26 @@ def main(ids: list[str]):
         coord_count = len(geometry["geometry"]["coordinates"])
         stops_fwd = [did for did, _, _, _ in fwd_aligned]
         stops_bwd = [did for did, _, _, _ in bwd_aligned]
+        combined_aligned = fwd_aligned + bwd_aligned
+        stop_offsets, stop_distances = align_stop_offsets(
+            geometry["geometry"]["coordinates"],
+            [
+                list(ROUTING_COORD_OVERRIDES.get((rid, did), [lng, lat]))
+                for did, lng, lat, _ in combined_aligned
+            ],
+            route_name=rid,
+        )
         target = by_id[rid]
         target["stopsForward"] = stops_fwd + stops_bwd
         target["stopsBackward"] = []
+        target["stopOffsets"] = stop_offsets
+        target["directionSplitIndex"] = len(stops_fwd)
         target["geometry"] = geometry
         target["routeType"] = "circular"
-        print(f"OK ({len(stops_fwd) + len(stops_bwd)} stops, {coord_count} coords)")
+        print(
+            f"OK ({len(stops_fwd) + len(stops_bwd)} stops, "
+            f"{coord_count} coords, max-stop={max(stop_distances, default=0):.0f}m)"
+        )
 
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(bus_routes, f, ensure_ascii=False, separators=(",", ":"))

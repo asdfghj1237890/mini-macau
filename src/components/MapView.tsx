@@ -14,6 +14,7 @@ import {
   getBusServiceWindow,
   getScheduleType,
   interpolateOnLine,
+  vertexOffsetsToProgress,
 } from '../engines/simulationEngine'
 import length from '@turf/length'
 import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay } from '../macauTime'
@@ -348,12 +349,17 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           geometry: { type: 'LineString', coordinates: coords },
         }
         const totalLenKm = length(geometry, { units: 'kilometers' })
-        const stopProgress = stopsOrdered.map(stopId => {
-          const stop = stopMap.get(stopId)
-          if (!stop || totalLenKm <= 0) return 0
-          const projected = nearestPointOnLine(geometry, stop.coordinates, { units: 'kilometers' })
-          return Math.max(0, Math.min(1, (projected.properties.location ?? 0) / totalLenKm))
-        })
+        const hasPublishedOffsets =
+          dir === 0
+          && route.stopOffsets.length === stopsOrdered.length
+        const stopProgress = hasPublishedOffsets
+          ? vertexOffsetsToProgress(geometry, route.stopOffsets)
+          : stopsOrdered.map(stopId => {
+              const stop = stopMap.get(stopId)
+              if (!stop || totalLenKm <= 0) return 0
+              const projected = nearestPointOnLine(geometry, stop.coordinates, { units: 'kilometers' })
+              return Math.max(0, Math.min(1, (projected.properties.location ?? 0) / totalLenKm))
+            })
         const tracker = new BusTracker(stopProgress, route.routeType === 'circular', totalLenKm)
         const poller = new RouteRealtimePoller(route.id, dir, 15_000)
         const unsub = poller.subscribe(obs => { tracker.ingest(obs) })

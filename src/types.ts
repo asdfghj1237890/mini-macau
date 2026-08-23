@@ -30,12 +30,19 @@ export interface BusRoute {
   color: string
   stopsForward: string[]
   stopsBackward: string[]
+  // Vertex index in `geometry` for each `stopsForward` entry. Values are
+  // strictly increasing, so repeated roads/stops still map to the correct
+  // pass through a self-crossing loop.
+  stopOffsets: number[]
+  // Index in stopsForward/stopOffsets where DSAT direction 1 begins.
+  // Equals stopsForward.length when DSAT publishes only one direction.
+  directionSplitIndex: number
   geometry: Feature<LineString>
   frequency: number // minutes between departures
   // Fractional hour (5.75 = 05:45). End may exceed 24 when service crosses
   // midnight — simulation & service checks treat end<=start as +1440min.
-  serviceHoursStart: number      // Weekday/default window
-  serviceHoursEnd: number        // Weekday/default window
+  serviceHoursStart: number | null      // Weekday/default window
+  serviceHoursEnd: number | null        // Weekday/default window
   // Saturday override; falls back to weekday when absent. Explicit null means
   // this bucket exists but has no service.
   serviceHoursStartSat?: number | null

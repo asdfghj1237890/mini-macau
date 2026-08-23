@@ -247,6 +247,8 @@ const minimalRoute = (over: Partial<BusRoute> = {}): BusRoute => ({
   color: '#000',
   stopsForward: [],
   stopsBackward: [],
+  stopOffsets: [],
+  directionSplitIndex: 0,
   geometry: line([[113.5, 22.1], [113.6, 22.2]]),
   frequency: 10,
   serviceHoursStart: 6,
@@ -342,6 +344,20 @@ describe('computeBusCycleSec', () => {
     expect(computeBusCycleSec('test-route-0', schedule, noSaturdayRoute, 10 * 60, 'sat')).toBe(0)
   })
 
+  it('supports a weekend-only route with no weekday service window', () => {
+    const weekendOnly = minimalRoute({
+      serviceHoursStart: null,
+      serviceHoursEnd: null,
+      serviceHoursStartSat: 11,
+      serviceHoursEndSat: 19.5,
+      serviceHoursStartSun: 11,
+      serviceHoursEndSun: 19.5,
+    })
+    expect(getBusServiceWindow(weekendOnly, 'weekday')).toBeNull()
+    expect(getBusServiceWindow(weekendOnly, 'sat')).toEqual({ start: 11, end: 19.5 })
+    expect(getBusServiceWindow(weekendOnly, 'sun')).toEqual({ start: 11, end: 19.5 })
+  })
+
   it('does not generate buses on Sunday when the Sunday bucket has no service', () => {
     const noSundayRoute = minimalRoute({
       serviceHoursStartSun: null,
@@ -420,6 +436,25 @@ describe('getBusSchedule', () => {
     expect(schedule!.isCircular).toBe(true)
     expect(schedule!.backwardStops).toHaveLength(0)
     expect(schedule!.cycleSec).toBe(schedule!.tripDurationSec)
+  })
+
+  it('uses published offsets to disambiguate a repeated stop on a loop', () => {
+    const route = minimalRoute({
+      geometry: line([
+        [113.5, 22.1],
+        [113.55, 22.15],
+        [113.6, 22.2],
+        [113.55, 22.15],
+        [113.5, 22.1],
+      ]),
+      stopsForward: ['s1', 's2', 's1'],
+      stopOffsets: [0, 3, 4],
+      directionSplitIndex: 3,
+      routeType: 'circular',
+    })
+    const schedule = getBusSchedule(route, stops)
+    expect(schedule).not.toBeNull()
+    expect(schedule!.forwardStops[1].progress).toBeGreaterThan(0.5)
   })
 
   it('returns null for a route whose polyline is too short', () => {

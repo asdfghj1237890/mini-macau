@@ -23,6 +23,8 @@ import re
 import sys
 from pathlib import Path
 
+from route_offsets import MAX_STOP_TO_ROUTE_M, distance_m2
+
 # repo/data/scripts/validate_output.py -> repo/public
 PUBLIC = Path(__file__).resolve().parents[2] / "public"
 
@@ -161,12 +163,24 @@ def v_bus_routes(data: object) -> list[str]:
     errs: list[str] = []
     if not require_nonempty_list(errs, "bus-routes", data):
         return errs
+    try:
+        bus_stops = json.loads((PUBLIC / "data/bus-stops.json").read_text(encoding="utf-8"))
+        stop_coords = {
+            stop["id"]: stop["coordinates"]
+            for stop in bus_stops
+            if isinstance(stop, dict) and "id" in stop and "coordinates" in stop
+        }
+    except (OSError, json.JSONDecodeError, TypeError) as e:
+        errs.append(f"bus-routes: cannot read bus-stops.json for offset checks — {e}")
+        stop_coords = {}
+
     seen: set[str] = set()
     for i, r in enumerate(data):
         ctx = f"bus-routes[{i}]"
         if not require_fields(
             errs, ctx, r,
-            ("id", "name", "color", "stopsForward", "stopsBackward", "geometry",
+            ("id", "name", "color", "stopsForward", "stopsBackward", "stopOffsets",
+             "directionSplitIndex", "geometry",
              "frequency", "serviceHoursStart", "serviceHoursEnd", "routeType"),
         ):
             continue
@@ -178,9 +192,53 @@ def v_bus_routes(data: object) -> list[str]:
             errs.append(f"{ctx} ({rid}): routeType '{r['routeType']}' invalid")
         if not r["stopsForward"]:
             errs.append(f"{ctx} ({rid}): stopsForward is empty")
-        for key in ("serviceHoursStart", "serviceHoursEnd", "frequency"):
-            if not isinstance(r[key], (int, float)):
-                errs.append(f"{ctx} ({rid}): {key} must be numeric")
+        offsets = r["stopOffsets"]
+        geometry_coords = (
+            r.get("geometry", {}).get("geometry", {}).get("coordinates", [])
+            if isinstance(r.get("geometry"), dict)
+            else []
+        )
+        if not isinstance(offsets, list) or len(offsets) != len(r["stopsForward"]):
+            errs.append(
+                f"{ctx} ({rid}): stopOffsets length must match stopsForward"
+            )
+        else:
+            previous_offset = -1
+            for stop_index, (stop_id, offset) in enumerate(zip(r["stopsForward"], offsets)):
+                offset_ctx = f"{ctx} ({rid}) stopOffsets[{stop_index}]"
+                if not isinstance(offset, int) or isinstance(offset, bool):
+                    errs.append(f"{offset_ctx}: must be an integer vertex index")
+                    continue
+                if offset <= previous_offset:
+                    errs.append(f"{offset_ctx}: offsets must be strictly increasing")
+                previous_offset = offset
+                if not 0 <= offset < len(geometry_coords):
+                    errs.append(f"{offset_ctx}: vertex {offset} is outside geometry")
+                    continue
+                stop_coord = stop_coords.get(stop_id)
+                if stop_coord is None:
+                    errs.append(f"{offset_ctx}: stop '{stop_id}' not in bus-stops.json")
+                    continue
+                distance_m = distance_m2(stop_coord, geometry_coords[offset]) ** 0.5
+                if distance_m > MAX_STOP_TO_ROUTE_M:
+                    errs.append(
+                        f"{offset_ctx}: stop '{stop_id}' is {distance_m:.0f}m from "
+                        f"vertex {offset} (limit {MAX_STOP_TO_ROUTE_M:.0f}m)"
+                    )
+        split_index = r["directionSplitIndex"]
+        if (
+            not isinstance(split_index, int)
+            or isinstance(split_index, bool)
+            or not 0 <= split_index <= len(r["stopsForward"])
+        ):
+            errs.append(
+                f"{ctx} ({rid}): directionSplitIndex must be within stopsForward"
+            )
+        for key in ("serviceHoursStart", "serviceHoursEnd"):
+            if r[key] is not None and not isinstance(r[key], (int, float)):
+                errs.append(f"{ctx} ({rid}): {key} must be numeric or null")
+        if not isinstance(r["frequency"], (int, float)):
+            errs.append(f"{ctx} ({rid}): frequency must be numeric")
         check_geometry(errs, f"{ctx} ({rid})", r["geometry"])
     return errs
 

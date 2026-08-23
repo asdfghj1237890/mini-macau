@@ -111,11 +111,15 @@ def run() -> None:
             sat = NO_SERVICE
         if sun is None and weekday is not None:
             sun = NO_SERVICE
-        if weekday is None or weekday == NO_SERVICE:
+        if weekday is None:
             missing.append(rid)
             continue
 
-        ms_s, ms_e = weekday
+        if weekday == NO_SERVICE:
+            ms_s = None
+            ms_e = None
+        else:
+            ms_s, ms_e = weekday
         if sat == NO_SERVICE:
             sat_s = None
             sat_e = None

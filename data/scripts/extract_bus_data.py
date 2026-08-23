@@ -13,6 +13,8 @@ Output schemas:
     stopsForward:  string[],   // DSAT IDs in chronological visit order
                                // (dir[0] stops + dir[1] stops if backward exists)
     stopsBackward: string[],   // always [] now — see below
+    stopOffsets:   int[],      // vertex index for each stopsForward entry
+    directionSplitIndex: int,  // first dir[1] stop; length for one-way loops
     geometry,                  // road-snapped LineString of full trip cycle
                                // (dir[0] + dir[1] for routes with backward)
     frequency, serviceHoursStart, serviceHoursEnd,
@@ -48,6 +50,7 @@ from osrm_route import (
     lotus_bridge_segment,
     path_enters_hengqin,
 )
+from route_offsets import align_stop_offsets
 
 REFERENCE_DIR = Path(__file__).parent.parent / "bus_reference"
 PUBLIC_DIR = Path(__file__).parent.parent.parent / "public" / "data"
@@ -108,6 +111,11 @@ _M245_ON_REPOUSO = [113.54336558580387, 22.199147148915735]
 ROUTING_COORD_OVERRIDES: dict[tuple[str, str], list[float]] = {
     ("7", "M245"): _M245_ON_REPOUSO,
     ("8", "M245"): _M245_ON_REPOUSO,
+    # DSAT identifies route 60's final bay as M239/9, but motransport's
+    # base-code-only final coordinate still points at M239/3, 231m west.
+    # Use the established M239/9 platform coordinate shared by routes 3
+    # and 28A so the route finishes at the bay it actually publishes.
+    ("60", "M239/9"): [113.559525, 22.198233],
 }
 
 
@@ -394,6 +402,16 @@ def run():
         # Geometry is the full out+back loop; treat as circular and put all
         # stops into stopsForward in visit order.
         stops_combined = stops_fwd + stops_bwd
+        stop_coords_combined = [
+            list(ROUTING_COORD_OVERRIDES.get((rid, did), [lng, lat]))
+            for did, lng, lat, _ in fwd_aligned + bwd_aligned
+        ]
+        geometry_coords = geometry.get("geometry", {}).get("coordinates", [])
+        stop_offsets, stop_distances = align_stop_offsets(
+            geometry_coords,
+            stop_coords_combined,
+            route_name=rid,
+        )
         route_type = "circular"
 
         bus_routes.append({
@@ -403,6 +421,8 @@ def run():
             "color": color,
             "stopsForward": stops_combined,
             "stopsBackward": [],
+            "stopOffsets": stop_offsets,
+            "directionSplitIndex": len(stops_fwd),
             "geometry": geometry,
             "frequency": route.get("avg_freq", 12),
             "serviceHoursStart": route.get("service_start", 6),
@@ -423,8 +443,13 @@ def run():
             if rid not in entry["route_ids"]:
                 entry["route_ids"].append(rid)
 
-        coord_count = len(geometry.get("geometry", {}).get("coordinates", []))
-        print(f"OK (fwd={len(stops_fwd)} bwd={len(stops_bwd)}, {coord_count} geo)", flush=True)
+        coord_count = len(geometry_coords)
+        max_stop_distance = max(stop_distances, default=0)
+        print(
+            f"OK (fwd={len(stops_fwd)} bwd={len(stops_bwd)}, "
+            f"{coord_count} geo, max-stop={max_stop_distance:.0f}m)",
+            flush=True,
+        )
 
     bus_stops = []
     for did in sorted(stop_registry.keys()):

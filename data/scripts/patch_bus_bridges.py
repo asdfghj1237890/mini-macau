@@ -34,6 +34,7 @@ from osrm_route import (
     lotus_bridge_segment,
     path_enters_hengqin,
 )
+from route_offsets import align_stop_offsets
 
 REFERENCE_DIR = Path(__file__).parent.parent / "bus_reference"
 PUBLIC_DIR = Path(__file__).parent.parent.parent / "public" / "data"
@@ -480,34 +481,75 @@ def patch_route(
         print(f"    skip: no channel crossing in geometry")
         return False
 
+    stop_offsets = route.get("stopOffsets", [])
+    trimmed_runs: list[tuple[int, int]] = []
+    for start, end in runs:
+        stops_inside = [offset for offset in stop_offsets if start <= offset <= end]
+        if stops_inside:
+            southbound = coords[start - 1][1] > CHANNEL_LAT_NORTH
+            original = (start, end)
+            if southbound:
+                # The broad latitude band continues onto Taipa land.  End
+                # the water/bridge run before the first served Taipa stop.
+                end = min(stops_inside) - 1
+            else:
+                # Northbound is the mirror: Taipa stops occur at the start
+                # of the broad band, before the actual bridge crossing.
+                start = max(stops_inside) + 1
+            print(f"    trim channel run {original} -> {(start, end)} around stops")
+        if 0 < start <= end < len(coords) - 1:
+            trimmed_runs.append((start, end))
+
+    runs = trimmed_runs
+    if not runs:
+        print("    skip: channel runs contain no replaceable span after stop bounds")
+        return False
+
     print(f"    {len(runs)} channel run(s)")
 
     # Process runs in FORWARD (chronological) order with offset tracking.
     # Clamp each run's anchor search window so it cannot intrude into an
-    # adjacent run's region:
+    # adjacent run's region OR cross a served stop:
     #   - anchor_pre search cannot go below the END of the previous run's
     #     splice (would swallow what's already patched)
     #   - anchor_post search cannot exceed the START of the next run
-    #     (would swallow the between-runs original coords, critical for
-    #     routes like 39 where there's only 1-2 coords of Taipa transit
-    #     between the two channel runs)
+    #     (would swallow the between-runs original coords)
+    #   - anchor_pre cannot move before the previous stop offset
+    #   - anchor_post cannot move after the next stop offset
+    #
+    # The stop bounds are the critical safety rule.  Without them, the
+    # wider Amaral/Sai-Van search windows can replace ordinary Taipa road
+    # after the bridge and silently remove T335/T338 (routes 11/71) or the
+    # T408/T341/T432/T428 stretch (route 39).
     sorted_runs = sorted(runs, key=lambda r: r[0])
+    original_stop_offsets = stop_offsets
     offset = 0
     prev_splice_end = 0
     for i, run in enumerate(sorted_runs):
         s, e = run
         s_adj, e_adj = s + offset, e + offset
+        previous_original = [stop_offset for stop_offset in original_stop_offsets if stop_offset < s]
+        next_original = [stop_offset for stop_offset in original_stop_offsets if stop_offset > e]
+        previous_stop_idx = max(previous_original, default=0)
+        # Stops preserved between an earlier splice and this run moved by
+        # the cumulative size delta; stops before that splice did not.
+        if i > 0 and previous_stop_idx > sorted_runs[i - 1][1]:
+            previous_stop_idx += offset
+        next_stop_idx = min(next_original, default=len(coords) - 1 - offset) + offset
         # Next run's (adjusted) start bounds our anchor_post search.
         if i + 1 < len(sorted_runs):
             next_s_adj = sorted_runs[i + 1][0] + offset
         else:
             next_s_adj = None
+        max_post_idx = next_stop_idx + 1
+        if next_s_adj is not None:
+            max_post_idx = min(max_post_idx, next_s_adj)
         len_before = len(coords)
         new_coords = replace_run(
             coords, (s_adj, e_adj), polyline_south, polyline_north,
             macau_approach, taipa_approach,
-            min_pre_idx=prev_splice_end,
-            max_post_idx=next_s_adj,
+            min_pre_idx=max(prev_splice_end, previous_stop_idx),
+            max_post_idx=max_post_idx,
         )
         size_diff = len(new_coords) - len_before
         offset += size_diff
@@ -523,6 +565,8 @@ def patch_route(
 
 def run():
     bridges, bridge_routes, routes = load_inputs()
+    bus_stops = json.load(open(PUBLIC_DIR / "bus-stops.json", "r", encoding="utf-8"))
+    stop_by_id = {stop["id"]: stop for stop in bus_stops}
 
     bridge = bridges["macau_taipa_bridge"]
     macau_approach = bridge["macau_approach"]
@@ -596,6 +640,14 @@ def run():
             by_id[rid], polyline_south, polyline_north,
             macau_approach, taipa_approach,
         ):
+            route = by_id[rid]
+            stop_offsets, stop_distances = align_stop_offsets(
+                route["geometry"]["geometry"]["coordinates"],
+                [stop_by_id[stop_id]["coordinates"] for stop_id in route["stopsForward"]],
+                route_name=rid,
+            )
+            route["stopOffsets"] = stop_offsets
+            print(f"    offsets OK (max-stop={max(stop_distances, default=0):.0f}m)")
             patched += 1
 
     out_path = PUBLIC_DIR / "bus-routes.json"

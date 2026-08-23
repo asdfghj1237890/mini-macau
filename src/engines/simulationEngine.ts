@@ -133,6 +133,20 @@ function getLineLength(line: Feature<LineString>): number {
   return getLineCache(line).totalKm
 }
 
+export function vertexOffsetsToProgress(
+  line: Feature<LineString>,
+  offsets: number[],
+): number[] {
+  const cache = getLineCache(line)
+  if (cache.totalKm <= 0 || cache.coords.length === 0) {
+    return offsets.map(() => 0)
+  }
+  return offsets.map(offset => {
+    const index = Math.max(0, Math.min(cache.cumKm.length - 1, offset))
+    return cache.cumKm[index] / cache.totalKm
+  })
+}
+
 export function interpolateOnLine(
   line: Feature<LineString>,
   progress: number
@@ -473,9 +487,19 @@ export function getBusSchedule(route: BusRoute, busStopMap: Map<string, BusStop>
   const tripDurationSec = (totalLenKm < 5 ? 30 : 60) * 60
   const cycleSec = isCircular ? tripDurationSec : tripDurationSec * 2
 
-  const stopProgFwd = isCircular
-    ? projectStopsOrdered(coords, cumKm, totalLenKm, route.stopsForward, busStopMap)
-    : projectStopsUnordered(route.geometry, totalLenKm, route.stopsForward, busStopMap)
+  const hasPublishedOffsets =
+    route.stopOffsets.length === route.stopsForward.length
+    && route.stopOffsets.every((offset, index) => (
+      Number.isInteger(offset)
+      && offset >= 0
+      && offset < coords.length
+      && (index === 0 || offset > route.stopOffsets[index - 1])
+    ))
+  const stopProgFwd = hasPublishedOffsets
+    ? vertexOffsetsToProgress(route.geometry, route.stopOffsets)
+    : isCircular
+      ? projectStopsOrdered(coords, cumKm, totalLenKm, route.stopsForward, busStopMap)
+      : projectStopsUnordered(route.geometry, totalLenKm, route.stopsForward, busStopMap)
   const stopProgBwd = !isCircular
     ? projectStopsUnordered(route.geometry, totalLenKm, route.stopsBackward, busStopMap)
     : []

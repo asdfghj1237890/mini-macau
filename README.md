@@ -265,7 +265,7 @@ Not every layer is equally "live." The default view is **fully simulated**; RT m
 | Layer | Mode | Source | Refresh cadence | Staleness indicator |
 |-------|------|--------|-----------------|---------------------|
 | **LRT** | Simulated | OSM geometry + MLM published per-station timetable | Manual regen (`uv run python data/main.py`) | None — static JSON |
-| **Bus (default)** | Simulated | OSM geometry + DSAT published service frequencies | Manual regen | None — static JSON |
+| **Bus (default)** | Simulated | OSM geometry + DSAT published service frequencies | Manual regen | DSAT stop snapshot timestamp in `data/bus_reference/dsat_stops.json` (current: 2026-08-24 Macau) |
 | **Bus (RT toggle)** | **Live** | DSAT realtime feed via nginx `/api/dsat/batch` proxy | Client polls every 15 s · server edge-caches 8 s | Per-bus `lastAt`; stale beyond 60 s window |
 | **Flights** | Static daily sync | [AviationStack API](https://aviationstack.com/) | Daily at 04:00 Macau time — `update-flights.yml` | `fetchedAtUtc` embedded in `flights.json` |
 | **Ferries** | Static monthly sync | TurboJET + CotaiJet timetable pages (scraped) | 1st of month · `update-ferry-schedules.yml` | `fetchedAtUtc` + `effectiveAs` in `ferry-schedules.json` |
