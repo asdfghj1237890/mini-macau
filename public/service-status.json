@@ -1,24 +1,17 @@
 {
-  "date": "2026-08-30",
-  "fetchedAtUtc": "2026-08-30T01:10:36.112309+00:00",
-  "dayOfWeek": 6,
-  "dayCategory": "sunday",
+  "date": "2026-08-31",
+  "fetchedAtUtc": "2026-08-31T01:13:05.697638+00:00",
+  "dayOfWeek": 0,
+  "dayCategory": "weekday",
   "isHoliday": false,
   "totalRoutes": 92,
   "inactive": [
-    "17S",
-    "25AX",
-    "25BS",
-    "2AS",
-    "30X",
-    "3AX",
-    "51B",
-    "5X",
-    "6B",
-    "701XS",
-    "71S",
-    "H2",
-    "MT5"
+    "15T"
   ],
-  "errors": []
+  "errors": [
+    {
+      "id": "22",
+      "error": "Exceeded 30 redirects."
+    }
+  ]
 }
