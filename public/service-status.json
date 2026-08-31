@@ -1,17 +1,12 @@
 {
-  "date": "2026-08-31",
-  "fetchedAtUtc": "2026-08-31T01:13:05.697638+00:00",
-  "dayOfWeek": 0,
+  "date": "2026-09-01",
+  "fetchedAtUtc": "2026-08-31T17:21:21.027202+00:00",
+  "dayOfWeek": 1,
   "dayCategory": "weekday",
   "isHoliday": false,
   "totalRoutes": 92,
   "inactive": [
     "15T"
   ],
-  "errors": [
-    {
-      "id": "22",
-      "error": "Exceeded 30 redirects."
-    }
-  ]
+  "errors": []
 }
