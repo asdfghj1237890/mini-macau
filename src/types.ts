@@ -18,6 +18,9 @@ export interface LRTLine {
   // for every line; falls back to `name` via localName()).
   namePt?: string
   color: string
+  // Station ids in track order, running in the direction of the line's
+  // *forward* trips. validate_output.py cross-checks this against the trips;
+  // downstream readers label direction 0 as stations[0] → stations[-1].
   stations: string[]
   geometry: Feature<LineString>
 }

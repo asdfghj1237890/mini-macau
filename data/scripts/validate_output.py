@@ -150,6 +150,7 @@ def v_lrt_lines(data: object) -> list[str]:
         return errs
     station_coords = load_station_coords(errs, "lrt-lines")
     station_ids = set(station_coords) if station_coords is not None else None
+    trips = load_trips_for_direction_check(errs, "lrt-lines")
     for i, ln in enumerate(data):
         ctx = f"lrt-lines[{i}]"
         if not require_fields(errs, ctx, ln, ("id", "name", "color", "stations", "geometry")):
@@ -163,7 +164,59 @@ def v_lrt_lines(data: object) -> list[str]:
         check_geometry(errs, f"{ctx} ({ln['id']})", ln["geometry"])
         if station_coords is not None and isinstance(ln.get("geometry"), dict):
             check_line_reaches_stations(errs, f"{ctx} ({ln['id']})", ln, station_coords)
+        if trips is not None:
+            check_line_matches_trip_direction(errs, f"{ctx} ({ln['id']})", ln, trips)
     return errs
+
+
+def load_trips_for_direction_check(errs: list[str], name: str) -> list | None:
+    """Weekday trips (src/data/trips-mon_thu.json) for the direction cross-check;
+    None if unreadable."""
+    path = SRC_DATA / "trips-mon_thu.json"
+    try:
+        trips = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as e:
+        errs.append(f"{name}: cannot read trips-mon_thu.json for direction cross-check — {e}")
+        return None
+    if not isinstance(trips, list):
+        errs.append(f"{name}: trips-mon_thu.json is not a list — cannot cross-check directions")
+        return None
+    return trips
+
+
+def check_line_matches_trip_direction(errs: list[str], ctx: str, ln: dict, trips: list) -> None:
+    """`stations` must run in the direction of the line's forward trips.
+
+    Downstream readers (macaubus.app's adapter) label direction 0 as
+    stations[0] → stations[-1] and attach the `forward` timetable to it, so a
+    reversed list silently pins every departure to the wrong platform. The
+    2026-04-19 hand edit flipped 石排灣線 exactly that way.
+    """
+    stations = ln.get("stations", [])
+    if not stations:
+        return
+    for direction, first, last in (
+        ("forward", stations[0], stations[-1]),
+        ("backward", stations[-1], stations[0]),
+    ):
+        trip = next(
+            (
+                t for t in trips
+                if isinstance(t, dict) and t.get("lineId") == ln.get("id")
+                and t.get("direction") == direction and t.get("entries")
+            ),
+            None,
+        )
+        if trip is None:
+            errs.append(f"{ctx}: no {direction} trip in trips-mon_thu.json to cross-check direction")
+            continue
+        entries = trip["entries"]
+        got = (entries[0].get("stationId"), entries[-1].get("stationId"))
+        if got != (first, last):
+            errs.append(
+                f"{ctx}: {direction} trips run {got[0]} → {got[1]} but `stations` lists "
+                f"{first} → {last} — station order must follow the forward direction"
+            )
 
 
 def load_station_coords(errs: list[str], name: str) -> dict[str, list[float]] | None:
