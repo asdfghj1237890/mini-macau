@@ -64,6 +64,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **ETA & vehicle info** — Click any vehicle or station to see live ETAs, next arrivals, route details, and service status
 - **Flight info** — Click any aircraft to see flight number, airline, destination/origin (with localized names), scheduled time, aircraft type, and live/sim status
 - **Ferry info** — Click any ferry to see operator, route, origin/destination port (localized), scheduled departure, crossing time, and live progress
+- **Road-works notices** — DSAT traffic-diversion notices shown on the map for the simulated date, toggleable
 - **Automated ferry data** — GitHub Actions workflow scrapes TurboJET and CotaiJet timetables monthly and commits updated schedules if changed
 - **Time controls** — Play, pause (spacebar), speed up (1×–60×), jump to current time, or pick any date/time with the DateTimePicker; Esc toggles the sidebar menu
 - **Vehicle tracking** — Click a vehicle to follow it with smooth camera animation; freely zoom/pan while tracking
@@ -255,6 +256,7 @@ Automated via GitHub Actions (`.github/workflows/update-ferry-schedules.yml`), w
 - **Bus timetables** — Based on published DSAT service frequencies
 - **Flight schedules** — [AviationStack API](https://aviationstack.com/) (MFM arrivals + departures)
 - **Ferry schedules** — [TurboJET](https://www2.turbojet.com.hk/zh-tw/%E6%B5%B7-%E8%88%B9/) + [CotaiJet](https://m.cotaiwaterjet.com/hk/ferry-schedule/hongkong-macau-taipa.html) official monthly timetables
+- **Road-works notices** — [DSAT via data.gov.mo](https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01) (daily)
 
 Everything under `/data/*.json` is fetchable as-is but served with `X-Robots-Tag: noindex, nofollow` (`public/_headers` on Cloudflare Pages, `docker/nginx.conf` in the container) so the raw files stay out of search results. It is a header rather than a `robots.txt` Disallow on purpose: a crawler that is disallowed never sees the `noindex`, and a disallowed URL can still be listed bare when something links to it.
 

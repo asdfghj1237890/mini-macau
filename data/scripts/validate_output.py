@@ -472,6 +472,93 @@ def v_service_status(data: object) -> list[str]:
     return errs
 
 
+ROAD_WORK_RESTRICTIONS = {"closed", "limited", "one_way", "no_parking", "other"}
+# Bilingual text fields on a notice: {"zh": str, "pt": str}. Only location.zh is
+# required non-empty — the upstream XML leaves others ("" contractor_pt, etc.)
+# genuinely blank, and that's a valid notice, not a scrape failure.
+ROAD_WORK_TEXT_FIELDS = ("restrictionText", "location", "reason", "principal", "contractor", "details")
+
+
+def v_road_works(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(errs, "road-works", data, ("fetchedAtUtc", "exportedAt", "source", "notices")):
+        return errs
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("road-works: fetchedAtUtc must be a string")
+    if not isinstance(data["exportedAt"], str):
+        errs.append("road-works: exportedAt must be a string")
+    source = data["source"]
+    if require_fields(errs, "road-works.source", source, ("name", "dataset", "download")):
+        for key in ("name", "dataset", "download"):
+            if not isinstance(source[key], str):
+                errs.append(f"road-works.source: '{key}' must be a string")
+    if not require_nonempty_list(errs, "road-works.notices", data["notices"]):
+        return errs
+
+    seen_ids: set[str] = set()
+    for i, n in enumerate(data["notices"]):
+        ctx = f"road-works.notices[{i}]"
+        if not require_fields(
+            errs, ctx, n,
+            ("id", "restriction", "restrictionText", "location", "reason", "principal",
+             "contractor", "details", "duration", "startDate", "endDate", "onlineDate",
+             "coordinates", "previousNotice"),
+        ):
+            continue
+        nid = n["id"]
+        if not (isinstance(nid, str) and nid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif nid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{nid}'")
+        else:
+            seen_ids.add(nid)
+        label = f"{ctx} ({nid if isinstance(nid, str) and nid else '?'})"
+
+        if n["restriction"] not in ROAD_WORK_RESTRICTIONS:
+            errs.append(f"{label}: restriction '{n['restriction']}' invalid")
+
+        for key in ROAD_WORK_TEXT_FIELDS:
+            obj = n[key]
+            if not require_fields(errs, f"{label}.{key}", obj, ("zh", "pt")):
+                continue
+            for lang in ("zh", "pt"):
+                if not isinstance(obj[lang], str):
+                    errs.append(f"{label}.{key}.{lang} must be a string")
+            if key == "location" and isinstance(obj.get("zh"), str) and not obj["zh"]:
+                errs.append(f"{label}.location.zh must not be empty")
+
+        duration = n["duration"]
+        if require_fields(errs, f"{label}.duration", duration, ("days", "hours")):
+            for k in ("days", "hours"):
+                v = duration[k]
+                if not isinstance(v, int) or isinstance(v, bool) or v < 0:
+                    errs.append(f"{label}.duration.{k} must be a non-negative int")
+
+        date_values: dict[str, str] = {}
+        for k in ("startDate", "endDate", "onlineDate"):
+            v = n[k]
+            if isinstance(v, str) and YMD.match(v):
+                date_values[k] = v
+            else:
+                errs.append(f"{label}: {k} must match YYYY-MM-DD")
+        if (
+            "startDate" in date_values
+            and "endDate" in date_values
+            and date_values["startDate"] > date_values["endDate"]
+        ):
+            errs.append(
+                f"{label}: startDate {date_values['startDate']} is after endDate {date_values['endDate']}"
+            )
+
+        check_coords(errs, label, n["coordinates"])
+
+        prev = n["previousNotice"]
+        if not (prev is None or (isinstance(prev, str) and prev)):
+            errs.append(f"{label}: previousNotice must be null or a non-empty string")
+
+    return errs
+
+
 # name -> (absolute path, validator)
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
@@ -485,6 +572,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "flights-timetable": (PUBLIC / "data/flights-timetable.json", v_flights_timetable),
     "ferries": (PUBLIC / "data/ferry-schedules.json", v_ferries),
     "service-status": (PUBLIC / "service-status.json", v_service_status),
+    "road-works": (PUBLIC / "data/road-works.json", v_road_works),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.

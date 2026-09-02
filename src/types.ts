@@ -131,6 +131,36 @@ export interface Ferry {
   berthIndex: number // index within FERRY_BERTHS_BY_TERMINAL[terminal]
 }
 
+// Bilingual free text as published by DSAT. The upstream feed is zh/pt only —
+// there is no English form, so `pickText` in roadWorks.ts maps en → pt (Macau
+// street names are officially Portuguese).
+export interface RoadWorkText {
+  zh: string
+  pt: string
+}
+
+export type RoadWorkRestriction = 'closed' | 'limited' | 'one_way' | 'no_parking' | 'other'
+
+// One DSAT 工程改道 (traffic-diversion) notice, from
+// public/data/road-works.json. Dates are Macau-local YYYY-MM-DD calendar
+// days, so they compare correctly as plain strings.
+export interface RoadWorkNotice {
+  id: string // aviso_no, e.g. "2509/2026"
+  restriction: RoadWorkRestriction
+  restrictionText: RoadWorkText
+  location: RoadWorkText
+  reason: RoadWorkText
+  principal: RoadWorkText
+  contractor: RoadWorkText // "" when the notice has no contractor
+  details: RoadWorkText // plain text; paragraphs separated by \n
+  duration: { days: number; hours: number }
+  startDate: string // YYYY-MM-DD
+  endDate: string // YYYY-MM-DD
+  onlineDate: string // YYYY-MM-DD
+  coordinates: [number, number] // [lng, lat]
+  previousNotice: string | null
+}
+
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
@@ -139,6 +169,7 @@ export interface TransitData {
   busStops: BusStop[]
   flights: Flight[]
   ferries: Ferry[]
+  roadWorks: RoadWorkNotice[]
   loading: boolean
 }
 

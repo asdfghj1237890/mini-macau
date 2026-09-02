@@ -84,6 +84,14 @@ export function macauYmd(instant: Date): string {
   return `${y}-${mo}-${d}`
 }
 
+// Whole days since the Unix epoch, counted on Macau's calendar. Changes
+// exactly when the Macau date rolls over — including jumps by a multiple of
+// 7 days that leave weekday/hour/minute untouched — so it is the right cheap
+// integer for "did the simulated day change?" checks in per-frame code.
+export function macauDayIndex(instant: Date): number {
+  return Math.floor((instant.getTime() + MACAU_OFFSET_MS) / 86400000)
+}
+
 // The instant at which Macau's wall clock reads the given fields. Inverse of
 // `macauParts`. `month` is 0–11. Used when the user picks a date/time (which
 // they mean in Macau time) and we need the epoch instant to drive the clock.

@@ -7,10 +7,11 @@ import { useSimulationClock } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
 import { getBusServiceBucket, getBusServiceWindow, getScheduleType } from './engines/simulationEngine'
-import { macauHours, macauMinutes, macauMinutesOfDay } from './macauTime'
+import { macauHours, macauMinutes, macauMinutesOfDay, macauYmd } from './macauTime'
+import { countActiveRoadWorks } from './roadWorks'
 import { startEngagementTracker, ga } from './analytics/ga'
 import { getRouteGroup, type GroupKey } from './routeGroups'
-import type { VehiclePosition, Station, BusRoute } from './types'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -24,6 +25,7 @@ const VehicleInfoPanel = lazy(() => import('./components/VehicleInfoPanel').then
 const StationInfoPanel = lazy(() => import('./components/StationInfoPanel').then(m => ({ default: m.StationInfoPanel })))
 const FlightInfoPanel = lazy(() => import('./components/FlightInfoPanel').then(m => ({ default: m.FlightInfoPanel })))
 const FerryInfoPanel = lazy(() => import('./components/FerryInfoPanel').then(m => ({ default: m.FerryInfoPanel })))
+const RoadWorkInfoPanel = lazy(() => import('./components/RoadWorkInfoPanel').then(m => ({ default: m.RoadWorkInfoPanel })))
 
 const LS_KEY = 'mini-macau-visible-routes'
 
@@ -64,6 +66,7 @@ function clearSavedRoutes() {
 const LS_LRT_KEY = 'mini-macau-lrt-on'
 const LS_FLIGHTS_KEY = 'mini-macau-flights-on'
 const LS_FERRIES_KEY = 'mini-macau-ferries-on'
+const LS_ROADWORKS_KEY = 'mini-macau-roadworks-on'
 const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 
 export default function App() {
@@ -93,11 +96,13 @@ export default function App() {
   const [isAutoMode, setIsAutoMode] = useState(() => loadSavedRoutes() === null)
   const [selectedVehicle, setSelectedVehicle] = useState<VehiclePosition | null>(null)
   const [selectedStation, setSelectedStation] = useState<Station | null>(null)
+  const [selectedRoadWork, setSelectedRoadWork] = useState<RoadWorkNotice | null>(null)
   const [trackedVehicleId, setTrackedVehicleId] = useState<string | null>(null)
   const [vehicleCount, setVehicleCount] = useState(0)
   const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
   const [flightsOn, setFlightsOn] = useState(() => localStorage.getItem(LS_FLIGHTS_KEY) !== '0')
   const [ferriesOn, setFerriesOn] = useState(() => localStorage.getItem(LS_FERRIES_KEY) !== '0')
+  const [roadWorksOn, setRoadWorksOn] = useState(() => localStorage.getItem(LS_ROADWORKS_KEY) !== '0')
   // Defer the MapView mount (and therefore the MapLibre lazy chunk import +
   // its ~5s eval on a slow CPU) until the browser hits idle. The splash keeps
   // the HUD visible meanwhile. This shifts MapLibre's JS eval out of the LCP
@@ -145,6 +150,10 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_TIMEBAR_KEY, showTimeBar ? '1' : '0') }, [showTimeBar])
   useEffect(() => { localStorage.setItem(LS_FLIGHTS_KEY, flightsOn ? '1' : '0') }, [flightsOn])
   useEffect(() => { localStorage.setItem(LS_FERRIES_KEY, ferriesOn ? '1' : '0') }, [ferriesOn])
+  useEffect(() => { localStorage.setItem(LS_ROADWORKS_KEY, roadWorksOn ? '1' : '0') }, [roadWorksOn])
+  // Hiding the layer must also close its panel — the marker it describes is
+  // gone from the map.
+  useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])
   useEffect(() => { localStorage.setItem(LS_LRT_KEY, JSON.stringify([...lrtOn])) }, [lrtOn])
 
   const currentHour = macauHours(clock.currentTime)
@@ -205,7 +214,17 @@ export default function App() {
     lrtLines: transitData.lrtLines.filter(l => lrtOn.has(l.id)),
     flights: flightsOn ? dateAwareFlights : [],
     ferries: ferriesOn ? transitData.ferries : [],
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn])
+    roadWorks: roadWorksOn ? transitData.roadWorks : [],
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn])
+
+  // Notices in force on the simulated Macau calendar day. Keyed on the day
+  // string, NOT on clock.currentTime — the clock re-renders at ~10 Hz and the
+  // count only changes at midnight.
+  const simYmd = macauYmd(clock.currentTime)
+  const activeRoadWorksCount = useMemo(
+    () => countActiveRoadWorks(transitData.roadWorks, simYmd),
+    [transitData.roadWorks, simYmd]
+  )
 
   const onVehicleCount = useCallback((count: number) => {
     setVehicleCount(count)
@@ -295,6 +314,7 @@ export default function App() {
   const onVehicleClick = useCallback((vehicle: VehiclePosition | null) => {
     setSelectedVehicle(vehicle)
     setSelectedStation(null)
+    setSelectedRoadWork(null)
     setTrackedVehicleId(vehicle?.id ?? null)
     if (vehicle) ga.vehicleSelected(vehicle.type, vehicle.id)
   }, [])
@@ -306,13 +326,24 @@ export default function App() {
   const onStationClick = useCallback((station: Station | null) => {
     setSelectedStation(station)
     setSelectedVehicle(null)
+    setSelectedRoadWork(null)
     setTrackedVehicleId(null)
     if (station) ga.stationSelected(station.id)
+  }, [])
+
+  // Road-work markers are mutually exclusive with vehicle/station selection,
+  // matching the existing handlers (only one info panel is ever open).
+  const onRoadWorkClick = useCallback((notice: RoadWorkNotice | null) => {
+    setSelectedRoadWork(notice)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setTrackedVehicleId(null)
   }, [])
 
   const clearSelection = useCallback(() => {
     setSelectedVehicle(null)
     setSelectedStation(null)
+    setSelectedRoadWork(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -332,6 +363,10 @@ export default function App() {
   }), [])
   const toggleFerries = useCallback(() => setFerriesOn(v => {
     ga.layerToggled('ferries', !v)
+    return !v
+  }), [])
+  const toggleRoadWorks = useCallback(() => setRoadWorksOn(v => {
+    ga.layerToggled('road_works', !v)
     return !v
   }), [])
   const toggleTimeBar = useCallback(() => setShowTimeBar(v => {
@@ -363,8 +398,10 @@ export default function App() {
             onVehicleClick={onVehicleClick}
             onTrackedVehicleUpdate={onTrackedVehicleUpdate}
             onStationClick={onStationClick}
+            onRoadWorkClick={onRoadWorkClick}
             onClearSelection={clearSelection}
             trackedVehicleId={trackedVehicleId}
+            selectedRoadWorkId={selectedRoadWork?.id ?? null}
             onVehicleCount={onVehicleCount}
             showTimeBar={showTimeBar}
             onToggleTimeBar={toggleTimeBar}
@@ -386,10 +423,13 @@ export default function App() {
         lrtOn={lrtOn}
         flightsOn={flightsOn}
         ferriesOn={ferriesOn}
+        roadWorksOn={roadWorksOn}
+        activeRoadWorksCount={activeRoadWorksCount}
         clock={clock}
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
         onToggleFerries={toggleFerries}
+        onToggleRoadWorks={toggleRoadWorks}
         onToggleRoute={onToggleRoute}
         onToggleAll={onToggleAll}
         onShowAll={onShowAll}
@@ -425,6 +465,13 @@ export default function App() {
           <StationInfoPanel
             station={selectedStation}
             transitData={filteredTransitData}
+            clock={clock}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedRoadWork && (
+          <RoadWorkInfoPanel
+            notice={selectedRoadWork}
             clock={clock}
             onClose={clearSelection}
           />

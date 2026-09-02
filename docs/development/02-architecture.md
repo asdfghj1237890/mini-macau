@@ -26,6 +26,7 @@
    │  - bus-routes / bus-stops            │
    │  - flights.json                      │
    │  - ferry-schedules.json              │
+   │  - road-works.json                   │
    └───────┬──────────────────────────────┘
            │ fetch on page load
            ▼
@@ -60,6 +61,7 @@
 | DSAT 頻率 | 各路線發車間隔、服務時段 | `fetch_dsat_stops.py` + `patch_service_hours*.py` |
 | AviationStack | MFM 機場每日航班 | `fetch_flights.py`（需 API key） |
 | TurboJET / CotaiJet | 港澳渡輪月度時刻表 | `fetch_ferry_schedules.py`（直接 scrape HTML） |
+| data.gov.mo | DSAT 工程改道消息（道路封閉/交通改道公告） | `fetch_road_works.py`（下載 ZIP 內 XML，含重試） |
 | DSAT realtime | 每車當前 stop / 速度 / 方向 | 瀏覽器（RT mode 才會 fetch） |
 
 ### Stage 2 — Python pipeline
@@ -146,6 +148,7 @@ data/
 │   ├── fetch_flights.py             # daily via update-flights.yml
 │   ├── fetch_ferry_schedules.py     # monthly via update-ferry-schedules.yml
 │   ├── fetch_service_status.py      # daily via service-status.yml
+│   ├── fetch_road_works.py          # daily via update-road-works.yml
 │   ├── osrm_route.py
 │   ├── patch_bus_bridges.py
 │   ├── patch_service_hours.py

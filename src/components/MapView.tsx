@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -17,7 +17,8 @@ import {
   vertexOffsetsToProgress,
 } from '../engines/simulationEngine'
 import length from '@turf/length'
-import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay } from '../macauTime'
+import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay, macauYmd, macauDayIndex } from '../macauTime'
+import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks'
 import { useI18n } from '../i18n'
 import type { BusTracker, RouteRealtimePoller, TrackedBusState } from '../services/realtimeClient'
 import { ga } from '../analytics/ga'
@@ -152,6 +153,98 @@ function expandBbox(b: Bbox, km: number): Bbox {
   return [b[0] - degLng, b[1] - degLat, b[2] + degLng, b[3] + degLat]
 }
 
+// ---- Road works (DSAT 工程改道) overlay ----------------------------------
+const ROAD_WORKS_SOURCE_ID = 'road-works'
+const ROAD_WORKS_ICON_LAYER_ID = 'road-works-icon'
+const ROAD_WORKS_SELECTED_LAYER_ID = 'road-works-selected'
+
+// One marker image per colour bucket rather than per restriction, so the five
+// restrictions share three canvases. The feature carries the image name in
+// `icon` and the symbol layer is a plain ['get'].
+const ROAD_WORK_ICON_COLORS = [...new Set(Object.values(ROAD_WORK_COLORS))]
+
+function roadWorkIconName(restriction: RoadWorkRestriction): string {
+  return `road-work-${ROAD_WORK_COLORS[restriction].slice(1)}`
+}
+
+// Device pixels; registered at pixelRatio 2, so this renders as a 22 px CSS
+// marker at icon-size 1.
+const ROAD_WORK_ICON_PX = 44
+
+// Rounded warning triangle with a "!" and a 2 px white rim, drawn once per
+// colour into an ImageData for map.addImage(). Returns null when the canvas
+// 2D context is unavailable (headless/blocked), in which case the caller
+// simply skips registering that image.
+function drawRoadWorkIcon(color: string): ImageData | null {
+  const size = ROAD_WORK_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const border = 4 // 2 CSS px at pixelRatio 2
+  const inset = border / 2 + 1
+  const cx = size / 2
+  const top = inset
+  const bottom = size - inset
+  const half = (size - inset * 2) / 2
+  const pts: [number, number][] = [[cx, top], [cx + half, bottom], [cx - half, bottom]]
+  const mid = (a: [number, number], b: [number, number]): [number, number] =>
+    [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
+
+  ctx.beginPath()
+  const start = mid(pts[2], pts[0])
+  ctx.moveTo(start[0], start[1])
+  for (let i = 0; i < 3; i++) {
+    const v = pts[i]
+    const m = mid(v, pts[(i + 1) % 3])
+    ctx.arcTo(v[0], v[1], m[0], m[1], 6)
+  }
+  ctx.closePath()
+
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = border
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = `bold ${Math.round(size * 0.4)}px sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  // Optical centre of a triangle sits below its geometric centre.
+  ctx.fillText('!', cx, top + (bottom - top) * 0.62)
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// Markers for one simulated Macau calendar day: `active` = in force, dimmed
+// `upcoming` = starts within the next week. Everything else is omitted.
+function buildRoadWorkFeatures(
+  notices: RoadWorkNotice[],
+  ymd: string,
+  ymdHorizon: string,
+): GeoJSON.FeatureCollection {
+  const features: GeoJSON.Feature[] = []
+  for (const n of notices) {
+    const status = roadWorkStatus(n, ymd, ymdHorizon)
+    if (!status) continue
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: n.coordinates },
+      properties: {
+        id: n.id,
+        restriction: n.restriction,
+        status,
+        icon: roadWorkIconName(n.restriction),
+      },
+    })
+  }
+  return { type: 'FeatureCollection', features }
+}
+
 const MACAU_CENTER: [number, number] = [113.55920888434439, 22.160440018223373]
 const MACAU_ZOOM = 13
 const STYLES = {
@@ -166,14 +259,16 @@ interface Props {
   onVehicleClick?: (vehicle: VehiclePosition | null) => void
   onTrackedVehicleUpdate?: (vehicle: VehiclePosition) => void
   onStationClick?: (station: Station | null) => void
+  onRoadWorkClick?: (notice: RoadWorkNotice | null) => void
   onClearSelection?: () => void
   trackedVehicleId?: string | null
+  selectedRoadWorkId?: string | null
   onVehicleCount?: (count: number) => void
   showTimeBar?: boolean
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onClearSelection, trackedVehicleId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onClearSelection, trackedVehicleId, selectedRoadWorkId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -235,6 +330,16 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   langRef.current = lang
   is3DRef.current = is3D
   showBuildingsRef.current = showBuildings
+  // Mirrors the selected road-work id so addCustomLayers can restore the
+  // highlight filter after a style swap (setStyle drops every layer).
+  const selectedRoadWorkIdRef = useRef<string | null>(selectedRoadWorkId ?? null)
+  selectedRoadWorkIdRef.current = selectedRoadWorkId ?? null
+  // Last (notice array, Macau calendar day) the road-works source was built
+  // from. Comparing these keeps the RAF tick allocation-free: the day string
+  // is only recomputed when the simulated minute rolls over.
+  const roadWorksRenderRef = useRef<{ notices: RoadWorkNotice[] | null; day: number }>(
+    { notices: null, day: -1 }
+  )
 
   const addCustomLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
 
@@ -628,6 +733,45 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         })
       }
 
+      // Road works. setStyle({diff:false}) drops images along with layers, so
+      // the icons are (re-)registered here on every style load, guarded by
+      // hasImage. The source starts empty; the RAF tick fills it for the
+      // simulated calendar day (roadWorksRenderRef is reset below).
+      for (const color of ROAD_WORK_ICON_COLORS) {
+        const name = `road-work-${color.slice(1)}`
+        if (m.hasImage(name)) continue
+        const img = drawRoadWorkIcon(color)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      m.addSource(ROAD_WORKS_SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      })
+      m.addLayer({
+        id: ROAD_WORKS_SELECTED_LAYER_ID, type: 'circle', source: ROAD_WORKS_SOURCE_ID,
+        filter: ['==', ['get', 'id'], selectedRoadWorkIdRef.current ?? ''],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      })
+      m.addLayer({
+        id: ROAD_WORKS_ICON_LAYER_ID, type: 'symbol', source: ROAD_WORKS_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 10, 0.4, 13, 0.7, 15, 1, 18, 1.1],
+        },
+        paint: {
+          'icon-opacity': ['match', ['get', 'status'], 'upcoming', 0.5, 1],
+        },
+      })
+
       addVehicleLayers(m, currentLang)
 
       const bus3DLayer = new Bus3DLayer()
@@ -649,6 +793,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       layersAddedRef.current = true
       serviceStatusRef.current = new Map()
       lastServiceMinuteRef.current = ''
+      // Force the next tick to repopulate the (now empty) road-works source.
+      roadWorksRenderRef.current = { notices: null, day: -1 }
     }
 
     addCustomLayersRef.current = addCustomLayers
@@ -664,6 +810,20 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       })
       m.on('mouseenter', 'stations-circle', () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', 'stations-circle', () => { m.getCanvas().style.cursor = '' })
+
+      m.on('click', ROAD_WORKS_ICON_LAYER_ID, (e) => {
+        const feature = e.features?.[0]
+        if (feature) {
+          const nid = feature.properties?.id
+          // Look the notice up in the CURRENT list (transitRef), not a
+          // closed-over snapshot — road-works.json lands after this handler
+          // is attached, and the legend toggle swaps the array.
+          const notice = transitRef.current.roadWorks.find(n => n.id === nid)
+          if (notice) { onRoadWorkClick?.(notice); e.preventDefault() }
+        }
+      })
+      m.on('mouseenter', ROAD_WORKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
+      m.on('mouseleave', ROAD_WORKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
 
       m.on('click', 'vehicles-circle', (e) => {
         const feature = e.features?.[0]
@@ -696,7 +856,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       m.on('click', (e) => {
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ...model3DLayers],
+          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, ...model3DLayers],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -765,6 +925,14 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
     updateVehicleLabelLang(map, lang)
   }, [lang])
+
+  // Selected road-work highlight. setFilter (not setPaintProperty) so the
+  // change is a cheap filter swap on the existing source.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.getLayer(ROAD_WORKS_SELECTED_LAYER_ID)) return
+    map.setFilter(ROAD_WORKS_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedRoadWorkId ?? ''])
+  }, [selectedRoadWorkId])
 
   useEffect(() => {
     const map = mapRef.current
@@ -1170,6 +1338,26 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           }
         }
 
+        // Road works follow the SIMULATED calendar day, not wall time. The
+        // FeatureCollection is rebuilt only when that day changes or the
+        // notice array identity changes (data arrival / legend toggle), so
+        // the per-frame cost here is one integer and one reference compare.
+        // The day is gated on `macauDayIndex`, not on the weekday/H/M minute
+        // key above: a ±7-day jump from the date picker keeps that key
+        // byte-identical but must still swap the marker set.
+        const rw = roadWorksRenderRef.current
+        const rwDay = macauDayIndex(simTime)
+        if (rw.notices !== td.roadWorks || rw.day !== rwDay) {
+          const src = map.getSource(ROAD_WORKS_SOURCE_ID) as unknown as
+            { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+          if (src?.setData) {
+            rw.notices = td.roadWorks
+            rw.day = rwDay
+            const rwYmd = macauYmd(simTime)
+            src.setData(buildRoadWorkFeatures(td.roadWorks, rwYmd, roadWorksHorizon(simTime)))
+          }
+        }
+
         const tid = trackedRef.current
         if (tid) {
           // Prefer the per-RAF flight snapshot for planes so the camera
@@ -1559,6 +1747,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                       rel="noopener noreferrer"
                       className="hover:text-amber-200 transition-colors"
                     >CotaiJet</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceRoadWorksLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                    <a
+                      href="https://www.dsat.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >DSAT</a>
+                    <span className="text-white/25 mx-[3px]">/</span>
+                    <a
+                      href="https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >data.gov.mo</a>
                   </span>
                 </li>
               </ul>

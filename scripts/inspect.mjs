@@ -19,6 +19,7 @@
 //   node scripts/inspect.mjs coords                 # bus-line coordinate totals
 //   node scripts/inspect.mjs ferries                # ferry-schedules.json summary
 //   node scripts/inspect.mjs flights                # flights.json summary
+//   node scripts/inspect.mjs road-works [YYYY-MM-DD] # road-works.json summary + active/upcoming for a date (default: today, Macau)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync } from 'node:fs'
@@ -118,6 +119,46 @@ function summarizeJson(rel) {
   }
 }
 
+// Macau is UTC+8 with no DST, so "today in Macau" is just the wall-clock
+// UTC date after shifting the clock forward 8h — no timezone DB needed.
+function macauYmd(date = new Date()) {
+  const macau = new Date(date.getTime() + 8 * 60 * 60 * 1000)
+  return macau.toISOString().slice(0, 10)
+}
+
+function addDaysYmd(ymd, days) {
+  const [y, m, d] = ymd.split('-').map(Number)
+  const dt = new Date(Date.UTC(y, m - 1, d))
+  dt.setUTCDate(dt.getUTCDate() + days)
+  return dt.toISOString().slice(0, 10)
+}
+
+function cmdRoadWorks(dateArg) {
+  if (dateArg && !/^\d{4}-\d{2}-\d{2}$/.test(dateArg)) {
+    return fail(`road-works date must be YYYY-MM-DD, got "${dateArg}"`)
+  }
+  const ymd = dateArg || macauYmd()
+  const { exportedAt, notices } = load('public/data/road-works.json')
+
+  const byRestriction = {}
+  for (const n of notices) byRestriction[n.restriction] = (byRestriction[n.restriction] || 0) + 1
+  console.log(`total notices: ${notices.length}   exportedAt: ${exportedAt}`)
+  console.log('by restriction:', byRestriction)
+
+  // Mirrors the map overlay's own window: active = startDate..endDate spans
+  // today; upcoming = starts within the next 7 days (see RoadWorkInfoPanel).
+  const upcomingBy = addDaysYmd(ymd, 7)
+  const active = notices
+    .filter((n) => n.startDate <= ymd && ymd <= n.endDate)
+    .sort((a, b) => a.startDate.localeCompare(b.startDate))
+  const upcoming = notices.filter((n) => ymd < n.startDate && n.startDate <= upcomingBy)
+  console.log(`\n@ ${ymd} — active: ${active.length}   upcoming (next 7d): ${upcoming.length}`)
+  console.log('\nactive:')
+  for (const n of active) {
+    console.log(`  ${n.id.padEnd(10)} ${n.startDate}→${n.endDate}  ${n.restriction.padEnd(10)} ${n.location.zh}`)
+  }
+}
+
 function fail(msg) {
   console.error(`error: ${msg}`)
   process.exit(1)
@@ -135,7 +176,8 @@ switch (cmd) {
   case 'coords': cmdCoords(); break
   case 'ferries': summarizeJson('public/data/ferry-schedules.json'); break
   case 'flights': summarizeJson('public/data/flights.json'); break
+  case 'road-works': cmdRoadWorks(pos[0]); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD]')
     if (cmd) process.exit(1)
 }

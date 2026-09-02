@@ -9,6 +9,7 @@
 | [`update-flights.yml`](../../.github/workflows/update-flights.yml) | daily 20:00 UTC（澳門 04:00） | AviationStack → `flights.json` |
 | [`update-ferry-schedules.yml`](../../.github/workflows/update-ferry-schedules.yml) | 月初 00:00 UTC | Scrape TurboJET / CotaiJet → `ferry-schedules.json` |
 | [`service-status.yml`](../../.github/workflows/service-status.yml) | daily 23:00 UTC（澳門 07:00） | Scrape DSAT 公告 → `service-status.json` |
+| [`update-road-works.yml`](../../.github/workflows/update-road-works.yml) | daily 18:20 UTC（澳門 02:20） | data.gov.mo → `road-works.json` |
 
 ## `deploy.yml` — Cloudflare Pages
 
@@ -79,6 +80,10 @@ jobs:
 ### `service-status.yml`
 
 每日 23:00 UTC = 澳門早上 07:00，比一般早班巴士運行還早一點點，能在用戶醒來前更新今日的停駛清單。
+
+### `update-road-works.yml`
+
+每日 18:20 UTC（澳門 02:20），排在上游 00:30 匯出、平台 01:09 更新之後，確保抓到當天最新的公告。跑完 `fetch_road_works.py` 後還要過 `validate_output.py road-works`，沒過就不 commit。
 
 ## 沒有 CI test job
 

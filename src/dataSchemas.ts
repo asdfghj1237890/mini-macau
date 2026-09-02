@@ -150,6 +150,45 @@ export const FerryScheduleFileSchema = z.object({
   ),
 })
 
+// road-works.json — DSAT 工程改道 notices. Mirrors the `road-works` block in
+// data/scripts/validate_output.py: the pipeline is the hard gate, this is the
+// client-side tripwire. Dates are Macau-local YYYY-MM-DD (string-comparable),
+// `contractor` may be empty strings, and `previousNotice` is null when the
+// upstream value was "na".
+const ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expected YYYY-MM-DD')
+const roadWorkText = z.object({ zh: z.string(), pt: z.string() })
+
+export const RoadWorksFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  exportedAt: z.string(),
+  source: z.object({
+    name: z.string(),
+    dataset: z.string(),
+    download: z.string(),
+  }),
+  notices: z.array(
+    z.object({
+      id: z.string(),
+      restriction: z.enum(['closed', 'limited', 'one_way', 'no_parking', 'other']),
+      restrictionText: roadWorkText,
+      location: roadWorkText,
+      reason: roadWorkText,
+      principal: roadWorkText,
+      contractor: roadWorkText,
+      details: roadWorkText,
+      duration: z.object({
+        days: z.number().int().nonnegative(),
+        hours: z.number().int().nonnegative(),
+      }),
+      startDate: ymd,
+      endDate: ymd,
+      onlineDate: ymd,
+      coordinates: lngLat,
+      previousNotice: z.string().nullable(),
+    }),
+  ),
+})
+
 // Validate `raw` against `schema`. On mismatch: throw in dev (so tests and the
 // dev server surface contract drift immediately) and console.error in prod (so
 // the live site logs the problem but still renders best-effort). Returns the

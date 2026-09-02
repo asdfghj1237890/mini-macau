@@ -7,6 +7,7 @@ import {
   macauMinutes,
   macauMinutesOfDay,
   macauYmd,
+  macauDayIndex,
   macauWallToInstant,
 } from './macauTime'
 
@@ -93,5 +94,22 @@ describe('macauWallToInstant', () => {
 describe('MACAU_OFFSET_MS', () => {
   it('is exactly +8h', () => {
     expect(MACAU_OFFSET_MS).toBe(28800000)
+  })
+})
+
+describe('macauDayIndex', () => {
+  it('rolls over at Macau midnight, not UTC midnight', () => {
+    const lastSecond = new Date('2026-09-02T15:59:59Z') // 23:59:59 Macau, 2 Sep
+    const midnight = new Date('2026-09-02T16:00:00Z') // 00:00:00 Macau, 3 Sep
+    expect(macauDayIndex(midnight) - macauDayIndex(lastSecond)).toBe(1)
+    expect(macauDayIndex(lastSecond)).toBe(Math.floor(Date.UTC(2026, 8, 2) / 86400000))
+  })
+
+  it('changes across a 7-day jump that leaves weekday/hour/minute identical', () => {
+    const t = new Date('2026-09-03T04:10:00Z')
+    const plus7 = new Date(t.getTime() + 7 * 86400000)
+    expect(macauWeekday(plus7)).toBe(macauWeekday(t))
+    expect(macauMinutesOfDay(plus7)).toBe(macauMinutesOfDay(t))
+    expect(macauDayIndex(plus7)).toBe(macauDayIndex(t) + 7)
   })
 })

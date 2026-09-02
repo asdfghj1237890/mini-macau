@@ -27,6 +27,7 @@ data/scripts/
 ├── generate_timetable.py      # 從 MLM 圖片轉錄出來的時刻表 → trips-*.json
 ├── fetch_flights.py           # AviationStack → flights.json
 ├── fetch_ferry_schedules.py   # TurboJET / CotaiJet → ferry-schedules.json
+├── fetch_road_works.py        # data.gov.mo (DSAT) → road-works.json
 └── fetch_service_status.py    # 每天 scrape 巴士停駛公告 → service-status.json
 ```
 
@@ -97,6 +98,12 @@ AviationStack `flights` endpoint，filter `arr_iata=MFM` + `dep_iata=MFM`，吐�
 ### 渡輪 — `fetch_ferry_schedules.py`
 
 直接 scrape TurboJET 跟 CotaiJet 官網（沒有 API）。產出單一 `ferry-schedules.json`，內含所有 6 條航線（`hkg-outer`、`hkg-taipa`、`hkia`、`shenzhen-airport`、`shekou`、`cotaijet`）。每筆 record 帶 `fetchedAtUtc` + `effectiveAs`，方便看資料新不新鮮。
+
+### 工程改道消息 — `fetch_road_works.py`
+
+從 data.gov.mo 抓 DSAT「工程改道消息」dataset，upstream 每日更新一次，下載回來的是包著一份 XML 的 ZIP。HTML 格式的公告內文會被剝成純文字段落，標題裡的限制用語對應成 `restriction` 欄位（`closed` / `limited` / `one_way` / `no_parking` / `other`）。產出 `public/data/road-works.json`，跑完要過 `validate_output.py road-works`。
+
+> 下載端點偶爾會回 `{"msg":"內部錯誤","code":1}` 而不是 ZIP，`fetch_road_works.py` 因此帶重試。
 
 ### 巴士停駛公告 — `fetch_service_status.py`
 

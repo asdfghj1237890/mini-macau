@@ -83,6 +83,8 @@ const translations = {
     flights: 'Flights',
     flightsActive: (n: number) => `${n} flights`,
     ferries: 'Ferries',
+    roadWorks: 'Road works',
+    roadWorksActive: (n: number) => `${n} active`,
     noServiceToday: 'No service today',
     // ---- MapView drawer ----
     mapSettings: 'Map Settings',
@@ -105,6 +107,7 @@ const translations = {
     dataSourceLrtLabel: 'LRT',
     dataSourceFlightLabel: 'Flights',
     dataSourceFerryLabel: 'Ferries',
+    dataSourceRoadWorksLabel: 'Road works',
     // ---- ControlPanel ----
     amPeak: 'AM PEAK',
     pmPeak: 'PM PEAK',
@@ -169,6 +172,33 @@ const translations = {
     ferryFooterArr: 'ARRIVAL',
     portOuterHarbour: 'OHT',
     portTaipa: 'TMT',
+    // ---- Road works panel ----
+    roadWorkLabel: 'ROAD WORKS',
+    roadWorkClosed: 'Road closed',
+    roadWorkLimited: 'Restricted traffic',
+    roadWorkOneWay: 'One-way traffic',
+    roadWorkNoParking: 'No parking',
+    roadWorkOther: 'Traffic notice',
+    roadWorkInForce: 'IN FORCE',
+    roadWorkUpcoming: 'UPCOMING',
+    roadWorkEnded: 'ENDED',
+    roadWorkUntil: (date: string) => `until ${date}`,
+    roadWorkStartsIn: (n: number) => (n === 1 ? 'starts tomorrow' : `starts in ${n} days`),
+    roadWorkPeriod: 'PERIOD',
+    roadWorkDuration: 'DURATION',
+    roadWorkDurationValue: (days: number, hours: number) => {
+      const d = days === 1 ? '1 day' : `${days} days`
+      if (days > 0 && hours > 0) return `${d} ${hours} h`
+      if (days > 0) return d
+      return `${hours} h`
+    },
+    roadWorkReason: 'REASON',
+    roadWorkApplicant: 'APPLICANT',
+    roadWorkContractor: 'CONTRACTOR',
+    roadWorkNoticeNo: 'NOTICE',
+    roadWorkPrevNotice: 'REPLACES',
+    roadWorkDetails: 'DETAILS',
+    roadWorkSource: 'SOURCE',
     // ---- VehicleInfoPanel ----
     terminalStop: 'End',
   },
@@ -217,6 +247,8 @@ const translations = {
     flights: '航班',
     flightsActive: (n: number) => `${n} 架航班`,
     ferries: '船運',
+    roadWorks: '工程改道',
+    roadWorksActive: (n: number) => `${n} 項生效中`,
     noServiceToday: '本日無服務',
     mapSettings: '地圖設定',
     plan2D: '2D 平面',
@@ -237,6 +269,7 @@ const translations = {
     dataSourceLrtLabel: '輕軌',
     dataSourceFlightLabel: '航班',
     dataSourceFerryLabel: '噴射船',
+    dataSourceRoadWorksLabel: '工程改道',
     amPeak: '早尖峰',
     pmPeak: '晚尖峰',
     nowShort: '現在',
@@ -295,6 +328,31 @@ const translations = {
     ferryFooterArr: '抵港',
     portOuterHarbour: '外港',
     portTaipa: '氹仔',
+    roadWorkLabel: '工程改道',
+    roadWorkClosed: '封閉交通',
+    roadWorkLimited: '有限度通車',
+    roadWorkOneWay: '單一方向行車',
+    roadWorkNoParking: '禁止泊車',
+    roadWorkOther: '交通通告',
+    roadWorkInForce: '生效中',
+    roadWorkUpcoming: '即將實施',
+    roadWorkEnded: '已結束',
+    roadWorkUntil: (date: string) => `至 ${date}`,
+    roadWorkStartsIn: (n: number) => (n === 1 ? '明日開始' : `${n} 天後開始`),
+    roadWorkPeriod: '日期',
+    roadWorkDuration: '為期',
+    roadWorkDurationValue: (days: number, hours: number) => {
+      if (days > 0 && hours > 0) return `${days}日${hours}小時`
+      if (days > 0) return `${days}日`
+      return `${hours}小時`
+    },
+    roadWorkReason: '事由',
+    roadWorkApplicant: '申請人',
+    roadWorkContractor: '承建商',
+    roadWorkNoticeNo: '通告編號',
+    roadWorkPrevNotice: '上一份通告',
+    roadWorkDetails: '內文',
+    roadWorkSource: '來源',
     terminalStop: '終站',
   },
   pt: {
@@ -342,6 +400,8 @@ const translations = {
     flights: 'Voos',
     flightsActive: (n: number) => `${n} voos`,
     ferries: 'Ferries',
+    roadWorks: 'Obras na via',
+    roadWorksActive: (n: number) => `${n} activas`,
     noServiceToday: 'Sem serviço hoje',
     mapSettings: 'Definições',
     plan2D: '2D Plano',
@@ -362,6 +422,7 @@ const translations = {
     dataSourceLrtLabel: 'MLM',
     dataSourceFlightLabel: 'Voos',
     dataSourceFerryLabel: 'Ferries',
+    dataSourceRoadWorksLabel: 'Obras na via',
     amPeak: 'PICO MANHÃ',
     pmPeak: 'PICO TARDE',
     nowShort: 'AGORA',
@@ -420,6 +481,32 @@ const translations = {
     ferryFooterArr: 'CHEGADA',
     portOuterHarbour: 'OHT',
     portTaipa: 'TMT',
+    roadWorkLabel: 'OBRAS NA VIA',
+    roadWorkClosed: 'Vedado ao trânsito',
+    roadWorkLimited: 'Condicionamentos ao trânsito',
+    roadWorkOneWay: 'Sentido único',
+    roadWorkNoParking: 'Proibido estacionar',
+    roadWorkOther: 'Aviso de trânsito',
+    roadWorkInForce: 'EM VIGOR',
+    roadWorkUpcoming: 'EM BREVE',
+    roadWorkEnded: 'TERMINADO',
+    roadWorkUntil: (date: string) => `até ${date}`,
+    roadWorkStartsIn: (n: number) => (n === 1 ? 'começa amanhã' : `começa em ${n} dias`),
+    roadWorkPeriod: 'PERÍODO',
+    roadWorkDuration: 'DURAÇÃO',
+    roadWorkDurationValue: (days: number, hours: number) => {
+      const d = days === 1 ? '1 dia' : `${days} dias`
+      if (days > 0 && hours > 0) return `${d} ${hours} h`
+      if (days > 0) return d
+      return `${hours} h`
+    },
+    roadWorkReason: 'MOTIVO',
+    roadWorkApplicant: 'REQUERENTE',
+    roadWorkContractor: 'EMPREITEIRO',
+    roadWorkNoticeNo: 'AVISO',
+    roadWorkPrevNotice: 'SUBSTITUI',
+    roadWorkDetails: 'DETALHES',
+    roadWorkSource: 'FONTE',
     terminalStop: 'Terminal',
   },
 }
@@ -469,6 +556,8 @@ export interface Translations {
   flights: string
   flightsActive: (n: number) => string
   ferries: string
+  roadWorks: string
+  roadWorksActive: (n: number) => string
   noServiceToday: string
   mapSettings: string
   plan2D: string
@@ -489,6 +578,7 @@ export interface Translations {
   dataSourceLrtLabel: string
   dataSourceFlightLabel: string
   dataSourceFerryLabel: string
+  dataSourceRoadWorksLabel: string
   amPeak: string
   pmPeak: string
   nowShort: string
@@ -547,6 +637,27 @@ export interface Translations {
   ferryFooterArr: string
   portOuterHarbour: string
   portTaipa: string
+  roadWorkLabel: string
+  roadWorkClosed: string
+  roadWorkLimited: string
+  roadWorkOneWay: string
+  roadWorkNoParking: string
+  roadWorkOther: string
+  roadWorkInForce: string
+  roadWorkUpcoming: string
+  roadWorkEnded: string
+  roadWorkUntil: (date: string) => string
+  roadWorkStartsIn: (n: number) => string
+  roadWorkPeriod: string
+  roadWorkDuration: string
+  roadWorkDurationValue: (days: number, hours: number) => string
+  roadWorkReason: string
+  roadWorkApplicant: string
+  roadWorkContractor: string
+  roadWorkNoticeNo: string
+  roadWorkPrevNotice: string
+  roadWorkDetails: string
+  roadWorkSource: string
   terminalStop: string
 }
 

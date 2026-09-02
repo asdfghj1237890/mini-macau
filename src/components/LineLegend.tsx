@@ -15,10 +15,16 @@ interface Props {
   lrtOn?: Set<string>
   flightsOn?: boolean
   ferriesOn?: boolean
+  roadWorksOn?: boolean
+  // Notices in force on the SIMULATED calendar day (computed in App so the
+  // legend and the map markers always agree). Not derivable from
+  // transitData.roadWorks alone, which is the whole dataset.
+  activeRoadWorksCount?: number
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
   onToggleFerries?: () => void
+  onToggleRoadWorks?: () => void
   onToggleRoute?: (routeId: string) => void
   onToggleAll?: () => void
   onShowAll?: () => void
@@ -27,7 +33,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | null
 
 export function LineLegend({
   transitData,
@@ -38,10 +44,13 @@ export function LineLegend({
   lrtOn,
   flightsOn = true,
   ferriesOn = true,
+  roadWorksOn = true,
+  activeRoadWorksCount = 0,
   clock,
   onToggleLrt,
   onToggleFlights,
   onToggleFerries,
+  onToggleRoadWorks,
   onToggleRoute,
   onShowAll,
   onHideAll,
@@ -119,6 +128,7 @@ export function LineLegend({
   const totalFlightCount = allTransitData?.flights.length ?? flightCount
   const ferryCount = transitData.ferries.length
   const totalFerryCount = allTransitData?.ferries.length ?? ferryCount
+  const totalRoadWorkCount = allTransitData?.roadWorks.length ?? transitData.roadWorks.length
 
   const isLrtOn = (id: string) => (lrtOn ? lrtOn.has(id) : true)
   const isLive = clock ? clock.isLive : true
@@ -157,6 +167,11 @@ export function LineLegend({
           {totalFerryCount > 0 && ferriesOn && (
             <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-red-300/80">
               <span>{'\u2693\uFE0E'}</span><span>{ferryCount}</span>
+            </span>
+          )}
+          {totalRoadWorkCount > 0 && roadWorksOn && (
+            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-amber-300/80">
+              <span>{'\u26A0\uFE0E'}</span><span>{activeRoadWorksCount}</span>
             </span>
           )}
         </button>
@@ -433,6 +448,37 @@ export function LineLegend({
               </span>
             </button>
           )}
+
+          {/* ROAD WORKS — toggleable */}
+          {totalRoadWorkCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleRoadWorks}
+              disabled={!onToggleRoadWorks}
+              aria-pressed={roadWorksOn}
+              title={t.roadWorksActive(activeRoadWorksCount)}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+                         ${roadWorksOn
+                           ? 'bg-amber-400/[0.05] hover:bg-amber-400/[0.1]'
+                           : 'hover:bg-white/[0.03] opacity-50'}
+                         ${onToggleRoadWorks ? '' : 'cursor-default'}`}
+            >
+              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${roadWorksOn ? 'text-white/45' : 'text-white/40'}`}>{'⚠︎'}</span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(245,158,11,0.45) 0 1px, transparent 1px 3px)' }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+                WORKS · 工程
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${roadWorksOn ? 'text-amber-300/80' : 'text-white/25'}`}>
+                {activeRoadWorksCount}
+              </span>
+              <span className={`mm-mono text-[8px] tracking-[0.2em] ${roadWorksOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                {roadWorksOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
         </div>
       )}
 
@@ -523,6 +569,28 @@ export function LineLegend({
               <circle cx="12" cy="5" r="3" />
               <line x1="12" y1="22" x2="12" y2="8" />
               <path d="M5 12H2a10 10 0 0 0 20 0h-3" />
+            </svg>
+          </button>
+        )}
+
+        {/* ROAD WORKS chip */}
+        {totalRoadWorkCount > 0 && (
+          <button
+            onClick={() => togglePanel('works')}
+            aria-label={t.roadWorks}
+            className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
+                       border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+                       ${mobilePanel === 'works'
+                         ? 'border-amber-400/60 text-amber-300'
+                         : roadWorksOn
+                           ? 'border-amber-400/25 text-amber-300/80 hover:border-amber-400/50 active:scale-95'
+                           : 'border-white/10 text-white/40 hover:border-white/25'}`}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           </button>
         )}
@@ -859,6 +927,58 @@ export function LineLegend({
                 </span>
                 <span className={`mm-mono text-[10px] tracking-[0.2em] ${ferriesOn ? 'text-emerald-300' : 'text-white/25'}`}>
                   {ferriesOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* ROAD WORKS */}
+          {mobilePanel === 'works' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-amber-400/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-amber-300/85">
+                  <span className="text-[12px] leading-none">{'⚠︎'}</span>
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(245,158,11,0.45) 0 1px, transparent 1px 3px)' }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">WORKS · 工程</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                    {roadWorksOn ? activeRoadWorksCount : 0}/{totalRoadWorkCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleRoadWorks}
+                disabled={!onToggleRoadWorks}
+                aria-pressed={roadWorksOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${roadWorksOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${onToggleRoadWorks ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={roadWorksOn ? 'text-amber-400' : 'text-white/40'}>{'⚠︎'}</span>
+                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                    {t.roadWorksActive(activeRoadWorksCount)}
+                  </span>
+                </span>
+                <span className={`mm-mono text-[10px] tracking-[0.2em] ${roadWorksOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                  {roadWorksOn ? 'ON' : 'OFF'}
                 </span>
               </button>
             </div>

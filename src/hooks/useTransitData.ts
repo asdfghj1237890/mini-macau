@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -13,6 +13,7 @@ import {
   BusStopsSchema,
   FlightsSchema,
   FerryScheduleFileSchema,
+  RoadWorksFileSchema,
 } from '../dataSchemas'
 
 const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
@@ -71,6 +72,16 @@ interface FerryScheduleFile {
   effectiveAs: string
   sources?: Record<string, string>
   routes: FerryScheduleRoute[]
+}
+
+// road-works.json wraps the notices in a metadata envelope; only `notices`
+// reaches TransitData (the runtime never reads the provenance fields — the
+// panel's source attribution is a static label).
+interface RoadWorksFile {
+  fetchedAtUtc: string
+  exportedAt: string
+  source: { name: string; dataset: string; download: string }
+  notices: RoadWorkNotice[]
 }
 
 function hhmmToMinutes(s: string): number | null {
@@ -301,6 +312,7 @@ export function useTransitData(): UseTransitDataResult {
     busStops: [],
     flights: [],
     ferries: [],
+    roadWorks: [],
     loading: true,
   })
   // Multi-day timetable lives in its own state slot rather than on
@@ -406,6 +418,13 @@ export function useTransitData(): UseTransitDataResult {
 
     loadJson<FerryScheduleFile>('/data/ferry-schedules.json', FerryScheduleFileSchema, 'ferry-schedules.json')
       .then(file => commit('ferries', flattenFerrySchedules(file)))
+      .catch(() => {})
+
+    // Road works are a non-critical overlay like flights/ferries: the file is
+    // produced by its own workflow and may legitimately be missing on a fresh
+    // deployment, so a failure just leaves the overlay empty.
+    loadJson<RoadWorksFile>('/data/road-works.json', RoadWorksFileSchema, 'road-works.json')
+      .then(file => commit('roadWorks', file.notices))
       .catch(() => {})
 
     return () => { cancelledRef.current = true }

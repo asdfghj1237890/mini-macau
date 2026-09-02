@@ -11,6 +11,7 @@ import {
   BusStopsSchema,
   FlightsSchema,
   FerryScheduleFileSchema,
+  RoadWorksFileSchema,
 } from './dataSchemas'
 
 // Parse the actual JSON the app ships and assert it satisfies the runtime
@@ -46,4 +47,5 @@ describe('committed data files satisfy their schemas', () => {
   it('flights.json', () => expectValid(FlightsSchema, 'flights.json'))
   it('flights-timetable.json', () => expectValid(FlightsSchema, 'flights-timetable.json'))
   it('ferry-schedules.json', () => expectValid(FerryScheduleFileSchema, 'ferry-schedules.json'))
+  it('road-works.json', () => expectValid(RoadWorksFileSchema, 'road-works.json'))
 })
