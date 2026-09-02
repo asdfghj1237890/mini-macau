@@ -195,9 +195,7 @@ This will:
 3. Fetch bridge approach geometry for accurate cross-harbour routing
 4. Snap bus routes to roads via OSRM with custom bridge geometry patching
 5. Generate timetables based on published service frequencies
-6. Output JSON files to `data/output/`
-
-Then copy the output to `public/data/`.
+6. Write the JSON straight to where it is consumed: `public/data/` (served as-is) and `src/data/` (LRT trips, bundled into the app). There is no intermediate `data/output/` copy to sync.
 
 </details>
 
@@ -342,7 +340,6 @@ mini-macau/
 │   │   ├── patch_bus_bridges.py
 │   │   └── generate_timetable.py
 │   ├── bus_reference/
-│   ├── output/
 │   └── main.py
 ├── .github/workflows/
 │   ├── deploy.yml                  # Cloudflare Pages CI/CD

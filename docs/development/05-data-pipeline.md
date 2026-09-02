@@ -49,10 +49,10 @@ OSM (大橋) ──> fetch_bridge_geometry.py ──> raw/bridges.json ──┤
 MLM 圖片 ──> 手轉 timetable_verified/*.md ──> generate_timetable.py
                                             │
                                             ▼
-                           output/{lrt-lines,stations,trips-*,
-                                   bus-routes,bus-stops}.json
-                                            │
-                              手動 cp：trips-* → src/data/，其餘 → public/data/
+                           public/data/{lrt-lines,stations,
+                                        bus-routes,bus-stops}.json
+                           src/data/trips-*.json
+                           （腳本直接寫入使用位置，沒有中繼副本）
 ```
 
 > `data/main.py` 目前只是個 placeholder（[`main.py`](../../data/main.py)），實際工作都是個別腳本獨立跑。
@@ -110,7 +110,7 @@ Runtime 由 [`useServiceStatus.ts`](../../src/hooks/useServiceStatus.ts) 讀進�
 
 ## 常見維護任務
 
-- **修一條路線的幾何錯誤**：改 `bus_reference/`、跑 `_regenerate_specific.py`、手動 diff `output/bus-routes.json`，OK 後 cp 到 `public/data/`。
+- **修一條路線的幾何錯誤**：改 `bus_reference/`（或 `extract_bus_data.py` 的 override）、跑 `_regenerate_specific.py`，它直接改寫 `public/data/bus-routes.json`；用 `git diff` 檢視後跑 `validate_output.py bus-routes bus-stops`。
 - **加新巴士路線**：DSAT 開新線時，先在 `bus_reference/` 加 reference data、跑全套 extract → osrm → patch、最後在 `routeGroups.ts` 把它分到對的 group。
 - **改服務時段**：`patch_service_hours.py` / `patch_service_hours_by_day.py`，在腳本裡硬編碼新的小時數，重跑。`patch_service_hours_by_day.py` 會把週六或週日的「不設服務」寫成對應的 `serviceHoursStartSat/Sun: null` / `serviceHoursEndSat/Sun: null`。
 - **新增 LRT 班次**：MLM 改點時刻表後，更新 `data/timetable_verified/*.md`，跑 `generate_timetable.py` 三種 scheduleType。

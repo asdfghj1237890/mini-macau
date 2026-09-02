@@ -104,11 +104,52 @@ def v_stations(data: object) -> list[str]:
     return errs
 
 
+# A line's polyline must actually serve its stations: every station within
+# LRT_STATION_TO_LINE_M of some vertex, and the polyline's two ends within
+# LRT_LINE_END_TO_STATION_M of the first/last entry of `stations`. This keeps
+# the hand-fixed public/data/lrt-lines.json (2026-04-19: station order and
+# trimmed line ends) from being silently undone by a raw extract_lrt_osm.py
+# re-run — the pre-fix file overshot 氹仔碼頭 by 280 m and listed 石排灣線's
+# stations against the direction of its geometry.
+LRT_STATION_TO_LINE_M = 100.0
+LRT_LINE_END_TO_STATION_M = 100.0
+
+
+def check_line_reaches_stations(
+    errs: list[str], ctx: str, ln: dict, station_coords: dict[str, list[float]]
+) -> None:
+    coords = ln["geometry"].get("geometry", {}).get("coordinates", [])
+    stations = ln.get("stations", [])
+    if not isinstance(coords, list) or len(coords) < 2 or not stations:
+        return
+    for sid in stations:
+        p = station_coords.get(sid)
+        if p is None:
+            continue
+        d = min(distance_m2(p, c) for c in coords) ** 0.5
+        if d > LRT_STATION_TO_LINE_M:
+            errs.append(
+                f"{ctx}: station '{sid}' is {d:.0f}m from the line "
+                f"(limit {LRT_STATION_TO_LINE_M:.0f}m)"
+            )
+    for label, end, sid in (("start", coords[0], stations[0]), ("end", coords[-1], stations[-1])):
+        p = station_coords.get(sid)
+        if p is None:
+            continue
+        d = distance_m2(p, end) ** 0.5
+        if d > LRT_LINE_END_TO_STATION_M:
+            errs.append(
+                f"{ctx}: line {label} is {d:.0f}m from its terminal station '{sid}' "
+                f"(limit {LRT_LINE_END_TO_STATION_M:.0f}m) — stations out of order or line trimmed wrong"
+            )
+
+
 def v_lrt_lines(data: object) -> list[str]:
     errs: list[str] = []
     if not require_nonempty_list(errs, "lrt-lines", data):
         return errs
-    station_ids = load_station_ids(errs, "lrt-lines")
+    station_coords = load_station_coords(errs, "lrt-lines")
+    station_ids = set(station_coords) if station_coords is not None else None
     for i, ln in enumerate(data):
         ctx = f"lrt-lines[{i}]"
         if not require_fields(errs, ctx, ln, ("id", "name", "color", "stations", "geometry")):
@@ -120,11 +161,13 @@ def v_lrt_lines(data: object) -> list[str]:
                 if sid not in station_ids:
                     errs.append(f"{ctx} ({ln['id']}): station '{sid}' not in stations.json")
         check_geometry(errs, f"{ctx} ({ln['id']})", ln["geometry"])
+        if station_coords is not None and isinstance(ln.get("geometry"), dict):
+            check_line_reaches_stations(errs, f"{ctx} ({ln['id']})", ln, station_coords)
     return errs
 
 
-def load_station_ids(errs: list[str], name: str) -> set[str] | None:
-    """Station ids from stations.json for cross-file checks; None if unreadable.
+def load_station_coords(errs: list[str], name: str) -> dict[str, list[float]] | None:
+    """Station id -> [lng, lat] from stations.json for cross-file checks; None if unreadable.
 
     The SEO renderer silently drops station ids it can't resolve, so a dangling
     reference must fail here at the gate — an unreadable stations.json is an
@@ -134,12 +177,16 @@ def load_station_ids(errs: list[str], name: str) -> set[str] | None:
     try:
         stations = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as e:
-        errs.append(f"{name}: cannot read stations.json for station-id cross-check — {e}")
+        errs.append(f"{name}: cannot read stations.json for station checks — {e}")
         return None
     if not isinstance(stations, list):
-        errs.append(f"{name}: stations.json is not a list — cannot cross-check station ids")
+        errs.append(f"{name}: stations.json is not a list — cannot cross-check stations")
         return None
-    return {s["id"] for s in stations if isinstance(s, dict) and "id" in s}
+    return {
+        s["id"]: s["coordinates"]
+        for s in stations
+        if isinstance(s, dict) and "id" in s and "coordinates" in s
+    }
 
 
 def check_geometry(errs: list[str], ctx: str, geom: object) -> None:

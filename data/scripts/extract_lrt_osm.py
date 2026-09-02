@@ -14,7 +14,13 @@ OVERPASS_URLS = [
     "https://overpass.kumi.systems/api/interpreter",
     "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
 ]
-OUTPUT_DIR = Path(__file__).parent.parent / "output"
+# Written straight into public/data — the files the app serves — instead of an
+# intermediate output/ copy that had to be synced by hand and drifted:
+# public/data/lrt-lines.json carries manual fixes from 2026-04-19 (station
+# order, trimmed line ends) that output/ never received. After a re-run,
+# `validate_output.py lrt-lines` checks that every line still reaches its
+# stations; re-apply those fixes if it fails.
+OUTPUT_DIR = Path(__file__).resolve().parents[2] / "public" / "data"
 
 MACAU_BBOX = "22.10,113.50,22.22,113.60"
 

@@ -153,6 +153,5 @@ data/
 ├── bus_reference/           # 從 motransportinfo.com 抓的 reference JSON
 ├── timetable_images/        # MLM 官方時刻表圖片
 ├── timetable_verified/      # 手 transcribe 後的 .md
-├── raw/                     # extract_*.py 的中間產物
-└── output/                  # 最終 JSON，手動 copy 到 public/data/
+└── raw/                     # extract_*.py 的中間產物
 ```
