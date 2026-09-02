@@ -118,6 +118,29 @@ ROUTING_COORD_OVERRIDES: dict[tuple[str, str], list[float]] = {
     ("60", "M239/9"): [113.559525, 22.198233],
 }
 
+# Stop-level OSRM routing coordinate override. Applies on every route that
+# serves the stop; a (route, stop) entry in ROUTING_COORD_OVERRIDES wins.
+# As above, only the coord fed to OSRM changes — the display coord in
+# bus-stops.json stays untouched.
+#
+# M184 河邊新街／街市: the kerb coord sits on the corner of 帶水圍, so OSRM
+# snapped the waypoint onto that lane. With the default continue_straight
+# (no U-turn at a via point) OSRM then drove ~94 m into 帶水圍, turned around
+# there and approached the stop heading back toward 河邊新街 — an exact
+# out-and-back spur on every southbound route serving the stop (15 routes).
+# Putting the waypoint on 河邊新街 itself, ~6 m south of the 帶水圍 junction
+# node, keeps the 司打口 → 街市 leg on the main road.
+ROUTING_STOP_COORD_OVERRIDES: dict[str, list[float]] = {
+    "M184": [113.533216, 22.190195],
+}
+
+
+def routing_coord(rid: str, did: str, lng: float, lat: float) -> list[float]:
+    """OSRM waypoint for one stop: route-specific override, then stop-level
+    override, then the raw (display) coordinate."""
+    override = ROUTING_COORD_OVERRIDES.get((rid, did)) or ROUTING_STOP_COORD_OVERRIDES.get(did)
+    return list(override) if override else [lng, lat]
+
 
 def build_route_geometry(waypoints: list[list[float]], route_name: str = "") -> dict:
     """Build a GeoJSON Feature with LineString snapped to roads via OSRM."""
@@ -366,8 +389,7 @@ def run():
             for did, lng, lat, _ in aligned:
                 if not (lng and lat):
                     continue
-                override = ROUTING_COORD_OVERRIDES.get((rid, did))
-                wps.append(list(override) if override else [lng, lat])
+                wps.append(routing_coord(rid, did, lng, lat))
                 hints = WAYPOINT_HINTS.get((rid, did))
                 if hints:
                     for h in hints:
@@ -403,7 +425,7 @@ def run():
         # stops into stopsForward in visit order.
         stops_combined = stops_fwd + stops_bwd
         stop_coords_combined = [
-            list(ROUTING_COORD_OVERRIDES.get((rid, did), [lng, lat]))
+            routing_coord(rid, did, lng, lat)
             for did, lng, lat, _ in fwd_aligned + bwd_aligned
         ]
         geometry_coords = geometry.get("geometry", {}).get("coordinates", [])

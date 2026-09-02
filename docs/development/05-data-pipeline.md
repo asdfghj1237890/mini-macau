@@ -52,7 +52,7 @@ MLM 圖片 ──> 手轉 timetable_verified/*.md ──> generate_timetable.py
                            output/{lrt-lines,stations,trips-*,
                                    bus-routes,bus-stops}.json
                                             │
-                              手動 cp 到 public/data/
+                              手動 cp：trips-* → src/data/，其餘 → public/data/
 ```
 
 > `data/main.py` 目前只是個 placeholder（[`main.py`](../../data/main.py)），實際工作都是個別腳本獨立跑。
@@ -81,7 +81,7 @@ LRT 沒有公開 API。MLM 提供的是每站獨立、HH:MM 一行的時刻表 P
 2. 人工轉錄到 `data/timetable_verified/*.md`（一行一站、HH:MM 列出當日所有發車）。
 3. `generate_timetable.py` 把 `.md` 解析成 per-station `dict[hour, list[minute]]`，再用 time-proximity matching 把不同站的同一班車對起來，產出每筆 `Trip { lineId, direction, scheduleType, entries[] }`。
 
-三種 scheduleType（Mon-Thu / Friday / Sat-Sun）各跑一次，產出 `trips-mon_thu.json` / `trips-friday.json` / `trips-sat_sun.json`，runtime 按需 lazy load。
+三種 scheduleType（Mon-Thu / Friday / Sat-Sun）各跑一次，產出 `trips-mon_thu.json` / `trips-friday.json` / `trips-sat_sun.json`。這三檔放 `src/data/`（不是 `public/data/`）：Vite 會把它們打包成匿名 hash chunk，runtime 按需 lazy import，不會以 `/data/*.json` 的形式公開。
 
 ### 航班 — `fetch_flights.py`
 

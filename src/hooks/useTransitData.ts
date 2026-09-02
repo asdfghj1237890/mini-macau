@@ -27,6 +27,20 @@ async function loadJson<T>(path: string, schema: z.ZodType, label: string): Prom
   return parseData<T>(schema, raw, label)
 }
 
+// LRT trips are NOT served from /data/ like the other datasets. The MLM
+// timetable is bundled from `src/data/trips-*.json` into anonymously named,
+// content-hashed chunks (see `chunkFileNames` in vite.config.ts), so there is
+// no guessable JSON endpoint for it. `import.meta.glob` keeps each
+// scheduleType a separate lazy chunk: today's loads first, the other two
+// prefetch in the background (see ensureScheduleTypeLoaded).
+const tripModules = import.meta.glob<unknown>('../data/trips-*.json', { import: 'default' })
+
+async function loadTrips(stype: ScheduleType): Promise<Trip[]> {
+  const load = tripModules[`../data/trips-${stype}.json`]
+  if (!load) throw new Error(`no bundled trips chunk for scheduleType "${stype}"`)
+  return parseData<Trip[]>(TripsSchema, await load(), `trips-${stype}`)
+}
+
 interface FerryScheduleTime {
   time: string // "HH:MM"
   markers?: string
@@ -304,7 +318,7 @@ export function useTransitData(): UseTransitDataResult {
   const ensureScheduleTypeLoaded = useCallback((stype: ScheduleType) => {
     if (loadedRef.current.has(stype) || inFlightRef.current.has(stype)) return
     inFlightRef.current.add(stype)
-    loadJson<Trip[]>(`/data/trips-${stype}.json`, TripsSchema, `trips-${stype}.json`)
+    loadTrips(stype)
       .then(newTrips => {
         if (cancelledRef.current) return
         loadedRef.current.add(stype)
@@ -313,7 +327,7 @@ export function useTransitData(): UseTransitDataResult {
         // right subset per tick.
         setData(prev => ({ ...prev, trips: [...prev.trips, ...newTrips] }))
       })
-      .catch(err => console.error(`Failed to load trips-${stype}.json:`, err))
+      .catch(err => console.error(`Failed to load trips-${stype}:`, err))
       .finally(() => {
         inFlightRef.current.delete(stype)
       })
@@ -340,7 +354,7 @@ export function useTransitData(): UseTransitDataResult {
     // type's trips are already in memory.
     const primary = getScheduleType(new Date())
     inFlightRef.current.add(primary)
-    const primaryTripsPromise = loadJson<Trip[]>(`/data/trips-${primary}.json`, TripsSchema, `trips-${primary}.json`)
+    const primaryTripsPromise = loadTrips(primary)
       .then(v => {
         if (cancelledRef.current) return
         loadedRef.current.add(primary)

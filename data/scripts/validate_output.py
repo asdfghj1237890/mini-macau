@@ -25,8 +25,12 @@ from pathlib import Path
 
 from route_offsets import MAX_STOP_TO_ROUTE_M, distance_m2
 
-# repo/data/scripts/validate_output.py -> repo/public
-PUBLIC = Path(__file__).resolve().parents[2] / "public"
+# repo/data/scripts/validate_output.py -> repo
+REPO = Path(__file__).resolve().parents[2]
+PUBLIC = REPO / "public"
+# LRT trips live in src/data and are bundled into the app by Vite rather than
+# served under public/data — see `loadTrips` in src/hooks/useTransitData.ts.
+SRC_DATA = REPO / "src" / "data"
 
 # Generous Macau-region bounding box. Tight enough to catch null-island (0,0)
 # and grossly wrong coordinates, loose enough to include the cross-harbour
@@ -368,19 +372,19 @@ def v_service_status(data: object) -> list[str]:
     return errs
 
 
-# name -> (path relative to public/, validator)
-DATASETS: dict[str, tuple[str, object]] = {
-    "lrt-lines": ("data/lrt-lines.json", v_lrt_lines),
-    "stations": ("data/stations.json", v_stations),
-    "trips-mon_thu": ("data/trips-mon_thu.json", v_trips),
-    "trips-friday": ("data/trips-friday.json", v_trips),
-    "trips-sat_sun": ("data/trips-sat_sun.json", v_trips),
-    "bus-routes": ("data/bus-routes.json", v_bus_routes),
-    "bus-stops": ("data/bus-stops.json", v_bus_stops),
-    "flights": ("data/flights.json", v_flights),
-    "flights-timetable": ("data/flights-timetable.json", v_flights_timetable),
-    "ferries": ("data/ferry-schedules.json", v_ferries),
-    "service-status": ("service-status.json", v_service_status),
+# name -> (absolute path, validator)
+DATASETS: dict[str, tuple[Path, object]] = {
+    "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
+    "stations": (PUBLIC / "data/stations.json", v_stations),
+    "trips-mon_thu": (SRC_DATA / "trips-mon_thu.json", v_trips),
+    "trips-friday": (SRC_DATA / "trips-friday.json", v_trips),
+    "trips-sat_sun": (SRC_DATA / "trips-sat_sun.json", v_trips),
+    "bus-routes": (PUBLIC / "data/bus-routes.json", v_bus_routes),
+    "bus-stops": (PUBLIC / "data/bus-stops.json", v_bus_stops),
+    "flights": (PUBLIC / "data/flights.json", v_flights),
+    "flights-timetable": (PUBLIC / "data/flights-timetable.json", v_flights_timetable),
+    "ferries": (PUBLIC / "data/ferry-schedules.json", v_ferries),
+    "service-status": (PUBLIC / "service-status.json", v_service_status),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.
@@ -388,8 +392,7 @@ ALIASES = {"trips": ["trips-mon_thu", "trips-friday", "trips-sat_sun"]}
 
 
 def validate_one(name: str) -> list[str]:
-    rel, validator = DATASETS[name]
-    path = PUBLIC / rel
+    path, validator = DATASETS[name]
     if not path.exists():
         return [f"{name}: file not found at {path}"]
     try:

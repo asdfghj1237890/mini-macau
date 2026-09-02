@@ -18,10 +18,13 @@ import {
 // data — it runs in CI alongside the unit tests, so bad data fails the build
 // instead of reaching the browser.
 const dataDir = resolve(__dirname, '..', 'public', 'data')
-const load = (f: string): unknown => JSON.parse(readFileSync(resolve(dataDir, f), 'utf8'))
+// LRT trips are bundled from src/data rather than served under /data/ — see
+// `loadTrips` in hooks/useTransitData.ts.
+const tripsDir = resolve(__dirname, 'data')
+const load = (f: string, dir = dataDir): unknown => JSON.parse(readFileSync(resolve(dir, f), 'utf8'))
 
-function expectValid(schema: z.ZodType, file: string) {
-  const res = schema.safeParse(load(file))
+function expectValid(schema: z.ZodType, file: string, dir = dataDir) {
+  const res = schema.safeParse(load(file, dir))
   if (!res.success) {
     const summary = res.error.issues
       .slice(0, 10)
@@ -35,9 +38,9 @@ function expectValid(schema: z.ZodType, file: string) {
 describe('committed data files satisfy their schemas', () => {
   it('lrt-lines.json', () => expectValid(LRTLinesSchema, 'lrt-lines.json'))
   it('stations.json', () => expectValid(StationsSchema, 'stations.json'))
-  it('trips-mon_thu.json', () => expectValid(TripsSchema, 'trips-mon_thu.json'))
-  it('trips-friday.json', () => expectValid(TripsSchema, 'trips-friday.json'))
-  it('trips-sat_sun.json', () => expectValid(TripsSchema, 'trips-sat_sun.json'))
+  it('trips-mon_thu.json', () => expectValid(TripsSchema, 'trips-mon_thu.json', tripsDir))
+  it('trips-friday.json', () => expectValid(TripsSchema, 'trips-friday.json', tripsDir))
+  it('trips-sat_sun.json', () => expectValid(TripsSchema, 'trips-sat_sun.json', tripsDir))
   it('bus-routes.json', () => expectValid(BusRoutesSchema, 'bus-routes.json'))
   it('bus-stops.json', () => expectValid(BusStopsSchema, 'bus-stops.json'))
   it('flights.json', () => expectValid(FlightsSchema, 'flights.json'))

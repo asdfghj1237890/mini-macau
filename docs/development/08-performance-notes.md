@@ -119,7 +119,7 @@ RT mode 開時，sim 算出來的所有巴士會被 RT 的 BusTracker 結果覆�
 - **Vendor chunk split** in [`vite.config.ts`](../../vite.config.ts)：
   - `vendor-react`
   - `vendor-maplibre`（最大塊，CDN 緩存特別有用）
-- **Trips 按 scheduleType lazy**：先載今天的 `trips-mon_thu.json`，剩下兩個在主資料完成後背景 prefetch（[`useTransitData.ts:158`](../../src/hooks/useTransitData.ts)）。
+- **Trips 按 scheduleType lazy**：`src/data/trips-*.json` 經 `import.meta.glob` 各自成為一個 chunk，先 import 今天的，剩下兩個在主資料完成後背景 prefetch（[`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips`）。
 
 ## 8. 漸進 setState 而非 `Promise.all`
 

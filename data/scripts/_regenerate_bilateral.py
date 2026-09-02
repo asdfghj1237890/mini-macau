@@ -17,7 +17,7 @@ sys.path.insert(0, str(HERE))
 
 from extract_bus_data import (
     REFERENCE_DIR, PUBLIC_DIR, ROUTE_COLORS, WAYPOINT_HINTS,
-    ROUTING_COORD_OVERRIDES,
+    routing_coord,
     align_direction, build_route_geometry,
 )
 from route_offsets import align_stop_offsets
@@ -78,8 +78,7 @@ def main():
             for did, lng, lat, _ in aligned:
                 if not (lng and lat):
                     continue
-                override = ROUTING_COORD_OVERRIDES.get((rid, did))
-                wps.append(list(override) if override else [lng, lat])
+                wps.append(routing_coord(rid, did, lng, lat))
                 hints = WAYPOINT_HINTS.get((rid, did))
                 if hints:
                     for hint in hints:
@@ -120,7 +119,7 @@ def main():
         stop_offsets, stop_distances = align_stop_offsets(
             geometry["geometry"]["coordinates"],
             [
-                list(ROUTING_COORD_OVERRIDES.get((rid, did), [lng, lat]))
+                routing_coord(rid, did, lng, lat)
                 for did, lng, lat, _ in combined_aligned
             ],
             route_name=rid,

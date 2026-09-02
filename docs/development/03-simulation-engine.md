@@ -38,7 +38,7 @@ getScheduleType(date: Date): 'mon_thu' | 'friday' | 'sat_sun'
 
 [`simulationEngine.ts:7`](../../src/engines/simulationEngine.ts)。MLM 三線都是這三種班表，週五因為晚班加密所以獨立。
 
-`useTransitData` 用這個切 `trips-*.json`：先載入今日對應的，剩下兩個在主資料載完後背景 prefetch。
+`useTransitData` 用這個挑 trips chunk（`src/data/trips-*.json`，打包進 app 而不是放 `/data/`）：先 import 今日對應的，剩下兩個在主資料載完後背景 prefetch。
 
 ## LRT 模擬（`computeLRTVehicles`）
 

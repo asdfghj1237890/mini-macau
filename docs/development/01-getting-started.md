@@ -19,7 +19,7 @@ Dev server 起在 `http://localhost:5173`。MapView 是 lazy-import 的（[App.t
 
 - **`/api/dsat/batch` 由 Vite plugin 模擬**：[`vite.config.ts`](../../vite.config.ts) 有一個 `dsatBatchDevPlugin`，把 prod nginx 用 `ngx.location.capture_multi` 做的「fan-out 多路 DSAT 請求 → 合併成單一 JSON 陣列」在 dev 也跑一次。這代表你在本機就能測 RT mode，不用起 docker。
 - **RT mode 要 build flag 才會出現**：UI 上的 RT toggle 由 `import.meta.env.VITE_ENABLE_RT === '1'` 決定（[`MapView.tsx:16`](../../src/components/MapView.tsx)）。dev 預設沒開；要本機跑 RT，把 `.env.development` 設 `VITE_ENABLE_RT=1` 再 restart vite。
-- **trips 是 lazy 載的**：頁面初次載入只 fetch 今天 schedule type 對應的 `trips-*.json`（mon_thu / friday / sat_sun），其餘兩個在主資料完成後才背景 prefetch。見 [`useTransitData.ts:158`](../../src/hooks/useTransitData.ts)。
+- **trips 是 lazy 載的，而且不走 `/data/`**：LRT 時刻表放在 `src/data/trips-*.json`，由 `import.meta.glob` 按 schedule type（mon_thu / friday / sat_sun）打包成各自的匿名 hash chunk。頁面初次載入只 import 今天對應的那個，其餘兩個在主資料完成後才背景 prefetch。見 [`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips`。
 
 ## Build
 

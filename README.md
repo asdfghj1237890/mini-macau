@@ -251,12 +251,14 @@ Automated via GitHub Actions (`.github/workflows/update-ferry-schedules.yml`), w
 ## Data Sources
 
 - **LRT tracks & stations** — [OpenStreetMap](https://www.openstreetmap.org/) (railway=light_rail relations)
-- **LRT timetables** — [MLM 澳門輕軌股份有限公司](https://www.mlm.com.mo/) official per-station timetable publications (Taipa / Seac Pai Van / Hengqin lines)
+- **LRT timetables** — [MLM 澳門輕軌股份有限公司](https://www.mlm.com.mo/) official per-station timetable publications (Taipa / Seac Pai Van / Hengqin lines). The generated trip files are bundled into the app (`src/data/trips-*.json` → content-hashed chunks) rather than published under `/data/`
 - **Bus routes & stops** — OpenStreetMap + [motransportinfo.com](https://www.motransportinfo.com) curated stop data
 - **Road-snapped routes** — [OSRM](http://project-osrm.org/) with custom bridge approach geometry
 - **Bus timetables** — Based on published DSAT service frequencies
 - **Flight schedules** — [AviationStack API](https://aviationstack.com/) (MFM arrivals + departures)
 - **Ferry schedules** — [TurboJET](https://www2.turbojet.com.hk/zh-tw/%E6%B5%B7-%E8%88%B9/) + [CotaiJet](https://m.cotaiwaterjet.com/hk/ferry-schedule/hongkong-macau-taipa.html) official monthly timetables
+
+Everything under `/data/*.json` is fetchable as-is but served with `X-Robots-Tag: noindex, nofollow` (`public/_headers` on Cloudflare Pages, `docker/nginx.conf` in the container) so the raw files stay out of search results. It is a header rather than a `robots.txt` Disallow on purpose: a crawler that is disallowed never sees the `noindex`, and a disallowed URL can still be listed bare when something links to it.
 
 ## Data freshness & update strategy
 
@@ -265,7 +267,7 @@ Not every layer is equally "live." The default view is **fully simulated**; RT m
 | Layer | Mode | Source | Refresh cadence | Staleness indicator |
 |-------|------|--------|-----------------|---------------------|
 | **LRT** | Simulated | OSM geometry + MLM published per-station timetable | Manual regen (`uv run python data/main.py`) | None — static JSON |
-| **Bus (default)** | Simulated | OSM geometry + DSAT published service frequencies | Manual regen | DSAT stop snapshot timestamp in `data/bus_reference/dsat_stops.json` (current: 2026-08-24 Macau) |
+| **Bus (default)** | Simulated | OSM geometry + DSAT published service frequencies | Manual regen | DSAT stop snapshot timestamp in `data/bus_reference/dsat_stops.json` (current: 2026-09-02 Macau) |
 | **Bus (RT toggle)** | **Live** | DSAT realtime feed via nginx `/api/dsat/batch` proxy | Client polls every 15 s · server edge-caches 8 s | Per-bus `lastAt`; stale beyond 60 s window |
 | **Flights** | Static daily sync | [AviationStack API](https://aviationstack.com/) | Daily at 04:00 Macau time — `update-flights.yml` | `fetchedAtUtc` embedded in `flights.json` |
 | **Ferries** | Static monthly sync | TurboJET + CotaiJet timetable pages (scraped) | 1st of month · `update-ferry-schedules.yml` | `fetchedAtUtc` + `effectiveAs` in `ferry-schedules.json` |
@@ -296,6 +298,9 @@ mini-macau/
 │   │   └── FerryInfoPanel.tsx    # Ferry detail panel
 │   ├── engines/
 │   │   └── simulationEngine.ts   # Timetable-driven vehicle + flight position computation
+│   ├── data/
+│   │   ├── hourDensity.ts
+│   │   └── trips-*.json          # LRT timetable — bundled into anonymous hashed chunks, not served under /data/
 │   ├── hooks/
 │   │   ├── useSimulationClock.ts # RAF-based clock with speed/pause
 │   │   └── useTransitData.ts     # JSON data loader
@@ -312,10 +317,10 @@ mini-macau/
 │   ├── types.ts                  # TypeScript interfaces
 │   └── index.css                 # Tailwind + MapLibre control overrides
 ├── public/
-│   ├── data/
+│   ├── _headers                  # X-Robots-Tag: noindex for /data/*
+│   ├── data/                     # served as-is under /data/
 │   │   ├── lrt-lines.json
 │   │   ├── stations.json
-│   │   ├── trips.json
 │   │   ├── bus-routes.json
 │   │   ├── bus-stops.json
 │   │   ├── flights.json          # MFM flight schedules (with localized names)
