@@ -35,16 +35,21 @@ const SCHOOL_LEVEL_CAPTIONS: Record<SchoolLevel, string> = {
 // Teal hatch for the WC row, matching the AIR/SEA/WORKS/SCHOOLS swatches.
 const TOILET_HATCH = 'repeating-linear-gradient(-45deg, rgba(20,184,166,0.45) 0 1px, transparent 1px 3px)'
 
-// 12px signboard glyph for the WC row — a plate with a hanging "WC" bar, in
-// the same stroked style as the other row icons (an emoji would not recolour).
+// 12px restroom figures for the WC row — the universal sign. Heads and bodies
+// are filled silhouettes (stroked figures turn to mush at 12px), legs and the
+// hairline divider are strokes; everything is currentColor so it dims with
+// the row like the other glyphs (an emoji would not recolour).
 function ToiletIcon() {
   return (
     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
          strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="2.25" y="3" width="11.5" height="8.5" rx="1.5" />
-      <path d="M5 6.25v2.5" /><path d="M5 8.75l1.25-1.5 1.25 1.5v-2.5" />
-      <path d="M11 6.25h-1.25v2.5H11" />
-      <path d="M8 11.5v2" />
+      <circle cx="4.75" cy="3.25" r="1.5" fill="currentColor" stroke="none" />
+      <rect x="3" y="5.25" width="3.5" height="5" rx="1.25" fill="currentColor" stroke="none" />
+      <path d="M3.75 10.25v3.25M5.75 10.25v3.25" strokeWidth="1.25" />
+      <circle cx="11.25" cy="3.25" r="1.5" fill="currentColor" stroke="none" />
+      <path d="M11.25 5.25l2.75 5.25h-5.5z" fill="currentColor" strokeWidth="1" />
+      <path d="M10.35 10.5v3M12.15 10.5v3" strokeWidth="1.25" />
+      <path d="M8 2.25v11.5" strokeWidth="1" opacity="0.5" />
     </svg>
   )
 }
