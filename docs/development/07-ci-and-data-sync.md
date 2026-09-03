@@ -1,6 +1,6 @@
 # 07 · CI、Docker、自動資料同步
 
-`.github/workflows/` 一共 6 個 workflow：
+`.github/workflows/` 一共 7 個 workflow：
 
 | Workflow | Trigger | 做什麼 |
 |----------|---------|--------|
@@ -10,6 +10,7 @@
 | [`update-ferry-schedules.yml`](../../.github/workflows/update-ferry-schedules.yml) | 月初 00:00 UTC | Scrape TurboJET / CotaiJet → `ferry-schedules.json` |
 | [`service-status.yml`](../../.github/workflows/service-status.yml) | daily 23:00 UTC（澳門 07:00） | Scrape DSAT 公告 → `service-status.json` |
 | [`update-road-works.yml`](../../.github/workflows/update-road-works.yml) | daily 18:20 UTC（澳門 02:20） | data.gov.mo → `road-works.json` |
+| [`update-toilets.yml`](../../.github/workflows/update-toilets.yml) | daily 18:40 UTC（澳門 02:40） | data.gov.mo → `toilets.json` |
 
 `schools.json` 沒有對應的排程 workflow：`fetch_schools.py` 純手動執行（見 [05-data-pipeline.md](05-data-pipeline.md)）；跑完一樣要過 `validate_output.py schools`，沒過就不 commit。
 
@@ -86,6 +87,10 @@ jobs:
 ### `update-road-works.yml`
 
 每日 18:20 UTC（澳門 02:20），排在上游 00:30 匯出、平台 01:09 更新之後，確保抓到當天最新的公告。跑完 `fetch_road_works.py` 後還要過 `validate_output.py road-works`，沒過就不 commit。
+
+### `update-toilets.yml`
+
+每日 18:40 UTC（澳門 02:40）。上游（data.gov.mo 的 IAM 公廁 dataset）大約澳門時間 10:00 更新，抓的時間點其實沒那麼要緊，這個時段只是跟其他每日/每夜的資料 job 錯開。跑完 `fetch_toilets.py` 後還要過 `validate_output.py toilets`，沒過就不 commit。
 
 ## 沒有 CI test job
 

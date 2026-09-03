@@ -1,0 +1,6315 @@
+{
+  "fetchedAtUtc": "2026-09-03T07:06:28.051543+00:00",
+  "updatedAt": "2026-07-29T10:00:05+08:00",
+  "sources": {
+    "name": "市政署 (IAM) – 公共廁所 / 無障礙公廁",
+    "toilets": "https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5",
+    "accessibleToilets": "https://data.gov.mo/Detail?id=513cba0e-684d-4cf1-bd3c-f8af1adb0392"
+  },
+  "toilets": [
+    {
+      "id": "AM01",
+      "code": "AM01",
+      "name": {
+        "zh": "食品資訊站",
+        "pt": "Posto de Informações sobre Produtos Alimentares",
+        "en": "Food Information Station"
+      },
+      "address": {
+        "zh": "澳門祐漢小販大樓一樓食品資訊站",
+        "pt": "1.º andar do Edifício de Vendilhões do Iao Hon, na Rua do Mercado de Iao Hon",
+        "en": "1st floor, Iao Hon Hawkers’ Building, Rua do Mercado de Iao Hon"
+      },
+      "phone": {
+        "zh": "8296 1239 (辦公時間)",
+        "pt": "8296 1239 (Horário de expediente)",
+        "en": "8296 1239 (Office hours)"
+      },
+      "openHours": {
+        "zh": "星期二至日, 早上10:00-下午6:00",
+        "pt": "Das 10:00 às 18:00, de Terça-feira a Domingo",
+        "en": "Tuesday to Sunday, 10:00 a.m. to 6:00 p.m."
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/813_d84192b9a3be8082d6c3aa4024bee888.jpg",
+      "coordinates": [
+        113.551493,
+        22.211268
+      ]
+    },
+    {
+      "id": "C1",
+      "code": "C1",
+      "name": {
+        "zh": "路環九澳高頂燒烤公園公廁",
+        "pt": "Sanitário Público do Parque de Merendas do Altinho de Ká-Hó",
+        "en": "Public toilet at Ka-Ho Height Barbecue Park"
+      },
+      "address": {
+        "zh": "路環九澳高頂馬路",
+        "pt": "No termo da Estrada do Altinho de Ká Hó",
+        "en": "At the end of Altinho Ka Ho"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/283_98f13708210194c475687be6106a3b84.JPG",
+      "coordinates": [
+        113.575708,
+        22.129115
+      ]
+    },
+    {
+      "id": "C10",
+      "code": "C10",
+      "name": {
+        "zh": "路環黑沙海灘公廁",
+        "pt": "Sanitário Público da Praia de Hác-Sá",
+        "en": "Public toilet at Hac Sa Beach"
+      },
+      "address": {
+        "zh": "路環新黑沙馬路",
+        "pt": "Estrada Nova de Hac Sá",
+        "en": "Estrada Nova de Hac Sá"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/118_27f7c7a1201d54843ecf922ac2bb6023.jpg",
+      "coordinates": [
+        113.569786,
+        22.11893
+      ]
+    },
+    {
+      "id": "C11",
+      "code": "C11",
+      "name": {
+        "zh": "路環黑沙龍爪角公廁",
+        "pt": "Sanitário público da Rua de Hac Sá Long Chao Kok",
+        "en": "Public toilet at Rua de Hac Sá Long Chao Kok in Coloane"
+      },
+      "address": {
+        "zh": "路環黑沙龍爪角海濱路",
+        "pt": "Rua de Hac Sá Long Chao Kok",
+        "en": "Rua de Hac Sá Long Chao Kok"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/181_d0350cde12d191f79f79441656d2a304.jpg",
+      "coordinates": [
+        113.573444,
+        22.115755
+      ]
+    },
+    {
+      "id": "C12",
+      "code": "C12",
+      "name": {
+        "zh": "路環黑沙海灘燒烤區公廁",
+        "pt": "Sanitário público da Zona de Churrasco da Praia de Hac Sá",
+        "en": "Public toilet at the barbecue area of Hac Sa Beach in Coloane"
+      },
+      "address": {
+        "zh": "路環黑沙海灘",
+        "pt": "Praia de Hac Sá",
+        "en": "Hac Sa Beach"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/233_9a1d5283c545cbac6c08d926d4cc62dc.jpg",
+      "coordinates": [
+        113.570736,
+        22.122833
+      ]
+    },
+    {
+      "id": "C13",
+      "code": "C13",
+      "name": {
+        "zh": "路環石排灣業興大廈公廁",
+        "pt": "Sanitário Público do Edf. Ip Heng de Seac Pai Van, Coloane",
+        "en": "Public toilet at Edifício Ip Heng in Seac Pai Van in Coloane"
+      },
+      "address": {
+        "zh": "路環和諧大馬路",
+        "pt": "Avenida da Harmonia",
+        "en": "Avenida da Harmonia"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/272_559f1c034f9e2f4e6c436d89fc411194.jpg",
+      "coordinates": [
+        113.564521,
+        22.130191
+      ]
+    },
+    {
+      "id": "C15",
+      "code": "C15",
+      "name": {
+        "zh": "路環石排灣社區綜合大樓公廁",
+        "pt": "Sanitários públicos do Complexo Comunitário de Seac Pai Van",
+        "en": "Public Toilet in Seac Pai Van Community Complex, Coloane"
+      },
+      "address": {
+        "zh": "路環蝴蝶谷大馬路",
+        "pt": "Avenida de Vale das Borboletas",
+        "en": "Avenida de Vale das Borboletas"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/544_4e4b3a610b07c5afb232ac87ecda4a7c.jpg",
+      "coordinates": [
+        113.56172,
+        22.128741
+      ]
+    },
+    {
+      "id": "C16",
+      "code": "C16",
+      "name": {
+        "zh": "路環石排灣市區公園公廁(北)",
+        "pt": "Sanitários públicos do Parque Urbano Seac Pai Van de Coloane (norte)",
+        "en": "Public toilet in Seac Pai Van Urban Park in Coloane (north)"
+      },
+      "address": {
+        "zh": "路環石排灣市區公園",
+        "pt": "Parque Urbano Seac Pai Van de Coloane",
+        "en": "Seac Pai Van Urban Park in Coloane"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/841_410921f2912e677f29356324ba0f2ad3.jpg",
+      "coordinates": [
+        113.567167,
+        22.135225
+      ]
+    },
+    {
+      "id": "C17",
+      "code": "C17",
+      "name": {
+        "zh": "路環石排灣市區公園公廁(南)",
+        "pt": "Sanitários públicos do Parque Urbano Seac Pai Van de Coloane (sul)",
+        "en": "Public toilet in Seac Pai Van Urban Park in Coloane (south)"
+      },
+      "address": {
+        "zh": "路環石排灣市區公園",
+        "pt": "Parque Urbano Seac Pai Van de Coloane",
+        "en": "Seac Pai Van Urban Park in Coloane"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/850_48831a94f78f136bfbf4007c0430bd07.jpg",
+      "coordinates": [
+        113.565719,
+        22.132248
+      ]
+    },
+    {
+      "id": "C18",
+      "code": "C18",
+      "name": {
+        "zh": "路環黑沙兵房路臨時公廁",
+        "pt": "Sanitário público provisório do Caminho do Quartel de Hac Sá, Coloane",
+        "en": "Temporary public toilet in Caminho do Quartel de Hac Sá, Coloane"
+      },
+      "address": {
+        "zh": "路環黑沙兵房路",
+        "pt": "Caminho do Quartel de Hac Sá, Coloane",
+        "en": "Caminho do Quartel de Hac Sá, Coloane"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1043_04c4114e3a59c3af3716a5adefea9156.JPG",
+      "coordinates": [
+        113.567588,
+        22.113177
+      ]
+    },
+    {
+      "id": "C2",
+      "code": "C2",
+      "name": {
+        "zh": "路環黑沙水庫郊野公園公廁",
+        "pt": "Sanitário Público do Parque de Merendas da Barragem de Hác-Sá",
+        "en": "Public toilet at Hac Sa Reservoir Barbeque Park"
+      },
+      "address": {
+        "zh": "路環黑沙馬路",
+        "pt": "Estrada de Hác-Sá, Coloane",
+        "en": "Estrada de Hác-Sá, Coloane"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/276_24e076e16c1af017a9efd0209494f405.jpg",
+      "coordinates": [
+        113.571355,
+        22.123969
+      ]
+    },
+    {
+      "id": "C3",
+      "code": "C3",
+      "name": {
+        "zh": "路環平民村公廁",
+        "pt": "Sanitário Público do Sanitário Público do Bairro das Missões",
+        "en": "Public toilet at Bairro das Missões"
+      },
+      "address": {
+        "zh": "路環聖方濟各街",
+        "pt": "Rua de S. Francisco Xavier",
+        "en": "Rua de S. Francisco Xavier"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/177_ea231d68aaf2397d152fe51f0d95a9eb.jpg",
+      "coordinates": [
+        113.556127,
+        22.119183
+      ]
+    },
+    {
+      "id": "C4",
+      "code": "C4",
+      "name": {
+        "zh": "路環竹灣馬路(市政街巿側)公廁",
+        "pt": "Sanitário Público da Estrada de Cheoc Van (ao lado do Mercado Municipal de Coloane)",
+        "en": "Public toilet at Estrada de Cheoc Van (next to the Municipal Market of Coloane)"
+      },
+      "address": {
+        "zh": "路環竹灣馬路",
+        "pt": "Estrada de Cheoc Van",
+        "en": "Estrada de Cheoc Van"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/115_928d778e50b18ccf1a827bbe8c95c79e.jpg",
+      "coordinates": [
+        113.552145,
+        22.117944
+      ]
+    },
+    {
+      "id": "C5",
+      "code": "C5",
+      "name": {
+        "zh": "路環船人街公廁",
+        "pt": "Sanitário Público da Rua dos Navegantes",
+        "en": "Public toilet at Rua dos Navegantes"
+      },
+      "address": {
+        "zh": "路環船人街",
+        "pt": "Rua dos Navegantes",
+        "en": "Rua dos Navegantes"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/7_3998c1e7f15fa22449f2275611ed67d8.jpg",
+      "coordinates": [
+        113.551347,
+        22.11869
+      ]
+    },
+    {
+      "id": "C6",
+      "code": "C6",
+      "name": {
+        "zh": "路環市政球場公廁",
+        "pt": "Sanitário Público do Campo Desportivo Municipal de Coloane",
+        "en": "Public toilet at Campo Desportivo Municipal de Coloane"
+      },
+      "address": {
+        "zh": "路環水泉公地",
+        "pt": "Largo da Fonte",
+        "en": "Largo da Fonte"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/116_fe93965132907cb88097881df1fe360d.jpg",
+      "coordinates": [
+        113.551689,
+        22.11618
+      ]
+    },
+    {
+      "id": "C7",
+      "code": "C7",
+      "name": {
+        "zh": "路環登峰路公廁",
+        "pt": "Sanitário Público do Caminho de Tan Fong",
+        "en": "Public toilet at Caminho de Tan Fong"
+      },
+      "address": {
+        "zh": "路環登峰路",
+        "pt": "Caminho de Tan Fong",
+        "en": "Caminho de Tan Fong"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/166_900260c7177541a98d218d4393010110.jpg",
+      "coordinates": [
+        113.553204,
+        22.116002
+      ]
+    },
+    {
+      "id": "C8",
+      "code": "C8",
+      "name": {
+        "zh": "路環譚公廟公廁",
+        "pt": "Sanitário Público do Templo de Tam Kong",
+        "en": "Public toilet at Tam Kong Temple, Coloane"
+      },
+      "address": {
+        "zh": "路環十月初五馬路",
+        "pt": "Avenida de Cinco de Outubro",
+        "en": "Avenida de Cinco de Outubro"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/220_6ba636a3a9aea1faa66a3ac52aaa243d.jpg",
+      "coordinates": [
+        113.549733,
+        22.114254
+      ]
+    },
+    {
+      "id": "C9",
+      "code": "C9",
+      "name": {
+        "zh": "路環黑沙海灘公園公廁",
+        "pt": "Sanitário público do Parque da Praia de Hac Sá, Coloane",
+        "en": "Public toilet at Hac Sá Beach Park, Coloane"
+      },
+      "address": {
+        "zh": "路環新黑沙馬路黑沙海灘",
+        "pt": "Hac Sa Beach, Estrada de Hac Sá, Coloane",
+        "en": "Hac Sa Beach, Estrada de Hac Sá, Coloane"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/39_65fdafdf4998bfa71d82995da8744671.jpg",
+      "coordinates": [
+        113.570091,
+        22.120378
+      ]
+    },
+    {
+      "id": "CM01",
+      "code": "CM01",
+      "name": {
+        "zh": "綜合服務中心",
+        "pt": "Centro de Serviços",
+        "en": "Integrated Services Centre"
+      },
+      "address": {
+        "zh": "澳門南灣大馬路762-804號中華廣場2樓",
+        "pt": "Avenida da Praia Grande, n.ᵒˢ 762-804, Edifício China Plaza, 2.º andar, Macau",
+        "en": "Avenida da Praia Grande, n.ᵒˢ 762-804, Edifício China Plaza, 2.º andar, Macau"
+      },
+      "phone": {
+        "zh": "8795 2635 (辦公時間)",
+        "pt": "8795 2635 (Horário de funcionamento)",
+        "en": "8795 2635 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª-feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/946_eca22fd1cd20f0dab8e30fbc4d421838.jpg",
+      "coordinates": [
+        113.542945,
+        22.192505
+      ]
+    },
+    {
+      "id": "CM02",
+      "code": "CM02",
+      "name": {
+        "zh": "中區市民服務中心",
+        "pt": "Centro de Prestação de Serviços ao Público da Zona Central",
+        "en": "Central District Public Services Centre"
+      },
+      "address": {
+        "zh": "澳門三盞燈5及7號三盞燈綜合大樓3樓",
+        "pt": "Rotunda de Carlos da Maia, n.ᵒˢ 5 e 7, Complexo da Rotunda de Carlos da Maia, 3.º andar, Macau",
+        "en": "Rotunda de Carlos da Maia, n.ᵒˢ 5 e 7, Complexo da Rotunda de Carlos da Maia, 3.º andar, Macau"
+      },
+      "phone": {
+        "zh": "8291 7233 (辦公時間)",
+        "pt": "8291 7233 (Horário de funcionamento)",
+        "en": "8291 7233 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª-feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/819_eef5b71de84caf631cc86845584144d1.jpg",
+      "coordinates": [
+        113.545968,
+        22.202562
+      ]
+    },
+    {
+      "id": "CM03",
+      "code": "CM03",
+      "name": {
+        "zh": "政府綜合服務大樓 (地面層)",
+        "pt": "Centro de Serviços da RAEM (R/C)",
+        "en": "Macao Government Services Centre (Ground floor)"
+      },
+      "address": {
+        "zh": "澳門黑沙環新街52號政府綜合服務大樓地面層",
+        "pt": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, R/C, Macau",
+        "en": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, G/F, Macau"
+      },
+      "phone": {
+        "zh": "2845 1515 (辦公時間)",
+        "pt": "2845 1515 (Horário de funcionamento)",
+        "en": "2845 1515 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/546_d1108b85ac9cec81d1945bcd98e469ae.jpg",
+      "coordinates": [
+        113.553135,
+        22.208796
+      ]
+    },
+    {
+      "id": "CM04",
+      "code": "CM04",
+      "name": {
+        "zh": "政府綜合服務大樓(地面層)",
+        "pt": "Centro de Serviços da RAEM (R/C)",
+        "en": "Macao Government Services Centre (Ground floor)"
+      },
+      "address": {
+        "zh": "澳門黑沙環新街52號政府綜合服務大樓地面層",
+        "pt": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, R/C, Macau",
+        "en": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, G/F, Macau"
+      },
+      "phone": {
+        "zh": "2845 1515 (辦公時間)",
+        "pt": "2845 1515 (Horário de funcionamento)",
+        "en": "2845 1515 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/938_046a9cfd4ff66712db15e4e9c7fa9141.jpg",
+      "coordinates": [
+        113.553135,
+        22.208796
+      ]
+    },
+    {
+      "id": "CM05",
+      "code": "CM05",
+      "name": {
+        "zh": "政府綜合服務大樓 (一樓)",
+        "pt": "Centro de Serviços da RAEM (1.˚ andar)",
+        "en": "Macao Government Services Centre (1st floor)"
+      },
+      "address": {
+        "zh": "澳門黑沙環新街52號政府綜合服務大樓1樓",
+        "pt": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, 1.˚ andar, Macau",
+        "en": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, 1/F, Macau"
+      },
+      "phone": {
+        "zh": "2845 1515 (辦公時間)",
+        "pt": "2845 1515 (Horário de funcionamento)",
+        "en": "2845 1515 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/566_abfe4fe778612c54ebfb2c69568df86e.jpg",
+      "coordinates": [
+        113.553135,
+        22.208796
+      ]
+    },
+    {
+      "id": "CM06",
+      "code": "CM06",
+      "name": {
+        "zh": "政府綜合服務大樓 (一樓)",
+        "pt": "Centro de Serviços da RAEM (1.˚ andar)",
+        "en": "Macao Government Services Centre (1st floor)"
+      },
+      "address": {
+        "zh": "澳門黑沙環新街52號政府綜合服務大樓1樓",
+        "pt": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, 1.˚ andar, Macau",
+        "en": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, 1/F, Macau"
+      },
+      "phone": {
+        "zh": "2845 1515 (辦公時間)",
+        "pt": "2845 1515 (Horário de funcionamento)",
+        "en": "2845 1515 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/960_7ee3319592d0762e36e47f7e4743c1de.jpg",
+      "coordinates": [
+        113.553135,
+        22.208796
+      ]
+    },
+    {
+      "id": "CM07",
+      "code": "CM07",
+      "name": {
+        "zh": "政府綜合服務大樓 (二樓)",
+        "pt": "Centro de Serviços da RAEM (2.˚ andar)",
+        "en": "Macao Government Services Centre (2nd floor)"
+      },
+      "address": {
+        "zh": "澳門黑沙環新街52號政府綜合服務大樓2樓",
+        "pt": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, 2.˚ andar, Macau",
+        "en": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, 2/F, Macau"
+      },
+      "phone": {
+        "zh": "2845 1515 (辦公時間)",
+        "pt": "2845 1515 (Horário de funcionamento)",
+        "en": "2845 1515 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/756_d078f97fce8f8a1a31a77599bcc6c11b.jpg",
+      "coordinates": [
+        113.553135,
+        22.208796
+      ]
+    },
+    {
+      "id": "CM08",
+      "code": "CM08",
+      "name": {
+        "zh": "政府綜合服務大樓 (二樓)",
+        "pt": "Centro de Serviços da RAEM (2.˚ andar)",
+        "en": "Macao Government Services Centre (2nd floor)"
+      },
+      "address": {
+        "zh": "澳門黑沙環新街52號政府綜合服務大樓2樓",
+        "pt": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, 2.˚ andar, Macau",
+        "en": "Rua Nova da Areia Preta, n.ᵒ 52, Centro de Serviços da RAEM, 2/F, Macau"
+      },
+      "phone": {
+        "zh": "2845 1515 (辦公時間)",
+        "pt": "2845 1515 (Horário de funcionamento)",
+        "en": "2845 1515 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/757_d1edb091d83ee20bdc78778dc5b9d9d5.jpg",
+      "coordinates": [
+        113.553135,
+        22.208796
+      ]
+    },
+    {
+      "id": "CM09",
+      "code": "CM09",
+      "name": {
+        "zh": "政府綜合服務中心 (內設北區市民服務中心)",
+        "pt": "Centro de Serviços da RAEM (onde se encontra instalado o Centro de Prestação de Serviços ao Público da Zona Norte)",
+        "en": "Macao Government Services Centre (in which Northern District Public Services Centre is located)"
+      },
+      "address": {
+        "zh": "澳門慕拉士大馬路 222 號地下",
+        "pt": "Avenida de Venceslau de Morais, n.º 222, r/c, Macau",
+        "en": "Avenida de Venceslau de Morais, n.º 222, r/c, Macau"
+      },
+      "phone": {
+        "zh": "(853) 2845 1515",
+        "pt": "(853) 2845 1515",
+        "en": "(853) 2845 1515"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時（中午照常辦公，週六、日及公眾假期休息）",
+        "pt": "2.ª a 6.ª-feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1066_92491feca5095bb294fc4d60baceeba1.JPG",
+      "coordinates": [
+        113.553938,
+        22.204946
+      ]
+    },
+    {
+      "id": "CM10",
+      "code": "CM10",
+      "name": {
+        "zh": "政府綜合服務中心 (內設北區市民服務中心)",
+        "pt": "Centro de Serviços da RAEM (onde se encontra instalado o Centro de Prestação de Serviços ao Público da Zona Norte)",
+        "en": "Macao Government Services Centre (in which Northern District Public Services Centre is located)"
+      },
+      "address": {
+        "zh": "澳門慕拉士大馬路 222 號地下",
+        "pt": "Avenida de Venceslau de Morais, n.º 222, r/c, Macau",
+        "en": "Avenida de Venceslau de Morais, n.º 222, r/c, Macau"
+      },
+      "phone": {
+        "zh": "(853) 2845 1515",
+        "pt": "(853) 2845 1515",
+        "en": "(853) 2845 1515"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時（中午照常辦公，週六、日及公眾假期休息）",
+        "pt": "2.ª a 6.ª-feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1067_41522b8302ce243ddb65528a73d63689.JPG",
+      "coordinates": [
+        113.553938,
+        22.204946
+      ]
+    },
+    {
+      "id": "CT01",
+      "code": "CT01",
+      "name": {
+        "zh": "離島政府綜合服務中心",
+        "pt": "Centro de Serviços da RAEM das Ilhas",
+        "en": "Macao Government Services Centre in Islands"
+      },
+      "address": {
+        "zh": "氹仔哥英布拉街225號3樓",
+        "pt": "Rua de Coimbra, n.º 225, 3.º andar, Taipa",
+        "en": "Rua de Coimbra, n.º 225, 3.º andar, Taipa"
+      },
+      "phone": {
+        "zh": "2842 1212 (辦公時間)",
+        "pt": "2842 1212 (Horário de funcionamento)",
+        "en": "2842 1212 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª-feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/626_5983827a77e4b97fee47e1579cd0699f.jpg",
+      "coordinates": [
+        113.556253,
+        22.158155
+      ]
+    },
+    {
+      "id": "CT02",
+      "code": "CT02",
+      "name": {
+        "zh": "離島政府綜合服務中心",
+        "pt": "Centro de Serviços da RAEM das Ilhas",
+        "en": "Macao Government Services Centre in Islands"
+      },
+      "address": {
+        "zh": "氹仔哥英布拉街225號3樓",
+        "pt": "Rua de Coimbra, n.º 225, 3.º andar, Taipa",
+        "en": "Rua de Coimbra, n.º 225, 3.º andar, Taipa"
+      },
+      "phone": {
+        "zh": "2842 1212 (辦公時間)",
+        "pt": "2842 1212 (Horário de funcionamento)",
+        "en": "2842 1212 (Office hours)"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午6時 (中午照常辦公，週六、日及公眾假期休息)",
+        "pt": "2.ª a 6.ª-feira, das 9h00 às 18h00 (aberto à hora de almoço, encerrado aos sábados, domingos e feriados)",
+        "en": "Monday to Friday, 9:00 a.m. to 6:00 p.m. (no lunch break, closed on Saturdays, Sundays and public holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/824_ea123b32bbfbbf1be7f1b90c57123487.jpg",
+      "coordinates": [
+        113.556253,
+        22.158155
+      ]
+    },
+    {
+      "id": "GC01",
+      "code": "GC01",
+      "name": {
+        "zh": "石排灣活動中心(石排灣綜合大樓六樓)",
+        "pt": "Centro de Actividades de Seac Pai Van (Complexo Comunitário de Seac Pai Van, 6˚ andar, Coloane)",
+        "en": "Seac Pai Van Activity Centre (Complexo Comunitário de Seac Pai Van, 6˚ andar, Coloane)"
+      },
+      "address": {
+        "zh": "路環蝴蝶谷大馬路石排灣社區綜合大樓6樓",
+        "pt": "Avenida de Vale das Borboletas, Complexo Comunitário de Seac Pai Van, 6.˚ andar, Coloane",
+        "en": "Avenida de Vale das Borboletas, Seac Pai Van Community Complex, 6./F, Coloane"
+      },
+      "phone": {
+        "zh": "8394 3433 (辦公時間)",
+        "pt": "8394 3433(Horário de expediente)",
+        "en": "8394 3433(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 às 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/951_6d43fd00f066b70211ad1ea2e6c82e70.JPG",
+      "coordinates": [
+        113.561759,
+        22.128493
+      ]
+    },
+    {
+      "id": "GC02",
+      "code": "GC02",
+      "name": {
+        "zh": "九澳活動中心(九澳村路觀音廟前地)",
+        "pt": "Centro de Actividades de Ká Hó (Largo do Templo de Kun Iam no Caminho da Povoação de Ká Hó)",
+        "en": "Ká Hó Activity Centre (area in front of Kun Iam Temple in Caminho da Povoação de Ká Hó)"
+      },
+      "address": {
+        "zh": "路環九澳村路",
+        "pt": "Caminho da Povoação de Ká Hó, Coloane",
+        "en": "Caminho da Povoação de Ká Hó, Coloane"
+      },
+      "phone": {
+        "zh": "2876 8639(辦公時間)",
+        "pt": "2876 8639(Horário de expediente)",
+        "en": "2876 8639(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上九時至晚上六時 (週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 09:00 às 18:00 horas(Aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 09:00am - 18:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/904_b3d44f4619ef8eee9274fe7c14a442e9.jpg",
+      "coordinates": [
+        113.581699,
+        22.131556
+      ]
+    },
+    {
+      "id": "GM01",
+      "code": "GM01",
+      "name": {
+        "zh": "營地活動中心(營地街市市政綜合大樓四樓)",
+        "pt": "Centro de Actividades de S. Domingos (Complexo Municipal do Mercado de S. Domingos, 4º andar, Macau)",
+        "en": "S. Domingos Activity Centre (Complexo Municipal do Mercado de S. Domingos, 4º andar, Macau)"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市市政綜合大樓四樓",
+        "pt": "Travessa do Soriano, Complexo Municipal do Mercado de S. Domingos, 4º andar, Macau",
+        "en": "Travessa do Soriano, Municipal Market Complex of S. Domingos, 4/F, Macau"
+      },
+      "phone": {
+        "zh": "83942800 (辦公時間)",
+        "pt": "83942800(Horário de expediente)",
+        "en": "83942800(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 às 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/952_b4a528955b84f584974e92d025a75d1f.jpg",
+      "coordinates": [
+        113.539651,
+        22.194602
+      ]
+    },
+    {
+      "id": "GM02",
+      "code": "GM02",
+      "name": {
+        "zh": "下環活動中心(下環街市市政綜合大樓四樓)",
+        "pt": "Centro de Actividades de S. Lourenço (Complexo Municipal do Mercado de S. Lourenço, 4º andar, Macau)",
+        "en": "S. Lourenço Activity Centre (Complexo Municipal do Mercado de S. Lourenço, 4º andar, Macau)"
+      },
+      "address": {
+        "zh": "澳門李加祿街下環街市市政綜合大樓四樓",
+        "pt": "Rua de João Lecaros, Complexo Municipal do Mercado de S. Lourenço, 4º andar, Macau",
+        "en": "Rua de João Lecaros, Municipal Market Complex of S. Lourenco, 4/F, Macau"
+      },
+      "phone": {
+        "zh": "82947929 (辦公時間)",
+        "pt": "82947929 (Horário de expediente)",
+        "en": "82947929 (office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 ás 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/698_7655b942cda41bbded71e9f89bddd9f7.jpg",
+      "coordinates": [
+        113.534641,
+        22.191004
+      ]
+    },
+    {
+      "id": "GM03",
+      "code": "GM03",
+      "name": {
+        "zh": "三盞燈活動中心(三盞燈綜合大樓地下)",
+        "pt": "Centro de Actividades da Rotunda de Carlos da Maia (Complexo da Rotunda de Carlos da Maia, R/C, Macau)",
+        "en": "Rotunda de Carlos da Maia Activity Centre (Complexo da Rotunda de Carlos da Maia, R/C, Macau)"
+      },
+      "address": {
+        "zh": "澳門嘉路米耶圓形地5及7號三盞燈綜合大樓地下",
+        "pt": "Rotunda de Carlos da Maia, nos. 5 e 7, Complexo da Rotunda de Carlos da Maia, R/C, Macau",
+        "en": "Rotunda de Carlos da Maia, No. 5 & 7, Complex Building, R/C, Macau"
+      },
+      "phone": {
+        "zh": "82917313 (辦公時間)",
+        "pt": "82917313(Horário de expediente)",
+        "en": "82917313(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 ás 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/752_5d1bebf6ff082913926a2874132deb28.jpg",
+      "coordinates": [
+        113.545935,
+        22.202738
+      ]
+    },
+    {
+      "id": "GM04",
+      "code": "GM04",
+      "name": {
+        "zh": "三盞燈活動中心(三盞燈綜合大樓一樓)",
+        "pt": "Centro de Actividades da Rotunda de Carlos da Maia (Complexo da Rotunda de Carlos da Maia, 1.º andar, Macau)",
+        "en": "Rotunda de Carlos da Maia Activity Centre ( Complexo da Rotunda de Carlos da Maia, 1º andar, Macau)"
+      },
+      "address": {
+        "zh": "澳門嘉路米耶圓形地5及7號三盞燈綜合大樓一樓",
+        "pt": "Rotunda de Carlos da Maia, nos. 5 e 7, Complexo da Rotunda de Carlos da Maia,1º andar, Macau",
+        "en": "Rotunda de Carlos da Maia, No. 5 & 7, Complex Building, 1/F, Macau"
+      },
+      "phone": {
+        "zh": "82917313 (辦公時間)",
+        "pt": "82917313(Horário de expediente)",
+        "en": "82917313(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 ás 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/709_fb1a8f4bb3536ace504a328bd2ad5854.JPG",
+      "coordinates": [
+        113.545935,
+        22.202738
+      ]
+    },
+    {
+      "id": "GM05",
+      "code": "GM05",
+      "name": {
+        "zh": "三盞燈活動中心(三盞燈綜合大樓二樓 )",
+        "pt": "Centro de Actividades da Rotunda de Carlos da Maia (Complexo da Rotunda de Carlos da Maia, 2.º andar, Macau)",
+        "en": "Rotunda de Carlos da Maia Activity Centre (Complexo da Rotunda de Carlos da Maia, 2º andar, Macau)"
+      },
+      "address": {
+        "zh": "澳門嘉路米耶圓形地5及7號三盞燈綜合大樓二樓",
+        "pt": "Rotunda de Carlos da Maia, nos. 5 e 7, Complexo da Rotunda de Carlos da Maia, 2º andar, Macau",
+        "en": "Rotunda de Carlos da Maia, No. 5 & 7, Complex Building, 2/F, Macau"
+      },
+      "phone": {
+        "zh": "82917313 (辦公時間)",
+        "pt": "82917313(Horário de expediente)",
+        "en": "82917313(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 ás 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/642_a00f11c137327bd9d9b196ef98d551c6.JPG",
+      "coordinates": [
+        113.545935,
+        22.202738
+      ]
+    },
+    {
+      "id": "GM06",
+      "code": "GM06",
+      "name": {
+        "zh": "筷子基活動中心(筷子基社屋快意樓4樓A室)",
+        "pt": "Centro de Actividades do Fai Chi Ke (Habitação Social do Fai Chi Kei, Edifício Fai I, 4.º andar, Sala A, Macau)",
+        "en": "Fai Chi Kei Activity Centre (Habitação Social do Fai Chi Kei, Edifício Fai I, 4º andar, Sala A, Macau)"
+      },
+      "address": {
+        "zh": "澳門筷子基巷筷子基社屋快意樓4樓A室",
+        "pt": "Travessa de Fái Chi Kei, Habitação Social do Fai Chi Kei, Edifício Fai I, 4º andar, Sala A, Macau",
+        "en": "Travessa de Fái Chi Kei, Habitação Social do Fai Chi Kei, Edifício Fai I, 4/F, Room A, Macau"
+      },
+      "phone": {
+        "zh": "82941700 (辦公時間)",
+        "pt": "82941700(Horário de expediente)",
+        "en": "82941700(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 ás 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/766_4a47d2983c8bd392b120b627e0e1cab4.jpg",
+      "coordinates": [
+        113.538959,
+        22.206488
+      ]
+    },
+    {
+      "id": "GM08",
+      "code": "GM08",
+      "name": {
+        "zh": "祐漢活動中心(祐漢街市三樓)",
+        "pt": "Centro de Actividades do Iao Hon (Mercado Municipal do Bairro Iao Hon, 3.º andar, Macau)",
+        "en": "Iao Hon Activity Centre (Mercado Municipal do Bairro Iao Hon, 3º andar, Macau)"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢街市三樓",
+        "pt": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, 3º andar, Macau",
+        "en": "Rua do Mercado de Iao Hon, Municipal Market Complex of Iao Hon, 3/F, Macau"
+      },
+      "phone": {
+        "zh": "28482189 (辦公時間)",
+        "pt": "28482189(Horário de expediente)",
+        "en": "28482189(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 às 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": null,
+      "coordinates": [
+        113.55137,
+        22.211395
+      ]
+    },
+    {
+      "id": "GM09",
+      "code": "GM09",
+      "name": {
+        "zh": "祐漢活動中心(祐漢街市三樓)",
+        "pt": "Centro de Actividades do Iao Hon (Mercado Municipal do Bairro Iao Hon, 3º andar, Macau)",
+        "en": "Iao Hon Activity Centre (Mercado Municipal do Bairro Iao Hon, 3º andar, Macau)"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢街市三樓",
+        "pt": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, 3º andar, Macau",
+        "en": "Rua do Mercado de Iao Hon, Municipal Market Complex of Iao Hon, 3/F, Macau"
+      },
+      "phone": {
+        "zh": "28482189 (辦公時間)",
+        "pt": "28482189(Horário de expediente)",
+        "en": "28482189(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 às 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/545_afd4836712c5e77550897e25711e1d96.jpg",
+      "coordinates": [
+        113.55137,
+        22.211395
+      ]
+    },
+    {
+      "id": "GM10",
+      "code": "GM10",
+      "name": {
+        "zh": "祐漢活動中心(祐漢街市一樓)",
+        "pt": "Centro de Actividades do Iao Hon (Mercado Municipal do Bairro Iao Hon, 1º andar, Macau)",
+        "en": "Iao Hon Activity Centre (Mercado Municipal do Bairro Iao Hon, 1º andar, Macau)"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢街市一樓",
+        "pt": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, 1º andar, Macau",
+        "en": "Rua do Mercado de Iao Hon, Municipal Market Complex of Iao Hon, 1/F, Macau"
+      },
+      "phone": {
+        "zh": "28482887 (辦公時間)",
+        "pt": "28482887(Horário de expediente)",
+        "en": "28482887(office hours)"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 às 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/800_e5841df2166dd424a57127423d276bbe.jpg",
+      "coordinates": [
+        113.55137,
+        22.211395
+      ]
+    },
+    {
+      "id": "GM11",
+      "code": "GM11",
+      "name": {
+        "zh": "公民教育資源中心",
+        "pt": "Centro de Recursos de Educação Cívica",
+        "en": "Civic Education Resource Centre"
+      },
+      "address": {
+        "zh": "祐漢市場街祐漢小販大樓四樓",
+        "pt": "Edifício de Vendilhões do Iao Hon, 4 andar",
+        "en": "Edifício de Vendilhões do Iao Hon, 4 andar"
+      },
+      "phone": {
+        "zh": "28471371 (辦公時間)",
+        "pt": "28471371(Horário de expediente)",
+        "en": "28471371(office hours)"
+      },
+      "openHours": {
+        "zh": "逢星期二至日每日上午10時至下午6時 (逢星期一及農曆新年假期休息)",
+        "pt": "Terça-feira a domingo, das 10:00 às 18:00 (encerrado às segundas-feiras e nos feriados do Ano Novo Lunar)",
+        "en": "Tuesday to Sunday, 10:00 a.m. to 6:00 p.m. (closed on Mondays and Lunar New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/914_a35a283a5f814c38ef9628efa5a6918b.JPG",
+      "coordinates": [
+        113.551493,
+        22.211268
+      ]
+    },
+    {
+      "id": "GM12",
+      "code": "GM12",
+      "name": {
+        "zh": "沙梨頭活動中心(沙梨頭街市市政綜合大樓九樓)",
+        "pt": "Centro de Actividades do Patane (Complexo Municipal do Mercado do Patane, 9˚ andar, Macau)",
+        "en": "Patane Activity Centre (Complexo Municipal do Mercado do Patane, 9˚ andar, Macau)"
+      },
+      "address": {
+        "zh": "爹美刁施拿地大馬路230號沙梨頭街市市政綜合大樓九樓",
+        "pt": "Avenida de Demétrio Cinatti no.230, Complexo Municipal do Mercado do Patane, 9˚ andar, Macau",
+        "en": "Avenida de Demétrio Cinatti no.230, Municipal Market Complex of Patane, 9/F, Macau"
+      },
+      "phone": {
+        "zh": "8394 3688",
+        "pt": "8394 3688",
+        "en": "8394 3688"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 às 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/664_4653064e5541757564c42da97c01872a.jpg",
+      "coordinates": [
+        113.5372,
+        22.2025
+      ]
+    },
+    {
+      "id": "GM14",
+      "code": "GM14",
+      "name": {
+        "zh": "青洲坊活動中心",
+        "pt": "Centro de Actividades Comunitárias no Edifício de Bairro da Ilha Verde",
+        "en": "Edifício do Bairro da Ilha Verde Activity Centre"
+      },
+      "address": {
+        "zh": "澳門青洲新街56號青洲坊大廈第3座1樓",
+        "pt": "Rua Nova da Ilha Verde, n.º 56, Edifício do Bairro da Ilha Verde (Bloco III), R/C e 1 º andar, Macau",
+        "en": "Rua Nova da Ilha Verde, n.º 56, Edifício do Bairro da Ilha Verde (Bloco III), R/C e 1 º andar, Macau"
+      },
+      "phone": {
+        "zh": "82956905",
+        "pt": "82956905",
+        "en": "82956905"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 às 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/513_20bf377c89f6f5e261a99338ac340f53.jpg",
+      "coordinates": [
+        113.543088,
+        22.211881
+      ]
+    },
+    {
+      "id": "GM15",
+      "code": "GM15",
+      "name": {
+        "zh": "青洲坊活動中心",
+        "pt": "Centro de Actividades Comunitárias no Edifício de Bairro da Ilha Verde",
+        "en": "Edifício do Bairro da Ilha Verde Activity Centre"
+      },
+      "address": {
+        "zh": "澳門青洲新街56號青洲坊大廈第3座1樓",
+        "pt": "Rua Nova da Ilha Verde, n.º 56, Edifício do Bairro da Ilha Verde (Bloco III), R/C e 1 º andar, Macau",
+        "en": "Rua Nova da Ilha Verde, n.º 56, Edifício do Bairro da Ilha Verde (Bloco III), R/C e 1 º andar, Macau"
+      },
+      "phone": {
+        "zh": "82956905",
+        "pt": "82956905",
+        "en": "82956905"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 às 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "At 10:00am - 10:00pm daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/612_a046f83c406ba4b9e3eed2175114efab.jpg",
+      "coordinates": [
+        113.543088,
+        22.211881
+      ]
+    },
+    {
+      "id": "GT01",
+      "code": "GT01",
+      "name": {
+        "zh": "氹仔黑橋活動中心",
+        "pt": "Centro de Actividades da Ponte Negra da Taipa",
+        "en": "Taipa Ponte Negra Activity Centre"
+      },
+      "address": {
+        "zh": "氹仔黑橋街平民新村第11座115N",
+        "pt": "Rua da Ponte Negra, Bairro Social da Taipa, Bloco 11, n.º 115N, Taipa",
+        "en": "Rua da Ponte Negra, Bairro Social da Taipa, Bloco 11, n.º 115N, Taipa"
+      },
+      "phone": {
+        "zh": "28850160",
+        "pt": "28850160",
+        "en": "28850160"
+      },
+      "openHours": {
+        "zh": "每日早上十時至晚上十時(週末及公眾假期照常開放，農曆新年假期除外。)",
+        "pt": "Diariamente, das 10:00 às 22:00 horas(aberto durante os fins-de-semana e feriados, excepto feriados do Ano Novo Lunar)",
+        "en": "10:00 a.m. to 10:00 p.m. daily (opens on weekends and public holidays except Chinese New Year holidays)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/695_be743951d3bb6a5460a969b44df0996f.jpg",
+      "coordinates": [
+        113.555605,
+        22.155014
+      ]
+    },
+    {
+      "id": "IM01",
+      "code": "IM01",
+      "name": {
+        "zh": "澳門市政狗房",
+        "pt": "Canil Municipal de Macau",
+        "en": "Macao Municipal Kennel"
+      },
+      "address": {
+        "zh": "提督馬路市政狗房地下",
+        "pt": "Avenida do Almirante Lacerda, Macau",
+        "en": "Avenida do Almirante Lacerda, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "週一至週五，上午9時至下午1時，下午2時30分至5時",
+        "pt": "2ª a 6ª Feira, das 09h00 às 13h00, 14h30 às 17h00",
+        "en": "Monday to Friday, 9:00 a.m. to 1:00 p.m., 2:30 p.m. to 5:00 p.m"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/162_b4288d9c0ec0a1841b3b3728321e7088.jpg",
+      "coordinates": [
+        113.546394,
+        22.207635
+      ]
+    },
+    {
+      "id": "JC1",
+      "code": "JC1",
+      "name": {
+        "zh": "石排灣郊野公園",
+        "pt": "Parque de Seac Pai Van",
+        "en": "Seac Pai Van Park"
+      },
+      "address": {
+        "zh": "路環石排灣馬路, 石排灣郊野公園",
+        "pt": "Estrada de Seac Pai Van, Parque de Seac Pai Van, Coloane",
+        "en": "Estrada de Seac Pai Van, Seac Pai Van Park , Coloane"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-22:00",
+        "pt": "06:00-22:00",
+        "en": "06:00-22:00"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/717_4128fd18ab7631360ea5249c4fe76926.jpg",
+      "coordinates": [
+        113.55823,
+        22.126879
+      ]
+    },
+    {
+      "id": "JC10",
+      "code": "JC10",
+      "name": {
+        "zh": "黑沙水庫健康徑",
+        "pt": "Circuito de Manutenção da Barragem de Hac Sá",
+        "en": "Hac Sá Reservoir Fitness Trail"
+      },
+      "address": {
+        "zh": "公園前水上樂園",
+        "pt": "Centro de Diversões Aquáticas em frente do Parque",
+        "en": "Water park in front of the park"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "8:30-17:30",
+        "pt": "8:30-17:30",
+        "en": "8:30-17:30"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": true,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/759_911fe16d5d08bf74f59b35a57778ad58.jpg",
+      "coordinates": [
+        113.57035,
+        22.125433
+      ]
+    },
+    {
+      "id": "JC11",
+      "code": "JC11",
+      "name": {
+        "zh": "金像農場",
+        "pt": "Granja Óscar",
+        "en": "Oscar Farm"
+      },
+      "address": {
+        "zh": "路環竹灣馬路(路環市區往竹灣泳池方向的中間路段)",
+        "pt": "Estrada de Cheoc Van, em Coloane (parte central do troço, desde o centro de Coloane, em direcção à Piscina de Cheoc Van)",
+        "en": "Estrada de Cheoc Van, Coloane (middle section of the road from downtown Coloane towards the Cheoc Van Swimming Pool)"
+      },
+      "phone": {
+        "zh": "28880087",
+        "pt": "28880087",
+        "en": "28880087"
+      },
+      "openHours": {
+        "zh": "9:00 – 18:00",
+        "pt": "das 9h00 às 18h00",
+        "en": "09:00 – 18:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": null,
+      "coordinates": [
+        113.556855,
+        22.115998
+      ]
+    },
+    {
+      "id": "JC12",
+      "code": "JC12",
+      "name": {
+        "zh": "澳門動物標本展示館",
+        "pt": "Pavilhão de Animais Embalsamados de Macau",
+        "en": "Pavilion of Animal Specimens in Macao"
+      },
+      "address": {
+        "zh": "路環打纜街",
+        "pt": "Rua da Cordoaria, Coloane",
+        "en": "Rua da Cordoaria, Coloane"
+      },
+      "phone": {
+        "zh": "28880087",
+        "pt": "28880087",
+        "en": "28880087"
+      },
+      "openHours": {
+        "zh": "星期二至星期日，10:00 - 17:30 (逢星期一休息，如星期一為公眾假期，則順延休息日)",
+        "pt": "De terça-feira a domingo, 10h00-17h30 (encerrado à segunda-feira. Caso o dia de feriado coincida com uma segunda-feira, o encerramento será adiado para o dia seguinte)",
+        "en": "Tuesday to Sunday, 10:00 - 17:30 (Closed on Monday or on the following day instead if a public holiday falls on Monday)"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/502_63a23eb017820e6fc41a6fa3f11de37d.JPG",
+      "coordinates": [
+        113.552625,
+        22.117007
+      ]
+    },
+    {
+      "id": "JC2",
+      "code": "JC2",
+      "name": {
+        "zh": "石排灣郊野公園",
+        "pt": "Parque de Seac Pai Van",
+        "en": "Seac Pai Van Park"
+      },
+      "address": {
+        "zh": "路環石排灣馬路, 石排灣郊野公園",
+        "pt": "Estrada de Seac Pai Van, Parque de Seac Pai Van, Coloane",
+        "en": "Estrada de Seac Pai Van, Seac Pai Van Park , Coloane"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-22:00",
+        "pt": "06:00-22:00",
+        "en": "06:00-22:00"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/742_be33a914f61466b4ab427ed190d40cea.jpg",
+      "coordinates": [
+        113.556936,
+        22.125657
+      ]
+    },
+    {
+      "id": "JC3",
+      "code": "JC3",
+      "name": {
+        "zh": "竹灣燒烤公園",
+        "pt": "Parque de Merendas de Cheoc Van",
+        "en": "Cheoc Van Barbecue Park"
+      },
+      "address": {
+        "zh": "竹灣馬路，竹灣燒烤公園",
+        "pt": "Estrada de Cheoc Van, Parque de Merendas de Cheoc Van",
+        "en": "Estrada de Cheoc Van, Cheoc Van Barbeque Park"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/965_55b56a5f312b0da2aa594c058fba9343.jpg",
+      "coordinates": [
+        113.563834,
+        22.115476
+      ]
+    },
+    {
+      "id": "JC4",
+      "code": "JC4",
+      "name": {
+        "zh": "九澳水庫郊野公園",
+        "pt": "Parque Natural da Barragem de Ká Hó",
+        "en": "Ká Hó Reservoir Natural Park"
+      },
+      "address": {
+        "zh": "九澳堤壩馬路，九澳水庫郊野公園",
+        "pt": "Estrada da Barragem de Ká Hó，Parque Natural da Barragem de Ká Hó",
+        "en": "Estrada da Barragem de Ká Hó, Ká Hó Reservoir Natural Park"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/801_de471c75f581d19acae0c1a029d67409.JPG",
+      "coordinates": [
+        113.577885,
+        22.133913
+      ]
+    },
+    {
+      "id": "JC5",
+      "code": "JC5",
+      "name": {
+        "zh": "路環步行徑",
+        "pt": "Trilho de Coloane",
+        "en": "Coloane Trail"
+      },
+      "address": {
+        "zh": "路環高頂馬路，路環步行徑",
+        "pt": "Estrada do Alto de Coloane，Trilho de Coloane",
+        "en": "Estrada do Alto de Coloane, Coloane Trail"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/864_8e747fc9fa9942aafe5d1793f5bd12dc.jpg",
+      "coordinates": [
+        113.563056,
+        22.121485
+      ]
+    },
+    {
+      "id": "JC6",
+      "code": "JC6",
+      "name": {
+        "zh": "路環山頂公園",
+        "pt": "Parque de Merendas do Alto de Coloane",
+        "en": "Coloane Height Park"
+      },
+      "address": {
+        "zh": "路環高頂馬路，路環山頂公園",
+        "pt": "Estrada do Alto de Coloane，Parque de Merendas do Alto de Coloane",
+        "en": "Estrada do Alto de Coloane, Coloane Height Park"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/635_d065d9af868387d55ccf48e12c5e9a58.jpg",
+      "coordinates": [
+        113.564386,
+        22.123055
+      ]
+    },
+    {
+      "id": "JC7",
+      "code": "JC7",
+      "name": {
+        "zh": "澳門大熊貓資訊中心",
+        "pt": "Centro de Informação do Panda Gigante de Macau",
+        "en": "Macao Giant Panda Information Centre"
+      },
+      "address": {
+        "zh": "路環石排灣大馬路, 石排灣郊野公園, 澳門大熊貓資訊中心",
+        "pt": "Estrada de Seac Pai Van de Coloane, Parque de Seac Pai Van, Centro de Informação do Panda Gigante de Macau",
+        "en": "Estrada de Seac Pai Van, Coloane, Seac Pai Van Park , Macao Giant Panda Information Centre"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "星期二至星期日上午10時至下午5時（逢星期一休息，如星期一為公眾假期，則順延休息日）",
+        "pt": "de terça-feira a domingo 10h00-17h00 (encerrdo às 2as feiras e, caso elas incidam num feriado, o encerramento será transferido para o dia seguinte)",
+        "en": "10:00 a.m. to 5:00 p.m. from Tuesday to Sunday (Closed on Monday; Closed on the following day if Monday is a public holiday.)"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": null,
+      "coordinates": [
+        113.558161,
+        22.125612
+      ]
+    },
+    {
+      "id": "JC8",
+      "code": "JC8",
+      "name": {
+        "zh": "黑沙公園",
+        "pt": "Parque de Hac Sá",
+        "en": "Hac Sá Park"
+      },
+      "address": {
+        "zh": "路環黑沙馬路，黑沙公園",
+        "pt": "Estrada de Hac sa, Parque de Hac Sá, Coloane",
+        "en": "Estrada de Hac sa,Hac Sa Park, Coloane"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/820_519844218694f2ce91c2fe1ae80536a1.JPG",
+      "coordinates": [
+        113.568465,
+        22.11848
+      ]
+    },
+    {
+      "id": "JC9",
+      "code": "JC9",
+      "name": {
+        "zh": "棕櫚公園",
+        "pt": "Parque das Palmeiras",
+        "en": "Palmeiras Park"
+      },
+      "address": {
+        "zh": "路環棕櫚圓型地，棕櫚公園",
+        "pt": "Rotunda das Palmeiras, Parque das Palmeiras, Coloane",
+        "en": "Rotunda das Palmeiras, Palmeiras Park, Coloane"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/693_5c128e3652e4100bad2148d32c7c1fbf.jpg",
+      "coordinates": [
+        113.556894,
+        22.127282
+      ]
+    },
+    {
+      "id": "JM1",
+      "code": "JM1",
+      "name": {
+        "zh": "紀念孫中山市政公園",
+        "pt": "Parque Municipal Dr. Sun Yat Sen",
+        "en": "Dr. Sun Yat Sen Municipal Park"
+      },
+      "address": {
+        "zh": "澳門何賢紳士大馬路, 紀念孫中山市政公園",
+        "pt": "Avenida do Comendador Ho Yin, Parque Municipal Dr. Sun Yat Sen, Macau",
+        "en": "Avenida do Comendador Ho Yin, Dr. Sun Yat Sen Municipal Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "aberto 24 horas",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": null,
+      "coordinates": [
+        113.545019,
+        22.215702
+      ]
+    },
+    {
+      "id": "JM10",
+      "code": "JM10",
+      "name": {
+        "zh": "白鴿巢公園",
+        "pt": "Jardim de Luís de Camões",
+        "en": "Luís de Camões Park"
+      },
+      "address": {
+        "zh": "澳門白鴿巢前地, 白鴿巢公園",
+        "pt": "Praça de Luís de Camões, Jardim de Luís de Camões, Macau",
+        "en": "Praça de Luís de Camões, Luís de Camões Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/138_fc791f7b79d733eb82046085f3af1d7f.JPG",
+      "coordinates": [
+        113.539502,
+        22.200344
+      ]
+    },
+    {
+      "id": "JM11",
+      "code": "JM11",
+      "name": {
+        "zh": "白鴿巢公園",
+        "pt": "Jardim de Luís de Camões",
+        "en": "Luís de Camões Park"
+      },
+      "address": {
+        "zh": "澳門白鴿巢前地, 白鴿巢公園",
+        "pt": "Praça de Luís de Camões, Jardim Luís de Camões, Macau",
+        "en": "Praça de Luís de Camões, Luís de Camões Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/56_2ead71cff10a450bd51f7157edc71efa.jpg",
+      "coordinates": [
+        113.539288,
+        22.201367
+      ]
+    },
+    {
+      "id": "JM12",
+      "code": "JM12",
+      "name": {
+        "zh": "盧廉若公園",
+        "pt": "Jardim de Lou Lim Ioc",
+        "en": "Lou Lim Ioc Park"
+      },
+      "address": {
+        "zh": "澳門羅利老馬路, 盧廉若公園",
+        "pt": "Estrada de Adolfo Loureiro, Jardim de Lou Lim Ioc, Macau",
+        "en": "Estrada de Adolfo Loureiro, Lou Lim Ioc Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/478_acb43fbda44825101eff77a63cac1500.JPG",
+      "coordinates": [
+        113.54756,
+        22.20009
+      ]
+    },
+    {
+      "id": "JM13",
+      "code": "JM13",
+      "name": {
+        "zh": "二龍喉公園",
+        "pt": "Jardim da Flora",
+        "en": "Flora Park"
+      },
+      "address": {
+        "zh": "士多鳥拜斯大馬路, 二龍喉公園",
+        "pt": "Avenida Sidónio Pais, Jardim da Flora, Macau",
+        "en": "Avenida Sidónio Pais, Flora Park,Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/224_048f280be60eddead656b9417abb434a.JPG",
+      "coordinates": [
+        113.550661,
+        22.200539
+      ]
+    },
+    {
+      "id": "JM15",
+      "code": "JM15",
+      "name": {
+        "zh": "松山市政公園",
+        "pt": "Parque Municipal da Colina da Guia",
+        "en": "Guia Hill Municipal Park"
+      },
+      "address": {
+        "zh": "澳門東望洋山, 松山市政公園",
+        "pt": "Colina da Guia, Parque Municipal da Colina da Guia, Macau",
+        "en": "Colina da Guia, Guia Hill Municipal Park,Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/404_c2aaad91b94a2fcb75999faa50abb743.jpg",
+      "coordinates": [
+        113.548862,
+        22.196492
+      ]
+    },
+    {
+      "id": "JM16",
+      "code": "JM16",
+      "name": {
+        "zh": "松山市政公園",
+        "pt": "Parque Municipal da Colina da Guia",
+        "en": "Guia Hill Municipal Park"
+      },
+      "address": {
+        "zh": "澳門東望洋山, 松山市政公園",
+        "pt": "Colina da Guia, Parque Municipal da Colina da Guia, Macau",
+        "en": "Colina da Guia, Guia Hill Municipal Park,Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "05:30-22:00",
+        "pt": "05:30-22:00",
+        "en": "05:30-22:00"
+      },
+      "accessible": false,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/77_9a05c9ccf98c4fd6eda1980193c2dec9.jpg",
+      "coordinates": [
+        113.550854,
+        22.197615
+      ]
+    },
+    {
+      "id": "JM17",
+      "code": "JM17",
+      "name": {
+        "zh": "松山市政公園",
+        "pt": "Parque Municipal da Colina da Guia",
+        "en": "Guia Hill Municipal Park"
+      },
+      "address": {
+        "zh": "澳門東望洋山, 松山市政公園",
+        "pt": "Colina da Guia, Parque Municipal da Colina da Guia, Macau",
+        "en": "Colina da Guia, Guia Hill Municipal Park,Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "05:30-22:00",
+        "pt": "05:30-22:00",
+        "en": "05:30-22:00"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/310_c049b6905cfb4425584c9d81865a69a4.JPG",
+      "coordinates": [
+        113.552001,
+        22.198757
+      ]
+    },
+    {
+      "id": "JM18",
+      "code": "JM18",
+      "name": {
+        "zh": "松山市政公園",
+        "pt": "Parque Municipal da Colina da Guia",
+        "en": "Guia Hill Municipal Park"
+      },
+      "address": {
+        "zh": "澳門東望洋山, 松山市政公園",
+        "pt": "Colina da Guia, Parque Municipal da Colina da Guia, Macau",
+        "en": "Colina da Guia, Guia Hill Municipal Park,Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "05:30-22:00",
+        "pt": "05:30-22:00",
+        "en": "05:30-22:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/407_3e3bf382f7ed5dcef63d62ef73f77b1a.JPG",
+      "coordinates": [
+        113.552509,
+        22.199478
+      ]
+    },
+    {
+      "id": "JM19",
+      "code": "JM19",
+      "name": {
+        "zh": "松山市政公園",
+        "pt": "Parque Municipal da Colina da Guia",
+        "en": "Guia Hill Municipal Park"
+      },
+      "address": {
+        "zh": "澳門東望洋山, 松山市政公園",
+        "pt": "Colina da Guia, Parque Municipal da Colina da Guia, Macau",
+        "en": "Colina da Guia, Guia Hill Municipal Park,Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "aberto 24 horas",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/257_9966539d95e4c5e1c084e635605d644d.jpg",
+      "coordinates": [
+        113.549813,
+        22.195657
+      ]
+    },
+    {
+      "id": "JM2",
+      "code": "JM2",
+      "name": {
+        "zh": "紀念孫中山市政公園",
+        "pt": "Parque Municipal Dr. Sun Yat Sen",
+        "en": "Dr. Sun Yat Sen Municipal Park"
+      },
+      "address": {
+        "zh": "澳門何賢紳士大馬路, 紀念孫中山市政公園",
+        "pt": "Avenida do Comendador Ho Yin, Parque Municipal Dr. Sun Yat Sen, Macau",
+        "en": "Avenida do Comendador Ho Yin, Dr. Sun Yat Sen Municipal Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "aberto 24 horas",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/780_ddb3b071c5b0f5ded54e9d81903c5f7a.JPG",
+      "coordinates": [
+        113.544377,
+        22.21579
+      ]
+    },
+    {
+      "id": "JM20",
+      "code": "JM20",
+      "name": {
+        "zh": "華士古達嘉馬花園",
+        "pt": "Jardim de Vasco da Gama",
+        "en": "Vasco da Gama Garden"
+      },
+      "address": {
+        "zh": "澳門東望洋街,華士古達嘉馬花園",
+        "pt": "Rua de Ferreira do Amaral,Jardim de Vasco da Gama, Macau",
+        "en": "Rua de Ferreira do Amaral,Vasco da Gama Garden, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/600_aa485ff1bcc73bf9cc226bd5d05a14ee.jpg",
+      "coordinates": [
+        113.546933,
+        22.196209
+      ]
+    },
+    {
+      "id": "JM21",
+      "code": "JM21",
+      "name": {
+        "zh": "加思欄花園",
+        "pt": "Jardim de S. Francisco",
+        "en": "S. Francisco Garden"
+      },
+      "address": {
+        "zh": "澳門南灣大馬路東望洋新街, 加思欄花園",
+        "pt": "Avenida da Praia Grande e Rua Nova à Guia, Jardim de S. Francisco, Macau",
+        "en": "Avenida da Praia Grande e Rua Nova à Guia, S. Francisco Garden, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/775_95e11ba5dbd0e4bf8dc149c09b209d0c.jpg",
+      "coordinates": [
+        113.544474,
+        22.192665
+      ]
+    },
+    {
+      "id": "JM22",
+      "code": "JM22",
+      "name": {
+        "zh": "藝園",
+        "pt": "Jardim das Artes",
+        "en": "Arts Park"
+      },
+      "address": {
+        "zh": "澳門友誼大馬路, 藝園",
+        "pt": "Avenida da Amizade, Jardim das Artes, Macau",
+        "en": "Avenida da Amizade, Arts Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": false,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/338_a6f16010967d63a3336e5b745636f58e.png",
+      "coordinates": [
+        113.545391,
+        22.189167
+      ]
+    },
+    {
+      "id": "JM23",
+      "code": "JM23",
+      "name": {
+        "zh": "西望洋花園",
+        "pt": "Jardim da Penha",
+        "en": "Penha Garden"
+      },
+      "address": {
+        "zh": "澳門西望洋馬路,西望洋花園",
+        "pt": "Estrada da Penha,Jardim da Penha, Macau",
+        "en": "Estrada da Penha, Penha Garden, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/62_4140563dd46f0d2cde7ab10d200fb4e2.JPG",
+      "coordinates": [
+        113.533115,
+        22.18472
+      ]
+    },
+    {
+      "id": "JM24",
+      "code": "JM24",
+      "name": {
+        "zh": "何賢公園",
+        "pt": "Jardim Comendador Ho Yin",
+        "en": "Comendador Ho Yin Park"
+      },
+      "address": {
+        "zh": "澳門宋玉生廣場, 何賢公園",
+        "pt": "Alameda Dr. Carlos D' Assumpção, Jardim do Comendador Ho Yin, Macau",
+        "en": "Alameda Dr. Carlos D' Assumpção,Comendador Ho Yin Park,Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "aberto 24 horas",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/228_05600ff074575f1ae6296cbf38640d0a.jpg",
+      "coordinates": [
+        113.549894,
+        22.19147
+      ]
+    },
+    {
+      "id": "JM25",
+      "code": "JM25",
+      "name": {
+        "zh": "燒灰爐公園",
+        "pt": "Parque do Chunambeiro",
+        "en": "Chunambeiro Park"
+      },
+      "address": {
+        "zh": "澳門民國大馬路, 燒灰爐公園",
+        "pt": "Avenida da República, Parque do Chunambeiro, Macau",
+        "en": "Avenida da República, Chunambeiro Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/799_fefc1f6e3a953a032faea802e666d454.JPG",
+      "coordinates": [
+        113.537075,
+        22.186673
+      ]
+    },
+    {
+      "id": "JM26",
+      "code": "JM26",
+      "name": {
+        "zh": "松山自然資訊站",
+        "pt": "Posto de Informação sobre a Natureza na Colina da Guia",
+        "en": "Guia Hill Nature Information Station"
+      },
+      "address": {
+        "zh": "東望洋山, 松山市政公園, 松山自然資訊站",
+        "pt": "Colina da Guia, Parque Municipal da Colina da Guia, Posto de Informação sobre a Natureza na Colina da Guia",
+        "en": "Guia Hill, Guia Hill Municipal Park, Guia Hill Nature Information Station"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "逢星期二至日，上午9時至下午1時及下午2時30分至下午5時30分",
+        "pt": "de terça-feira a domingo 09h00-13h00 e 14h30-17h30",
+        "en": "9:00 a.m. to 1:00 p.m. and 2:30 p.m. to 5:30 p.m. from Tuesday to Sunday"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": null,
+      "coordinates": [
+        113.550176,
+        22.19585
+      ]
+    },
+    {
+      "id": "JM27",
+      "code": "JM27",
+      "name": {
+        "zh": "大炮台公園",
+        "pt": "Parque da Fortaleza do Monte",
+        "en": "Mount Fortress Park"
+      },
+      "address": {
+        "zh": "澳門博物館前地",
+        "pt": "Praceta do Museu de Macau, Macau",
+        "en": "Praceta do Museu de Macau, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "07:00-19:00",
+        "pt": "07:00-19:00",
+        "en": "07:00-19:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/921_b863952c69ac76a1b235d230ba0931fa.jpg",
+      "coordinates": [
+        113.542386,
+        22.196822
+      ]
+    },
+    {
+      "id": "JM28",
+      "code": "JM28",
+      "name": {
+        "zh": "望德樓平台花園",
+        "pt": "Plataforma ajardinada do Edifício Mong Tak",
+        "en": "Edf. Mong Tak Podium Garden"
+      },
+      "address": {
+        "zh": "慕拉士大馬路望廈社屋-望德樓二樓",
+        "pt": "Habitação Social de Mong-Há, na Avenida de Venceslau de Morais - Edifício Mong Tak, 2.º andar",
+        "en": "Avenida de Venceslau de Morais, Habitação Social de Mong Há - Edf. Mong Tak, 2º Andar"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "08:00-22:00",
+        "pt": "08:00-22:00",
+        "en": "08:00-22:00"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/923_46bbaa43bc70edb2a951b1990a1dc836.jpg",
+      "coordinates": [
+        113.551371,
+        22.206953
+      ]
+    },
+    {
+      "id": "JM3",
+      "code": "JM3",
+      "name": {
+        "zh": "紀念孫中山市政公園",
+        "pt": "Parque Municipal Dr. Sun Yat Sen",
+        "en": "Dr. Sun Yat Sen Municipal Park"
+      },
+      "address": {
+        "zh": "澳門何賢紳士大馬路, 紀念孫中山市政公園",
+        "pt": "Avenida do Comendador Ho Yin, Parque Municipal Dr. Sun Yat Sen, Macau",
+        "en": "Avenida do Comendador Ho Yin, Dr. Sun Yat Sen Municipal Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "aberto 24 horas",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/666_60bf94f31a0058dc38b525662cb639e7.JPG",
+      "coordinates": [
+        113.545325,
+        22.216476
+      ]
+    },
+    {
+      "id": "JM4",
+      "code": "JM4",
+      "name": {
+        "zh": "紀念孫中山市政公園",
+        "pt": "Parque Municipal Dr. Sun Yat Sen",
+        "en": "Dr. Sun Yat Sen Municipal Park"
+      },
+      "address": {
+        "zh": "澳門何賢紳士大馬路, 紀念孫中山市政公園",
+        "pt": "Avenida do Comendador Ho Yin, Parque Municipal Dr. Sun Yat Sen, Macau",
+        "en": "Avenida do Comendador Ho Yin,Dr. Sun Yat Sen Municipal Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "aberto 24 horas",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/716_7ce826f80953239b2b2f5c8994c83e1c.JPG",
+      "coordinates": [
+        113.54715,
+        22.216591
+      ]
+    },
+    {
+      "id": "JM5",
+      "code": "JM5",
+      "name": {
+        "zh": "黑沙環公園",
+        "pt": "Parque Urbano da Areia Preta",
+        "en": "Areia Preta Urban Park"
+      },
+      "address": {
+        "zh": "澳門勞動節大馬路, 黑沙環公園",
+        "pt": "Avenida 1˚ de Maio, Parque Urbano da Areia Preta, Macau",
+        "en": "Avenida 1˚ de Maio, Areia Preta Urban Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/480_4810c21d44d98f34786b5447cd832032.jpg",
+      "coordinates": [
+        113.554038,
+        22.210973
+      ]
+    },
+    {
+      "id": "JM6",
+      "code": "JM6",
+      "name": {
+        "zh": "黑沙環公園",
+        "pt": "Parque Urbano da Areia Preta",
+        "en": "Areia Preta Urban Park"
+      },
+      "address": {
+        "zh": "澳門勞動節大馬路, 黑沙環公園",
+        "pt": "Avenida 1˚ de Maio, Parque Urbano da Areia Preta",
+        "en": "Avenida 1˚ de Maio, Areia Preta Urban Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "24 hours daily"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1018_7a272db80df2c3a449b5d6a373f87d2b.jpg",
+      "coordinates": [
+        113.555894,
+        22.209358
+      ]
+    },
+    {
+      "id": "JM7",
+      "code": "JM7",
+      "name": {
+        "zh": "螺絲山公園",
+        "pt": "Jardim da Montanha Russa",
+        "en": "Montanha Russa Park"
+      },
+      "address": {
+        "zh": "澳門新雅馬路 / 亞馬喇馬路, 螺絲山公園",
+        "pt": "Estrada de Bela Vista / Estrada de Ferreira do Amaral, Jardim da Montanha Russa, Macau",
+        "en": "Estrada de Bela Vista / Estrada de Ferreira do Amaral, Montanha Russa Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/683_f7323ae1f015876bb67ade13335fba24.jpg",
+      "coordinates": [
+        113.552696,
+        22.203865
+      ]
+    },
+    {
+      "id": "JM8",
+      "code": "JM8",
+      "name": {
+        "zh": "螺絲山公園",
+        "pt": "Jardim da Montanha Russa",
+        "en": "Montanha Russa Park"
+      },
+      "address": {
+        "zh": "澳門新雅馬路 / 亞馬喇馬路, 螺絲山公園",
+        "pt": "Estrada de Bela Vista / Estrada de Ferreira do Amaral, Jardim da Montanha Russa, Macau",
+        "en": "Estrada de Bela Vista / Estrada de Ferreira do Amaral, Montanha Russa Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/874_c2444632919b3b7f2708687936930b05.jpg",
+      "coordinates": [
+        113.55285,
+        22.204181
+      ]
+    },
+    {
+      "id": "JM9",
+      "code": "JM9",
+      "name": {
+        "zh": "白鴿巢公園",
+        "pt": "Jardim de Luís de Camões",
+        "en": "Luís de Camões Park"
+      },
+      "address": {
+        "zh": "澳門白鴿巢前地, 白鴿巢公園",
+        "pt": "Praça de Luís de Camões, Jardim de Luís de Camões, Macau",
+        "en": "Praça de Luís de Camões, Luís de Camões Park, Macau"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/227_b41be4225795651b985ac5e9bddc8c91.JPG",
+      "coordinates": [
+        113.539088,
+        22.200572
+      ]
+    },
+    {
+      "id": "JT1",
+      "code": "JT1",
+      "name": {
+        "zh": "氹仔中央公園",
+        "pt": "Parque Central da Taipa",
+        "en": "Central da Taipa Park"
+      },
+      "address": {
+        "zh": "氹仔成都街 7號, 氹仔中央公園",
+        "pt": "Rua de Seng Tou, No. 7, Parque Central da Taipa,Taipa",
+        "en": "Rua de Seng Tou, No. 7, Central da Taipa Park,Taipa"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "06:00-24:00",
+        "pt": "06:00-24:00",
+        "en": "06:00-24:00"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/700_842a8d59f45950b91a1982adf2c69ba3.JPG",
+      "coordinates": [
+        113.554592,
+        22.158827
+      ]
+    },
+    {
+      "id": "JT2",
+      "code": "JT2",
+      "name": {
+        "zh": "湖畔大廈平台花園",
+        "pt": "Plataforma ajardinada do Edif. do Lago",
+        "en": "Edif. do Lago Podium Garden"
+      },
+      "address": {
+        "zh": "氹仔美副將馬路，湖畔大廈平台花園",
+        "pt": "Estrada Coronel Nicolau de Mesquita, Plataforma ajardinada do Edif. do Lago,Taipa",
+        "en": "Estrada Coronel Nicolau de Mesquita in Taipa,Edif. do Lago Podium Garden,Taipa"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "08:00-22:00",
+        "pt": "08:00-22:00",
+        "en": "08:00-22:00"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/873_6997097b3a09c19d2b3667b05f802ed6.JPG",
+      "coordinates": [
+        113.560546,
+        22.158888
+      ]
+    },
+    {
+      "id": "JT3",
+      "code": "JT3",
+      "name": {
+        "zh": "湖畔大廈平台花園",
+        "pt": "Plataforma ajardinada do Edif. do Lago",
+        "en": "Edif. do Lago Podium Garden"
+      },
+      "address": {
+        "zh": "氹仔美副將馬路，湖畔大廈平台花園",
+        "pt": "Estrada Coronel Nicolau de Mesquita, Plataforma ajardinada do Edif. do Lago,Taipa",
+        "en": "Estrada Coronel Nicolau de Mesquita in Taipa,Edif. do Lago Podium Garden,Taipa"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "08:00-22:00",
+        "pt": "08:00-22:00",
+        "en": "08:00-22:00"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/557_22b181f7aaca95ab433b5ea009157a32.JPG",
+      "coordinates": [
+        113.561069,
+        22.159229
+      ]
+    },
+    {
+      "id": "LC01",
+      "code": "LC01",
+      "name": {
+        "zh": "路環市政墳場公廁",
+        "pt": "Sanitário Público do Cemitério Municipal de Coloane",
+        "en": "Public Toilet at the Coloane Municipal Cemetery"
+      },
+      "address": {
+        "zh": "路環鄉村馬路",
+        "pt": "Estrada da Aldeia, Coloane",
+        "en": "Estrada da Aldeia, Coloane"
+      },
+      "phone": {
+        "zh": "8294 2651",
+        "pt": "8294 2651",
+        "en": "8294 2651"
+      },
+      "openHours": {
+        "zh": "上午8時至下午6時",
+        "pt": "8:00-18:00",
+        "en": "8:00-18:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/53_55fc16dbb4b676c14c6726cac2127c8b.jpg",
+      "coordinates": [
+        113.551772,
+        22.112385
+      ]
+    },
+    {
+      "id": "LM01",
+      "code": "LM01",
+      "name": {
+        "zh": "澳門聖味基墳場公廁",
+        "pt": "Sanitário Público do Cemitério de S. Miguel Arcanjo",
+        "en": "Public Toilet at the St. Miguel Arcanjo Cemetery"
+      },
+      "address": {
+        "zh": "澳門西墳馬路",
+        "pt": "Estrada do Cemitério, Macau",
+        "en": "Estrada do Cemitério, Macau"
+      },
+      "phone": {
+        "zh": "8294 2651",
+        "pt": "8294 2651",
+        "en": "8294 2651"
+      },
+      "openHours": {
+        "zh": "上午8時至下午6時",
+        "pt": "8:00-18:00",
+        "en": "8:00-18:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/299_63310a8192c1b14fc100b66e28e36880.jpg",
+      "coordinates": [
+        113.545466,
+        22.198457
+      ]
+    },
+    {
+      "id": "LT01",
+      "code": "LT01",
+      "name": {
+        "zh": "氹仔沙崗市政墳場公廁",
+        "pt": "Sanitário Público do Cemitério Municipal de Sá Kong da Taipa",
+        "en": "Public Toilet at the Taipa Sa Kong Municipal Cemetery"
+      },
+      "address": {
+        "zh": "氹仔高勵雅馬路",
+        "pt": "Estrada Almirante Magalhães Correia, Taipa",
+        "en": "Estrada Almirante Magalhães Correia, Taipa"
+      },
+      "phone": {
+        "zh": "8294 2651",
+        "pt": "8294 2651",
+        "en": "8294 2651"
+      },
+      "openHours": {
+        "zh": "上午8時至下午6時",
+        "pt": "8:00-18:00",
+        "en": "8:00-18:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/456_9288f1bbc0cf01ce4ccc035b5a9062a4.jpg",
+      "coordinates": [
+        113.561597,
+        22.16123
+      ]
+    },
+    {
+      "id": "LT02",
+      "code": "LT02",
+      "name": {
+        "zh": "氹仔沙崗市政墳場公廁",
+        "pt": "Sanitário Público do Cemitério Municipal de Sá Kong da Taipa",
+        "en": "Public Toilet at the Taipa Sa Kong Municipal Cemetery"
+      },
+      "address": {
+        "zh": "氹仔高勵雅馬路",
+        "pt": "Estrada Almirante Magalhães Correia, Taipa",
+        "en": "Estrada Almirante Magalhães Correia, Taipa"
+      },
+      "phone": {
+        "zh": "8294 2651",
+        "pt": "8294 2651",
+        "en": "8294 2651"
+      },
+      "openHours": {
+        "zh": "上午8時至下午6時",
+        "pt": "8:00-18:00",
+        "en": "8:00-18:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/739_317c3e80a6139e10f7f489528e6045a2.jpg",
+      "coordinates": [
+        113.561597,
+        22.16123
+      ]
+    },
+    {
+      "id": "LT03",
+      "code": "LT03",
+      "name": {
+        "zh": "氹仔沙崗市政墳場公廁",
+        "pt": "Sanitário Público do Cemitério Municipal de Sá Kong da Taipa",
+        "en": "Public Toilet at the Taipa Sa Kong Municipal"
+      },
+      "address": {
+        "zh": "氹仔雞頸馬路",
+        "pt": "Estrada da Ponta da Cabrita , Taipa",
+        "en": "Estrada da Ponta da Cabrita , Taipa"
+      },
+      "phone": {
+        "zh": "8294 2651",
+        "pt": "8294 2651",
+        "en": "8294 2651"
+      },
+      "openHours": {
+        "zh": "上午8時至下午6時",
+        "pt": "8:00-18:00",
+        "en": "8:00-18:00"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1030_3fa5408bdcde6224d3adcd0abf1c0fc0.jpeg",
+      "coordinates": [
+        113.561597,
+        22.16123
+      ]
+    },
+    {
+      "id": "M1",
+      "code": "M1",
+      "name": {
+        "zh": "關閘廣場旅遊巴停泊區公廁",
+        "pt": "Sanitário público da zona de estacionamento de autocarros turísticos da Praça das Portas do Cerco",
+        "en": "Public toilet in coach parking area in Border Gate Square"
+      },
+      "address": {
+        "zh": "關閘廣場",
+        "pt": "Praça das Portas do Cerco",
+        "en": "Praça das Portas do Cerco"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/292_eab05610a7d9e296e8d8047c1bcae31e.jpg",
+      "coordinates": [
+        113.550318,
+        22.215534
+      ]
+    },
+    {
+      "id": "M10",
+      "code": "M10",
+      "name": {
+        "zh": "黑沙環第四街休憩區公廁",
+        "pt": "Sanitário Público da Zona de Lazer da Rua Quatro do Bairro da Areia Preta",
+        "en": "Public toilet at the Leisure Area at Rua Quatro do Bairro da Areia Preta"
+      },
+      "address": {
+        "zh": "黑沙環第四街休憩區",
+        "pt": "Zona de lazer da Rua Quatro do Bairro da Areia Preta",
+        "en": "Leisure area at Rua Quatro do bairro da Areia Preta"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/281_c717260f0bc1f10be412c7b206c6c6c2.jpg",
+      "coordinates": [
+        113.550265,
+        22.209525
+      ]
+    },
+    {
+      "id": "M11",
+      "code": "M11",
+      "name": {
+        "zh": "筷子基小販區公廁",
+        "pt": "Sanitário Público da Zona de Vendilhões de Fai Chi Kei",
+        "en": "Public toilet at Hawker Area at Fai Chi Kei"
+      },
+      "address": {
+        "zh": "白朗古將軍大馬路",
+        "pt": "Avenida do General Castelo Branco",
+        "en": "Avenida do General Castelo Branco"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/100_3214113f57722474540a008c550bbbf5.jpg",
+      "coordinates": [
+        113.54521,
+        22.208319
+      ]
+    },
+    {
+      "id": "M12",
+      "code": "M12",
+      "name": {
+        "zh": "筷子基宏開、宏建休憩區公廁",
+        "pt": "Sanitário Público da Zona de Lazer contígua ao Ed. Wang Hoi e Wang Kin de Fai Chi Kei",
+        "en": "Public toilet at Leisure Area of Ed. Wang Hoi & Wang Kin"
+      },
+      "address": {
+        "zh": "宏開宏建休憩區",
+        "pt": "Zona de Lazer contígua ao Ed. Wang Hoi e Wang Kin",
+        "en": "Leisure Area of Ed. Wang Hoi & Wang Kin"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/653_6536eadf50ac4408b58bd3f36163dc48.jpg",
+      "coordinates": [
+        113.542963,
+        22.208507
+      ]
+    },
+    {
+      "id": "M13",
+      "code": "M13",
+      "name": {
+        "zh": "望廈山公園公廁",
+        "pt": "Sanitário Público do Parque Municipal da Colina de Mong-Há",
+        "en": "Pubilc toilet at Mong Ha Hill Municipal Park"
+      },
+      "address": {
+        "zh": "望廈山公園",
+        "pt": "Parque Municipal da Colina de Mong Há",
+        "en": "Mong Ha Hill Municipal Park"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/76_b9529b0033b556dd63cf3f388dbac397.jpg",
+      "coordinates": [
+        113.548223,
+        22.207301
+      ]
+    },
+    {
+      "id": "M14",
+      "code": "M14",
+      "name": {
+        "zh": "道咩卑利士街公廁",
+        "pt": "Sanitário Público da Rua de Tomé Pires",
+        "en": "Public toilet at Rua de Tomé Pires"
+      },
+      "address": {
+        "zh": "道咩卑利士街",
+        "pt": "Rua de Tomé Pires",
+        "en": "Rua de Tomé Pires"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1001_8b9bcd6cc5d6f856459c41e4a85e2635.jpg",
+      "coordinates": [
+        113.544728,
+        22.204084
+      ]
+    },
+    {
+      "id": "M15",
+      "code": "M15",
+      "name": {
+        "zh": "亞利鴉架街公廁",
+        "pt": "Sanitário Público da Rua de Manuel de Arriaga",
+        "en": "Public toilet at Rua de Manuel de Arriaga"
+      },
+      "address": {
+        "zh": "亞利鴉架街",
+        "pt": "Rua de Manuel de Arriaga",
+        "en": "Rua de Manuel de Arriaga"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/452_b70af856663bf6eab3a8f4aeccfeacd8.jpg",
+      "coordinates": [
+        113.545512,
+        22.201851
+      ]
+    },
+    {
+      "id": "M16",
+      "code": "M16",
+      "name": {
+        "zh": "沙梨頭口巷公廁",
+        "pt": "Sanitário Público da Travessa da Palanchica",
+        "en": "Public toilet at Travessa da Palanchica"
+      },
+      "address": {
+        "zh": "沙梨頭口巷",
+        "pt": "Travessa da Palanchica",
+        "en": "Travessa da Palanchica"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/301_e4905008c4f3a792ac592e6ef03e4d23.jpg",
+      "coordinates": [
+        113.538462,
+        22.200529
+      ]
+    },
+    {
+      "id": "M17",
+      "code": "M17",
+      "name": {
+        "zh": "涼水街公廁",
+        "pt": "Sanitário Público da Rua dos Curtidores",
+        "en": "Public toilet at Rua dos Curtidores"
+      },
+      "address": {
+        "zh": "涼水街",
+        "pt": "Rua dos Curtidores",
+        "en": "Rua dos Curtidores"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/37_957d4140fcab4bb96373a6d9b5ef7aa3.jpg",
+      "coordinates": [
+        113.542381,
+        22.19987
+      ]
+    },
+    {
+      "id": "M18",
+      "code": "M18",
+      "name": {
+        "zh": "沙欄仔街公廁",
+        "pt": "Sanitário Público da Rua do Tarrafeiro",
+        "en": "Public toilet at Rua do Tarrafeiro"
+      },
+      "address": {
+        "zh": "沙欄仔街",
+        "pt": "Rua do Tarrafeiro",
+        "en": "Rua do Tarrafeiro"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/484_698d51a19d8a121ce581499d7b701668.jpg",
+      "coordinates": [
+        113.537759,
+        22.198849
+      ]
+    },
+    {
+      "id": "M19",
+      "code": "M19",
+      "name": {
+        "zh": "瑪莉二世皇后眺望台公廁",
+        "pt": "Sanitário Público do Miradouro de D. Maria II",
+        "en": "Public toilet at Miradouro de D. Maria II"
+      },
+      "address": {
+        "zh": "馬交石炮台馬路",
+        "pt": "Estrada de D. Maria",
+        "en": "Estrada de D. Maria"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/324_d52962ff83179b08deaa09084e9e04e1.jpg",
+      "coordinates": [
+        113.556611,
+        22.203275
+      ]
+    },
+    {
+      "id": "M2",
+      "code": "M2",
+      "name": {
+        "zh": "永寧廣場休憩區公廁",
+        "pt": "Sanitário Público da Zona de Lazer da Alameda da Tranquilidade",
+        "en": "Pubic Toilet at Leisure Area of Edifício da Alameda da Tranquilidade"
+      },
+      "address": {
+        "zh": "永寧廣場",
+        "pt": "Alameda da Tranquilidade",
+        "en": "Alameda da Tranquilidade"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/460_82b352f998f6fb4f37136e84222e6e6a.jpg",
+      "coordinates": [
+        113.552965,
+        22.213698
+      ]
+    },
+    {
+      "id": "M20",
+      "code": "M20",
+      "name": {
+        "zh": "塔石廣場公廁",
+        "pt": "Sanitário Público da Praça do Tap Seac",
+        "en": "Public toilet at Tap Seac Square"
+      },
+      "address": {
+        "zh": "塔石廣場",
+        "pt": "Praça do Tap Siac",
+        "en": "Praça do Tap Siac"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/304_c84ef493d1f7cbd197f139ad5fe25188.jpg",
+      "coordinates": [
+        113.547347,
+        22.198566
+      ]
+    },
+    {
+      "id": "M21",
+      "code": "M21",
+      "name": {
+        "zh": "大三巴牌坊側公廁",
+        "pt": "Sanitário Público ao lado das Ruínas de S. Paulo",
+        "en": "Public toilet near Ruins of St. Paul"
+      },
+      "address": {
+        "zh": "大三巴斜巷",
+        "pt": "Calçada de S. Paulo",
+        "en": "Calçada de S. Paulo"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/83_f5c8da43f3ed0dfa96a90f6c41d52fa7.jpg",
+      "coordinates": [
+        113.541122,
+        22.197047
+      ]
+    },
+    {
+      "id": "M22",
+      "code": "M22",
+      "name": {
+        "zh": "草堆橫街公廁",
+        "pt": "Sanitário Público do Beco da Pinga",
+        "en": "Public toilet at Beco da Pinga"
+      },
+      "address": {
+        "zh": "草堆橫街",
+        "pt": "Beco da Pinga",
+        "en": "Beco da Pinga"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/144_f07d64e873a4e0a6a0a970dbb158788d.jpg",
+      "coordinates": [
+        113.539499,
+        22.19654
+      ]
+    },
+    {
+      "id": "M23",
+      "code": "M23",
+      "name": {
+        "zh": "木橋街公廁",
+        "pt": "Sanitário Público da Rua do Pagode",
+        "en": "Public toilet at Rua do Pagode"
+      },
+      "address": {
+        "zh": "木橋街",
+        "pt": "Rua do Pagode",
+        "en": "Rua do Pagode"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/139_eb9f0add0921fcae8ea14c998c30cadd.jpg",
+      "coordinates": [
+        113.538796,
+        22.195912
+      ]
+    },
+    {
+      "id": "M24",
+      "code": "M24",
+      "name": {
+        "zh": "水塘休憩區公廁",
+        "pt": "Sanitário Público da Zona de Lazer do Reservatório",
+        "en": "Public toilet at Leisure Area at Reservoir"
+      },
+      "address": {
+        "zh": "水塘馬路",
+        "pt": "Estrada do Reservatório",
+        "en": "Estrada do Reservatório"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/41_cc3b912b32ca3bd0df625e7c47d21044.jpg",
+      "coordinates": [
+        113.554951,
+        22.198445
+      ]
+    },
+    {
+      "id": "M25",
+      "code": "M25",
+      "name": {
+        "zh": "海港前地公廁",
+        "pt": "Sanitário Público do Largo do Terminal Marítimo",
+        "en": "Public toilet at Largo do Terminal Marítimo"
+      },
+      "address": {
+        "zh": "海港前地",
+        "pt": "Largo do Terminal Marítimo",
+        "en": "Largo do Terminal Marítimo"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/95_4a94788379d8de4a43f4898c2df2c1f5.jpg",
+      "coordinates": [
+        113.559781,
+        22.198394
+      ]
+    },
+    {
+      "id": "M26",
+      "code": "M26",
+      "name": {
+        "zh": "水塘步行徑公廁",
+        "pt": "Sanitário Público no Passeio do Reservatório",
+        "en": "Public toilet in Reservoir Trail"
+      },
+      "address": {
+        "zh": "友誼大馬路",
+        "pt": "Avenida da Amizade",
+        "en": "Avenida da Amizade"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/282_04139ea99734b25c8fbd7186b363006b.jpg",
+      "coordinates": [
+        113.558507,
+        22.198842
+      ]
+    },
+    {
+      "id": "M27",
+      "code": "M27",
+      "name": {
+        "zh": "司打口廣場公廁",
+        "pt": "Sanitário Público da Praça de Ponte e Horta",
+        "en": "Public toilet at Praça de Ponte e Horta"
+      },
+      "address": {
+        "zh": "司打口休憩區",
+        "pt": "Zona de Lazer da Praça de Ponte e Horta",
+        "en": "Leisure area at Praça de Ponte e Horta"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/8_80600dd658218d51425f72b8b5e79e08.jpg",
+      "coordinates": [
+        113.536218,
+        22.193478
+      ]
+    },
+    {
+      "id": "M28",
+      "code": "M28",
+      "name": {
+        "zh": "大堂街(郵政總局側)公廁",
+        "pt": "Sanitário Público da Rua da Sé (ao lado da Direcção dos Serviços de Correios)",
+        "en": "Public toilet in Rua da Sé (next to General Post Office)"
+      },
+      "address": {
+        "zh": "大堂街",
+        "pt": "Rua da Sé",
+        "en": "Rua da Sé"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/173_559452ec5379a712a2acdcaa83b8d19e.jpg",
+      "coordinates": [
+        113.540287,
+        22.193003
+      ]
+    },
+    {
+      "id": "M29",
+      "code": "M29",
+      "name": {
+        "zh": "下環街巿公廁",
+        "pt": "Sanitário Público do Complexo Municipal do Mercado de S. Lourenço",
+        "en": "Public toilet at Municipal Market Complex of S. Lourenço"
+      },
+      "address": {
+        "zh": "李加祿街",
+        "pt": "Rua de João Lecaros",
+        "en": "Rua de João Lecaros"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/194_f96c5a341336e3b57e67d823e52c9088.jpg",
+      "coordinates": [
+        113.534575,
+        22.190899
+      ]
+    },
+    {
+      "id": "M3",
+      "code": "M3",
+      "name": {
+        "zh": "台山菜園涌邊街(近油站側)公廁",
+        "pt": "Sanitário Público da Rua Marginal do Canal das Hortas (ao lado do Posto de Gasolina)",
+        "en": "Public Toilet at Rua Marginal do Canal das Hortas (next to the gas station)"
+      },
+      "address": {
+        "zh": "菜園涌邊街",
+        "pt": "Rua Marginal do Canal das Hortas",
+        "en": "Rua Marginal do Canal das Hortas"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1005_d3fc056e462b54ffe093180680b5bf24.jpg",
+      "coordinates": [
+        113.545668,
+        22.21343
+      ]
+    },
+    {
+      "id": "M30",
+      "code": "M30",
+      "name": {
+        "zh": "金蓮花廣場公廁",
+        "pt": "Sanitário Público da Praça do Lótus",
+        "en": "Public toilet at Golden Lotus Square"
+      },
+      "address": {
+        "zh": "畢仕達大馬路",
+        "pt": "Avenida de Marciano Baptista",
+        "en": "Avenida de Marciano Baptista"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/471_2f17a075fc64e29761945f43cfcc0d3a.jpg",
+      "coordinates": [
+        113.55399,
+        22.19464
+      ]
+    },
+    {
+      "id": "M31",
+      "code": "M31",
+      "name": {
+        "zh": "沙井地巷公廁",
+        "pt": "Sanitário Público da Travessa da Boa Morte",
+        "en": "Public toilet at Travessa da Boa Morte"
+      },
+      "address": {
+        "zh": "沙井地巷",
+        "pt": "Travessa da Boa Morte",
+        "en": "Travessa da Boa Morte"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/178_620fb9569e3aa61ff349ee1d12383f20.jpg",
+      "coordinates": [
+        113.53264,
+        22.188839
+      ]
+    },
+    {
+      "id": "M32",
+      "code": "M32",
+      "name": {
+        "zh": "主教山眺望台公廁",
+        "pt": "Sanitário Público do Miradouro da Colina da Penha",
+        "en": "Public toilet at observatory of the Penha Hill"
+      },
+      "address": {
+        "zh": "鮑公馬路",
+        "pt": "Estrada de D. João Paulino",
+        "en": "Estrada de D. João Paulino"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/422_291009cfbddf8f210f14262b62e237e9.jpg",
+      "coordinates": [
+        113.534629,
+        22.187023
+      ]
+    },
+    {
+      "id": "M33",
+      "code": "M33",
+      "name": {
+        "zh": "媽閣觀光船碼頭公廁",
+        "pt": "Sanitário Público da Ponte para Barcos Turísticos na Barra",
+        "en": "Public toilet at Barra Dock for Sightseeing Boats"
+      },
+      "address": {
+        "zh": "媽閣廟前地",
+        "pt": "Largo do Pagode da Barra",
+        "en": "Largo do Pagode da Barra"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "每日上午10時至下午6時",
+        "pt": "Todos os dias entre as 10:00 e as 18:00",
+        "en": "10:00 a.m. to 6:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/494_a7ed1a41180e23612235b47d28bcd02f.jpg",
+      "coordinates": [
+        113.530684,
+        22.186411
+      ]
+    },
+    {
+      "id": "M34",
+      "code": "M34",
+      "name": {
+        "zh": "媽閣船塢公廁",
+        "pt": "Sanitário Público das oficinas navais na Barra",
+        "en": "Public toilet at Barra dock"
+      },
+      "address": {
+        "zh": "媽閣上街",
+        "pt": "Rua de S. Tiago da Barra",
+        "en": "Rua de S. Tiago da Barra"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/28_d38b1ae9023cd4c5dd35762acbdd029c.jpg",
+      "coordinates": [
+        113.531063,
+        22.185448
+      ]
+    },
+    {
+      "id": "M35",
+      "code": "M35",
+      "name": {
+        "zh": "文化中心廣場公廁",
+        "pt": "Sanitário Público da Praça do Centro Cultural",
+        "en": "Public toilet in CCM Square"
+      },
+      "address": {
+        "zh": "文化中心廣場",
+        "pt": "Praça do Centro Cultural",
+        "en": "CCM Square"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/839_ebdcb6adc1c9fe93dd59b82c94c485fa.jpg",
+      "coordinates": [
+        113.554421,
+        22.190785
+      ]
+    },
+    {
+      "id": "M36",
+      "code": "M36",
+      "name": {
+        "zh": "宋玉生廣場公廁",
+        "pt": "Sanitário Público da Alameda Dr. Carlos d'Assumpção",
+        "en": "Public toilet at Alameda Dutor Carlos d'Assumpção"
+      },
+      "address": {
+        "zh": "宋玉生廣場",
+        "pt": "Alameda Dr. Carlos D'Assumpção",
+        "en": "Alameda Dr. Carlos D'Assumpção"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/375_004dd54f79041d14c75add110ec1ac31.jpg",
+      "coordinates": [
+        113.550751,
+        22.188341
+      ]
+    },
+    {
+      "id": "M37",
+      "code": "M37",
+      "name": {
+        "zh": "西灣大橋休憩區公廁",
+        "pt": "Sanitário Público da Zona de Lazer da Ponte de Sai Van",
+        "en": "Public toilet at San Van Bridge Leisure Area"
+      },
+      "address": {
+        "zh": "西灣湖景大馬路",
+        "pt": "Avenida Panorâmica do Lago Sai Van",
+        "en": "Avenida Panorâmica do Lago Sai Van"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/202_1a078db969f064efa8ce025af968add3.jpg",
+      "coordinates": [
+        113.532392,
+        22.179581
+      ]
+    },
+    {
+      "id": "M38",
+      "code": "M38",
+      "name": {
+        "zh": "西灣湖廣場公廁",
+        "pt": "Sanitário Público da Praça do Lago Sai Van",
+        "en": "Public toilet at Sai Van Lake Square"
+      },
+      "address": {
+        "zh": "西灣湖廣場",
+        "pt": "Praça do Lago Sai Van",
+        "en": "Praça do Lago Sai Van"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/467_4ddd0699a2448c36b0231589aaf8d620.jpg",
+      "coordinates": [
+        113.537027,
+        22.18104
+      ]
+    },
+    {
+      "id": "M39",
+      "code": "M39",
+      "name": {
+        "zh": "林茂塘公廁",
+        "pt": "Sanitário Público da Doca do Lam Mau",
+        "en": "Public toilet at Doca do Lam Mau"
+      },
+      "address": {
+        "zh": "林茂海邊大馬路",
+        "pt": "Avenida Marginal do Lam Mau",
+        "en": "Avenida Marginal do Lam Mau"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/243_7b9ad4f1bda73db64c824d8b55068a28.jpg",
+      "coordinates": [
+        113.540676,
+        22.205037
+      ]
+    },
+    {
+      "id": "M4",
+      "code": "M4",
+      "name": {
+        "zh": "筷子基北灣休憩區公廁",
+        "pt": "Sanitário público da zona de lazer da Bacia Norte do Patane",
+        "en": "Public toilet at leisure area in Bacia Norte do Patane"
+      },
+      "address": {
+        "zh": "沙梨頭北街",
+        "pt": "Rua Norte do Patane",
+        "en": "Rua Norte do Patane"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/376_58392964085d46eb33db7857d25fcb04.jpg",
+      "coordinates": [
+        113.541121,
+        22.210473
+      ]
+    },
+    {
+      "id": "M40",
+      "code": "M40",
+      "name": {
+        "zh": "水塘步行徑(近白雲花園)公廁",
+        "pt": "Sanitário Público do Passeio do Reservatório (perto do Bai Yun Garden)",
+        "en": "Public toilet at the walking trail of Reservoir (near Bai Yun Garden)"
+      },
+      "address": {
+        "zh": "漁翁街",
+        "pt": "Rua dos Pescadores",
+        "en": "Rua dos Pescadores"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/309_f31ee43cbd77dc0d6c5381b3fca1748f.jpg",
+      "coordinates": [
+        113.560371,
+        22.204471
+      ]
+    },
+    {
+      "id": "M41",
+      "code": "M41",
+      "name": {
+        "zh": "營地街市公廁",
+        "pt": "Sanitário Público do Complexo Municipal do Mercado de S. Domingos",
+        "en": "Public toilet at Municipal Market Complex of S. Domingos"
+      },
+      "address": {
+        "zh": "米糙巷",
+        "pt": "Travessa do Soriano",
+        "en": "Travessa do Soriano"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/332_b5a4d84e5cfa85221a3a68f8bb0588a2.JPG",
+      "coordinates": [
+        113.540075,
+        22.194706
+      ]
+    },
+    {
+      "id": "M43",
+      "code": "M43",
+      "name": {
+        "zh": "南灣雅文湖畔公廁",
+        "pt": "Sanitário público do Anim 'Arte Nam Van",
+        "en": "Public toilet at Anim 'Arte Nam Van"
+      },
+      "address": {
+        "zh": "南灣湖景大馬路",
+        "pt": "Avenida Panorâmica do Lago Nam Van",
+        "en": "Avenida Panorâmica do Lago Nam Van"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/394_2f1842c9a5ebf9ab06d1d0de0cb2f6e5.jpg",
+      "coordinates": [
+        113.538798,
+        22.189491
+      ]
+    },
+    {
+      "id": "M44",
+      "code": "M44",
+      "name": {
+        "zh": "科學館前地廣場公廁(露天停車場入口)",
+        "pt": "Sanitário Público do Largo do Centro de Ciências de Macau (Entrada do Estacionamento ao ar livre)",
+        "en": "Public toilet at the Macau Science Center Square (entrance of the open air car park)"
+      },
+      "address": {
+        "zh": "孫逸仙大馬路",
+        "pt": "Avenida Dr. Sun Yat-Sen",
+        "en": "Avenida Dr. Sun Yat-Sen"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/78_95c57238b45df69589ebc8891b401e49.jpg",
+      "coordinates": [
+        113.557198,
+        22.187653
+      ]
+    },
+    {
+      "id": "M45",
+      "code": "M45",
+      "name": {
+        "zh": "南澳花園休憩區公廁",
+        "pt": "Sanitário público da Zona de Lazer do jardim Nam Ou",
+        "en": "Public toilet at the Leisure Area of Jardim Nam Ou"
+      },
+      "address": {
+        "zh": "慕拉士前地",
+        "pt": "Praceta de Venceslau de Morais",
+        "en": "Praceta de Venceslau de Morais"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/347_b501ad36b12db0ef231748ac863c4926.jpg",
+      "coordinates": [
+        113.553618,
+        22.206874
+      ]
+    },
+    {
+      "id": "M47",
+      "code": "M47",
+      "name": {
+        "zh": "望廈墳場輔助大樓公廁",
+        "pt": "Sanitário público do Edifício de apoio do Cemitério de Nossa Senhora da Piedade",
+        "en": "Public toilet at the ancillary building of Cemitério de Nossa Senhora da Piedade"
+      },
+      "address": {
+        "zh": "美副將大馬路",
+        "pt": "Avenida do Coronel Mesquita",
+        "en": "Avenida do Coronel Mesquita"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/133_691c23a123bfd00f266c7ff13d56e369.JPG",
+      "coordinates": [
+        113.550777,
+        22.203602
+      ]
+    },
+    {
+      "id": "M48",
+      "code": "M48",
+      "name": {
+        "zh": "馬六甲街公廁",
+        "pt": "Sanitário público da Rua de Malaca",
+        "en": "Public toilet da Rua de Malaca"
+      },
+      "address": {
+        "zh": "高美士街",
+        "pt": "Rua de Luís Gonzaga Gomes",
+        "en": "Rua de Luís Gonzaga Gomes"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/203_21778180cc74b9012d3c14d69d9a5025.jpg",
+      "coordinates": [
+        113.553647,
+        22.195938
+      ]
+    },
+    {
+      "id": "M49",
+      "code": "M49",
+      "name": {
+        "zh": "山邊街公廁",
+        "pt": "Sanitário público da Rua da Encosta",
+        "en": "Public toilet in Rua da Encosta"
+      },
+      "address": {
+        "zh": "海邊馬路",
+        "pt": "Estrada de Cacilhas",
+        "en": "Estrada de Cacilhas"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/225_d5d02572f3a910888cd8fbb691032265.jpg",
+      "coordinates": [
+        113.549025,
+        22.195383
+      ]
+    },
+    {
+      "id": "M5",
+      "code": "M5",
+      "name": {
+        "zh": "青洲河邊馬路(屠宰場側)公廁",
+        "pt": "Sanitário Público da Estrada Marginal da Ilha Verde (perto do Matadouro)",
+        "en": "Public Toilet at Estrada Marginal da Ilha Verde (next to the slaughterhouse)"
+      },
+      "address": {
+        "zh": "青洲河邊馬路",
+        "pt": "Estrada Marginal da Ilha Verde",
+        "en": "Estrada Marginal da Ilha Verde"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/415_f3c27b752d1218db0ffaaefb8fc73f87.jpg",
+      "coordinates": [
+        113.53739,
+        22.209437
+      ]
+    },
+    {
+      "id": "M50",
+      "code": "M50",
+      "name": {
+        "zh": "區華利前地休憩區公廁",
+        "pt": "Sanitário público da Zona de Lazer da Praça de Jorge Álvares",
+        "en": "Public toilet in Leisure Area at Praça de Jorge Álvares"
+      },
+      "address": {
+        "zh": "區華利前地",
+        "pt": "Praça de Jorge Álvares",
+        "en": "Praça de Jorge Álvares"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/773_927a8dfcea723395290ccde86e9e5460.jpg",
+      "coordinates": [
+        113.53957,
+        22.191149
+      ]
+    },
+    {
+      "id": "M51",
+      "code": "M51",
+      "name": {
+        "zh": "港珠澳大橋西區貨倉公廁",
+        "pt": "Sanitário público do armazém na zona oeste da Ponte Hong Kong-Zhuhai-Macau",
+        "en": "Public toilet in the warehouse in west district of the Hong Kong-Zhuhai-Macao Bridge"
+      },
+      "address": {
+        "zh": "港珠澳大橋珠澳口岸",
+        "pt": "Ilha Fronteiriça Artificial da Ponte Hong Kong — Zhuhai — Macau",
+        "en": "Ilha Fronteiriça Artificial da Ponte Hong Kong — Zhuhai — Macau"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/910_7e964a79edfedf37661120c8cb83e2a4.jpg",
+      "coordinates": [
+        113.572563,
+        22.199542
+      ]
+    },
+    {
+      "id": "M52",
+      "code": "M52",
+      "name": {
+        "zh": "港珠澳大橋西區貨物檢驗區公廁",
+        "pt": "Sanitário público da zona para inspecção de mercadorias na zona oeste da Ponte Hong Kong-Zhuhai-Macau",
+        "en": "Public toilet in the cargo inspection area in west district of the Hong Kong-Zhuhai-Macao Bridge"
+      },
+      "address": {
+        "zh": "港珠澳大橋珠澳口岸",
+        "pt": "Ilha Fronteiriça Artificial da Ponte Hong Kong — Zhuhai — Macau",
+        "en": "Ilha Fronteiriça Artificial da Ponte Hong Kong — Zhuhai — Macau"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/706_9d6b6f5c181a2f8da1aaffb8efe9ab5b.jpg",
+      "coordinates": [
+        113.573144,
+        22.198183
+      ]
+    },
+    {
+      "id": "M53",
+      "code": "M53",
+      "name": {
+        "zh": "港珠澳大橋西區旅客檢查室公廁",
+        "pt": "Sanitário público da sala de inspecção de passageiros na zona oeste da Ponte Hong Kong-Zhuhai-Macau",
+        "en": "Public toilet in the passenger inspection room in west district of the Hong Kong-Zhuhai-Macao Bridge"
+      },
+      "address": {
+        "zh": "港珠澳口岸大馬路",
+        "pt": "Avenida Fronteiriça de Hong Kong-Zhuhai-Macau",
+        "en": "Avenida Fronteiriça de Hong Kong-Zhuhai-Macau"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/972_c722a399530ab056baaa5bbced470a66.jpg",
+      "coordinates": [
+        113.574483,
+        22.199441
+      ]
+    },
+    {
+      "id": "M54",
+      "code": "M54",
+      "name": {
+        "zh": "觀音像海濱休憩區公廁",
+        "pt": "Sanitário público da Zona de Lazer da Marginal da Estátua de Kun Iam",
+        "en": "Public toilet in Leisure Area of Kun Iam Statue Waterfront"
+      },
+      "address": {
+        "zh": "孫逸仙大馬路",
+        "pt": "Avenida Dr. Sun Yat-Sem",
+        "en": "Avenida Dr. Sun Yat-Sen"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/909_1f69a9a9deac4615486b39002187a022.jpg",
+      "coordinates": [
+        113.553693,
+        22.187163
+      ]
+    },
+    {
+      "id": "M55",
+      "code": "M55",
+      "name": {
+        "zh": "松山行人隧道(北廣場)公廁",
+        "pt": "Sanitário público do túnel pedonal da Colina da Guia (Praça Norte)",
+        "en": "Public toilet of Guia Hill Pedestrian Tunnel (North Plaza)"
+      },
+      "address": {
+        "zh": "二龍喉街",
+        "pt": "Rua da Fonte da Inveja",
+        "en": "Rua da Fonte da Inveja"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/869_1061a5f5121eb3b4ad30791770c2aee2.jpg",
+      "coordinates": [
+        113.550918,
+        22.199128
+      ]
+    },
+    {
+      "id": "M56",
+      "code": "M56",
+      "name": {
+        "zh": "林茂塘臨時休憩區公廁",
+        "pt": "Sanitário público da Zona de Lazer Temporária da Doca do Lam Mau",
+        "en": "Public toilet of Temporary Leisure Area in Doca do Lam Mau"
+      },
+      "address": {
+        "zh": "遊艇會巷",
+        "pt": "Travessa do Clube de Iates",
+        "en": "Travessa do Clube de Iates"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/633_f1a808aeef71c3e3e3e94850334137f4.jpg",
+      "coordinates": [
+        113.539832,
+        22.203706
+      ]
+    },
+    {
+      "id": "M57",
+      "code": "M57",
+      "name": {
+        "zh": "海濱綠廊球場區公廁",
+        "pt": "Sanitários Públicos da Zona de Campos Livres do Corredor Verde da Margem Sul",
+        "en": "Public toilets of free sports ground of South Shore Waterfront Green Promenade"
+      },
+      "address": {
+        "zh": "南岸海濱綠廊",
+        "pt": "Zona de Campos Livres do Corredor Verde da Margem Sul",
+        "en": "South Shore Waterfront Green Promenade"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1071_5fc52bc8a8832b9ee5c6c322ef6d7996.jpg",
+      "coordinates": [
+        113.543972,
+        22.181842
+      ]
+    },
+    {
+      "id": "M6",
+      "code": "M6",
+      "name": {
+        "zh": "台山街市公廁",
+        "pt": "Sanitários Públicos do Complexo Municipal do Mercado de Tamagnini Barbosa",
+        "en": "Public toilets at Municipal Market Complex of Tamagnini Barbosa"
+      },
+      "address": {
+        "zh": "青洲大馬路",
+        "pt": "Avenida do Conselheiro Borja",
+        "en": "Avenida do Conselheiro Borja"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/431_3c172534066f95d3d5b73e94c4add3be.jpg",
+      "coordinates": [
+        113.545772,
+        22.210555
+      ]
+    },
+    {
+      "id": "M7",
+      "code": "M7",
+      "name": {
+        "zh": "黑沙環三角花園公廁",
+        "pt": "Sanitário Público do Jardim Triangular da Areia Preta",
+        "en": "Public toilet at Triangular da Areia Preta Garden"
+      },
+      "address": {
+        "zh": "黑沙環三角花園",
+        "pt": "Jardim Triangular da Areia Preta",
+        "en": "Areia Preta Triangle Garden"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/481_c81d0e8731101f82485dd2653283747f.jpg",
+      "coordinates": [
+        113.548409,
+        22.210665
+      ]
+    },
+    {
+      "id": "M8",
+      "code": "M8",
+      "name": {
+        "zh": "祐漢公園公廁",
+        "pt": "Sanitário Público do Jardim do Mercado do Iao Hon",
+        "en": "Public toilet at Iao Hon Market Garden"
+      },
+      "address": {
+        "zh": "祐漢公園",
+        "pt": "JARDIM DE IAO HON",
+        "en": "JARDIM DE IAO HON"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/26_8fa3b8d37bcf4c860e1c005f020d22fd.jpg",
+      "coordinates": [
+        113.551971,
+        22.211024
+      ]
+    },
+    {
+      "id": "M9",
+      "code": "M9",
+      "name": {
+        "zh": "黑沙環海濱公園公廁",
+        "pt": "Sanitário público do Parque Marginal da Areia Preta",
+        "en": "Public toilet at Marginal da Areia Preta Park"
+      },
+      "address": {
+        "zh": "友誼橋大馬路",
+        "pt": "Avenida da Ponte da Amizade",
+        "en": "Avenida da Ponte da Amizade"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/470_7b0351486a416dba8d37e09e8e3a64fd.jpg",
+      "coordinates": [
+        113.559306,
+        22.212079
+      ]
+    },
+    {
+      "id": "MM01",
+      "code": "MM01",
+      "name": {
+        "zh": "沙梨頭街市地下",
+        "pt": "Mercado do Patane Rés-do-chão",
+        "en": "Patane Market Ground floor"
+      },
+      "address": {
+        "zh": "澳門爹美刁施拿地大馬路226號沙梨頭街市地下",
+        "pt": "Avenida de Demétrio Cinatti, 226, Mercado do Patane, R/C, Macau",
+        "en": "Avenida de Demétrio Cinatti, 226, Mercado do Patane, G/F, Macau"
+      },
+      "phone": {
+        "zh": "28257797 (街市開放時間)",
+        "pt": "28257797 (Horas de aberto do Mercado)",
+        "en": "28257797 (Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上7時",
+        "pt": "Das 07:00 às 19:00 horas",
+        "en": "7:00 a.m. to 7:00 p.m"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/845_658c194360f48d13fa7434f54ad6dba4.JPG",
+      "coordinates": [
+        113.5372,
+        22.2025
+      ]
+    },
+    {
+      "id": "MM02",
+      "code": "MM02",
+      "name": {
+        "zh": "沙梨頭街市一樓",
+        "pt": "Mercado do Patane 1 andar",
+        "en": "Patane Market 1st floor"
+      },
+      "address": {
+        "zh": "澳門爹美刁施拿地大馬路226號沙梨頭街市一樓",
+        "pt": "Avenida de Demétrio Cinatti, 226, Mercado do Patane, 1 andar, Macau",
+        "en": "Avenida de Demétrio Cinatti, 226, Mercado do Patane, 1st floor, Macau"
+      },
+      "phone": {
+        "zh": "28257797 (街市開放時間)",
+        "pt": "28257797 (Horas de aberto do Mercado)",
+        "en": "257797 (Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上7時",
+        "pt": "Das 07:00 às 19:00 horas",
+        "en": "7:00 a.m. to 7:00 p.m"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/866_e5e1f9031df757570fe16f21625d4869.jpg",
+      "coordinates": [
+        113.5372,
+        22.2025
+      ]
+    },
+    {
+      "id": "MM03",
+      "code": "MM03",
+      "name": {
+        "zh": "沙梨頭街市二樓",
+        "pt": "Mercado do Patane 2 andar",
+        "en": "Patane Market 2nd floor"
+      },
+      "address": {
+        "zh": "澳門爹美刁施拿地大馬路226號沙梨頭街市二樓",
+        "pt": "Avenida de Demétrio Cinatti, 226, Mercado do Patane, 2 andar, Macau",
+        "en": "Avenida de Demétrio Cinatti, 226, Mercado do Patane, 2nd floor, Macau"
+      },
+      "phone": {
+        "zh": "28257797 (街市開放時間)",
+        "pt": "28257797 (Horas de aberto do Mercado)",
+        "en": "257797 (Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上10時",
+        "pt": "Das 07:00 às 22:00 horas",
+        "en": "7:00 a.m. to 10:00 p.m"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/737_fc1fcfdbf80ff0b976034a5c0463ba00.JPG",
+      "coordinates": [
+        113.5372,
+        22.2025
+      ]
+    },
+    {
+      "id": "MM04",
+      "code": "MM04",
+      "name": {
+        "zh": "雀仔園街市地下",
+        "pt": "Mercado da Horta da Mitra Rés-do-chão",
+        "en": "Horta da Mitra Market Ground floor"
+      },
+      "address": {
+        "zh": "澳門公局市前地11-14號雀仔園街市地下",
+        "pt": "Largo do Mercado Municipal, 11-14, Mercado da Horta da Mitra, R/C, Macau",
+        "en": "Largo do Mercado Municipal, 11-14, Mercado da Horta da Mitra, G/F, Macau"
+      },
+      "phone": {
+        "zh": "28300865 (街市開放時間)",
+        "pt": "28300865 (Horas de aberto do Mercado)",
+        "en": "28300865 (Market open hours)"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "aberto 24 horas",
+        "en": "24 hours daily"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/240_a1e68748ad5a2267fd8932a5236f8a81.jpg",
+      "coordinates": [
+        113.544919,
+        22.195154
+      ]
+    },
+    {
+      "id": "MM05",
+      "code": "MM05",
+      "name": {
+        "zh": "提督街市(紅街市)花園仔",
+        "pt": "Mercado Almirante Lacerda (Mercado Vermelho) Jardim",
+        "en": "Almirante Lacerda Market (Red Market) Garden"
+      },
+      "address": {
+        "zh": "澳門罅些喇提督市東街1-5號提督街市(紅街市)花園仔",
+        "pt": "Rua Leste do Mercado Almirante Lacerda, 1-5, Mercado Almirante Lacerda (Mercado Vermelho), Jardim, Macau",
+        "en": "Rua Leste do Mercado Almirante Lacerda, 1-5, Mercado Almirante Lacerda (Mercado Vermelho), Garden, Macau"
+      },
+      "phone": {
+        "zh": "28210434 (街市開放時間)",
+        "pt": "28210434 (Horas de aberto do Mercado)",
+        "en": "28210434 (Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上7時半",
+        "pt": "Das 07:00 às 19:30 horas",
+        "en": "7:00 a.m. to 7:30 p.m."
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/158_403b95cb4b26183239b47e718948bc11.jpg",
+      "coordinates": [
+        113.544785,
+        22.205415
+      ]
+    },
+    {
+      "id": "MM06",
+      "code": "MM06",
+      "name": {
+        "zh": "提督街市(紅街市)一樓",
+        "pt": "Mercado Almirante Lacerda (Mercado Vermelho) 1 andar",
+        "en": "Almirante Lacerda Market (Red Market) 1 st floor"
+      },
+      "address": {
+        "zh": "澳門罅些喇提督市東街1-5號提督街市(紅街市)1樓",
+        "pt": "Rua Leste do Mercado Almirante Lacerda, 1-5,Mercado Almirante Lacerda (Mercado Vermelho), 1 andar, Macau",
+        "en": "Rua Leste do Mercado Almirante Lacerda, 1-5,Mercado Almirante Lacerda (Mercado Vermelho), 1 st floor, Macau"
+      },
+      "phone": {
+        "zh": "28210434 (街市開放時間)",
+        "pt": "28210434(Horas de aberto do Mercado)",
+        "en": "28210434(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上7時半",
+        "pt": "Das 07:00 às 19:30 horas",
+        "en": "7:00 a.m. to 7:30 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/348_4192d2dabe94e871bb87bae8fbf0631a.jpg",
+      "coordinates": [
+        113.544785,
+        22.205415
+      ]
+    },
+    {
+      "id": "MM07",
+      "code": "MM07",
+      "name": {
+        "zh": "下環街市一樓",
+        "pt": "Mercado de S. Lourenço 1 andar",
+        "en": "S. Lourenço Market 1st floor"
+      },
+      "address": {
+        "zh": "澳門李加祿街下環街市1樓",
+        "pt": "Rua de João Lecaros, Mercado Municipal de S. Lourenço, 1 andar, Macau",
+        "en": "Rua de João Lecaros, Mercado Municipal de S. Lourenço, 1st floor, Macau"
+      },
+      "phone": {
+        "zh": "28938068 (街市開放時間)",
+        "pt": "28938068(Horas de aberto do Mercado)",
+        "en": "28938068(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上7時半",
+        "pt": "Das 07:00 às 19:30 horas",
+        "en": "7:00 a.m. to 7:30 p.m."
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/206_8172332bab9c23cfee05988411301b7c.jpg",
+      "coordinates": [
+        113.534625,
+        22.190832
+      ]
+    },
+    {
+      "id": "MM08",
+      "code": "MM08",
+      "name": {
+        "zh": "下環街市熟食中心, 下環街市二樓",
+        "pt": "Centro de Comidas do Mercado de S. Lourenço, 2.º andar do Mercado de S. Lourenço",
+        "en": "Cooked Food Area of S. Lourenço Market, 2nd Floor, S. Lourenço Market"
+      },
+      "address": {
+        "zh": "澳門李加祿街下環街市二樓",
+        "pt": "Rua de João Lecaros, Complexo Municipal do Mercado de S. Lourenço 2.º andar , Macau",
+        "en": "Rua de João Lecaros, Complexo Municipal do Mercado de S. Lourenço 2.º andar , Macau"
+      },
+      "phone": {
+        "zh": "2893 8068",
+        "pt": "2893 8068",
+        "en": "2893 8068"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/339_dd7d912eeba5431ce3495701f1f0a117.jpg",
+      "coordinates": [
+        113.534777,
+        22.19088
+      ]
+    },
+    {
+      "id": "MM09",
+      "code": "MM09",
+      "name": {
+        "zh": "營地街市地庫二",
+        "pt": "Mercado de S. Domingos Cave 2",
+        "en": "S. Domingos Market Basement 2"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市地庫2",
+        "pt": "Travessa do Soriano, Mercado de S. Domingos, cave 2, Macau",
+        "en": "Travessa do Soriano, Mercado de S. Domingos, basement 2, Macau"
+      },
+      "phone": {
+        "zh": "28933419 (街市開放時間)",
+        "pt": "28933419(Horas de aberto do Mercado)",
+        "en": "28933419(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/829_18237ffaf940d23c5f7b072a9be7b264.jpg",
+      "coordinates": [
+        113.539608,
+        22.194374
+      ]
+    },
+    {
+      "id": "MM10",
+      "code": "MM10",
+      "name": {
+        "zh": "營地街市地庫二",
+        "pt": "Mercado de S. Domingos Cave 2",
+        "en": "S. Domingos Market Basement 2"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市地庫2",
+        "pt": "Travessa do Soriano, Mercado de S. Domingos, cave 2, Macau",
+        "en": "Travessa do Soriano, Mercado de S. Domingos, basement 2, Macau"
+      },
+      "phone": {
+        "zh": "28933419 (街市開放時間)",
+        "pt": "28933419(Horas de aberto do Mercado)",
+        "en": "28933419(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/463_a532400ed62e772b9dc0b86f46e583ff.jpg",
+      "coordinates": [
+        113.539608,
+        22.194374
+      ]
+    },
+    {
+      "id": "MM11",
+      "code": "MM11",
+      "name": {
+        "zh": "營地街市地庫一",
+        "pt": "Mercado de S. Domingos Cave 1",
+        "en": "S. Domingos Market Basement 1"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市地庫1",
+        "pt": "Travessa do Soriano, Mercado de S. Domingos, cave 1, Macau",
+        "en": "Travessa do Soriano, Mercado de S. Domingos, basement 1, Macau"
+      },
+      "phone": {
+        "zh": "28933419 (街市開放時間)",
+        "pt": "28933419(Horas de aberto do Mercado)",
+        "en": "28933419(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/155_4c27cea8526af8cfee3be5e183ac9605.jpg",
+      "coordinates": [
+        113.539608,
+        22.194374
+      ]
+    },
+    {
+      "id": "MM12",
+      "code": "MM12",
+      "name": {
+        "zh": "營地街市地庫一",
+        "pt": "Mercado de S. Domingos Cave 1",
+        "en": "S. Domingos Market Basement 1"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市地庫1",
+        "pt": "Travessa do Soriano, Mercado de S. Domingos, cave 1, Macau",
+        "en": "Travessa do Soriano, Mercado de S. Domingos, basement 1, Macau"
+      },
+      "phone": {
+        "zh": "28933419 (街市開放時間)",
+        "pt": "28933419(Horas de aberto do Mercado)",
+        "en": "28933419(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/862_ba9588d5d10126b3191a00b28e1de122.jpg",
+      "coordinates": [
+        113.539608,
+        22.194374
+      ]
+    },
+    {
+      "id": "MM13",
+      "code": "MM13",
+      "name": {
+        "zh": "營地街市一樓",
+        "pt": "Mercado de S. Domingos 1 andar",
+        "en": "S. Domingos Market 1st floor"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市1樓",
+        "pt": "Travessa do Soriano, Mercado de S. Domingos, 1 andar, Macau",
+        "en": "Travessa do Soriano, Mercado de S. Domingos, 1st floor, Macau"
+      },
+      "phone": {
+        "zh": "28933419 (街市開放時間)",
+        "pt": "28933419(Horas de aberto do Mercado)",
+        "en": "28933419(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/27_eb64a23ff88c5272abd60873d552e0ce.jpg",
+      "coordinates": [
+        113.539608,
+        22.194374
+      ]
+    },
+    {
+      "id": "MM14",
+      "code": "MM14",
+      "name": {
+        "zh": "營地街市二樓",
+        "pt": "Mercado de S. Domingos 2 andar",
+        "en": "S. Domingos Market 2nd floor"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市2樓",
+        "pt": "Travessa do Soriano, Mercado de S. Domingos, 2 andar, Macau",
+        "en": "Travessa do Soriano, Mercado de S. Domingos, 2nd floor, Macau"
+      },
+      "phone": {
+        "zh": "28933419 (街市開放時間)",
+        "pt": "28933419(Horas de aberto do Mercado)",
+        "en": "28933419(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/105_67e103b0761e60683e83c559be18d40c.jpg",
+      "coordinates": [
+        113.539608,
+        22.194374
+      ]
+    },
+    {
+      "id": "MM15",
+      "code": "MM15",
+      "name": {
+        "zh": "營地街市三樓",
+        "pt": "Mercado de S. Domingos 3 andar",
+        "en": "S. Domingos Market 3rd floor"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市3樓",
+        "pt": "Travessa do Soriano, Mercado de S. Domingos, 3 andar, Macau",
+        "en": "Travessa do Soriano, Mercado de S. Domingos, 3rd floor, Macau"
+      },
+      "phone": {
+        "zh": "28933419 (街市開放時間)",
+        "pt": "28933419(Horas de aberto do Mercado)",
+        "en": "28933419(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/420_291597a100aadd814d197af4f4bab3a7.jpg",
+      "coordinates": [
+        113.539608,
+        22.194374
+      ]
+    },
+    {
+      "id": "MM16",
+      "code": "MM16",
+      "name": {
+        "zh": "營地街市熟食中心, 營地街市三樓",
+        "pt": "Centro de Comidas do Mercado de S. Domingos , 3.º andar do Mercado de S. Domingos",
+        "en": "Cooked Food Area of S. Domingos Market, 3rd Floor, S. Domingos Market"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市3樓",
+        "pt": "Travessa do Soriano, Mercado de S. Domingos, 3 andar, Macau",
+        "en": "Travessa do Soriano, Mercado de S. Domingos, 3rd Floor, Macau"
+      },
+      "phone": {
+        "zh": "2893 3419",
+        "pt": "2893 3419",
+        "en": "2893 3419"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/108_3d2d8ccb37df977cb6d9da15b76c3f3a.jpg",
+      "coordinates": [
+        113.539608,
+        22.194374
+      ]
+    },
+    {
+      "id": "MM17",
+      "code": "MM17",
+      "name": {
+        "zh": "台山街市一樓",
+        "pt": "Mercado Tamagnini Barbosa 1 andar",
+        "en": "Tamagnini Barbosa Market 1st floor"
+      },
+      "address": {
+        "zh": "澳門蘇沙醫生街台山街市1樓",
+        "pt": "Rua do Dr. Ricardo de Sousa,Mercado Municipal Tamagnini Barbosa, 1 andar, Macau",
+        "en": "Rua do Dr. Ricardo de Sousa,Mercado Municipal Tamagnini Barbosa, 1st floor, Macau"
+      },
+      "phone": {
+        "zh": "2823 4515",
+        "pt": "2823 4515",
+        "en": "2823 4515"
+      },
+      "openHours": {
+        "zh": "每日上午7時到晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": true,
+      "family": false,
+      "closed": true,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/555_f8bf23de42d82b88e04d85e2b0a6c4e8.jpg",
+      "coordinates": [
+        113.545721,
+        22.211156
+      ]
+    },
+    {
+      "id": "MM18",
+      "code": "MM18",
+      "name": {
+        "zh": "祐漢街市地下",
+        "pt": "Mercado do Bairro Iao Hon Rés-do-chão",
+        "en": "Bairro Iao Hon Market Ground floor"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢街市地下",
+        "pt": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, R/C, Macau",
+        "en": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, G/F, Macau"
+      },
+      "phone": {
+        "zh": "28482758 (街市開放時間)",
+        "pt": "28482758(Horas de aberto do Mercado)",
+        "en": "28482758(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/398_f50123c3d70bfc6652a7183769a7d4b7.jpg",
+      "coordinates": [
+        113.551378,
+        22.21134
+      ]
+    },
+    {
+      "id": "MM19",
+      "code": "MM19",
+      "name": {
+        "zh": "祐漢街市地下",
+        "pt": "Mercado do Bairro Iao Hon Rés-do-chão",
+        "en": "Bairro Iao Hon Market Ground floor"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢街市地下",
+        "pt": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, R/C, Macau",
+        "en": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, G/F, Macau"
+      },
+      "phone": {
+        "zh": "28482758 (街市開放時間)",
+        "pt": "28482758(Horas de aberto do Mercado)",
+        "en": "28482758(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/846_c1589a1453eaae4412af19113f27353d.jpg",
+      "coordinates": [
+        113.551378,
+        22.21134
+      ]
+    },
+    {
+      "id": "MM20",
+      "code": "MM20",
+      "name": {
+        "zh": "祐漢街市二樓",
+        "pt": "Mercado do Bairro Iao Hon 2 andar",
+        "en": "Bairro Iao Hon Market 2nd floor"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢街市2樓",
+        "pt": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, 2 andar, Macau",
+        "en": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, 2nd floor, Macau"
+      },
+      "phone": {
+        "zh": "28482758 (街市開放時間)",
+        "pt": "28482758(Horas de aberto do Mercado)",
+        "en": "28482758(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/931_d0516c7f4518e792eaa68dee748eda85.jpg",
+      "coordinates": [
+        113.551378,
+        22.21134
+      ]
+    },
+    {
+      "id": "MM21",
+      "code": "MM21",
+      "name": {
+        "zh": "祐漢街市二樓",
+        "pt": "Mercado do Bairro Iao Hon 2 andar",
+        "en": "Bairro Iao Hon Market 2nd floor"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢街市2樓",
+        "pt": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, 2 andar, Macau",
+        "en": "Rua do Mercado de Iao Hon, Mercado Municipal do Bairro Iao Hon, 2nd floor, Macau"
+      },
+      "phone": {
+        "zh": "28482758 (街市開放時間)",
+        "pt": "28482758(Horas de aberto do Mercado)",
+        "en": "28482758(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/424_a158f358696dbade586e3fb684d067d3.jpg",
+      "coordinates": [
+        113.551378,
+        22.21134
+      ]
+    },
+    {
+      "id": "MM22",
+      "code": "MM22",
+      "name": {
+        "zh": "營地街市一樓",
+        "pt": "Mercado de S. Domingos 1 andar",
+        "en": "S. Domingos Market 1st floor"
+      },
+      "address": {
+        "zh": "澳門米糙巷營地街市1樓",
+        "pt": "Travessa do Soriano, Mercado de S. Domingos, 1 andar, Macau",
+        "en": "Travessa do Soriano, Mercado de S. Domingos, 1st floor, Macau"
+      },
+      "phone": {
+        "zh": "28933419 (街市開放時間)",
+        "pt": "28933419(Horas de aberto do Mercado)",
+        "en": "28933419(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上8時",
+        "pt": "Das 07:00 às 20:00 horas",
+        "en": "7:00 a.m. to 8:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/559_aad85b4b270813e18207d5f727a58c32.jpg",
+      "coordinates": [
+        113.539608,
+        22.194374
+      ]
+    },
+    {
+      "id": "MT01",
+      "code": "MT01",
+      "name": {
+        "zh": "氹仔街市一樓",
+        "pt": "Mercado da Taipa 1 andar",
+        "en": "Taipa Market 1st floor"
+      },
+      "address": {
+        "zh": "氹仔地堡街氹仔街市1樓",
+        "pt": "Rua do Regedor, Mercado Municipal da Taipa, 1 andar, Taipa",
+        "en": "Rua do Regedor, Mercado Municipal da Taipa, 1st floor, Taipa"
+      },
+      "phone": {
+        "zh": "28827340 (街市開放時間)",
+        "pt": "28827340(Horas de aberto do Mercado)",
+        "en": "28827340(Market open hours)"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上10時",
+        "pt": "Das 07:00 às 22:00 horas",
+        "en": "7:00 a.m. to 10:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/252_1ea2e3a562ac7d701a11546e58bee1e6.jpg",
+      "coordinates": [
+        113.556281,
+        22.153912
+      ]
+    },
+    {
+      "id": "T1",
+      "code": "T1",
+      "name": {
+        "zh": "氹仔浮雕公園公廁",
+        "pt": "Sanitário Público do Jardim de Esculturas da Taipa",
+        "en": "Public toilet at Taipa Sculpture Garden"
+      },
+      "address": {
+        "zh": "氹仔浮雕公園",
+        "pt": "Estrada de Sete Tanques",
+        "en": "Estrada de Sete Tanques"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1000_c3499f554a44f63a70c4ca5bee8bffc8.jpg",
+      "coordinates": [
+        113.549095,
+        22.163387
+      ]
+    },
+    {
+      "id": "T10",
+      "code": "T10",
+      "name": {
+        "zh": "氹仔海濱休憩區(近東亞運圓形地)公廁",
+        "pt": "Zona de Lazer da Marginal da Taipa (perto da Rotunda dos Jogos da Ásia Oriental)",
+        "en": "Public toilet at Leisure Area of Taipa Waterfront (near Rotunda dos Jogos da Ásia Oriental)"
+      },
+      "address": {
+        "zh": "氹仔東亞運圓形地",
+        "pt": "Rotunda dos Jogos da Ásia Oriental",
+        "en": "Rotunda dos Jogos da Ásia Oriental"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/450_9d7c4ccfc36e06628abfac23ceea4343.JPG",
+      "coordinates": [
+        113.539986,
+        22.161787
+      ]
+    },
+    {
+      "id": "T11",
+      "code": "T11",
+      "name": {
+        "zh": "橫琴河底行人隧道(氹仔出入口側)公廁",
+        "pt": "Túnel subaquático para peões do Novo Campus da Universidade de Macau na Ilha Henqin (saída na Taipa)",
+        "en": "Public toilet next to entrance and exit of Hengqin Tunnel in Taipa"
+      },
+      "address": {
+        "zh": "氹仔蓮花海濱大馬路",
+        "pt": "Avenida Marginal Flor de Lótus",
+        "en": "Avenida Marginal Flor de Lótus"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/448_05e290dfccd9bbf5d0af4a31a30c1be2.jpg",
+      "coordinates": [
+        113.552148,
+        22.135615
+      ]
+    },
+    {
+      "id": "T12",
+      "code": "T12",
+      "name": {
+        "zh": "橫琴澳大校區大學南(近河邊)公廁",
+        "pt": "Zona Sul do campus da Universidade de Macau em Hengqin (perto do rio)",
+        "en": "Public toilet in the south of the Campus of University of Macau in Hengqin (near riverside)"
+      },
+      "address": {
+        "zh": "暢運大馬路",
+        "pt": "Avenida do Transporte",
+        "en": "Avenida do Transporte"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/42_71a4781146cdaccca908888c34e23ec1.jpg",
+      "coordinates": [
+        113.54655,
+        22.125448
+      ]
+    },
+    {
+      "id": "T13",
+      "code": "T13",
+      "name": {
+        "zh": "橫琴澳大校區大學北(近旅遊巴站)公廁",
+        "pt": "Zona Norte do campus da Universidade de Macau em Hengqin (perto da paragem dos autocarros de turismo)",
+        "en": "Public toilet in the north of the Campus of University of Macau in Hengqin (near coach stop)"
+      },
+      "address": {
+        "zh": "大學大馬路",
+        "pt": "Avenida da Universidade",
+        "en": "Avenida da Universidade"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/496_2267b2f480ad96ff8df6e3d0c7f7e63e.jpg",
+      "coordinates": [
+        113.547057,
+        22.135957
+      ]
+    },
+    {
+      "id": "T14",
+      "code": "T14",
+      "name": {
+        "zh": "氹仔花城公園公廁",
+        "pt": "Sanitários Públicos do Jardim da Cidade das Flores, Taipa",
+        "en": "Public toilet at Garden of Flower City in Taipa"
+      },
+      "address": {
+        "zh": "氹仔埃武拉街",
+        "pt": "Rua de Évora, Taipa",
+        "en": "Rua de Évora, Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/977_bf1e464416c08d056f387056838989e9.jpg",
+      "coordinates": [
+        113.557619,
+        22.156429
+      ]
+    },
+    {
+      "id": "T15",
+      "code": "T15",
+      "name": {
+        "zh": "氹仔小潭山觀景台公廁",
+        "pt": "Sanitário Público do Miradouro da Colina da Taipa Pequena, Taipa",
+        "en": "Public toilet in viewing platform of Taipa Pequena, Taipa"
+      },
+      "address": {
+        "zh": "氹仔蘇利安圓形地",
+        "pt": "Rotunda de Leonel de Sousa",
+        "en": "Rotunda de Leonel de Sousa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/771_cf9570985070eff7064491cbb4f1e800.jpg",
+      "coordinates": [
+        113.548697,
+        22.16393
+      ]
+    },
+    {
+      "id": "T16",
+      "code": "T16",
+      "name": {
+        "zh": "氹仔海洋大馬路休憩區公廁",
+        "pt": "Sanitário Público da Zona de Lazer da Avenida do Oceano, Taipa",
+        "en": "Public toilet in the leisure area in Avenida do Oceano, Taipa"
+      },
+      "address": {
+        "zh": "氹仔海洋大馬路休憩區公廁",
+        "pt": "Sanitário Público da Zona de Lazer da Avenida do Oceano, Taipa",
+        "en": "Sanitário Público da Zona de Lazer da Avenida do Oceano, Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/601_46e1507dd0dcc4149fb74509974647d4.JPG",
+      "coordinates": [
+        113.541126,
+        22.162572
+      ]
+    },
+    {
+      "id": "T17",
+      "code": "T17",
+      "name": {
+        "zh": "氹仔客運碼頭旅遊巴停泊區公廁",
+        "pt": "Sanitário público da zona de estacionamento de carros de turismo do Terminal Marítimo de Passageiros da Taipa",
+        "en": "Public toilet in the parking area for coaches at Taipa Ferry Terminal"
+      },
+      "address": {
+        "zh": "氹仔北安大馬路",
+        "pt": "Estrada de Pac On",
+        "en": "Estrada de Pac On"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/980_1f3ec6630ac82e78a76eb53ab0b364ee.jpg",
+      "coordinates": [
+        113.574273,
+        22.164094
+      ]
+    },
+    {
+      "id": "T18",
+      "code": "T18",
+      "name": {
+        "zh": "氹仔客運碼頭公廁",
+        "pt": "Sanitário público do Terminal Marítimo de Passageiros da Taipa",
+        "en": "Public toilet at Taipa Ferry Terminal"
+      },
+      "address": {
+        "zh": "氹仔北安大馬路",
+        "pt": "Estrada de Pac On",
+        "en": "Estrada de Pac On"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/816_fb1d7e1aa4540e6ed27a5f17a5a60346.jpg",
+      "coordinates": [
+        113.575524,
+        22.163571
+      ]
+    },
+    {
+      "id": "T19",
+      "code": "T19",
+      "name": {
+        "zh": "氹仔龍環葡韻公廁",
+        "pt": "Sanitário Público da Avenida da Praia, Taipa",
+        "en": "Public toilet in Avenida da Praia, Taipa"
+      },
+      "address": {
+        "zh": "氹仔光復街",
+        "pt": "Rua da Restauração, Taipa",
+        "en": "Rua da Restauração, Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/790_6d3e96e9065decbf7c89738001932b47.jpg",
+      "coordinates": [
+        113.559282,
+        22.153822
+      ]
+    },
+    {
+      "id": "T2",
+      "code": "T2",
+      "name": {
+        "zh": "氹仔柯維納馬路(四面佛)公廁",
+        "pt": "Sanitário Público na Estrada Governador Albano de Oliveira, Taipa (Buda de Quatro Faces)",
+        "en": "Public toilet at Estrada Governador Albano de Oliveira (Four-faced Budda)"
+      },
+      "address": {
+        "zh": "氹仔柯維納馬路",
+        "pt": "Estrada Governador Albano de Oliveira, Taipa",
+        "en": "Estrada Governador Albano de Oliveira, Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/441_6f73e873750bfa2b57ee6401dede6b6d.jpg",
+      "coordinates": [
+        113.550586,
+        22.157206
+      ]
+    },
+    {
+      "id": "T20",
+      "code": "T20",
+      "name": {
+        "zh": "氹仔望德聖母灣大馬路公廁",
+        "pt": "Sanitário público da Estrada da Baía de Nossa Senhora da Esperança, Taipa",
+        "en": "Public toilet in Estrada da Baía de Nossa Senhora da Esperança, Taipa"
+      },
+      "address": {
+        "zh": "氹仔望德聖母灣大馬路",
+        "pt": "Estrada da Baía de Nossa Senhora da Esperança, Taipa",
+        "en": "Estrada da Baía de Nossa Senhora da Esperança, Taipa"
+      },
+      "phone": {
+        "zh": "28337676",
+        "pt": "28337676",
+        "en": "28337676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/875_b83b755d875670e5633c54cfa6e70ec1.jpg",
+      "coordinates": [
+        113.558816,
+        22.150261
+      ]
+    },
+    {
+      "id": "T3",
+      "code": "T3",
+      "name": {
+        "zh": "氹仔運動場圓形地公廁",
+        "pt": "Sanitário Público da Rotunda do Estádio, Taipa",
+        "en": "Public toilet at the Roundabout at Macao Stadium, Taipa"
+      },
+      "address": {
+        "zh": "氹仔運動場圓形地",
+        "pt": "Rotunda do Estádio, Taipa",
+        "en": "Rotunda do Estádio, Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/379_e610e3e99f8ab68dbe0f33961d0aaa27.jpg",
+      "coordinates": [
+        113.552694,
+        22.156033
+      ]
+    },
+    {
+      "id": "T4",
+      "code": "T4",
+      "name": {
+        "zh": "氹仔大潭山郊野公園公廁",
+        "pt": "Sanitário Público do Parque da Taipa Grande",
+        "en": "Public toilet at Garden of Tai Tam Hill"
+      },
+      "address": {
+        "zh": "氹仔天文台斜路",
+        "pt": "Rampa do Observatório, Taipa",
+        "en": "Rampa do Observatório, Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": true,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/154_613d62611dc94c7df9c6e9e8061b1dee.jpg",
+      "coordinates": [
+        113.571371,
+        22.159129
+      ]
+    },
+    {
+      "id": "T5",
+      "code": "T5",
+      "name": {
+        "zh": "氹仔街市側公廁",
+        "pt": "Sanitário Público ao lado do Mercado Municipal da Taipa",
+        "en": "Public toilet next to the Taipa Municipal Market"
+      },
+      "address": {
+        "zh": "氹仔地堡街",
+        "pt": "Rua do Regedor, Taipa",
+        "en": "Rua do Regedor, Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/489_f9ebf6bc976083ae0e7153babacd7a36.jpg",
+      "coordinates": [
+        113.556493,
+        22.154141
+      ]
+    },
+    {
+      "id": "T6",
+      "code": "T6",
+      "name": {
+        "zh": "氹仔嘉模墟公廁",
+        "pt": "Sanitário público da Feira do Carmo, Taipa",
+        "en": "Public toilet at Carmo’s Fair, Taipa"
+      },
+      "address": {
+        "zh": "氹仔官也街",
+        "pt": "Rua do Cunha, Taipa",
+        "en": "Rua do Cunha, Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/126_839f7ce5404fc4d7d649bba0bf9736d2.jpg",
+      "coordinates": [
+        113.557509,
+        22.153415
+      ]
+    },
+    {
+      "id": "T7",
+      "code": "T7",
+      "name": {
+        "zh": "氹仔嘉模公園公廁",
+        "pt": "Sanitário Público do Jardim do Carmo,Taipa",
+        "en": "Public toilet at Carmel Garden, Taipa"
+      },
+      "address": {
+        "zh": "氹仔風景巷",
+        "pt": "Travessa da Boa Vista, Taipa",
+        "en": "Travessa da Boa Vista, Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/1008_56c1a01f4430da720a24646dc844cacf.jpg",
+      "coordinates": [
+        113.558981,
+        22.153975
+      ]
+    },
+    {
+      "id": "T8",
+      "code": "T8",
+      "name": {
+        "zh": "氹仔排角路公廁",
+        "pt": "Sanitário Público da Rua do Pai Kok,Taipa",
+        "en": "Public toilet at Rua do Pai Kok"
+      },
+      "address": {
+        "zh": "氹仔排角路",
+        "pt": "Rua do Pai Kok,Taipa",
+        "en": "Rua do Pai Kok,Taipa"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/259_9dc429a460243fd1058a55748712c46f.jpg",
+      "coordinates": [
+        113.553679,
+        22.151505
+      ]
+    },
+    {
+      "id": "T9",
+      "code": "T9",
+      "name": {
+        "zh": "氹仔大潭山眺望台公廁",
+        "pt": "Sanitário público do Miradouro da Taipa Grande, Taipa",
+        "en": "Public toilet at Taipa Grande Viewing Platform, Taipa"
+      },
+      "address": {
+        "zh": "氹仔司徒澤雄神父馬路",
+        "pt": "Estrada Padre Estevão Eusébio Sítu",
+        "en": "Estrada Padre Estevão Eusébio Sítu"
+      },
+      "phone": {
+        "zh": "2833 7676",
+        "pt": "2833 7676",
+        "en": "2833 7676"
+      },
+      "openHours": {
+        "zh": "全日",
+        "pt": "Dia inteiro",
+        "en": "Whole day"
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/380_9e87fa1dbf30f82957ccd5e4d29ca0ca.jpg",
+      "coordinates": [
+        113.561785,
+        22.155798
+      ]
+    },
+    {
+      "id": "TM01",
+      "code": "TM01",
+      "name": {
+        "zh": "市政署大樓",
+        "pt": "Edifício do IAM",
+        "en": "IAM Building"
+      },
+      "address": {
+        "zh": "澳門新馬路163號市政署大樓",
+        "pt": "Avenida de Almeida Ribeiro, N° 163, Edifício do IAM, Macau",
+        "en": "Avenida de Almeida Ribeiro, No. 163, IAM Building, Macao"
+      },
+      "phone": {
+        "zh": "8399 3153 / 8399 3137 (辦公時間)",
+        "pt": "8399 3153 / 8399 3137 (Horário de expediente)",
+        "en": "8399 3153 / 8399 3137 (Office hours)"
+      },
+      "openHours": {
+        "zh": "每日上午9時至晚上9時",
+        "pt": "Das 09:00 às 21:00 horas",
+        "en": "9:00 a.m. to 9:00 p.m."
+      },
+      "accessible": false,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/40_49108feb54c076077994a9c6aedc47f8.jpg",
+      "coordinates": [
+        113.539557,
+        22.19338
+      ]
+    },
+    {
+      "id": "VM01",
+      "code": "VM01",
+      "name": {
+        "zh": "祐漢小販大樓二樓",
+        "pt": "Edifício de Vendilhões de Iao Hon 2° andar",
+        "en": "Iao Hon Hawkers’Building 2nd floor"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢小販大樓二樓",
+        "pt": "Rua do Mercado de Iao Hon, Edifício de Vendilhões de Iao Hon 2º andar, Macau",
+        "en": "Rua do Mercado de Iao Hon, Edifício de Vendilhões de Iao Hon 2º andar, Macau"
+      },
+      "phone": {
+        "zh": "2848 2758",
+        "pt": "2848 2758",
+        "en": "2848 2758"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上9時",
+        "pt": "Das 07:00 às 21:00 horas",
+        "en": "7:00 a.m. to 9:00 p.m."
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/25_543790464eea83e8100a2aff072fb0cd.jpg",
+      "coordinates": [
+        113.551866,
+        22.211246
+      ]
+    },
+    {
+      "id": "VM02",
+      "code": "VM02",
+      "name": {
+        "zh": "祐漢小販大樓二樓",
+        "pt": "Edifício de Vendilhões de Iao Hon 2° andar",
+        "en": "Iao Hon Hawkers’Building 2nd floor"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢小販大樓二樓",
+        "pt": "Rua do Mercado de Iao Hon, Edifício de Vendilhões de Iao Hon 2º andar, Macau",
+        "en": "Rua do Mercado de Iao Hon, Edifício de Vendilhões de Iao Hon 2º andar, Macau"
+      },
+      "phone": {
+        "zh": "2848 2758",
+        "pt": "2848 2758",
+        "en": "2848 2758"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上9時",
+        "pt": "Das 07:00 às 21:00 horas",
+        "en": "7:00 a.m. to 9:00 p.m."
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/895_18e396281ed728116142aa85bb73c9dc.jpg",
+      "coordinates": [
+        113.551866,
+        22.211246
+      ]
+    },
+    {
+      "id": "VM03",
+      "code": "VM03",
+      "name": {
+        "zh": "祐漢小販大樓三樓",
+        "pt": "Edifício de Vendilhões de Iao Hon 3° andar",
+        "en": "Iao Hon Hawkers’Building 3rd floor"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢小販大樓三樓",
+        "pt": "Rua do Mercado de Iao Hon, Edifício de Vendilhões de Iao Hon 3º andar, Macau",
+        "en": "Rua do Mercado de Iao Hon, Edifício de Vendilhões de Iao Hon 3º andar, Macau"
+      },
+      "phone": {
+        "zh": "2848 2758",
+        "pt": "2848 2758",
+        "en": "2848 2758"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上9時",
+        "pt": "Das 07:00 às 21:00 horas",
+        "en": "7:00 a.m. to 9:00 p.m."
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/148_ac2c03fc3f9473c32e12697df85ea012.jpg",
+      "coordinates": [
+        113.551866,
+        22.211246
+      ]
+    },
+    {
+      "id": "VM04",
+      "code": "VM04",
+      "name": {
+        "zh": "祐漢小販大樓三樓",
+        "pt": "Edifício de Vendilhões de Iao Hon 3° andar",
+        "en": "Iao Hon Hawkers’Building 3rd floor"
+      },
+      "address": {
+        "zh": "澳門市場街祐漢小販大樓三樓",
+        "pt": "Rua do Mercado de Iao Hon, Edifício de Vendilhões de Iao Hon 3º andar, Macau",
+        "en": "Rua do Mercado de Iao Hon, Edifício de Vendilhões de Iao Hon 3º andar, Macau"
+      },
+      "phone": {
+        "zh": "2848 2758",
+        "pt": "2848 2758",
+        "en": "2848 2758"
+      },
+      "openHours": {
+        "zh": "每日上午7時至晚上9時",
+        "pt": "Das 07:00 às 21:00 horas",
+        "en": "7:00 a.m. to 9:00 p.m."
+      },
+      "accessible": true,
+      "family": false,
+      "closed": false,
+      "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/842_71e8cbbc4f0ccaa09817862991b24b3f.jpg",
+      "coordinates": [
+        113.551866,
+        22.211246
+      ]
+    }
+  ]
+}

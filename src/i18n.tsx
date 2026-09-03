@@ -94,6 +94,8 @@ const translations = {
     schoolLevelAllThrough: 'K–12 (all-through)',
     schoolsExpandTitle: 'Show or hide school types',
     schoolsToggleAllTitle: 'Toggle the whole layer',
+    toilets: 'Public toilets',
+    toiletsCount: (n: number) => `${n} toilets`,
     noServiceToday: 'No service today',
     // ---- MapView drawer ----
     mapSettings: 'Map Settings',
@@ -118,6 +120,7 @@ const translations = {
     dataSourceFerryLabel: 'Ferries',
     dataSourceRoadWorksLabel: 'Road works',
     dataSourceSchoolsLabel: 'Schools',
+    dataSourceToiletsLabel: 'Public toilets',
     // ---- ControlPanel ----
     amPeak: 'AM PEAK',
     pmPeak: 'PM PEAK',
@@ -221,6 +224,17 @@ const translations = {
     schoolBuildings: (n: number) => `${n} building${n === 1 ? '' : 's'}`,
     schoolCode: 'DSEDJ CODE',
     schoolSource: 'SOURCE',
+    // ---- ToiletInfoPanel ----
+    toiletLabel: 'TOILET',
+    toiletAccessible: 'Barrier-free',
+    toiletFamily: 'Family cubicle',
+    toiletClosed: 'Temporarily closed',
+    toiletOpenHours: 'HOURS',
+    toiletAddress: 'ADDRESS',
+    toiletPhone: 'PHONE',
+    toiletCode: 'IAM CODE',
+    toiletPhoto: 'Photo',
+    toiletSource: 'SOURCE',
     // ---- VehicleInfoPanel ----
     terminalStop: 'End',
   },
@@ -280,6 +294,8 @@ const translations = {
     schoolLevelAllThrough: '一條龍',
     schoolsExpandTitle: '展開／收合各類學校',
     schoolsToggleAllTitle: '開關整層',
+    toilets: '公廁',
+    toiletsCount: (n: number) => `${n} 間公廁`,
     noServiceToday: '本日無服務',
     mapSettings: '地圖設定',
     plan2D: '2D 平面',
@@ -302,6 +318,7 @@ const translations = {
     dataSourceFerryLabel: '噴射船',
     dataSourceRoadWorksLabel: '工程改道',
     dataSourceSchoolsLabel: '學校',
+    dataSourceToiletsLabel: '公廁',
     amPeak: '早尖峰',
     pmPeak: '晚尖峰',
     nowShort: '現在',
@@ -396,6 +413,16 @@ const translations = {
     schoolBuildings: (n: number) => `${n} 棟建築`,
     schoolCode: '教青局編號',
     schoolSource: '來源',
+    toiletLabel: '公廁',
+    toiletAccessible: '無障礙',
+    toiletFamily: '親子廁所',
+    toiletClosed: '暫停使用',
+    toiletOpenHours: '開放時間',
+    toiletAddress: '地址',
+    toiletPhone: '電話',
+    toiletCode: '編號',
+    toiletPhoto: '相片',
+    toiletSource: '來源',
     terminalStop: '終站',
   },
   pt: {
@@ -454,6 +481,8 @@ const translations = {
     schoolLevelAllThrough: 'Contínua (K–12)',
     schoolsExpandTitle: 'Mostrar ou ocultar tipos de escola',
     schoolsToggleAllTitle: 'Ligar ou desligar a camada',
+    toilets: 'Sanitários públicos',
+    toiletsCount: (n: number) => `${n} sanitários`,
     noServiceToday: 'Sem serviço hoje',
     mapSettings: 'Definições',
     plan2D: '2D Plano',
@@ -476,6 +505,7 @@ const translations = {
     dataSourceFerryLabel: 'Ferries',
     dataSourceRoadWorksLabel: 'Obras na via',
     dataSourceSchoolsLabel: 'Escolas',
+    dataSourceToiletsLabel: 'Sanitários',
     amPeak: 'PICO MANHÃ',
     pmPeak: 'PICO TARDE',
     nowShort: 'AGORA',
@@ -571,6 +601,16 @@ const translations = {
     schoolBuildings: (n: number) => `${n} edifício${n === 1 ? '' : 's'}`,
     schoolCode: 'CÓDIGO DSEDJ',
     schoolSource: 'FONTE',
+    toiletLabel: 'SANITÁRIO',
+    toiletAccessible: 'Sem barreiras',
+    toiletFamily: 'Compartimento familiar',
+    toiletClosed: 'Encerrado temporariamente',
+    toiletOpenHours: 'HORÁRIO',
+    toiletAddress: 'MORADA',
+    toiletPhone: 'TELEFONE',
+    toiletCode: 'CÓDIGO',
+    toiletPhoto: 'Foto',
+    toiletSource: 'FONTE',
     terminalStop: 'Terminal',
   },
 }
@@ -631,6 +671,8 @@ export interface Translations {
   schoolLevelAllThrough: string
   schoolsExpandTitle: string
   schoolsToggleAllTitle: string
+  toilets: string
+  toiletsCount: (n: number) => string
   noServiceToday: string
   mapSettings: string
   plan2D: string
@@ -653,6 +695,7 @@ export interface Translations {
   dataSourceFerryLabel: string
   dataSourceRoadWorksLabel: string
   dataSourceSchoolsLabel: string
+  dataSourceToiletsLabel: string
   amPeak: string
   pmPeak: string
   nowShort: string
@@ -743,6 +786,16 @@ export interface Translations {
   schoolBuildings: (n: number) => string
   schoolCode: string
   schoolSource: string
+  toiletLabel: string
+  toiletAccessible: string
+  toiletFamily: string
+  toiletClosed: string
+  toiletOpenHours: string
+  toiletAddress: string
+  toiletPhone: string
+  toiletCode: string
+  toiletPhoto: string
+  toiletSource: string
   terminalStop: string
 }
 

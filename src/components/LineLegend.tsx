@@ -32,6 +32,23 @@ const SCHOOL_LEVEL_CAPTIONS: Record<SchoolLevel, string> = {
   all_through: 'ALL-THROUGH',
 }
 
+// Teal hatch for the WC row, matching the AIR/SEA/WORKS/SCHOOLS swatches.
+const TOILET_HATCH = 'repeating-linear-gradient(-45deg, rgba(20,184,166,0.45) 0 1px, transparent 1px 3px)'
+
+// 12px signboard glyph for the WC row — a plate with a hanging "WC" bar, in
+// the same stroked style as the other row icons (an emoji would not recolour).
+function ToiletIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2.25" y="3" width="11.5" height="8.5" rx="1.5" />
+      <path d="M5 6.25v2.5" /><path d="M5 8.75l1.25-1.5 1.25 1.5v-2.5" />
+      <path d="M11 6.25h-1.25v2.5H11" />
+      <path d="M8 11.5v2" />
+    </svg>
+  )
+}
+
 // 12px mortarboard for the SCHOOLS row's glyph slot.
 function MortarboardIcon() {
   return (
@@ -67,6 +84,9 @@ interface Props {
   // (counted from the UNFILTERED data, so a row keeps its total while off).
   schoolLevelsOn?: SchoolLevelSet
   schoolLevelCounts?: Record<SchoolLevel, number>
+  // Public toilets. Like schools this layer is opt-in, so it defaults to off
+  // here too — the count shown is the whole register, which never changes.
+  toiletsOn?: boolean
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
@@ -74,6 +94,7 @@ interface Props {
   onToggleRoadWorks?: () => void
   onToggleSchools?: () => void
   onToggleSchoolLevel?: (level: SchoolLevel) => void
+  onToggleToilets?: () => void
   onToggleRoute?: (routeId: string) => void
   onToggleAll?: () => void
   onShowAll?: () => void
@@ -82,7 +103,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | null
 
 export function LineLegend({
   transitData,
@@ -98,6 +119,7 @@ export function LineLegend({
   schoolsOn = true,
   schoolLevelsOn,
   schoolLevelCounts,
+  toiletsOn = false,
   clock,
   onToggleLrt,
   onToggleFlights,
@@ -105,6 +127,7 @@ export function LineLegend({
   onToggleRoadWorks,
   onToggleSchools,
   onToggleSchoolLevel,
+  onToggleToilets,
   onToggleRoute,
   onShowAll,
   onHideAll,
@@ -209,6 +232,9 @@ export function LineLegend({
   const schoolEnabledCount = SCHOOL_LEVEL_ORDER.reduce(
     (sum, level) => (isSchoolLevelOn(level) ? sum + (levelCounts[level] ?? 0) : sum), 0
   )
+  // Toilets are static and unfiltered: the row always shows the full register,
+  // and the master switch is the only thing that empties transitData.toilets.
+  const toiletCount = allTransitData?.toilets.length ?? transitData.toilets.length
 
   const isLrtOn = (id: string) => (lrtOn ? lrtOn.has(id) : true)
   const isLive = clock ? clock.isLive : true
@@ -499,7 +525,7 @@ export function LineLegend({
               <span className={`mm-mono mm-tabular text-[9px] ${flightsOn ? 'text-sky-300/80' : 'text-white/25'}`}>
                 {flightCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ${flightsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${flightsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
                 {flightsOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -536,7 +562,7 @@ export function LineLegend({
               <span className={`mm-mono mm-tabular text-[9px] ${ferriesOn ? 'text-red-300/80' : 'text-white/25'}`}>
                 {ferryCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ${ferriesOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${ferriesOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
                 {ferriesOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -567,7 +593,7 @@ export function LineLegend({
               <span className={`mm-mono mm-tabular text-[9px] ${roadWorksOn ? 'text-amber-300/80' : 'text-white/25'}`}>
                 {activeRoadWorksCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ${roadWorksOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${roadWorksOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
                 {roadWorksOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -587,7 +613,7 @@ export function LineLegend({
                   onClick={() => setSchoolsLegendOpen(v => !v)}
                   aria-expanded={schoolsLegendOpen}
                   title={t.schoolsExpandTitle}
-                  className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3
+                  className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3 pr-1.5
                              hover:bg-violet-400/[0.1] transition"
                 >
                   <span className={`inline-flex items-center justify-center w-[12px] shrink-0
@@ -613,7 +639,7 @@ export function LineLegend({
                   disabled={!onToggleSchools}
                   aria-pressed={schoolsOn}
                   title={t.schoolsToggleAllTitle}
-                  className={`shrink-0 inline-flex items-center justify-end pl-2 pr-3
+                  className={`shrink-0 inline-flex items-center justify-end pl-1.5 pr-3
                               hover:bg-emerald-300/[0.1] transition
                               ${onToggleSchools ? '' : 'cursor-default'}`}
                 >
@@ -674,6 +700,41 @@ export function LineLegend({
                 </div>
               )}
             </>
+          )}
+
+          {/* PUBLIC TOILETS — toggleable, same five columns as AIR/SEA/WORKS.
+              No collapsible body: the layer has no sub-filters, and the three
+              marker variants are explained by the info panel, not a key. */}
+          {toiletCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleToilets}
+              disabled={!onToggleToilets}
+              aria-pressed={toiletsOn}
+              title={t.toiletsCount(toiletCount)}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+                         ${toiletsOn
+                           ? 'bg-teal-400/[0.05] hover:bg-teal-400/[0.1]'
+                           : 'hover:bg-white/[0.03] opacity-50'}
+                         ${onToggleToilets ? '' : 'cursor-default'}`}
+            >
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${toiletsOn ? 'text-white/45' : 'text-white/40'}`}>
+                <ToiletIcon />
+              </span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: TOILET_HATCH }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+                WC · 公廁
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${toiletsOn ? 'text-teal-300/80' : 'text-white/25'}`}>
+                {toiletCount}
+              </span>
+              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${toiletsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                {toiletsOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
           )}
         </div>
       )}
@@ -809,6 +870,29 @@ export function LineLegend({
               <path d="M22 10 12 5 2 10l10 5 10-5z" />
               <path d="M6 12.5V17c3.3 2.7 8.7 2.7 12 0v-4.5" />
               <line x1="22" y1="10" x2="22" y2="15" />
+            </svg>
+          </button>
+        )}
+
+        {/* TOILETS chip */}
+        {toiletCount > 0 && (
+          <button
+            onClick={() => togglePanel('toilets')}
+            aria-label={t.toilets}
+            className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
+                       border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+                       ${mobilePanel === 'toilets'
+                         ? 'border-teal-400/60 text-teal-300'
+                         : toiletsOn
+                           ? 'border-teal-400/25 text-teal-300/80 hover:border-teal-400/50 active:scale-95'
+                           : 'border-white/10 text-white/40 hover:border-white/25'}`}
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+                 strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <rect x="2.25" y="3" width="11.5" height="8.5" rx="1.5" />
+              <path d="M5 6.25v2.5" /><path d="M5 8.75l1.25-1.5 1.25 1.5v-2.5" />
+              <path d="M11 6.25h-1.25v2.5H11" />
+              <path d="M8 11.5v2" />
             </svg>
           </button>
         )}
@@ -1289,6 +1373,60 @@ export function LineLegend({
                   )
                 })}
               </div>
+            </div>
+          )}
+
+          {/* TOILETS */}
+          {mobilePanel === 'toilets' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-teal-400/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-teal-300/85">
+                  <ToiletIcon />
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: TOILET_HATCH }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">WC · 公廁</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                    {toiletsOn ? toiletCount : 0}/{toiletCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleToilets}
+                disabled={!onToggleToilets}
+                aria-pressed={toiletsOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${toiletsOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${onToggleToilets ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={toiletsOn ? 'text-teal-400' : 'text-white/40'}>
+                    <ToiletIcon />
+                  </span>
+                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                    {t.toiletsCount(toiletCount)}
+                  </span>
+                </span>
+                <span className={`mm-mono text-[10px] tracking-[0.2em] ${toiletsOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                  {toiletsOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
             </div>
           )}
         </div>

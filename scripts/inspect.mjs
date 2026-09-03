@@ -21,6 +21,7 @@
 //   node scripts/inspect.mjs flights                # flights.json summary
 //   node scripts/inspect.mjs road-works [YYYY-MM-DD] # road-works.json summary + active/upcoming for a date (default: today, Macau)
 //   node scripts/inspect.mjs schools                # schools.json summary (by level/system, buildings, unmatched/dropped)
+//   node scripts/inspect.mjs toilets                # toilets.json summary (accessible/family/closed counts, closed list)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync } from 'node:fs'
@@ -187,6 +188,19 @@ function cmdSchools() {
   console.log(`\ndroppedOsm: ${droppedOsm.length}`)
 }
 
+function cmdToilets() {
+  const { updatedAt, toilets } = load('public/data/toilets.json')
+  const accessible = toilets.filter((t) => t.accessible).length
+  const family = toilets.filter((t) => t.family).length
+  const closed = toilets.filter((t) => t.closed)
+
+  console.log(`total toilets: ${toilets.length}   updatedAt: ${updatedAt}`)
+  console.log(`accessible: ${accessible}   family: ${family}   closed: ${closed.length}`)
+
+  console.log('\nclosed:')
+  for (const t of closed) console.log(`  ${t.id.padEnd(10)} ${t.name.zh}`)
+}
+
 function fail(msg) {
   console.error(`error: ${msg}`)
   process.exit(1)
@@ -206,7 +220,8 @@ switch (cmd) {
   case 'flights': summarizeJson('public/data/flights.json'); break
   case 'road-works': cmdRoadWorks(pos[0]); break
   case 'schools': cmdSchools(); break
+  case 'toilets': cmdToilets(); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | toilets')
     if (cmd) process.exit(1)
 }

@@ -29,6 +29,7 @@ data/scripts/
 ├── fetch_ferry_schedules.py   # TurboJET / CotaiJet → ferry-schedules.json
 ├── fetch_road_works.py        # data.gov.mo (DSAT) → road-works.json
 ├── fetch_schools.py           # manual; DSEDJ list + OSM footprints → schools.json
+├── fetch_toilets.py           # data.gov.mo (IAM) → toilets.json
 └── fetch_service_status.py    # 每天 scrape 巴士停駛公告 → service-status.json
 ```
 
@@ -123,6 +124,12 @@ cd data && uv run python scripts/fetch_schools.py
 ```
 
 跑完要過 `validate_output.py schools`。
+
+### 公廁 — `fetch_toilets.py`
+
+從 data.gov.mo 抓 IAM（市政署）兩個 dataset：「公共廁所」（~198 筆，名稱/地址/電話/開放時間都有 zh/pt/en 欄位，另帶 `hasDwc`／`hasFwc`／`tempClose`，座標放在 `location`，是 `"lat,lng"` 字串）與「無障礙公廁」（前者的子集，只用來交叉驗證 `accessible`）。跟 `fetch_road_works.py` 一樣，下載端點回的是免 token 的 ZIP，偶爾會回 `{"msg":"內部錯誤"}` 而不是 ZIP，因此也帶重試。
+
+名稱前面掛的 IAM 編號（例如「AM01 食品資訊站」）會被拆出來當 `id`（同編號多筆時加 `-2` 後綴；少數沒編號的退回用名稱 slug），顯示用的 `name` 則把編號剝掉；`location` 的 `"lat,lng"` 字串解析後改成 GeoJSON 慣例的 `[lng, lat]` 順序存進 `coordinates`。產出 `public/data/toilets.json`，跑完要過 `validate_output.py toilets`。
 
 ### 巴士停駛公告 — `fetch_service_status.py`
 

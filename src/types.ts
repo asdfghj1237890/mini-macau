@@ -194,6 +194,33 @@ export interface School {
   buildings: SchoolBuilding[] // may be empty when no footprint was matched
 }
 
+// Trilingual free text as published by IAM. Unlike the DSAT road-works feed
+// (zh/pt only) this dataset carries a real English form for every field, so
+// `pickToiletText` in toilets.ts hands `en` the English string instead of
+// falling back to Portuguese.
+export interface ToiletText {
+  zh: string
+  pt: string
+  en: string
+}
+
+// One IAM public toilet, from public/data/toilets.json. `coordinates` is
+// [lng, lat]; 33 toilets share a point with another (several cubicles at one
+// address), which the marker layer does not try to separate.
+export interface Toilet {
+  id: string // IAM code, "-2"-suffixed on collisions, or a name slug
+  code: string | null // the published 編號; null when the source has none
+  name: ToiletText // number prefix already stripped by the pipeline
+  address: ToiletText
+  phone: ToiletText // may be empty strings
+  openHours: ToiletText
+  accessible: boolean // has a barrier-free cubicle (hasDwc / 無障礙 dataset)
+  family: boolean // has a family cubicle (hasFwc)
+  closed: boolean // temporarily out of service (tempClose)
+  photo: string | null // IAM photo URL
+  coordinates: [number, number] // [lng, lat]
+}
+
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
@@ -204,6 +231,7 @@ export interface TransitData {
   ferries: Ferry[]
   roadWorks: RoadWorkNotice[]
   schools: School[]
+  toilets: Toilet[]
   loading: boolean
 }
 

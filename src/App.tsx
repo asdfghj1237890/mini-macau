@@ -18,7 +18,7 @@ import {
   saveSchoolLevelsOn,
   type SchoolLevelSet,
 } from './schools'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel } from './types'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, Toilet } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -34,6 +34,7 @@ const FlightInfoPanel = lazy(() => import('./components/FlightInfoPanel').then(m
 const FerryInfoPanel = lazy(() => import('./components/FerryInfoPanel').then(m => ({ default: m.FerryInfoPanel })))
 const RoadWorkInfoPanel = lazy(() => import('./components/RoadWorkInfoPanel').then(m => ({ default: m.RoadWorkInfoPanel })))
 const SchoolInfoPanel = lazy(() => import('./components/SchoolInfoPanel').then(m => ({ default: m.SchoolInfoPanel })))
+const ToiletInfoPanel = lazy(() => import('./components/ToiletInfoPanel').then(m => ({ default: m.ToiletInfoPanel })))
 
 const LS_KEY = 'mini-macau-visible-routes'
 
@@ -76,6 +77,7 @@ const LS_FLIGHTS_KEY = 'mini-macau-flights-on'
 const LS_FERRIES_KEY = 'mini-macau-ferries-on'
 const LS_ROADWORKS_KEY = 'mini-macau-roadworks-on'
 const LS_SCHOOLS_KEY = 'mini-macau-schools-on'
+const LS_TOILETS_KEY = 'mini-macau-toilets-on'
 
 // Stable empty array for the "schools off" case. filteredTransitData is
 // rebuilt on every clock tick (dateAwareFlights depends on currentTime), and
@@ -83,6 +85,9 @@ const LS_SCHOOLS_KEY = 'mini-macau-schools-on'
 // literal here would make it call setData ~10×/s while the layer is hidden.
 const NO_SCHOOLS: School[] = []
 const NO_ROAD_WORKS: RoadWorkNotice[] = []
+// Same reasoning for the toilet markers, which MapView also pushes on array
+// identity (the data is time-independent, so it never goes through the tick).
+const NO_TOILETS: Toilet[] = []
 const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 
 export default function App() {
@@ -118,6 +123,7 @@ export default function App() {
   const [selectedSchool, setSelectedSchool] = useState<
     { school: School; buildingName: string | null } | null
   >(null)
+  const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null)
   const [trackedVehicleId, setTrackedVehicleId] = useState<string | null>(null)
   const [vehicleCount, setVehicleCount] = useState(0)
   const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
@@ -127,6 +133,9 @@ export default function App() {
   // Schools are the one layer that is OFF until asked for — opt-in, unlike
   // the transit layers, so `=== '1'` rather than the `!== '0'` the others use.
   const [schoolsOn, setSchoolsOn] = useState(() => localStorage.getItem(LS_SCHOOLS_KEY) === '1')
+  // Toilets are opt-in for the same reason as schools — 197 pins over the
+  // peninsula are noise until someone actually wants them, so `=== '1'`.
+  const [toiletsOn, setToiletsOn] = useState(() => localStorage.getItem(LS_TOILETS_KEY) === '1')
   // Which of the five teaching stages are drawn. Independent of `schoolsOn`,
   // which is the master switch for the whole layer.
   const [schoolLevelsOn, setSchoolLevelsOn] = useState<SchoolLevelSet>(loadSchoolLevelsOn)
@@ -179,11 +188,13 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_FERRIES_KEY, ferriesOn ? '1' : '0') }, [ferriesOn])
   useEffect(() => { localStorage.setItem(LS_ROADWORKS_KEY, roadWorksOn ? '1' : '0') }, [roadWorksOn])
   useEffect(() => { localStorage.setItem(LS_SCHOOLS_KEY, schoolsOn ? '1' : '0') }, [schoolsOn])
+  useEffect(() => { localStorage.setItem(LS_TOILETS_KEY, toiletsOn ? '1' : '0') }, [toiletsOn])
   useEffect(() => { saveSchoolLevelsOn(schoolLevelsOn) }, [schoolLevelsOn])
   // Hiding the layer must also close its panel — the marker it describes is
   // gone from the map.
   useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])
   useEffect(() => { if (!schoolsOn) setSelectedSchool(null) }, [schoolsOn])
+  useEffect(() => { if (!toiletsOn) setSelectedToilet(null) }, [toiletsOn])
   // Same rule one level down: switching off a teaching stage removes those
   // blocks, so a panel describing one of them has to close too.
   useEffect(() => {
@@ -267,7 +278,8 @@ export default function App() {
     ferries: ferriesOn ? transitData.ferries : [],
     roadWorks: roadWorksOn ? transitData.roadWorks : NO_ROAD_WORKS,
     schools: visibleSchools,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools])
+    toilets: toiletsOn ? transitData.toilets : NO_TOILETS,
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, toiletsOn])
 
   // Notices in force on the simulated Macau calendar day. Keyed on the day
   // string, NOT on clock.currentTime — the clock re-renders at ~10 Hz and the
@@ -368,6 +380,7 @@ export default function App() {
     setSelectedStation(null)
     setSelectedRoadWork(null)
     setSelectedSchool(null)
+    setSelectedToilet(null)
     setTrackedVehicleId(vehicle?.id ?? null)
     if (vehicle) ga.vehicleSelected(vehicle.type, vehicle.id)
   }, [])
@@ -381,6 +394,7 @@ export default function App() {
     setSelectedVehicle(null)
     setSelectedRoadWork(null)
     setSelectedSchool(null)
+    setSelectedToilet(null)
     setTrackedVehicleId(null)
     if (station) ga.stationSelected(station.id)
   }, [])
@@ -392,6 +406,7 @@ export default function App() {
     setSelectedVehicle(null)
     setSelectedStation(null)
     setSelectedSchool(null)
+    setSelectedToilet(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -401,6 +416,17 @@ export default function App() {
     setSelectedVehicle(null)
     setSelectedStation(null)
     setSelectedRoadWork(null)
+    setSelectedToilet(null)
+    setTrackedVehicleId(null)
+  }, [])
+
+  // Toilet markers, likewise: one info panel is ever open.
+  const onToiletClick = useCallback((toilet: Toilet | null) => {
+    setSelectedToilet(toilet)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -409,6 +435,7 @@ export default function App() {
     setSelectedStation(null)
     setSelectedRoadWork(null)
     setSelectedSchool(null)
+    setSelectedToilet(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -436,6 +463,10 @@ export default function App() {
   }), [])
   const toggleSchools = useCallback(() => setSchoolsOn(v => {
     ga.layerToggled('schools', !v)
+    return !v
+  }), [])
+  const toggleToilets = useCallback(() => setToiletsOn(v => {
+    ga.layerToggled('toilets', !v)
     return !v
   }), [])
   const toggleSchoolLevel = useCallback((level: SchoolLevel) => {
@@ -478,10 +509,12 @@ export default function App() {
             onStationClick={onStationClick}
             onRoadWorkClick={onRoadWorkClick}
             onSchoolClick={onSchoolClick}
+            onToiletClick={onToiletClick}
             onClearSelection={clearSelection}
             trackedVehicleId={trackedVehicleId}
             selectedRoadWorkId={selectedRoadWork?.id ?? null}
             selectedSchoolId={selectedSchool?.school.id ?? null}
+            selectedToiletId={selectedToilet?.id ?? null}
             onVehicleCount={onVehicleCount}
             showTimeBar={showTimeBar}
             onToggleTimeBar={toggleTimeBar}
@@ -508,6 +541,7 @@ export default function App() {
         schoolsOn={schoolsOn}
         schoolLevelsOn={schoolLevelsOn}
         schoolLevelCounts={schoolLevelCounts}
+        toiletsOn={toiletsOn}
         clock={clock}
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
@@ -515,6 +549,7 @@ export default function App() {
         onToggleRoadWorks={toggleRoadWorks}
         onToggleSchools={toggleSchools}
         onToggleSchoolLevel={toggleSchoolLevel}
+        onToggleToilets={toggleToilets}
         onToggleRoute={onToggleRoute}
         onToggleAll={onToggleAll}
         onShowAll={onShowAll}
@@ -565,6 +600,12 @@ export default function App() {
           <SchoolInfoPanel
             school={selectedSchool.school}
             buildingName={selectedSchool.buildingName}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedToilet && (
+          <ToiletInfoPanel
+            toilet={selectedToilet}
             onClose={clearSelection}
           />
         )}

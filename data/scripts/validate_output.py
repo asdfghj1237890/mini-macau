@@ -703,6 +703,80 @@ def v_schools(data: object) -> list[str]:
     return errs
 
 
+# Bilingual (zh/pt/en) text fields on a toilet record. Only name.zh is
+# required non-empty — address/phone/openHours genuinely come back blank for
+# some upstream records, and that's a valid toilet, not a scrape failure.
+TOILET_TEXT_FIELDS = ("name", "address", "phone", "openHours")
+# Degenerate-fetch guard mirroring fetch_toilets.py's own MIN_TOILETS — the
+# feed carries ~200.
+TOILETS_MIN_COUNT = 50
+
+
+def v_toilets(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(errs, "toilets", data, ("fetchedAtUtc", "updatedAt", "sources", "toilets")):
+        return errs
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("toilets: fetchedAtUtc must be a string")
+    if not (data["updatedAt"] is None or isinstance(data["updatedAt"], str)):
+        errs.append("toilets: updatedAt must be null or a string")
+    sources = data["sources"]
+    if require_fields(errs, "toilets.sources", sources, ("name", "toilets", "accessibleToilets")):
+        for key in ("name", "toilets", "accessibleToilets"):
+            if not isinstance(sources[key], str):
+                errs.append(f"toilets.sources: '{key}' must be a string")
+    if not require_nonempty_list(errs, "toilets.toilets", data["toilets"]):
+        return errs
+
+    seen_ids: set[str] = set()
+    for i, t in enumerate(data["toilets"]):
+        ctx = f"toilets.toilets[{i}]"
+        if not require_fields(
+            errs, ctx, t,
+            ("id", "code", "name", "address", "phone", "openHours",
+             "accessible", "family", "closed", "photo", "coordinates"),
+        ):
+            continue
+        tid = t["id"]
+        if not (isinstance(tid, str) and tid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif tid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{tid}'")
+        else:
+            seen_ids.add(tid)
+        label = f"{ctx} ({tid if isinstance(tid, str) and tid else '?'})"
+
+        if not (t["code"] is None or isinstance(t["code"], str)):
+            errs.append(f"{label}: code must be null or a string")
+
+        for key in TOILET_TEXT_FIELDS:
+            obj = t[key]
+            if not require_fields(errs, f"{label}.{key}", obj, ("zh", "pt", "en")):
+                continue
+            for lang in ("zh", "pt", "en"):
+                if not isinstance(obj[lang], str):
+                    errs.append(f"{label}.{key}.{lang} must be a string")
+            if key == "name" and isinstance(obj.get("zh"), str) and not obj["zh"]:
+                errs.append(f"{label}.name.zh must not be empty")
+
+        for key in ("accessible", "family", "closed"):
+            if not isinstance(t[key], bool):
+                errs.append(f"{label}.{key} must be a boolean")
+
+        photo = t["photo"]
+        if not (photo is None or (isinstance(photo, str) and photo.startswith("http"))):
+            errs.append(f"{label}: photo must be null or a URL starting with 'http'")
+
+        check_coords(errs, label, t["coordinates"])
+
+    if len(data["toilets"]) < TOILETS_MIN_COUNT:
+        errs.append(
+            f"toilets: only {len(data['toilets'])} toilets (< {TOILETS_MIN_COUNT}) — looks like a degenerate run"
+        )
+
+    return errs
+
+
 # name -> (absolute path, validator)
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
@@ -718,6 +792,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "service-status": (PUBLIC / "service-status.json", v_service_status),
     "road-works": (PUBLIC / "data/road-works.json", v_road_works),
     "schools": (PUBLIC / "data/schools.json", v_schools),
+    "toilets": (PUBLIC / "data/toilets.json", v_toilets),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.

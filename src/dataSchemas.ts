@@ -229,6 +229,35 @@ export const SchoolsFileSchema = z.object({
   ),
 })
 
+// toilets.json — the IAM public-toilet register (the 無障礙公廁 dataset is
+// folded into the `accessible` flag by the pipeline). Mirrors the `toilets`
+// block in data/scripts/validate_output.py. Unlike road works this feed is
+// trilingual, so every text field carries zh/pt/en; `code` is null for the few
+// entries the source publishes without a 編號, `photo` is null when there is no
+// image, and `updatedAt` is null when the upstream readme has no timestamp.
+const toiletText = z.object({ zh: z.string(), pt: z.string(), en: z.string() })
+
+export const ToiletsFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  updatedAt: z.string().nullable(),
+  sources: z.record(z.string(), z.string()),
+  toilets: z.array(
+    z.object({
+      id: z.string(),
+      code: z.string().nullable(),
+      name: toiletText,
+      address: toiletText,
+      phone: toiletText,
+      openHours: toiletText,
+      accessible: z.boolean(),
+      family: z.boolean(),
+      closed: z.boolean(),
+      photo: z.string().nullable(),
+      coordinates: lngLat,
+    }),
+  ),
+})
+
 // Validate `raw` against `schema`. On mismatch: throw in dev (so tests and the
 // dev server surface contract drift immediately) and console.error in prod (so
 // the live site logs the problem but still renders best-effort). Returns the

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -15,6 +15,7 @@ import {
   FerryScheduleFileSchema,
   RoadWorksFileSchema,
   SchoolsFileSchema,
+  ToiletsFileSchema,
 } from '../dataSchemas'
 
 const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
@@ -93,6 +94,16 @@ interface SchoolsFile {
   sources: Record<string, string>
   levels: SchoolLevel[]
   schools: School[]
+}
+
+// toilets.json is the same envelope pattern again: only `toilets` reaches
+// TransitData. `updatedAt` (the upstream readme's timestamp) and `sources`
+// stay provenance metadata — the panel and the sidebar carry static labels.
+interface ToiletsFile {
+  fetchedAtUtc: string
+  updatedAt: string | null
+  sources: Record<string, string>
+  toilets: Toilet[]
 }
 
 function hhmmToMinutes(s: string): number | null {
@@ -325,6 +336,7 @@ export function useTransitData(): UseTransitDataResult {
     ferries: [],
     roadWorks: [],
     schools: [],
+    toilets: [],
     loading: true,
   })
   // Multi-day timetable lives in its own state slot rather than on
@@ -444,6 +456,13 @@ export function useTransitData(): UseTransitDataResult {
     // map rather than failing the whole load.
     loadJson<SchoolsFile>('/data/schools.json', SchoolsFileSchema, 'schools.json')
       .then(file => commit('schools', file.schools))
+      .catch(() => {})
+
+    // Public toilets — another independent, non-critical overlay (and one
+    // that's OFF by default), so a missing or malformed file just leaves the
+    // markers out instead of failing the load.
+    loadJson<ToiletsFile>('/data/toilets.json', ToiletsFileSchema, 'toilets.json')
+      .then(file => commit('toilets', file.toilets))
       .catch(() => {})
 
     return () => { cancelledRef.current = true }

@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -20,6 +20,7 @@ import length from '@turf/length'
 import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay, macauYmd, macauDayIndex } from '../macauTime'
 import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks'
 import { SCHOOL_FEATURE_ID_PROPERTY, buildSchoolFeatures } from '../schools'
+import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { useI18n } from '../i18n'
 import type { BusTracker, RouteRealtimePoller, TrackedBusState } from '../services/realtimeClient'
 import { ga } from '../analytics/ga'
@@ -246,6 +247,66 @@ function buildRoadWorkFeatures(
   return { type: 'FeatureCollection', features }
 }
 
+// ---- Public toilets (IAM 公廁) overlay -----------------------------------
+const TOILETS_SOURCE_ID = 'toilets'
+const TOILETS_ICON_LAYER_ID = 'toilets-icon'
+const TOILETS_SELECTED_LAYER_ID = 'toilets-selected'
+
+// Device pixels; registered at pixelRatio 2, so this renders as a 20 px CSS
+// marker at icon-size 1.
+const TOILET_ICON_PX = 40
+
+// Rounded square in the variant colour with a white rim and a bold "WC", drawn
+// once per variant into an ImageData for map.addImage(). Deliberately a canvas
+// glyph rather than an emoji: the toilet emoji renders differently on every
+// platform and can't be recoloured. Returns null when the 2D context is
+// unavailable (headless/blocked), in which case the caller skips that image.
+function drawToiletIcon(color: string): ImageData | null {
+  const size = TOILET_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const border = 3 // 1.5 CSS px at pixelRatio 2
+  const inset = border / 2 + 1
+  const r = 6 // 3 CSS px corner radius
+  const x = inset
+  const y = inset
+  const w = size - inset * 2
+  const h = size - inset * 2
+
+  // Hand-rolled rounded rect: ctx.roundRect() is still missing on enough
+  // engines that a fallback would be needed anyway.
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.arcTo(x + w, y, x + w, y + r, r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+  ctx.lineTo(x + r, y + h)
+  ctx.arcTo(x, y + h, x, y + h - r, r)
+  ctx.lineTo(x, y + r)
+  ctx.arcTo(x, y, x + r, y, r)
+  ctx.closePath()
+
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = border
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = `bold ${Math.round(size * 0.45)}px sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('WC', size / 2, size / 2 + 1)
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
 // ---- Schools overlay ----------------------------------------------------
 // Our own coloured fill-extrusion, drawn directly above `3d-buildings`. The
 // basemap tiles merge same-height buildings into one feature, so tinting them
@@ -275,16 +336,18 @@ interface Props {
   // `buildingName` is the clicked footprint's OSM name — null for the many
   // unnamed campus buildings.
   onSchoolClick?: (school: School, buildingName: string | null) => void
+  onToiletClick?: (toilet: Toilet | null) => void
   onClearSelection?: () => void
   trackedVehicleId?: string | null
   selectedRoadWorkId?: string | null
   selectedSchoolId?: string | null
+  selectedToiletId?: string | null
   onVehicleCount?: (count: number) => void
   showTimeBar?: boolean
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -363,6 +426,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // The id whose `selected` feature-state is currently set on the map, so the
   // effect clears exactly one entry instead of walking all 76 schools.
   const schoolStateIdRef = useRef<string | null>(null)
+  // Same style-swap contract as the road works: the toilet highlight is a
+  // filter on the marker source, so addCustomLayers needs the current id.
+  const selectedToiletIdRef = useRef<string | null>(selectedToiletId ?? null)
+  selectedToiletIdRef.current = selectedToiletId ?? null
 
   // Highlight = one feature-state per school id. `promoteId` makes every
   // building of a school share that id, so this single pair of calls repaints
@@ -875,6 +942,50 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         },
       })
 
+      // Public toilets. Same image contract as the road works — setStyle
+      // ({diff:false}) drops registered images with the layers, so all three
+      // variants are redrawn here under a hasImage guard. Unlike road works
+      // this data has no time dimension, so the source is seeded straight from
+      // transitRef (which also covers a theme swap long after toilets.json
+      // landed) and only refreshed by the [transitData.toilets] effect below.
+      for (const variant of TOILET_VARIANT_ORDER) {
+        const name = toiletIconName(variant)
+        if (m.hasImage(name)) continue
+        const img = drawToiletIcon(TOILET_COLORS[variant])
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      m.addSource(TOILETS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildToiletFeatures(transitRef.current.toilets),
+      })
+      m.addLayer({
+        id: TOILETS_SELECTED_LAYER_ID, type: 'circle', source: TOILETS_SOURCE_ID,
+        filter: ['==', ['get', 'id'], selectedToiletIdRef.current ?? ''],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      })
+      m.addLayer({
+        id: TOILETS_ICON_LAYER_ID, type: 'symbol', source: TOILETS_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          // 33 toilets share a point with another and many more sit metres
+          // apart, so collision-hiding would silently drop them — overlap.
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+        },
+        paint: {
+          // Suspended toilets read as "there, but not usable".
+          'icon-opacity': ['match', ['get', 'variant'], 'closed', 0.55, 1],
+        },
+      })
+
       addVehicleLayers(m, currentLang)
 
       const bus3DLayer = new Bus3DLayer()
@@ -951,6 +1062,23 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       m.on('mouseenter', SCHOOLS_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', SCHOOLS_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
 
+      // Also registered before the vehicle handlers, for the same reason: a
+      // bus driving over a WC pin should still win the click.
+      m.on('click', TOILETS_ICON_LAYER_ID, (e) => {
+        const feature = e.features?.[0]
+        if (feature) {
+          const tid = feature.properties?.id
+          // Current list (transitRef), not a closed-over snapshot —
+          // toilets.json lands after this handler is attached, and the legend
+          // toggle swaps the array. Toilets sharing a coordinate resolve to
+          // the first hit, which is what the marker stack shows anyway.
+          const toilet = transitRef.current.toilets.find(x => x.id === tid)
+          if (toilet) { onToiletClick?.(toilet); e.preventDefault() }
+        }
+      })
+      m.on('mouseenter', TOILETS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
+      m.on('mouseleave', TOILETS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
+
       m.on('click', 'vehicles-circle', (e) => {
         const feature = e.features?.[0]
         if (feature) {
@@ -982,7 +1110,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       m.on('click', (e) => {
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, ...model3DLayers],
+          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, ...model3DLayers],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -1079,6 +1207,25 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const map = mapRef.current
     if (map) applySchoolSelection(map)
   }, [selectedSchoolId, applySchoolSelection])
+
+  // Toilet markers. Like the school blocks (and unlike the road works) this
+  // data is independent of the simulated clock, so it is pushed here on array
+  // identity change — toilets.json arriving, or the legend toggle swapping in
+  // the empty array — and never from the RAF tick.
+  useEffect(() => {
+    const map = mapRef.current
+    const src = map?.getSource(TOILETS_SOURCE_ID) as unknown as
+      { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    src?.setData?.(buildToiletFeatures(transitData.toilets))
+  }, [transitData.toilets])
+
+  // Selected toilet highlight — a filter swap on the existing source, same as
+  // the road-work ring.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.getLayer(TOILETS_SELECTED_LAYER_ID)) return
+    map.setFilter(TOILETS_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedToiletId ?? ''])
+  }, [selectedToiletId])
 
   useEffect(() => {
     const map = mapRef.current
@@ -1929,6 +2076,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                       rel="noopener noreferrer"
                       className="hover:text-amber-200 transition-colors"
                     >OSM</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceToiletsLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                    <a
+                      href="https://www.iam.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >IAM</a>
+                    <span className="text-white/25 mx-[3px]">/</span>
+                    <a
+                      href="https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >data.gov.mo</a>
                   </span>
                 </li>
               </ul>
