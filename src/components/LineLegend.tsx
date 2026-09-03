@@ -1301,7 +1301,7 @@ export function LineLegend({
             >
               <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-violet-300/85">
-                  <span className="text-[12px] leading-none">{'⌂'}</span>
+                  <MortarboardIcon />
                   <span
                     className="inline-block w-[8px] h-[8px]"
                     style={{ backgroundImage: SCHOOL_SWATCH_GRADIENT }}
@@ -1326,7 +1326,9 @@ export function LineLegend({
                            ${onToggleSchools ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={schoolsOn ? 'text-violet-400' : 'text-white/40'}>{'⌂'}</span>
+                  <span className={`inline-flex items-center ${schoolsOn ? 'text-violet-400' : 'text-white/40'}`}>
+                    <MortarboardIcon />
+                  </span>
                   <span className="mm-mono mm-tabular text-[12px] text-white/80">
                     {t.schoolsCount(schoolEnabledCount)}
                   </span>
