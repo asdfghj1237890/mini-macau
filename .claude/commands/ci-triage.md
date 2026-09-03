@@ -25,7 +25,7 @@ gh run view <run-id> --log-failed
 ```
 
 Identify **which workflow** failed and **which step** (scrape / `validate_output.py` / `git push` /
-lint / test / build / deploy / docker).
+lint / test / build / deploy).
 
 ## Step 2 — Classify against known failure modes
 

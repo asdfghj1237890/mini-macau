@@ -264,7 +264,7 @@ Automated via GitHub Actions (`.github/workflows/update-ferry-schedules.yml`), w
 - **Public toilets** — [IAM via data.gov.mo](https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5) (daily)
 - **Public car parks** — [DSAT via data.gov.mo](https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706) (daily) + [live vacancy](https://data.gov.mo/Detail?id=ea50a770-cc35-47cc-a3ba-7f60092d4bc4) (live, polled by the browser)
 
-Everything under `/data/*.json` is fetchable as-is but served with `X-Robots-Tag: noindex, nofollow` (`public/_headers` on Cloudflare Pages, `docker/nginx.conf` in the container) so the raw files stay out of search results. It is a header rather than a `robots.txt` Disallow on purpose: a crawler that is disallowed never sees the `noindex`, and a disallowed URL can still be listed bare when something links to it.
+Everything under `/data/*.json` is fetchable as-is but served with `X-Robots-Tag: noindex, nofollow` (`public/_headers`) so the raw files stay out of search results. It is a header rather than a `robots.txt` Disallow on purpose: a crawler that is disallowed never sees the `noindex`, and a disallowed URL can still be listed bare when something links to it.
 
 ## Data freshness & update strategy
 
@@ -274,14 +274,14 @@ Not every layer is equally "live." The default view is **fully simulated**; RT m
 |-------|------|--------|-----------------|---------------------|
 | **LRT** | Simulated | OSM geometry + MLM published per-station timetable | Manual regen (`uv run python data/main.py`) | None — static JSON |
 | **Bus (default)** | Simulated | OSM geometry + DSAT published service frequencies | Manual regen | DSAT stop snapshot timestamp in `data/bus_reference/dsat_stops.json` (current: 2026-09-02 Macau) |
-| **Bus (RT toggle)** | **Live** | DSAT realtime feed via nginx `/api/dsat/batch` proxy | Client polls every 15 s · server edge-caches 8 s | Per-bus `lastAt`; stale beyond 60 s window |
+| **Bus (RT toggle)** | **Live (local dev only)** | DSAT realtime feed via the Vite dev plugin's `/api/dsat/batch` endpoint | Client polls every 15 s | Per-bus `lastAt`; stale beyond 60 s window |
 | **Flights** | Static daily sync | [AviationStack API](https://aviationstack.com/) | Daily at 04:00 Macau time — `update-flights.yml` | `fetchedAtUtc` embedded in `flights.json` |
 | **Ferries** | Static monthly sync | TurboJET + CotaiJet timetable pages (scraped) | 1st of month · `update-ferry-schedules.yml` | `fetchedAtUtc` + `effectiveAs` in `ferry-schedules.json` |
 
 **What each mode means**
 
 - **Simulated** — Vehicles are placed on pre-generated polylines and moved by the client clock using the published timetable. They don't reflect any single bus or train's actual position at that moment; they show "what the schedule says should be moving through this segment right now."
-- **Live (RT mode)** — The client polls DSAT's realtime endpoint (a batch fan-out proxied through nginx with an 8 s shared cache). DSAT itself only publishes current-stop, direction, and speed per plate — not continuous GPS — so the client interpolates between consecutive stop reports. RT mode is opt-in via the control-panel toggle; when off, buses fall back to the simulated timetable.
+- **Live (RT mode)** — The client polls DSAT's realtime endpoint through a batch fan-out provided by the Vite dev plugin in local development (`vite.config.ts`). DSAT itself only publishes current-stop, direction, and speed per plate — not continuous GPS — so the client interpolates between consecutive stop reports. RT mode is opt-in via the control-panel toggle in dev builds; the hosted production site never enables it (`VITE_ENABLE_RT` is only set in `.env.development`), so buses there always run the simulated timetable.
 - **Static sync** — A scheduled GitHub Actions job fetches upstream data and commits a new `public/data/*.json` if it changed. The app reads whatever was in the last build; there is no per-page-load fetch for flights or ferries.
 
 ## Project Structure
@@ -351,7 +351,6 @@ mini-macau/
 │   └── main.py
 ├── .github/workflows/
 │   ├── deploy.yml                  # Cloudflare Pages CI/CD
-│   ├── docker-release.yml          # Docker image release on new tag
 │   ├── service-status.yml          # Upstream service availability check
 │   ├── update-flights.yml          # Daily flight data update
 │   └── update-ferry-schedules.yml  # Monthly ferry data update

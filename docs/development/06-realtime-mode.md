@@ -7,17 +7,18 @@ RT mode 是**唯一**走真實 live feed 的路徑，**僅針對巴士**。LRT�
 
 開啟後，巴士的 sim 部分被丟掉、用 DSAT 真實位置覆蓋；LRT/航班/渡輪不變。如果 DSAT 對某條路線沒回 plate（例如夜路收班），那條路線就沒有車。
 
+**RT mode 只存在於本機開發環境**：`/api/dsat/*` 唯一的實作是本機 Vite dev server 的 `dsatBatchDevPlugin`。正式站（Cloudflare Pages）沒有任何 proxy、也不會開 `VITE_ENABLE_RT`，所以線上不會出現 RT toggle，也不用找一個「production 版」的 proxy——它不存在。
+
 ## 整體 data flow
 
 ```
                    /api/dsat/batch?routes=1:0,1A:0,...
                                         │
-              ┌────── nginx (OpenResty) │ ──── Vite dev plugin
-              │                         │      （configureServer middleware）
-              │  ngx.location.capture_multi
-              │  → /api/dsat/routestation/bus?routeName=...&dir=...
-              │  → 8s shared cache (proxy_cache_path)
-              ▼
+                              Vite dev plugin
+                          （configureServer middleware，僅本機開發）
+                              → /api/dsat/routestation/bus?routeName=...&dir=...
+                              （逐路線平行 fan-out，不做 cache）
+                                        ▼
               bis.dsat.gov.mo (real DSAT API)
                               ▲
                               │
@@ -38,22 +39,9 @@ RT mode 是**唯一**走真實 live feed 的路徑，**僅針對巴士**。LRT�
 
 ## Server side：`/api/dsat/batch`
 
-兩個實作對齊：
+只有一個實作，沒有 production 對照組：[`vite.config.ts`](../../vite.config.ts) 的 `dsatBatchDevPlugin`（`configureServer` middleware，僅本機開發跑得起來）用 `Promise.all + fetch` 把單一 batch 請求 fan-out 成多個平行 DSAT 呼叫，全部回來後合併成一個 JSON 陣列回傳。它直接呼叫 `bis.dsat.gov.mo/macauweb/`、附上 `Referer`（DSAT 會檢查）。dev 不做 cache，每個 tick 直接打 DSAT。
 
-### Production — OpenResty / nginx
-
-[`docker/nginx.conf`](../../docker/nginx.conf)。關鍵：
-
-- **`proxy_cache_path /var/cache/nginx/dsat ... keys_zone=dsat_cache:10m max_size=100m inactive=10m`**：8 秒 TTL 的共享 cache，多瀏覽器 / 多分頁的請求自動 coalesce。
-- **`/api/dsat/`** 直接 reverse proxy 到 `bis.dsat.gov.mo/macauweb/`。剝掉 CORS、加 `Referer`（DSAT 會檢查）、藏掉 upstream Cookie/Cache-Control。
-- **`/api/dsat/batch`** 用 OpenResty 的 Lua 腳本 + `ngx.location.capture_multi`，把單一 batch 請求 fan-out 成多個 nginx 內部子請求，平行打 DSAT，全部 200 後合併成一個 JSON 陣列回傳。
-- **Cache key 必須是 `$uri$is_args$args` 而非 `$request_uri`**：nginx 子請求會繼承 parent 的 `$request_uri`（也就是 batch 的長 URL），用 `$request_uri` 當 key 會讓所有子請求 collision 到同一個 cache entry。`$uri$is_args$args` 才是子請求自己的 URL。
-
-### Dev — Vite middleware
-
-[`vite.config.ts`](../../vite.config.ts) 的 `dsatBatchDevPlugin` 在本機重現一樣的 fan-out 行為（用 `Promise.all + fetch`）。dev 不做 cache，每個 tick 直接打 DSAT。
-
-兩邊的 response shape 完全一致：
+Response shape：
 
 ```json
 [
@@ -117,7 +105,7 @@ MapView 把 `BusTracker.getStates()` 轉成跟 sim 同樣 shape 的 `VehiclePosi
 | 症狀 | 可能原因 |
 |------|----------|
 | RT toggle 沒出現 | `VITE_ENABLE_RT` 沒設、build 時沒帶到 |
-| Toggle 開了沒車 | 對應路線 DSAT 真的沒在跑（夜路時段）；或 nginx 沒起來、`/api/dsat/batch` 502 |
+| Toggle 開了沒車 | 對應路線 DSAT 真的沒在跑（夜路時段）；或本機 dev server 沒起來、`/api/dsat/batch` 502 |
 | 車衝過頭 / 提前到站 | `DR_SPEED_SCALE` 過大；DSAT 速度欄位垃圾 |
 | 車從進度 95% 倒退到 5% | 環狀路線 wrap 沒處理（檢查 `BusTracker.estimateProgress` 的 `to - from < -0.5` 分支） |
 | 同一站重觀測時車輛 snap 一下 | `lastProgress` 沒寫回 currentEstimate，被 reset 回 stop progress |

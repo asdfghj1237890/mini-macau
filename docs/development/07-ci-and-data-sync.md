@@ -1,12 +1,13 @@
-# 07 · CI、Docker、自動資料同步
+# 07 · CI 與自動資料同步
 
-`.github/workflows/` 一共 8 個 workflow：
+`.github/workflows/` 一共 9 個 workflow：
 
 | Workflow | Trigger | 做什麼 |
 |----------|---------|--------|
+| [`ci.yml`](../../.github/workflows/ci.yml) | 每個 PR、`push` to `master` | lint → test → build（Node 22）＋ `validate_output.py all`（bare Python） |
 | [`deploy.yml`](../../.github/workflows/deploy.yml) | `push` to `master` | Build → Cloudflare Pages |
-| [`docker-release.yml`](../../.github/workflows/docker-release.yml) | tag push `v*` 或 manual | Build & push multi-arch image to GHCR |
 | [`update-flights.yml`](../../.github/workflows/update-flights.yml) | daily 20:00 UTC（澳門 04:00） | AviationStack → `flights.json` |
+| [`update-flights-timetable.yml`](../../.github/workflows/update-flights-timetable.yml) | daily 03:23 UTC（澳門 11:23） | AviationStack 未來 7 天 → `flights-timetable.json` |
 | [`update-ferry-schedules.yml`](../../.github/workflows/update-ferry-schedules.yml) | 月初 00:00 UTC | Scrape TurboJET / CotaiJet → `ferry-schedules.json` |
 | [`service-status.yml`](../../.github/workflows/service-status.yml) | daily 23:00 UTC（澳門 07:00） | Scrape DSAT 公告 → `service-status.json` |
 | [`update-road-works.yml`](../../.github/workflows/update-road-works.yml) | daily 18:20 UTC（澳門 02:20） | data.gov.mo → `road-works.json` |
@@ -28,25 +29,11 @@
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-注意：deploy 不開 `VITE_ENABLE_RT`，所以 Cloudflare Pages 上的 build **沒有 RT toggle**。要 RT 必須用 docker image。
+注意：deploy 不開 `VITE_ENABLE_RT`，所以 Cloudflare Pages 上的 build **沒有 RT toggle**。RT mode 只在本機 `npm run dev` 存在，沒有對應的 production 版本。
 
-## `docker-release.yml` — GHCR multi-arch image
+## 資料 sync workflow 的共同骨架
 
-只在 tag `v*` 或手動觸發時跑。產出 `ghcr.io/<owner>/mini-macau-rt:<tag>`，支援 `linux/amd64` + `linux/arm64`。
-
-關鍵步驟：
-
-- `docker/setup-qemu-action@v3` 提供 cross-platform emulation
-- `docker/setup-buildx-action@v3` 啟用 buildx multi-platform build
-- `docker/build-push-action@v6` with `cache-from/to: type=gha`（GitHub Actions cache，能省可觀的 build time）
-- 開 `VITE_ENABLE_RT=1`（在 [`Dockerfile`](../../Dockerfile) build stage 寫死）
-
-Tag 規則（由 `docker/metadata-action@v5` 處理）：
-- `v1.2.3` → `1.2.3`、`latest`
-- 任何 push → `sha-<short>`
-- 手動 dispatch with `tag` input → 該 tag 名
-
-## 三個資料 sync workflow 的共同骨架
+七個資料 workflow 長得一樣：
 
 ```yaml
 on:
@@ -60,22 +47,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v4
-      - run: uv run python scripts/<fetch>.py
-      - run: git diff --quiet <output>.json && echo "changed=false" >> $GITHUB_OUTPUT || echo "changed=true" >> $GITHUB_OUTPUT
-      - if: steps.diff.outputs.changed == 'true'
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "..."
-          git add <output>.json
-          git commit -m "chore: ..."
-          git push
+      - run: <random jitter>                       # schedule 時錯開，workflow_dispatch 跳過
+      - run: until uv run python scripts/<fetch>.py; do ...; done   # 外層重試
+      - run: uv run python scripts/validate_output.py <dataset>      # 硬性 gate
+      - id: commit
+        uses: ./.github/actions/commit-data        # 變更偵測 + commit + push（含 rebase 重試）
+        with: { file: public/data/<output>.json, message: 'chore: ...' }
+
+  deploy:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    uses: ./.github/workflows/deploy.yml           # GITHUB_TOKEN 的 push 不會觸發 on: push，所以明確呼叫
 ```
 
-`workflow_dispatch` 允許在 GitHub UI 手動跑，方便除錯。
+變更偵測、commit 與 push-with-rebase（兩個排程同時落在 master 的競態）集中在 composite action [`.github/actions/commit-data`](../../.github/actions/commit-data/action.yml)，不要在 workflow 裡重新內聯那段迴圈。`workflow_dispatch` 允許在 GitHub UI 手動跑，方便除錯。
 
 ### `update-flights.yml`
 
 額外有外層 retry：fetch_flights 自己已經有 in-process 3 次重試，但偶發整段 upstream 倒（2026-04-21 那次就是這樣），所以再加一層 60 秒間隔的 2 次外層重試。`fetch_flights.py` 內部還有「safety guard」：解析出 0 row 就 exit non-zero，避免把 `flights.json` 蓋成 `[]`。
+
+### `update-flights-timetable.yml`
+
+每日 03:23 UTC（澳門 11:23）。同樣打 AviationStack，但抓「未來 7 天」的時刻表（`fetch_flights.py <date> --days 7`）寫進 `public/data/flights-timetable.json`，過 `validate_output.py flights-timetable` 後才 commit。
 
 ### `update-ferry-schedules.yml`
 
@@ -97,25 +90,11 @@ jobs:
 
 每日 18:50 UTC（澳門 02:50）。上游（DSAT car_park_detail，經 data.gov.mo 的 API gateway）是個變動很少的靜態清單，抓的時間點同樣不要緊，這個時段只是跟其他每日/每夜的資料 job 錯開。Fetch 這步需要 `DATAGOVMO_APPCODE` secret（DSAT 印在 dataset 頁面上給所有訪客看的公開 APPCODE，當 `Authorization: APPCODE <key>` header 送出；雖然公開，一樣不寫進 repo，只透過 secret / 環境變數傳遞）。跑完 `fetch_car_parks.py` 後還要過 `validate_output.py car-parks`，沒過就不 commit。
 
-## 沒有 CI test job
+## `ci.yml` — lint / test / build / 資料驗證
 
-目前 deploy 沒跑 `npm test`、也沒有獨立的 PR test workflow。`tsc -b`（在 `npm run build` 裡）會做 type check；vitest 要在本機跑或之後加進 deploy.yml 的 build step 之前。
+每個 PR 與每次 push 到 master 都跑，兩個 job 平行：
 
-加一個 test workflow 的最小變更：
+- **`frontend`**（Node 22）：`npm ci` → `npm run lint` → `npm test` → `npm run build`（`tsc -b` 在 build 裡做 type check）。
+- **`data`**（Python 3.13，不裝 scraper 依賴）：`python scripts/validate_output.py all`，把 `public/data/*.json` 全部過一遍驗證器。
 
-```yaml
-# .github/workflows/test.yml
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
-```
-
-詳見 [10-testing.md](10-testing.md)。
+本機要對齊的就是同一組指令（`npm run lint && npm test && npm run build`，加 `uv run python scripts/validate_output.py all`），詳見 [10-testing.md](10-testing.md)。deploy.yml 本身不跑測試，靠的是這支 CI 在同一次 push 上把關。

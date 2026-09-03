@@ -14,7 +14,7 @@
 | [04](04-3d-layers.md) | 3D layers (Bus / LRT / Flight / Ferry) | 要動 fill-extrusion 幾何、車身造型、自訂車輛 layer |
 | [05](05-data-pipeline.md) | Python data pipeline | 要重新生成 LRT / 巴士 / 時刻表 JSON、改 OSM extraction、改 OSRM road snap |
 | [06](06-realtime-mode.md) | Realtime (RT) mode | 要動 DSAT live feed、`/api/dsat/batch` proxy、dead-reckoning |
-| [07](07-ci-and-data-sync.md) | CI、Docker、自動資料同步 | 要改 GitHub Actions、deploy、定期 scrape job |
+| [07](07-ci-and-data-sync.md) | CI 與自動資料同步 | 要改 GitHub Actions、deploy、定期 scrape job |
 | [08](08-performance-notes.md) | Performance notes（深度解析） | 想理解為什麼某些寫法不直覺、效能優化的權衡 |
 | [09](09-frontend-ui.md) | Frontend UI（i18n / 路線分組 / 響應式） | 要動 UI、加新語言、改路線分組規則 |
 | [10](10-testing.md) | Testing | 要寫測試、跑 vitest、知道哪些 pure function 已覆蓋 |

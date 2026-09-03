@@ -41,15 +41,15 @@
    └─────────────────────────────────────┼──┘
                                          │
                             opt-in toggle│
-   ┌───────────────────────────────┐     │
-   │  /api/dsat/batch (nginx/Vite) │◄────┘
-   │  → bis.dsat.gov.mo            │
-   │  · 8s shared cache            │
-   │  · 15s client poll            │
-   └───────────────────────────────┘
+   ┌─────────────────────────────────────┐
+   │  /api/dsat/batch (Vite dev plugin)  │
+   │  → bis.dsat.gov.mo                  │
+   │  · 8s shared cache                  │
+   │  · 15s client poll                  │
+   └─────────────────────────────────────┘
 ```
 
-> LRT trips（`src/data/trips-*.json`）刻意不放 `public/data/`：Vite 把它們打包成匿名 hash chunk，`useTransitData` 用 `import.meta.glob` 按 scheduleType lazy import，所以 MLM 時刻表沒有可猜的 `/data/` URL。其餘資料集仍以 `/data/*.json` 直接提供，但帶 `X-Robots-Tag: noindex`（`public/_headers` 與 `docker/nginx.conf` 兩邊要同步）。
+> LRT trips（`src/data/trips-*.json`）刻意不放 `public/data/`：Vite 把它們打包成匿名 hash chunk，`useTransitData` 用 `import.meta.glob` 按 scheduleType lazy import，所以 MLM 時刻表沒有可猜的 `/data/` URL。其餘資料集仍以 `/data/*.json` 直接提供，但帶 `X-Robots-Tag: noindex`（`public/_headers`）。
 
 ## 三個階段各自負責什麼
 

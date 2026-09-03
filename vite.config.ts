@@ -3,9 +3,9 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { seoContentPlugin } from './plugins/seo-content'
 
-// Dev-time /api/dsat/batch that mirrors what the OpenResty prod config
-// does with ngx.location.capture_multi: fan out to per-route DSAT calls
-// in parallel and merge into one JSON array.
+// Dev-time /api/dsat/batch — the sole implementation of the batch endpoint
+// (there is no production proxy): fan out to per-route DSAT calls in
+// parallel and merge into one JSON array.
 const dsatBatchDevPlugin = (): PluginOption => ({
   name: 'dsat-batch-dev',
   configureServer(server: ViteDevServer) {
