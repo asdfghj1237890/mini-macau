@@ -33,6 +33,69 @@ export const SCHOOL_LEVEL_ORDER: readonly SchoolLevel[] = [
 // source.
 export const SCHOOL_FEATURE_ID_PROPERTY = 'schoolId'
 
+// ---------------------------------------------------------------------------
+// Per-level visibility. The legend's SCHOOLS row toggles individual teaching
+// stages, so App filters the school array before it reaches MapView (the map
+// layer itself stays a single source rebuilt on array identity change).
+// ---------------------------------------------------------------------------
+
+export type SchoolLevelSet = ReadonlySet<SchoolLevel>
+
+// Every level enabled — the default, and the fallback for missing/corrupt
+// storage.
+export const ALL_SCHOOL_LEVELS: SchoolLevelSet = new Set(SCHOOL_LEVEL_ORDER)
+
+// localStorage key for the enabled levels (a JSON array of level names).
+const LS_SCHOOL_LEVELS_KEY = 'mini-macau-school-levels-on'
+
+// Schools whose level is switched on. When every level is enabled the input
+// array is returned as-is, so the caller's memo keeps its identity and MapView
+// skips a needless setData.
+export function filterSchoolsByLevel(schools: School[], levelsOn: SchoolLevelSet): School[] {
+  if (SCHOOL_LEVEL_ORDER.every(level => levelsOn.has(level))) return schools
+  return schools.filter(school => levelsOn.has(school.level))
+}
+
+// How many schools carry each level, for the legend's per-type counts. Always
+// has all five keys, so a level with no schools reads 0 rather than undefined.
+export function countSchoolsByLevel(schools: School[]): Record<SchoolLevel, number> {
+  const counts = Object.fromEntries(
+    SCHOOL_LEVEL_ORDER.map(level => [level, 0])
+  ) as Record<SchoolLevel, number>
+  for (const school of schools) {
+    if (school.level in counts) counts[school.level] += 1
+  }
+  return counts
+}
+
+// Restore the enabled levels. Anything unreadable, non-array, or holding
+// unknown level names degrades to "all on" rather than hiding the layer.
+export function loadSchoolLevelsOn(): SchoolLevelSet {
+  try {
+    const raw = localStorage.getItem(LS_SCHOOL_LEVELS_KEY)
+    if (!raw) return ALL_SCHOOL_LEVELS
+    const arr: unknown = JSON.parse(raw)
+    if (!Array.isArray(arr)) return ALL_SCHOOL_LEVELS
+    return new Set(
+      SCHOOL_LEVEL_ORDER.filter(level => arr.includes(level))
+    )
+  } catch {
+    return ALL_SCHOOL_LEVELS
+  }
+}
+
+// Persist the enabled levels, in SCHOOL_LEVEL_ORDER so the stored value is
+// stable. Storage can throw (private mode, quota) — losing the preference is
+// never worth breaking the toggle.
+export function saveSchoolLevelsOn(levels: SchoolLevelSet): void {
+  try {
+    localStorage.setItem(
+      LS_SCHOOL_LEVELS_KEY,
+      JSON.stringify(SCHOOL_LEVEL_ORDER.filter(level => levels.has(level)))
+    )
+  } catch { /* ignore */ }
+}
+
 // UI label for a level, for the legend's colour key. Uses the normalised enum
 // (not the school's own name) so the three UI languages stay consistent.
 export function schoolLevelLabel(t: Translations, level: SchoolLevel): string {

@@ -1,18 +1,52 @@
 import { useState, useMemo, useEffect } from 'react'
-import type { TransitData, SimulationClock } from '../types'
+import type { TransitData, SimulationClock, SchoolLevel } from '../types'
 import { useI18n, localName } from '../i18n'
 import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS, type GroupKey } from '../routeGroups'
-import { SCHOOL_COLORS, SCHOOL_LEVEL_ORDER, schoolLevelLabel } from '../schools'
+import {
+  SCHOOL_COLORS,
+  SCHOOL_LEVEL_ORDER,
+  countSchoolsByLevel,
+  schoolLevelLabel,
+  type SchoolLevelSet,
+} from '../schools'
 
-// The five level colours as one 8×8 swatch, used where the other rows show a
-// single-colour hatch.
+// The five level colours as one 8×8 swatch. Only the mobile modal header uses
+// it now — the desktop row shows the same violet hatch as the other layers,
+// because the per-level rows underneath carry the colour key themselves.
 const SCHOOL_SWATCH_GRADIENT = `linear-gradient(90deg, ${
   SCHOOL_LEVEL_ORDER.map((level, i) =>
     `${SCHOOL_COLORS[level]} ${i * 20}% ${(i + 1) * 20}%`).join(', ')
 })`
 
+// Violet hatch for the SCHOOLS row, matching the AIR/SEA/WORKS swatches.
+const SCHOOL_HATCH = 'repeating-linear-gradient(-45deg, rgba(167,139,250,0.45) 0 1px, transparent 1px 3px)'
+
+// Static English caption beside each level's localised label, so a row reads
+// the same in all three UI languages (the mono column is decoration, not a
+// translated string).
+const SCHOOL_LEVEL_CAPTIONS: Record<SchoolLevel, string> = {
+  kindergarten: 'KINDER',
+  primary: 'PRIMARY',
+  secondary: 'SECONDARY',
+  university: 'TERTIARY',
+  all_through: 'ALL-THROUGH',
+}
+
+// 12px mortarboard for the SCHOOLS row's glyph slot.
+function MortarboardIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 6.5L8 3.5l6 3-6 3-6-3z" />
+      <path d="M4.5 8.2v3c0 .9 1.6 1.8 3.5 1.8s3.5-.9 3.5-1.8v-3" />
+      <path d="M14 6.5v3.5" />
+    </svg>
+  )
+}
+
 const LS_DESKTOP_OPEN = 'mm-layers-desktop-open'
 const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
+const LS_SCHOOLS_LEGEND_OPEN = 'mm-schools-legend-open'
 
 interface Props {
   transitData: TransitData
@@ -29,12 +63,17 @@ interface Props {
   // transitData.roadWorks alone, which is the whole dataset.
   activeRoadWorksCount?: number
   schoolsOn?: boolean
+  // Which teaching stages are drawn, and how many schools each stage has
+  // (counted from the UNFILTERED data, so a row keeps its total while off).
+  schoolLevelsOn?: SchoolLevelSet
+  schoolLevelCounts?: Record<SchoolLevel, number>
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
   onToggleFerries?: () => void
   onToggleRoadWorks?: () => void
   onToggleSchools?: () => void
+  onToggleSchoolLevel?: (level: SchoolLevel) => void
   onToggleRoute?: (routeId: string) => void
   onToggleAll?: () => void
   onShowAll?: () => void
@@ -57,12 +96,15 @@ export function LineLegend({
   roadWorksOn = true,
   activeRoadWorksCount = 0,
   schoolsOn = true,
+  schoolLevelsOn,
+  schoolLevelCounts,
   clock,
   onToggleLrt,
   onToggleFlights,
   onToggleFerries,
   onToggleRoadWorks,
   onToggleSchools,
+  onToggleSchoolLevel,
   onToggleRoute,
   onShowAll,
   onHideAll,
@@ -73,6 +115,9 @@ export function LineLegend({
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null)
   const [desktopOpen, setDesktopOpen] = useState(() => {
     try { return localStorage.getItem(LS_DESKTOP_OPEN) !== '0' } catch { return true }
+  })
+  const [schoolsLegendOpen, setSchoolsLegendOpen] = useState(() => {
+    try { return localStorage.getItem(LS_SCHOOLS_LEGEND_OPEN) !== '0' } catch { return true }
   })
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => {
     try {
@@ -86,6 +131,9 @@ export function LineLegend({
   })
 
   useEffect(() => { localStorage.setItem(LS_DESKTOP_OPEN, desktopOpen ? '1' : '0') }, [desktopOpen])
+  useEffect(() => {
+    localStorage.setItem(LS_SCHOOLS_LEGEND_OPEN, schoolsLegendOpen ? '1' : '0')
+  }, [schoolsLegendOpen])
   useEffect(() => {
     localStorage.setItem(LS_DESKTOP_COLLAPSED_GROUPS, JSON.stringify([...collapsedGroups]))
   }, [collapsedGroups])
@@ -101,6 +149,16 @@ export function LineLegend({
   // every render (which would make its useMemo recompute each time).
   const busRoutes = useMemo(() => allTransitData?.busRoutes ?? [], [allTransitData])
   const allLrtLines = allTransitData?.lrtLines ?? transitData.lrtLines
+  // Per-level totals. App passes them pre-counted; the fallback keeps the
+  // legend correct if it's ever rendered without them.
+  const allSchools = useMemo(
+    () => allTransitData?.schools ?? transitData.schools,
+    [allTransitData, transitData.schools]
+  )
+  const levelCounts = useMemo(
+    () => schoolLevelCounts ?? countSchoolsByLevel(allSchools),
+    [schoolLevelCounts, allSchools]
+  )
   const grouped = useMemo(() => {
     const groups = new Map<typeof GROUP_ORDER[number], typeof busRoutes>()
     for (const g of GROUP_ORDER) groups.set(g, [])
@@ -141,9 +199,16 @@ export function LineLegend({
   const ferryCount = transitData.ferries.length
   const totalFerryCount = allTransitData?.ferries.length ?? ferryCount
   const totalRoadWorkCount = allTransitData?.roadWorks.length ?? transitData.roadWorks.length
-  // Schools are static, so the row always shows the full count — the toggle
-  // empties `transitData.schools`, it doesn't change how many exist.
+  // Schools are static, so `schoolCount` is the full register — the master
+  // switch empties `transitData.schools`, it doesn't change how many exist.
+  // The per-level toggles narrow it, hence the enabled/total pair.
   const schoolCount = allTransitData?.schools.length ?? transitData.schools.length
+  const isSchoolLevelOn = (level: SchoolLevel) =>
+    (schoolLevelsOn ? schoolLevelsOn.has(level) : true)
+  const schoolLevelsAllOn = SCHOOL_LEVEL_ORDER.every(isSchoolLevelOn)
+  const schoolEnabledCount = SCHOOL_LEVEL_ORDER.reduce(
+    (sum, level) => (isSchoolLevelOn(level) ? sum + (levelCounts[level] ?? 0) : sum), 0
+  )
 
   const isLrtOn = (id: string) => (lrtOn ? lrtOn.has(id) : true)
   const isLive = clock ? clock.isLive : true
@@ -187,11 +252,6 @@ export function LineLegend({
           {totalRoadWorkCount > 0 && roadWorksOn && (
             <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-amber-300/80">
               <span>{'\u26A0\uFE0E'}</span><span>{activeRoadWorksCount}</span>
-            </span>
-          )}
-          {schoolCount > 0 && schoolsOn && (
-            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-violet-300/80">
-              <span>{'\u2302'}</span><span>{schoolCount}</span>
             </span>
           )}
         </button>
@@ -422,7 +482,13 @@ export function LineLegend({
                            : 'hover:bg-white/[0.03] opacity-50'}
                          ${onToggleFlights ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${flightsOn ? 'text-white/45' : 'text-white/40'}`}>✈</span>
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${flightsOn ? 'text-white/45' : 'text-white/40'}`}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M22 2L11 13" />
+                  <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+                </svg>
+              </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(125,211,252,0.35) 0 1px, transparent 1px 3px)' }}
@@ -452,7 +518,14 @@ export function LineLegend({
                            : 'hover:bg-white/[0.03] opacity-50'}
                          ${onToggleFerries ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${ferriesOn ? 'text-white/45' : 'text-white/40'}`}>{'\u2693\uFE0E'}</span>
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${ferriesOn ? 'text-white/45' : 'text-white/40'}`}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                     strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="5" r="3" />
+                  <path d="M12 22V8" />
+                  <path d="M5 12H2a10 10 0 0 0 20 0h-3" />
+                </svg>
+              </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
@@ -500,50 +573,106 @@ export function LineLegend({
             </button>
           )}
 
-          {/* SCHOOLS — toggleable, with the level colour key underneath */}
+          {/* SCHOOLS — the row keeps the five columns of AIR/SEA/WORKS above
+              it (glyph · swatch · label · count · state) and adds the bus
+              groups' split interaction: the body expands the per-level rows,
+              the ON/OFF button at the right is the whole-layer switch. No
+              chevron — the rows below are the affordance. */}
           {schoolCount > 0 && (
             <>
-              <button
-                type="button"
-                onClick={onToggleSchools}
-                disabled={!onToggleSchools}
-                aria-pressed={schoolsOn}
-                title={t.schoolsCount(schoolCount)}
-                className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
-                           ${schoolsOn
-                             ? 'bg-violet-400/[0.05] hover:bg-violet-400/[0.1]'
-                             : 'hover:bg-white/[0.03] opacity-50'}
-                           ${onToggleSchools ? '' : 'cursor-default'}`}
-              >
-                <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${schoolsOn ? 'text-white/45' : 'text-white/40'}`}>{'⌂'}</span>
-                <span
-                  className="inline-block w-[8px] h-[8px] shrink-0"
-                  style={{ backgroundImage: SCHOOL_SWATCH_GRADIENT }}
-                />
-                <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
-                  SCHOOLS · 學校
-                </span>
-                <span className={`mm-mono mm-tabular text-[9px] ${schoolsOn ? 'text-violet-300/80' : 'text-white/25'}`}>
-                  {schoolCount}
-                </span>
-                <span className={`mm-mono text-[8px] tracking-[0.2em] ${schoolsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
-                  {schoolsOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-              <div className={`px-3 pb-1.5 flex flex-wrap gap-x-2 gap-y-[3px] transition
-                              ${schoolsOn ? 'bg-violet-400/[0.05]' : 'opacity-40'}`}>
-                {SCHOOL_LEVEL_ORDER.map(level => (
-                  <span key={level} className="flex items-center gap-1">
-                    <span
-                      className="inline-block w-[7px] h-[7px] shrink-0"
-                      style={{ backgroundColor: SCHOOL_COLORS[level] }}
-                    />
-                    <span className="text-[8px] leading-none text-white/40">
-                      {schoolLevelLabel(t, level)}
-                    </span>
+              <div className={`flex items-stretch border-t border-white/10 transition
+                              ${schoolsOn ? 'bg-violet-400/[0.05]' : 'opacity-50'}`}>
+                <button
+                  type="button"
+                  onClick={() => setSchoolsLegendOpen(v => !v)}
+                  aria-expanded={schoolsLegendOpen}
+                  title={t.schoolsExpandTitle}
+                  className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3
+                             hover:bg-violet-400/[0.1] transition"
+                >
+                  <span className={`inline-flex items-center justify-center w-[12px] shrink-0
+                                    ${schoolsOn ? 'text-white/45' : 'text-white/40'}`}>
+                    <MortarboardIcon />
                   </span>
-                ))}
+                  <span
+                    className="inline-block w-[8px] h-[8px] shrink-0"
+                    style={{ backgroundImage: SCHOOL_HATCH }}
+                  />
+                  <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45
+                                   flex-1 min-w-0 text-left truncate">
+                    SCHOOLS · 學校
+                  </span>
+                  <span className={`mm-mono mm-tabular text-[9px] shrink-0
+                                    ${schoolsOn ? 'text-violet-300/80' : 'text-white/25'}`}>
+                    {schoolLevelsAllOn ? schoolCount : `${schoolEnabledCount}/${schoolCount}`}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onToggleSchools}
+                  disabled={!onToggleSchools}
+                  aria-pressed={schoolsOn}
+                  title={t.schoolsToggleAllTitle}
+                  className={`shrink-0 inline-flex items-center justify-end pl-2 pr-3
+                              hover:bg-emerald-300/[0.1] transition
+                              ${onToggleSchools ? '' : 'cursor-default'}`}
+                >
+                  <span className={`mm-mono text-[8px] tracking-[0.2em] ${schoolsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                    {schoolsOn ? 'ON' : 'OFF'}
+                  </span>
+                </button>
               </div>
+              {schoolsLegendOpen && (
+                <div className={`pb-1 bg-violet-400/[0.05] ${schoolsOn ? '' : 'opacity-40'}`}>
+                  {SCHOOL_LEVEL_ORDER.map(level => {
+                    const on = isSchoolLevelOn(level)
+                    // "Lit" = actually drawn on the map: the level is on AND
+                    // the master switch is on.
+                    const lit = schoolsOn && on
+                    const color = SCHOOL_COLORS[level]
+                    return (
+                      <button
+                        key={level}
+                        type="button"
+                        onClick={() => onToggleSchoolLevel?.(level)}
+                        disabled={!onToggleSchoolLevel}
+                        aria-pressed={on}
+                        // The label truncates for the longest EN/PT wording
+                        // ("K–12 (all-through)"), so keep it readable on hover.
+                        title={schoolLevelLabel(t, level)}
+                        className={`w-full flex items-center gap-2 py-1 pl-8 pr-3
+                                    hover:bg-white/[0.04] transition
+                                    ${onToggleSchoolLevel ? '' : 'cursor-default'}`}
+                      >
+                        <span
+                          className="inline-block w-[7px] h-[7px] shrink-0"
+                          style={on
+                            ? { backgroundColor: color }
+                            : { boxShadow: `inset 0 0 0 1px ${color}99` }}
+                        />
+                        <span className={`text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
+                                          ${on ? 'text-white/75' : 'text-white/30'}`}>
+                          {schoolLevelLabel(t, level)}
+                        </span>
+                        <span className="mm-mono text-[7px] tracking-[0.18em] text-white/25 shrink-0">
+                          {SCHOOL_LEVEL_CAPTIONS[level]}
+                        </span>
+                        <span
+                          className={`mm-mono mm-tabular text-[9px] w-[18px] text-right shrink-0
+                                      ${lit ? '' : 'text-white/25'}`}
+                          style={lit ? { color } : undefined}
+                        >
+                          {levelCounts[level] ?? 0}
+                        </span>
+                        <span className={`mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+                                          ${lit ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                          {on ? 'ON' : 'OFF'}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
             </>
           )}
         </div>
@@ -1110,25 +1239,55 @@ export function LineLegend({
                 <span className="flex items-center gap-2">
                   <span className={schoolsOn ? 'text-violet-400' : 'text-white/40'}>{'⌂'}</span>
                   <span className="mm-mono mm-tabular text-[12px] text-white/80">
-                    {t.schoolsCount(schoolCount)}
+                    {t.schoolsCount(schoolEnabledCount)}
                   </span>
                 </span>
                 <span className={`mm-mono text-[10px] tracking-[0.2em] ${schoolsOn ? 'text-emerald-300' : 'text-white/25'}`}>
                   {schoolsOn ? 'ON' : 'OFF'}
                 </span>
               </button>
-              <div className={`px-3 pb-3 flex flex-wrap gap-x-3 gap-y-1.5 ${schoolsOn ? '' : 'opacity-40'}`}>
-                {SCHOOL_LEVEL_ORDER.map(level => (
-                  <span key={level} className="flex items-center gap-1.5">
-                    <span
-                      className="inline-block w-[9px] h-[9px] shrink-0"
-                      style={{ backgroundColor: SCHOOL_COLORS[level] }}
-                    />
-                    <span className="text-[10px] leading-none text-white/55">
-                      {schoolLevelLabel(t, level)}
-                    </span>
-                  </span>
-                ))}
+              {/* Per-level rows — same handlers as the desktop panel, at a
+                  44px tap target. No chevron: the modal is always expanded. */}
+              <div className={`pb-1 border-t border-white/10 ${schoolsOn ? '' : 'opacity-40'}`}>
+                {SCHOOL_LEVEL_ORDER.map(level => {
+                  const on = isSchoolLevelOn(level)
+                  const lit = schoolsOn && on
+                  const color = SCHOOL_COLORS[level]
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      onClick={() => onToggleSchoolLevel?.(level)}
+                      disabled={!onToggleSchoolLevel}
+                      aria-pressed={on}
+                      title={schoolLevelLabel(t, level)}
+                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-white/[0.04] transition
+                                  ${onToggleSchoolLevel ? '' : 'cursor-default'}`}
+                    >
+                      <span
+                        className="inline-block w-[9px] h-[9px] shrink-0"
+                        style={on
+                          ? { backgroundColor: color }
+                          : { boxShadow: `inset 0 0 0 1px ${color}99` }}
+                      />
+                      <span className={`text-[12px] leading-[1.2] flex-1 min-w-0 text-left truncate
+                                        ${on ? 'text-white/75' : 'text-white/30'}`}>
+                        {schoolLevelLabel(t, level)}
+                      </span>
+                      <span
+                        className={`mm-mono mm-tabular text-[11px] w-6 text-right shrink-0
+                                    ${lit ? '' : 'text-white/25'}`}
+                        style={lit ? { color } : undefined}
+                      >
+                        {levelCounts[level] ?? 0}
+                      </span>
+                      <span className={`mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
+                                        ${lit ? 'text-emerald-300' : 'text-white/25'}`}>
+                        {on ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           )}

@@ -92,6 +92,8 @@ const translations = {
     schoolLevelSecondary: 'Secondary',
     schoolLevelUniversity: 'University',
     schoolLevelAllThrough: 'K–12 (all-through)',
+    schoolsExpandTitle: 'Show or hide school types',
+    schoolsToggleAllTitle: 'Toggle the whole layer',
     noServiceToday: 'No service today',
     // ---- MapView drawer ----
     mapSettings: 'Map Settings',
@@ -276,6 +278,8 @@ const translations = {
     schoolLevelSecondary: '中學',
     schoolLevelUniversity: '大學',
     schoolLevelAllThrough: '一條龍',
+    schoolsExpandTitle: '展開／收合各類學校',
+    schoolsToggleAllTitle: '開關整層',
     noServiceToday: '本日無服務',
     mapSettings: '地圖設定',
     plan2D: '2D 平面',
@@ -448,6 +452,8 @@ const translations = {
     schoolLevelSecondary: 'Secundária',
     schoolLevelUniversity: 'Universidade',
     schoolLevelAllThrough: 'Contínua (K–12)',
+    schoolsExpandTitle: 'Mostrar ou ocultar tipos de escola',
+    schoolsToggleAllTitle: 'Ligar ou desligar a camada',
     noServiceToday: 'Sem serviço hoje',
     mapSettings: 'Definições',
     plan2D: '2D Plano',
@@ -623,6 +629,8 @@ export interface Translations {
   schoolLevelSecondary: string
   schoolLevelUniversity: string
   schoolLevelAllThrough: string
+  schoolsExpandTitle: string
+  schoolsToggleAllTitle: string
   noServiceToday: string
   mapSettings: string
   plan2D: string

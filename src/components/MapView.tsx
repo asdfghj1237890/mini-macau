@@ -663,9 +663,26 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       let firstSymbolId: string | undefined
 
       try {
+        // Anchor the extrusions below the labels but ABOVE the basemap's own
+        // 2D building fills. Dark Matter orders `building`/`building-top`
+        // before its first symbol layer, but Positron's first symbol layer
+        // (`waterway_label`) comes long before them — anchoring on it there
+        // put the 3D blocks under the flat building fills, which then
+        // painted over them. So: the first symbol layer AFTER the last
+        // building fill, falling back to the first symbol layer at all.
         const styleLayers = m.getStyle().layers ?? []
-        for (const l of styleLayers) {
-          if (l.type === 'symbol') { firstSymbolId = l.id; break }
+        let lastBuildingFill = -1
+        styleLayers.forEach((l, i) => {
+          if (l.type === 'fill' && /^building/.test(l.id)) lastBuildingFill = i
+        })
+        for (let i = 0; i < styleLayers.length; i++) {
+          const l = styleLayers[i]
+          if (l.type === 'symbol' && i > lastBuildingFill) { firstSymbolId = l.id; break }
+        }
+        if (!firstSymbolId) {
+          for (const l of styleLayers) {
+            if (l.type === 'symbol') { firstSymbolId = l.id; break }
+          }
         }
 
         m.addSource(BUILDINGS_SOURCE_ID, { type: 'vector', url: BUILDINGS_TILEJSON })

@@ -1,9 +1,14 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
+  ALL_SCHOOL_LEVELS,
   SCHOOL_COLORS,
   SCHOOL_FEATURE_ID_PROPERTY,
   SCHOOL_LEVEL_ORDER,
   buildSchoolFeatures,
+  countSchoolsByLevel,
+  filterSchoolsByLevel,
+  loadSchoolLevelsOn,
+  saveSchoolLevelsOn,
   schoolDsedjCode,
   schoolLevelLabel,
   schoolSystemLabel,
@@ -146,5 +151,99 @@ describe('buildSchoolFeatures', () => {
     const levels = [...SCHOOL_LEVEL_ORDER] as SchoolLevel[]
     const fc = buildSchoolFeatures(levels.map((level, i) => school({ id: `s${i}`, level })))
     expect(fc.features.map(f => f.properties?.color)).toEqual(levels.map(l => SCHOOL_COLORS[l]))
+  })
+})
+
+// One school of every level, in SCHOOL_LEVEL_ORDER, plus a second university.
+const MIXED: School[] = [
+  ...SCHOOL_LEVEL_ORDER.map((level, i) => school({ id: `s${i}`, level })),
+  school({ id: 'u2', level: 'university' }),
+]
+
+describe('ALL_SCHOOL_LEVELS', () => {
+  it('holds exactly the five levels the legend lists', () => {
+    expect([...ALL_SCHOOL_LEVELS].sort()).toEqual([...SCHOOL_LEVEL_ORDER].sort())
+  })
+})
+
+describe('filterSchoolsByLevel', () => {
+  it('keeps only schools whose level is enabled', () => {
+    const on = new Set<SchoolLevel>(['primary', 'university'])
+    expect(filterSchoolsByLevel(MIXED, on).map(s => s.id)).toEqual(['s1', 's3', 'u2'])
+  })
+
+  it('returns the SAME array when every level is on, so the map skips setData', () => {
+    expect(filterSchoolsByLevel(MIXED, ALL_SCHOOL_LEVELS)).toBe(MIXED)
+    expect(filterSchoolsByLevel(MIXED, new Set(SCHOOL_LEVEL_ORDER))).toBe(MIXED)
+  })
+
+  it('is empty when no level is on', () => {
+    expect(filterSchoolsByLevel(MIXED, new Set())).toEqual([])
+  })
+})
+
+describe('countSchoolsByLevel', () => {
+  it('counts each level and keeps a zero for levels with no schools', () => {
+    expect(countSchoolsByLevel(MIXED)).toEqual({
+      kindergarten: 1, primary: 1, secondary: 1, university: 2, all_through: 1,
+    })
+    expect(countSchoolsByLevel([])).toEqual({
+      kindergarten: 0, primary: 0, secondary: 0, university: 0, all_through: 0,
+    })
+  })
+
+  it('sums to the total, so the header can show enabled/total', () => {
+    const counts = countSchoolsByLevel(MIXED)
+    const total = SCHOOL_LEVEL_ORDER.reduce((sum, level) => sum + counts[level], 0)
+    expect(total).toBe(MIXED.length)
+  })
+})
+
+describe('loadSchoolLevelsOn / saveSchoolLevelsOn', () => {
+  function stubStorage(initial: Record<string, string> = {}) {
+    const store = new Map(Object.entries(initial))
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => { store.set(k, v) },
+      removeItem: (k: string) => { store.delete(k) },
+    })
+    return store
+  }
+
+  afterEach(() => { vi.unstubAllGlobals() })
+
+  it('round-trips a subset of levels', () => {
+    stubStorage()
+    saveSchoolLevelsOn(new Set<SchoolLevel>(['secondary', 'kindergarten']))
+    expect([...loadSchoolLevelsOn()]).toEqual(['kindergarten', 'secondary'])
+  })
+
+  it('round-trips "nothing on" rather than resetting to all on', () => {
+    stubStorage()
+    saveSchoolLevelsOn(new Set())
+    expect([...loadSchoolLevelsOn()]).toEqual([])
+  })
+
+  it('falls back to all levels when storage is missing, corrupt, or not an array', () => {
+    stubStorage()
+    expect(loadSchoolLevelsOn()).toBe(ALL_SCHOOL_LEVELS)
+    stubStorage({ 'mini-macau-school-levels-on': 'not json' })
+    expect(loadSchoolLevelsOn()).toBe(ALL_SCHOOL_LEVELS)
+    stubStorage({ 'mini-macau-school-levels-on': '{"primary":true}' })
+    expect(loadSchoolLevelsOn()).toBe(ALL_SCHOOL_LEVELS)
+  })
+
+  it('drops level names it does not recognise', () => {
+    stubStorage({ 'mini-macau-school-levels-on': '["primary","vocational",7]' })
+    expect([...loadSchoolLevelsOn()]).toEqual(['primary'])
+  })
+
+  it('survives storage that throws (private mode)', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => { throw new Error('denied') },
+      setItem: () => { throw new Error('denied') },
+    })
+    expect(loadSchoolLevelsOn()).toBe(ALL_SCHOOL_LEVELS)
+    expect(() => saveSchoolLevelsOn(ALL_SCHOOL_LEVELS)).not.toThrow()
   })
 })

@@ -11,7 +11,14 @@ import { macauHours, macauMinutes, macauMinutesOfDay, macauYmd } from './macauTi
 import { countActiveRoadWorks } from './roadWorks'
 import { startEngagementTracker, ga } from './analytics/ga'
 import { getRouteGroup, type GroupKey } from './routeGroups'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School } from './types'
+import {
+  countSchoolsByLevel,
+  filterSchoolsByLevel,
+  loadSchoolLevelsOn,
+  saveSchoolLevelsOn,
+  type SchoolLevelSet,
+} from './schools'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -117,7 +124,12 @@ export default function App() {
   const [flightsOn, setFlightsOn] = useState(() => localStorage.getItem(LS_FLIGHTS_KEY) !== '0')
   const [ferriesOn, setFerriesOn] = useState(() => localStorage.getItem(LS_FERRIES_KEY) !== '0')
   const [roadWorksOn, setRoadWorksOn] = useState(() => localStorage.getItem(LS_ROADWORKS_KEY) !== '0')
-  const [schoolsOn, setSchoolsOn] = useState(() => localStorage.getItem(LS_SCHOOLS_KEY) !== '0')
+  // Schools are the one layer that is OFF until asked for — opt-in, unlike
+  // the transit layers, so `=== '1'` rather than the `!== '0'` the others use.
+  const [schoolsOn, setSchoolsOn] = useState(() => localStorage.getItem(LS_SCHOOLS_KEY) === '1')
+  // Which of the five teaching stages are drawn. Independent of `schoolsOn`,
+  // which is the master switch for the whole layer.
+  const [schoolLevelsOn, setSchoolLevelsOn] = useState<SchoolLevelSet>(loadSchoolLevelsOn)
   // Defer the MapView mount (and therefore the MapLibre lazy chunk import +
   // its ~5s eval on a slow CPU) until the browser hits idle. The splash keeps
   // the HUD visible meanwhile. This shifts MapLibre's JS eval out of the LCP
@@ -167,10 +179,16 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_FERRIES_KEY, ferriesOn ? '1' : '0') }, [ferriesOn])
   useEffect(() => { localStorage.setItem(LS_ROADWORKS_KEY, roadWorksOn ? '1' : '0') }, [roadWorksOn])
   useEffect(() => { localStorage.setItem(LS_SCHOOLS_KEY, schoolsOn ? '1' : '0') }, [schoolsOn])
+  useEffect(() => { saveSchoolLevelsOn(schoolLevelsOn) }, [schoolLevelsOn])
   // Hiding the layer must also close its panel — the marker it describes is
   // gone from the map.
   useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])
   useEffect(() => { if (!schoolsOn) setSelectedSchool(null) }, [schoolsOn])
+  // Same rule one level down: switching off a teaching stage removes those
+  // blocks, so a panel describing one of them has to close too.
+  useEffect(() => {
+    setSelectedSchool(prev => (prev && !schoolLevelsOn.has(prev.school.level) ? null : prev))
+  }, [schoolLevelsOn])
   useEffect(() => { localStorage.setItem(LS_LRT_KEY, JSON.stringify([...lrtOn])) }, [lrtOn])
 
   const currentHour = macauHours(clock.currentTime)
@@ -225,6 +243,22 @@ export default function App() {
     [transitData, clock.currentTime]
   )
 
+  // Memoized separately from filteredTransitData (which is rebuilt on every
+  // clock tick): MapView pushes the school layer on ARRAY IDENTITY change, so
+  // this array must only change when the master switch, the per-level set, or
+  // the data itself does. Emptying it is the whole "off" mechanism.
+  const visibleSchools = useMemo(
+    () => (schoolsOn ? filterSchoolsByLevel(transitData.schools, schoolLevelsOn) : NO_SCHOOLS),
+    [transitData.schools, schoolsOn, schoolLevelsOn]
+  )
+
+  // Per-level totals for the legend, from the UNFILTERED data — the rows show
+  // how many schools each type has, not how many are currently drawn.
+  const schoolLevelCounts = useMemo(
+    () => countSchoolsByLevel(transitData.schools),
+    [transitData.schools]
+  )
+
   const filteredTransitData = useMemo(() => ({
     ...transitData,
     busRoutes: transitData.busRoutes.filter(r => visibleRoutes.has(r.id)),
@@ -232,10 +266,8 @@ export default function App() {
     flights: flightsOn ? dateAwareFlights : [],
     ferries: ferriesOn ? transitData.ferries : [],
     roadWorks: roadWorksOn ? transitData.roadWorks : NO_ROAD_WORKS,
-    // Emptying the array is the whole "off" mechanism: MapView rebuilds its
-    // GeoJSON source from this identity change and the blocks vanish.
-    schools: schoolsOn ? transitData.schools : NO_SCHOOLS,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, schoolsOn])
+    schools: visibleSchools,
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools])
 
   // Notices in force on the simulated Macau calendar day. Keyed on the day
   // string, NOT on clock.currentTime — the clock re-renders at ~10 Hz and the
@@ -406,6 +438,15 @@ export default function App() {
     ga.layerToggled('schools', !v)
     return !v
   }), [])
+  const toggleSchoolLevel = useCallback((level: SchoolLevel) => {
+    setSchoolLevelsOn(prev => {
+      const next = new Set(prev)
+      if (next.has(level)) next.delete(level)
+      else next.add(level)
+      ga.layerToggled(`schools_${level}`, next.has(level))
+      return next
+    })
+  }, [])
   const toggleTimeBar = useCallback(() => setShowTimeBar(v => {
     ga.layerToggled('time_bar', !v)
     return !v
@@ -465,12 +506,15 @@ export default function App() {
         roadWorksOn={roadWorksOn}
         activeRoadWorksCount={activeRoadWorksCount}
         schoolsOn={schoolsOn}
+        schoolLevelsOn={schoolLevelsOn}
+        schoolLevelCounts={schoolLevelCounts}
         clock={clock}
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
         onToggleFerries={toggleFerries}
         onToggleRoadWorks={toggleRoadWorks}
         onToggleSchools={toggleSchools}
+        onToggleSchoolLevel={toggleSchoolLevel}
         onToggleRoute={onToggleRoute}
         onToggleAll={onToggleAll}
         onShowAll={onShowAll}
