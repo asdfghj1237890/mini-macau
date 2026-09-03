@@ -69,6 +69,13 @@ function MortarboardIcon() {
 const LS_DESKTOP_OPEN = 'mm-layers-desktop-open'
 const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
 const LS_SCHOOLS_LEGEND_OPEN = 'mm-schools-legend-open'
+// Which page of the desktop panel is showing. The simulated transit layers
+// (LRT / BUS / AIR / SEA) and the static city overlays (WORKS / SCHOOLS / WC)
+// are different kinds of thing, and the city list will keep growing, so each
+// gets its own page; the choice persists like the other panel state.
+const LS_LAYERS_TAB = 'mm-layers-tab'
+const LAYERS_TABS = ['transit', 'city'] as const
+type LayersTab = typeof LAYERS_TABS[number]
 
 interface Props {
   transitData: TransitData
@@ -147,6 +154,9 @@ export function LineLegend({
   const [schoolsLegendOpen, setSchoolsLegendOpen] = useState(() => {
     try { return localStorage.getItem(LS_SCHOOLS_LEGEND_OPEN) !== '0' } catch { return true }
   })
+  const [layersTab, setLayersTab] = useState<LayersTab>(() => {
+    try { return localStorage.getItem(LS_LAYERS_TAB) === 'city' ? 'city' : 'transit' } catch { return 'transit' }
+  })
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => {
     try {
       const raw = localStorage.getItem(LS_DESKTOP_COLLAPSED_GROUPS)
@@ -159,6 +169,7 @@ export function LineLegend({
   })
 
   useEffect(() => { localStorage.setItem(LS_DESKTOP_OPEN, desktopOpen ? '1' : '0') }, [desktopOpen])
+  useEffect(() => { localStorage.setItem(LS_LAYERS_TAB, layersTab) }, [layersTab])
   useEffect(() => {
     localStorage.setItem(LS_SCHOOLS_LEGEND_OPEN, schoolsLegendOpen ? '1' : '0')
   }, [schoolsLegendOpen])
@@ -311,6 +322,29 @@ export function LineLegend({
             </div>
           </div>
 
+          {/* TRANSIT / CITY pages — same segment styling as the BUS mode
+              switch below, so the panel reads as one control vocabulary. */}
+          <div role="tablist" className="grid grid-cols-2 border-b border-white/8">
+            {LAYERS_TABS.map(tab => (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={layersTab === tab}
+                onClick={() => setLayersTab(tab)}
+                className={`px-1 py-[5px] mm-mono text-[9px] tracking-[0.15em] transition-colors text-center
+                           ${layersTab === tab
+                             ? 'bg-amber-300/10 text-amber-200'
+                             : 'text-white/45 hover:text-white hover:bg-white/5'}
+                           ${tab === 'city' ? 'border-l border-white/8' : ''}`}
+                style={layersTab === tab ? { boxShadow: 'inset 0 -2px 0 rgba(252,196,65,0.7)' } : undefined}
+              >
+                {tab === 'transit' ? 'TRANSIT · 交通' : 'CITY · 城市'}
+              </button>
+            ))}
+          </div>
+
+          {layersTab === 'transit' && (<>
           {/* LRT — clickable rows */}
           <div>
             <div className="px-3 py-1 flex items-center justify-between bg-white/[0.015] border-b border-white/5">
@@ -572,7 +606,9 @@ export function LineLegend({
               </span>
             </button>
           )}
+          </>)}
 
+          {layersTab === 'city' && (<>
           {/* ROAD WORKS — toggleable */}
           {totalRoadWorkCount > 0 && (
             <button
@@ -741,6 +777,7 @@ export function LineLegend({
               </span>
             </button>
           )}
+          </>)}
         </div>
       )}
 
