@@ -65,6 +65,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **Flight info** — Click any aircraft to see flight number, airline, destination/origin (with localized names), scheduled time, aircraft type, and live/sim status
 - **Ferry info** — Click any ferry to see operator, route, origin/destination port (localized), scheduled departure, crossing time, and live progress
 - **Road-works notices** — DSAT traffic-diversion notices shown on the map for the simulated date, toggleable
+- **School buildings** — Every school and tertiary campus rendered as coloured 3D blocks by level (kindergarten / primary / secondary / university / all-through), toggleable; click a block for the school's name, level, system and approved stages
 - **Automated ferry data** — GitHub Actions workflow scrapes TurboJET and CotaiJet timetables monthly and commits updated schedules if changed
 - **Time controls** — Play, pause (spacebar), speed up (1×–60×), jump to current time, or pick any date/time with the DateTimePicker; Esc toggles the sidebar menu
 - **Vehicle tracking** — Click a vehicle to follow it with smooth camera animation; freely zoom/pan while tracking
@@ -257,6 +258,7 @@ Automated via GitHub Actions (`.github/workflows/update-ferry-schedules.yml`), w
 - **Flight schedules** — [AviationStack API](https://aviationstack.com/) (MFM arrivals + departures)
 - **Ferry schedules** — [TurboJET](https://www2.turbojet.com.hk/zh-tw/%E6%B5%B7-%E8%88%B9/) + [CotaiJet](https://m.cotaiwaterjet.com/hk/ferry-schedule/hongkong-macau-taipa.html) official monthly timetables
 - **Road-works notices** — [DSAT via data.gov.mo](https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01) (daily)
+- **School buildings** — [DSEDJ school list](https://data.gov.mo/Detail?id=f0578833-7dd6-4ed5-b825-75e9c4f56012) on data.gov.mo + OpenStreetMap building footprints (manual refresh)
 
 Everything under `/data/*.json` is fetchable as-is but served with `X-Robots-Tag: noindex, nofollow` (`public/_headers` on Cloudflare Pages, `docker/nginx.conf` in the container) so the raw files stay out of search results. It is a header rather than a `robots.txt` Disallow on purpose: a crawler that is disallowed never sees the `noindex`, and a disallowed URL can still be listed bare when something links to it.
 

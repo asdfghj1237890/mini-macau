@@ -161,6 +161,39 @@ export interface RoadWorkNotice {
   previousNotice: string | null
 }
 
+// Teaching level a school is coloured by. `all_through` is a school that runs
+// kindergarten + primary + secondary under one roof (一條龍); the other four
+// are the highest stage the school is approved for. The pipeline decides this
+// from the DSEDJ stage flags, so the runtime never re-derives it.
+export type SchoolLevel = 'kindergarten' | 'primary' | 'secondary' | 'university' | 'all_through'
+
+// One building footprint of a school campus, from public/data/schools.json.
+// `coordinates` is a GeoJSON Polygon coordinate array (outer ring only),
+// already buffered ~0.5 m outwards by the pipeline, and `height` is the
+// basemap building's height + 0.5 m — together they make our coloured block
+// sit proud of the OpenFreeMap extrusion underneath instead of z-fighting it.
+export interface SchoolBuilding {
+  osmId: string // e.g. "w411047590"
+  name: string | null // OSM building name, null when the footprint is unnamed
+  height: number // metres
+  minHeight: number // metres; 0 for a ground-level building
+  coordinates: [number, number][][]
+}
+
+// One school from public/data/schools.json: the DSEDJ register (id
+// "dsedj:[002]") matched to OSM campus features, plus tertiary institutions
+// taken straight from OSM (id "osm:w123" / "osm:n456").
+export interface School {
+  id: string
+  name: { zh: string; pt: string } // no English form upstream; pt may be ""
+  level: SchoolLevel
+  levels: { kindergarten?: boolean; primary?: boolean; secondary?: boolean }
+  system: string // 'private' | 'public' | 'tertiary' — not read by the runtime
+  coordinates: [number, number] // representative point [lng, lat]
+  osm: string[] // the OSM campus features this school was matched to
+  buildings: SchoolBuilding[] // may be empty when no footprint was matched
+}
+
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
@@ -170,6 +203,7 @@ export interface TransitData {
   flights: Flight[]
   ferries: Ferry[]
   roadWorks: RoadWorkNotice[]
+  schools: School[]
   loading: boolean
 }
 

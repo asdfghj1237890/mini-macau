@@ -559,6 +559,150 @@ def v_road_works(data: object) -> list[str]:
     return errs
 
 
+SCHOOL_LEVELS = {"kindergarten", "primary", "secondary", "university", "all_through"}
+SCHOOL_SYSTEMS = {"private", "public", "tertiary"}
+# Degenerate-run guard: a broken Overpass fetch or a regressed DSEDJ/OSM name
+# match should fail loudly here rather than silently ship a near-empty overlay.
+SCHOOLS_MIN_COUNT = 40
+SCHOOL_BUILDINGS_MIN_COUNT = 100
+
+
+def check_building_ring(errs: list[str], ctx: str, ring: object) -> None:
+    if not (isinstance(ring, list) and len(ring) >= 4):
+        errs.append(f"{ctx}: ring must be a list of >= 4 [lng, lat] points")
+        return
+    for j, pt in enumerate(ring):
+        check_coords(errs, f"{ctx} vertex[{j}]", pt)
+    if ring[0] != ring[-1]:
+        errs.append(f"{ctx}: ring is not closed (first point != last point)")
+
+
+def v_schools(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(
+        errs, "schools", data,
+        ("fetchedAtUtc", "sources", "levels", "schools", "unmatchedDsedj", "droppedOsm"),
+    ):
+        return errs
+
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("schools: fetchedAtUtc must be a string")
+
+    sources = data["sources"]
+    if require_fields(errs, "schools.sources", sources, ("dsedj", "osm")):
+        for key in ("dsedj", "osm"):
+            if not isinstance(sources[key], str):
+                errs.append(f"schools.sources: '{key}' must be a string")
+
+    levels = data["levels"]
+    if not (isinstance(levels, list) and len(levels) == len(SCHOOL_LEVELS) and set(levels) == SCHOOL_LEVELS):
+        errs.append(f"schools.levels: must be exactly {sorted(SCHOOL_LEVELS)}")
+
+    if not require_nonempty_list(errs, "schools.schools", data["schools"]):
+        return errs
+
+    seen_ids: set[str] = set()
+    total_buildings = 0
+    for i, s in enumerate(data["schools"]):
+        ctx = f"schools.schools[{i}]"
+        if not require_fields(
+            errs, ctx, s,
+            ("id", "name", "level", "levels", "system", "coordinates", "osm", "buildings"),
+        ):
+            continue
+
+        sid = s["id"]
+        if not (isinstance(sid, str) and sid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif sid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{sid}'")
+        else:
+            seen_ids.add(sid)
+        label = f"{ctx} ({sid if isinstance(sid, str) and sid else '?'})"
+
+        name = s["name"]
+        if require_fields(errs, f"{label}.name", name, ("zh", "pt")):
+            if not (isinstance(name["zh"], str) and name["zh"]):
+                errs.append(f"{label}.name.zh must be a non-empty string")
+            if not isinstance(name["pt"], str):
+                errs.append(f"{label}.name.pt must be a string")
+
+        if s["level"] not in SCHOOL_LEVELS:
+            errs.append(f"{label}: level '{s['level']}' invalid")
+
+        lv = s["levels"]
+        if require_fields(errs, f"{label}.levels", lv, ("kindergarten", "primary", "secondary")):
+            for key in ("kindergarten", "primary", "secondary"):
+                if not isinstance(lv[key], bool):
+                    errs.append(f"{label}.levels.{key} must be a boolean")
+
+        if s["system"] not in SCHOOL_SYSTEMS:
+            errs.append(f"{label}: system '{s['system']}' invalid")
+
+        check_coords(errs, label, s["coordinates"])
+
+        if require_nonempty_list(errs, f"{label}.osm", s["osm"]):
+            for j, o in enumerate(s["osm"]):
+                if not isinstance(o, str):
+                    errs.append(f"{label}.osm[{j}] must be a string")
+
+        buildings = s["buildings"]
+        if not isinstance(buildings, list):
+            errs.append(f"{label}.buildings must be a list")
+            continue
+        total_buildings += len(buildings)
+        for j, b in enumerate(buildings):
+            bctx = f"{label}.buildings[{j}]"
+            if not require_fields(errs, bctx, b, ("osmId", "name", "height", "minHeight", "coordinates")):
+                continue
+            if not (isinstance(b["osmId"], str) and b["osmId"]):
+                errs.append(f"{bctx}: osmId must be a non-empty string")
+            if not (b["name"] is None or isinstance(b["name"], str)):
+                errs.append(f"{bctx}: name must be null or a string")
+            height = b["height"]
+            height_ok = isinstance(height, (int, float)) and not isinstance(height, bool) and height > 0
+            if not height_ok:
+                errs.append(f"{bctx}: height must be a number > 0")
+            min_height = b["minHeight"]
+            if not (isinstance(min_height, (int, float)) and not isinstance(min_height, bool) and min_height >= 0):
+                errs.append(f"{bctx}: minHeight must be a number >= 0")
+            elif height_ok and min_height >= height:
+                errs.append(f"{bctx}: minHeight must be < height")
+            rings = b["coordinates"]
+            if not (isinstance(rings, list) and rings):
+                errs.append(f"{bctx}: coordinates must be a non-empty list of rings")
+            else:
+                for k, ring in enumerate(rings):
+                    check_building_ring(errs, f"{bctx}.coordinates[{k}]", ring)
+
+    if len(data["schools"]) < SCHOOLS_MIN_COUNT:
+        errs.append(
+            f"schools: only {len(data['schools'])} schools (< {SCHOOLS_MIN_COUNT}) — looks like a degenerate run"
+        )
+    if total_buildings < SCHOOL_BUILDINGS_MIN_COUNT:
+        errs.append(
+            f"schools: only {total_buildings} buildings total (< {SCHOOL_BUILDINGS_MIN_COUNT}) — "
+            "looks like a degenerate run"
+        )
+
+    for i, u in enumerate(data["unmatchedDsedj"]):
+        uctx = f"schools.unmatchedDsedj[{i}]"
+        if not require_fields(errs, uctx, u, ("code", "name", "level")):
+            continue
+        for key in ("code", "name", "level"):
+            if not isinstance(u[key], str):
+                errs.append(f"{uctx}.{key} must be a string")
+
+    if not isinstance(data["droppedOsm"], list):
+        errs.append("schools.droppedOsm: expected a JSON array")
+    else:
+        for i, d in enumerate(data["droppedOsm"]):
+            if not isinstance(d, str):
+                errs.append(f"schools.droppedOsm[{i}] must be a string")
+
+    return errs
+
+
 # name -> (absolute path, validator)
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
@@ -573,6 +717,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "ferries": (PUBLIC / "data/ferry-schedules.json", v_ferries),
     "service-status": (PUBLIC / "service-status.json", v_service_status),
     "road-works": (PUBLIC / "data/road-works.json", v_road_works),
+    "schools": (PUBLIC / "data/schools.json", v_schools),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.

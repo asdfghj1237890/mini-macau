@@ -11,7 +11,7 @@ import { macauHours, macauMinutes, macauMinutesOfDay, macauYmd } from './macauTi
 import { countActiveRoadWorks } from './roadWorks'
 import { startEngagementTracker, ga } from './analytics/ga'
 import { getRouteGroup, type GroupKey } from './routeGroups'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice } from './types'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -26,6 +26,7 @@ const StationInfoPanel = lazy(() => import('./components/StationInfoPanel').then
 const FlightInfoPanel = lazy(() => import('./components/FlightInfoPanel').then(m => ({ default: m.FlightInfoPanel })))
 const FerryInfoPanel = lazy(() => import('./components/FerryInfoPanel').then(m => ({ default: m.FerryInfoPanel })))
 const RoadWorkInfoPanel = lazy(() => import('./components/RoadWorkInfoPanel').then(m => ({ default: m.RoadWorkInfoPanel })))
+const SchoolInfoPanel = lazy(() => import('./components/SchoolInfoPanel').then(m => ({ default: m.SchoolInfoPanel })))
 
 const LS_KEY = 'mini-macau-visible-routes'
 
@@ -67,6 +68,14 @@ const LS_LRT_KEY = 'mini-macau-lrt-on'
 const LS_FLIGHTS_KEY = 'mini-macau-flights-on'
 const LS_FERRIES_KEY = 'mini-macau-ferries-on'
 const LS_ROADWORKS_KEY = 'mini-macau-roadworks-on'
+const LS_SCHOOLS_KEY = 'mini-macau-schools-on'
+
+// Stable empty array for the "schools off" case. filteredTransitData is
+// rebuilt on every clock tick (dateAwareFlights depends on currentTime), and
+// MapView pushes the school layer on ARRAY IDENTITY change — a fresh `[]`
+// literal here would make it call setData ~10×/s while the layer is hidden.
+const NO_SCHOOLS: School[] = []
+const NO_ROAD_WORKS: RoadWorkNotice[] = []
 const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 
 export default function App() {
@@ -97,12 +106,18 @@ export default function App() {
   const [selectedVehicle, setSelectedVehicle] = useState<VehiclePosition | null>(null)
   const [selectedStation, setSelectedStation] = useState<Station | null>(null)
   const [selectedRoadWork, setSelectedRoadWork] = useState<RoadWorkNotice | null>(null)
+  // The clicked school plus the building that was clicked (schools are drawn
+  // as one block per footprint, so the panel can name the exact one).
+  const [selectedSchool, setSelectedSchool] = useState<
+    { school: School; buildingName: string | null } | null
+  >(null)
   const [trackedVehicleId, setTrackedVehicleId] = useState<string | null>(null)
   const [vehicleCount, setVehicleCount] = useState(0)
   const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
   const [flightsOn, setFlightsOn] = useState(() => localStorage.getItem(LS_FLIGHTS_KEY) !== '0')
   const [ferriesOn, setFerriesOn] = useState(() => localStorage.getItem(LS_FERRIES_KEY) !== '0')
   const [roadWorksOn, setRoadWorksOn] = useState(() => localStorage.getItem(LS_ROADWORKS_KEY) !== '0')
+  const [schoolsOn, setSchoolsOn] = useState(() => localStorage.getItem(LS_SCHOOLS_KEY) !== '0')
   // Defer the MapView mount (and therefore the MapLibre lazy chunk import +
   // its ~5s eval on a slow CPU) until the browser hits idle. The splash keeps
   // the HUD visible meanwhile. This shifts MapLibre's JS eval out of the LCP
@@ -151,9 +166,11 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_FLIGHTS_KEY, flightsOn ? '1' : '0') }, [flightsOn])
   useEffect(() => { localStorage.setItem(LS_FERRIES_KEY, ferriesOn ? '1' : '0') }, [ferriesOn])
   useEffect(() => { localStorage.setItem(LS_ROADWORKS_KEY, roadWorksOn ? '1' : '0') }, [roadWorksOn])
+  useEffect(() => { localStorage.setItem(LS_SCHOOLS_KEY, schoolsOn ? '1' : '0') }, [schoolsOn])
   // Hiding the layer must also close its panel — the marker it describes is
   // gone from the map.
   useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])
+  useEffect(() => { if (!schoolsOn) setSelectedSchool(null) }, [schoolsOn])
   useEffect(() => { localStorage.setItem(LS_LRT_KEY, JSON.stringify([...lrtOn])) }, [lrtOn])
 
   const currentHour = macauHours(clock.currentTime)
@@ -214,8 +231,11 @@ export default function App() {
     lrtLines: transitData.lrtLines.filter(l => lrtOn.has(l.id)),
     flights: flightsOn ? dateAwareFlights : [],
     ferries: ferriesOn ? transitData.ferries : [],
-    roadWorks: roadWorksOn ? transitData.roadWorks : [],
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn])
+    roadWorks: roadWorksOn ? transitData.roadWorks : NO_ROAD_WORKS,
+    // Emptying the array is the whole "off" mechanism: MapView rebuilds its
+    // GeoJSON source from this identity change and the blocks vanish.
+    schools: schoolsOn ? transitData.schools : NO_SCHOOLS,
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, schoolsOn])
 
   // Notices in force on the simulated Macau calendar day. Keyed on the day
   // string, NOT on clock.currentTime — the clock re-renders at ~10 Hz and the
@@ -315,6 +335,7 @@ export default function App() {
     setSelectedVehicle(vehicle)
     setSelectedStation(null)
     setSelectedRoadWork(null)
+    setSelectedSchool(null)
     setTrackedVehicleId(vehicle?.id ?? null)
     if (vehicle) ga.vehicleSelected(vehicle.type, vehicle.id)
   }, [])
@@ -327,6 +348,7 @@ export default function App() {
     setSelectedStation(station)
     setSelectedVehicle(null)
     setSelectedRoadWork(null)
+    setSelectedSchool(null)
     setTrackedVehicleId(null)
     if (station) ga.stationSelected(station.id)
   }, [])
@@ -337,6 +359,16 @@ export default function App() {
     setSelectedRoadWork(notice)
     setSelectedVehicle(null)
     setSelectedStation(null)
+    setSelectedSchool(null)
+    setTrackedVehicleId(null)
+  }, [])
+
+  // School blocks follow the same one-panel-at-a-time rule.
+  const onSchoolClick = useCallback((school: School, buildingName: string | null) => {
+    setSelectedSchool({ school, buildingName })
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -344,6 +376,7 @@ export default function App() {
     setSelectedVehicle(null)
     setSelectedStation(null)
     setSelectedRoadWork(null)
+    setSelectedSchool(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -367,6 +400,10 @@ export default function App() {
   }), [])
   const toggleRoadWorks = useCallback(() => setRoadWorksOn(v => {
     ga.layerToggled('road_works', !v)
+    return !v
+  }), [])
+  const toggleSchools = useCallback(() => setSchoolsOn(v => {
+    ga.layerToggled('schools', !v)
     return !v
   }), [])
   const toggleTimeBar = useCallback(() => setShowTimeBar(v => {
@@ -399,9 +436,11 @@ export default function App() {
             onTrackedVehicleUpdate={onTrackedVehicleUpdate}
             onStationClick={onStationClick}
             onRoadWorkClick={onRoadWorkClick}
+            onSchoolClick={onSchoolClick}
             onClearSelection={clearSelection}
             trackedVehicleId={trackedVehicleId}
             selectedRoadWorkId={selectedRoadWork?.id ?? null}
+            selectedSchoolId={selectedSchool?.school.id ?? null}
             onVehicleCount={onVehicleCount}
             showTimeBar={showTimeBar}
             onToggleTimeBar={toggleTimeBar}
@@ -425,11 +464,13 @@ export default function App() {
         ferriesOn={ferriesOn}
         roadWorksOn={roadWorksOn}
         activeRoadWorksCount={activeRoadWorksCount}
+        schoolsOn={schoolsOn}
         clock={clock}
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
         onToggleFerries={toggleFerries}
         onToggleRoadWorks={toggleRoadWorks}
+        onToggleSchools={toggleSchools}
         onToggleRoute={onToggleRoute}
         onToggleAll={onToggleAll}
         onShowAll={onShowAll}
@@ -473,6 +514,13 @@ export default function App() {
           <RoadWorkInfoPanel
             notice={selectedRoadWork}
             clock={clock}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedSchool && (
+          <SchoolInfoPanel
+            school={selectedSchool.school}
+            buildingName={selectedSchool.buildingName}
             onClose={clearSelection}
           />
         )}

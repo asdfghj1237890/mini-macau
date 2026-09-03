@@ -372,6 +372,7 @@ describe('computeBusCycleSec', () => {
       flights: [],
       ferries: [],
       roadWorks: [],
+      schools: [],
       loading: false,
     }
 
@@ -395,6 +396,7 @@ describe('computeBusCycleSec', () => {
       flights: [],
       ferries: [],
       roadWorks: [],
+      schools: [],
       loading: false,
     }
 

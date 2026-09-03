@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -19,6 +19,7 @@ import {
 import length from '@turf/length'
 import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay, macauYmd, macauDayIndex } from '../macauTime'
 import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks'
+import { SCHOOL_FEATURE_ID_PROPERTY, buildSchoolFeatures } from '../schools'
 import { useI18n } from '../i18n'
 import type { BusTracker, RouteRealtimePoller, TrackedBusState } from '../services/realtimeClient'
 import { ga } from '../analytics/ga'
@@ -245,6 +246,17 @@ function buildRoadWorkFeatures(
   return { type: 'FeatureCollection', features }
 }
 
+// ---- Schools overlay ----------------------------------------------------
+// Our own coloured fill-extrusion, drawn directly above `3d-buildings`. The
+// basemap tiles merge same-height buildings into one feature, so tinting them
+// per building is impossible — see the header of src/schools.ts.
+const SCHOOLS_SOURCE_ID = 'school-buildings'
+const SCHOOLS_LAYER_ID = 'school-buildings'
+// Colour of the selected school's blocks. Every building of a school shares
+// the promoted feature id, so the `selected` feature-state below repaints the
+// whole campus at once.
+const SCHOOL_SELECTED_COLOR = '#ffffff'
+
 const MACAU_CENTER: [number, number] = [113.55920888434439, 22.160440018223373]
 const MACAU_ZOOM = 13
 const STYLES = {
@@ -260,15 +272,19 @@ interface Props {
   onTrackedVehicleUpdate?: (vehicle: VehiclePosition) => void
   onStationClick?: (station: Station | null) => void
   onRoadWorkClick?: (notice: RoadWorkNotice | null) => void
+  // `buildingName` is the clicked footprint's OSM name — null for the many
+  // unnamed campus buildings.
+  onSchoolClick?: (school: School, buildingName: string | null) => void
   onClearSelection?: () => void
   trackedVehicleId?: string | null
   selectedRoadWorkId?: string | null
+  selectedSchoolId?: string | null
   onVehicleCount?: (count: number) => void
   showTimeBar?: boolean
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onClearSelection, trackedVehicleId, selectedRoadWorkId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -340,6 +356,29 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const roadWorksRenderRef = useRef<{ notices: RoadWorkNotice[] | null; day: number }>(
     { notices: null, day: -1 }
   )
+  // Mirrors the selected school id for the same reason: setStyle drops every
+  // source AND its feature state, so addCustomLayers has to re-apply it.
+  const selectedSchoolIdRef = useRef<string | null>(selectedSchoolId ?? null)
+  selectedSchoolIdRef.current = selectedSchoolId ?? null
+  // The id whose `selected` feature-state is currently set on the map, so the
+  // effect clears exactly one entry instead of walking all 76 schools.
+  const schoolStateIdRef = useRef<string | null>(null)
+
+  // Highlight = one feature-state per school id. `promoteId` makes every
+  // building of a school share that id, so this single pair of calls repaints
+  // the whole campus — no setPaintProperty, which would recompile the layer.
+  const applySchoolSelection = useCallback((m: maplibregl.Map) => {
+    // The style can be mid-swap (setStyle → the sources are gone until
+    // style.load re-adds them); setFeatureState would throw on a missing one.
+    if (!m.getSource(SCHOOLS_SOURCE_ID)) return
+    const next = selectedSchoolIdRef.current
+    const prev = schoolStateIdRef.current
+    if (prev && prev !== next) {
+      m.setFeatureState({ source: SCHOOLS_SOURCE_ID, id: prev }, { selected: false })
+    }
+    if (next) m.setFeatureState({ source: SCHOOLS_SOURCE_ID, id: next }, { selected: true })
+    schoolStateIdRef.current = next
+  }, [])
 
   const addCustomLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
 
@@ -619,9 +658,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       const cur3D = is3DRef.current
       const curBuildings = showBuildingsRef.current
 
+      // Hoisted out of the try below so the schools layer can reuse it as its
+      // beforeId even if the building tiles fail to load.
+      let firstSymbolId: string | undefined
+
       try {
         const styleLayers = m.getStyle().layers ?? []
-        let firstSymbolId: string | undefined
         for (const l of styleLayers) {
           if (l.type === 'symbol') { firstSymbolId = l.id; break }
         }
@@ -646,6 +688,50 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           },
         }, firstSymbolId)
       } catch { /* building tiles may fail */ }
+
+      // Schools. Inserted at the same anchor as `3d-buildings` and right
+      // after it, so the coloured campus blocks sit directly on top of the
+      // basemap extrusions and still below every label and vehicle layer
+      // (those are added later in this function). Deliberately NOT gated on
+      // the BLD toggle or on 2D/3D: the overlay is a data layer of its own,
+      // and in 2D it simply reads as flat colour patches.
+      //
+      // Seeded from transitRef (not a closure) because addCustomLayers also
+      // runs after a theme swap, long after schools.json has landed — the
+      // [transitData.schools] effect below only fires on identity changes.
+      m.addSource(SCHOOLS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildSchoolFeatures(transitRef.current.schools),
+        // All buildings of one school carry the same `schoolId`, so promoting
+        // it to the feature id lets a single setFeatureState light up the
+        // whole campus (see applySchoolSelection).
+        promoteId: SCHOOL_FEATURE_ID_PROPERTY,
+      })
+      // Height follows the SAME z14→z15.5 ramp as the basemap buildings above,
+      // so a school block stays exactly 0.5 m proud of its grey neighbours
+      // while they grow, and degrades to a flat coloured footprint (height 0)
+      // at the zooms where the basemap draws no buildings at all.
+      m.addLayer({
+        id: SCHOOLS_LAYER_ID, type: 'fill-extrusion', source: SCHOOLS_SOURCE_ID,
+        paint: {
+          'fill-extrusion-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            SCHOOL_SELECTED_COLOR,
+            ['get', 'color'],
+          ],
+          'fill-extrusion-height': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'height'],
+          ],
+          'fill-extrusion-base': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'minHeight'],
+          ],
+          'fill-extrusion-opacity': 0.95,
+          'fill-extrusion-vertical-gradient': true,
+        },
+      }, firstSymbolId)
 
       for (const line of allTransitData.lrtLines) {
         if (!line.geometry) continue
@@ -795,6 +881,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       lastServiceMinuteRef.current = ''
       // Force the next tick to repopulate the (now empty) road-works source.
       roadWorksRenderRef.current = { notices: null, day: -1 }
+      // A style swap drops feature state along with the sources, so the
+      // selected school has to be re-marked on the freshly added source.
+      schoolStateIdRef.current = null
+      applySchoolSelection(m)
     }
 
     addCustomLayersRef.current = addCustomLayers
@@ -824,6 +914,25 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       })
       m.on('mouseenter', ROAD_WORKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', ROAD_WORKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
+
+      // Registered BEFORE the vehicle handlers: delegated listeners fire in
+      // registration order, so a bus parked over a campus block still wins.
+      m.on('click', SCHOOLS_LAYER_ID, (e) => {
+        const feature = e.features?.[0]
+        if (feature) {
+          const sid = feature.properties?.[SCHOOL_FEATURE_ID_PROPERTY]
+          // Current list (transitRef), not a closed-over snapshot —
+          // schools.json lands after this handler is attached.
+          const school = transitRef.current.schools.find(s => s.id === sid)
+          if (school) {
+            const name = feature.properties?.name
+            onSchoolClick?.(school, typeof name === 'string' && name ? name : null)
+            e.preventDefault()
+          }
+        }
+      })
+      m.on('mouseenter', SCHOOLS_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
+      m.on('mouseleave', SCHOOLS_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
 
       m.on('click', 'vehicles-circle', (e) => {
         const feature = e.features?.[0]
@@ -856,7 +965,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       m.on('click', (e) => {
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, ...model3DLayers],
+          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, ...model3DLayers],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -933,6 +1042,26 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     if (!map || !map.getLayer(ROAD_WORKS_SELECTED_LAYER_ID)) return
     map.setFilter(ROAD_WORKS_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedRoadWorkId ?? ''])
   }, [selectedRoadWorkId])
+
+  // School blocks. Unlike every other overlay this data does not depend on
+  // the simulated clock, so it is pushed here on array-identity change
+  // (schools.json arriving, or the legend toggle swapping in []) instead of
+  // from the RAF tick. A style rebuild is covered by addCustomLayers seeding
+  // the source from transitRef.
+  useEffect(() => {
+    const map = mapRef.current
+    const src = map?.getSource(SCHOOLS_SOURCE_ID) as unknown as
+      { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    src?.setData?.(buildSchoolFeatures(transitData.schools))
+  }, [transitData.schools])
+
+  // Selected school highlight. Feature state survives setData, so this only
+  // has to run when the selection itself changes (a style swap is covered by
+  // addCustomLayers re-applying it).
+  useEffect(() => {
+    const map = mapRef.current
+    if (map) applySchoolSelection(map)
+  }, [selectedSchoolId, applySchoolSelection])
 
   useEffect(() => {
     const map = mapRef.current
@@ -1765,6 +1894,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                       rel="noopener noreferrer"
                       className="hover:text-amber-200 transition-colors"
                     >data.gov.mo</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceSchoolsLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                    <a
+                      href="https://www.dsedj.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >DSEDJ</a>
+                    <span className="text-white/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.openstreetmap.org/copyright"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >OSM</a>
                   </span>
                 </li>
               </ul>

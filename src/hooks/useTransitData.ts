@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -14,6 +14,7 @@ import {
   FlightsSchema,
   FerryScheduleFileSchema,
   RoadWorksFileSchema,
+  SchoolsFileSchema,
 } from '../dataSchemas'
 
 const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
@@ -82,6 +83,16 @@ interface RoadWorksFile {
   exportedAt: string
   source: { name: string; dataset: string; download: string }
   notices: RoadWorkNotice[]
+}
+
+// schools.json likewise wraps the list in a metadata envelope. Only `schools`
+// reaches TransitData — `unmatchedDsedj` / `droppedOsm` are pipeline
+// diagnostics and the source attribution in the sidebar is a static label.
+interface SchoolsFile {
+  fetchedAtUtc: string
+  sources: Record<string, string>
+  levels: SchoolLevel[]
+  schools: School[]
 }
 
 function hhmmToMinutes(s: string): number | null {
@@ -313,6 +324,7 @@ export function useTransitData(): UseTransitDataResult {
     flights: [],
     ferries: [],
     roadWorks: [],
+    schools: [],
     loading: true,
   })
   // Multi-day timetable lives in its own state slot rather than on
@@ -425,6 +437,13 @@ export function useTransitData(): UseTransitDataResult {
     // deployment, so a failure just leaves the overlay empty.
     loadJson<RoadWorksFile>('/data/road-works.json', RoadWorksFileSchema, 'road-works.json')
       .then(file => commit('roadWorks', file.notices))
+      .catch(() => {})
+
+    // Schools are a static (manually regenerated) overlay, loaded the same
+    // non-critical way: a missing file just leaves the campus blocks off the
+    // map rather than failing the whole load.
+    loadJson<SchoolsFile>('/data/schools.json', SchoolsFileSchema, 'schools.json')
+      .then(file => commit('schools', file.schools))
       .catch(() => {})
 
     return () => { cancelledRef.current = true }

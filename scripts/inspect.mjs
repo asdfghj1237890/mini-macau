@@ -20,6 +20,7 @@
 //   node scripts/inspect.mjs ferries                # ferry-schedules.json summary
 //   node scripts/inspect.mjs flights                # flights.json summary
 //   node scripts/inspect.mjs road-works [YYYY-MM-DD] # road-works.json summary + active/upcoming for a date (default: today, Macau)
+//   node scripts/inspect.mjs schools                # schools.json summary (by level/system, buildings, unmatched/dropped)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync } from 'node:fs'
@@ -159,6 +160,33 @@ function cmdRoadWorks(dateArg) {
   }
 }
 
+function cmdSchools() {
+  const { schools, unmatchedDsedj, droppedOsm } = load('public/data/schools.json')
+
+  const byLevel = {}
+  const bySystem = {}
+  let totalBuildings = 0
+  const noBuildings = []
+  for (const s of schools) {
+    byLevel[s.level] = (byLevel[s.level] || 0) + 1
+    bySystem[s.system] = (bySystem[s.system] || 0) + 1
+    totalBuildings += s.buildings.length
+    if (s.buildings.length === 0) noBuildings.push(s.name.zh)
+  }
+
+  console.log(`total schools: ${schools.length}   total buildings: ${totalBuildings}`)
+  console.log('by level:', byLevel)
+  console.log('by system:', bySystem)
+
+  console.log(`\nschools with 0 buildings: ${noBuildings.length}`)
+  for (const name of noBuildings) console.log(`  ${name}`)
+
+  console.log(`\nunmatchedDsedj: ${unmatchedDsedj.length}`)
+  for (const u of unmatchedDsedj) console.log(`  [${u.code}] ${u.name} (${u.level})`)
+
+  console.log(`\ndroppedOsm: ${droppedOsm.length}`)
+}
+
 function fail(msg) {
   console.error(`error: ${msg}`)
   process.exit(1)
@@ -177,7 +205,8 @@ switch (cmd) {
   case 'ferries': summarizeJson('public/data/ferry-schedules.json'); break
   case 'flights': summarizeJson('public/data/flights.json'); break
   case 'road-works': cmdRoadWorks(pos[0]); break
+  case 'schools': cmdSchools(); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD]')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools')
     if (cmd) process.exit(1)
 }

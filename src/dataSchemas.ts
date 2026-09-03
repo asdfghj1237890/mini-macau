@@ -189,6 +189,46 @@ export const RoadWorksFileSchema = z.object({
   ),
 })
 
+// schools.json — the DSEDJ school register matched to OSM campus/building
+// footprints (tertiary institutions come straight from OSM). Mirrors the
+// `schools` block in data/scripts/validate_output.py. `level` is the enum the
+// overlay colours by, so it is checked strictly; `system` is metadata the
+// runtime never reads and stays a plain string. Building `name` is null when
+// the OSM footprint is unnamed, and `buildings` may be empty for a school
+// whose campus has no mapped footprint.
+const schoolLevel = z.enum(['kindergarten', 'primary', 'secondary', 'university', 'all_through'])
+
+export const SchoolsFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  sources: z.record(z.string(), z.string()),
+  levels: z.array(schoolLevel),
+  schools: z.array(
+    z.object({
+      id: z.string(),
+      name: z.object({ zh: z.string(), pt: z.string() }),
+      level: schoolLevel,
+      levels: z.object({
+        kindergarten: z.boolean().optional(),
+        primary: z.boolean().optional(),
+        secondary: z.boolean().optional(),
+      }),
+      system: z.string(),
+      coordinates: lngLat,
+      osm: z.array(z.string()),
+      buildings: z.array(
+        z.object({
+          osmId: z.string(),
+          name: z.string().nullable(),
+          height: z.number(),
+          minHeight: z.number(),
+          // GeoJSON Polygon coordinates: at least one ring of [lng, lat].
+          coordinates: z.array(z.array(lngLat)).min(1),
+        }),
+      ),
+    }),
+  ),
+})
+
 // Validate `raw` against `schema`. On mismatch: throw in dev (so tests and the
 // dev server surface contract drift immediately) and console.error in prod (so
 // the live site logs the problem but still renders best-effort). Returns the

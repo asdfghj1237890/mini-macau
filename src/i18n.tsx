@@ -85,6 +85,13 @@ const translations = {
     ferries: 'Ferries',
     roadWorks: 'Road works',
     roadWorksActive: (n: number) => `${n} active`,
+    schools: 'Schools',
+    schoolsCount: (n: number) => `${n} schools`,
+    schoolLevelKindergarten: 'Kindergarten',
+    schoolLevelPrimary: 'Primary',
+    schoolLevelSecondary: 'Secondary',
+    schoolLevelUniversity: 'University',
+    schoolLevelAllThrough: 'K–12 (all-through)',
     noServiceToday: 'No service today',
     // ---- MapView drawer ----
     mapSettings: 'Map Settings',
@@ -108,6 +115,7 @@ const translations = {
     dataSourceFlightLabel: 'Flights',
     dataSourceFerryLabel: 'Ferries',
     dataSourceRoadWorksLabel: 'Road works',
+    dataSourceSchoolsLabel: 'Schools',
     // ---- ControlPanel ----
     amPeak: 'AM PEAK',
     pmPeak: 'PM PEAK',
@@ -199,6 +207,18 @@ const translations = {
     roadWorkPrevNotice: 'REPLACES',
     roadWorkDetails: 'DETAILS',
     roadWorkSource: 'SOURCE',
+    // ---- SchoolInfoPanel ----
+    schoolLabel: 'SCHOOL',
+    schoolSystem: 'SYSTEM',
+    schoolSystemPrivate: 'Private school',
+    schoolSystemPublic: 'Public school',
+    schoolSystemTertiary: 'Tertiary institution',
+    schoolStages: 'STAGES',
+    schoolBuilding: 'BUILDING',
+    schoolCampus: 'CAMPUS',
+    schoolBuildings: (n: number) => `${n} building${n === 1 ? '' : 's'}`,
+    schoolCode: 'DSEDJ CODE',
+    schoolSource: 'SOURCE',
     // ---- VehicleInfoPanel ----
     terminalStop: 'End',
   },
@@ -249,6 +269,13 @@ const translations = {
     ferries: '船運',
     roadWorks: '工程改道',
     roadWorksActive: (n: number) => `${n} 項生效中`,
+    schools: '學校',
+    schoolsCount: (n: number) => `${n} 所學校`,
+    schoolLevelKindergarten: '幼稚園',
+    schoolLevelPrimary: '小學',
+    schoolLevelSecondary: '中學',
+    schoolLevelUniversity: '大學',
+    schoolLevelAllThrough: '一條龍',
     noServiceToday: '本日無服務',
     mapSettings: '地圖設定',
     plan2D: '2D 平面',
@@ -270,6 +297,7 @@ const translations = {
     dataSourceFlightLabel: '航班',
     dataSourceFerryLabel: '噴射船',
     dataSourceRoadWorksLabel: '工程改道',
+    dataSourceSchoolsLabel: '學校',
     amPeak: '早尖峰',
     pmPeak: '晚尖峰',
     nowShort: '現在',
@@ -353,6 +381,17 @@ const translations = {
     roadWorkPrevNotice: '上一份通告',
     roadWorkDetails: '內文',
     roadWorkSource: '來源',
+    schoolLabel: '學校',
+    schoolSystem: '類型',
+    schoolSystemPrivate: '私立學校',
+    schoolSystemPublic: '公立學校',
+    schoolSystemTertiary: '高等院校',
+    schoolStages: '教育階段',
+    schoolBuilding: '樓宇',
+    schoolCampus: '校舍',
+    schoolBuildings: (n: number) => `${n} 棟建築`,
+    schoolCode: '教青局編號',
+    schoolSource: '來源',
     terminalStop: '終站',
   },
   pt: {
@@ -402,6 +441,13 @@ const translations = {
     ferries: 'Ferries',
     roadWorks: 'Obras na via',
     roadWorksActive: (n: number) => `${n} activas`,
+    schools: 'Escolas',
+    schoolsCount: (n: number) => `${n} escolas`,
+    schoolLevelKindergarten: 'Jardim de infância',
+    schoolLevelPrimary: 'Primária',
+    schoolLevelSecondary: 'Secundária',
+    schoolLevelUniversity: 'Universidade',
+    schoolLevelAllThrough: 'Contínua (K–12)',
     noServiceToday: 'Sem serviço hoje',
     mapSettings: 'Definições',
     plan2D: '2D Plano',
@@ -423,6 +469,7 @@ const translations = {
     dataSourceFlightLabel: 'Voos',
     dataSourceFerryLabel: 'Ferries',
     dataSourceRoadWorksLabel: 'Obras na via',
+    dataSourceSchoolsLabel: 'Escolas',
     amPeak: 'PICO MANHÃ',
     pmPeak: 'PICO TARDE',
     nowShort: 'AGORA',
@@ -507,6 +554,17 @@ const translations = {
     roadWorkPrevNotice: 'SUBSTITUI',
     roadWorkDetails: 'DETALHES',
     roadWorkSource: 'FONTE',
+    schoolLabel: 'ESCOLA',
+    schoolSystem: 'REDE',
+    schoolSystemPrivate: 'Escola particular',
+    schoolSystemPublic: 'Escola oficial',
+    schoolSystemTertiary: 'Ensino superior',
+    schoolStages: 'NÍVEIS',
+    schoolBuilding: 'EDIFÍCIO',
+    schoolCampus: 'CAMPUS',
+    schoolBuildings: (n: number) => `${n} edifício${n === 1 ? '' : 's'}`,
+    schoolCode: 'CÓDIGO DSEDJ',
+    schoolSource: 'FONTE',
     terminalStop: 'Terminal',
   },
 }
@@ -558,6 +616,13 @@ export interface Translations {
   ferries: string
   roadWorks: string
   roadWorksActive: (n: number) => string
+  schools: string
+  schoolsCount: (n: number) => string
+  schoolLevelKindergarten: string
+  schoolLevelPrimary: string
+  schoolLevelSecondary: string
+  schoolLevelUniversity: string
+  schoolLevelAllThrough: string
   noServiceToday: string
   mapSettings: string
   plan2D: string
@@ -579,6 +644,7 @@ export interface Translations {
   dataSourceFlightLabel: string
   dataSourceFerryLabel: string
   dataSourceRoadWorksLabel: string
+  dataSourceSchoolsLabel: string
   amPeak: string
   pmPeak: string
   nowShort: string
@@ -658,6 +724,17 @@ export interface Translations {
   roadWorkPrevNotice: string
   roadWorkDetails: string
   roadWorkSource: string
+  schoolLabel: string
+  schoolSystem: string
+  schoolSystemPrivate: string
+  schoolSystemPublic: string
+  schoolSystemTertiary: string
+  schoolStages: string
+  schoolBuilding: string
+  schoolCampus: string
+  schoolBuildings: (n: number) => string
+  schoolCode: string
+  schoolSource: string
   terminalStop: string
 }
 

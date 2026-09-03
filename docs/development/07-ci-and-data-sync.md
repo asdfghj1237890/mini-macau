@@ -1,6 +1,6 @@
 # 07 · CI、Docker、自動資料同步
 
-`.github/workflows/` 一共 5 個 job：
+`.github/workflows/` 一共 6 個 workflow：
 
 | Workflow | Trigger | 做什麼 |
 |----------|---------|--------|
@@ -10,6 +10,8 @@
 | [`update-ferry-schedules.yml`](../../.github/workflows/update-ferry-schedules.yml) | 月初 00:00 UTC | Scrape TurboJET / CotaiJet → `ferry-schedules.json` |
 | [`service-status.yml`](../../.github/workflows/service-status.yml) | daily 23:00 UTC（澳門 07:00） | Scrape DSAT 公告 → `service-status.json` |
 | [`update-road-works.yml`](../../.github/workflows/update-road-works.yml) | daily 18:20 UTC（澳門 02:20） | data.gov.mo → `road-works.json` |
+
+`schools.json` 沒有對應的排程 workflow：`fetch_schools.py` 純手動執行（見 [05-data-pipeline.md](05-data-pipeline.md)）；跑完一樣要過 `validate_output.py schools`，沒過就不 commit。
 
 ## `deploy.yml` — Cloudflare Pages
 

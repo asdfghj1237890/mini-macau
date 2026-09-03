@@ -2,6 +2,14 @@ import { useState, useMemo, useEffect } from 'react'
 import type { TransitData, SimulationClock } from '../types'
 import { useI18n, localName } from '../i18n'
 import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS, type GroupKey } from '../routeGroups'
+import { SCHOOL_COLORS, SCHOOL_LEVEL_ORDER, schoolLevelLabel } from '../schools'
+
+// The five level colours as one 8×8 swatch, used where the other rows show a
+// single-colour hatch.
+const SCHOOL_SWATCH_GRADIENT = `linear-gradient(90deg, ${
+  SCHOOL_LEVEL_ORDER.map((level, i) =>
+    `${SCHOOL_COLORS[level]} ${i * 20}% ${(i + 1) * 20}%`).join(', ')
+})`
 
 const LS_DESKTOP_OPEN = 'mm-layers-desktop-open'
 const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
@@ -20,11 +28,13 @@ interface Props {
   // legend and the map markers always agree). Not derivable from
   // transitData.roadWorks alone, which is the whole dataset.
   activeRoadWorksCount?: number
+  schoolsOn?: boolean
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
   onToggleFerries?: () => void
   onToggleRoadWorks?: () => void
+  onToggleSchools?: () => void
   onToggleRoute?: (routeId: string) => void
   onToggleAll?: () => void
   onShowAll?: () => void
@@ -33,7 +43,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | null
 
 export function LineLegend({
   transitData,
@@ -46,11 +56,13 @@ export function LineLegend({
   ferriesOn = true,
   roadWorksOn = true,
   activeRoadWorksCount = 0,
+  schoolsOn = true,
   clock,
   onToggleLrt,
   onToggleFlights,
   onToggleFerries,
   onToggleRoadWorks,
+  onToggleSchools,
   onToggleRoute,
   onShowAll,
   onHideAll,
@@ -129,6 +141,9 @@ export function LineLegend({
   const ferryCount = transitData.ferries.length
   const totalFerryCount = allTransitData?.ferries.length ?? ferryCount
   const totalRoadWorkCount = allTransitData?.roadWorks.length ?? transitData.roadWorks.length
+  // Schools are static, so the row always shows the full count — the toggle
+  // empties `transitData.schools`, it doesn't change how many exist.
+  const schoolCount = allTransitData?.schools.length ?? transitData.schools.length
 
   const isLrtOn = (id: string) => (lrtOn ? lrtOn.has(id) : true)
   const isLive = clock ? clock.isLive : true
@@ -172,6 +187,11 @@ export function LineLegend({
           {totalRoadWorkCount > 0 && roadWorksOn && (
             <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-amber-300/80">
               <span>{'\u26A0\uFE0E'}</span><span>{activeRoadWorksCount}</span>
+            </span>
+          )}
+          {schoolCount > 0 && schoolsOn && (
+            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-violet-300/80">
+              <span>{'\u2302'}</span><span>{schoolCount}</span>
             </span>
           )}
         </button>
@@ -479,6 +499,53 @@ export function LineLegend({
               </span>
             </button>
           )}
+
+          {/* SCHOOLS — toggleable, with the level colour key underneath */}
+          {schoolCount > 0 && (
+            <>
+              <button
+                type="button"
+                onClick={onToggleSchools}
+                disabled={!onToggleSchools}
+                aria-pressed={schoolsOn}
+                title={t.schoolsCount(schoolCount)}
+                className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+                           ${schoolsOn
+                             ? 'bg-violet-400/[0.05] hover:bg-violet-400/[0.1]'
+                             : 'hover:bg-white/[0.03] opacity-50'}
+                           ${onToggleSchools ? '' : 'cursor-default'}`}
+              >
+                <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${schoolsOn ? 'text-white/45' : 'text-white/40'}`}>{'⌂'}</span>
+                <span
+                  className="inline-block w-[8px] h-[8px] shrink-0"
+                  style={{ backgroundImage: SCHOOL_SWATCH_GRADIENT }}
+                />
+                <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+                  SCHOOLS · 學校
+                </span>
+                <span className={`mm-mono mm-tabular text-[9px] ${schoolsOn ? 'text-violet-300/80' : 'text-white/25'}`}>
+                  {schoolCount}
+                </span>
+                <span className={`mm-mono text-[8px] tracking-[0.2em] ${schoolsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                  {schoolsOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+              <div className={`px-3 pb-1.5 flex flex-wrap gap-x-2 gap-y-[3px] transition
+                              ${schoolsOn ? 'bg-violet-400/[0.05]' : 'opacity-40'}`}>
+                {SCHOOL_LEVEL_ORDER.map(level => (
+                  <span key={level} className="flex items-center gap-1">
+                    <span
+                      className="inline-block w-[7px] h-[7px] shrink-0"
+                      style={{ backgroundColor: SCHOOL_COLORS[level] }}
+                    />
+                    <span className="text-[8px] leading-none text-white/40">
+                      {schoolLevelLabel(t, level)}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
 
@@ -591,6 +658,28 @@ export function LineLegend({
               <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
               <line x1="12" y1="9" x2="12" y2="13" />
               <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          </button>
+        )}
+
+        {/* SCHOOLS chip */}
+        {schoolCount > 0 && (
+          <button
+            onClick={() => togglePanel('schools')}
+            aria-label={t.schools}
+            className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
+                       border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+                       ${mobilePanel === 'schools'
+                         ? 'border-violet-400/60 text-violet-300'
+                         : schoolsOn
+                           ? 'border-violet-400/25 text-violet-300/80 hover:border-violet-400/50 active:scale-95'
+                           : 'border-white/10 text-white/40 hover:border-white/25'}`}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M22 10 12 5 2 10l10 5 10-5z" />
+              <path d="M6 12.5V17c3.3 2.7 8.7 2.7 12 0v-4.5" />
+              <line x1="22" y1="10" x2="22" y2="15" />
             </svg>
           </button>
         )}
@@ -981,6 +1070,66 @@ export function LineLegend({
                   {roadWorksOn ? 'ON' : 'OFF'}
                 </span>
               </button>
+            </div>
+          )}
+
+          {/* SCHOOLS */}
+          {mobilePanel === 'schools' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-violet-400/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-violet-300/85">
+                  <span className="text-[12px] leading-none">{'⌂'}</span>
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: SCHOOL_SWATCH_GRADIENT }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">SCHOOLS · 學校</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMobilePanel(null)}
+                  aria-label="close"
+                  className="w-6 h-6 flex items-center justify-center leading-none
+                             border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                >×</button>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleSchools}
+                disabled={!onToggleSchools}
+                aria-pressed={schoolsOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${schoolsOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${onToggleSchools ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={schoolsOn ? 'text-violet-400' : 'text-white/40'}>{'⌂'}</span>
+                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                    {t.schoolsCount(schoolCount)}
+                  </span>
+                </span>
+                <span className={`mm-mono text-[10px] tracking-[0.2em] ${schoolsOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                  {schoolsOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+              <div className={`px-3 pb-3 flex flex-wrap gap-x-3 gap-y-1.5 ${schoolsOn ? '' : 'opacity-40'}`}>
+                {SCHOOL_LEVEL_ORDER.map(level => (
+                  <span key={level} className="flex items-center gap-1.5">
+                    <span
+                      className="inline-block w-[9px] h-[9px] shrink-0"
+                      style={{ backgroundColor: SCHOOL_COLORS[level] }}
+                    />
+                    <span className="text-[10px] leading-none text-white/55">
+                      {schoolLevelLabel(t, level)}
+                    </span>
+                  </span>
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -27,6 +27,7 @@
    │  - flights.json                      │
    │  - ferry-schedules.json              │
    │  - road-works.json                   │
+   │  - schools.json                      │
    └───────┬──────────────────────────────┘
            │ fetch on page load
            ▼
@@ -62,6 +63,7 @@
 | AviationStack | MFM 機場每日航班 | `fetch_flights.py`（需 API key） |
 | TurboJET / CotaiJet | 港澳渡輪月度時刻表 | `fetch_ferry_schedules.py`（直接 scrape HTML） |
 | data.gov.mo | DSAT 工程改道消息（道路封閉/交通改道公告） | `fetch_road_works.py`（下載 ZIP 內 XML，含重試） |
+| DSEDJ + OSM Overpass | 學校清單（核准級別）與校舍建築足跡 | `fetch_schools.py`（手動執行，name matching） |
 | DSAT realtime | 每車當前 stop / 速度 / 方向 | 瀏覽器（RT mode 才會 fetch） |
 
 ### Stage 2 — Python pipeline
@@ -149,6 +151,7 @@ data/
 │   ├── fetch_ferry_schedules.py     # monthly via update-ferry-schedules.yml
 │   ├── fetch_service_status.py      # daily via service-status.yml
 │   ├── fetch_road_works.py          # daily via update-road-works.yml
+│   ├── fetch_schools.py             # manual; DSEDJ list + OSM footprints → schools.json
 │   ├── osrm_route.py
 │   ├── patch_bus_bridges.py
 │   ├── patch_service_hours.py
