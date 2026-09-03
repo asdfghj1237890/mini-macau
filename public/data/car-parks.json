@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-09-03T08:39:34.657391+00:00",
+  "fetchedAtUtc": "2026-09-03T22:06:38.809074+00:00",
   "sources": {
     "name": "交通事務局 (DSAT) – 停車場資料",
     "dataset": "https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706",
@@ -3795,8 +3795,8 @@
         },
         "remark": {
           "zh": "輕型汽車︰日間普通票，每半小時或不足半小時為澳門幣3元。\n夜間普通票，每半小時或不足半小時為澳門幣1.5元。\n於2026年4月1日至12月31日實行優惠︰\n每24小時封頂收費MOP60，此收費優惠模式可連續使用八日\n重型及輕型電單車︰日間普通票，每半小時或不足半小時為澳門幣1元。\n夜間普通票，每半小時或不足半小時為澳門幣0.5元。\n於2026年4月1日至12月31日實行優惠︰\n每24小時封頂收費MOP15，此收費優惠模式可連續使用八日\n當持普通票車輛在停車場連續泊車超過規定之泊車時間上限，其後(即由連續停泊的第九日起)每半小時或不足半小時收取雙倍的泊車費用",
-          "pt": "",
-          "en": ""
+          "pt": "Automóveis ligeiros:\nBilhete simples diurno: 3 patacas por cada meia hora ou fracção.\nBilhete simples nocturno: 1,5 patacas por cada meia hora ou fracção.\nSerá aplicado um desconto de 1 de Abril a 31 de Dezembro de 2026:\nTarifa máxima de 60 patacas por 24 horas, e este modelo de tarifa promocional pode ser utilizado por oito dias consecutivos\nMotociclos e ciclomotores:\nBilhete simples diurno: 1 patacas por cada meia hora ou fracção.\nBilhete simples nocturno: 0,5 patacas por cada meia hora ou fracção.\nSerá aplicado um desconto de 1 de Abril a 31 de Dezembro de 2026:\nTarifa máxima de 15 patacas por 24 horas, e este modelo de tarifa promocional pode ser utilizado por oito dias consecutivos\n\nQuando o estacionamento contínuo do veículo com bilhete simples exceder o período máximo de estacionamento estipulado do parque de estacionamento (ou seja, a partir do nono dia de estacionamento contínuo), passará a ser cobrado, por cada meia hora ou fracção, o dobro da tarifa de estacionamento",
+          "en": "Light vehicles:\nDaytime fee: MOP3 per half hour or less.\nNighttime fee: MOP1.5 per half hour or less.\nPromotion (1/4/2026-31/12/2026): 24-hour maximum charge MOP60, Maximum of 8 consecutive days\nMotorcycle:\nDaytime fee: MOP1 per half hour or less.\nNighttime fee: MOP0.5 per half hour or less.\nPromotion (1/4/2026-31/12/2026): 24-hour maximum charge MOP15, Maximum of 8 consecutive days\nIf a vehicle parks beyond the maximum permitted parking time, double the parking fee will be charged for each subsequent half hour or less, beginning on the ninth consecutive day of parking."
         }
       },
       "zone": {
@@ -4803,8 +4803,8 @@
         },
         "remark": {
           "zh": "重型汽車︰日間普通票，每半小時或不足半小時為澳門幣6元。\n夜間普通票，每半小時或不足半小時為澳門幣3元。\n於2026年9月1日至12月31日實行優惠︰首小時免費\n當持普通票車輛在停車場連續泊車超過規定之泊車時間上限，其後(即由連續停泊的第九日起)每半小時或不足半小時收取雙倍的泊車費用",
-          "pt": "Automóveis pesados:\nBilhete simples diurno: 6 patacas por cada meia hora ou fracção.\nBilhete simples nocturno: 3 patacas por cada meia hora ou fracção.\nQuando o estacionamento contínuo do veículo com bilhete simples exceder o período máximo de estacionamento estipulado do parque de estacionamento (ou seja, a partir do nono dia de estacionamento contínuo), passará a ser cobrado, por cada meia hora ou fracção, o dobro da tarifa de estacionamento",
-          "en": "Heavy Vehicles:\nDaytime fee: MOP6 per half hour or less.\nNighttime fee: MOP3 per half hour or less.\nIf a vehicle parks beyond the maximum permitted parking time, double the parking fee will be charged for each subsequent half hour or less, beginning on the ninth consecutive day of parking."
+          "pt": "Automóveis pesados:\nBilhete simples diurno: 6 patacas por cada meia hora ou fracção.\nBilhete simples nocturno: 3 patacas por cada meia hora ou fracção.\nSerá aplicada uma promoção de 1 de Setembro a 31 de Dezembro de 2026: primeira meia hora gratuita\nQuando o estacionamento contínuo do veículo com bilhete simples exceder o período máximo de estacionamento estipulado do parque de estacionamento (ou seja, a partir do nono dia de estacionamento contínuo), passará a ser cobrado, por cada meia hora ou fracção, o dobro da tarifa de estacionamento",
+          "en": "Heavy Vehicles:\nDaytime fee: MOP6 per half hour or less.\nNighttime fee: MOP3 per half hour or less.\nPromotion (1/9/2026-31/12/2026): Free for first hour\nIf a vehicle parks beyond the maximum permitted parking time, double the parking fee will be charged for each subsequent half hour or less, beginning on the ninth consecutive day of parking."
         }
       },
       "zone": {
