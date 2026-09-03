@@ -22,6 +22,7 @@
 //   node scripts/inspect.mjs road-works [YYYY-MM-DD] # road-works.json summary + active/upcoming for a date (default: today, Macau)
 //   node scripts/inspect.mjs schools                # schools.json summary (by level/system, buildings, unmatched/dropped)
 //   node scripts/inspect.mjs toilets                # toilets.json summary (accessible/family/closed counts, closed list)
+//   node scripts/inspect.mjs car-parks              # car-parks.json summary (by zone, height-limit histogram, no-limit ids)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync } from 'node:fs'
@@ -201,6 +202,33 @@ function cmdToilets() {
   for (const t of closed) console.log(`  ${t.id.padEnd(10)} ${t.name.zh}`)
 }
 
+function cmdCarParks() {
+  const { fetchedAtUtc, carParks } = load('public/data/car-parks.json')
+  const byZone = {}
+  const heightHist = {}
+  const noLimit = []
+  for (const c of carParks) {
+    byZone[c.zone.zh] = (byZone[c.zone.zh] || 0) + 1
+    if (c.heightLimitM === null || c.heightLimitM === undefined) {
+      noLimit.push(c.id)
+    } else {
+      const key = c.heightLimitM.toFixed(2)
+      heightHist[key] = (heightHist[key] || 0) + 1
+    }
+  }
+
+  console.log(`total car parks: ${carParks.length}   fetchedAtUtc: ${fetchedAtUtc}`)
+  console.log('by zone:', byZone)
+
+  console.log('\nheight limit histogram (m):')
+  for (const key of Object.keys(heightHist).sort((a, b) => Number(a) - Number(b))) {
+    console.log(`  ${key.padStart(5)}  ${heightHist[key]}`)
+  }
+
+  console.log(`\nno height limit: ${noLimit.length}`)
+  for (const id of noLimit) console.log(`  ${id}`)
+}
+
 function fail(msg) {
   console.error(`error: ${msg}`)
   process.exit(1)
@@ -221,7 +249,8 @@ switch (cmd) {
   case 'road-works': cmdRoadWorks(pos[0]); break
   case 'schools': cmdSchools(); break
   case 'toilets': cmdToilets(); break
+  case 'car-parks': cmdCarParks(); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | toilets')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | toilets | car-parks')
     if (cmd) process.exit(1)
 }

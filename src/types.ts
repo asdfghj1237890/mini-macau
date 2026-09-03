@@ -221,6 +221,59 @@ export interface Toilet {
   coordinates: [number, number] // [lng, lat]
 }
 
+// Trilingual free text from the DSAT car-park feed. Same shape as ToiletText
+// but a separate name on purpose: DSAT publishes no real English names, so the
+// `en` side is usually a copy of the Portuguese one (see `pickCarParkText`).
+export interface CarParkText {
+  zh: string
+  pt: string
+  en: string
+}
+
+// The four price blocks DSAT publishes per car park. `heavy` and `moto` are
+// empty strings for the many parks that take neither; `remark` holds the
+// day/night definitions and the footnotes the price columns refer to.
+export interface CarParkFees {
+  light: CarParkText
+  heavy: CarParkText
+  moto: CarParkText
+  remark: CarParkText
+}
+
+// One public car park, from public/data/car-parks.json (DSAT car_park_detail).
+// `coordinates` is [lng, lat] — the upstream XML calls latitude `X_coords`,
+// which the pipeline already swaps.
+export interface CarPark {
+  id: string // CP_ID, also the key of the live-vacancy feed
+  name: CarParkText
+  location: CarParkText
+  entrance: CarParkText // where the entrance/exit is
+  phone: string // may be empty
+  heightLimitM: number | null // null when the source publishes "--" / "---"
+  fees: CarParkFees
+  zone: CarParkText // 澳門 / 氹仔 / 路環
+  parish: CarParkText // subdistrict
+  coordinates: [number, number] // [lng, lat]
+}
+
+// One live row of the DSAT car_park_maintance feed, parsed in carParks.ts.
+// Counts are VACANT spaces and are null when the source publishes an empty
+// attribute (that park does not report that category). `maintenance` means
+// DSAT has suspended publication for this park — the counts are then stale
+// and must not be shown. This never reaches TransitData: it is polled by the
+// browser (useCarParkVacancy), not committed to public/data.
+export interface CarParkVacancy {
+  id: string // matches CarPark.id
+  car: number | null
+  moto: number | null
+  eMoto: number | null // OT_A_CNT — electric motorcycles
+  eCar: number | null // ELC_CNT — electric cars
+  disabled: number | null // DC_CNT
+  maintenance: boolean // maintenance="1" → 暫停發佈
+  time: string // raw upstream `Time`, e.g. "9/3/2026 4:21:04 PM" (or "-")
+  timeParsed: Date | null // that stamp as an instant, null when unparseable
+}
+
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
@@ -232,6 +285,7 @@ export interface TransitData {
   roadWorks: RoadWorkNotice[]
   schools: School[]
   toilets: Toilet[]
+  carParks: CarPark[]
   loading: boolean
 }
 

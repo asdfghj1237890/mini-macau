@@ -777,6 +777,86 @@ def v_toilets(data: object) -> list[str]:
     return errs
 
 
+# Bilingual (zh/pt/en) text fields on a car park record. Only name.zh is
+# required non-empty — location/entrance genuinely come back "--" for a
+# couple of upstream records, and that's a valid car park, not a scrape
+# failure.
+CAR_PARK_TEXT_FIELDS = ("name", "location", "entrance", "zone", "parish")
+CAR_PARK_FEE_CATEGORIES = ("light", "heavy", "moto", "remark")
+# Degenerate-fetch guard mirroring fetch_car_parks.py's own MIN_CAR_PARKS —
+# the feed carries 88.
+CAR_PARKS_MIN_COUNT = 40
+
+
+def v_car_parks(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(errs, "car-parks", data, ("fetchedAtUtc", "sources", "carParks")):
+        return errs
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("car-parks: fetchedAtUtc must be a string")
+    sources = data["sources"]
+    if require_fields(errs, "car-parks.sources", sources, ("name", "dataset", "vacancyDataset")):
+        for key in ("name", "dataset", "vacancyDataset"):
+            if not isinstance(sources[key], str):
+                errs.append(f"car-parks.sources: '{key}' must be a string")
+    if not require_nonempty_list(errs, "car-parks.carParks", data["carParks"]):
+        return errs
+
+    seen_ids: set[str] = set()
+    for i, c in enumerate(data["carParks"]):
+        ctx = f"car-parks.carParks[{i}]"
+        if not require_fields(
+            errs, ctx, c,
+            ("id", "name", "location", "entrance", "phone", "heightLimitM",
+             "fees", "zone", "parish", "coordinates"),
+        ):
+            continue
+        cid = c["id"]
+        if not (isinstance(cid, str) and cid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif cid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{cid}'")
+        else:
+            seen_ids.add(cid)
+        label = f"{ctx} ({cid if isinstance(cid, str) and cid else '?'})"
+
+        for key in CAR_PARK_TEXT_FIELDS:
+            obj = c[key]
+            if not require_fields(errs, f"{label}.{key}", obj, ("zh", "pt", "en")):
+                continue
+            for lang in ("zh", "pt", "en"):
+                if not isinstance(obj[lang], str):
+                    errs.append(f"{label}.{key}.{lang} must be a string")
+            if key == "name" and isinstance(obj.get("zh"), str) and not obj["zh"]:
+                errs.append(f"{label}.name.zh must not be empty")
+
+        if not isinstance(c["phone"], str):
+            errs.append(f"{label}: phone must be a string")
+
+        height = c["heightLimitM"]
+        if not (height is None or (isinstance(height, (int, float)) and not isinstance(height, bool))):
+            errs.append(f"{label}: heightLimitM must be null or a number")
+
+        fees = c["fees"]
+        if require_fields(errs, f"{label}.fees", fees, CAR_PARK_FEE_CATEGORIES):
+            for cat in CAR_PARK_FEE_CATEGORIES:
+                obj = fees[cat]
+                if not require_fields(errs, f"{label}.fees.{cat}", obj, ("zh", "pt", "en")):
+                    continue
+                for lang in ("zh", "pt", "en"):
+                    if not isinstance(obj[lang], str):
+                        errs.append(f"{label}.fees.{cat}.{lang} must be a string")
+
+        check_coords(errs, label, c["coordinates"])
+
+    if len(data["carParks"]) < CAR_PARKS_MIN_COUNT:
+        errs.append(
+            f"car-parks: only {len(data['carParks'])} car parks (< {CAR_PARKS_MIN_COUNT}) — looks like a degenerate run"
+        )
+
+    return errs
+
+
 # name -> (absolute path, validator)
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
@@ -793,6 +873,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "road-works": (PUBLIC / "data/road-works.json", v_road_works),
     "schools": (PUBLIC / "data/schools.json", v_schools),
     "toilets": (PUBLIC / "data/toilets.json", v_toilets),
+    "car-parks": (PUBLIC / "data/car-parks.json", v_car_parks),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.

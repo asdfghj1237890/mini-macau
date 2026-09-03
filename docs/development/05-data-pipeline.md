@@ -30,6 +30,7 @@ data/scripts/
 ├── fetch_road_works.py        # data.gov.mo (DSAT) → road-works.json
 ├── fetch_schools.py           # manual; DSEDJ list + OSM footprints → schools.json
 ├── fetch_toilets.py           # data.gov.mo (IAM) → toilets.json
+├── fetch_car_parks.py         # data.gov.mo (DSAT) → car-parks.json
 └── fetch_service_status.py    # 每天 scrape 巴士停駛公告 → service-status.json
 ```
 
@@ -130,6 +131,12 @@ cd data && uv run python scripts/fetch_schools.py
 從 data.gov.mo 抓 IAM（市政署）兩個 dataset：「公共廁所」（~198 筆，名稱/地址/電話/開放時間都有 zh/pt/en 欄位，另帶 `hasDwc`／`hasFwc`／`tempClose`，座標放在 `location`，是 `"lat,lng"` 字串）與「無障礙公廁」（前者的子集，只用來交叉驗證 `accessible`）。跟 `fetch_road_works.py` 一樣，下載端點回的是免 token 的 ZIP，偶爾會回 `{"msg":"內部錯誤"}` 而不是 ZIP，因此也帶重試。
 
 名稱前面掛的 IAM 編號（例如「AM01 食品資訊站」）會被拆出來當 `id`（同編號多筆時加 `-2` 後綴；少數沒編號的退回用名稱 slug），顯示用的 `name` 則把編號剝掉；`location` 的 `"lat,lng"` 字串解析後改成 GeoJSON 慣例的 `[lng, lat]` 順序存進 `coordinates`。產出 `public/data/toilets.json`，跑完要過 `validate_output.py toilets`。
+
+### 停車場 — `fetch_car_parks.py`
+
+DSAT 的停車場資料分兩個 dataset，都掛在 dsat.apigateway.data.gov.mo 這個 API gateway 後面，用同一把「公開」APPCODE（dataset 頁面直接印給每個訪客看，不用登入）當 `Authorization: APPCODE <key>` header：「車位詳情」（car_park_detail，88 個公共停車場，靜態、每日更新——這支腳本抓的）與「即時空位」（car_park_maintance，~87 筆，每 10 秒更新一次）。後者 CORS 開 `*`，直接由瀏覽器輪詢（且只在模擬時鐘 1× 時才打），不進這條 pipeline。兩者都回 XML：單一 `<CarPark>` root，每筆記錄是一個 `<Car_park_info ATTR="..." />`，欄位全部放在 ATTRIBUTES 裡。
+
+比較特別的欄位對應：`X_coords`其實是緯度、`Y_coords`才是經度（跟命名反著來），`coordinates` 要組成 `[float(Y_coords), float(X_coords)]`。收費／備註等多行欄位用字面 `"##"` 黏成一行，轉回 `"\n"` 時要把頭尾因為多餘分隔符產生的空行修掉；單一 `"-"` 是「不適用」的佔位符，轉成 `""`。`height`（限高，公尺）在沒有限高的車位是 `"--"`／`"---"`／空字串，parse 不出來就存 `null`。APPCODE 雖然公開，仍然不寫進任何檔案：從 `DATAGOVMO_APPCODE` 環境變數讀（CI 是 GitHub secret，本機手動 export），沒設就直接以 exit code 2 中止。產出 `public/data/car-parks.json`，跑完要過 `validate_output.py car-parks`。
 
 ### 巴士停駛公告 — `fetch_service_status.py`
 

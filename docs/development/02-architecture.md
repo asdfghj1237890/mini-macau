@@ -29,6 +29,7 @@
    │  - road-works.json                   │
    │  - schools.json                      │
    │  - toilets.json                      │
+   │  - car-parks.json                    │
    └───────┬──────────────────────────────┘
            │ fetch on page load
            ▼
@@ -66,6 +67,7 @@
 | data.gov.mo | DSAT 工程改道消息（道路封閉/交通改道公告） | `fetch_road_works.py`（下載 ZIP 內 XML，含重試） |
 | DSEDJ + OSM Overpass | 學校清單（核准級別）與校舍建築足跡 | `fetch_schools.py`（手動執行，name matching） |
 | data.gov.mo | IAM 公共廁所 / 無障礙公廁名單 | `fetch_toilets.py`（下載 ZIP 內 JSON，含重試） |
+| data.gov.mo | DSAT 停車場資料（車位詳情 + 即時空位） | `fetch_car_parks.py`（API gateway，APPCODE header，含重試） |
 | DSAT realtime | 每車當前 stop / 速度 / 方向 | 瀏覽器（RT mode 才會 fetch） |
 
 ### Stage 2 — Python pipeline
@@ -155,6 +157,7 @@ data/
 │   ├── fetch_road_works.py          # daily via update-road-works.yml
 │   ├── fetch_schools.py             # manual; DSEDJ list + OSM footprints → schools.json
 │   ├── fetch_toilets.py             # daily via update-toilets.yml
+│   ├── fetch_car_parks.py           # daily via update-car-parks.yml
 │   ├── osrm_route.py
 │   ├── patch_bus_bridges.py
 │   ├── patch_service_hours.py

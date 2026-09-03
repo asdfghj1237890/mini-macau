@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -16,6 +16,7 @@ import {
   RoadWorksFileSchema,
   SchoolsFileSchema,
   ToiletsFileSchema,
+  CarParksFileSchema,
 } from '../dataSchemas'
 
 const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
@@ -104,6 +105,15 @@ interface ToiletsFile {
   updatedAt: string | null
   sources: Record<string, string>
   toilets: Toilet[]
+}
+
+// car-parks.json — the static half of the car-park overlay. The live vacancy
+// numbers are NOT here: the browser polls the DSAT gateway for those
+// (useCarParkVacancy), so nothing time-sensitive rides on this file.
+interface CarParksFile {
+  fetchedAtUtc: string
+  sources: Record<string, string>
+  carParks: CarPark[]
 }
 
 function hhmmToMinutes(s: string): number | null {
@@ -337,6 +347,7 @@ export function useTransitData(): UseTransitDataResult {
     roadWorks: [],
     schools: [],
     toilets: [],
+    carParks: [],
     loading: true,
   })
   // Multi-day timetable lives in its own state slot rather than on
@@ -463,6 +474,12 @@ export function useTransitData(): UseTransitDataResult {
     // markers out instead of failing the load.
     loadJson<ToiletsFile>('/data/toilets.json', ToiletsFileSchema, 'toilets.json')
       .then(file => commit('toilets', file.toilets))
+      .catch(() => {})
+
+    // Public car parks — same independent, non-critical load. Missing file →
+    // no "P" markers and no legend row, everything else unaffected.
+    loadJson<CarParksFile>('/data/car-parks.json', CarParksFileSchema, 'car-parks.json')
+      .then(file => commit('carParks', file.carParks))
       .catch(() => {})
 
     return () => { cancelledRef.current = true }

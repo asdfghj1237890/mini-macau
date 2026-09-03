@@ -258,6 +258,38 @@ export const ToiletsFileSchema = z.object({
   ),
 })
 
+// car-parks.json — the DSAT public car-park register (car_park_detail). The
+// live vacancy feed is NOT in this file: the browser polls it directly (see
+// src/carParks.ts). Mirrors the `car-parks` block in
+// data/scripts/validate_output.py. `heightLimitM` is null for the records
+// whose `height` is "--"/"---", and every fee/name field is trilingual even
+// when DSAT leaves the English side a copy of the Portuguese one.
+const carParkText = z.object({ zh: z.string(), pt: z.string(), en: z.string() })
+
+export const CarParksFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  sources: z.record(z.string(), z.string()),
+  carParks: z.array(
+    z.object({
+      id: z.string(),
+      name: carParkText,
+      location: carParkText,
+      entrance: carParkText,
+      phone: z.string(),
+      heightLimitM: z.number().nullable(),
+      fees: z.object({
+        light: carParkText,
+        heavy: carParkText,
+        moto: carParkText,
+        remark: carParkText,
+      }),
+      zone: carParkText,
+      parish: carParkText,
+      coordinates: lngLat,
+    }),
+  ),
+})
+
 // Validate `raw` against `schema`. On mismatch: throw in dev (so tests and the
 // dev server surface contract drift immediately) and console.error in prod (so
 // the live site logs the problem but still renders best-effort). Returns the

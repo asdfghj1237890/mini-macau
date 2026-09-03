@@ -1,6 +1,6 @@
 # 07 · CI、Docker、自動資料同步
 
-`.github/workflows/` 一共 7 個 workflow：
+`.github/workflows/` 一共 8 個 workflow：
 
 | Workflow | Trigger | 做什麼 |
 |----------|---------|--------|
@@ -11,6 +11,7 @@
 | [`service-status.yml`](../../.github/workflows/service-status.yml) | daily 23:00 UTC（澳門 07:00） | Scrape DSAT 公告 → `service-status.json` |
 | [`update-road-works.yml`](../../.github/workflows/update-road-works.yml) | daily 18:20 UTC（澳門 02:20） | data.gov.mo → `road-works.json` |
 | [`update-toilets.yml`](../../.github/workflows/update-toilets.yml) | daily 18:40 UTC（澳門 02:40） | data.gov.mo → `toilets.json` |
+| [`update-car-parks.yml`](../../.github/workflows/update-car-parks.yml) | daily 18:50 UTC（澳門 02:50） | DSAT API gateway → `car-parks.json` |
 
 `schools.json` 沒有對應的排程 workflow：`fetch_schools.py` 純手動執行（見 [05-data-pipeline.md](05-data-pipeline.md)）；跑完一樣要過 `validate_output.py schools`，沒過就不 commit。
 
@@ -91,6 +92,10 @@ jobs:
 ### `update-toilets.yml`
 
 每日 18:40 UTC（澳門 02:40）。上游（data.gov.mo 的 IAM 公廁 dataset）大約澳門時間 10:00 更新，抓的時間點其實沒那麼要緊，這個時段只是跟其他每日/每夜的資料 job 錯開。跑完 `fetch_toilets.py` 後還要過 `validate_output.py toilets`，沒過就不 commit。
+
+### `update-car-parks.yml`
+
+每日 18:50 UTC（澳門 02:50）。上游（DSAT car_park_detail，經 data.gov.mo 的 API gateway）是個變動很少的靜態清單，抓的時間點同樣不要緊，這個時段只是跟其他每日/每夜的資料 job 錯開。Fetch 這步需要 `DATAGOVMO_APPCODE` secret（DSAT 印在 dataset 頁面上給所有訪客看的公開 APPCODE，當 `Authorization: APPCODE <key>` header 送出；雖然公開，一樣不寫進 repo，只透過 secret / 環境變數傳遞）。跑完 `fetch_car_parks.py` 後還要過 `validate_output.py car-parks`，沒過就不 commit。
 
 ## 沒有 CI test job
 

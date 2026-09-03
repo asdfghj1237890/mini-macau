@@ -96,6 +96,9 @@ const translations = {
     schoolsToggleAllTitle: 'Toggle the whole layer',
     toilets: 'Public toilets',
     toiletsCount: (n: number) => `${n} toilets`,
+    cityLayers: 'City layers',
+    carParks: 'Public car parks',
+    carParksCount: (n: number) => `${n} car parks`,
     noServiceToday: 'No service today',
     // ---- MapView drawer ----
     mapSettings: 'Map Settings',
@@ -121,6 +124,7 @@ const translations = {
     dataSourceRoadWorksLabel: 'Road works',
     dataSourceSchoolsLabel: 'Schools',
     dataSourceToiletsLabel: 'Public toilets',
+    dataSourceCarParksLabel: 'Car parks',
     // ---- ControlPanel ----
     amPeak: 'AM PEAK',
     pmPeak: 'PM PEAK',
@@ -235,6 +239,27 @@ const translations = {
     toiletCode: 'IAM CODE',
     toiletPhoto: 'Photo',
     toiletSource: 'SOURCE',
+    // ---- CarParkInfoPanel ----
+    carParkLabel: 'CAR PARK',
+    carParkLocation: 'LOCATION',
+    carParkEntrance: 'ENTRANCE',
+    carParkHeightLimit: 'HEIGHT LIMIT',
+    carParkPhone: 'PHONE',
+    carParkFees: 'FEES',
+    carParkFeeLight: 'Light vehicles',
+    carParkFeeHeavy: 'Heavy vehicles',
+    carParkFeeMoto: 'Motorcycles',
+    carParkFeeRemark: 'Notes',
+    carParkVacancy: 'VACANT SPACES',
+    carParkVacancyCar: 'Cars',
+    carParkVacancyMoto: 'Motorcycles',
+    carParkVacancyECar: 'Electric cars',
+    carParkVacancyEMoto: 'Electric motorcycles',
+    carParkVacancyDisabled: 'Disabled',
+    carParkVacancyUpdated: 'Updated',
+    carParkVacancyPaused: 'Publication suspended',
+    carParkVacancyOnlyAtRealtime: 'Live vacancy only updates at 1× speed',
+    carParkSource: 'SOURCE',
     // ---- VehicleInfoPanel ----
     terminalStop: 'End',
   },
@@ -296,6 +321,9 @@ const translations = {
     schoolsToggleAllTitle: '開關整層',
     toilets: '公廁',
     toiletsCount: (n: number) => `${n} 間公廁`,
+    cityLayers: '城市資料',
+    carParks: '公共停車場',
+    carParksCount: (n: number) => `${n} 個停車場`,
     noServiceToday: '本日無服務',
     mapSettings: '地圖設定',
     plan2D: '2D 平面',
@@ -319,6 +347,7 @@ const translations = {
     dataSourceRoadWorksLabel: '工程改道',
     dataSourceSchoolsLabel: '學校',
     dataSourceToiletsLabel: '公廁',
+    dataSourceCarParksLabel: '停車場',
     amPeak: '早尖峰',
     pmPeak: '晚尖峰',
     nowShort: '現在',
@@ -423,6 +452,26 @@ const translations = {
     toiletCode: '編號',
     toiletPhoto: '相片',
     toiletSource: '來源',
+    carParkLabel: '停車場',
+    carParkLocation: '位置',
+    carParkEntrance: '出入口',
+    carParkHeightLimit: '限高',
+    carParkPhone: '電話',
+    carParkFees: '收費',
+    carParkFeeLight: '輕型車輛',
+    carParkFeeHeavy: '重型車輛',
+    carParkFeeMoto: '電單車',
+    carParkFeeRemark: '備註',
+    carParkVacancy: '即時空位',
+    carParkVacancyCar: '汽車',
+    carParkVacancyMoto: '電單車',
+    carParkVacancyECar: '電動汽車',
+    carParkVacancyEMoto: '電動電單車',
+    carParkVacancyDisabled: '傷殘人士',
+    carParkVacancyUpdated: '更新於',
+    carParkVacancyPaused: '暫停發佈',
+    carParkVacancyOnlyAtRealtime: '即時空位只在 1× 時更新',
+    carParkSource: '來源',
     terminalStop: '終站',
   },
   pt: {
@@ -483,6 +532,9 @@ const translations = {
     schoolsToggleAllTitle: 'Ligar ou desligar a camada',
     toilets: 'Sanitários públicos',
     toiletsCount: (n: number) => `${n} sanitários`,
+    cityLayers: 'Camadas urbanas',
+    carParks: 'Parques de estacionamento',
+    carParksCount: (n: number) => `${n} parques`,
     noServiceToday: 'Sem serviço hoje',
     mapSettings: 'Definições',
     plan2D: '2D Plano',
@@ -506,6 +558,7 @@ const translations = {
     dataSourceRoadWorksLabel: 'Obras na via',
     dataSourceSchoolsLabel: 'Escolas',
     dataSourceToiletsLabel: 'Sanitários',
+    dataSourceCarParksLabel: 'Estacionamentos',
     amPeak: 'PICO MANHÃ',
     pmPeak: 'PICO TARDE',
     nowShort: 'AGORA',
@@ -611,6 +664,26 @@ const translations = {
     toiletCode: 'CÓDIGO',
     toiletPhoto: 'Foto',
     toiletSource: 'FONTE',
+    carParkLabel: 'ESTACIONAMENTO',
+    carParkLocation: 'LOCALIZAÇÃO',
+    carParkEntrance: 'ENTRADA',
+    carParkHeightLimit: 'ALTURA MÁX.',
+    carParkPhone: 'TELEFONE',
+    carParkFees: 'TARIFAS',
+    carParkFeeLight: 'Veículos ligeiros',
+    carParkFeeHeavy: 'Veículos pesados',
+    carParkFeeMoto: 'Motociclos',
+    carParkFeeRemark: 'Notas',
+    carParkVacancy: 'LUGARES LIVRES',
+    carParkVacancyCar: 'Automóveis',
+    carParkVacancyMoto: 'Motociclos',
+    carParkVacancyECar: 'Automóveis eléctricos',
+    carParkVacancyEMoto: 'Motociclos eléctricos',
+    carParkVacancyDisabled: 'Deficientes',
+    carParkVacancyUpdated: 'Actualizado',
+    carParkVacancyPaused: 'Publicação suspensa',
+    carParkVacancyOnlyAtRealtime: 'Lugares livres só actualizam à velocidade 1×',
+    carParkSource: 'FONTE',
     terminalStop: 'Terminal',
   },
 }
@@ -673,6 +746,9 @@ export interface Translations {
   schoolsToggleAllTitle: string
   toilets: string
   toiletsCount: (n: number) => string
+  cityLayers: string
+  carParks: string
+  carParksCount: (n: number) => string
   noServiceToday: string
   mapSettings: string
   plan2D: string
@@ -696,6 +772,7 @@ export interface Translations {
   dataSourceRoadWorksLabel: string
   dataSourceSchoolsLabel: string
   dataSourceToiletsLabel: string
+  dataSourceCarParksLabel: string
   amPeak: string
   pmPeak: string
   nowShort: string
@@ -796,6 +873,26 @@ export interface Translations {
   toiletCode: string
   toiletPhoto: string
   toiletSource: string
+  carParkLabel: string
+  carParkLocation: string
+  carParkEntrance: string
+  carParkHeightLimit: string
+  carParkPhone: string
+  carParkFees: string
+  carParkFeeLight: string
+  carParkFeeHeavy: string
+  carParkFeeMoto: string
+  carParkFeeRemark: string
+  carParkVacancy: string
+  carParkVacancyCar: string
+  carParkVacancyMoto: string
+  carParkVacancyECar: string
+  carParkVacancyEMoto: string
+  carParkVacancyDisabled: string
+  carParkVacancyUpdated: string
+  carParkVacancyPaused: string
+  carParkVacancyOnlyAtRealtime: string
+  carParkSource: string
   terminalStop: string
 }
 

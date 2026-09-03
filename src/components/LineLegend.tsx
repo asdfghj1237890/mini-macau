@@ -35,6 +35,21 @@ const SCHOOL_LEVEL_CAPTIONS: Record<SchoolLevel, string> = {
 // Teal hatch for the WC row, matching the AIR/SEA/WORKS/SCHOOLS swatches.
 const TOILET_HATCH = 'repeating-linear-gradient(-45deg, rgba(20,184,166,0.45) 0 1px, transparent 1px 3px)'
 
+// Blue hatch for the car-park row — the marker colour (#3b82f6).
+const CAR_PARK_HATCH = 'repeating-linear-gradient(-45deg, rgba(59,130,246,0.45) 0 1px, transparent 1px 3px)'
+
+// 12px "P" plate for the car-park row: a rounded-square outline with the
+// parking P, in the same stroked style as the sibling row glyphs.
+function CarParkIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2.25" y="2.25" width="11.5" height="11.5" rx="2" />
+      <path d="M6.25 11.75V4.75h2.1a2.1 2.1 0 0 1 0 4.2h-2.1" />
+    </svg>
+  )
+}
+
 // 12px restroom figures for the WC row — the universal sign. Heads and bodies
 // are filled silhouettes (stroked figures turn to mush at 12px), legs and the
 // hairline divider are strokes; everything is currentColor so it dims with
@@ -65,6 +80,57 @@ function MortarboardIcon() {
     </svg>
   )
 }
+
+// 16px glyphs for the mobile CITY chip and modal rows — the chip-sized
+// versions of the desktop row icons, so the list reads like the CITY page.
+const WORKS_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+)
+const MORTARBOARD_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M22 10 12 5 2 10l10 5 10-5z" />
+    <path d="M6 12.5V17c3.3 2.7 8.7 2.7 12 0v-4.5" />
+    <line x1="22" y1="10" x2="22" y2="15" />
+  </svg>
+)
+const TOILET_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="4.75" cy="3.25" r="1.5" fill="currentColor" stroke="none" />
+    <rect x="3" y="5.25" width="3.5" height="5" rx="1.25" fill="currentColor" stroke="none" />
+    <path d="M3.75 10.25v3.25M5.75 10.25v3.25" strokeWidth="1.25" />
+    <circle cx="11.25" cy="3.25" r="1.5" fill="currentColor" stroke="none" />
+    <path d="M11.25 5.25l2.75 5.25h-5.5z" fill="currentColor" strokeWidth="1" />
+    <path d="M10.35 10.5v3M12.15 10.5v3" strokeWidth="1.25" />
+    <path d="M8 2.25v11.5" strokeWidth="1" opacity="0.5" />
+  </svg>
+)
+const CAR_PARK_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="2.25" y="2.25" width="11.5" height="11.5" rx="2" />
+    <path d="M6.25 11.75V4.75h2.1a2.1 2.1 0 0 1 0 4.2h-2.1" />
+  </svg>
+)
+// Building glyph for the CITY chip (16px) and the modal header (12px).
+function CityIcon({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 21h18" />
+      <path d="M5 21V7l7-4 7 4v14" />
+      <path d="M9 21v-5h6v5" />
+      <path d="M9 10h.01M15 10h.01M9 14h.01M15 14h.01" />
+    </svg>
+  )
+}
+const CITY_HATCH = 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.30) 0 1px, transparent 1px 3px)'
 
 const LS_DESKTOP_OPEN = 'mm-layers-desktop-open'
 const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
@@ -99,6 +165,9 @@ interface Props {
   // Public toilets. Like schools this layer is opt-in, so it defaults to off
   // here too — the count shown is the whole register, which never changes.
   toiletsOn?: boolean
+  // Public car parks — opt-in like the toilets; the count is the whole
+  // register, which only changes when the daily workflow lands a new file.
+  carParksOn?: boolean
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
@@ -107,6 +176,7 @@ interface Props {
   onToggleSchools?: () => void
   onToggleSchoolLevel?: (level: SchoolLevel) => void
   onToggleToilets?: () => void
+  onToggleCarParks?: () => void
   onToggleRoute?: (routeId: string) => void
   onToggleAll?: () => void
   onShowAll?: () => void
@@ -115,7 +185,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'city' | null
 
 export function LineLegend({
   transitData,
@@ -132,6 +202,7 @@ export function LineLegend({
   schoolLevelsOn,
   schoolLevelCounts,
   toiletsOn = false,
+  carParksOn = false,
   clock,
   onToggleLrt,
   onToggleFlights,
@@ -140,6 +211,7 @@ export function LineLegend({
   onToggleSchools,
   onToggleSchoolLevel,
   onToggleToilets,
+  onToggleCarParks,
   onToggleRoute,
   onShowAll,
   onHideAll,
@@ -251,6 +323,36 @@ export function LineLegend({
   // Toilets are static and unfiltered: the row always shows the full register,
   // and the master switch is the only thing that empties transitData.toilets.
   const toiletCount = allTransitData?.toilets.length ?? transitData.toilets.length
+  // Same for the car parks: the row always shows the full register.
+  const carParkCount = allTransitData?.carParks.length ?? transitData.carParks.length
+
+  // Mobile CITY modal — the city overlays in one list, the counterpart of the
+  // desktop panel's CITY page. A row's name opens that layer's own modal; its
+  // switch toggles the layer in place. Only layers with data get a row.
+  const cityLayerRows = [
+    totalRoadWorkCount > 0 ? {
+      panel: 'works' as const, label: 'WORKS · 工程', icon: WORKS_ICON_16, on: roadWorksOn,
+      count: String(activeRoadWorksCount), iconOn: 'text-amber-300', countOn: 'text-amber-300/80',
+      toggle: onToggleRoadWorks,
+    } : null,
+    schoolCount > 0 ? {
+      panel: 'schools' as const, label: 'SCHOOLS · 學校', icon: MORTARBOARD_ICON_16, on: schoolsOn,
+      count: schoolLevelsAllOn ? String(schoolCount) : `${schoolEnabledCount}/${schoolCount}`,
+      iconOn: 'text-violet-300', countOn: 'text-violet-300/80', toggle: onToggleSchools,
+    } : null,
+    toiletCount > 0 ? {
+      panel: 'toilets' as const, label: 'WC · 公廁', icon: TOILET_ICON_16, on: toiletsOn,
+      count: String(toiletCount), iconOn: 'text-teal-300', countOn: 'text-teal-300/80',
+      toggle: onToggleToilets,
+    } : null,
+    carParkCount > 0 ? {
+      panel: 'carparks' as const, label: 'P · 停車場', icon: CAR_PARK_ICON_16, on: carParksOn,
+      count: String(carParkCount), iconOn: 'text-blue-300', countOn: 'text-blue-300/80',
+      toggle: onToggleCarParks,
+    } : null,
+  ].filter((row): row is NonNullable<typeof row> => row !== null)
+  const cityLayerTotal = cityLayerRows.length
+  const cityLayerOn = cityLayerRows.filter(row => row.on).length
 
   const isLrtOn = (id: string) => (lrtOn ? lrtOn.has(id) : true)
   const isLive = clock ? clock.isLive : true
@@ -777,6 +879,41 @@ export function LineLegend({
               </span>
             </button>
           )}
+
+          {/* PUBLIC CAR PARKS — same five columns as WC above it. Switching
+              this on is also what starts the live-vacancy polling (only while
+              the clock runs at 1× — see useCarParkVacancy). */}
+          {carParkCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleCarParks}
+              disabled={!onToggleCarParks}
+              aria-pressed={carParksOn}
+              title={t.carParksCount(carParkCount)}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+                         ${carParksOn
+                           ? 'bg-blue-400/[0.05] hover:bg-blue-400/[0.1]'
+                           : 'hover:bg-white/[0.03] opacity-50'}
+                         ${onToggleCarParks ? '' : 'cursor-default'}`}
+            >
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${carParksOn ? 'text-white/45' : 'text-white/40'}`}>
+                <CarParkIcon />
+              </span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: CAR_PARK_HATCH }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+                P · 停車場
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${carParksOn ? 'text-blue-300/80' : 'text-white/25'}`}>
+                {carParkCount}
+              </span>
+              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${carParksOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                {carParksOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
           </>)}
         </div>
       )}
@@ -872,71 +1009,26 @@ export function LineLegend({
           </button>
         )}
 
-        {/* ROAD WORKS chip */}
-        {totalRoadWorkCount > 0 && (
-          <button
-            onClick={() => togglePanel('works')}
-            aria-label={t.roadWorks}
-            className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
-                       border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
-                       ${mobilePanel === 'works'
-                         ? 'border-amber-400/60 text-amber-300'
-                         : roadWorksOn
-                           ? 'border-amber-400/25 text-amber-300/80 hover:border-amber-400/50 active:scale-95'
-                           : 'border-white/10 text-white/40 hover:border-white/25'}`}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" />
-              <line x1="12" y1="9" x2="12" y2="13" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
-            </svg>
-          </button>
-        )}
-
-        {/* SCHOOLS chip */}
-        {schoolCount > 0 && (
-          <button
-            onClick={() => togglePanel('schools')}
-            aria-label={t.schools}
-            className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
-                       border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
-                       ${mobilePanel === 'schools'
-                         ? 'border-violet-400/60 text-violet-300'
-                         : schoolsOn
-                           ? 'border-violet-400/25 text-violet-300/80 hover:border-violet-400/50 active:scale-95'
-                           : 'border-white/10 text-white/40 hover:border-white/25'}`}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M22 10 12 5 2 10l10 5 10-5z" />
-              <path d="M6 12.5V17c3.3 2.7 8.7 2.7 12 0v-4.5" />
-              <line x1="22" y1="10" x2="22" y2="15" />
-            </svg>
-          </button>
-        )}
-
-        {/* TOILETS chip */}
-        {toiletCount > 0 && (
-          <button
-            onClick={() => togglePanel('toilets')}
-            aria-label={t.toilets}
-            className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
-                       border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
-                       ${mobilePanel === 'toilets'
-                         ? 'border-teal-400/60 text-teal-300'
-                         : toiletsOn
-                           ? 'border-teal-400/25 text-teal-300/80 hover:border-teal-400/50 active:scale-95'
-                           : 'border-white/10 text-white/40 hover:border-white/25'}`}
-          >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-                 strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <rect x="2.25" y="3" width="11.5" height="8.5" rx="1.5" />
-              <path d="M5 6.25v2.5" /><path d="M5 8.75l1.25-1.5 1.25 1.5v-2.5" />
-              <path d="M11 6.25h-1.25v2.5H11" />
-              <path d="M8 11.5v2" />
-            </svg>
-          </button>
+        {/* CITY chip — WORKS / SCHOOLS / WC / P live behind one chip (the
+            desktop panel's CITY page); a hairline separates it from the
+            transit chips above. Lit while any city layer is on. */}
+        {cityLayerTotal > 0 && (
+          <>
+            <div className="self-center w-[22px] h-px my-[3px] bg-white/[0.18]" aria-hidden="true" />
+            <button
+              onClick={() => togglePanel('city')}
+              aria-label={t.cityLayers}
+              className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
+                         border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+                         ${mobilePanel === 'city'
+                           ? 'border-white/60 text-white'
+                           : cityLayerOn > 0
+                             ? 'border-white/25 text-white/80 hover:border-white/50 active:scale-95'
+                             : 'border-white/10 text-white/40 hover:border-white/25'}`}
+            >
+              <CityIcon />
+            </button>
+          </>
         )}
       </div>
 
@@ -1276,6 +1368,70 @@ export function LineLegend({
             </div>
           )}
 
+          {/* CITY — one list for the city overlays. The name opens that
+              layer's own modal (schools keep their per-level rows there);
+              the count + ON/OFF at the right toggles it in place. */}
+          {mobilePanel === 'city' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-white/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-white/85">
+                  <CityIcon size={12} />
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: CITY_HATCH }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">CITY · 城市</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                    {cityLayerOn}/{cityLayerTotal}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              {cityLayerRows.map((row, i) => (
+                <div
+                  key={row.panel}
+                  className={`flex items-stretch ${i > 0 ? 'border-t border-white/[0.06]' : ''} ${row.on ? '' : 'opacity-60'}`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(row.panel)}
+                    className="flex-1 min-w-0 px-3 py-3 flex items-center gap-2 text-left active:bg-white/[0.04]"
+                  >
+                    <span className={`inline-flex w-4 justify-center shrink-0 ${row.on ? row.iconOn : 'text-white/40'}`}>
+                      {row.icon}
+                    </span>
+                    <span className="mm-mono text-[10px] tracking-[0.2em] text-white/80 truncate">{row.label}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={row.toggle}
+                    disabled={!row.toggle}
+                    aria-pressed={row.on}
+                    className={`shrink-0 pl-3 pr-3 flex items-center gap-3.5 active:bg-white/[0.04] ${row.toggle ? '' : 'cursor-default'}`}
+                  >
+                    <span className={`mm-mono mm-tabular text-[12px] ${row.on ? row.countOn : 'text-white/35'}`}>{row.count}</span>
+                    <span className={`mm-mono text-[10px] tracking-[0.2em] w-[26px] text-right ${row.on ? 'text-emerald-300' : 'text-white/25'}`}>
+                      {row.on ? 'ON' : 'OFF'}
+                    </span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* ROAD WORKS */}
           {mobilePanel === 'works' && (
             <div
@@ -1469,6 +1625,60 @@ export function LineLegend({
                 </span>
                 <span className={`mm-mono text-[10px] tracking-[0.2em] ${toiletsOn ? 'text-emerald-300' : 'text-white/25'}`}>
                   {toiletsOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+            </div>
+          )}
+
+          {/* CAR PARKS */}
+          {mobilePanel === 'carparks' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-blue-400/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-blue-300/85">
+                  <CarParkIcon />
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: CAR_PARK_HATCH }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">P · 停車場</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                    {carParksOn ? carParkCount : 0}/{carParkCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleCarParks}
+                disabled={!onToggleCarParks}
+                aria-pressed={carParksOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${carParksOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${onToggleCarParks ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={carParksOn ? 'text-blue-400' : 'text-white/40'}>
+                    <CarParkIcon />
+                  </span>
+                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                    {t.carParksCount(carParkCount)}
+                  </span>
+                </span>
+                <span className={`mm-mono text-[10px] tracking-[0.2em] ${carParksOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                  {carParksOn ? 'ON' : 'OFF'}
                 </span>
               </button>
             </div>

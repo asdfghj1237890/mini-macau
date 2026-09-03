@@ -1,0 +1,176 @@
+<CarPark title="停車場車位顯示">
+  <Car_park_info ID="7085" name="蓮花路 (重型)" CP_EName="Flor de Lótus (Pesado)" CP_PName="Flor de Lótus (Pesado)" Car_CNT="" MB_CNT="" Time="9/3/2026 4:21:04 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="6045" name="塔石廣場地下上落客區(重型客車)" CP_EName="Underground loading bay of Tap Seac Square (Heavy passenger bus)" CP_PName="Área subterrânea de tomada e largada de passageiros da Praça do Tap Seac ( automóveis pesados de passageiros)" Car_CNT="0" MB_CNT="" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="6033" name="下環街市" CP_EName="S. Lourenco Market Parking Complex" CP_PName="Auto-Silo do Mercado de S. Lourenço" Car_CNT="4" MB_CNT="22" Time="9/3/2026 4:21:03 PM" maintenance="0" OT_A_CNT="8" ELC_CNT="3" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="7095" name="山茶街公共停車場" CP_EName="Parque de Estacionamento Público da Rua das Camélias" CP_PName="Parque de Estacionamento Público da Rua das Camélias" Car_CNT="" MB_CNT="" Time="9/3/2026 4:21:20 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="6022" name="永寧街" CP_EName="Auto-Silo da Rua da Tranquilidade" CP_PName="Auto-Silo da Rua da Tranquilidade" Car_CNT="2" MB_CNT="16" Time="9/3/2026 4:21:13 PM" maintenance="0" OT_A_CNT="17" ELC_CNT="4" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="6026" name="交通事務局大樓" CP_EName="Auto-Silo do Edifício da Direcção dos Serviços para os Assuntos de Tráfego" CP_PName="Auto-Silo do Edifício da Direcção dos Serviços para os Assuntos de Tráfego" Car_CNT="4" MB_CNT="89" Time="9/3/2026 4:21:04 PM" maintenance="0" OT_A_CNT="4" ELC_CNT="7" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6018" name="氹仔中央公園" CP_EName="Parque de Estacionamento Público do Parque Central da Taipa" CP_PName="Parque de Estacionamento Público do Parque Central da Taipa" Car_CNT="739" MB_CNT="1059" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="19" ELC_CNT="111" DC_CNT="14">
+  </Car_park_info>
+  <Car_park_info ID="6041" name="日昇樓" CP_EName="Parque de Estacionamento Público do Edifício Iat Seng" CP_PName="Parque de Estacionamento Público do Edifício Iat Seng" Car_CNT="132" MB_CNT="232" Time="9/3/2026 4:21:13 PM" maintenance="0" OT_A_CNT="5" ELC_CNT="27" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="7051" name="日暉大廈" CP_EName="Parque de Estacionamento Público do Edifício Iat Fai" CP_PName="Parque de Estacionamento Público do Edifício Iat Fai" Car_CNT="12" MB_CNT="83" Time="9/3/2026 4:21:11 PM" maintenance="0" OT_A_CNT="13" ELC_CNT="6" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="7067" name="台暉樓" CP_EName="Auto-Silo do Edifício Toi Fai" CP_PName="Auto-Silo do Edifício Toi Fai" Car_CNT="20" MB_CNT="14" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="11" ELC_CNT="4" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="7044" name="氹仔客運碼頭" CP_EName="Auto-Silo do Terminal Marítimo de Passageiros da Taipa" CP_PName="Auto-Silo do Terminal Marítimo de Passageiros da Taipa" Car_CNT="303" MB_CNT="84" Time="9/3/2026 4:21:07 PM" maintenance="0" OT_A_CNT="15" ELC_CNT="72" DC_CNT="16">
+  </Car_park_info>
+  <Car_park_info ID="6028" name="何賢公園" CP_EName="Auto-Silo Jardim Comendador Ho Yin" CP_PName="Auto-Silo Jardim Comendador Ho Yin" Car_CNT="31" MB_CNT="349" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="41" ELC_CNT="13" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="7090" name="巴波沙大馬路公共停車場" CP_EName="Parque de Estacionamento Público da Avenida de Artur Tamagnini Barbosa" CP_PName="Parque de Estacionamento Público da Avenida de Artur Tamagnini Barbosa" Car_CNT="0" MB_CNT="5" Time="9/3/2026 4:20:56 PM" maintenance="0" OT_A_CNT="" ELC_CNT="1" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="7093" name="沙維斯街公共停車場" CP_EName="Parque de Estacionamento Público da Rua de Chaves" CP_PName="Parque de Estacionamento Público da Rua de Chaves" Car_CNT="25" MB_CNT="3" Time="9/3/2026 4:21:06 PM" maintenance="0" OT_A_CNT="" ELC_CNT="4" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="7082" name="長者公寓" CP_EName="Residência para Idosos" CP_PName="Residência para Idosos" Car_CNT="256" MB_CNT="91" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="8" ELC_CNT="19" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="6005" name="宋玉生廣場" CP_EName="Alameda Dr. Carlos d’Assumpção" CP_PName="Alameda Dr. Carlos d’Assumpção" Car_CNT="7" MB_CNT="" Time="9/3/2026 4:21:13 PM" maintenance="0" OT_A_CNT="" ELC_CNT="8" DC_CNT="7">
+  </Car_park_info>
+  <Car_park_info ID="6030" name="居雅大廈" CP_EName="Parque de Estacionamento Público do Edifício Koi Nga" CP_PName="Parque de Estacionamento Público do Edifício Koi Nga" Car_CNT="203" MB_CNT="207" Time="9/3/2026 4:21:08 PM" maintenance="0" OT_A_CNT="10" ELC_CNT="10" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="7072" name="快富樓A入口" CP_EName="Auto-Silo do Edifício Fai Fu Acesso A" CP_PName="Auto-Silo do Edifício Fai Fu Acesso A" Car_CNT="113" MB_CNT="" Time="9/3/2026 4:21:08 PM" maintenance="0" OT_A_CNT="" ELC_CNT="19" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="7073" name="快富樓B入口" CP_EName="Auto-Silo do Edifício Fai Fu Acesso B" CP_PName="Auto-Silo do Edifício Fai Fu Acesso B" Car_CNT="15" MB_CNT="141" Time="9/3/2026 4:21:08 PM" maintenance="0" OT_A_CNT="7" ELC_CNT="" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="7063" name="李加祿街" CP_EName="Auto-Silo da Rua de João Lecaros" CP_PName="Auto-Silo da Rua de João Lecaros" Car_CNT="0" MB_CNT="7" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="13" ELC_CNT="3" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="7050" name="和諧廣場" CP_EName="Parque de Estacionamento Público da Alameda da Harmonia" CP_PName="Parque de Estacionamento Público da Alameda da Harmonia" Car_CNT="145" MB_CNT="99" Time="9/3/2026 4:21:07 PM" maintenance="0" OT_A_CNT="14" ELC_CNT="19" DC_CNT="7">
+  </Car_park_info>
+  <Car_park_info ID="7055" name="沙梨頭街市市政綜合大樓" CP_EName="Car Park of Municipal Market Complex of Patane " CP_PName="Auto-Silo do Complexo Municipal do Mercado do Patane" Car_CNT="48" MB_CNT="62" Time="9/3/2026 4:21:12 PM" maintenance="0" OT_A_CNT="5" ELC_CNT="11" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="7057" name="快盈大廈" CP_EName="Auto-Silo do Edifício Fai Ieng" CP_PName="Auto-Silo do Edifício Fai Ieng" Car_CNT="34" MB_CNT="38" Time="-" maintenance="1" OT_A_CNT="10" ELC_CNT="6" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6038" name="快達樓" CP_EName="Auto-Silo do Edifício Fai Tat" CP_PName="Auto-Silo do Edifício Fai Tat" Car_CNT="54" MB_CNT="" Time="9/3/2026 4:21:07 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="6009" name="亞馬喇前地" CP_EName="Parque de Estacionamento Público da Praça de Ferreira do Amaral" CP_PName="Parque de Estacionamento Público da Praça de Ferreira do Amaral" Car_CNT="10" MB_CNT="163" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="1" ELC_CNT="8" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="6020" name="河邊新街" CP_EName="Auto-Silo da Rua do Almirante Sérgio" CP_PName="Auto-Silo da Rua do Almirante Sérgio" Car_CNT="34" MB_CNT="67" Time="9/3/2026 4:21:12 PM" maintenance="0" OT_A_CNT="15" ELC_CNT="6" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6034" name="馬六甲街" CP_EName="Auto-Silo da Rua de Malaca" CP_PName="Auto-Silo da Rua de Malaca" Car_CNT="108" MB_CNT="496" Time="9/3/2026 4:21:11 PM" maintenance="0" OT_A_CNT="5" ELC_CNT="13" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="7065" name="污水處理站" CP_EName="Auto-Silo da ETAR" CP_PName="Auto-Silo da ETAR" Car_CNT="101" MB_CNT="" Time="9/3/2026 4:20:46 PM" maintenance="0" OT_A_CNT="" ELC_CNT="14" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="7076" name="氹仔柯維納馬路停車場" CP_EName="Parque de Estacionamento da Estrada Governador Albano de Oliveira da Taipa" CP_PName="Parque de Estacionamento da Estrada Governador Albano de Oliveira da Taipa" Car_CNT="92" MB_CNT="" Time="9/3/2026 4:20:59 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="7077" name="柯維納馬路戶外" CP_EName="Ar Livre da Estrada Governador Albano de Oliveira" CP_PName="Ar Livre da Estrada Governador Albano de Oliveira" Car_CNT="56" MB_CNT="30" Time="9/3/2026 4:21:09 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="0">
+  </Car_park_info>
+  <Car_park_info ID="6019" name="青翠樓" CP_EName="Auto-Silo do Edifício Cheng Choi" CP_PName="Auto-Silo do Edifício Cheng Choi" Car_CNT="233" MB_CNT="426" Time="9/3/2026 4:20:59 PM" maintenance="0" OT_A_CNT="14" ELC_CNT="28" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="7081" name="專科大樓" CP_EName="Edifício de Especialidades" CP_PName="Edifício de Especialidades" Car_CNT="0" MB_CNT="2" Time="9/3/2026 4:21:08 PM" maintenance="0" OT_A_CNT="1" ELC_CNT="1" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="7089" name="路環打纜街公共停車場" CP_EName="Parque de Estacionamento Público da Rua da Cordoaria de Coloane" CP_PName="Parque de Estacionamento Público da Rua da Cordoaria de Coloane" Car_CNT="41" MB_CNT="46" Time="9/3/2026 4:21:00 PM" maintenance="0" OT_A_CNT="" ELC_CNT="2" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6001" name="南灣(栢湖)" CP_EName="Nam Van" CP_PName="Nam Van(Pak Wu)" Car_CNT="28" MB_CNT="0" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="0" ELC_CNT="7" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6035" name="青葱大廈" CP_EName="Auto-Silo do Edificio Cheng Chong" CP_PName="Auto-Silo do Edificio Cheng Chong" Car_CNT="3" MB_CNT="9" Time="9/3/2026 4:20:53 PM" maintenance="0" OT_A_CNT="4" ELC_CNT="5" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="6039" name="青泉樓" CP_EName="Auto-Silo do Edifício Cheng Chun" CP_PName="Auto-Silo do Edifício Cheng Chun" Car_CNT="4" MB_CNT="8" Time="9/3/2026 4:20:58 PM" maintenance="0" OT_A_CNT="2" ELC_CNT="4" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="6040" name="青怡大廈" CP_EName="Auto-Silo do Edifício Cheng I" CP_PName="Auto-Silo do Edifício Cheng I" Car_CNT="104" MB_CNT="153" Time="9/3/2026 4:20:47 PM" maintenance="0" OT_A_CNT="9" ELC_CNT="9" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="7064" name="青茂口岸" CP_EName="Auto-Silo do Posto Fronteiriço Qingmao" CP_PName="Auto-Silo do Posto Fronteiriço Qingmao" Car_CNT="39" MB_CNT="68" Time="9/3/2026 4:21:09 PM" maintenance="0" OT_A_CNT="17" ELC_CNT="9" DC_CNT="5">
+  </Car_park_info>
+  <Car_park_info ID="7058" name="青濤大廈" CP_EName="Auto-Silo do Edifício Cheng Tou" CP_PName="Auto-Silo do Edifício Cheng Tou" Car_CNT="22" MB_CNT="31" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="10" ELC_CNT="8" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="7059" name="青洲坊大廈" CP_EName="Auto-Silo do Edifício do Bairro da Ilha Verde" CP_PName="Auto-Silo do Edifício do Bairro da Ilha Verde" Car_CNT="722" MB_CNT="758" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="0" ELC_CNT="102" DC_CNT="15">
+  </Car_park_info>
+  <Car_park_info ID="7091" name="東亞運大馬路公共停車場" CP_EName="Estacionamento Público da Avenida dos Jogos da Ásia Oriental" CP_PName="Estacionamento Público da Avenida dos Jogos da Ásia Oriental" Car_CNT="33" MB_CNT="19" Time="9/3/2026 4:21:06 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="7083" name="東創大廈" CP_EName="Parque de Estacionamento Público do Edifício Tong Chong" CP_PName="Parque de Estacionamento Público do Edifício Tong Chong" Car_CNT="145" MB_CNT="106" Time="9/3/2026 4:20:49 PM" maintenance="0" OT_A_CNT="31" ELC_CNT="31" DC_CNT="5">
+  </Car_park_info>
+  <Car_park_info ID="7084" name="東啟大廈" CP_EName="Parque de Estacionamento Público do Edifício Tong Kai" CP_PName="Parque de Estacionamento Público do Edifício Tong Kai" Car_CNT="285" MB_CNT="264" Time="9/3/2026 4:20:49 PM" maintenance="0" OT_A_CNT="31" ELC_CNT="27" DC_CNT="5">
+  </Car_park_info>
+  <Car_park_info ID="7087" name="東城大廈" CP_EName="Parque de Estacionamento Público do Edifício Tong Seng" CP_PName="Parque de Estacionamento Público do Edifício Tong Seng" Car_CNT="409" MB_CNT="432" Time="9/3/2026 4:21:03 PM" maintenance="0" OT_A_CNT="61" ELC_CNT="47" DC_CNT="6">
+  </Car_park_info>
+  <Car_park_info ID="7088" name="航海學校公共停車場" CP_EName="Parque de Estacionamento Público da Escola de Pilotagem" CP_PName="Parque de Estacionamento Público da Escola de Pilotagem" Car_CNT="51" MB_CNT="51" Time="9/3/2026 4:20:53 PM" maintenance="0" OT_A_CNT="" ELC_CNT="8" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="7092" name="新城B區公共停車場" CP_EName="Parque de Estacionamento Publico da Zona B dos Novos Aterros Urbanos" CP_PName="Parque de Estacionamento Publico da Zona B dos Novos Aterros Urbanos" Car_CNT="" MB_CNT="243" Time="9/3/2026 4:21:21 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="7096" name="高美士街公共停車場" CP_EName="Parque de Estacionamento Público da Rua de Luís Gonzaga Gomes" CP_PName="Parque de Estacionamento Público da Rua de Luís Gonzaga Gomes" Car_CNT="2" MB_CNT="63" Time="9/3/2026 4:20:56 PM" maintenance="0" OT_A_CNT="" ELC_CNT="1" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="6043" name="松樹尾" CP_EName="Auto-Silo de Chun Su Mei" CP_PName="Auto-Silo de Chun Su Mei" Car_CNT="93" MB_CNT="166" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="10" ELC_CNT="7" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="7062" name="栢力" CP_EName="Auto-Silo do Jai Alai" CP_PName="Auto-Silo do Jai Alai" Car_CNT="232" MB_CNT="" Time="9/3/2026 4:21:12 PM" maintenance="0" OT_A_CNT="" ELC_CNT="30" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6010" name="科學館" CP_EName="Parque de Estacionamento Público do Centro de Ciência de Macau" CP_PName="Parque de Estacionamento Público do Centro de Ciência de Macau" Car_CNT="315" MB_CNT="389" Time="9/3/2026 4:20:50 PM" maintenance="0" OT_A_CNT="15" ELC_CNT="47" DC_CNT="20">
+  </Car_park_info>
+  <Car_park_info ID="6008" name="栢佳" CP_EName="Auto-Silo Pak Kai" CP_PName="Auto-Silo Pak Kai" Car_CNT="5" MB_CNT="" Time="9/3/2026 4:20:52 PM" maintenance="0" OT_A_CNT="" ELC_CNT="5" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="7078" name="協和醫院 - 東入口" CP_EName="Hospital Macau Union - Entrada Leste" CP_PName="Hospital Macau Union - Entrada Leste" Car_CNT="128" MB_CNT="" Time="9/3/2026 4:21:13 PM" maintenance="0" OT_A_CNT="" ELC_CNT="6" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="7079" name="協和醫院 - 北入口" CP_EName="Hospital Macau Union - Entrada Norte" CP_PName="Hospital Macau Union - Entrada Norte" Car_CNT="367" MB_CNT="423" Time="9/3/2026 4:21:13 PM" maintenance="0" OT_A_CNT="10" ELC_CNT="" DC_CNT="5">
+  </Car_park_info>
+  <Car_park_info ID="7074" name="旅遊塔" CP_EName="Car Park of Macau Tower" CP_PName="Auto-Silo Torre de Macau" Car_CNT="167" MB_CNT="20" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="6042" name="栢景" CP_EName="Auto-Silo Pak Keng" CP_PName="Auto-Silo Pak Keng" Car_CNT="5" MB_CNT="" Time="9/3/2026 4:20:48 PM" maintenance="0" OT_A_CNT="" ELC_CNT="2" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6011" name="栢樂停車場" CP_EName="Auto-Silo Pak Lok" CP_PName="Auto-Silo Pak Lok" Car_CNT="350" MB_CNT="214" Time="9/3/2026 4:21:13 PM" maintenance="0" OT_A_CNT="12" ELC_CNT="21" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="6012" name="栢蕙" CP_EName="Auto-Silo Pak Wai" CP_PName="Auto-Silo Pak Wai" Car_CNT="106" MB_CNT="" Time="9/3/2026 4:20:44 PM" maintenance="0" OT_A_CNT="" ELC_CNT="12" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="6002" name="栢寧" CP_EName="Leal Senado(Pak Lane)" CP_PName="Leal Senado(Pak Lane)" Car_CNT="0" MB_CNT="" Time="9/3/2026 4:21:08 PM" maintenance="0" OT_A_CNT="" ELC_CNT="4" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6003" name="栢濤" CP_EName="Zape 15(Pak Tou)" CP_PName="Zape 15(Pak Tou)" Car_CNT="43" MB_CNT="" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="" ELC_CNT="10" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6024" name="栢港" CP_EName="Auto-Silo Pak Kong" CP_PName="Auto-Silo Pak Kong" Car_CNT="78" MB_CNT="" Time="9/3/2026 4:20:56 PM" maintenance="0" OT_A_CNT="" ELC_CNT="6" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6023" name="栢麗" CP_EName="Auto-Silo das Portas do Cerco, também conhecido Pak Lai" CP_PName="Auto-Silo das Portas do Cerco, também conhecido Pak Lai" Car_CNT="121" MB_CNT="" Time="9/3/2026 4:21:11 PM" maintenance="0" OT_A_CNT="" ELC_CNT="8" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6027" name="栢威" CP_EName="Auto-Silo Pak Vai" CP_PName="Auto-Silo Pak Vai" Car_CNT="20" MB_CNT="12" Time="9/3/2026 4:20:55 PM" maintenance="0" OT_A_CNT="3" ELC_CNT="11" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="6037" name="黑橋街" CP_EName="Auto-Silo da Rua da Ponte Negra" CP_PName="Auto-Silo da Rua da Ponte Negra" Car_CNT="45" MB_CNT="31" Time="9/3/2026 4:21:12 PM" maintenance="0" OT_A_CNT="13" ELC_CNT="9" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="6006" name="華士古達嘉馬花園" CP_EName="Jardim Vasco da Gama" CP_PName="Jardim Vasco da Gama" Car_CNT="17" MB_CNT="16" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="6" ELC_CNT="6" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="6014" name="祐漢公園" CP_EName="Auto-Silo Jardim de Iao Hon" CP_PName="Auto-Silo Jardim de Iao Hon" Car_CNT="140" MB_CNT="144" Time="9/3/2026 4:21:12 PM" maintenance="0" OT_A_CNT="11" ELC_CNT="12" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="7052" name="港珠澳大橋邊檢大樓東公共停車場 " CP_EName="East Public Car Park of the HZMB Macao Frontier Post" CP_PName="Parque de Estacionamento Público Este do Posto Fronteiriço da Ponte Hong Kong-Zhuhai-Macau" Car_CNT="2762" MB_CNT="" Time="9/3/2026 4:21:06 PM" maintenance="0" OT_A_CNT="" ELC_CNT="28" DC_CNT="30">
+  </Car_park_info>
+  <Car_park_info ID="7053" name="港珠澳大橋邊檢大樓西停車場" CP_EName="Auto-Silo Oeste do Posto Fronteiriço da Ponte Hong Kong-Zhuhai-Macau" CP_PName="Auto-Silo Oeste do Posto Fronteiriço da Ponte Hong Kong-Zhuhai-Macau" Car_CNT="2836" MB_CNT="1944" Time="9/3/2026 4:21:09 PM" maintenance="0" OT_A_CNT="" ELC_CNT="8" DC_CNT="34">
+  </Car_park_info>
+  <Car_park_info ID="7075" name="媽閣交通樞紐停車場" CP_EName="Barra Public Transport Interchange Parking Lot" CP_PName="Parque de Estacionamento do Centro Modal de Transportes da Barra" Car_CNT="15" MB_CNT="365" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="" ELC_CNT="0" DC_CNT="3">
+  </Car_park_info>
+  <Car_park_info ID="7061" name="海灣南街" CP_EName="Auto-Silo da Rua da Bacia Sul" CP_PName="Auto-Silo da Rua da Bacia Sul" Car_CNT="71" MB_CNT="68" Time="9/3/2026 4:21:13 PM" maintenance="0" OT_A_CNT="12" ELC_CNT="6" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="7094" name="媽閣交通樞紐重型客車停車場" CP_EName="Parque de Estacionamento dos Automóveis Pesados de Passageiros do Centro Modal de Transportes da Barra" CP_PName="Parque de Estacionamento dos Automóveis Pesados de Passageiros do Centro Modal de Transportes da Barra" Car_CNT="" MB_CNT="" Time="9/3/2026 4:21:02 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="7071" name="華士古達嘉馬花園- 東區" CP_EName="Zona Este - Auto-Silo do Jardim de Vasco da Gama" CP_PName="Zona Este - Auto-Silo do Jardim de Vasco da Gama" Car_CNT="1" MB_CNT="" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="" ELC_CNT="" DC_CNT="">
+  </Car_park_info>
+  <Car_park_info ID="7086" name="望信" CP_EName="Parque de Estacionamento Público do Edifício Mong Son" CP_PName="Parque de Estacionamento Público do Edifício Mong Son" Car_CNT="366" MB_CNT="244" Time="9/3/2026 4:21:11 PM" maintenance="0" OT_A_CNT="27" ELC_CNT="39" DC_CNT="7">
+  </Car_park_info>
+  <Car_park_info ID="7066" name="望德樓" CP_EName="Auto-Silo do Edifício Mong Tak " CP_PName="Auto-Silo do Edifício Mong Tak " Car_CNT="334" MB_CNT="226" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="8" ELC_CNT="23" DC_CNT="6">
+  </Car_park_info>
+  <Car_park_info ID="7068" name="望廈體育中心" CP_EName="Auto-Silo do Centro Desportivo Mong-Há" CP_PName="Auto-Silo do Centro Desportivo Mong-Há" Car_CNT="134" MB_CNT="128" Time="9/3/2026 4:21:11 PM" maintenance="0" OT_A_CNT="9" ELC_CNT="9" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="6007" name="望善樓" CP_EName="Auto-Silo do Edifício Mong Sin" CP_PName="Auto-Silo do Edifício Mong Sin" Car_CNT="30" MB_CNT="136" Time="9/3/2026 4:21:13 PM" maintenance="0" OT_A_CNT="17" ELC_CNT="5" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="6025" name="望賢樓" CP_EName="Auto-Silo do Edifício Mong In" CP_PName="Auto-Silo do Edifício Mong In" Car_CNT="2" MB_CNT="112" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="8" ELC_CNT="10" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6029" name="湖畔大廈" CP_EName="Auto-Silo do Edifício do Lago" CP_PName="Auto-Silo do Edifício do Lago" Car_CNT="442" MB_CNT="819" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="8" ELC_CNT="7" DC_CNT="8">
+  </Car_park_info>
+  <Car_park_info ID="6032" name="業興大廈" CP_EName="Parque de Estacionamento Público do Edifício Ip Heng" CP_PName="Parque de Estacionamento Público do Edifício Ip Heng" Car_CNT="164" MB_CNT="437" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="13" ELC_CNT="30" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="7056" name="蝴蝶谷" CP_EName="Vale das Borboletas Car Par" CP_PName="Auto-Silo do Vale das Borboletas" Car_CNT="299" MB_CNT="159" Time="9/3/2026 4:21:14 PM" maintenance="0" OT_A_CNT="9" ELC_CNT="38" DC_CNT="6">
+  </Car_park_info>
+  <Car_park_info ID="7054" name="澳門新批發市場" CP_EName="Car Park of New Wholesale Market of Macao" CP_PName="Auto-Silo do Novo Mercado Abastecedor de Macau" Car_CNT="41" MB_CNT="22" Time="9/3/2026 4:21:02 PM" maintenance="0" OT_A_CNT="7" ELC_CNT="9" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="6015" name="蓮花路" CP_EName="Parque de Estacionamento Público da Estrada Flor de Lótus" CP_PName="Parque de Estacionamento Público da Estrada Flor de Lótus" Car_CNT="227" MB_CNT="402" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="6" ELC_CNT="38" DC_CNT="7">
+  </Car_park_info>
+  <Car_park_info ID="7070" name="澳門文化中心" CP_EName="Auto-Silo do Centro Cultural de Macau" CP_PName="Auto-Silo do Centro Cultural de Macau" Car_CNT="12" MB_CNT="4" Time="9/3/2026 4:21:12 PM" maintenance="0" OT_A_CNT="1" ELC_CNT="" DC_CNT="2">
+  </Car_park_info>
+  <Car_park_info ID="6004" name="藝園" CP_EName="Jardim das Artes" CP_PName="Jardim das Artes" Car_CNT="29" MB_CNT="184" Time="9/3/2026 4:21:12 PM" maintenance="0" OT_A_CNT="7" ELC_CNT="23" DC_CNT="4">
+  </Car_park_info>
+  <Car_park_info ID="6031" name="樂群樓" CP_EName="Parque de Estacionamento Público do Edifício Lok Kuan" CP_PName="Parque de Estacionamento Público do Edifício Lok Kuan" Car_CNT="207" MB_CNT="345" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="3" ELC_CNT="34" DC_CNT="5">
+  </Car_park_info>
+  <Car_park_info ID="6013" name="麗都" CP_EName="Auto-Silo do Lido" CP_PName="Auto-Silo do Lido" Car_CNT="12" MB_CNT="8" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="4" ELC_CNT="4" DC_CNT="1">
+  </Car_park_info>
+  <Car_park_info ID="7060" name="關閘綜合體育場館" CP_EName="Auto-Silo do Complexo Desportivo das Portas do Cerco " CP_PName="Auto-Silo do Complexo Desportivo das Portas do Cerco " Car_CNT="384" MB_CNT="298" Time="9/3/2026 4:21:10 PM" maintenance="0" OT_A_CNT="6" ELC_CNT="7" DC_CNT="10">
+  </Car_park_info>
+  <Car_park_info ID="7069" name="聯生圓形地" CP_EName="Parque de Estacionamento Público da Rotunda da Concórdia" CP_PName="Parque de Estacionamento Público da Rotunda da Concórdia" Car_CNT="50" MB_CNT="34" Time="9/3/2026 4:20:43 PM" maintenance="0" OT_A_CNT="3" ELC_CNT="10" DC_CNT="4">
+  </Car_park_info>
+</CarPark>

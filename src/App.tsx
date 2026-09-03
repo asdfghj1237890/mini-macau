@@ -18,7 +18,8 @@ import {
   saveSchoolLevelsOn,
   type SchoolLevelSet,
 } from './schools'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, Toilet } from './types'
+import { useCarParkVacancy } from './hooks/useCarParkVacancy'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -35,6 +36,7 @@ const FerryInfoPanel = lazy(() => import('./components/FerryInfoPanel').then(m =
 const RoadWorkInfoPanel = lazy(() => import('./components/RoadWorkInfoPanel').then(m => ({ default: m.RoadWorkInfoPanel })))
 const SchoolInfoPanel = lazy(() => import('./components/SchoolInfoPanel').then(m => ({ default: m.SchoolInfoPanel })))
 const ToiletInfoPanel = lazy(() => import('./components/ToiletInfoPanel').then(m => ({ default: m.ToiletInfoPanel })))
+const CarParkInfoPanel = lazy(() => import('./components/CarParkInfoPanel').then(m => ({ default: m.CarParkInfoPanel })))
 
 const LS_KEY = 'mini-macau-visible-routes'
 
@@ -78,6 +80,7 @@ const LS_FERRIES_KEY = 'mini-macau-ferries-on'
 const LS_ROADWORKS_KEY = 'mini-macau-roadworks-on'
 const LS_SCHOOLS_KEY = 'mini-macau-schools-on'
 const LS_TOILETS_KEY = 'mini-macau-toilets-on'
+const LS_CARPARKS_KEY = 'mini-macau-carparks-on'
 
 // Stable empty array for the "schools off" case. filteredTransitData is
 // rebuilt on every clock tick (dateAwareFlights depends on currentTime), and
@@ -88,6 +91,8 @@ const NO_ROAD_WORKS: RoadWorkNotice[] = []
 // Same reasoning for the toilet markers, which MapView also pushes on array
 // identity (the data is time-independent, so it never goes through the tick).
 const NO_TOILETS: Toilet[] = []
+// Ditto for the "P" markers.
+const NO_CAR_PARKS: CarPark[] = []
 const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 
 export default function App() {
@@ -124,6 +129,7 @@ export default function App() {
     { school: School; buildingName: string | null } | null
   >(null)
   const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null)
+  const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null)
   const [trackedVehicleId, setTrackedVehicleId] = useState<string | null>(null)
   const [vehicleCount, setVehicleCount] = useState(0)
   const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
@@ -136,6 +142,9 @@ export default function App() {
   // Toilets are opt-in for the same reason as schools — 197 pins over the
   // peninsula are noise until someone actually wants them, so `=== '1'`.
   const [toiletsOn, setToiletsOn] = useState(() => localStorage.getItem(LS_TOILETS_KEY) === '1')
+  // Car parks are opt-in as well — 88 "P" plates over the peninsula, and the
+  // layer is the only thing that starts the live-vacancy polling.
+  const [carParksOn, setCarParksOn] = useState(() => localStorage.getItem(LS_CARPARKS_KEY) === '1')
   // Which of the five teaching stages are drawn. Independent of `schoolsOn`,
   // which is the master switch for the whole layer.
   const [schoolLevelsOn, setSchoolLevelsOn] = useState<SchoolLevelSet>(loadSchoolLevelsOn)
@@ -189,12 +198,14 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_ROADWORKS_KEY, roadWorksOn ? '1' : '0') }, [roadWorksOn])
   useEffect(() => { localStorage.setItem(LS_SCHOOLS_KEY, schoolsOn ? '1' : '0') }, [schoolsOn])
   useEffect(() => { localStorage.setItem(LS_TOILETS_KEY, toiletsOn ? '1' : '0') }, [toiletsOn])
+  useEffect(() => { localStorage.setItem(LS_CARPARKS_KEY, carParksOn ? '1' : '0') }, [carParksOn])
   useEffect(() => { saveSchoolLevelsOn(schoolLevelsOn) }, [schoolLevelsOn])
   // Hiding the layer must also close its panel — the marker it describes is
   // gone from the map.
   useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])
   useEffect(() => { if (!schoolsOn) setSelectedSchool(null) }, [schoolsOn])
   useEffect(() => { if (!toiletsOn) setSelectedToilet(null) }, [toiletsOn])
+  useEffect(() => { if (!carParksOn) setSelectedCarPark(null) }, [carParksOn])
   // Same rule one level down: switching off a teaching stage removes those
   // blocks, so a panel describing one of them has to close too.
   useEffect(() => {
@@ -279,7 +290,14 @@ export default function App() {
     roadWorks: roadWorksOn ? transitData.roadWorks : NO_ROAD_WORKS,
     schools: visibleSchools,
     toilets: toiletsOn ? transitData.toilets : NO_TOILETS,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, toiletsOn])
+    carParks: carParksOn ? transitData.carParks : NO_CAR_PARKS,
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, toiletsOn, carParksOn])
+
+  // Live car-park vacancy. Polled ONLY while the layer is on AND the clock
+  // runs at 1× — at any other speed the simulated moment is not "now", so a
+  // real-time count would be telling the user something false. The hook adds
+  // the third condition (tab visible) and does the 30 s interval.
+  const carParkVacancy = useCarParkVacancy(carParksOn && clock.speed === 1)
 
   // Notices in force on the simulated Macau calendar day. Keyed on the day
   // string, NOT on clock.currentTime — the clock re-renders at ~10 Hz and the
@@ -381,6 +399,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedToilet(null)
+    setSelectedCarPark(null)
     setTrackedVehicleId(vehicle?.id ?? null)
     if (vehicle) ga.vehicleSelected(vehicle.type, vehicle.id)
   }, [])
@@ -395,6 +414,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedToilet(null)
+    setSelectedCarPark(null)
     setTrackedVehicleId(null)
     if (station) ga.stationSelected(station.id)
   }, [])
@@ -407,6 +427,7 @@ export default function App() {
     setSelectedStation(null)
     setSelectedSchool(null)
     setSelectedToilet(null)
+    setSelectedCarPark(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -417,6 +438,7 @@ export default function App() {
     setSelectedStation(null)
     setSelectedRoadWork(null)
     setSelectedToilet(null)
+    setSelectedCarPark(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -427,6 +449,18 @@ export default function App() {
     setSelectedStation(null)
     setSelectedRoadWork(null)
     setSelectedSchool(null)
+    setSelectedCarPark(null)
+    setTrackedVehicleId(null)
+  }, [])
+
+  // Car-park markers, same exclusivity rule.
+  const onCarParkClick = useCallback((carPark: CarPark | null) => {
+    setSelectedCarPark(carPark)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
+    setSelectedToilet(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -436,6 +470,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedToilet(null)
+    setSelectedCarPark(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -467,6 +502,10 @@ export default function App() {
   }), [])
   const toggleToilets = useCallback(() => setToiletsOn(v => {
     ga.layerToggled('toilets', !v)
+    return !v
+  }), [])
+  const toggleCarParks = useCallback(() => setCarParksOn(v => {
+    ga.layerToggled('carparks', !v)
     return !v
   }), [])
   const toggleSchoolLevel = useCallback((level: SchoolLevel) => {
@@ -510,11 +549,14 @@ export default function App() {
             onRoadWorkClick={onRoadWorkClick}
             onSchoolClick={onSchoolClick}
             onToiletClick={onToiletClick}
+            onCarParkClick={onCarParkClick}
+            carParkVacancy={carParkVacancy.vacancy}
             onClearSelection={clearSelection}
             trackedVehicleId={trackedVehicleId}
             selectedRoadWorkId={selectedRoadWork?.id ?? null}
             selectedSchoolId={selectedSchool?.school.id ?? null}
             selectedToiletId={selectedToilet?.id ?? null}
+            selectedCarParkId={selectedCarPark?.id ?? null}
             onVehicleCount={onVehicleCount}
             showTimeBar={showTimeBar}
             onToggleTimeBar={toggleTimeBar}
@@ -542,6 +584,7 @@ export default function App() {
         schoolLevelsOn={schoolLevelsOn}
         schoolLevelCounts={schoolLevelCounts}
         toiletsOn={toiletsOn}
+        carParksOn={carParksOn}
         clock={clock}
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
@@ -550,6 +593,7 @@ export default function App() {
         onToggleSchools={toggleSchools}
         onToggleSchoolLevel={toggleSchoolLevel}
         onToggleToilets={toggleToilets}
+        onToggleCarParks={toggleCarParks}
         onToggleRoute={onToggleRoute}
         onToggleAll={onToggleAll}
         onShowAll={onShowAll}
@@ -606,6 +650,14 @@ export default function App() {
         {selectedToilet && (
           <ToiletInfoPanel
             toilet={selectedToilet}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedCarPark && (
+          <CarParkInfoPanel
+            carPark={selectedCarPark}
+            vacancy={carParkVacancy.vacancy?.get(selectedCarPark.id) ?? null}
+            polling={carParkVacancy.polling}
             onClose={clearSelection}
           />
         )}

@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -21,6 +21,7 @@ import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay, macauYmd, ma
 import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks'
 import { SCHOOL_FEATURE_ID_PROPERTY, buildSchoolFeatures } from '../schools'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
+import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import { useI18n } from '../i18n'
 import type { BusTracker, RouteRealtimePoller, TrackedBusState } from '../services/realtimeClient'
 import { ga } from '../analytics/ga'
@@ -307,6 +308,61 @@ function drawToiletIcon(color: string): ImageData | null {
   return ctx.getImageData(0, 0, size, size)
 }
 
+// ---- Public car parks (DSAT 停車場) overlay -------------------------------
+const CAR_PARKS_SOURCE_ID = 'car-parks'
+const CAR_PARKS_ICON_LAYER_ID = 'car-parks-icon'
+const CAR_PARKS_SELECTED_LAYER_ID = 'car-parks-selected'
+
+// Same device-pixel budget as the toilet marker (registered at pixelRatio 2).
+const CAR_PARK_ICON_PX = 40
+
+// The universal blue "P" plate, drawn the same way as the WC marker so the two
+// city overlays read as one family. Returns null when the 2D context is
+// unavailable, in which case the caller skips the image.
+function drawCarParkIcon(color: string): ImageData | null {
+  const size = CAR_PARK_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const border = 3 // 1.5 CSS px at pixelRatio 2
+  const inset = border / 2 + 1
+  const r = 6 // 3 CSS px corner radius
+  const x = inset
+  const y = inset
+  const w = size - inset * 2
+  const h = size - inset * 2
+
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.arcTo(x + w, y, x + w, y + r, r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+  ctx.lineTo(x + r, y + h)
+  ctx.arcTo(x, y + h, x, y + h - r, r)
+  ctx.lineTo(x, y + r)
+  ctx.arcTo(x, y, x + r, y, r)
+  ctx.closePath()
+
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = border
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+
+  ctx.fillStyle = '#ffffff'
+  ctx.font = `bold ${Math.round(size * 0.62)}px sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('P', size / 2, size / 2 + 1)
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
 // ---- Schools overlay ----------------------------------------------------
 // Our own coloured fill-extrusion, drawn directly above `3d-buildings`. The
 // basemap tiles merge same-height buildings into one feature, so tinting them
@@ -337,17 +393,22 @@ interface Props {
   // unnamed campus buildings.
   onSchoolClick?: (school: School, buildingName: string | null) => void
   onToiletClick?: (toilet: Toilet | null) => void
+  onCarParkClick?: (carPark: CarPark | null) => void
+  // Live vacancy keyed by car-park id, from useCarParkVacancy. A new Map
+  // identity (≈ every 30 s while polling) is what re-labels the markers.
+  carParkVacancy?: Map<string, CarParkVacancy> | null
   onClearSelection?: () => void
   trackedVehicleId?: string | null
   selectedRoadWorkId?: string | null
   selectedSchoolId?: string | null
   selectedToiletId?: string | null
+  selectedCarParkId?: string | null
   onVehicleCount?: (count: number) => void
   showTimeBar?: boolean
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -430,6 +491,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // filter on the marker source, so addCustomLayers needs the current id.
   const selectedToiletIdRef = useRef<string | null>(selectedToiletId ?? null)
   selectedToiletIdRef.current = selectedToiletId ?? null
+  // Same for the car parks, plus the live vacancy map — addCustomLayers seeds
+  // the source with whatever numbers are already in hand after a style swap.
+  const selectedCarParkIdRef = useRef<string | null>(selectedCarParkId ?? null)
+  selectedCarParkIdRef.current = selectedCarParkId ?? null
+  const carParkVacancyRef = useRef<Map<string, CarParkVacancy> | null>(carParkVacancy ?? null)
+  carParkVacancyRef.current = carParkVacancy ?? null
 
   // Highlight = one feature-state per school id. `promoteId` makes every
   // building of a school share that id, so this single pair of calls repaints
@@ -986,6 +1053,66 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         },
       })
 
+      // Public car parks. Same contract as the toilets: the image is redrawn
+      // here on every style load under a hasImage guard, and the source is
+      // seeded from transitRef + the vacancy ref so a theme swap keeps both
+      // the markers and their live numbers.
+      if (!m.hasImage(CAR_PARK_ICON_NAME)) {
+        const img = drawCarParkIcon(CAR_PARK_COLOR)
+        if (img) m.addImage(CAR_PARK_ICON_NAME, img, { pixelRatio: 2 })
+      }
+      m.addSource(CAR_PARKS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildCarParkFeatures(transitRef.current.carParks, carParkVacancyRef.current),
+      })
+      m.addLayer({
+        id: CAR_PARKS_SELECTED_LAYER_ID, type: 'circle', source: CAR_PARKS_SOURCE_ID,
+        filter: ['==', ['get', 'id'], selectedCarParkIdRef.current ?? ''],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      })
+      m.addLayer({
+        id: CAR_PARKS_ICON_LAYER_ID, type: 'symbol', source: CAR_PARKS_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          // Car parks cluster along the same streets; hiding colliding pins
+          // would drop half the peninsula, so they always draw.
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+          // The vacant-car count, sitting to the right of the plate. The
+          // property is only present when a live row says so (see
+          // buildCarParkFeatures), so this is empty — no label — whenever the
+          // numbers are unknown, suspended or not being polled.
+          'text-field': ['get', 'vacancy'],
+          // Labels DO collide with each other, unlike the plates: two
+          // entrances of the same building sit metres apart and their numbers
+          // would otherwise overprint. `text-optional` keeps the icon when its
+          // label loses, and `symbol-sort-key` (ascending numeric id) makes the
+          // winner stable instead of flickering as the map moves. Below z14
+          // the size steps to 0, so it is plates only at city scale.
+          'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+          'text-size': ['step', ['zoom'], 0, 14, 10, 16, 11],
+          'text-offset': [0.9, 0],
+          'text-anchor': 'left',
+          'text-allow-overlap': false,
+          'text-ignore-placement': false,
+          'text-optional': true,
+          'symbol-sort-key': ['get', 'sortKey'],
+        },
+        paint: {
+          'text-color': '#dbeafe',
+          'text-halo-color': '#0b0b0c',
+          'text-halo-width': 1.2,
+        },
+      })
+
       addVehicleLayers(m, currentLang)
 
       const bus3DLayer = new Bus3DLayer()
@@ -1079,6 +1206,22 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       m.on('mouseenter', TOILETS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', TOILETS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
 
+      // Car-park pins, registered before the vehicle handlers for the same
+      // reason: a bus passing over a "P" should not steal the click.
+      m.on('click', CAR_PARKS_ICON_LAYER_ID, (e) => {
+        const feature = e.features?.[0]
+        if (feature) {
+          const cpid = feature.properties?.id
+          // Current list (transitRef), not a closed-over snapshot —
+          // car-parks.json lands after this handler is attached and the
+          // legend toggle swaps the array.
+          const carPark = transitRef.current.carParks.find(x => x.id === cpid)
+          if (carPark) { onCarParkClick?.(carPark); e.preventDefault() }
+        }
+      })
+      m.on('mouseenter', CAR_PARKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
+      m.on('mouseleave', CAR_PARKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
+
       m.on('click', 'vehicles-circle', (e) => {
         const feature = e.features?.[0]
         if (feature) {
@@ -1110,7 +1253,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       m.on('click', (e) => {
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, ...model3DLayers],
+          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, ...model3DLayers],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -1226,6 +1369,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     if (!map || !map.getLayer(TOILETS_SELECTED_LAYER_ID)) return
     map.setFilter(TOILETS_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedToiletId ?? ''])
   }, [selectedToiletId])
+
+  // Car-park markers. Pushed on array identity (the file arriving, the legend
+  // toggle swapping in the empty array) AND on vacancy-map identity, which
+  // changes at most once per 30 s poll — never from the RAF tick, so the
+  // labels cost nothing between fetches.
+  useEffect(() => {
+    const map = mapRef.current
+    const src = map?.getSource(CAR_PARKS_SOURCE_ID) as unknown as
+      { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    src?.setData?.(buildCarParkFeatures(transitData.carParks, carParkVacancy))
+  }, [transitData.carParks, carParkVacancy])
+
+  // Selected car-park highlight — a filter swap, same as the toilet ring.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.getLayer(CAR_PARKS_SELECTED_LAYER_ID)) return
+    map.setFilter(CAR_PARKS_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedCarParkId ?? ''])
+  }, [selectedCarParkId])
 
   useEffect(() => {
     const map = mapRef.current
@@ -2090,6 +2251,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                     <span className="text-white/25 mx-[3px]">/</span>
                     <a
                       href="https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >data.gov.mo</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceCarParksLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                    <a
+                      href="https://www.dsat.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >DSAT</a>
+                    <span className="text-white/25 mx-[3px]">/</span>
+                    <a
+                      href="https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-amber-200 transition-colors"
