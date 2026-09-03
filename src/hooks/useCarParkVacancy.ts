@@ -30,7 +30,7 @@ function isTabVisible(): boolean {
 }
 
 // Live vacancy for the car-park overlay. Polls ONLY while `enabled` (the
-// caller ANDs the layer switch with `clock.speed === 1`: at 5× the simulated
+// caller ANDs the layer switch with `clock.isLive` (running at 1× within 3 s of now): at 5×, paused or on another day the simulated
 // clock is not "now", so a real-time number would be a lie) AND the tab is
 // visible. First fetch fires immediately when that becomes true; the interval
 // and any in-flight request are torn down when it becomes false.
@@ -50,7 +50,7 @@ export function useCarParkVacancy(enabled: boolean): CarParkVacancyState {
   const polling = enabled && visible
 
   // Drop the last numbers as soon as the rule turns false, so switching back
-  // to 1× shows nothing until the first fresh response lands rather than
+  // to the present shows nothing until the first fresh response lands rather than
   // flashing whatever was on screen a minute ago.
   useEffect(() => {
     if (polling) return

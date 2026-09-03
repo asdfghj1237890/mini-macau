@@ -297,7 +297,7 @@ export default function App() {
   // runs at 1× — at any other speed the simulated moment is not "now", so a
   // real-time count would be telling the user something false. The hook adds
   // the third condition (tab visible) and does the 30 s interval.
-  const carParkVacancy = useCarParkVacancy(carParksOn && clock.speed === 1)
+  const carParkVacancy = useCarParkVacancy(carParksOn && clock.isLive)
 
   // Notices in force on the simulated Macau calendar day. Keyed on the day
   // string, NOT on clock.currentTime — the clock re-renders at ~10 Hz and the

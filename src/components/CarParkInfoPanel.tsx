@@ -6,7 +6,7 @@ import { macauHours, macauMinutes } from '../macauTime'
 interface Props {
   carPark: CarPark
   // The live row for this park, when one has been fetched. `polling` is the
-  // 1×-only rule from useCarParkVacancy: false means whatever is in `vacancy`
+  // live-only rule from useCarParkVacancy: false means whatever is in `vacancy`
   // is frozen, so the panel refuses to show numbers and says why instead.
   vacancy?: CarParkVacancy | null
   polling?: boolean
@@ -74,7 +74,7 @@ export function CarParkInfoPanel({ carPark, vacancy, polling = false, onClose }:
   const hasFees = Boolean(fees.light || fees.heavy || fees.moto || fees.remark)
 
   // Vacancy block, four states:
-  //   not polling      → the clock is not at 1×, numbers would be a lie
+  //   not polling      → the clock is not at the present, numbers would be a lie
   //   maintenance="1"  → DSAT suspended publication for this park
   //   no row yet       → polling, first response not in
   //   otherwise        → the counts the park actually reports

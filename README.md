@@ -67,7 +67,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **Road-works notices** — DSAT traffic-diversion notices shown on the map for the simulated date, toggleable
 - **School buildings** — Every school and tertiary campus rendered as coloured 3D blocks by level (kindergarten / primary / secondary / university / all-through); the legend section collapses and each level can be switched on/off on its own; click a block for the school's name, level, system and approved stages
 - **Public toilets** — IAM public toilets as map markers with opening hours, barrier-free / family cubicles and temporary closures; toggleable
-- **Public car parks** — DSAT's 88 public car parks as map markers with entrances, height limits and fees, plus live vacancy polled at 1× only; toggleable
+- **Public car parks** — DSAT's 88 public car parks as map markers with entrances, height limits and fees, plus live vacancy shown only while the clock is at the present; toggleable
 - **Automated ferry data** — GitHub Actions workflow scrapes TurboJET and CotaiJet timetables monthly and commits updated schedules if changed
 - **Time controls** — Play, pause (spacebar), speed up (1×–60×), jump to current time, or pick any date/time with the DateTimePicker; Esc toggles the sidebar menu
 - **Vehicle tracking** — Click a vehicle to follow it with smooth camera animation; freely zoom/pan while tracking
