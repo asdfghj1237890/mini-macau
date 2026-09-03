@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-09-03T03:30:09.823579+00:00",
+  "fetchedAtUtc": "2026-09-03T06:54:34.523715+00:00",
   "sources": {
     "dsedj": "https://data.gov.mo/Detail?id=f0578833-7dd6-4ed5-b825-75e9c4f56012",
     "osm": "OpenStreetMap via Overpass (amenity=school/kindergarten/college/university + building ways)"
@@ -38,7 +38,7 @@
           "osmId": "w411047587",
           "name": "A座 (行政樓) Bloco A (Edifício Administrativo)",
           "kind": "school",
-          "height": 16.5,
+          "height": 16.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -121,7 +121,7 @@
           "osmId": "w411047590",
           "name": "H座 Bloco H",
           "kind": "school",
-          "height": 52.5,
+          "height": 52.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -184,7 +184,7 @@
           "osmId": "w411047591",
           "name": "B座 Bloco B",
           "kind": "school",
-          "height": 27.5,
+          "height": 27.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -247,7 +247,7 @@
           "osmId": "w411047593",
           "name": "C座 Bloco C",
           "kind": "school",
-          "height": 25.5,
+          "height": 25.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -318,7 +318,7 @@
           "osmId": "w1109685833",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -349,7 +349,7 @@
           "osmId": "w1109685833#p1",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -448,7 +448,7 @@
           "osmId": "w1109685833#p2",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -619,7 +619,7 @@
           "osmId": "w1216385627",
           "name": "D座 Bloco D",
           "kind": "school",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -650,7 +650,7 @@
           "osmId": "w1216385628",
           "name": "E座 Bloco E",
           "kind": "school",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -706,7 +706,7 @@
           "osmId": "w192179930",
           "name": null,
           "kind": "school",
-          "height": 25.5,
+          "height": 25.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -745,7 +745,7 @@
           "osmId": "w205784405",
           "name": "教業學校附屬幼稚園 Escola Kao Yip",
           "kind": "yes",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -856,7 +856,7 @@
           "osmId": "w347053182",
           "name": "嶺南中學 Escola Leng Nam",
           "kind": "yes",
-          "height": 69.5,
+          "height": 69.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -911,7 +911,7 @@
           "osmId": "w347053184",
           "name": null,
           "kind": "yes",
-          "height": 59.5,
+          "height": 59.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -974,7 +974,7 @@
           "osmId": "w347053187",
           "name": null,
           "kind": "yes",
-          "height": 59.5,
+          "height": 59.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1045,7 +1045,7 @@
           "osmId": "w542100964",
           "name": null,
           "kind": "yes",
-          "height": 53.5,
+          "height": 53.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1124,7 +1124,7 @@
           "osmId": "w330666064",
           "name": "澳門中華總商會附設 - 商訓夜中學 Escola Seong Fan da Associação Commercial de Macau",
           "kind": "school",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1195,7 +1195,7 @@
           "osmId": "w423894277",
           "name": "東南學校(中學部) Escola Tong Nam (Secundária)",
           "kind": "school",
-          "height": 34.5,
+          "height": 34.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1250,7 +1250,7 @@
           "osmId": "w657888616",
           "name": "東南學校小幼部 Escola Tong Nam",
           "kind": "yes",
-          "height": 45.5,
+          "height": 45.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1308,7 +1308,7 @@
           "osmId": "w1049510356",
           "name": "勞校中學附屬小學 Escola Primária Anexa À Escola Lou Hau",
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1367,7 +1367,7 @@
           "osmId": "r7170291",
           "name": "勞工子弟學校 Escola Filhos e Irmãos dos Operários de Macau",
           "kind": "school",
-          "height": 19.5,
+          "height": 19.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1398,7 +1398,7 @@
           "osmId": "w402108656",
           "name": null,
           "kind": "school",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1461,7 +1461,7 @@
           "osmId": "w406013555",
           "name": null,
           "kind": "yes",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1535,7 +1535,7 @@
           "osmId": "w330368256",
           "name": "聖若瑟教區中學 Colegio Diocesano de São Jose",
           "kind": "school",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1566,7 +1566,7 @@
           "osmId": "w533364842",
           "name": "聖若瑟教區中學 Colégio Diocesano de São José",
           "kind": "yes",
-          "height": 30.5,
+          "height": 30.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1613,7 +1613,7 @@
           "osmId": "w734421394",
           "name": "聖若瑟教區中學 Colégio Diocesano de S. José",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1684,7 +1684,7 @@
           "osmId": "w808834906",
           "name": "聖若瑟教區中學",
           "kind": "yes",
-          "height": 31.5,
+          "height": 31.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1771,7 +1771,7 @@
           "osmId": "w819165287",
           "name": "聖若瑟教區中學",
           "kind": "yes",
-          "height": 29.5,
+          "height": 29.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1850,7 +1850,7 @@
           "osmId": "w544575286",
           "name": "庇道學校 ESCOLA S. JOÃO DE BRITO",
           "kind": "school",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1889,7 +1889,7 @@
           "osmId": "w673644887",
           "name": "望廈聖芳濟各聖堂",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1928,7 +1928,7 @@
           "osmId": "w799098637",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -1983,7 +1983,7 @@
           "osmId": "w332707341",
           "name": "雷鳴道主教紀念中學 Escola D. Luís Versiglia",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2014,7 +2014,7 @@
           "osmId": "w332707344",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2068,7 +2068,7 @@
           "osmId": "r3598313",
           "name": "陳瑞祺永援中學 Colégio de Chan Sui Kai Socorro Perpétuo",
           "kind": "yes",
-          "height": 47.5,
+          "height": 47.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2099,7 +2099,7 @@
           "osmId": "r3598313#p1",
           "name": "陳瑞祺永援中學 Colégio de Chan Sui Kai Socorro Perpétuo",
           "kind": "yes",
-          "height": 38.5,
+          "height": 38.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2142,7 +2142,7 @@
           "osmId": "r3598313#p2",
           "name": "陳瑞祺永援中學 Colégio de Chan Sui Kai Socorro Perpétuo",
           "kind": "yes",
-          "height": 38.5,
+          "height": 38.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2173,7 +2173,7 @@
           "osmId": "r3598313#p3",
           "name": "陳瑞祺永援中學 Colégio de Chan Sui Kai Socorro Perpétuo",
           "kind": "yes",
-          "height": 45.5,
+          "height": 45.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2204,7 +2204,7 @@
           "osmId": "r3598313#p4",
           "name": "陳瑞祺永援中學 Colégio de Chan Sui Kai Socorro Perpétuo",
           "kind": "yes",
-          "height": 45.5,
+          "height": 45.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2235,7 +2235,7 @@
           "osmId": "w1234890329",
           "name": "愛華樓",
           "kind": "school",
-          "height": 38.5,
+          "height": 38.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2266,7 +2266,7 @@
           "osmId": "w1234892407",
           "name": "C 座教室",
           "kind": "school",
-          "height": 47.5,
+          "height": 47.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2297,7 +2297,7 @@
           "osmId": "w1234892408",
           "name": "B座教室",
           "kind": "school",
-          "height": 45.5,
+          "height": 45.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2328,7 +2328,7 @@
           "osmId": "w1234892409",
           "name": "A 座主樓",
           "kind": "school",
-          "height": 45.5,
+          "height": 45.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2385,7 +2385,7 @@
           "osmId": "w330086017",
           "name": "澳門浸信中學 Macau Baptist College",
           "kind": "school",
-          "height": 25.5,
+          "height": 25.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2496,7 +2496,7 @@
           "osmId": "w781834372",
           "name": "澳門浸信中學",
           "kind": "yes",
-          "height": 29.5,
+          "height": 29.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2551,7 +2551,7 @@
           "osmId": "w781834373",
           "name": "澳門浸信中學 Escola Baptista",
           "kind": "yes",
-          "height": 29.5,
+          "height": 29.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2653,7 +2653,7 @@
           "osmId": "w265436720",
           "name": "千禧館 Jubilee Complex",
           "kind": "yes",
-          "height": 53.5,
+          "height": 53.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2732,7 +2732,7 @@
           "osmId": "w265436721",
           "name": "嗚道樓 Versiglia Building",
           "kind": "school",
-          "height": 52.5,
+          "height": 52.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2763,7 +2763,7 @@
           "osmId": "w265436722",
           "name": "納德樓 Rinaldi Building",
           "kind": "school",
-          "height": 55.5,
+          "height": 55.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2822,7 +2822,7 @@
           "osmId": "w265436724",
           "name": null,
           "kind": "yes",
-          "height": 40.5,
+          "height": 40.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2861,7 +2861,7 @@
           "osmId": "w265436730",
           "name": "小賣部",
           "kind": "yes",
-          "height": 40.5,
+          "height": 40.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2892,7 +2892,7 @@
           "osmId": "w265436732",
           "name": "明我樓 Dominic Building",
           "kind": "school",
-          "height": 51.5,
+          "height": 51.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -2947,7 +2947,7 @@
           "osmId": "w1374203364",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3001,7 +3001,7 @@
           "osmId": "w824733408",
           "name": null,
           "kind": "school",
-          "height": 16.5,
+          "height": 16.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3048,7 +3048,7 @@
           "osmId": "w824733410",
           "name": null,
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3166,7 +3166,7 @@
           "osmId": "w490771113",
           "name": "南灣大廈 Edifício Nam Van",
           "kind": "apartments",
-          "height": 21.5,
+          "height": 21.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3236,7 +3236,7 @@
           "osmId": "w305387746",
           "name": "澳門明愛學校 Escola Caritas de Macau",
           "kind": "school",
-          "height": 75.5,
+          "height": 75.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3326,7 +3326,7 @@
           "osmId": "w205784400",
           "name": "澳門弱智人士服務協會啟智中心 Associação de Apoio Aos Deficientes Mentais de Macau - Centro de Desenvolvimento Infantil “Kai Chi”",
           "kind": "school",
-          "height": 41.5,
+          "height": 41.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3421,7 +3421,7 @@
           "osmId": "w761767100",
           "name": "聖若瑟教區中學(第五校) Colégio Diocesano de S. José (5)",
           "kind": "yes",
-          "height": 34.5,
+          "height": 34.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3508,7 +3508,7 @@
           "osmId": "w206823975",
           "name": null,
           "kind": "school",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3539,7 +3539,7 @@
           "osmId": "w206823975#p1",
           "name": null,
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3570,7 +3570,7 @@
           "osmId": "w1329803856",
           "name": null,
           "kind": "yes",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3624,7 +3624,7 @@
           "osmId": "w460573399",
           "name": "母佑會陳瑞祺永援中學(分校) Colégio Perpétuo Socorro Chan Sui Ki(Sucursal)",
           "kind": "school",
-          "height": 38.5,
+          "height": 38.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3678,7 +3678,7 @@
           "osmId": "w780249153",
           "name": "希望樓",
           "kind": "school",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3717,7 +3717,7 @@
           "osmId": "w1431499907",
           "name": "百周年樓 Centenary Building",
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3748,7 +3748,7 @@
           "osmId": "w1431499908",
           "name": "聖母顯現樓 Apparitions Building",
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3779,7 +3779,7 @@
           "osmId": "w1449680388",
           "name": "千禧樓",
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3841,7 +3841,7 @@
           "osmId": "w734371061",
           "name": "明愛幼稚園 Jardim Infantil da Cáritas",
           "kind": "kindergarten",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -3924,7 +3924,7 @@
           "osmId": "r10228815",
           "name": "中德學校 Escola Chong Tak",
           "kind": "school",
-          "height": 21.5,
+          "height": 21.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4004,7 +4004,7 @@
           "osmId": "w435641475",
           "name": "澳門坊眾學校 Escola dos Moradores de Macau",
           "kind": "yes",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4055,7 +4055,7 @@
           "osmId": "w347303868",
           "name": "南澳花園 Jardim Nam Ou",
           "kind": "residential",
-          "height": 54.5,
+          "height": 54.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4142,7 +4142,7 @@
           "osmId": "w347303868#p1",
           "name": "南澳花園 Jardim Nam Ou",
           "kind": "residential",
-          "height": 54.5,
+          "height": 54.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4237,7 +4237,7 @@
           "osmId": "w347303868#p2",
           "name": "南澳花園 Jardim Nam Ou",
           "kind": "residential",
-          "height": 54.5,
+          "height": 54.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4340,7 +4340,7 @@
           "osmId": "w347303868#p3",
           "name": "南澳花園 Jardim Nam Ou",
           "kind": "residential",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4387,7 +4387,7 @@
           "osmId": "w347303868#p4",
           "name": "南澳花園 Jardim Nam Ou",
           "kind": "residential",
-          "height": 54.5,
+          "height": 54.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4474,7 +4474,7 @@
           "osmId": "w347303868#p5",
           "name": "南澳花園 Jardim Nam Ou",
           "kind": "residential",
-          "height": 54.5,
+          "height": 54.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4501,7 +4501,7 @@
           "osmId": "w347303868#p6",
           "name": "南澳花園 Jardim Nam Ou",
           "kind": "residential",
-          "height": 54.5,
+          "height": 54.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4528,7 +4528,7 @@
           "osmId": "w347303868#p7",
           "name": "南澳花園 Jardim Nam Ou",
           "kind": "residential",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4591,7 +4591,7 @@
           "osmId": "w425318091",
           "name": "福建學校 Escola Fukien",
           "kind": "yes",
-          "height": 17.5,
+          "height": 17.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4658,7 +4658,7 @@
           "osmId": "w305388107",
           "name": "聯國學校 Escola das Nações",
           "kind": "yes",
-          "height": 31.5,
+          "height": 31.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4747,7 +4747,7 @@
           "osmId": "w305387719",
           "name": "培華中學附屬小學暨幼稚園 Escola Secundária Pui Va Secção Primária e Infantil",
           "kind": "yes",
-          "height": 25.5,
+          "height": 25.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4802,7 +4802,7 @@
           "osmId": "w331701129",
           "name": "培華中學 Escola Secundária Pui Va",
           "kind": "school",
-          "height": 19.5,
+          "height": 19.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4893,7 +4893,7 @@
           "osmId": "w840970368",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -4948,7 +4948,7 @@
           "osmId": "w544575285",
           "name": null,
           "kind": "kindergarten",
-          "height": 34.5,
+          "height": 34.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5019,7 +5019,7 @@
           "osmId": "w206105295",
           "name": "氹仔坊眾學校 (分校) Escola Fong Chong da Taipa (Sucursal)",
           "kind": "yes",
-          "height": 16.5,
+          "height": 16.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5050,7 +5050,7 @@
           "osmId": "w192096084",
           "name": "小學部以及高幼部",
           "kind": "yes",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5089,7 +5089,7 @@
           "osmId": "w322642491",
           "name": "中學部",
           "kind": "yes",
-          "height": 25.5,
+          "height": 25.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5144,7 +5144,7 @@
           "osmId": "w334133640",
           "name": "澳門三育中學 Escola Secundária Sam Yuk",
           "kind": "school",
-          "height": 19.5,
+          "height": 19.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5270,7 +5270,7 @@
           "osmId": "w330769781",
           "name": "鏡平學校中學部 Escola Keang Peng-Secção Secundária",
           "kind": "yes",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5333,7 +5333,7 @@
           "osmId": "w588760929",
           "name": "鏡平學校分教處 Escola Keang Wu Peng Man",
           "kind": "yes",
-          "height": 18.5,
+          "height": 18.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5368,7 +5368,7 @@
           "osmId": "w794858233",
           "name": "鏡平學校",
           "kind": "yes",
-          "height": 51.5,
+          "height": 51.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5471,7 +5471,7 @@
           "osmId": "w440381406",
           "name": "新華學校 Escola Secundária Nocturna Xin Hua",
           "kind": "yes",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5502,7 +5502,7 @@
           "osmId": "w404669391",
           "name": "嘉應花園 Edifício Mayfair Garden",
           "kind": "residential",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5577,7 +5577,7 @@
           "osmId": "w404669391#p1",
           "name": "嘉應花園 Edifício Mayfair Garden",
           "kind": "residential",
-          "height": 80.5,
+          "height": 80.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5672,7 +5672,7 @@
           "osmId": "w404669391#p2",
           "name": "嘉應花園 Edifício Mayfair Garden",
           "kind": "residential",
-          "height": 80.5,
+          "height": 80.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5767,7 +5767,7 @@
           "osmId": "w404669391#p3",
           "name": "嘉應花園 Edifício Mayfair Garden",
           "kind": "residential",
-          "height": 69.5,
+          "height": 69.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5862,7 +5862,7 @@
           "osmId": "w404669391#p4",
           "name": "嘉應花園 Edifício Mayfair Garden",
           "kind": "residential",
-          "height": 77.5,
+          "height": 77.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -5957,7 +5957,7 @@
           "osmId": "w404669391#p5",
           "name": "嘉應花園 Edifício Mayfair Garden",
           "kind": "residential",
-          "height": 77.5,
+          "height": 77.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6047,7 +6047,7 @@
           "osmId": "w547001450",
           "name": "利瑪竇中學 - 初小暨幼稚園 Colégio Mateus Ricci",
           "kind": "school",
-          "height": 30.5,
+          "height": 30.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6142,7 +6142,7 @@
           "osmId": "w780249123",
           "name": "利瑪竇中學",
           "kind": "yes",
-          "height": 46.5,
+          "height": 46.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6173,7 +6173,7 @@
           "osmId": "w838616857",
           "name": "利瑪竇中學 Colégio Mateus Ricci",
           "kind": "yes",
-          "height": 48.5,
+          "height": 48.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6260,7 +6260,7 @@
           "osmId": "r7812798",
           "name": "利瑪竇中學 Colégio Mateus Ricci",
           "kind": "school",
-          "height": 41.5,
+          "height": 41.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6307,7 +6307,7 @@
           "osmId": "w1352894789",
           "name": null,
           "kind": "yes",
-          "height": 36.5,
+          "height": 36.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6369,7 +6369,7 @@
           "osmId": "w206823863",
           "name": "澳門工聯職業技術中學 Escola Secundária Técnico-Profissional da Associação Geral dos Operários de Macau",
           "kind": "yes",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6457,7 +6457,7 @@
           "osmId": "w364397212",
           "name": "魯彌士主教幼稚園 Jardim de Infância D. José da Costa Nunes",
           "kind": "yes",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6504,7 +6504,7 @@
           "osmId": "w364397213",
           "name": "魯彌士主教幼稚園 Jardim de Infância D. José da Costa Nunes",
           "kind": "kindergarten",
-          "height": 33.5,
+          "height": 33.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6551,7 +6551,7 @@
           "osmId": "w364397213#p1",
           "name": "魯彌士主教幼稚園 Jardim de Infância D. José da Costa Nunes",
           "kind": "kindergarten",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6686,7 +6686,7 @@
           "osmId": "w546741649",
           "name": null,
           "kind": "kindergarten",
-          "height": 21.5,
+          "height": 21.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6742,7 +6742,7 @@
           "osmId": "w693557236",
           "name": "澳門葡文學校",
           "kind": "yes",
-          "height": 14.5,
+          "height": 14.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6773,7 +6773,7 @@
           "osmId": "w693557237",
           "name": "澳門葡文學校 Escola Portuguesa de Macau",
           "kind": "yes",
-          "height": 17.5,
+          "height": 17.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6860,7 +6860,7 @@
           "osmId": "w704915707",
           "name": null,
           "kind": "yes",
-          "height": 21.5,
+          "height": 21.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -6932,7 +6932,7 @@
           "osmId": "w306158872",
           "name": "澳門廣大中學 Escola Kwong Tai Macau",
           "kind": "school",
-          "height": 19.5,
+          "height": 19.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7019,7 +7019,7 @@
           "osmId": "w396686232",
           "name": "聯薪廣場 Luen San Square",
           "kind": "residential",
-          "height": 111.5,
+          "height": 111.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7114,7 +7114,7 @@
           "osmId": "w396686232#p1",
           "name": "聯薪廣場 Luen San Square",
           "kind": "residential",
-          "height": 17.5,
+          "height": 17.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7173,7 +7173,7 @@
           "osmId": "w396686232#p2",
           "name": "聯薪廣場 Luen San Square",
           "kind": "residential",
-          "height": 119.5,
+          "height": 119.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7268,7 +7268,7 @@
           "osmId": "w396686232#p3",
           "name": "聯薪廣場 Luen San Square",
           "kind": "residential",
-          "height": 17.5,
+          "height": 17.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7299,7 +7299,7 @@
           "osmId": "w396686232#p4",
           "name": "聯薪廣場 Luen San Square",
           "kind": "residential",
-          "height": 116.5,
+          "height": 116.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7417,7 +7417,7 @@
           "osmId": "w206823891",
           "name": "美居廣場第三期-嘉應花園(第四座) (3.Fase)-Edifício Mayfair Garden (Bloco 4)",
           "kind": "yes",
-          "height": 69.5,
+          "height": 69.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7537,7 +7537,7 @@
           "osmId": "w330084042",
           "name": "聖公會(澳門)蔡高中學 Sheng Kung Hui Choi Kou School (Macau)",
           "kind": "yes",
-          "height": 28.5,
+          "height": 28.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7600,7 +7600,7 @@
           "osmId": "w798057903",
           "name": "聖公會聖馬可堂 / 聖公會澳門蔡高中學(夜間部) St. Mary's Church Anglicam / Sheng Kung Hui Choi Kou Escola (Macau)(Nocturno)",
           "kind": "yes",
-          "height": 26.5,
+          "height": 26.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7686,7 +7686,7 @@
           "osmId": "w402296702",
           "name": "婦聯學校 Escola da Associação Geral das Mulheres de Macau",
           "kind": "school",
-          "height": 50.5,
+          "height": 50.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7760,7 +7760,7 @@
           "osmId": "w409750492",
           "name": "無原罪樓 Immaculate Conception Building",
           "kind": "school",
-          "height": 27.5,
+          "height": 27.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7803,7 +7803,7 @@
           "osmId": "w409750493",
           "name": "明我樓 Dominic Building",
           "kind": "school",
-          "height": 38.5,
+          "height": 38.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7882,7 +7882,7 @@
           "osmId": "w1328296285",
           "name": "鳴道樓 Versiglia Building",
           "kind": "school",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -7933,7 +7933,7 @@
           "osmId": "w1470458986",
           "name": "澤德樓 Zatti Building",
           "kind": "school",
-          "height": 26.5,
+          "height": 26.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8004,7 +8004,7 @@
           "osmId": "w1470458988",
           "name": "思高樓 Bosco Building",
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8082,7 +8082,7 @@
           "osmId": "w549938151",
           "name": "嘉諾撒聖心英文中學, 嘉諾撒聖心女子中學",
           "kind": "school",
-          "height": 25.5,
+          "height": 25.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8113,7 +8113,7 @@
           "osmId": "w549938152",
           "name": "嘉諾撒聖心英文中學, 嘉諾撒聖心女子中學",
           "kind": "school",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8144,7 +8144,7 @@
           "osmId": "w549938153",
           "name": "嘉諾撒聖心英文中學, 嘉諾撒聖心女子中學",
           "kind": "school",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8175,7 +8175,7 @@
           "osmId": "w549938154",
           "name": "嘉諾撒聖心英文中學, 嘉諾撒聖心女子中學 Colégio do Sagrado Coração de Jesus / Colégio do Sagrado Coração de Jesus (Secção Inglesa)",
           "kind": "school",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8249,7 +8249,7 @@
           "osmId": "w230863154",
           "name": "聖瑪沙利羅學校 (小學, 幼稚園) Escola Santa Maria Mazzarello (Escola, Creche)",
           "kind": "yes",
-          "height": 20.5,
+          "height": 20.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8344,7 +8344,7 @@
           "osmId": "w230863154#p1",
           "name": "聖瑪沙利羅學校 (小學, 幼稚園) Escola Santa Maria Mazzarello (Escola, Creche)",
           "kind": "yes",
-          "height": 20.5,
+          "height": 20.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8431,7 +8431,7 @@
           "osmId": "w704340328",
           "name": "聖家學校 Escola Sagrada Família",
           "kind": "yes",
-          "height": 21.5,
+          "height": 21.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8509,7 +8509,7 @@
           "osmId": "w205784435",
           "name": "聖羅撒英文中學 Colégio de Santa Rosa de Lima - Secção Inglesa",
           "kind": "school",
-          "height": 28.5,
+          "height": 28.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8579,7 +8579,7 @@
           "osmId": "w788174712",
           "name": null,
           "kind": "school",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8614,7 +8614,7 @@
           "osmId": "w788174713",
           "name": "劉楊梅少圖書館 Biblioteca Lau Yeung Siu Mui",
           "kind": "yes",
-          "height": 13.5,
+          "height": 13.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8657,7 +8657,7 @@
           "osmId": "w788174714",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8704,7 +8704,7 @@
           "osmId": "w788174715",
           "name": "聖大雅博科學樓 Edifício de Ciencias Santo Alberto Magno",
           "kind": "school",
-          "height": 26.5,
+          "height": 26.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8767,7 +8767,7 @@
           "osmId": "w1100769087",
           "name": "余佩麒神父樓 Edifício do Pe. Hércules Tiberi",
           "kind": "school",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8830,7 +8830,7 @@
           "osmId": "w1100979972",
           "name": "林家駿主教紀念大樓 Edifício Memorial de Bispo Domingos Lam",
           "kind": "school",
-          "height": 29.5,
+          "height": 29.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8885,7 +8885,7 @@
           "osmId": "w1100979973",
           "name": "何鴻燊夫人禮堂 Auditório D. Clementina Leitão Ho",
           "kind": "school",
-          "height": 15.5,
+          "height": 15.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -8940,7 +8940,7 @@
           "osmId": "w206823735",
           "name": "聖德蘭學校 Escola de Santa Teresa",
           "kind": "school",
-          "height": 18.5,
+          "height": 18.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9047,7 +9047,7 @@
           "osmId": "w370044975",
           "name": "聖瑪大肋納學校 Escola de Santa Madalena",
           "kind": "school",
-          "height": 16.5,
+          "height": 16.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9078,7 +9078,7 @@
           "osmId": "w370044975#p1",
           "name": "聖瑪大肋納學校 Escola de Santa Madalena",
           "kind": "school",
-          "height": 16.5,
+          "height": 16.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9109,7 +9109,7 @@
           "osmId": "w665006934",
           "name": "聖瑪大肋納學校分校 Escola de Santa Madalena",
           "kind": "yes",
-          "height": 34.5,
+          "height": 34.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9164,7 +9164,7 @@
           "osmId": "w432827869",
           "name": "聖善學校 Escola D. João Paulino",
           "kind": "school",
-          "height": 30.5,
+          "height": 30.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9235,7 +9235,7 @@
           "osmId": "w432827870",
           "name": "嘉模托兒所 Creche Infantário de Nossa Senhora do Carmo",
           "kind": "yes",
-          "height": 28.5,
+          "height": 28.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9315,7 +9315,7 @@
           "osmId": "w332707318",
           "name": "九澳聖若瑟學校 Escola de São José de Ká Hó",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9450,7 +9450,7 @@
           "osmId": "w332707336",
           "name": "九澳聖若瑟學校",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9524,7 +9524,7 @@
           "osmId": "w357477521",
           "name": "千禧堂",
           "kind": "school",
-          "height": 18.5,
+          "height": 18.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9571,7 +9571,7 @@
           "osmId": "w405411404",
           "name": "仁愛樓",
           "kind": "school",
-          "height": 32.5,
+          "height": 32.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9710,7 +9710,7 @@
           "osmId": "w775232946",
           "name": null,
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9741,7 +9741,7 @@
           "osmId": "w1216391900",
           "name": "和平樓",
           "kind": "school",
-          "height": 27.5,
+          "height": 27.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9824,7 +9824,7 @@
           "osmId": "w1216391901",
           "name": "忠誠樓",
           "kind": "school",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9895,7 +9895,7 @@
           "osmId": "w330074102",
           "name": "海星中學 (附屬小學)",
           "kind": "yes",
-          "height": 15.5,
+          "height": 15.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -9942,7 +9942,7 @@
           "osmId": "w330080068",
           "name": "天主教海星中學(中學部)",
           "kind": "school",
-          "height": 37.5,
+          "height": 37.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10085,7 +10085,7 @@
           "osmId": "w436071592",
           "name": "沙梨頭坊眾學校 Escola Sa Lei Tau Fong Chong Hok Hau",
           "kind": "yes",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10172,7 +10172,7 @@
           "osmId": "w660475560",
           "name": "同善堂小學 Escola Primária Tung Sin Tong",
           "kind": "school",
-          "height": 19.5,
+          "height": 19.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10219,7 +10219,7 @@
           "osmId": "w673393735",
           "name": "同善堂中學 Escola Tung Sin Tong",
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10289,7 +10289,7 @@
           "osmId": "w377722881",
           "name": "下環浸會學校,小學暨幼稚園 Escola Ha Van Cham Vui",
           "kind": "school",
-          "height": 16.5,
+          "height": 16.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10343,7 +10343,7 @@
           "osmId": "w406013564",
           "name": "沙梨頭浸信學校 Escola Shá Lei Tau Cham Son",
           "kind": "yes",
-          "height": 21.5,
+          "height": 21.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10402,7 +10402,7 @@
           "osmId": "w425493469",
           "name": "菜農子弟學校 Escola Choi Nong Chi Tai",
           "kind": "school",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10449,7 +10449,7 @@
           "osmId": "w544591787",
           "name": null,
           "kind": "school",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10504,7 +10504,7 @@
           "osmId": "w788080687",
           "name": "澳門中華總商會附設青洲中學 Escola Secundária Ilha Verde da Associação Comercial de Macau",
           "kind": "school",
-          "height": 53.5,
+          "height": 53.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10543,7 +10543,7 @@
           "osmId": "w206824027",
           "name": null,
           "kind": "school",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10633,7 +10633,7 @@
           "osmId": "w405237227",
           "name": "濠江中學",
           "kind": "school",
-          "height": 31.5,
+          "height": 31.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10760,7 +10760,7 @@
           "osmId": "w460572417",
           "name": "濠江中學附屬小學 Escola Secundária Hou Kong (Seccão Primaria)",
           "kind": "school",
-          "height": 43.5,
+          "height": 43.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10791,7 +10791,7 @@
           "osmId": "w814622607",
           "name": "濠江中學 \"附屬幼稚園\" Escola Secundária Hou Kong \"Infantil\"",
           "kind": "yes",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10842,7 +10842,7 @@
           "osmId": "w192095993",
           "name": "霍英東樓 Henry Fok Building",
           "kind": "school",
-          "height": 19.5,
+          "height": 19.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -10989,7 +10989,7 @@
           "osmId": "w653756302",
           "name": "鄭裕彤樓 Cheng Yu Tung Building",
           "kind": "school",
-          "height": 30.5,
+          "height": 30.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11020,7 +11020,7 @@
           "osmId": "w826559642",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11051,7 +11051,7 @@
           "osmId": "w1431502613",
           "name": "馬萬祺樓 Ma Man Kei Building",
           "kind": "school",
-          "height": 30.5,
+          "height": 30.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11082,7 +11082,7 @@
           "osmId": "w1431502614",
           "name": "何鴻燊樓 Stanley Ho Building",
           "kind": "school",
-          "height": 30.5,
+          "height": 30.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11138,7 +11138,7 @@
           "osmId": "w330769783",
           "name": "鮑思高粵華小學 Colégio D. Bosco (Yuet Wah)",
           "kind": "school",
-          "height": 27.5,
+          "height": 27.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11233,7 +11233,7 @@
           "osmId": "w824234512",
           "name": "鮑思高粵華小學 Colégio D. Bosco (Yuet Wah)",
           "kind": "yes",
-          "height": 12.5,
+          "height": 12.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11272,7 +11272,7 @@
           "osmId": "w1220672896",
           "name": null,
           "kind": "yes",
-          "height": 19.5,
+          "height": 19.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11303,7 +11303,7 @@
           "osmId": "w1220672897",
           "name": "鮑思高游泳池 Piscina Coberta de Colégio D. Bosco",
           "kind": "yes",
-          "height": 17.5,
+          "height": 17.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11394,7 +11394,7 @@
           "osmId": "w316942741",
           "name": "協同特殊教育學校 Escola Concordia para Ensino Especial (Macau)",
           "kind": "school",
-          "height": 14.5,
+          "height": 14.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11465,7 +11465,7 @@
           "osmId": "w206105340",
           "name": "氹仔中葡學校 Escola Luso - Chinesa da Taipa",
           "kind": "yes",
-          "height": 16.5,
+          "height": 16.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11583,7 +11583,7 @@
           "osmId": "w371523934",
           "name": "何東中葡小學 Escola Primaria Oficial Luso-Chinesa \"Sir Robert Ho Tung\"",
           "kind": "school",
-          "height": 46.5,
+          "height": 46.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11638,7 +11638,7 @@
           "osmId": "w411044981",
           "name": "高美士中葡中學 Escola Secundária Luso-Chinesa Luís Gonzaga Gomes",
           "kind": "school",
-          "height": 28.5,
+          "height": 28.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11789,7 +11789,7 @@
           "osmId": "w411044982",
           "name": null,
           "kind": "school",
-          "height": 36.5,
+          "height": 36.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -11856,7 +11856,7 @@
           "osmId": "r9709543",
           "name": "中葡職業技術學校 Escola Luso-Chinesa Técnico-Profissional",
           "kind": "school",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12043,7 +12043,7 @@
           "osmId": "r9709543#p1",
           "name": "中葡職業技術學校 Escola Luso-Chinesa Técnico-Profissional",
           "kind": "school",
-          "height": 22.5,
+          "height": 22.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12110,7 +12110,7 @@
           "osmId": "w664890982",
           "name": "澳大附屬學校 / 澳門大學附屬應用學校 Escola de Aplicação Anexa à Universidade de Macau",
           "kind": "school",
-          "height": 26.5,
+          "height": 26.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12157,7 +12157,7 @@
           "osmId": "w322642496",
           "name": null,
           "kind": "school",
-          "height": 25.5,
+          "height": 25.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12188,7 +12188,7 @@
           "osmId": "w734881339",
           "name": null,
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12219,7 +12219,7 @@
           "osmId": "w1016919309",
           "name": null,
           "kind": "school",
-          "height": 59.5,
+          "height": 59.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12314,7 +12314,7 @@
           "osmId": "w322642490",
           "name": "聖公會中學 (澳門) Colégio Anglicano de Macau",
           "kind": "school",
-          "height": 28.5,
+          "height": 28.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12449,7 +12449,7 @@
           "osmId": "w322642490#p1",
           "name": "聖公會中學 (澳門) Colégio Anglicano de Macau",
           "kind": "school",
-          "height": 35.5,
+          "height": 35.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12584,7 +12584,7 @@
           "osmId": "w542442610",
           "name": null,
           "kind": "school",
-          "height": 35.5,
+          "height": 35.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12758,7 +12758,7 @@
           "osmId": "w245055148",
           "name": "South Wing",
           "kind": "school",
-          "height": 20.5,
+          "height": 20.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12825,7 +12825,7 @@
           "osmId": "w245055150",
           "name": null,
           "kind": "school",
-          "height": 13.5,
+          "height": 13.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12904,7 +12904,7 @@
           "osmId": "w404569639",
           "name": "North Wing",
           "kind": "school",
-          "height": 25.5,
+          "height": 25.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -12986,7 +12986,7 @@
           "osmId": "w427423202",
           "name": "培道中學 Escola Pui Tou",
           "kind": "school",
-          "height": 26.5,
+          "height": 26.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13037,7 +13037,7 @@
           "osmId": "w723823469",
           "name": "培道中學 (高小部) Escola Pui Tou",
           "kind": "school",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13076,7 +13076,7 @@
           "osmId": "w723823481",
           "name": "培道中學 (幼小部) Escola Pui Tou",
           "kind": "school",
-          "height": 26.5,
+          "height": 26.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13115,7 +13115,7 @@
           "osmId": "w1313688297",
           "name": null,
           "kind": "school",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13206,7 +13206,7 @@
           "osmId": "w747034207",
           "name": "澳門演藝學院 - 音樂學校",
           "kind": "yes",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13237,7 +13237,7 @@
           "osmId": "w543838197",
           "name": "澳門演藝學院 Conservatório de Macau",
           "kind": "yes",
-          "height": 19.5,
+          "height": 19.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13300,7 +13300,7 @@
           "osmId": "w544103973",
           "name": "澳門演藝學院 Conservatório de Macau",
           "kind": "yes",
-          "height": 27.5,
+          "height": 27.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13379,7 +13379,7 @@
           "osmId": "w334453291",
           "name": "鄭觀應公立學校 Escola Oficial Zheng Guanying",
           "kind": "yes",
-          "height": 21.5,
+          "height": 21.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13514,7 +13514,7 @@
           "osmId": "w569315599",
           "name": "聖若瑟大學與聖若瑟教區中學第六校 Universidade de São José&Colegio Diocesano de Sao Jose",
           "kind": "yes",
-          "height": 9.5,
+          "height": 9.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13585,7 +13585,7 @@
           "osmId": "w498071606",
           "name": "聖大學生宿舍 University of Saint Joseph Residential Hall",
           "kind": "dormitory",
-          "height": 63.5,
+          "height": 63.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13616,7 +13616,7 @@
           "osmId": "w498071607",
           "name": null,
           "kind": "yes",
-          "height": 12.5,
+          "height": 12.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13683,7 +13683,7 @@
           "osmId": "w635377711",
           "name": null,
           "kind": "yes",
-          "height": 31.5,
+          "height": 31.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13786,7 +13786,7 @@
           "osmId": "w874134059",
           "name": "石排灣公立學校、語言教學活動中心、職業技術教育活動中心 Escola Oficial de Seac Pai Van, Centro de Actividades Pedagógicas de Línguas, Centro de Actividades do Ensino Técnico-Profissional",
           "kind": "yes",
-          "height": 47.5,
+          "height": 47.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13889,7 +13889,7 @@
           "osmId": "w546741648",
           "name": "二龍喉公立學校 Escola Oficial da Flora",
           "kind": "school",
-          "height": 29.5,
+          "height": 29.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -13959,7 +13959,7 @@
           "osmId": "w1213753845",
           "name": null,
           "kind": "outline",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14037,7 +14037,7 @@
           "osmId": "w328757057",
           "name": "環宇豪庭 Wan Yu Villas",
           "kind": "residential",
-          "height": 56.5,
+          "height": 56.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14092,7 +14092,7 @@
           "osmId": "w328757057#p1",
           "name": "環宇豪庭 Wan Yu Villas",
           "kind": "residential",
-          "height": 14.5,
+          "height": 14.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14119,7 +14119,7 @@
           "osmId": "w328757057#p2",
           "name": "環宇豪庭 Wan Yu Villas",
           "kind": "residential",
-          "height": 56.5,
+          "height": 56.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14146,7 +14146,7 @@
           "osmId": "w328757057#p3",
           "name": "環宇豪庭 Wan Yu Villas",
           "kind": "residential",
-          "height": 56.5,
+          "height": 56.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14201,7 +14201,7 @@
           "osmId": "w328757057#p4",
           "name": "環宇豪庭 Wan Yu Villas",
           "kind": "residential",
-          "height": 14.5,
+          "height": 14.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14240,7 +14240,7 @@
           "osmId": "w328757057#p5",
           "name": "環宇豪庭 Wan Yu Villas",
           "kind": "residential",
-          "height": 56.5,
+          "height": 56.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14295,7 +14295,7 @@
           "osmId": "w328757057#p6",
           "name": "環宇豪庭 Wan Yu Villas",
           "kind": "residential",
-          "height": 56.5,
+          "height": 56.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14373,7 +14373,7 @@
           "osmId": "w192179981",
           "name": "金龍中心 Centro Golden Dragon",
           "kind": "office",
-          "height": 92.5,
+          "height": 92.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14427,7 +14427,7 @@
           "osmId": "w291592945",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 85.5,
+          "height": 85.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14466,7 +14466,7 @@
           "osmId": "w291592945#p1",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 11.5,
+          "height": 11.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14561,7 +14561,7 @@
           "osmId": "w291592945#p2",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 85.5,
+          "height": 85.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14608,7 +14608,7 @@
           "osmId": "w291592945#p3",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14639,7 +14639,7 @@
           "osmId": "w291592945#p4",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14686,7 +14686,7 @@
           "osmId": "w291592945#p5",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14717,7 +14717,7 @@
           "osmId": "w291592945#p6",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14748,7 +14748,7 @@
           "osmId": "w291592945#p7",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14787,7 +14787,7 @@
           "osmId": "w291592945#p8",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14826,7 +14826,7 @@
           "osmId": "w291592945#p9",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14857,7 +14857,7 @@
           "osmId": "w291592945#p10",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14888,7 +14888,7 @@
           "osmId": "w291592945#p11",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14927,7 +14927,7 @@
           "osmId": "w291592945#p12",
           "name": "擎天匯 Praia Park",
           "kind": "residential",
-          "height": 90.5,
+          "height": 90.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -14981,7 +14981,7 @@
           "osmId": "w205784540",
           "name": "明德樓 Edificío Mathilda",
           "kind": "university",
-          "height": 64.5,
+          "height": 64.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15028,7 +15028,7 @@
           "osmId": "w402326028",
           "name": "行政樓 Edifício da Administração",
           "kind": "university",
-          "height": 21.5,
+          "height": 21.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15059,7 +15059,7 @@
           "osmId": "w402326029",
           "name": "澳門理工大學體育館 Pavilhão Polidesportivo da Universidade Politécnica de Macau",
           "kind": "university",
-          "height": 31.5,
+          "height": 31.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15154,7 +15154,7 @@
           "osmId": "w402326030",
           "name": "匯智樓 Edificío da Sabedoria",
           "kind": "university",
-          "height": 34.5,
+          "height": 34.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15185,7 +15185,7 @@
           "osmId": "w468000705",
           "name": "教研樓 Edifício Académico",
           "kind": "university",
-          "height": 48.5,
+          "height": 48.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15239,7 +15239,7 @@
           "osmId": "w330914473",
           "name": "澳門保安部隊高等學校分教處 Extensão da Escola Superior das Forças de Segurança de Macau",
           "kind": "university",
-          "height": 13.5,
+          "height": 13.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15266,7 +15266,7 @@
           "osmId": "w330914473#p1",
           "name": "澳門保安部隊高等學校分教處 Extensão da Escola Superior das Forças de Segurança de Macau",
           "kind": "university",
-          "height": 13.5,
+          "height": 13.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15320,7 +15320,7 @@
           "osmId": "w347579738",
           "name": "協力樓 Edifício Equipa",
           "kind": "university",
-          "height": 41.5,
+          "height": 41.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15471,7 +15471,7 @@
           "osmId": "w347579754",
           "name": "啟思樓 Edifício Inspiração",
           "kind": "university",
-          "height": 32.5,
+          "height": 32.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15550,7 +15550,7 @@
           "osmId": "w347579872",
           "name": "教學餐廳大樓 Educational Restaurant Building",
           "kind": "university",
-          "height": 45.5,
+          "height": 45.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15661,7 +15661,7 @@
           "osmId": "w347579912",
           "name": "望廈迎賓館 Pousada de Mong-Há",
           "kind": "yes",
-          "height": 43.5,
+          "height": 43.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15795,7 +15795,7 @@
           "osmId": "w322859405",
           "name": "第一座 Bloco 1",
           "kind": "dormitory",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15850,7 +15850,7 @@
           "osmId": "w322859407",
           "name": "中葡樓 Luso-Chinese Building",
           "kind": "yes",
-          "height": 78.5,
+          "height": 78.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15881,7 +15881,7 @@
           "osmId": "w322859408",
           "name": "何賢會議中心 Ho Yin Convention Centre",
           "kind": "yes",
-          "height": 64.5,
+          "height": 64.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15928,7 +15928,7 @@
           "osmId": "w322859409",
           "name": "何鴻燊樓 Edifício Stanley Ho",
           "kind": "yes",
-          "height": 82.5,
+          "height": 82.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15959,7 +15959,7 @@
           "osmId": "w322859439",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -15994,7 +15994,7 @@
           "osmId": "w322859442",
           "name": "文化中心 Cultural Centre",
           "kind": "yes",
-          "height": 64.5,
+          "height": 64.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16033,7 +16033,7 @@
           "osmId": "w322859461",
           "name": "王寬誠樓 K.C.Wong Building",
           "kind": "yes",
-          "height": 65.5,
+          "height": 65.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16096,7 +16096,7 @@
           "osmId": "w322859470",
           "name": "蔡繼有樓 Choi Kai Yau Building",
           "kind": "yes",
-          "height": 78.5,
+          "height": 78.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16127,7 +16127,7 @@
           "osmId": "w322859471",
           "name": "行政樓 Edifício Administrativo",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16257,7 +16257,7 @@
           "osmId": "w322859464",
           "name": "學生宿舍 (第三座) Residência de Estudantes (Bloco 3)",
           "kind": "dormitory",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16328,7 +16328,7 @@
           "osmId": "w322859466",
           "name": "翁祐樓 Edificío Yung Tau",
           "kind": "dormitory",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16406,7 +16406,7 @@
           "osmId": "w322859443",
           "name": "方潤華樓 Edifício Fong Yun Wah",
           "kind": "university",
-          "height": 39.5,
+          "height": 39.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16476,7 +16476,7 @@
           "osmId": "w288151234",
           "name": "展望樓 Forward Building",
           "kind": "university",
-          "height": 41.5,
+          "height": 41.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16635,7 +16635,7 @@
           "osmId": "w817774848",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16689,7 +16689,7 @@
           "osmId": "w173697076",
           "name": null,
           "kind": "college",
-          "height": 21.5,
+          "height": 21.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16740,7 +16740,7 @@
           "osmId": "w229290441",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16771,7 +16771,7 @@
           "osmId": "w229290452",
           "name": "澳門保安部隊高等學校 Instituto Superior das Forças de Segurança de Macau",
           "kind": "yes",
-          "height": 20.5,
+          "height": 20.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16858,7 +16858,7 @@
           "osmId": "w229290458",
           "name": "路環警司處分站 Posto do Comissariado de Coloane",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16889,7 +16889,7 @@
           "osmId": "w485042100",
           "name": null,
           "kind": "yes",
-          "height": 20.5,
+          "height": 20.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16936,7 +16936,7 @@
           "osmId": "w485042103",
           "name": null,
           "kind": "yes",
-          "height": 23.5,
+          "height": 23.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -16967,7 +16967,7 @@
           "osmId": "w874125189",
           "name": "消防局路環行動站 Corpo de Bombeiros Posto Operacional de Coloane",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17030,7 +17030,7 @@
           "osmId": "w874125190",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17061,7 +17061,7 @@
           "osmId": "w1371621769",
           "name": null,
           "kind": "yes",
-          "height": 28.5,
+          "height": 28.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17100,7 +17100,7 @@
           "osmId": "w1371621770",
           "name": null,
           "kind": "yes",
-          "height": 28.5,
+          "height": 28.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17139,7 +17139,7 @@
           "osmId": "w1371621771",
           "name": null,
           "kind": "yes",
-          "height": 34.5,
+          "height": 34.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17170,7 +17170,7 @@
           "osmId": "w1371621772",
           "name": null,
           "kind": "yes",
-          "height": 34.5,
+          "height": 34.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17201,7 +17201,7 @@
           "osmId": "w1371621773",
           "name": "澳門保安部隊高等學校 Instituto Superior das Forças de Segurança de Macau",
           "kind": "yes",
-          "height": 33.5,
+          "height": 33.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17240,7 +17240,7 @@
           "osmId": "w1371621774",
           "name": null,
           "kind": "yes",
-          "height": 47.5,
+          "height": 47.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17307,7 +17307,7 @@
           "osmId": "w1371621775",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17361,7 +17361,7 @@
           "osmId": "w784532936",
           "name": "博士苑(偉興山庄) Doctoral House",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17416,7 +17416,7 @@
           "osmId": "w784532937",
           "name": "博士苑(偉興山庄) Doctoral House",
           "kind": "yes",
-          "height": 17.5,
+          "height": 17.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17506,7 +17506,7 @@
           "osmId": "w321628342",
           "name": "東亞樓 East Asia Hall",
           "kind": "dormitory",
-          "height": 72.5,
+          "height": 72.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17577,7 +17577,7 @@
           "osmId": "w322859436",
           "name": "東亞樓 East Asia Hall",
           "kind": "dormitory",
-          "height": 42.5,
+          "height": 42.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17636,7 +17636,7 @@
           "osmId": "w322859481",
           "name": "耀東樓 Edifício Yiu Tung",
           "kind": "university",
-          "height": 81.5,
+          "height": 81.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17774,7 +17774,7 @@
           "osmId": "w428421338",
           "name": "澳門鏡湖護理學院大樓 Edifício do Instituto de Enfermagem Kiang Wu de Macau",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17848,7 +17848,7 @@
           "osmId": "w192095926",
           "name": null,
           "kind": "yes",
-          "height": 13.5,
+          "height": 13.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17911,7 +17911,7 @@
           "osmId": "w192095955",
           "name": "G 座宿舍 Dormitório Bloco G",
           "kind": "dormitory",
-          "height": 25.5,
+          "height": 25.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -17978,7 +17978,7 @@
           "osmId": "w192095972",
           "name": "E座活動中心 Complexo recreativo (Bloco E)",
           "kind": "university",
-          "height": 18.5,
+          "height": 18.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18073,7 +18073,7 @@
           "osmId": "w192096008",
           "name": "澳門科技大學圖書館 Biblioteca da M.U.S.T.",
           "kind": "yes",
-          "height": 31.5,
+          "height": 31.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18148,7 +18148,7 @@
           "osmId": "w192096037",
           "name": "科大體育館 Ginásio MUST",
           "kind": "stadium",
-          "height": 30.5,
+          "height": 30.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18179,7 +18179,7 @@
           "osmId": "w192096073",
           "name": "M 座宿舍 Dormitório Bloco M",
           "kind": "dormitory",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18258,7 +18258,7 @@
           "osmId": "w192096088",
           "name": "L座公寓式酒店 Guest House",
           "kind": "dormitory",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18305,7 +18305,7 @@
           "osmId": "w192096092",
           "name": "H座科技大樓 Science and Technology Building (Block H)",
           "kind": "university",
-          "height": 12.5,
+          "height": 12.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18352,7 +18352,7 @@
           "osmId": "w192096092#p1",
           "name": "H座科技大樓 Science and Technology Building (Block H)",
           "kind": "university",
-          "height": 47.5,
+          "height": 47.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18383,7 +18383,7 @@
           "osmId": "w192096093",
           "name": "F 座宿舍 Dormitório Bloco F",
           "kind": "dormitory",
-          "height": 28.5,
+          "height": 28.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18430,7 +18430,7 @@
           "osmId": "w245055149",
           "name": "A座行政大樓 Administration Building (Blcok A)",
           "kind": "university",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18533,7 +18533,7 @@
           "osmId": "w322859402",
           "name": "R座綜合教學大樓 Academic Complex (Block R)",
           "kind": "yes",
-          "height": 36.5,
+          "height": 36.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18564,7 +18564,7 @@
           "osmId": "w322859440",
           "name": "B座教學大樓 Edifício académico",
           "kind": "university",
-          "height": 30.5,
+          "height": 30.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18611,7 +18611,7 @@
           "osmId": "w322859441",
           "name": "C座教學大樓 Edifício académico (Bloco C)",
           "kind": "university",
-          "height": 24.5,
+          "height": 24.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18666,7 +18666,7 @@
           "osmId": "w322859444",
           "name": "D座會議廳 Conference Hall (Block D)",
           "kind": "yes",
-          "height": 14.5,
+          "height": 14.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18713,7 +18713,7 @@
           "osmId": "w354086823",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18760,7 +18760,7 @@
           "osmId": "w402077170",
           "name": "P座宿舍 Dormitório Bloco P",
           "kind": "dormitory",
-          "height": 56.5,
+          "height": 56.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18815,7 +18815,7 @@
           "osmId": "w468198732",
           "name": "O座教學大樓 Edifício académico (Bloco O)",
           "kind": "university",
-          "height": 47.5,
+          "height": 47.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18862,7 +18862,7 @@
           "osmId": "w1101382536",
           "name": null,
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18893,7 +18893,7 @@
           "osmId": "w1101382537",
           "name": null,
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18924,7 +18924,7 @@
           "osmId": "w1225128135",
           "name": null,
           "kind": "yes",
-          "height": 10.5,
+          "height": 10.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -18971,7 +18971,7 @@
           "osmId": "w1445132233",
           "name": null,
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19002,7 +19002,7 @@
           "osmId": "w1485649505",
           "name": null,
           "kind": "yes",
-          "height": 47.5,
+          "height": 47.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19100,7 +19100,7 @@
           "osmId": "w241702230",
           "name": "危險品倉庫 Armazém de Mercadorias Perigosas (N26)",
           "kind": "university",
-          "height": 9.5,
+          "height": 9.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19131,7 +19131,7 @@
           "osmId": "w241702235",
           "name": "醫藥檢測樓 Medical and Pharmaceutical Testing Building (N25)",
           "kind": "university",
-          "height": 16.5,
+          "height": 16.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19162,7 +19162,7 @@
           "osmId": "w241702236",
           "name": "伍宜孫圖書館 Biblioteca Wu Yee Sun (E2)",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19377,7 +19377,7 @@
           "osmId": "w262650944",
           "name": "澳大綜合體育館 Complexo Desportivo da Universidade de Macau (N8)",
           "kind": "university",
-          "height": 35.5,
+          "height": 35.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19448,7 +19448,7 @@
           "osmId": "w288151232",
           "name": "橫琴島消防站 Posto Operacional em Ilha da Montanha",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19519,7 +19519,7 @@
           "osmId": "w289598366",
           "name": "E12",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19638,7 +19638,7 @@
           "osmId": "w289598376",
           "name": "大學展館 Galeria da Universidade (E1)",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19669,7 +19669,7 @@
           "osmId": "w289598378",
           "name": "大學會堂 Aula Magna da Universidade (N2)",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19724,7 +19724,7 @@
           "osmId": "w289598379",
           "name": "學生活動中心 Centro das Actividades Estudantis da Universidade de Macau (E31)",
           "kind": "university",
-          "height": 11.5,
+          "height": 11.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19887,7 +19887,7 @@
           "osmId": "w289598381",
           "name": null,
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19918,7 +19918,7 @@
           "osmId": "w289598382",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19949,7 +19949,7 @@
           "osmId": "w289598383",
           "name": "澳門大學行人隧道出入口 Saída e Entrada do Túnel do pedestres para Universidade",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -19980,7 +19980,7 @@
           "osmId": "w289598384",
           "name": null,
           "kind": "yes",
-          "height": 8.5,
+          "height": 8.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20015,7 +20015,7 @@
           "osmId": "w289598387",
           "name": "教職員宿舍南三十二座 Quadra S32",
           "kind": "dormitory",
-          "height": 44.5,
+          "height": 44.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20226,7 +20226,7 @@
           "osmId": "w289598405",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20257,7 +20257,7 @@
           "osmId": "w289598406",
           "name": "聚賢樓 Pousada da Universidade de Macau (N1)",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20360,7 +20360,7 @@
           "osmId": "w289598411",
           "name": "E11",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20463,7 +20463,7 @@
           "osmId": "w289598413",
           "name": "科研大樓 Edifício de Ciências (N21)",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20494,7 +20494,7 @@
           "osmId": "w289598415",
           "name": "科研大樓 Edifício de Ciências (N22)",
           "kind": "yes",
-          "height": 56.5,
+          "height": 56.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20557,7 +20557,7 @@
           "osmId": "w289598416",
           "name": "科研大樓 Edifício de Ciências (N24)",
           "kind": "yes",
-          "height": 60.5,
+          "height": 60.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20588,7 +20588,7 @@
           "osmId": "w289598419",
           "name": "薈萃坊 Centro Comercial da Universidade de Macau (S8)",
           "kind": "yes",
-          "height": 11.5,
+          "height": 11.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20643,7 +20643,7 @@
           "osmId": "w289598420",
           "name": "行政樓 Edifício Administrativo da Universidade (N6)",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20754,7 +20754,7 @@
           "osmId": "w296744896",
           "name": "垃圾收集中心 Centro de coleta de lixo",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20801,7 +20801,7 @@
           "osmId": "w296744903",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20832,7 +20832,7 @@
           "osmId": "w414299098",
           "name": "工商管理學院 Faculdade de Administração de Empresas (E22)",
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20919,7 +20919,7 @@
           "osmId": "w414299099",
           "name": "教育學院 Faculdade de Ciências da Educação (E33)",
           "kind": "university",
-          "height": 11.5,
+          "height": 11.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -20950,7 +20950,7 @@
           "osmId": "w414299099#p1",
           "name": "教育學院 Faculdade de Ciências da Educação (E33)",
           "kind": "university",
-          "height": 11.5,
+          "height": 11.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21069,7 +21069,7 @@
           "osmId": "w414299099#p2",
           "name": "教育學院 Faculdade de Ciências da Educação (E33)",
           "kind": "university",
-          "height": 11.5,
+          "height": 11.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21124,7 +21124,7 @@
           "osmId": "w414299100",
           "name": "法學院 Faculdade de Direit (E32)",
           "kind": "university",
-          "height": 11.5,
+          "height": 11.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21243,7 +21243,7 @@
           "osmId": "w414299100#p1",
           "name": "法學院 Faculdade de Direit (E32)",
           "kind": "university",
-          "height": 11.5,
+          "height": 11.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21346,7 +21346,7 @@
           "osmId": "w414299101",
           "name": "祟文樓 Edifício Cultural (E34)",
           "kind": "university",
-          "height": 11.5,
+          "height": 11.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21409,7 +21409,7 @@
           "osmId": "w435508179",
           "name": "澳大運動場 Estádio da Universidade de Macau (N9)",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21440,7 +21440,7 @@
           "osmId": "w827556759",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21471,7 +21471,7 @@
           "osmId": "w827556759#p1",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21502,7 +21502,7 @@
           "osmId": "w864687780",
           "name": "泵房",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21533,7 +21533,7 @@
           "osmId": "w1203853310",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21564,7 +21564,7 @@
           "osmId": "w1213759110",
           "name": "T13 橫琴澳大校區大學北(近旅遊巴站)公廁",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21611,7 +21611,7 @@
           "osmId": "w1228553188",
           "name": "隧道通風口 Bocas de ventilação do túnel",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21642,7 +21642,7 @@
           "osmId": "w1315452872",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21673,7 +21673,7 @@
           "osmId": "w1377221839",
           "name": "蘇澳亭",
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21704,7 +21704,7 @@
           "osmId": "w1433805174",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21735,7 +21735,7 @@
           "osmId": "w1448006465",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21798,7 +21798,7 @@
           "osmId": "w1449434736",
           "name": null,
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21829,7 +21829,7 @@
           "osmId": "w1449443851",
           "name": null,
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21860,7 +21860,7 @@
           "osmId": "w1450815571",
           "name": null,
           "kind": "university",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21891,7 +21891,7 @@
           "osmId": "w1451638006",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21922,7 +21922,7 @@
           "osmId": "w1451638007",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [
@@ -21953,7 +21953,7 @@
           "osmId": "w1452943900",
           "name": null,
           "kind": "yes",
-          "height": 5.5,
+          "height": 5.0,
           "minHeight": 0.0,
           "coordinates": [
             [

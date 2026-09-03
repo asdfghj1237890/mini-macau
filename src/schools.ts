@@ -134,6 +134,13 @@ export function schoolDsedjCode(id: string): string | null {
 // feature so the paint expression stays a plain ['get', 'color'], and
 // `schoolId` (SCHOOL_FEATURE_ID_PROPERTY) doubles as the promoted feature id
 // used for the selection highlight.
+// The data stores each footprint at the height the basemap draws it. Our block
+// is rendered this much taller so its roof always wins the depth test against
+// the basemap's roof underneath: 0.5 m was not enough — large, low roofs
+// (a 5 m school hall seen at 60° pitch) z-fought into white streaks, and the
+// z14→15.5 height ramp scales any margin down with it.
+export const SCHOOL_HEIGHT_MARGIN_M = 2
+
 export function buildSchoolFeatures(schools: School[]): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = []
   for (const school of schools) {
@@ -148,7 +155,7 @@ export function buildSchoolFeatures(schools: School[]): GeoJSON.FeatureCollectio
           schoolId: school.id,
           level: school.level,
           color,
-          height: building.height,
+          height: building.height + SCHOOL_HEIGHT_MARGIN_M,
           minHeight: building.minHeight,
           name: building.name,
         },

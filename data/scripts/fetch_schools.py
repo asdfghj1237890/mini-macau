@@ -77,8 +77,13 @@ HEADERS = {"User-Agent": "mini-macau data pipeline (https://github.com/asdfghj12
 LEVELS = ("kindergarten", "primary", "secondary", "university", "all_through")
 DEFAULT_RENDER_HEIGHT_M = 5.0  # OpenMapTiles default for untagged buildings
 LEVEL_HEIGHT_M = 3.66  # OpenMapTiles building:levels -> metres
-BUILDING_BUFFER_M = 0.5  # grow footprints so our extrusion does not z-fight the basemap
-EXTRA_HEIGHT_M = 0.5
+BUILDING_BUFFER_M = 0.5  # grow footprints so our walls do not z-fight the basemap's
+# Heights are stored as the basemap draws them (no margin). The frontend adds
+# its own vertical margin when it builds the layer (see SCHOOL_HEIGHT_MARGIN_M
+# in src/schools.ts): a data-side 0.5 m was not enough — large low roofs
+# z-fought the basemap's roof at oblique angles, and the z14→15.5 height ramp
+# shrank the margin further.
+EXTRA_HEIGHT_M = 0.0
 NODE_SEARCH_RADIUS_M = 25
 POLY_CHUNK = 20  # school polygons per Overpass request
 TERTIARY_NAME_RE = re.compile(r"大學|學院|高等|Universidade|Instituto|University")

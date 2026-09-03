@@ -111,10 +111,10 @@ describe('buildSchoolFeatures', () => {
     expect(fc.features).toHaveLength(3)
     expect(fc.features[0].geometry).toEqual({ type: 'Polygon', coordinates: RING })
     expect(fc.features[0].properties).toEqual({
-      schoolId: 'a', level: 'primary', color: '#f472b6', height: 15.8, minHeight: 0, name: 'A座',
+      schoolId: 'a', level: 'primary', color: '#f472b6', height: 17.8, minHeight: 0, name: 'A座',
     })
     expect(fc.features[2].properties).toMatchObject({
-      schoolId: 'b', color: '#22c55e', height: 40, minHeight: 3,
+      schoolId: 'b', color: '#22c55e', height: 42, minHeight: 3,
     })
   })
 
