@@ -413,6 +413,154 @@ export interface WaterDistributionFile {
   roads: WaterDistributionRoad[]
 }
 
+// Trilingual free text for an electricity facility. `zh` comes from CEM's own
+// station list; `en`/`pt` are only filled where OSM tags `name:en` / `name:pt`,
+// so either can be "" (see `pickPowerText`).
+export interface PowerText {
+  zh: string
+  pt: string
+  en: string
+}
+
+// What kind of electricity facility this is, and therefore the colour it is
+// drawn in. `plant` is 路環發電廠 (CEM's own generation), `incinerator` the
+// government waste-to-energy plant that sells into the grid, and the three
+// `subNNN` values are CEM's HV substation tiers, named for the HIGHEST voltage
+// the station carries.
+export type PowerFacilityType = 'plant' | 'incinerator' | 'sub220' | 'sub110' | 'sub66'
+
+// The three transmission voltages CEM operates. A separate type from a bare
+// number so the colour and width tables are exhaustive by construction.
+export type PowerVoltage = 220 | 110 | 66
+
+// Who owns and runs a facility. Almost everything on the map is CEM's; `dspa`
+// is 澳門垃圾焚化中心, the government incineration centre, which sells its output
+// to CEM but is not a CEM asset. The distinction is a fact the panel must
+// state, not a styling hint — read it through `powerOperator`, never directly.
+export type PowerOperator = 'cem' | 'dspa'
+
+// One building footprint of an electricity facility. Deliberately the same
+// contract as `WaterBuilding` / `SchoolBuilding` (`height` is the basemap's
+// render_height, `minHeight` the render_min_height) so all three overlays share
+// the +2 m margin and the z14→15.5 height ramp.
+export interface PowerBuilding {
+  osmId: string
+  name: string | null
+  height: number
+  minHeight: number
+  kind?: string // 'building' | 'tile' | 'outline' — not read by the runtime
+  coordinates: [number, number][][]
+}
+
+// The extra facts the info panel shows where the pipeline has them. The Coloane
+// plant carries the full trilingual unit prose (it is prose, not a table) plus
+// its installed capacity; a 220 kV import station carries only the year it was
+// commissioned. Every field is optional for that reason, and the panel renders
+// each row only when its field is present.
+export interface PowerPlantDetails {
+  unitsZh?: string
+  unitsEn?: string
+  unitsPt?: string
+  // A language-neutral unit string (澳北's "A + B"), used when the trilingual
+  // prose above is absent.
+  units?: string
+  capacityMw?: number
+  commissioned?: number
+}
+
+// One electricity facility. `coordinates` is the marker position [lng, lat].
+// When `approximate` is true CEM lists the station but OSM has no feature for
+// it, so the marker sits at the facility named by `anchor` (or a
+// `district:<slug>` point) instead of a surveyed position — the panel says so.
+export interface PowerFacility {
+  id: string
+  type: PowerFacilityType
+  operator?: PowerOperator
+  name: PowerText
+  // Highest voltage the station carries; null for the plant and the
+  // incinerator, which are generation rather than transmission.
+  voltageKv: number | null
+  coordinates: [number, number] // [lng, lat]
+  approximate: boolean
+  anchor: string | null // facility id, "district:<slug>", or null when exact
+  osm: string[] // the OSM features this facility was matched to
+  buildings: PowerBuilding[] // may be empty (marker-only stations)
+  // Generation facts. Present only for the Coloane plant.
+  details?: PowerPlantDetails | null
+  // Free-text provenance for a station that is in OSM but not on CEM's list.
+  note?: string | null
+}
+
+// An extra node of the schematic network that is NOT a facility: the points on
+// the Macau side of the border where the Guangdong grid lands. `kind` is free
+// text ('inlet') rather than an enum so the pipeline can add a node type
+// without breaking the runtime.
+export interface PowerNetworkNode {
+  id: string
+  kind: string
+  name: PowerText
+  coordinates: [number, number] // [lng, lat]
+}
+
+// One edge of the network. `from`/`to` are facility ids or a node id;
+// `coordinates` is the OSRM driving route between the two markers, so the line
+// follows real streets. `fallback` marks the ones OSRM could not route — those
+// are a straight line between the endpoints and are drawn grey to say so.
+export interface PowerLine {
+  id: string
+  from: string
+  to: string
+  voltageKv: number
+  lengthM: number
+  fallback: boolean
+  // A deliberate short straight connector between co-located stations rather
+  // than a routing failure — so it is drawn exactly like any other line of its
+  // voltage, unlike a `fallback`.
+  direct?: boolean
+  coordinates: [number, number][]
+}
+
+// OUR schematic HV network, not CEM's real cable routes: an explicit edge list
+// between the published stations, with road geometry from OSRM. CEM's 1,088 km
+// of HV cable is almost all underground and in no public dataset, so this can
+// only ever be a diagram — every surface that shows it says so (see
+// `powerNetworkNote` in i18n).
+export interface PowerNetwork {
+  nodes: PowerNetworkNode[]
+  lines: PowerLine[]
+}
+
+// One road of the schematic DISTRIBUTION network: Macau's own streets, from
+// power-distribution.json, drawn as thin feeders under the HV corridors. Same
+// contract and same reasoning as WaterDistributionRoad, oriented outward from
+// the substations rather than from the water plants.
+export interface PowerDistributionRoad {
+  class: string // OSM highway class: motorway … service
+  // Metres along the network from the nearest substation, at the first and last
+  // vertex. Null where the outward walk never reached the road.
+  dist?: number | null
+  distEnd?: number | null
+  // ORIENTED: the pipeline emits each road running AWAY from the substation
+  // that feeds it, so vertex order carries the direction of supply — the same
+  // contract as PowerLine, and what lets the flow layer animate outward.
+  coordinates: [number, number][]
+}
+
+// power-distribution.json. Loaded lazily, the first time the POWER layer goes
+// on, rather than at startup: it is ~0.5 MB and most visits never ask for it.
+export interface PowerDistributionFile {
+  fetchedAtUtc?: string
+  sources?: Record<string, string> | unknown[]
+  classes?: string[]
+  // Bookkeeping from the outward orientation pass — provenance, never read by
+  // the map: the substations the walk started from, the roads it never reached,
+  // and the count of roads split at a junction.
+  flowSources?: string[]
+  unreached?: number
+  splits?: number
+  roads: PowerDistributionRoad[]
+}
+
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
@@ -429,6 +577,10 @@ export interface TransitData {
   // The schematic pipe network, or null when water-facilities.json predates it
   // (the `network` block is optional) or the WATER layer is off.
   waterNetwork: WaterNetwork | null
+  powerFacilities: PowerFacility[]
+  // The schematic HV network, or null when power-facilities.json has no
+  // `network` block or the POWER layer is off.
+  powerNetwork: PowerNetwork | null
   loading: boolean
 }
 

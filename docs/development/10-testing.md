@@ -43,7 +43,7 @@ npm run test:watch  # 互動模式
 
 `dataSchemas.test.ts` 是另一種測試：拿 zod schema（[`dataSchemas.ts`](../../src/dataSchemas.ts)）去 parse `public/data/*.json` 實際檔案內容，包括新的 `road-works.json` / `schools.json` / `toilets.json` / `car-parks.json` / `water-facilities.json`——保證 commit 進來的資料本身合法，不是測程式邏輯。
 
-瀏覽器端的 zod schema 與 pipeline 端的 [`validate_output.py`](../../data/scripts/validate_output.py) 是**互相對照的兩份**，改一邊要改另一邊。目前 `validate_output.py` 認得的 dataset：`lrt-lines`、`stations`、`trips-*`、`bus-routes`、`bus-stops`、`flights`、`flights-timetable`、`ferries`、`service-status`、`road-works`、`schools`、`water-facilities`、`toilets`、`car-parks`（`all` 一次跑完）。`schools` 與 `water-facilities` 共用同一個 3D 建築足跡檢查（`check_footprint_building`：`osmId` / `height` / `minHeight` / 每個環閉合且在澳門範圍內），差別只在 `water-facilities` 的 `kind` 是 `building` / `tile` / `outline` 三選一的列舉。
+瀏覽器端的 zod schema 與 pipeline 端的 [`validate_output.py`](../../data/scripts/validate_output.py) 是**互相對照的兩份**，改一邊要改另一邊。目前 `validate_output.py` 認得的 dataset：`lrt-lines`、`stations`、`trips-*`、`bus-routes`、`bus-stops`、`flights`、`flights-timetable`、`ferries`、`service-status`、`road-works`、`schools`、`water-facilities`、`water-distribution`、`power-facilities`、`power-distribution`、`toilets`、`car-parks`（`all` 一次跑完）。`schools`、`water-facilities` 與 `power-facilities` 共用同一個 3D 建築足跡檢查（`check_footprint_building`：`osmId` / `height` / `minHeight` / 每個環閉合且在澳門範圍內），差別只在後兩者的 `kind` 是 `building` / `tile` / `outline` 三選一的列舉。`water-distribution` 與 `power-distribution` 是同一支 pipeline（`road_network.py`）產的同一種形狀，所以也共用同一個 validator（`v_distribution`，只差 dataset 名字）。
 
 ## 沒測什麼
 

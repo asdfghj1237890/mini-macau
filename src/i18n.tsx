@@ -101,6 +101,8 @@ const translations = {
     carParksCount: (n: number) => `${n} car parks`,
     water: 'Water supply',
     waterCount: (n: number) => `${n} facilities`,
+    power: 'Electricity',
+    powerCount: (n: number) => `${n} facilities`,
     noServiceToday: 'No service today',
     // ---- MapView drawer ----
     mapSettings: 'Map Settings',
@@ -127,6 +129,7 @@ const translations = {
     dataSourceToiletsLabel: 'Public toilets',
     dataSourceCarParksLabel: 'Car parks',
     dataSourceWaterLabel: 'Water supply',
+    dataSourcePowerLabel: 'Electricity',
     // ---- ControlPanel ----
     amPeak: 'AM PEAK',
     pmPeak: 'PM PEAK',
@@ -292,6 +295,38 @@ const translations = {
     waterBuildings: (n: number) => `${n} footprint${n === 1 ? '' : 's'}`,
     waterFootprints: 'FOOTPRINTS',
     waterSource: 'SOURCE',
+    // ---- POWER overlay (CEM) ----
+    powerLabel: 'POWER',
+    powerTypePlant: 'Power station',
+    powerTypeIncinerator: 'Waste-to-energy plant',
+    powerTypeSub220: '220 kV substation',
+    powerTypeSub110: '110 kV substation',
+    powerTypeSub66: '66 kV substation',
+    // The three points where the Guangdong grid lands — nodes of our schematic
+    // network, not CEM stations.
+    powerTypeInlet: 'Grid import point',
+    powerInletNote: 'Imported from the Guangdong grid: about 91% of the electricity Macau used in 2025.',
+    // Shown wherever the HV network is drawn or described: it is OUR diagram,
+    // not CEM's cable routes, which are underground and not public.
+    powerNetworkNote: 'Schematic grid',
+    powerLines: (n: number) => `${n} line${n === 1 ? '' : 's'} connected`,
+    powerLineVoltage: (kv: number) => `${kv} kV line`,
+    powerLegendDistribution: 'Distribution network (schematic, along every road)',
+    // The incinerator is a government plant that sells into the grid, not a CEM
+    // asset, and the panel has to say so.
+    powerOperatorCem: 'CEM (Companhia de Electricidade de Macau) facility',
+    powerOperatorDspa: 'Government waste-to-energy plant · sells power to CEM',
+    powerVoltage: 'VOLTAGE',
+    powerVoltageValue: (kv: number) => `${kv} kV`,
+    powerApproximate: 'Approximate location',
+    powerCoLocatedWith: (name: string) => `Sited at ${name}`,
+    powerBuildings: (n: number) => `${n} footprint${n === 1 ? '' : 's'}`,
+    powerFootprints: 'FOOTPRINTS',
+    powerUnits: 'UNITS',
+    powerCapacity: 'CAPACITY',
+    powerCommissioned: 'IN SERVICE',
+    powerCapacityMw: (mw: number) => `${mw} MW`,
+    powerSource: 'SOURCE',
     // ---- VehicleInfoPanel ----
     terminalStop: 'End',
   },
@@ -358,6 +393,8 @@ const translations = {
     carParksCount: (n: number) => `${n} 個停車場`,
     water: '供水設施',
     waterCount: (n: number) => `${n} 項供水設施`,
+    power: '電力設施',
+    powerCount: (n: number) => `${n} 項電力設施`,
     noServiceToday: '本日無服務',
     mapSettings: '地圖設定',
     plan2D: '2D 平面',
@@ -382,6 +419,7 @@ const translations = {
     dataSourceToiletsLabel: '公廁',
     dataSourceCarParksLabel: '停車場',
     dataSourceWaterLabel: '供水設施',
+    dataSourcePowerLabel: '電力',
     amPeak: '早尖峰',
     pmPeak: '晚尖峰',
     nowShort: '現在',
@@ -527,6 +565,31 @@ const translations = {
     waterBuildings: (n: number) => `${n} 個範圍`,
     waterFootprints: '建築範圍',
     waterSource: '來源',
+    powerLabel: '電力',
+    powerTypePlant: '發電廠',
+    powerTypeIncinerator: '垃圾焚化中心',
+    powerTypeSub220: '220 千伏變電站',
+    powerTypeSub110: '110 千伏變電站',
+    powerTypeSub66: '66 千伏變電站',
+    powerTypeInlet: '廣東電網輸入',
+    powerInletNote: '廣東電網輸入 · 2025 年約 91% 用電來自輸入。',
+    powerNetworkNote: '電網為示意',
+    powerLines: (n: number) => `連接 ${n} 條線路`,
+    powerLineVoltage: (kv: number) => `${kv} 千伏線路`,
+    powerLegendDistribution: '配電網（示意，沿全澳道路）',
+    powerOperatorCem: '澳門電力股份有限公司（澳電）設施',
+    powerOperatorDspa: '政府垃圾焚化中心 · 售電予澳電',
+    powerVoltage: '電壓',
+    powerVoltageValue: (kv: number) => `${kv} 千伏`,
+    powerApproximate: '約略位置',
+    powerCoLocatedWith: (name: string) => `位於${name}`,
+    powerBuildings: (n: number) => `${n} 個範圍`,
+    powerFootprints: '建築範圍',
+    powerUnits: '機組',
+    powerCapacity: '裝機容量',
+    powerCommissioned: '投產年份',
+    powerCapacityMw: (mw: number) => `${mw} 兆瓦`,
+    powerSource: '來源',
     terminalStop: '終站',
   },
   pt: {
@@ -592,6 +655,8 @@ const translations = {
     carParksCount: (n: number) => `${n} parques`,
     water: 'Abastecimento de água',
     waterCount: (n: number) => `${n} instalações`,
+    power: 'Electricidade',
+    powerCount: (n: number) => `${n} instalações`,
     noServiceToday: 'Sem serviço hoje',
     mapSettings: 'Definições',
     plan2D: '2D Plano',
@@ -616,6 +681,7 @@ const translations = {
     dataSourceToiletsLabel: 'Sanitários',
     dataSourceCarParksLabel: 'Estacionamentos',
     dataSourceWaterLabel: 'Abastecimento de água',
+    dataSourcePowerLabel: 'Electricidade',
     amPeak: 'PICO MANHÃ',
     pmPeak: 'PICO TARDE',
     nowShort: 'AGORA',
@@ -762,6 +828,31 @@ const translations = {
     waterBuildings: (n: number) => `${n} implantaç${n === 1 ? 'ão' : 'ões'}`,
     waterFootprints: 'IMPLANTAÇÕES',
     waterSource: 'FONTE',
+    powerLabel: 'ENERGIA',
+    powerTypePlant: 'Central eléctrica',
+    powerTypeIncinerator: 'Central de incineração',
+    powerTypeSub220: 'Subestação de 220 kV',
+    powerTypeSub110: 'Subestação de 110 kV',
+    powerTypeSub66: 'Subestação de 66 kV',
+    powerTypeInlet: 'Ponto de importação da rede',
+    powerInletNote: 'Importação da rede de Guangdong: cerca de 91% da electricidade usada em Macau em 2025.',
+    powerNetworkNote: 'Rede eléctrica esquemática',
+    powerLines: (n: number) => `${n} linha${n === 1 ? '' : 's'} ligada${n === 1 ? '' : 's'}`,
+    powerLineVoltage: (kv: number) => `Linha de ${kv} kV`,
+    powerLegendDistribution: 'Rede de distribuição (esquemática, ao longo das vias)',
+    powerOperatorCem: 'Instalação da CEM (Companhia de Electricidade de Macau)',
+    powerOperatorDspa: 'Central de incineração do Governo · vende energia à CEM',
+    powerVoltage: 'TENSÃO',
+    powerVoltageValue: (kv: number) => `${kv} kV`,
+    powerApproximate: 'Localização aproximada',
+    powerCoLocatedWith: (name: string) => `Junto a ${name}`,
+    powerBuildings: (n: number) => `${n} implantaç${n === 1 ? 'ão' : 'ões'}`,
+    powerFootprints: 'IMPLANTAÇÕES',
+    powerUnits: 'GRUPOS',
+    powerCapacity: 'CAPACIDADE',
+    powerCommissioned: 'EM SERVIÇO',
+    powerCapacityMw: (mw: number) => `${mw} MW`,
+    powerSource: 'FONTE',
     terminalStop: 'Terminal',
   },
 }
@@ -829,6 +920,8 @@ export interface Translations {
   carParksCount: (n: number) => string
   water: string
   waterCount: (n: number) => string
+  power: string
+  powerCount: (n: number) => string
   noServiceToday: string
   mapSettings: string
   plan2D: string
@@ -853,6 +946,7 @@ export interface Translations {
   dataSourceToiletsLabel: string
   dataSourceCarParksLabel: string
   dataSourceWaterLabel: string
+  dataSourcePowerLabel: string
   amPeak: string
   pmPeak: string
   nowShort: string
@@ -994,6 +1088,31 @@ export interface Translations {
   waterBuildings: (n: number) => string
   waterFootprints: string
   waterSource: string
+  powerLabel: string
+  powerTypePlant: string
+  powerTypeIncinerator: string
+  powerTypeSub220: string
+  powerTypeSub110: string
+  powerTypeSub66: string
+  powerTypeInlet: string
+  powerInletNote: string
+  powerNetworkNote: string
+  powerLines: (n: number) => string
+  powerLineVoltage: (kv: number) => string
+  powerLegendDistribution: string
+  powerOperatorCem: string
+  powerOperatorDspa: string
+  powerVoltage: string
+  powerVoltageValue: (kv: number) => string
+  powerApproximate: string
+  powerCoLocatedWith: (name: string) => string
+  powerBuildings: (n: number) => string
+  powerFootprints: string
+  powerUnits: string
+  powerCapacity: string
+  powerCommissioned: string
+  powerCapacityMw: (mw: number) => string
+  powerSource: string
   terminalStop: string
 }
 

@@ -99,6 +99,10 @@ WATER 一層有九個 layer，全部在 `addCustomLayers` 建、換底圖後重�
 
 點擊順序：`water-buildings` 先註冊、`water-icon` 後註冊——同址的約略標記疊在廠區色塊上，兩層都會命中，最後註冊的贏，所以點到的是標記。
 
+### 電力：同一套機制，換成琥珀色與電壓分級
+
+POWER 一層完全照供水那套：`power-buildings`（路環發電廠、焚化中心、變電站的 OSM 輪廓依類型上色）、`power-icon`（閃電圖示，約略者空心；三個廣東電網輸入口有自己的圖示與標籤）、`power-selected`、示意高壓網的相位圖層群（`power-lines-*`，線寬與顏色依 220／110／66 kV 分級，流點從輸入口與電廠往外走）、配電網 `power-distribution-*`（與供水共用同一份澳門道路，但另一份 `power-distribution.json` 是以全部變電站為源頭重新定向的）。資料來自 `power-facilities.json`（澳電 2025 年營運頁的設施清單＋OSM 幾何；高壓電纜幾乎全在地下，OSM 沒有線路，所以電網是我們自己的示意邊表：輸入口→落地的 220 kV 站→主幹環→電廠，110／66 kV 站各接最近的上一級站，路徑走 OSRM）。動畫規則同上：只切相位圖層的透明度。
+
 ## 大型優化：單一 `bus-routes` source
 
 巴士 92 條路線曾經是 92 個 `addSource` + 92 個 `addLayer`。每次 zoom MapLibre 都要對每個 source 各做一輪 worker tile-index rebuild + postMessage。合成單一 source 後，per-route 的 dim/highlight 改用 `setFeatureState({ source: 'bus-routes', id }, { inService })` 配合 paint expression `['case', ['==', ['feature-state', 'inService'], false], DIM, FULL]`。

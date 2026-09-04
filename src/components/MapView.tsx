@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -40,6 +40,23 @@ import {
   waterIconName,
   waterLabelField,
 } from '../water'
+import {
+  POWER_COLORS,
+  POWER_DISTRIBUTION_COLOR,
+  POWER_DISTRIBUTION_MAJOR_CLASSES,
+  POWER_FEATURE_ID_PROPERTY,
+  POWER_INLET_COLOR,
+  POWER_INLET_ICON,
+  POWER_LINE_FLOW_COLOR,
+  POWER_LINE_GLOW_COLOR,
+  POWER_TYPE_ORDER,
+  buildPowerBuildingFeatures,
+  buildPowerDistributionFeatures,
+  buildPowerLineFeatures,
+  buildPowerMarkerFeatures,
+  powerIconName,
+  powerLabelField,
+} from '../power'
 import { useI18n } from '../i18n'
 import { ga } from '../analytics/ga'
 
@@ -525,9 +542,12 @@ function addDistributionFlowLayer(
   }, visible, beforeId)
 }
 
-function distributionWidth(at12: number, at16: number): maplibregl.ExpressionSpecification {
+function distributionWidth(
+  at12: number, at16: number,
+  majorClasses: readonly string[] = WATER_DISTRIBUTION_MAJOR_CLASSES,
+): maplibregl.ExpressionSpecification {
   const byClass = (w: number): maplibregl.ExpressionSpecification => [
-    'match', ['get', 'class'], [...WATER_DISTRIBUTION_MAJOR_CLASSES],
+    'match', ['get', 'class'], [...majorClasses],
     w + WATER_DISTRIBUTION_MAJOR_BONUS, w,
   ]
   return ['interpolate', ['linear'], ['zoom'], 12, byClass(at12), 16, byClass(at16)]
@@ -670,17 +690,82 @@ function drawWaterInletIcon(): ImageData | null {
 const WATER_PIPE_DASH_STEPS: number[][] = buildDashFlowSteps(2, 1.5, WATER_TRUNK_PHASES)
 const WATER_PIPE_FLOW_STEPS: number[][] = buildDashFlowSteps(2.2, 5.5, WATER_TRUNK_PHASES)
 const WATER_DISTRIBUTION_FLOW_STEPS: number[][] = buildDashFlowSteps(1.2, 7, WATER_MESH_PHASES)
-const WATER_PIPE_DASH_MS = 70
+// The period of the ONE interval that drives every phase group of BOTH focus
+// overlays. They are mutually exclusive, so only one set is ever advancing.
+const FLOW_TICK_MS = 70
 // Opacity of the ONE opaque phase in each trunk group.
 const WATER_PIPES_DASHED_OPACITY = 1
 const WATER_PIPES_FLOW_OPACITY = 0.95
 
+// ---- CEM electricity overlay ---------------------------------------------
+// The same three-part shape as the water overlay above: coloured
+// fill-extrusions for the footprints, a bolt marker for every facility
+// (hollow where CEM lists a station OSM has no feature for), and the schematic
+// HV network as a glow + a solid core + travelling dots. The core is solid —
+// unlike the water raw mains it never dashes — because a transmission diagram
+// reads as continuous corridors; the direction claim rides entirely on the
+// dots, which walk each line's vertex order outward from an inlet or the plant.
+const POWER_BUILDINGS_SOURCE_ID = 'power-buildings'
+const POWER_BUILDINGS_LAYER_ID = 'power-buildings'
+const POWER_MARKERS_SOURCE_ID = 'power-markers'
+const POWER_ICON_LAYER_ID = 'power-icon'
+const POWER_SELECTED_LAYER_ID = 'power-selected'
+const POWER_LINES_SOURCE_ID = 'power-lines'
+const POWER_LINES_GLOW_LAYER_ID = 'power-lines-glow'
+const POWER_LINES_LAYER_ID = 'power-lines'
+const POWER_LINES_FLOW_PREFIX = 'power-lines-flow'
+const POWER_LINE_GLOW_OPACITY = 0.26
+const POWER_LINES_FLOW_OPACITY = 0.95
+
+// Width by VOLTAGE. Baked per feature by buildPowerLineFeatures (`width12` /
+// `width16`, from the POWER_LINE_WIDTHS table) rather than expressed as a
+// `match` here, so the legend, the panel and the map all read one table: 220 kV
+// ≈ 5→8 px, 110 kV 3.5→6, 66 kV 2.2→4. The glow and the dots are multiples of
+// whatever the core is, so the whole corridor scales together.
+const POWER_TRUNK_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, ['get', 'width12'], 16, ['get', 'width16']]
+const POWER_TRUNK_GLOW_WIDTH: maplibregl.ExpressionSpecification = [
+  'interpolate', ['linear'], ['zoom'],
+  12, ['*', ['get', 'width12'], 2.4], 16, ['*', ['get', 'width16'], 2.4],
+]
+// ~62 % of the core: unmistakable at city zoom, still narrow enough that the
+// amber shows either side and the line reads as a line with something on it.
+const POWER_TRUNK_FLOW_WIDTH: maplibregl.ExpressionSpecification = [
+  'interpolate', ['linear'], ['zoom'],
+  12, ['*', ['get', 'width12'], 0.62], 16, ['*', ['get', 'width16'], 0.62],
+]
+
+// The city-wide DISTRIBUTION network — the same Macau street extract as the
+// water overlay's, oriented outward from the SUBSTATIONS instead. Loaded lazily
+// the first time the layer goes on (usePowerDistribution), and like its twin
+// the flow group is DESKTOP ONLY (WATER_DESKTOP_QUERY gates its existence, not
+// just its visibility).
+const POWER_DISTRIBUTION_SOURCE_ID = 'power-distribution'
+const POWER_DISTRIBUTION_GLOW_LAYER_ID = 'power-distribution-glow'
+const POWER_DISTRIBUTION_LAYER_ID = 'power-distribution'
+const POWER_DISTRIBUTION_FLOW_PREFIX = 'power-distribution-flow'
+const POWER_DISTRIBUTION_FLOW_OPACITY = 0.5
+const POWER_DISTRIBUTION_FLOW_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 0.5, 16, 1]
+const POWER_DISTRIBUTION_OPACITY = 0.7
+
+// Same phase-layer budget and the same rhythm as the water groups (see the
+// comment above WATER_TRUNK_PHASES for why the dash phase is never animated).
+const POWER_TRUNK_PHASES = 8
+const POWER_MESH_PHASES = 6
+const POWER_LINE_FLOW_STEPS: number[][] = buildDashFlowSteps(2.2, 5.5, POWER_TRUNK_PHASES)
+const POWER_DISTRIBUTION_FLOW_STEPS: number[][] = buildDashFlowSteps(1.2, 7, POWER_MESH_PHASES)
+
+// Same rule as the school and water blocks: every footprint of a facility
+// shares the promoted feature id, so one setFeatureState whitens the site.
+const POWER_SELECTED_COLOR = '#ffffff'
+
 // The layers that survive an empty `transitData` because they are built from
 // `allTransitData`: the bus route polylines (one shared source, dimmed by
-// feature-state rather than filtered) and the LRT station pins. Water focus
+// feature-state rather than filtered) and the LRT station pins. EITHER focus
 // mode hides them by layout visibility for as long as it is on — nothing else
 // touches these two properties, so there is no state to fight over.
-const WATER_FOCUS_HIDDEN_LAYERS = [
+const FOCUS_HIDDEN_LAYERS = [
   'bus-routes', 'bus-routes-highlighted', 'stations-circle', 'stations-label',
 ] as const
 
@@ -695,14 +780,30 @@ const WATER_FOCUS_SHOWN_LAYERS: readonly string[] = [
   ...phaseLayerIds(WATER_DISTRIBUTION_FLOW_PREFIX, WATER_MESH_PHASES),
 ]
 
-function applyWaterFocusVisibility(m: maplibregl.Map, focus: boolean): void {
-  for (const id of WATER_FOCUS_HIDDEN_LAYERS) {
+// The electricity overlay's mirror image of the list above.
+const POWER_FOCUS_SHOWN_LAYERS: readonly string[] = [
+  POWER_DISTRIBUTION_GLOW_LAYER_ID, POWER_DISTRIBUTION_LAYER_ID,
+  ...phaseLayerIds(POWER_DISTRIBUTION_FLOW_PREFIX, POWER_MESH_PHASES),
+]
+
+// WATER and POWER are mutually exclusive focus modes, so this takes both flags
+// and is the single place layout visibility is decided: the city hides for
+// either, and each overlay's own street mesh shows only for its own.
+function applyFocusVisibility(
+  m: maplibregl.Map, water: boolean, power: boolean,
+): void {
+  const focus = water || power
+  for (const id of FOCUS_HIDDEN_LAYERS) {
     if (!m.getLayer(id)) continue
     m.setLayoutProperty(id, 'visibility', focus ? 'none' : 'visible')
   }
   for (const id of WATER_FOCUS_SHOWN_LAYERS) {
     if (!m.getLayer(id)) continue
-    m.setLayoutProperty(id, 'visibility', focus ? 'visible' : 'none')
+    m.setLayoutProperty(id, 'visibility', water ? 'visible' : 'none')
+  }
+  for (const id of POWER_FOCUS_SHOWN_LAYERS) {
+    if (!m.getLayer(id)) continue
+    m.setLayoutProperty(id, 'visibility', power ? 'visible' : 'none')
   }
   // The LRT track + viaduct layers are per-line, and their visibility belongs
   // to the [transitData.lrtLines] effect below — which restores them the moment
@@ -732,6 +833,139 @@ const WATER_ICON_VARIANTS: readonly { type: WaterFacilityType; approximate: bool
     { type, approximate: false },
     { type, approximate: true },
   ])
+
+// The same for the electricity markers.
+const POWER_ICON_VARIANTS: readonly { type: PowerFacilityType; approximate: boolean }[] =
+  POWER_TYPE_ORDER.flatMap(type => [
+    { type, approximate: false },
+    { type, approximate: true },
+  ])
+
+// The distribution mesh's phase layers for the POWER overlay. Added from TWO
+// places — addCustomLayers on a fresh style, and the breakpoint effect — so the
+// spec lives in one function and the two can never disagree. Inserted directly
+// above the distribution core and below the HV glow.
+function addPowerDistributionFlowLayer(
+  m: maplibregl.Map, visible: boolean, fallbackBeforeId?: string,
+): void {
+  const beforeId = m.getLayer(POWER_LINES_GLOW_LAYER_ID)
+    ? POWER_LINES_GLOW_LAYER_ID
+    : fallbackBeforeId
+  addPhaseLayers(m, {
+    prefix: POWER_DISTRIBUTION_FLOW_PREFIX,
+    source: POWER_DISTRIBUTION_SOURCE_ID,
+    color: POWER_LINE_FLOW_COLOR,
+    width: POWER_DISTRIBUTION_FLOW_WIDTH,
+    opacity: POWER_DISTRIBUTION_FLOW_OPACITY,
+    steps: POWER_DISTRIBUTION_FLOW_STEPS,
+  }, visible, beforeId)
+}
+
+// A lightning bolt on a rounded square, drawn once per (type, approximate) pair
+// into an ImageData for map.addImage(). Same plate, same sizes and the same
+// null-on-no-context contract as drawWaterIcon: the solid variant is the type
+// colour with a white rim and a white bolt; the approximate variant is hollow —
+// a dark plate with a coloured rim and a coloured OUTLINE bolt — so a station
+// whose position we inferred never looks as certain as a surveyed footprint.
+function drawPowerIcon(color: string, approximate: boolean): ImageData | null {
+  const size = WATER_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const border = 3 // 1.5 CSS px at pixelRatio 2
+  const inset = border / 2 + 1
+  const r = 6 // 3 CSS px corner radius
+  const x = inset
+  const y = inset
+  const w = size - inset * 2
+  const h = size - inset * 2
+
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.arcTo(x + w, y, x + w, y + r, r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+  ctx.lineTo(x + r, y + h)
+  ctx.arcTo(x, y + h, x, y + h - r, r)
+  ctx.lineTo(x, y + r)
+  ctx.arcTo(x, y, x + r, y, r)
+  ctx.closePath()
+
+  // Hollow = the map's own near-black behind a coloured rim. A fully
+  // transparent plate disappears over the basemap's building fills, which is
+  // exactly where these stations sit.
+  ctx.fillStyle = approximate ? 'rgba(11,11,12,0.72)' : color
+  ctx.fill()
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = border
+  ctx.strokeStyle = approximate ? color : '#ffffff'
+  ctx.stroke()
+
+  // The bolt: the usual six-point zigzag, in fractions of the plate.
+  const p: [number, number][] = [
+    [0.58, 0.15], [0.32, 0.55], [0.46, 0.55],
+    [0.41, 0.86], [0.68, 0.45], [0.54, 0.45],
+  ]
+  ctx.beginPath()
+  ctx.moveTo(p[0][0] * size, p[0][1] * size)
+  for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0] * size, p[i][1] * size)
+  ctx.closePath()
+  if (approximate) {
+    ctx.lineWidth = 2.5
+    ctx.strokeStyle = color
+    ctx.stroke()
+  } else {
+    // The pale 66 kV plate needs a dark bolt to read at all; the deeper tiers
+    // take white, like the water droplets.
+    ctx.fillStyle = color === POWER_COLORS.sub66 ? '#0b0b0c' : '#ffffff'
+    ctx.fill()
+  }
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// A Guangdong import point: a filled disc with a white arrow pointing INTO it,
+// so it reads as "power enters Macau here" rather than as another substation.
+// Same budget and contract as drawWaterInletIcon.
+function drawPowerInletIcon(): ImageData | null {
+  const size = WATER_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const cx = size / 2
+  const cy = size / 2
+  ctx.beginPath()
+  ctx.arc(cx, cy, size / 2 - 3, 0, Math.PI * 2)
+  ctx.fillStyle = POWER_INLET_COLOR
+  ctx.fill()
+  ctx.lineWidth = 3
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = 3.5
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(cx - size * 0.22, cy)
+  ctx.lineTo(cx + size * 0.06, cy)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(cx + size * 0.20, cy)
+  ctx.lineTo(cx - size * 0.02, cy - size * 0.15)
+  ctx.lineTo(cx - size * 0.02, cy + size * 0.15)
+  ctx.closePath()
+  ctx.fillStyle = '#ffffff'
+  ctx.fill()
+
+  return ctx.getImageData(0, 0, size, size)
+}
 
 const MACAU_CENTER: [number, number] = [113.55920888434439, 22.160440018223373]
 const MACAU_ZOOM = 13
@@ -768,6 +1002,17 @@ interface Props {
   // fetch lands (see useWaterDistribution) — the rest of the water overlay
   // renders immediately and this fills in behind it.
   waterDistributionRoads?: WaterDistributionRoad[] | null
+  onPowerFacilityClick?: (facility: PowerFacility | null) => void
+  // The extra network nodes (the three Guangdong import points) share the
+  // facility marker layer but are NOT facilities, so they open their own panel.
+  onPowerNodeClick?: (node: PowerNetworkNode | null) => void
+  // POWER is the second focus mode, mutually exclusive with WATER: App empties
+  // every other layer's data while it is on, and this flag hides the two things
+  // drawn from `allTransitData` that would otherwise survive.
+  powerFocus?: boolean
+  // Macau's streets, drawn as the thin distribution feeders. Null until the
+  // lazy fetch lands (see usePowerDistribution).
+  powerDistributionRoads?: PowerDistributionRoad[] | null
   // Live vacancy keyed by car-park id, from useCarParkVacancy. A new Map
   // identity (≈ every 30 s while polling) is what re-labels the markers.
   carParkVacancy?: Map<string, CarParkVacancy> | null
@@ -779,12 +1024,14 @@ interface Props {
   selectedCarParkId?: string | null
   selectedWaterFacilityId?: string | null
   selectedWaterNodeId?: string | null
+  selectedPowerFacilityId?: string | null
+  selectedPowerNodeId?: string | null
   onVehicleCount?: (count: number) => void
   showTimeBar?: boolean
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWaterFacilityId, selectedWaterNodeId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -861,6 +1108,16 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // every layer at its default visibility) has to re-apply it from here.
   const waterFocusRef = useRef(waterFocus)
   waterFocusRef.current = waterFocus
+  // The electricity overlay carries the identical set: two selection ids (a
+  // marker-ring filter and a block feature-state) and the focus flag, all read
+  // by addCustomLayers after a style swap.
+  const selectedPowerFacilityIdRef = useRef<string | null>(selectedPowerFacilityId ?? null)
+  selectedPowerFacilityIdRef.current = selectedPowerFacilityId ?? null
+  const powerStateIdRef = useRef<string | null>(null)
+  const selectedPowerNodeIdRef = useRef<string | null>(selectedPowerNodeId ?? null)
+  selectedPowerNodeIdRef.current = selectedPowerNodeId ?? null
+  const powerFocusRef = useRef(powerFocus)
+  powerFocusRef.current = powerFocus
   // Same style-swap contract for the distribution roads: addCustomLayers seeds
   // the source from here, so a theme change after the lazy fetch landed redraws
   // the thin pipes without waiting for anything.
@@ -887,6 +1144,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const waterPhaseRef = useRef({ trunk: 0, mesh: 0, tick: 0 })
   const waterDistributionRef = useRef<WaterDistributionRoad[] | null>(waterDistributionRoads)
   waterDistributionRef.current = waterDistributionRoads
+  const powerPhaseRef = useRef({ trunk: 0, mesh: 0, tick: 0 })
+  const powerDistributionRef = useRef<PowerDistributionRoad[] | null>(powerDistributionRoads)
+  powerDistributionRef.current = powerDistributionRoads
 
   // Highlight = one feature-state per school id. `promoteId` makes every
   // building of a school share that id, so this single pair of calls repaints
@@ -915,6 +1175,18 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
     if (next) m.setFeatureState({ source: WATER_BUILDINGS_SOURCE_ID, id: next }, { selected: true })
     waterStateIdRef.current = next
+  }, [])
+
+  // And the same again for the electricity blocks.
+  const applyPowerSelection = useCallback((m: maplibregl.Map) => {
+    if (!m.getSource(POWER_BUILDINGS_SOURCE_ID)) return
+    const next = selectedPowerFacilityIdRef.current
+    const prev = powerStateIdRef.current
+    if (prev && prev !== next) {
+      m.setFeatureState({ source: POWER_BUILDINGS_SOURCE_ID, id: prev }, { selected: false })
+    }
+    if (next) m.setFeatureState({ source: POWER_BUILDINGS_SOURCE_ID, id: next }, { selected: true })
+    powerStateIdRef.current = next
   }, [])
 
   const addCustomLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
@@ -1288,6 +1560,117 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         },
       }, firstSymbolId)
 
+      // CEM electricity. Same anchor and the same seeding rule as the water
+      // overlay above (transitRef, not a closure, so a theme swap long after
+      // power-facilities.json landed still redraws it), and the same layer
+      // order: the street mesh first, then the HV corridors over it, then the
+      // facility blocks — which are the thing a user clicks — on top.
+      const powerRoadVisibility = powerFocusRef.current ? 'visible' : 'none'
+      m.addSource(POWER_DISTRIBUTION_SOURCE_ID, {
+        type: 'geojson',
+        data: buildPowerDistributionFeatures(powerDistributionRef.current),
+      })
+      m.addLayer({
+        id: POWER_DISTRIBUTION_GLOW_LAYER_ID, type: 'line',
+        source: POWER_DISTRIBUTION_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: powerRoadVisibility },
+        paint: {
+          'line-color': POWER_LINE_GLOW_COLOR,
+          'line-opacity': 0.12,
+          'line-width': distributionWidth(3, 5, POWER_DISTRIBUTION_MAJOR_CLASSES),
+        },
+      }, firstSymbolId)
+      m.addLayer({
+        id: POWER_DISTRIBUTION_LAYER_ID, type: 'line',
+        source: POWER_DISTRIBUTION_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: powerRoadVisibility },
+        paint: {
+          'line-color': POWER_DISTRIBUTION_COLOR,
+          'line-opacity': POWER_DISTRIBUTION_OPACITY,
+          'line-width': distributionWidth(0.8, 1.6, POWER_DISTRIBUTION_MAJOR_CLASSES),
+        },
+      }, firstSymbolId)
+      // Desktop only. The HV layers are added after this, so on a fresh style
+      // there is no `power-lines-glow` to sit under yet — hence the
+      // firstSymbolId fallback, which lands it in the same slot.
+      if (isDesktopRef.current) {
+        addPowerDistributionFlowLayer(m, powerFocusRef.current, firstSymbolId)
+      }
+
+      // The HV network: a glow, a solid core whose colour and width come from
+      // the feature's own voltage, and the travelling dots above it. Only three
+      // layers (not the water overlay's four) because nothing here is dashed —
+      // a fallback line says so with grey, not with a dash pattern.
+      m.addSource(POWER_LINES_SOURCE_ID, {
+        type: 'geojson',
+        data: buildPowerLineFeatures(transitRef.current.powerNetwork),
+      })
+      m.addLayer({
+        id: POWER_LINES_GLOW_LAYER_ID, type: 'line', source: POWER_LINES_SOURCE_ID,
+        layout: {
+          'line-cap': 'round', 'line-join': 'round',
+          // Higher voltage over lower where the two share a street.
+          'line-sort-key': ['get', 'sortKey'],
+        },
+        paint: {
+          'line-color': POWER_LINE_GLOW_COLOR,
+          'line-opacity': POWER_LINE_GLOW_OPACITY,
+          'line-width': POWER_TRUNK_GLOW_WIDTH,
+        },
+      }, firstSymbolId)
+      m.addLayer({
+        id: POWER_LINES_LAYER_ID, type: 'line', source: POWER_LINES_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['get', 'sortKey'] },
+        paint: {
+          // Baked per feature: the voltage colour, or grey where OSRM fell back
+          // to a straight line — a stand-in geometry should never look like a
+          // surveyed route.
+          'line-color': ['get', 'color'],
+          'line-width': POWER_TRUNK_WIDTH,
+        },
+      }, firstSymbolId)
+      // Every line gets dots, fallbacks included: the flow is a statement about
+      // direction, not about how trustworthy the geometry is (the grey already
+      // says that).
+      addPhaseLayers(m, {
+        prefix: POWER_LINES_FLOW_PREFIX,
+        source: POWER_LINES_SOURCE_ID,
+        color: POWER_LINE_FLOW_COLOR,
+        width: POWER_TRUNK_FLOW_WIDTH,
+        opacity: POWER_LINES_FLOW_OPACITY,
+        steps: POWER_LINE_FLOW_STEPS,
+      }, true, firstSymbolId)
+
+      m.addSource(POWER_BUILDINGS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildPowerBuildingFeatures(transitRef.current.powerFacilities),
+        promoteId: POWER_FEATURE_ID_PROPERTY,
+      })
+      // Identical height treatment to the school and water blocks: the same
+      // z14→z15.5 ramp as the basemap buildings, so a facility block stays
+      // exactly its 2 m margin proud of its grey neighbours.
+      m.addLayer({
+        id: POWER_BUILDINGS_LAYER_ID, type: 'fill-extrusion', source: POWER_BUILDINGS_SOURCE_ID,
+        paint: {
+          'fill-extrusion-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            POWER_SELECTED_COLOR,
+            ['get', 'color'],
+          ],
+          'fill-extrusion-height': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'height'],
+          ],
+          'fill-extrusion-base': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'minHeight'],
+          ],
+          'fill-extrusion-opacity': 0.95,
+          'fill-extrusion-vertical-gradient': true,
+        },
+      }, firstSymbolId)
+
       for (const line of allTransitData.lrtLines) {
         if (!line.geometry) continue
         m.addSource(`lrt-line-${line.id}`, { type: 'geojson', data: line.geometry })
@@ -1586,6 +1969,67 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         },
       })
 
+      // Electricity markers. Same image contract, same layer pair (a ring that
+      // is a filter swap, then the symbols) and the same transitRef seeding as
+      // the water markers directly above.
+      for (const variant of POWER_ICON_VARIANTS) {
+        const name = powerIconName(variant.type, variant.approximate)
+        if (m.hasImage(name)) continue
+        const img = drawPowerIcon(POWER_COLORS[variant.type], variant.approximate)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      if (!m.hasImage(POWER_INLET_ICON)) {
+        const inletImg = drawPowerInletIcon()
+        if (inletImg) m.addImage(POWER_INLET_ICON, inletImg, { pixelRatio: 2 })
+      }
+      m.addSource(POWER_MARKERS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildPowerMarkerFeatures(
+          transitRef.current.powerFacilities, transitRef.current.powerNetwork,
+        ),
+      })
+      m.addLayer({
+        id: POWER_SELECTED_LAYER_ID, type: 'circle', source: POWER_MARKERS_SOURCE_ID,
+        filter: ['in', ['get', POWER_FEATURE_ID_PROPERTY], ['literal', [
+          selectedPowerFacilityIdRef.current ?? '', selectedPowerNodeIdRef.current ?? '',
+        ]]],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      })
+      m.addLayer({
+        id: POWER_ICON_LAYER_ID, type: 'symbol', source: POWER_MARKERS_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          // Substations cluster tightly in Cotai; collision hiding would
+          // silently drop half the list, so they always draw.
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+          // Only the network nodes carry a label (an inlet has to name itself;
+          // a facility is named by the panel its marker opens), so this reads
+          // as null — no text — for every CEM facility. Swapped, not rebuilt,
+          // on a language change: see the [lang] effect below.
+          'text-field': ['get', powerLabelField(currentLang)],
+          'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+          'text-size': ['step', ['zoom'], 0, 12, 10, 15, 11],
+          'text-offset': [0, 1.1],
+          'text-anchor': 'top',
+          'text-optional': true,
+        },
+        paint: {
+          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
+          'text-color': '#fed7aa',
+          'text-halo-color': '#0b0b0c',
+          'text-halo-width': 1.2,
+        },
+      })
+
       addVehicleLayers(m, currentLang)
 
       const bus3DLayer = new Bus3DLayer()
@@ -1613,13 +2057,17 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       // selected school has to be re-marked on the freshly added source.
       schoolStateIdRef.current = null
       applySchoolSelection(m)
-      // Ditto for the water blocks, whose highlight is the same feature-state.
+      // Ditto for the water and electricity blocks, whose highlight is the
+      // same feature-state.
       waterStateIdRef.current = null
       applyWaterSelection(m)
+      powerStateIdRef.current = null
+      applyPowerSelection(m)
       // Every phase group was just rebuilt with phase 0 opaque.
       waterPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
+      powerPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
       // A style swap re-adds every layer visible; re-assert focus mode.
-      applyWaterFocusVisibility(m, waterFocusRef.current)
+      applyFocusVisibility(m, waterFocusRef.current, powerFocusRef.current)
     }
 
     addCustomLayersRef.current = addCustomLayers
@@ -1730,6 +2178,26 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
       }
 
+      // Electricity facilities: identical contract to the water handler above —
+      // the bolt marker AND the coloured block open the same panel, an id that
+      // is not a facility is looked up among the network's own nodes (an
+      // inlet), and blocks are registered before markers so the smaller, more
+      // deliberate target wins when both report a hit.
+      const openPowerFacility = (e: maplibregl.MapLayerMouseEvent) => {
+        const feature = e.features?.[0]
+        if (!feature) return
+        const fid = feature.properties?.[POWER_FEATURE_ID_PROPERTY]
+        const facility = transitRef.current.powerFacilities.find(f => f.id === fid)
+        if (facility) { onPowerFacilityClick?.(facility); e.preventDefault(); return }
+        const node = transitRef.current.powerNetwork?.nodes.find(n => n.id === fid)
+        if (node) { onPowerNodeClick?.(node); e.preventDefault() }
+      }
+      for (const layerId of [POWER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID]) {
+        m.on('click', layerId, openPowerFacility)
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+      }
+
       m.on('click', 'vehicles-circle', (e) => {
         const feature = e.features?.[0]
         if (feature) {
@@ -1761,7 +2229,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       m.on('click', (e) => {
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, ...model3DLayers],
+          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, ...model3DLayers],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -1833,6 +2301,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     // swap rather than a source rebuild.
     if (map.getLayer(WATER_ICON_LAYER_ID)) {
       map.setLayoutProperty(WATER_ICON_LAYER_ID, 'text-field', ['get', waterLabelField(lang)])
+    }
+    if (map.getLayer(POWER_ICON_LAYER_ID)) {
+      map.setLayoutProperty(POWER_ICON_LAYER_ID, 'text-field', ['get', powerLabelField(lang)])
     }
     updateVehicleLabelLang(map, lang)
   }, [lang])
@@ -1923,6 +2394,25 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     )
   }, [transitData.waterFacilities, transitData.waterNetwork])
 
+  // The electricity overlay, on exactly the same terms: three sources off one
+  // array identity (the file arriving, or the legend toggle swapping in the
+  // empty array), never from the RAF tick.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const setData = (sourceId: string, data: GeoJSON.FeatureCollection) => {
+      const src = map.getSource(sourceId) as unknown as
+        { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+      src?.setData?.(data)
+    }
+    setData(POWER_BUILDINGS_SOURCE_ID, buildPowerBuildingFeatures(transitData.powerFacilities))
+    setData(POWER_LINES_SOURCE_ID, buildPowerLineFeatures(transitData.powerNetwork))
+    setData(
+      POWER_MARKERS_SOURCE_ID,
+      buildPowerMarkerFeatures(transitData.powerFacilities, transitData.powerNetwork),
+    )
+  }, [transitData.powerFacilities, transitData.powerNetwork])
+
   // The distribution roads land once, from their own lazy fetch, so this fires
   // at most twice per session (null → loaded) and never from the RAF tick.
   useEffect(() => {
@@ -1931,6 +2421,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
     src?.setData?.(buildWaterDistributionFeatures(waterDistributionRoads))
   }, [waterDistributionRoads])
+
+  useEffect(() => {
+    const map = mapRef.current
+    const src = map?.getSource(POWER_DISTRIBUTION_SOURCE_ID) as unknown as
+      { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    src?.setData?.(buildPowerDistributionFeatures(powerDistributionRoads))
+  }, [powerDistributionRoads])
 
   // Selected water facility: the marker ring is a filter swap (toilet rule) and
   // the blocks are a feature-state (school rule), so both run here.
@@ -1947,6 +2444,21 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
     applyWaterSelection(map)
   }, [selectedWaterFacilityId, selectedWaterNodeId, applyWaterSelection])
+
+  // The electricity selection, by the same two mechanisms.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    if (map.getLayer(POWER_SELECTED_LAYER_ID)) {
+      map.setFilter(
+        POWER_SELECTED_LAYER_ID,
+        ['in', ['get', POWER_FEATURE_ID_PROPERTY], ['literal', [
+          selectedPowerFacilityId ?? '', selectedPowerNodeId ?? '',
+        ]]],
+      )
+    }
+    applyPowerSelection(map)
+  }, [selectedPowerFacilityId, selectedPowerNodeId, applyPowerSelection])
 
   // Crossing the 640 px breakpoint adds or REMOVES the distribution flow,
   // rather than toggling its visibility: on a narrow viewport the layer should
@@ -1966,6 +2478,21 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
   }, [isDesktop])
 
+  // Same for the electricity mesh, which is gated on the same breakpoint for
+  // the same reason.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.getSource(POWER_DISTRIBUTION_SOURCE_ID)) return
+    if (isDesktop) {
+      addPowerDistributionFlowLayer(map, powerFocusRef.current)
+      powerPhaseRef.current.mesh = 0
+    } else {
+      for (const id of phaseLayerIds(POWER_DISTRIBUTION_FLOW_PREFIX, POWER_MESH_PHASES)) {
+        if (map.getLayer(id)) map.removeLayer(id)
+      }
+    }
+  }, [isDesktop])
+
   // The network "flows" while the WATER layer is on: ONE interval advancing
   // every animated layer — the raw pipes' own dashes, the dots riding the
   // treated core, and (desktop only) the distribution flow — so they can never
@@ -1977,12 +2504,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // pipe, from its `from` end to its `to` end; for a road, away from the source
   // feeding it.
   useEffect(() => {
-    if (!waterFocus) return
+    if (!waterFocus && !powerFocus) return
     const timer = window.setInterval(() => {
       const map = mapRef.current
       if (!map) return
-      const st = waterPhaseRef.current
-      st.tick++
       // Hide the phase that was showing, show the next one. Two opacity writes
       // per group: a plain paint change, so no relayout and no source reload —
       // which is the entire point of the phase layers (see addPhaseLayers).
@@ -1992,31 +2517,55 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         if (map.getLayer(hide)) map.setPaintProperty(hide, 'line-opacity', 0)
         if (map.getLayer(show)) map.setPaintProperty(show, 'line-opacity', opacity)
       }
-      const nextTrunk = (st.trunk + 1) % WATER_TRUNK_PHASES
-      swap(WATER_PIPES_DASHED_PREFIX, st.trunk, nextTrunk, WATER_PIPES_DASHED_OPACITY)
-      swap(WATER_PIPES_FLOW_PREFIX, st.trunk, nextTrunk, WATER_PIPES_FLOW_OPACITY)
-      st.trunk = nextTrunk
-      // The mesh steps every SECOND tick: fewer, larger phases keep its layer
-      // count down, and half the rate keeps it gentler than the mains.
-      if (st.tick % 2 === 0) {
-        const nextMesh = (st.mesh + 1) % WATER_MESH_PHASES
-        swap(
-          WATER_DISTRIBUTION_FLOW_PREFIX, st.mesh, nextMesh,
-          WATER_DISTRIBUTION_FLOW_OPACITY,
-        )
-        st.mesh = nextMesh
+      if (waterFocus) {
+        const st = waterPhaseRef.current
+        st.tick++
+        const nextTrunk = (st.trunk + 1) % WATER_TRUNK_PHASES
+        swap(WATER_PIPES_DASHED_PREFIX, st.trunk, nextTrunk, WATER_PIPES_DASHED_OPACITY)
+        swap(WATER_PIPES_FLOW_PREFIX, st.trunk, nextTrunk, WATER_PIPES_FLOW_OPACITY)
+        st.trunk = nextTrunk
+        // The mesh steps every SECOND tick: fewer, larger phases keep its layer
+        // count down, and half the rate keeps it gentler than the mains.
+        if (st.tick % 2 === 0) {
+          const nextMesh = (st.mesh + 1) % WATER_MESH_PHASES
+          swap(
+            WATER_DISTRIBUTION_FLOW_PREFIX, st.mesh, nextMesh,
+            WATER_DISTRIBUTION_FLOW_OPACITY,
+          )
+          st.mesh = nextMesh
+        }
       }
-    }, WATER_PIPE_DASH_MS)
+      // The electricity overlay, on the same tick and the same every-second
+      // rule for its mesh. Mutually exclusive with water, so at most one of
+      // these two branches ever runs — the cost stays at most FOUR
+      // line-opacity writes per 70 ms tick.
+      if (powerFocus) {
+        const st = powerPhaseRef.current
+        st.tick++
+        const nextTrunk = (st.trunk + 1) % POWER_TRUNK_PHASES
+        swap(POWER_LINES_FLOW_PREFIX, st.trunk, nextTrunk, POWER_LINES_FLOW_OPACITY)
+        st.trunk = nextTrunk
+        if (st.tick % 2 === 0) {
+          const nextMesh = (st.mesh + 1) % POWER_MESH_PHASES
+          swap(
+            POWER_DISTRIBUTION_FLOW_PREFIX, st.mesh, nextMesh,
+            POWER_DISTRIBUTION_FLOW_OPACITY,
+          )
+          st.mesh = nextMesh
+        }
+      }
+    }, FLOW_TICK_MS)
     return () => window.clearInterval(timer)
-  }, [waterFocus])
+  }, [waterFocus, powerFocus])
 
-  // Water focus mode. App has already emptied every other layer's data; this
-  // hides the two things that are drawn from `allTransitData` and so would
-  // otherwise survive — the bus route polylines and the station pins.
+  // Focus mode. App has already emptied every other layer's data; this hides
+  // the two things that are drawn from `allTransitData` and so would otherwise
+  // survive — the bus route polylines and the station pins — and shows exactly
+  // one overlay's street mesh.
   useEffect(() => {
     const map = mapRef.current
-    if (map) applyWaterFocusVisibility(map, waterFocus)
-  }, [waterFocus])
+    if (map) applyFocusVisibility(map, waterFocus, powerFocus)
+  }, [waterFocus, powerFocus])
 
   useEffect(() => {
     const map = mapRef.current
@@ -2741,6 +3290,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                       rel="noopener noreferrer"
                       className="hover:text-amber-200 transition-colors"
                     >Macao Water</a>
+                    <span className="text-white/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.openstreetmap.org/copyright"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >OSM</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourcePowerLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                    <a
+                      href="https://www.cem-macau.com/zh/about-cem/company-profile/operation/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >CEM</a>
                     <span className="text-white/25 mx-[3px]">/</span>
                     <a
                       href="https://www.openstreetmap.org/copyright"

@@ -16,6 +16,8 @@
 //     drawn hollow at the facility they are co-located with (`anchor`).
 //
 // The overlay is time-independent: nothing here takes a clock.
+import { focusSnapshotKey, loadFocusSnapshot, saveFocusSnapshot } from './focusMode'
+import type { LayerVisibilityState } from './focusMode'
 import type { Lang, Translations } from './i18n'
 import type {
   WaterFacility,
@@ -284,132 +286,30 @@ export function waterPipeCount(
 // ---------------------------------------------------------------------------
 // WATER is a FOCUS mode, not just another overlay: switching it on clears every
 // other layer so the supply network is read against an empty city, and
-// switching it off puts the map back exactly as it was. The snapshot is taken
-// at the moment water goes on and wins on restore even if the user poked other
-// switches meanwhile, so the two states can never drift apart.
+// switching it off puts the map back exactly as it was.
 //
-// The pure half lives here (capture / apply / persist); App owns the React
-// setters and passes them in, which is what makes this testable without a DOM.
+// POWER works exactly the same way, so the machinery now lives in
+// src/focusMode.ts and both overlays share it — one implementation, one storage
+// convention, no way for the two to drift. What stays here is WATER's own names
+// for it, so every existing caller (and the water tests) keep reading the same
+// module they always did.
 // ---------------------------------------------------------------------------
+export type { LayerVisibilityApply, LayerVisibilityState } from './focusMode'
+export {
+  applyLayerSnapshot,
+  captureLayerSnapshot,
+  // WATER's storage key, spelled by the shared convention.
+  applyFocusMode as applyWaterFocus,
+} from './focusMode'
 
-// Everything the focus mode has to put back. Bus visibility is TWO facts, not
-// one: `busAuto` records that the user was in auto-by-time mode, so restoring
-// re-enters auto (and lets the clock repopulate the routes) instead of pinning
-// whatever happened to be in service at snapshot time.
-export interface LayerVisibilityState {
-  lrt: string[] // LRT line ids that were switched on
-  busAuto: boolean // auto-by-time mode was active
-  busRoutes: string[] // explicitly visible route ids; empty when busAuto
-  flights: boolean
-  ferries: boolean
-  roadWorks: boolean
-  schools: boolean // the master switch only — per-level set is left alone
-  toilets: boolean
-  carParks: boolean
-}
+export const WATER_FOCUS_SNAPSHOT_KEY = focusSnapshotKey('water')
 
-// The setters the focus mode drives. `setBus` takes both facts at once because
-// the two must move together (an empty route set with auto still on would just
-// be refilled by the next clock tick).
-export interface LayerVisibilityApply {
-  setLrt: (ids: string[]) => void
-  setBus: (routeIds: string[], auto: boolean) => void
-  setFlights: (on: boolean) => void
-  setFerries: (on: boolean) => void
-  setRoadWorks: (on: boolean) => void
-  setSchools: (on: boolean) => void
-  setToilets: (on: boolean) => void
-  setCarParks: (on: boolean) => void
-}
-
-// Persisted so a reload while water is on can still restore later. The
-// per-layer keys read "off" during focus mode — that is fine and expected: this
-// snapshot is what restore reads, not those.
-export const WATER_FOCUS_SNAPSHOT_KEY = 'mini-macau-water-focus-snapshot'
-
-// Normalising copy of the current layer state. Arrays are copied (the caller
-// passes live Sets spread into arrays) so a later mutation can't rewrite
-// history, and the route list is dropped in auto mode because it is derived
-// from the clock rather than chosen by the user.
-export function captureLayerSnapshot(state: LayerVisibilityState): LayerVisibilityState {
-  return {
-    lrt: [...state.lrt],
-    busAuto: !!state.busAuto,
-    busRoutes: state.busAuto ? [] : [...state.busRoutes],
-    flights: !!state.flights,
-    ferries: !!state.ferries,
-    roadWorks: !!state.roadWorks,
-    schools: !!state.schools,
-    toilets: !!state.toilets,
-    carParks: !!state.carParks,
-  }
-}
-
-// Everything off. Buses go to "no routes AND not auto" deliberately: leaving
-// auto on would let the next clock tick refill the map behind the focus mode.
-export function applyWaterFocus(apply: LayerVisibilityApply): void {
-  apply.setLrt([])
-  apply.setBus([], false)
-  apply.setFlights(false)
-  apply.setFerries(false)
-  apply.setRoadWorks(false)
-  apply.setSchools(false)
-  apply.setToilets(false)
-  apply.setCarParks(false)
-}
-
-// Put the snapshot back, exactly.
-export function applyLayerSnapshot(
-  snapshot: LayerVisibilityState,
-  apply: LayerVisibilityApply,
-): void {
-  apply.setLrt(snapshot.lrt)
-  apply.setBus(snapshot.busAuto ? [] : snapshot.busRoutes, snapshot.busAuto)
-  apply.setFlights(snapshot.flights)
-  apply.setFerries(snapshot.ferries)
-  apply.setRoadWorks(snapshot.roadWorks)
-  apply.setSchools(snapshot.schools)
-  apply.setToilets(snapshot.toilets)
-  apply.setCarParks(snapshot.carParks)
-}
-
-function stringArray(v: unknown): string[] {
-  return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []
-}
-
-// Restore the persisted snapshot. Anything unreadable, non-object or of the
-// wrong shape yields null — a missing snapshot just means "restore nothing",
-// which leaves the map as the user last left it rather than throwing.
 export function loadWaterFocusSnapshot(): LayerVisibilityState | null {
-  try {
-    const raw = localStorage.getItem(WATER_FOCUS_SNAPSHOT_KEY)
-    if (!raw) return null
-    const parsed: unknown = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
-    const o = parsed as Record<string, unknown>
-    return captureLayerSnapshot({
-      lrt: stringArray(o.lrt),
-      busAuto: o.busAuto === true,
-      busRoutes: stringArray(o.busRoutes),
-      flights: o.flights === true,
-      ferries: o.ferries === true,
-      roadWorks: o.roadWorks === true,
-      schools: o.schools === true,
-      toilets: o.toilets === true,
-      carParks: o.carParks === true,
-    })
-  } catch {
-    return null
-  }
+  return loadFocusSnapshot('water')
 }
 
-// Persist (or, with null, forget) the snapshot. Storage can throw in private
-// mode — losing the snapshot is never worth breaking the toggle.
 export function saveWaterFocusSnapshot(snapshot: LayerVisibilityState | null): void {
-  try {
-    if (snapshot === null) localStorage.removeItem(WATER_FOCUS_SNAPSHOT_KEY)
-    else localStorage.setItem(WATER_FOCUS_SNAPSHOT_KEY, JSON.stringify(snapshot))
-  } catch { /* ignore */ }
+  saveFocusSnapshot('water', snapshot)
 }
 
 // One Polygon feature per building footprint, coloured by its facility's type.

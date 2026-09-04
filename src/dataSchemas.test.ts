@@ -17,6 +17,8 @@ import {
   CarParksFileSchema,
   WaterFacilitiesFileSchema,
   WaterDistributionFileSchema,
+  PowerFacilitiesFileSchema,
+  PowerDistributionFileSchema,
 } from './dataSchemas'
 
 // Parse the actual JSON the app ships and assert it satisfies the runtime
@@ -58,6 +60,8 @@ describe('committed data files satisfy their schemas', () => {
   it('car-parks.json', () => expectValid(CarParksFileSchema, 'car-parks.json'))
   it('water-facilities.json', () => expectValid(WaterFacilitiesFileSchema, 'water-facilities.json'))
   it('water-distribution.json', () => expectValid(WaterDistributionFileSchema, 'water-distribution.json'))
+  it('power-facilities.json', () => expectValid(PowerFacilitiesFileSchema, 'power-facilities.json'))
+  it('power-distribution.json', () => expectValid(PowerDistributionFileSchema, 'power-distribution.json'))
 })
 
 // water-distribution.json is loaded lazily and best-effort, so its schema is
@@ -225,5 +229,178 @@ describe('WaterFacilitiesFileSchema — the optional pipe network', () => {
     const { fallback: _drop, ...noFallback } = net.pipes[0]
     const bad = { ...net, pipes: [noFallback] }
     expect(WaterFacilitiesFileSchema.safeParse({ ...base, network: bad }).success).toBe(false)
+  })
+})
+
+// power-facilities.json mirrors the water file above: the facility list is
+// strict (the `type` enum is what the overlay colours by), the HV `network` is
+// optional, and `details` exists only for the one generating plant.
+describe('PowerFacilitiesFileSchema', () => {
+  const base = {
+    fetchedAtUtc: '2026-09-04T00:00:00Z',
+    sources: { name: '澳電 (CEM)' },
+    facilities: [{
+      id: 'sub-lotus',
+      type: 'sub220',
+      name: { zh: '蓮花變電站', pt: '', en: 'Lotus Substation' },
+      voltageKv: 220,
+      coordinates: [113.5652, 22.1421],
+      approximate: false,
+      anchor: null,
+      osm: ['w692620497'],
+      buildings: [],
+    }],
+  }
+  const net = {
+    nodes: [{
+      id: 'inlet-lotus',
+      kind: 'inlet',
+      name: { zh: '廣東電網輸入（蓮花）', pt: '', en: 'Guangdong grid import (Lotus)' },
+      coordinates: [113.564, 22.145],
+    }],
+    lines: [{
+      id: 'hv-inlet-lotus',
+      from: 'inlet-lotus',
+      to: 'sub-lotus',
+      voltageKv: 220,
+      lengthM: 820,
+      fallback: false,
+      coordinates: [[113.564, 22.145], [113.5652, 22.1421]],
+    }],
+  }
+
+  it('accepts a file with no network at all', () => {
+    expect(PowerFacilitiesFileSchema.safeParse(base).success).toBe(true)
+  })
+
+  it('accepts a well-formed network', () => {
+    expect(PowerFacilitiesFileSchema.safeParse({ ...base, network: net }).success).toBe(true)
+  })
+
+  it('defaults a missing operator to cem, and accepts the incinerator’s dspa', () => {
+    expect(PowerFacilitiesFileSchema.safeParse(base).success).toBe(true)
+    const parsed = PowerFacilitiesFileSchema.safeParse(base)
+    expect(parsed.success && parsed.data.facilities[0].operator).toBe('cem')
+    const inc = {
+      ...base.facilities[0],
+      id: 'incinerator', type: 'incinerator', operator: 'dspa', voltageKv: null,
+    }
+    const res = PowerFacilitiesFileSchema.safeParse({ ...base, facilities: [inc] })
+    expect(res.success && res.data.facilities[0].operator).toBe('dspa')
+  })
+
+  it('rejects an unknown operator or an unknown facility type', () => {
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, facilities: [{ ...base.facilities[0], operator: 'iam' }],
+    }).success).toBe(false)
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, facilities: [{ ...base.facilities[0], type: 'sub11' }],
+    }).success).toBe(false)
+  })
+
+  it('allows a null voltage for generation but rejects a non-positive one', () => {
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base,
+      facilities: [{ ...base.facilities[0], type: 'plant', voltageKv: null }],
+    }).success).toBe(true)
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, facilities: [{ ...base.facilities[0], voltageKv: 0 }],
+    }).success).toBe(false)
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, facilities: [{ ...base.facilities[0], voltageKv: '220' }],
+    }).success).toBe(false)
+  })
+
+  it('accepts every shape the details block comes in, and its absence', () => {
+    const plant = {
+      ...base.facilities[0],
+      id: 'plant-coloane', type: 'plant', voltageKv: null,
+      details: { unitsZh: 'A 廠', unitsEn: 'Plant A', unitsPt: '', capacityMw: 407.8 },
+    }
+    expect(PowerFacilitiesFileSchema.safeParse({ ...base, facilities: [plant] }).success).toBe(true)
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, facilities: [{ ...plant, details: null }],
+    }).success).toBe(true)
+    // The block says "here is what is known", so a station carrying only its
+    // commissioning year — or only a language-neutral unit string — is valid.
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, facilities: [{ ...base.facilities[0], details: { commissioned: 2012 } }],
+    }).success).toBe(true)
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, facilities: [{ ...base.facilities[0], details: { units: 'A + B' } }],
+    }).success).toBe(true)
+    // But a field of the wrong type is still malformed.
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, facilities: [{ ...plant, details: { capacityMw: '407.8' } }],
+    }).success).toBe(false)
+  })
+
+  it('accepts a station OSM has but CEM’s list does not, via `note`', () => {
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base,
+      facilities: [{ ...base.facilities[0], id: 'sub-um', type: 'sub110', voltageKv: 110, note: 'OSM' }],
+    }).success).toBe(true)
+  })
+
+  it('takes any positive line voltage, so a tier added later still validates', () => {
+    const other = { ...net, lines: [{ ...net.lines[0], voltageKv: 11 }] }
+    expect(PowerFacilitiesFileSchema.safeParse({ ...base, network: other }).success).toBe(true)
+    const bad = { ...net, lines: [{ ...net.lines[0], voltageKv: 0 }] }
+    expect(PowerFacilitiesFileSchema.safeParse({ ...base, network: bad }).success).toBe(false)
+  })
+
+  it('rejects a line that is not a line (fewer than two points)', () => {
+    const bad = { ...net, lines: [{ ...net.lines[0], coordinates: [[113.564, 22.145]] }] }
+    expect(PowerFacilitiesFileSchema.safeParse({ ...base, network: bad }).success).toBe(false)
+  })
+
+  it('rejects a line missing its fallback flag, and a non-boolean `direct`', () => {
+    const { fallback: _drop, ...noFallback } = net.lines[0]
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, network: { ...net, lines: [noFallback] },
+    }).success).toBe(false)
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, network: { ...net, lines: [{ ...net.lines[0], direct: 'yes' }] },
+    }).success).toBe(false)
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, network: { ...net, lines: [{ ...net.lines[0], direct: true }] },
+    }).success).toBe(true)
+  })
+})
+
+// power-distribution.json is loaded lazily and best-effort, so — exactly like
+// its water twin — its schema is deliberately loose everywhere except `roads`.
+describe('PowerDistributionFileSchema', () => {
+  const road = { class: 'primary', coordinates: [[113.54, 22.19], [113.545, 22.192]] }
+
+  it('accepts the full envelope and a bare roads list alike', () => {
+    expect(PowerDistributionFileSchema.safeParse({
+      fetchedAtUtc: '2026-09-04T00:00:00Z',
+      sources: { osm: 'Overpass' },
+      classes: ['primary'],
+      flowSources: ['sub-lotus'],
+      unreached: 3,
+      splits: 12,
+      roads: [road],
+    }).success).toBe(true)
+    expect(PowerDistributionFileSchema.safeParse({ roads: [road] }).success).toBe(true)
+    expect(PowerDistributionFileSchema.safeParse({ roads: [] }).success).toBe(true)
+  })
+
+  it('takes the per-end distances as numbers, nulls, or not at all', () => {
+    expect(PowerDistributionFileSchema.safeParse({
+      roads: [{ ...road, dist: 0, distEnd: 812.5 }],
+    }).success).toBe(true)
+    expect(PowerDistributionFileSchema.safeParse({
+      roads: [{ ...road, dist: null, distEnd: null }],
+    }).success).toBe(true)
+    expect(PowerDistributionFileSchema.safeParse({ roads: [road] }).success).toBe(true)
+  })
+
+  it('rejects a road that is not a line, and a file with no roads key', () => {
+    expect(PowerDistributionFileSchema.safeParse({
+      roads: [{ class: 'service', coordinates: [[113.54, 22.19]] }],
+    }).success).toBe(false)
+    expect(PowerDistributionFileSchema.safeParse({ classes: [] }).success).toBe(false)
   })
 })

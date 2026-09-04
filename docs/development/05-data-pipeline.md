@@ -30,7 +30,11 @@ data/scripts/
 ├── fetch_road_works.py        # data.gov.mo (DSAT) → road-works.json
 ├── fetch_schools.py           # manual; DSEDJ list + OSM footprints → schools.json
 ├── fetch_water_facilities.py  # manual; 澳門自來水的 22 個設施 + OSM → water-facilities.json
-├── osm_footprints.py          # 上面兩支共用：Overpass 存取 + basemap tile 足跡重切
+├── fetch_water_distribution.py # manual; 澳門境內道路，流向由清水設施定 → water-distribution.json
+├── fetch_power_facilities.py  # manual; 澳電的 33 座變電站 + 兩座電廠 + OSM → power-facilities.json
+├── fetch_power_distribution.py # manual; 同一份道路底稿，流向由變電站定 → power-distribution.json
+├── road_network.py            # 上面兩支 *_distribution 共用：道路底稿 + 多源 Dijkstra 流向場
+├── osm_footprints.py          # 學校／供水／供電共用：Overpass 存取 + basemap tile 足跡重切
 ├── fetch_toilets.py           # data.gov.mo (IAM) → toilets.json
 ├── fetch_car_parks.py         # data.gov.mo (DSAT) → car-parks.json
 └── fetch_service_status.py    # 每天 scrape 巴士停駛公告 → service-status.json
@@ -167,6 +171,31 @@ cd data && uv run python scripts/fetch_water_facilities.py
 **流向**：每條路的座標順序是有意義的，從「離清水源近的一端」指向「遠的一端」，前端的虛線動畫就會像水從水廠往外流。作法是拿簡化後的幾何建圖（節點＝座標，邊＝相鄰頂點、權重是公尺），以 `water-facilities.json` 裡 `operator=macao_water` 且 `type` 為 `plant`／`tank`／`pumping` 的 15 個**清水側**設施當種子（原水側的水塘與 `raw_pumping` 刻意不放，原水是流「進」水廠的，放了會讓半個城市看起來往大水塘倒流；黑沙水庫也因 operator 過濾一併排除），各自吸附到最近的圖節點（最遠 133.8 m，是松山 50 米水池——山上本來就沒有路），再跑一次多源 Dijkstra（純 `heapq`，沒加相依套件）。每條路依兩端 `dist` 決定要不要反轉；若中間出現局部極小值（例如一條路兩頭各碰到一個水源），就在極小值處切成兩條，兩半各自往外流。輸出多了 `dist`／`distEnd`（起訖端離水源的公尺數，整數）、`flowSources`（用到的設施 id；叫 `flowSources` 是因為 `sources` 已經是 provenance 區塊）、`unreached`（沒有任何水源能走到的路的條數，這些維持原順序、`dist` 為 `null`）與 `splits`。
 
 輸出 `public/data/water-distribution.json`（compact JSON，沒有 id，只有 `class` / `dist` / `distEnd` / `coordinates`），目前 4,910 條（4,767 有流向、143 unreached、219 條被切）、587.6 km、621 KiB（預算 700 KiB）。跑完要過 `validate_output.py water-distribution`（守門條件：頂層欄位齊、每條 `class` 在檔案自己宣告的 `classes` 內、`dist`／`distEnd` 是 `null` 或 ≥ 0 的整數且**要嘛都有要嘛都沒有**、有值時 `distEnd >= dist`、`unreached` 與實際 `dist: null` 的條數一致、每條至少 2 點、每點在澳門範圍內、至少 2,000 條）。`node scripts/inspect.mjs water-distribution` 印分級統計、總公里數、bbox、檔案大小，以及流向摘要（有流向／unreached、最大距離、切段數、反向的條數應為 0）。
+
+> 上面這整套道路底稿（Overpass 抓路、裁邊界、保護路口頂點的簡化、多源 Dijkstra、往外定向、守門與寫檔）實作在 [`road_network.py`](../../data/scripts/road_network.py) 的 `build_distribution()`，跟 `fetch_power_distribution.py` 共用；兩支腳本各自只負責「用什麼當種子」。兩個檔案吃同一份 Overpass 快取，所以第二支跑起來不用再打 Overpass。
+
+### 電力 — `fetch_power_facilities.py` / `fetch_power_distribution.py`
+
+**清單是澳電的，幾何是 OSM 的，電網是我們畫的。** 名單與數字來自澳電「[營運](https://www.cem-macau.com/zh/about-cem/company-profile/operation/)」頁：頁上的「輸電及接駁網絡圖」圖例與 66／110／220 千伏三張表列出變電站名稱，散文則給了 2025 年的數字（用電量 6,259.7 GWh、本地發電 582.9 GWh 佔 9%、由廣東輸入 5,676.8 GWh 佔 91%、「29 座高壓變電站、8 座高壓開關站」、1,088 公里高壓電纜）與粵澳聯網沿革（1984 年首條 110 千伏線路；2008／2012／2022 年三條通道分別隨鴨涌河、蓮花、北安變電站投運，現為 8 回 220 千伏主供加 4 回 110 千伏備用，對澳輸電能力 1,700 兆瓦）。那頁的網絡圖**有版權而且沒有地理座標**，一點都不描它——只取事實，座標一律來自 OpenStreetMap。
+
+**為什麼是 33 座而不是 29 座。** 澳電的標題數字是「29 座高壓變電站、8 座高壓開關站」，但頁上從沒說哪一座算哪一邊——好幾座名字就叫「開關站及變電站」，兩邊都算。頁上**真正列得出來的是名字**：三張電壓表合計 33 個不重複的變電站名（澳北 A 與澳北 B 在表上是兩列，OSM 只有一個 `澳北變電站` w713089729，所以在這裡併成一筆設施），加上散文裡的北安變電站。腳本的 `SUBSTATIONS` 表就是這 33 筆，檔案裡的 `facts` 則原樣保留澳電自己的 29／8 標題數字，不去逆推它的分類。`type` 取**最高**電壓（澳北是 110/66，算 `sub110`；路氹是 110/66，也算 `sub110`），`voltageKv` 必須跟 `type` 對得起來。
+
+**名稱比對。** 每個澳電名字用「中文主名」去對 OSM 的 `power=substation` 面：取 OSM `name` 的第一個空白分隔 token，去掉尾綴的括號註記，再去掉 `變電站`／`開關站及變電站`／`開關站` 後綴，然後**比相等，絕不比包含**——`焚化爐` 不可以命中 `新焚化爐變電站`（那是另一座 110 千伏站）、`氹仔` 不可以命中 `新氹仔`、`路氹` 不可以命中 `路氹醫院變電站`。兩筆跟 OSM 寫法不同的（澳電寫「青州」、OSM 寫「青洲」；澳北 A/B）在表上寫死 `osm_name`。同名兩條 way 時（大橋變電站被畫了兩次，其中一條沒標 `voltage`）取有標 `voltage` 的、再取面積大的。
+
+比對後 28 筆有 OSM 面、**5 筆 OSM 根本沒有**：巴黎人、上葡京、外港、威尼斯人、喜來登。這 5 筆只出 marker、標 `approximate: true`，位置取一個具名地標多邊形的 representative point（澳門巴黎人 / 澳門上葡京 / 外港客運碼頭 / 澳門威尼斯人 / 澳門倫敦人——喜來登金沙城中心就在倫敦人那一塊裡），用哪個 OSM element 記在輸出的 `anchors`。**變電站的足跡不去查 `building`**：賭場那幾座就在裙樓裡面，一查會把整座度假村認領進來；改成拿底圖圖磚部件重切（`TilePartIndex.within` 要求部件本身 ≥ 50% 落在輪廓內，度假村大小的量體自然被擋掉），底圖也沒有的就退化成上限 20 m 的輪廓色塊。發電廠與焚化中心則比照水廠當「廠區」處理，把落在裡面的 `building` 全部認領（62 + 11 棟）。
+
+**`network` 是我們的示意圖，不是澳電的電纜走向。** 那 1,088 公里高壓電纜幾乎全在地下，OSM 沒有，沒有東西可以描。`nodes` 是三個粵澳輸入點，都放在澳門這一側、在陸地上、離路夠近讓 OSRM 有得貼（鴨涌馬路旁 34.6 m、蓮花路橋頭 14.5 m、港珠澳大橋澳門口岸島澳門橋大馬路旁 30.4 m，都用 OSM 澳門邊界 relation `1867188` 驗過在境內）。`lines` 共 37 條：220 千伏骨幹 6 條是寫死的 edge list（三個輸入點各進一座落地變電站，鴨涌河→北安→蓮花→路環發電廠；蓮花往發電廠那條會經過廠區裡的路環B變電站 `w321628440`），14 座 110 千伏各接**路程上**最近的一座 220 千伏站或澳北，16 座 66 千伏各接最近的 110／220 千伏站，焚化中心再接焚化爐變電站（它把電賣給澳電）。「路程上最近」是先用直線距離挑 3 個候選再各跑一次 OSRM 取最短（純直線在被兩座橋切開的半島上常常挑到對岸），失敗的候選永遠輸給有路的候選。
+
+幾何跟供水管網同一套規則：一次 `route/v1/driving`（`overview=full&geometries=geojson`），沿用 [`osrm_route.py`](../../data/scripts/osrm_route.py) 的 Hengqin 排除區；兩端 marker 的原座標補回頭尾（線一定起訖於站本身）；直線 < 150 m，或直線 < 600 m 而路徑繞出 3 倍以上，就畫成兩點直線並標 `direct: true`（`fallback` 仍為 `false`——`fallback` 只代表 OSRM 失敗，超過 3 條就中止）。多一道供水沒有的處理：OSRM 一條 7 km 的路會回 ~370 個頂點，而這個檔案是 `indent=2`，一個頂點就要 ~50 bytes，所以 routed 幾何再用 10 m 容差在公尺投影下 Douglas-Peucker 一次（頭尾必留），檔案從 427 KiB 降到 183 KiB。目前 37 條、89.9 km、6 條 `direct`、0 條 fallback。
+
+```bash
+cd data && uv run python scripts/fetch_power_facilities.py
+cd data && uv run python scripts/fetch_power_distribution.py   # 要先有 power-facilities.json
+```
+
+產出 `public/data/power-facilities.json`（183 KiB，預算 400 KiB）與 `public/data/power-distribution.json`（622 KiB，預算 700 KiB）。前者跑完要過 `validate_output.py power-facilities`（守門條件：剛好 35 筆設施＝33 座變電站＋發電廠＋焚化中心、`id` 不重複、`type`／`operator`／`source` 都在列舉內、`voltageKv` 與 `type` 一致（發電側必須是 `null`）、座標在澳門範圍內、`approximate` 與 `anchor`／`osm` 互相自洽（近似的不得引 OSM id、精確的至少要引一個）、近似最多 8 筆、至少 20 筆有 `buildings`、發電廠的 `details` 有 `capacityMw` 與三語機組說明、`facts` 的兩個百分比加起來是 100；`network` 則是剛好 3 個 inlet 節點與 37 條線、`id` 不重複、`from`／`to` 都對得到設施或節點且不自環、`voltageKv` 在 220/110/66 內、`direct` 與 `fallback` 不會同時為真、`direct` 的剛好 2 個座標、其餘至少 2 個、**每一筆設施與節點都至少落在一條線上**、`fallback` 最多 3 條）。後者跟 `water-distribution` 共用同一個 validator（`v_distribution`）。
+
+配水底稿那一支（`fetch_power_distribution.py`）除了種子不同以外，跟 `fetch_water_distribution.py` 是同一段程式（`road_network.build_distribution()`）：種子是 `power-facilities.json` 裡**全部 33 座**變電站（220／110／66 都算，那是電網真正降壓進到街道底下 11 千伏饋線的地方），發電廠與焚化中心刻意不放——它們是把電**送進**輸電網，放了會讓路環的街道看起來自己餵自己。最遠吸附 88.4 m（喜來登，近似 marker 落在倫敦人裙樓裡），4,970 條（4,924 有流向、46 unreached、275 條被切）。`node scripts/inspect.mjs power-facilities` 印設施摘要（依 type／operator 分組、精確 vs 近似＋anchor、足跡 kind、2025 年數字）與電網摘要（依電壓分組的條數與公里數、direct／routed、inlet 節點、fallback、最長的一條、最大繞行倍率、**沒有連上任何線的設施數應為 0**）；`node scripts/inspect.mjs power-distribution` 跟 `water-distribution` 同格式。
 
 ### 公廁 — `fetch_toilets.py`
 

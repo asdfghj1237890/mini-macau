@@ -10,6 +10,7 @@ import {
   type SchoolLevelSet,
 } from '../schools'
 import { waterLegendRows, type WaterLegendRow } from '../water'
+import { powerLegendRows, type PowerLegendRow } from '../power'
 
 // The five level colours as one 8×8 swatch. Only the mobile modal header uses
 // it now — the desktop row shows the same violet hatch as the other layers,
@@ -42,6 +43,21 @@ const CAR_PARK_HATCH = 'repeating-linear-gradient(-45deg, rgba(59,130,246,0.45) 
 // Sky hatch for the WATER row — the reservoir colour (#38bdf8), which is the
 // overlay's dominant tone on the map.
 const WATER_HATCH = 'repeating-linear-gradient(-45deg, rgba(56,189,248,0.45) 0 1px, transparent 1px 3px)'
+
+// Amber hatch for the POWER row — the distribution colour (#fbbf24), which is
+// the overlay's dominant tone across the city.
+const POWER_HATCH = 'repeating-linear-gradient(-45deg, rgba(251,191,36,0.45) 0 1px, transparent 1px 3px)'
+
+// 12px lightning bolt for the POWER row, in the same stroked style as its
+// siblings so it dims with the row.
+function PowerIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9.3 1.6L4.9 8.4h2.6l-1 6 4.6-7h-2.6z" />
+    </svg>
+  )
+}
 
 // 12px droplet for the WATER row — the same stroked style as the sibling row
 // glyphs, so it dims with the row instead of staying lit like an emoji would.
@@ -150,6 +166,80 @@ function WaterKey({ network, caption }: { network: TransitData['waterNetwork']; 
   )
 }
 
+// ---- POWER legend key -----------------------------------------------------
+// The electricity overlay's own 圖例, built the same way as the water one from
+// `powerLegendRows` — so the voltage rows only appear for voltages the file
+// actually carries, and the inlet row only when the network has import nodes.
+
+// 12px bolt, filled for a mapped station and outline-only for the hollow
+// "approximate" plate — the same distinction the markers themselves draw.
+function KeyBolt({ color, hollow }: { color: string; hollow: boolean }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16"
+         fill={hollow ? 'none' : color} stroke={color}
+         strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9.3 1.6L4.9 8.4h2.6l-1 6 4.6-7h-2.6z" />
+    </svg>
+  )
+}
+
+// The swatch for one POWER key row. Same 12px box as the water glyphs, so both
+// keys line their labels up at the same x.
+function PowerKeyGlyph({ row }: { row: PowerLegendRow }) {
+  const box = 'inline-flex items-center justify-center w-[12px] h-[12px] shrink-0'
+  if (row.glyph === 'bolt' || row.glyph === 'boltHollow') {
+    return (
+      <span className={box} style={{ color: row.color }}>
+        <KeyBolt color={row.color} hollow={row.glyph === 'boltHollow'} />
+      </span>
+    )
+  }
+  if (row.glyph === 'inlet') {
+    return <span className={box}><KeyInlet color={row.color} /></span>
+  }
+  if (row.glyph === 'line') {
+    // 16×2 px sample, or 1 px and faded for the distribution mesh — drawn
+    // exactly as the map draws it, so it cannot be mistaken for the 66 kV row
+    // above it. No dashed variant: nothing in this overlay is dashed.
+    return (
+      <span className="inline-flex items-center w-[16px] h-[12px] shrink-0">
+        <span
+          className={`inline-block w-[16px] ${row.thin ? 'h-[1px] opacity-70' : 'h-[2px]'}`}
+          style={{ backgroundColor: row.color }}
+        />
+      </span>
+    )
+  }
+  return (
+    <span className={box}>
+      <span className="inline-block w-[8px] h-[8px]" style={{ backgroundColor: row.color }} />
+    </span>
+  )
+}
+
+// The key itself. `network` decides which voltage rows appear (see
+// powerLegendRows) — a file with no lines shows the facility rows only.
+function PowerKey({ network, caption }: { network: TransitData['powerNetwork']; caption: string }) {
+  const { t } = useI18n()
+  const rows = powerLegendRows(t, network)
+  return (
+    <div className="pb-1.5">
+      {rows.map(row => (
+        <div key={row.id} className="w-full flex items-center gap-2 py-[2px] pl-8 pr-3">
+          <PowerKeyGlyph row={row} />
+          <span className="text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate text-white/60"
+                title={row.label}>
+            {row.label}
+          </span>
+        </div>
+      ))}
+      <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
+        {caption}
+      </div>
+    </div>
+  )
+}
+
 // 12px "P" plate for the car-park row: a rounded-square outline with the
 // parking P, in the same stroked style as the sibling row glyphs.
 function CarParkIcon() {
@@ -236,6 +326,12 @@ const WATER_ICON_16 = (
     <path d="M8 1.75c2.6 3 4.25 5.05 4.25 7.1a4.25 4.25 0 0 1-8.5 0c0-2.05 1.65-4.1 4.25-7.1z" />
   </svg>
 )
+const POWER_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M9.3 1.6L4.9 8.4h2.6l-1 6 4.6-7h-2.6z" />
+  </svg>
+)
 // Building glyph for the CITY chip (16px) and the modal header (12px).
 function CityIcon({ size = 16 }: { size?: number }) {
   return (
@@ -291,6 +387,10 @@ interface Props {
   // them back when it goes off (see toggleWater), so the row's ON state also
   // means "everything else is off".
   waterOn?: boolean
+  // CEM's electricity network — the SECOND focus mode, and mutually exclusive
+  // with WATER: turning this on takes water off (and vice versa), so at most
+  // one of the two rows can read ON.
+  powerOn?: boolean
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
@@ -301,6 +401,7 @@ interface Props {
   onToggleToilets?: () => void
   onToggleCarParks?: () => void
   onToggleWater?: () => void
+  onTogglePower?: () => void
   onToggleRoute?: (routeId: string) => void
   onToggleAll?: () => void
   onShowAll?: () => void
@@ -309,7 +410,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'water' | 'city' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'water' | 'power' | 'city' | null
 
 export function LineLegend({
   transitData,
@@ -328,6 +429,7 @@ export function LineLegend({
   toiletsOn = false,
   carParksOn = false,
   waterOn = false,
+  powerOn = false,
   clock,
   onToggleLrt,
   onToggleFlights,
@@ -338,6 +440,7 @@ export function LineLegend({
   onToggleToilets,
   onToggleCarParks,
   onToggleWater,
+  onTogglePower,
   onToggleRoute,
   onShowAll,
   onHideAll,
@@ -457,6 +560,10 @@ export function LineLegend({
   // describes what the layer draws when it is on, and `transitData` is nulled
   // out while it is off.
   const waterNetwork = allTransitData?.waterNetwork ?? transitData.waterNetwork
+  // And for the electricity facilities — CEM's list is fixed until the manual
+  // pipeline run regenerates it.
+  const powerCount = allTransitData?.powerFacilities.length ?? transitData.powerFacilities.length
+  const powerNetwork = allTransitData?.powerNetwork ?? transitData.powerNetwork
 
   // Mobile CITY modal — the city overlays in one list, the counterpart of the
   // desktop panel's CITY page. A row's name opens that layer's own modal; its
@@ -486,6 +593,11 @@ export function LineLegend({
       panel: 'water' as const, label: 'WATER · 供水', icon: WATER_ICON_16, on: waterOn,
       count: String(waterCount), iconOn: 'text-sky-300', countOn: 'text-sky-300/80',
       toggle: onToggleWater,
+    } : null,
+    powerCount > 0 ? {
+      panel: 'power' as const, label: 'POWER · 電力', icon: POWER_ICON_16, on: powerOn,
+      count: String(powerCount), iconOn: 'text-amber-300', countOn: 'text-amber-300/80',
+      toggle: onTogglePower,
     } : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null)
   const cityLayerTotal = cityLayerRows.length
@@ -1093,6 +1205,47 @@ export function LineLegend({
               on screen, so it has nothing to say when they are not. */}
           {waterCount > 0 && waterOn && (
             <WaterKey network={waterNetwork} caption={t.waterNetworkNote} />
+          )}
+
+          {/* CEM ELECTRICITY — same five columns as WATER above it, and the
+              same focus-mode behaviour. The two are mutually exclusive:
+              switching this on takes WATER off and restores what WATER was
+              hiding, then hides it all again for POWER. */}
+          {powerCount > 0 && (
+            <button
+              type="button"
+              onClick={onTogglePower}
+              disabled={!onTogglePower}
+              aria-pressed={powerOn}
+              // The hover text carries the disclaimer the map itself cannot:
+              // the HV lines are our schematic, not CEM's cable routes.
+              title={`${t.powerCount(powerCount)} · ${t.powerNetworkNote}`}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+                         ${powerOn
+                           ? 'bg-amber-400/[0.05] hover:bg-amber-400/[0.1]'
+                           : 'hover:bg-white/[0.03] opacity-50'}
+                         ${onTogglePower ? '' : 'cursor-default'}`}
+            >
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${powerOn ? 'text-white/45' : 'text-white/40'}`}>
+                <PowerIcon />
+              </span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: POWER_HATCH }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+                POWER · 電力
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${powerOn ? 'text-amber-300/80' : 'text-white/25'}`}>
+                {powerCount}
+              </span>
+              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${powerOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                {powerOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
+          {powerCount > 0 && powerOn && (
+            <PowerKey network={powerNetwork} caption={t.powerNetworkNote} />
           )}
           </>)}
         </div>
@@ -1921,6 +2074,66 @@ export function LineLegend({
                   carries the "schematic" disclaimer. */}
               <div className="border-t border-white/10 pt-1.5">
                 <WaterKey network={waterNetwork} caption={t.waterNetworkNote} />
+              </div>
+            </div>
+          )}
+
+          {/* CEM ELECTRICITY */}
+          {mobilePanel === 'power' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-amber-400/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-amber-300/85">
+                  <PowerIcon />
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: POWER_HATCH }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">POWER · 電力</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                    {powerOn ? powerCount : 0}/{powerCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onTogglePower}
+                disabled={!onTogglePower}
+                aria-pressed={powerOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${powerOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${onTogglePower ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={powerOn ? 'text-amber-400' : 'text-white/40'}>
+                    <PowerIcon />
+                  </span>
+                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                    {t.powerCount(powerCount)}
+                  </span>
+                </span>
+                <span className={`mm-mono text-[10px] tracking-[0.2em] ${powerOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                  {powerOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+              {/* Shown whether or not the layer is on, like the WATER modal: a
+                  touch device has no hover, so this is the only place the marks
+                  are ever explained. Its caption carries the disclaimer. */}
+              <div className="border-t border-white/10 pt-1.5">
+                <PowerKey network={powerNetwork} caption={t.powerNetworkNote} />
               </div>
             </div>
           )}

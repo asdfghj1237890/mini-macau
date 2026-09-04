@@ -106,8 +106,8 @@
 <g>
 <rect x="36" y="464" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
 <rect x="36" y="472" width="3" height="24" rx="1.5" fill="#7dd3fc"/>
-<text x="48" y="481" class="t" font-size="12" font-weight="600" fill="#e5e7eb">Macao Water facilities</text>
-<text x="48" y="495" class="t" font-size="10" fill="rgba(229,231,235,0.55)">22-item list · geometry from OSM</text>
+<text x="48" y="481" class="t" font-size="12" font-weight="600" fill="#e5e7eb">Macao Water · CEM lists</text>
+<text x="48" y="495" class="t" font-size="10" fill="rgba(229,231,235,0.55)">facility lists · geometry from OSM</text>
 </g>
 <g>
 <rect x="36" y="514" width="190" height="40" rx="6" fill="#17181c" stroke="#93c5fd" stroke-dasharray="3 3" class="pulse"/>
@@ -182,7 +182,7 @@
 <g>
 <rect x="538" y="459" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
 <rect x="538" y="467" width="3" height="18" rx="1.5" fill="#7dd3fc"/>
-<text x="550" y="480" class="t" font-size="12" font-weight="600" fill="#e5e7eb">water-facilities</text>
+<text x="550" y="480" class="t" font-size="12" font-weight="600" fill="#e5e7eb">water · power facilities</text>
 </g>
 <g>
 <rect x="772" y="358" width="192" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />

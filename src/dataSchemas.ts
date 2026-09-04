@@ -408,6 +408,130 @@ export const WaterDistributionFileSchema = z.object({
   ),
 })
 
+// power-facilities.json — CEM's generation and HV substations, geometry taken
+// from OSM. Mirrors the `power-facilities` block in
+// data/scripts/validate_output.py. Same shape as the water file one section up,
+// with `voltageKv` in place of the facility number and a `details` block that
+// only the Coloane plant carries.
+const powerFacilityType = z.enum(['plant', 'incinerator', 'sub220', 'sub110', 'sub66'])
+const powerText = z.object({ zh: z.string(), pt: z.string(), en: z.string() })
+
+// The schematic HV network. OPTIONAL for the same reason the water one is: a
+// file that ships only the facility list must still validate (and the runtime
+// just draws no lines). Facilities are implicit nodes — `from`/`to` name a
+// facility id or one of the extra `nodes` (the Guangdong inlets) — and a line
+// needs at least two points to be a line at all.
+const powerNetwork = z.object({
+  nodes: z.array(
+    z.object({
+      id: z.string(),
+      kind: z.string(),
+      name: powerText,
+      coordinates: lngLat,
+    }),
+  ),
+  lines: z.array(
+    z.object({
+      id: z.string(),
+      from: z.string(),
+      to: z.string(),
+      // A plain positive number, not the 220/110/66 enum: the runtime's colour
+      // and width tables fall back to the lowest tier for anything else, so a
+      // voltage the pipeline adds later must not fail validation.
+      voltageKv: z.number().positive(),
+      lengthM: z.number(),
+      fallback: z.boolean(),
+      // Optional: a deliberate straight stub between co-located stations.
+      // Absent means false, and it changes no paint — only `fallback` does.
+      direct: z.boolean().optional(),
+      coordinates: z.array(lngLat).min(2),
+    }),
+  ),
+})
+
+export const PowerFacilitiesFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  sources: z.record(z.string(), z.string()),
+  facilities: z.array(
+    z.object({
+      id: z.string(),
+      type: powerFacilityType,
+      // Defaulted rather than required, exactly like the water file's, so a
+      // file written before ownership was recorded still validates. `parseData`
+      // returns the RAW object, so the runtime reads this through
+      // `powerOperator`, which applies the same default — see src/power.ts.
+      operator: z.enum(['cem', 'dspa']).default('cem'),
+      name: powerText,
+      // Null for generation (the plant and the incinerator), which carry no
+      // transmission voltage of their own.
+      voltageKv: z.number().positive().nullable(),
+      coordinates: lngLat,
+      approximate: z.boolean(),
+      anchor: z.string().nullable(),
+      osm: z.array(z.string()),
+      buildings: z.array(
+        z.object({
+          osmId: z.string(),
+          name: z.string().nullable(),
+          height: z.number(),
+          minHeight: z.number(),
+          kind: z.string().optional(),
+          // GeoJSON Polygon coordinates: at least one ring of [lng, lat].
+          coordinates: z.array(z.array(lngLat)).min(1),
+        }),
+      ),
+      // Extra facts the panel shows where the pipeline has them. The Coloane
+      // plant carries the full trilingual unit prose plus its capacity; a
+      // 220 kV station carries only the year it was commissioned. Every field
+      // is therefore OPTIONAL — the block says "here is what is known", not
+      // "here is a fixed record" — and the panel renders each row only when
+      // its field is present.
+      details: z.object({
+        unitsZh: z.string().optional(),
+        unitsEn: z.string().optional(),
+        unitsPt: z.string().optional(),
+        // A language-neutral unit string (澳北's "A + B"), used when the
+        // trilingual prose above is absent.
+        units: z.string().optional(),
+        capacityMw: z.number().optional(),
+        commissioned: z.number().int().optional(),
+      }).nullable().optional(),
+      // Free-text provenance for a station OSM has but CEM's list does not.
+      note: z.string().nullable().optional(),
+    }),
+  ),
+  network: powerNetwork.optional(),
+})
+
+// power-distribution.json — the same street extract as the water file, oriented
+// outward from the substations instead. Deliberately LENIENT for the same
+// reason: everything but `roads` is provenance the runtime never reads, and the
+// file is loaded lazily and best-effort (a failure just leaves the thin feeders
+// out), so an envelope tweak upstream must not throw in dev.
+export const PowerDistributionFileSchema = z.object({
+  fetchedAtUtc: z.string().optional(),
+  sources: z.union([
+    z.record(z.string(), z.string()),
+    z.array(z.unknown()),
+  ]).optional(),
+  classes: z.array(z.string()).optional(),
+  flowSources: z.array(z.string()).optional(),
+  unreached: z.number().int().optional(),
+  splits: z.number().int().optional(),
+  roads: z.array(
+    z.object({
+      class: z.string(),
+      // Metres along the network from the nearest substation, at the road's
+      // first and last vertex. Null where the walk never reached it. Carried
+      // for provenance and possible future styling; the layer does not read
+      // them today, so they stay out of the GeoJSON features.
+      dist: z.number().nullable().optional(),
+      distEnd: z.number().nullable().optional(),
+      coordinates: z.array(lngLat).min(2),
+    }),
+  ),
+})
+
 // Validate `raw` against `schema`. On mismatch: throw in dev (so tests and the
 // dev server surface contract drift immediately) and console.error in prod (so
 // the live site logs the problem but still renders best-effort). Returns the

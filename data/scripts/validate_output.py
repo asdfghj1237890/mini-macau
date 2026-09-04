@@ -1201,77 +1201,83 @@ def v_water_facilities(data: object) -> list[str]:
     return errs
 
 
-# The Macau-only road network the water overlay draws its distribution layer
-# on. It is shipped rather than styled out of the basemap because OpenFreeMap's
-# tiles cannot be clipped to the SAR — a restyled basemap layer would light up
-# Zhuhai just as brightly. ~4,900 ways come back from OSM after simplification;
-# the floor catches a truncated Overpass answer, not a slow OSM week.
+# The Macau-only road network the water and power overlays draw their
+# distribution layers on. Both files come out of the same pipeline module
+# (data/scripts/road_network.py) and differ only in what seeded the flow field,
+# so one validator checks both. They are shipped rather than styled out of the
+# basemap because OpenFreeMap's tiles cannot be clipped to the SAR — a restyled
+# basemap layer would light up Zhuhai just as brightly. ~4,900 ways come back
+# from OSM after simplification; the floor catches a truncated Overpass answer,
+# not a slow OSM week.
 #
 # Each road also carries a FLOW DIRECTION: its coordinates run from the end
-# nearer a treated-water source to the end further away, so the frontend's dash
-# animation reads as water flowing outward. `dist`/`distEnd` are the metres at
+# nearer a source to the end further away, so the frontend's dash animation
+# reads as water (or power) flowing outward. `dist`/`distEnd` are the metres at
 # the two ends, which makes the invariant checkable — if `distEnd < dist` the
-# pipeline forgot to reverse an array and that road's water would run backwards.
+# pipeline forgot to reverse an array and that road's flow would run backwards.
 # Roads no source can reach carry `null` for both.
-WATER_DISTRIBUTION_MIN_ROADS = 2000
+DISTRIBUTION_MIN_ROADS = 2000
+WATER_DISTRIBUTION_MIN_ROADS = DISTRIBUTION_MIN_ROADS
+POWER_DISTRIBUTION_MIN_ROADS = DISTRIBUTION_MIN_ROADS
 
 
-def v_water_distribution(data: object) -> list[str]:
+def v_distribution(data: object, name: str) -> list[str]:
+    """Shared body for `water-distribution` and `power-distribution`."""
     errs: list[str] = []
     if not require_fields(
-        errs, "water-distribution", data,
+        errs, name, data,
         ("fetchedAtUtc", "sources", "classes", "flowSources", "unreached", "splits", "roads"),
     ):
         return errs
 
     if not isinstance(data["fetchedAtUtc"], str):
-        errs.append("water-distribution: fetchedAtUtc must be a string")
+        errs.append(f"{name}: fetchedAtUtc must be a string")
 
     sources = data["sources"]
-    if require_fields(errs, "water-distribution.sources", sources, ("osm", "boundary")):
+    if require_fields(errs, f"{name}.sources", sources, ("osm", "boundary")):
         for key in ("osm", "boundary"):
             if not (isinstance(sources[key], str) and sources[key]):
-                errs.append(f"water-distribution.sources: '{key}' must be a non-empty string")
+                errs.append(f"{name}.sources: '{key}' must be a non-empty string")
 
     # `classes` is the file's own enum, so a new road class only has to be added
     # in the pipeline; this checks the roads against whatever it declares.
     classes = data["classes"]
-    if not require_nonempty_list(errs, "water-distribution.classes", classes):
+    if not require_nonempty_list(errs, f"{name}.classes", classes):
         return errs
     for i, c in enumerate(classes):
         if not (isinstance(c, str) and c):
-            errs.append(f"water-distribution.classes[{i}] must be a non-empty string")
+            errs.append(f"{name}.classes[{i}] must be a non-empty string")
     known = {c for c in classes if isinstance(c, str)}
 
     # The facilities the flow field was seeded from. Named `flowSources`
     # because `sources` is the provenance block every dataset here carries.
-    if not require_nonempty_list(errs, "water-distribution.flowSources", data["flowSources"]):
+    if not require_nonempty_list(errs, f"{name}.flowSources", data["flowSources"]):
         return errs
     for i, s in enumerate(data["flowSources"]):
         if not (isinstance(s, str) and s):
-            errs.append(f"water-distribution.flowSources[{i}] must be a non-empty string")
+            errs.append(f"{name}.flowSources[{i}] must be a non-empty string")
 
     unreached = data["unreached"]
     if not (isinstance(unreached, int) and not isinstance(unreached, bool) and unreached >= 0):
-        errs.append("water-distribution: unreached must be an int >= 0")
+        errs.append(f"{name}: unreached must be an int >= 0")
     splits = data["splits"]
     if not (isinstance(splits, int) and not isinstance(splits, bool) and splits >= 0):
-        errs.append("water-distribution: splits must be an int >= 0")
+        errs.append(f"{name}: splits must be an int >= 0")
 
-    if not require_nonempty_list(errs, "water-distribution.roads", data["roads"]):
+    if not require_nonempty_list(errs, f"{name}.roads", data["roads"]):
         return errs
 
     roads = data["roads"]
     unflowed = 0
     for i, r in enumerate(roads):
-        ctx = f"water-distribution.roads[{i}]"
+        ctx = f"{name}.roads[{i}]"
         if not require_fields(errs, ctx, r, ("class", "dist", "distEnd", "coordinates")):
             continue
         if r["class"] not in known:
             errs.append(f"{ctx}: class '{r['class']}' is not one of `classes`")
 
         # Both ends are set, or neither is: a road with only one end measured
-        # would leave the frontend guessing which way the water goes.
+        # would leave the frontend guessing which way the flow goes.
         ends = []
         for field in ("dist", "distEnd"):
             v = r[field]
@@ -1301,15 +1307,382 @@ def v_water_distribution(data: object) -> list[str]:
 
     if isinstance(unreached, int) and not isinstance(unreached, bool) and unreached != unflowed:
         errs.append(
-            f"water-distribution: `unreached` says {unreached} but {unflowed} roads "
+            f"{name}: `unreached` says {unreached} but {unflowed} roads "
             "have a null dist"
         )
 
-    if len(roads) < WATER_DISTRIBUTION_MIN_ROADS:
+    if len(roads) < DISTRIBUTION_MIN_ROADS:
         errs.append(
-            f"water-distribution: only {len(roads)} roads "
-            f"(< {WATER_DISTRIBUTION_MIN_ROADS}) — looks like a degenerate run"
+            f"{name}: only {len(roads)} roads "
+            f"(< {DISTRIBUTION_MIN_ROADS}) — looks like a degenerate run"
         )
+
+    return errs
+
+
+def v_water_distribution(data: object) -> list[str]:
+    return v_distribution(data, "water-distribution")
+
+
+def v_power_distribution(data: object) -> list[str]:
+    return v_distribution(data, "power-distribution")
+
+
+# CEM's generation and high-voltage transmission assets. The facility count is
+# an equality check, not a floor: the list is hard-coded in
+# fetch_power_facilities.py from CEM's own「營運」page (its three voltage tables
+# name 33 distinct substations once 澳北 A/B collapse onto OSM's single 澳北
+# 變電站, plus 北安 from the interconnection prose), so a short list means the
+# table was edited or the OSM re-query silently dropped something. Five of the
+# 33 are not in OSM and ship as marker-only records anchored on a named
+# landmark; MAX_APPROXIMATE catches a regressed match (e.g. an OSM rename
+# turning ten stations into pins).
+#
+# `voltageKv` is the HIGHEST voltage a site carries and must agree with `type`
+# — 澳北 is tagged 110000;66000 in OSM and is a `sub110`, and a file that says
+# `sub66` with `voltageKv: 110` would colour and size the wrong things.
+POWER_FACILITY_TYPES = {"plant", "incinerator", "sub220", "sub110", "sub66"}
+POWER_BUILDING_KINDS = {"building", "tile", "outline"}
+POWER_OPERATORS = {"cem", "dspa"}
+POWER_PROVENANCE = {"cem", "dspa", "osm"}
+POWER_TYPE_VOLTAGE = {"sub220": 220, "sub110": 110, "sub66": 66}
+POWER_SUBSTATION_COUNT = 33
+POWER_FACILITY_COUNT = POWER_SUBSTATION_COUNT + 2  # + power station + incinerator
+POWER_MIN_WITH_BUILDINGS = 20
+POWER_MAX_APPROXIMATE = 8
+
+# The `network` block is a schematic drawn by fetch_power_facilities.py, not
+# CEM's cable routes: Macau's 1,088 km of HV cable is underground and not in
+# OSM. The 220 kV backbone is a hard-coded edge list and every 110/66 kV
+# station is hung off its nearest higher-level station by road, so the line
+# count is an equality check like the facility count. A line that could not be
+# routed degrades to a straight line and says so via `fallback`; a handful is
+# survivable, but a whole file of them means OSRM was down.
+POWER_NODE_KINDS = {"inlet"}
+POWER_INLET_COUNT = 3
+POWER_LINE_COUNT = 37
+POWER_MAX_LINE_FALLBACKS = 3
+
+
+def v_power_network(errs: list[str], network: object, facility_ids: set[str]) -> None:
+    ctx = "power-facilities.network"
+    if not require_fields(errs, ctx, network, ("nodes", "lines")):
+        return
+
+    # `nodes` carries only the non-facility endpoints: the three Guangdong
+    # interconnection inlets. Facilities are implicit nodes, referenced by id.
+    node_ids: set[str] = set()
+    nodes = network["nodes"]
+    if not isinstance(nodes, list):
+        errs.append(f"{ctx}.nodes: expected a list")
+        nodes = []
+    for i, n in enumerate(nodes):
+        nctx = f"{ctx}.nodes[{i}]"
+        if not require_fields(errs, nctx, n, ("id", "kind", "name", "coordinates")):
+            continue
+        nid = n["id"]
+        if not (isinstance(nid, str) and nid):
+            errs.append(f"{nctx}: id must be a non-empty string")
+        elif nid in node_ids or nid in facility_ids:
+            errs.append(f"{nctx}: duplicate node id '{nid}'")
+        else:
+            node_ids.add(nid)
+        if n["kind"] not in POWER_NODE_KINDS:
+            errs.append(f"{nctx}: kind '{n['kind']}' invalid")
+        if require_fields(errs, f"{nctx}.name", n["name"], ("zh", "en", "pt")):
+            for lang in ("zh", "en", "pt"):
+                if not (isinstance(n["name"][lang], str) and n["name"][lang]):
+                    errs.append(f"{nctx}.name.{lang} must be a non-empty string")
+        check_coords(errs, nctx, n["coordinates"])
+    if len(nodes) != POWER_INLET_COUNT:
+        errs.append(f"{ctx}: {len(nodes)} inlet nodes, expected exactly {POWER_INLET_COUNT}")
+
+    lines = network["lines"]
+    if not isinstance(lines, list):
+        errs.append(f"{ctx}.lines: expected a list")
+        return
+
+    known = facility_ids | node_ids
+    connected: set[str] = set()
+    seen_line_ids: set[str] = set()
+    fallbacks = 0
+    for i, ln in enumerate(lines):
+        lctx = f"{ctx}.lines[{i}]"
+        if not require_fields(
+            errs, lctx, ln,
+            ("id", "from", "to", "voltageKv", "lengthM", "direct", "fallback", "coordinates"),
+        ):
+            continue
+
+        lid = ln["id"]
+        if not (isinstance(lid, str) and lid):
+            errs.append(f"{lctx}: id must be a non-empty string")
+        elif lid in seen_line_ids:
+            errs.append(f"{lctx}: duplicate id '{lid}'")
+        else:
+            seen_line_ids.add(lid)
+        label = f"{lctx} ({lid if isinstance(lid, str) and lid else '?'})"
+
+        for end in ("from", "to"):
+            if ln[end] not in known:
+                errs.append(f"{label}: {end} '{ln[end]}' is neither a facility id "
+                            "nor a network node id")
+            else:
+                connected.add(ln[end])
+        if ln["from"] == ln["to"]:
+            errs.append(f"{label}: from and to are the same node")
+
+        if ln["voltageKv"] not in set(POWER_TYPE_VOLTAGE.values()):
+            errs.append(f"{label}: voltageKv '{ln['voltageKv']}' invalid")
+
+        length = ln["lengthM"]
+        if not (isinstance(length, int) and not isinstance(length, bool) and length >= 0):
+            errs.append(f"{label}: lengthM must be an int >= 0")
+
+        # `direct` = a deliberate two-point stub (same site, or the road route
+        # was an absurd detour); `fallback` = OSRM failed. They are different
+        # things and must not be conflated, so a direct line is never a
+        # fallback and is always exactly one straight segment.
+        direct = ln["direct"]
+        if not isinstance(direct, bool):
+            errs.append(f"{label}: direct must be a boolean")
+            direct = False
+
+        if not isinstance(ln["fallback"], bool):
+            errs.append(f"{label}: fallback must be a boolean")
+        else:
+            if ln["fallback"]:
+                fallbacks += 1
+            if ln["fallback"] and direct:
+                errs.append(f"{label}: a direct line cannot also be a fallback")
+
+        line = ln["coordinates"]
+        if not (isinstance(line, list) and len(line) >= 2):
+            errs.append(f"{label}: coordinates must be a list of >= 2 [lng, lat] points")
+            continue
+        if direct and len(line) != 2:
+            errs.append(f"{label}: a direct line must be exactly 2 coordinates, "
+                        f"got {len(line)}")
+        for j, pt in enumerate(line):
+            check_coords(errs, f"{label}.coordinates[{j}]", pt)
+
+    # A substation with no line is a pin the grid does not reach: the overlay
+    # would draw it lit up and connected to nothing.
+    orphans = sorted(known - connected)
+    if orphans:
+        errs.append(f"{ctx}: {len(orphans)} facilit(ies)/node(s) carry no line: {orphans}")
+
+    if len(lines) != POWER_LINE_COUNT:
+        errs.append(f"{ctx}: {len(lines)} lines, expected exactly {POWER_LINE_COUNT}")
+    if fallbacks > POWER_MAX_LINE_FALLBACKS:
+        errs.append(
+            f"{ctx}: {fallbacks} lines fell back to straight lines "
+            f"(> {POWER_MAX_LINE_FALLBACKS}) — OSRM was probably down"
+        )
+
+
+def v_power_facilities(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(
+        errs, "power-facilities", data,
+        ("fetchedAtUtc", "sources", "facts", "facilities", "network"),
+    ):
+        return errs
+
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("power-facilities: fetchedAtUtc must be a string")
+
+    sources = data["sources"]
+    if require_fields(errs, "power-facilities.sources", sources, ("name", "operation", "osm")):
+        for key in ("name", "operation", "osm"):
+            if not (isinstance(sources[key], str) and sources[key]):
+                errs.append(f"power-facilities.sources: '{key}' must be a non-empty string")
+
+    # The 2025 figures the panel quotes, straight off CEM's page. Checked for
+    # shape and sanity only — the numbers themselves come from upstream.
+    facts = data["facts"]
+    if require_fields(errs, "power-facilities.facts", facts,
+                      ("year", "consumptionGwh", "localSharePct", "importedSharePct",
+                       "cemHvSubstations", "hvCableKm")):
+        for key in ("year", "cemHvSubstations", "hvCableKm"):
+            if not (isinstance(facts[key], int) and not isinstance(facts[key], bool)
+                    and facts[key] > 0):
+                errs.append(f"power-facilities.facts.{key} must be an int > 0")
+        if not (isinstance(facts["consumptionGwh"], (int, float))
+                and not isinstance(facts["consumptionGwh"], bool)
+                and facts["consumptionGwh"] > 0):
+            errs.append("power-facilities.facts.consumptionGwh must be a number > 0")
+        shares = [facts["localSharePct"], facts["importedSharePct"]]
+        if any(not (isinstance(s, int) and not isinstance(s, bool) and 0 <= s <= 100)
+               for s in shares):
+            errs.append("power-facilities.facts: the share percentages must be ints in 0..100")
+        elif sum(shares) != 100:
+            errs.append(
+                f"power-facilities.facts: local {shares[0]}% + imported {shares[1]}% "
+                "does not add up to 100"
+            )
+
+    # Which OSM element each `landmark:` anchor resolved to. Optional metadata:
+    # validated when present rather than required.
+    anchors = data.get("anchors")
+    anchor_keys: set[str] = set()
+    if anchors is not None:
+        if not isinstance(anchors, dict):
+            errs.append("power-facilities.anchors: expected an object")
+        else:
+            anchor_keys = set(anchors)
+            for key, a in anchors.items():
+                actx = f"power-facilities.anchors['{key}']"
+                if not key.startswith("landmark:"):
+                    errs.append(f"{actx}: key must start with 'landmark:'")
+                if not require_fields(errs, actx, a, ("osmId", "name", "coordinates")):
+                    continue
+                for field in ("osmId", "name"):
+                    if not (isinstance(a[field], str) and a[field]):
+                        errs.append(f"{actx}: {field} must be a non-empty string")
+                check_coords(errs, actx, a["coordinates"])
+
+    if not require_nonempty_list(errs, "power-facilities.facilities", data["facilities"]):
+        return errs
+
+    facilities = data["facilities"]
+    seen_ids: set[str] = set()
+    by_type: dict[str, int] = {}
+    with_buildings = 0
+    approximate_ids: list[str] = []
+    for i, f in enumerate(facilities):
+        ctx = f"power-facilities.facilities[{i}]"
+        if not require_fields(
+            errs, ctx, f,
+            ("id", "type", "operator", "voltageKv", "name", "coordinates",
+             "approximate", "anchor", "source", "osm", "buildings", "details"),
+        ):
+            continue
+
+        fid = f["id"]
+        if not (isinstance(fid, str) and fid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif fid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{fid}'")
+        else:
+            seen_ids.add(fid)
+        label = f"{ctx} ({fid if isinstance(fid, str) and fid else '?'})"
+
+        ftype = f["type"]
+        if ftype not in POWER_FACILITY_TYPES:
+            errs.append(f"{label}: type '{ftype}' invalid")
+        else:
+            by_type[ftype] = by_type.get(ftype, 0) + 1
+
+        if f["operator"] not in POWER_OPERATORS:
+            errs.append(f"{label}: operator '{f['operator']}' invalid")
+        if f["source"] not in POWER_PROVENANCE:
+            errs.append(f"{label}: source '{f['source']}' invalid")
+
+        # A substation's voltage is its level; generation carries none. The two
+        # must agree, or the UI colours and sizes the wrong thing.
+        kv = f["voltageKv"]
+        expected_kv = POWER_TYPE_VOLTAGE.get(ftype) if ftype in POWER_FACILITY_TYPES else None
+        if expected_kv is None:
+            if kv is not None:
+                errs.append(f"{label}: voltageKv must be null for a '{ftype}'")
+        elif kv != expected_kv:
+            errs.append(f"{label}: voltageKv {kv!r} does not match type '{ftype}' "
+                        f"(expected {expected_kv})")
+
+        name = f["name"]
+        if require_fields(errs, f"{label}.name", name, ("zh", "en", "pt")):
+            for lang in ("zh", "en"):
+                if not (isinstance(name[lang], str) and name[lang]):
+                    errs.append(f"{label}.name.{lang} must be a non-empty string")
+            # OSM has no `name:pt` for several stations; rather than ship
+            # invented translations the pipeline leaves `pt` empty and the UI
+            # falls back pt → en → zh.
+            if not isinstance(name["pt"], str):
+                errs.append(f"{label}.name.pt must be a string")
+
+        check_coords(errs, label, f["coordinates"])
+
+        approximate = f["approximate"]
+        if not isinstance(approximate, bool):
+            errs.append(f"{label}: approximate must be a boolean")
+        elif approximate:
+            approximate_ids.append(fid if isinstance(fid, str) else "?")
+
+        anchor = f["anchor"]
+        if anchor is None:
+            if approximate is True:
+                errs.append(f"{label}: approximate facilities need an anchor")
+        elif not (isinstance(anchor, str) and anchor):
+            errs.append(f"{label}: anchor must be null or a non-empty string")
+        elif approximate is False:
+            errs.append(f"{label}: exact facilities must have anchor null")
+        elif anchor_keys and anchor not in anchor_keys:
+            errs.append(f"{label}: anchor '{anchor}' is not in `anchors`")
+
+        if not isinstance(f["osm"], list):
+            errs.append(f"{label}.osm must be a list")
+        else:
+            for j, o in enumerate(f["osm"]):
+                if not (isinstance(o, str) and o):
+                    errs.append(f"{label}.osm[{j}] must be a non-empty string")
+            if approximate is False and not f["osm"]:
+                errs.append(f"{label}: an exact facility must cite at least one OSM id")
+            if approximate is True and f["osm"]:
+                errs.append(f"{label}: an approximate facility must cite no OSM id")
+
+        if not (f["details"] is None or isinstance(f["details"], dict)):
+            errs.append(f"{label}.details must be null or an object")
+        elif ftype == "plant":
+            if not require_fields(errs, f"{label}.details", f["details"],
+                                  ("capacityMw", "unitsZh", "unitsEn", "unitsPt")):
+                pass
+            else:
+                if not (isinstance(f["details"]["capacityMw"], (int, float))
+                        and not isinstance(f["details"]["capacityMw"], bool)
+                        and f["details"]["capacityMw"] > 0):
+                    errs.append(f"{label}.details.capacityMw must be a number > 0")
+                for lang in ("unitsZh", "unitsEn", "unitsPt"):
+                    if not (isinstance(f["details"][lang], str) and f["details"][lang]):
+                        errs.append(f"{label}.details.{lang} must be a non-empty string")
+
+        buildings = f["buildings"]
+        if not isinstance(buildings, list):
+            errs.append(f"{label}.buildings must be a list")
+        else:
+            if buildings:
+                with_buildings += 1
+            for j, b in enumerate(buildings):
+                check_footprint_building(errs, f"{label}.buildings[{j}]", b,
+                                         kinds=POWER_BUILDING_KINDS)
+
+    if len(facilities) != POWER_FACILITY_COUNT:
+        errs.append(
+            f"power-facilities: {len(facilities)} facilities, expected exactly "
+            f"{POWER_FACILITY_COUNT}"
+        )
+    substations = sum(by_type.get(t, 0) for t in POWER_TYPE_VOLTAGE)
+    if substations != POWER_SUBSTATION_COUNT:
+        errs.append(
+            f"power-facilities: {substations} substations, expected exactly "
+            f"{POWER_SUBSTATION_COUNT}"
+        )
+    for t in ("plant", "incinerator"):
+        if by_type.get(t, 0) != 1:
+            errs.append(f"power-facilities: {by_type.get(t, 0)} '{t}' facilities, expected 1")
+    if with_buildings < POWER_MIN_WITH_BUILDINGS:
+        errs.append(
+            f"power-facilities: only {with_buildings} facilities have buildings "
+            f"(< {POWER_MIN_WITH_BUILDINGS}) — looks like a degenerate run"
+        )
+    if len(approximate_ids) > POWER_MAX_APPROXIMATE:
+        errs.append(
+            f"power-facilities: {len(approximate_ids)} approximate facilities "
+            f"(> {POWER_MAX_APPROXIMATE}) — the OSM name match probably regressed: "
+            f"{approximate_ids}"
+        )
+
+    v_power_network(errs, data["network"], seen_ids)
 
     return errs
 
@@ -1331,6 +1704,8 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "schools": (PUBLIC / "data/schools.json", v_schools),
     "water-facilities": (PUBLIC / "data/water-facilities.json", v_water_facilities),
     "water-distribution": (PUBLIC / "data/water-distribution.json", v_water_distribution),
+    "power-facilities": (PUBLIC / "data/power-facilities.json", v_power_facilities),
+    "power-distribution": (PUBLIC / "data/power-distribution.json", v_power_distribution),
     "toilets": (PUBLIC / "data/toilets.json", v_toilets),
     "car-parks": (PUBLIC / "data/car-parks.json", v_car_parks),
 }

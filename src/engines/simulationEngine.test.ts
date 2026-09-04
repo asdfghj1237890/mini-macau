@@ -377,6 +377,8 @@ describe('computeBusCycleSec', () => {
       carParks: [],
       waterFacilities: [],
       waterNetwork: null,
+      powerFacilities: [],
+      powerNetwork: null,
       loading: false,
     }
 
@@ -405,6 +407,8 @@ describe('computeBusCycleSec', () => {
       carParks: [],
       waterFacilities: [],
       waterNetwork: null,
+      powerFacilities: [],
+      powerNetwork: null,
       loading: false,
     }
 

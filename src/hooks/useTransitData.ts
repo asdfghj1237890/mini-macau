@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WaterFacility, WaterNetwork, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -18,6 +18,7 @@ import {
   ToiletsFileSchema,
   CarParksFileSchema,
   WaterFacilitiesFileSchema,
+  PowerFacilitiesFileSchema,
 } from '../dataSchemas'
 
 const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
@@ -128,6 +129,19 @@ interface WaterFacilitiesFile {
   // it is optional here and in the zod schema: an older file simply draws no
   // pipes rather than failing validation.
   network?: WaterNetwork
+}
+
+// power-facilities.json — CEM's generation and HV substations, same envelope
+// pattern again: only `facilities` and the optional `network` reach TransitData,
+// `sources` stays provenance metadata (the panel and the sidebar carry static
+// labels).
+interface PowerFacilitiesFile {
+  fetchedAtUtc: string
+  sources: Record<string, string>
+  facilities: PowerFacility[]
+  // Optional like the water file's: a file with no HV edge list simply draws no
+  // lines rather than failing validation.
+  network?: PowerNetwork
 }
 
 function hhmmToMinutes(s: string): number | null {
@@ -364,6 +378,8 @@ export function useTransitData(): UseTransitDataResult {
     carParks: [],
     waterFacilities: [],
     waterNetwork: null,
+    powerFacilities: [],
+    powerNetwork: null,
     loading: true,
   })
   // Multi-day timetable lives in its own state slot rather than on
@@ -505,6 +521,16 @@ export function useTransitData(): UseTransitDataResult {
       .then(file => {
         commit('waterFacilities', file.facilities)
         commit('waterNetwork', file.network ?? null)
+      })
+      .catch(() => {})
+
+    // CEM's electricity network — the same static, non-critical load as the
+    // water facilities above: a missing file just leaves the blocks, the bolt
+    // markers and the HV lines off the map.
+    loadJson<PowerFacilitiesFile>('/data/power-facilities.json', PowerFacilitiesFileSchema, 'power-facilities.json')
+      .then(file => {
+        commit('powerFacilities', file.facilities)
+        commit('powerNetwork', file.network ?? null)
       })
       .catch(() => {})
 

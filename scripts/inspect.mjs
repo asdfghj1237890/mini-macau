@@ -23,6 +23,8 @@
 //   node scripts/inspect.mjs schools                # schools.json summary (by level/system, buildings, unmatched/dropped)
 //   node scripts/inspect.mjs water-facilities       # water-facilities.json summary (by type, exact vs approximate + anchors, footprints, schematic pipe network)
 //   node scripts/inspect.mjs water-distribution     # water-distribution.json summary (Macau-only road network: by class, km, bbox, file size)
+//   node scripts/inspect.mjs power-facilities       # power-facilities.json summary (by type/voltage, exact vs approximate + anchors, footprints, schematic grid)
+//   node scripts/inspect.mjs power-distribution     # power-distribution.json summary (Macau-only road network: by class, km, bbox, file size)
 //   node scripts/inspect.mjs toilets                # toilets.json summary (accessible/family/closed counts, closed list)
 //   node scripts/inspect.mjs car-parks              # car-parks.json summary (by zone, height-limit histogram, no-limit ids)
 // bucket = weekday | sat | sun (default weekday)
@@ -282,8 +284,105 @@ function cmdWaterFacilities() {
   }
 }
 
-function cmdWaterDistribution() {
-  const { fetchedAtUtc, sources, classes, flowSources = [], unreached = 0, splits = 0, roads } = load('public/data/water-distribution.json')
+// power-facilities.json: CEM's generation + HV transmission assets and OUR
+// schematic 220/110/66 kV grid (edge list in fetch_power_facilities.py,
+// geometry from OSRM). Macau's HV cable is underground and not in OSM, so the
+// lines are a topology drawing, not CEM's routes.
+function cmdPowerFacilities() {
+  const { fetchedAtUtc, facts = {}, anchors = {}, facilities, network } = load('public/data/power-facilities.json')
+
+  const byType = {}
+  const byOperator = {}
+  let totalBuildings = 0
+  const exact = []
+  const approximate = []
+  for (const f of facilities) {
+    byType[f.type] = (byType[f.type] || 0) + 1
+    byOperator[f.operator] = (byOperator[f.operator] || 0) + 1
+    totalBuildings += f.buildings.length
+    ;(f.approximate ? approximate : exact).push(f)
+  }
+
+  console.log(`total facilities: ${facilities.length}   fetchedAtUtc: ${fetchedAtUtc}`)
+  console.log('by type:', byType)
+  console.log('by operator:', byOperator)
+  console.log(`exact: ${exact.length}   approximate: ${approximate.length}   buildings: ${totalBuildings}`)
+  console.log(`${facts.year} (CEM): ${facts.consumptionGwh} GWh consumed, ${facts.localSharePct}% local / ${facts.importedSharePct}% imported, ` +
+    `${facts.cemHvSubstations} HV substations + ${facts.cemHvSwitchingStations} switching stations, ${facts.hvCableKm} km HV cable`)
+
+  const anchorLabel = (a) => (a === null ? '—' : `${a} (${anchors[a]?.osmId ?? '?'} ${(anchors[a]?.name ?? '?').split(' ')[0]})`)
+
+  console.log(`\nexact (${exact.length}) — OSM footprints:`)
+  for (const f of exact) {
+    console.log(`  ${f.id.padEnd(26)} ${f.type.padEnd(12)} ${(f.voltageKv ? `${f.voltageKv} kV` : '—').padStart(6)}  buildings ${String(f.buildings.length).padStart(2)}  ${f.osm.join(',').padEnd(12)} ${f.name.zh}`)
+  }
+
+  console.log(`\napproximate (${approximate.length}) — marker only:`)
+  for (const f of approximate) {
+    console.log(`  ${f.id.padEnd(26)} ${f.type.padEnd(12)} ${(f.voltageKv ? `${f.voltageKv} kV` : '—').padStart(6)}  anchor ${anchorLabel(f.anchor)}  ${f.name.zh}`)
+  }
+
+  const kinds = {}
+  for (const f of facilities) for (const b of f.buildings) kinds[b.kind] = (kinds[b.kind] || 0) + 1
+  console.log('\nbuilding kinds:', kinds)
+
+  const { nodes = [], lines = [] } = network ?? {}
+  const straightM = (p) => {
+    const [a, b] = [p.coordinates[0], p.coordinates[p.coordinates.length - 1]]
+    const x = (b[0] - a[0]) * 111320 * Math.cos((22.16 * Math.PI) / 180)
+    const y = (b[1] - a[1]) * 110540
+    return Math.hypot(x, y)
+  }
+
+  const byKv = {}
+  const kmByKv = {}
+  let totalM = 0
+  let points = 0
+  const fallbacks = []
+  const direct = []
+  let longest = null
+  let maxRatio = null
+  for (const ln of lines) {
+    byKv[ln.voltageKv] = (byKv[ln.voltageKv] || 0) + 1
+    kmByKv[ln.voltageKv] = (kmByKv[ln.voltageKv] || 0) + ln.lengthM / 1000
+    totalM += ln.lengthM
+    points += ln.coordinates.length
+    if (ln.fallback) fallbacks.push(ln.id)
+    if (ln.direct) direct.push(ln.id)
+    if (longest === null || ln.lengthM > longest.lengthM) longest = ln
+    const r = ln.lengthM / straightM(ln)
+    if (!ln.direct && (maxRatio === null || r > maxRatio.r)) maxRatio = { r, id: ln.id }
+  }
+
+  console.log(`\nnetwork: ${lines.length} lines   ${(totalM / 1000).toFixed(1)} km total   ${points} coordinate points`)
+  for (const kv of [220, 110, 66]) {
+    if (byKv[kv]) console.log(`  ${String(kv).padStart(3)} kV  ${String(byKv[kv]).padStart(3)} lines  ${kmByKv[kv].toFixed(1).padStart(6)} km`)
+  }
+  console.log(`direct connectors: ${direct.length}   routed: ${lines.length - direct.length}`)
+  console.log(`inlet nodes: ${nodes.map((n) => `${n.id} (${n.kind}, ${n.since}) ${n.name.zh}`).join(', ') || '—'}`)
+  console.log(`straight-line fallbacks: ${fallbacks.length}${fallbacks.length ? ` — ${fallbacks.join(', ')}` : ''}`)
+  if (longest) console.log(`longest: ${longest.id}  ${longest.lengthM} m  ${longest.coordinates.length} pts`)
+  if (maxRatio) console.log(`max routed detour: ${maxRatio.id}  x${maxRatio.r.toFixed(2)}`)
+
+  // Every facility and inlet must be on at least one line, or the overlay
+  // draws a lit marker wired to nothing.
+  const connected = new Set(lines.flatMap((ln) => [ln.from, ln.to]))
+  const orphans = [...facilities.map((f) => f.id), ...nodes.map((n) => n.id)].filter((id) => !connected.has(id))
+  console.log(`facilities/nodes with no line: ${orphans.length}${orphans.length ? ` — ${orphans.join(', ')}` : ''}`)
+
+  console.log('\nlines (= direct, ~ fallback):')
+  for (const ln of lines) {
+    const mark = ln.fallback ? '~' : ln.direct ? '=' : ' '
+    const ratio = (ln.lengthM / straightM(ln)).toFixed(2)
+    console.log(`  ${mark}${String(ln.voltageKv).padStart(3)} kV ${ln.from.padEnd(26)} -> ${ln.to.padEnd(26)} ${String(ln.lengthM).padStart(6)} m  ${String(ln.coordinates.length).padStart(4)} pts  straight ${String(Math.round(straightM(ln))).padStart(6)} m  x${ratio}`)
+  }
+}
+
+// water-distribution.json and power-distribution.json are the same file shape
+// out of the same pipeline module (data/scripts/road_network.py) — the Macau
+// -only road canvas — and differ only in what seeded the flow field.
+function cmdDistribution(rel) {
+  const { fetchedAtUtc, sources, classes, flowSources = [], unreached = 0, splits = 0, roads } = load(rel)
 
   // Planar metres at Macau's latitude — the same approximation the pipeline
   // simplifies with, so the km here matches the km it printed.
@@ -314,7 +413,7 @@ function cmdWaterDistribution() {
     }
   }
 
-  const bytes = statSync(join(ROOT, 'public/data/water-distribution.json')).size
+  const bytes = statSync(join(ROOT, rel)).size
   console.log(`total roads: ${roads.length}   coordinate points: ${points}   fetchedAtUtc: ${fetchedAtUtc}`)
   console.log(`total length: ${(totalM / 1000).toFixed(1)} km   file size: ${(bytes / 1024).toFixed(1)} KiB`)
   console.log(`boundary: ${sources.boundary}`)
@@ -328,8 +427,8 @@ function cmdWaterDistribution() {
   const unknown = Object.keys(byClass).filter((c) => !classes.includes(c))
   if (unknown.length) console.log(`classes not declared in \`classes\`: ${unknown.join(', ')}`)
 
-  // Flow: each road's coordinates run from the end nearer a treated-water
-  // source to the end further away, so the dash animation flows outward.
+  // Flow: each road's coordinates run from the end nearer a source to the end
+  // further away, so the dash animation flows outward.
   // A road that came back with `dist === null` is in a component no source
   // reaches, and keeps whatever order OSM drew it in.
   const reached = roads.filter((r) => r.dist !== null)
@@ -407,10 +506,12 @@ switch (cmd) {
   case 'road-works': cmdRoadWorks(pos[0]); break
   case 'schools': cmdSchools(); break
   case 'water-facilities': cmdWaterFacilities(); break
-  case 'water-distribution': cmdWaterDistribution(); break
+  case 'water-distribution': cmdDistribution('public/data/water-distribution.json'); break
+  case 'power-facilities': cmdPowerFacilities(); break
+  case 'power-distribution': cmdDistribution('public/data/power-distribution.json'); break
   case 'toilets': cmdToilets(); break
   case 'car-parks': cmdCarParks(); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | toilets | car-parks')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks')
     if (cmd) process.exit(1)
 }

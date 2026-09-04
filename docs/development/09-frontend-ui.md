@@ -82,8 +82,12 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-carparks-on` | P 總開關 | 關 |
 | `mini-macau-water-on` | WATER 總開關（專注模式） | 關 |
 | `mini-macau-water-focus-snapshot` | WATER 開啟前其他圖層的可見狀態快照（JSON） | 無 |
+| `mini-macau-power-on` | POWER 總開關（專注模式） | 關 |
+| `mini-macau-power-focus-snapshot` | POWER 開啟前其他圖層的可見狀態快照（JSON） | 無 |
 
 **WATER 是專注模式**：開啟時先把其他所有圖層的可見狀態（LRT 線集合、巴士可見路線與自動模式旗標、AIR、SEA、WORKS、SCHOOLS、WC、P）存成快照，再全部關掉，地圖只剩供水設施（連 LRT 路軌與巴士路線軌跡也不畫）；關閉時原樣還原快照——中途手動改過的圖層也以快照為準——然後清掉快照。快照放 localStorage，重新整理後再關閉 WATER 仍能還原。專注模式期間時間控制整個消失（上方時鐘與下方的播放／暫停、倍速、時間軸、「現在」都不渲染，對應的鍵盤快捷鍵也不作用）——供水圖層沒有時間維度；模擬時鐘在背景照走，WATER 關閉即原樣回來。
+
+**POWER · 電力** 是同一套專注模式（快照／還原／隱藏時間控制的 helper 兩層共用，鍵是 `mini-macau-power-on` 與 `mini-macau-power-focus-snapshot`），而且 WATER 與 POWER **互斥**：開其中一個時會先把另一個關掉並還原它的快照，再對其餘圖層做快照與隱藏。POWER 列下方同樣有靜態圖例（設施類型、220／110／66 kV 線路、配電網、廣東電網輸入口，標題「電網為示意」）。
 
 WATER 開啟時列下方會展開一個靜態圖例（`WaterKey`，手機版在 WATER modal 內）：設施類型（水廠、水塘、高位水池、原水泵站、泵站、約略位置空心水滴）與管線（原水管深藍虛線、淨水管淺藍實線、示意直線灰虛線——只在資料有 `fallback` 管段時出現、配水管網細線、珠海原水輸入口圖示），標題註明「管網為示意」。它是獨立區塊，不影響上下各列的欄位對齊。面板會標示營運者：澳門自來水設施，或黑沙水庫的「政府原水水庫（海事及水務局）· 非自來水公司設施」，並列出該設施接了幾條示意管線；點珠海原水輸入口開的是 `WaterInletInfoPanel`。配水路網（`water-distribution.json`，約 550 KiB）由 `useWaterDistribution` 在第一次開 WATER 時才抓一次，之後開關不再重抓。
 
