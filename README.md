@@ -22,9 +22,11 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 
 ![og-image](https://mini-map-macau.app/og-image.png)
 
-[![Demo — Macau bus fleet on the roundabout (click to play video)](./docs/demo-01-poster.jpg)](https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-01.mp4)
+![Demo — Macau bus fleet on the roundabout](https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-01.gif)
 
-[![Demo — LRT line with timetable panel (click to play video)](./docs/demo-02-poster.jpg)](https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-02.mp4)
+![Demo — LRT line with timetable panel](https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-02.gif)
+
+<sup>Full-quality MP4s: [bus fleet](https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-01.mp4) · [LRT line](https://github.com/asdfghj1237890/mini-macau/releases/download/readme-assets-v1/demo-02.mp4)</sup>
 
 ## Contents
 
