@@ -87,58 +87,11 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 
 ## Architecture
 
-Three clean stages: upstream sources get normalized by Python into versioned static JSON, which the browser runtime replays on a simulated clock. RT mode adds a parallel live-feed path for buses only.
+Three clean stages: upstream sources get normalized by Python into versioned static JSON, which the browser runtime replays on a simulated clock. Two live feeds bypass the pipeline: the DSAT bus feed in local development (RT mode) and the DSAT car-park vacancy API, polled only while the clock sits at the present.
 
-```mermaid
-flowchart LR
-  subgraph Sources["External sources"]
-    OSM[OpenStreetMap]
-    MLM[MLM LRT timetables]
-    DSATFreq[DSAT bus frequencies]
-    AS[AviationStack API]
-    TJ[TurboJET · CotaiJet]
-    DSATrt[DSAT realtime feed]
-  end
+![Architecture — sources flow through the Python pipeline into committed JSON, which the browser replays on a simulated clock; live feeds bypass the pipeline](./docs/architecture.svg)
 
-  subgraph Pipeline["Python pipeline · GitHub Actions"]
-    Scripts["data/scripts/*.py<br/>(manual regen)"]
-    CronF["update-flights.yml<br/>(daily)"]
-    CronFerry["update-ferry-schedules.yml<br/>(monthly)"]
-  end
-
-  subgraph Static["Bundled static JSON (public/data/)"]
-    J1[lrt-lines · stations · trips]
-    J2[bus-routes · bus-stops]
-    J3[flights.json]
-    J4[ferry-schedules.json]
-  end
-
-  subgraph Runtime["Browser runtime"]
-    Sim["Simulation engine<br/>timetable-driven playback"]
-    RT["RT client<br/>/api/dsat/batch · 8s cache"]
-    UI[MapLibre layers + React UI]
-  end
-
-  OSM --> Scripts
-  MLM --> Scripts
-  DSATFreq --> Scripts
-  AS --> CronF
-  TJ --> CronFerry
-
-  Scripts --> J1
-  Scripts --> J2
-  CronF --> J3
-  CronFerry --> J4
-
-  J1 --> Sim
-  J2 --> Sim
-  J3 --> Sim
-  J4 --> Sim
-
-  DSATrt -.->|opt-in RT toggle| RT
-  Sim --> UI
-  RT --> UI
-```
+<sup>Animated SVG (SMIL, no scripts) — generated, see <code>docs/architecture.svg</code>.</sup>
 
 ## Tech Stack
 
