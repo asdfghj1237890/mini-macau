@@ -68,6 +68,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **School buildings** — Every school and tertiary campus rendered as coloured 3D blocks by level (kindergarten / primary / secondary / university / all-through); the legend section collapses and each level can be switched on/off on its own; click a block for the school's name, level, system and approved stages
 - **Public toilets** — IAM public toilets as map markers with opening hours, barrier-free / family cubicles and temporary closures; toggleable
 - **Public car parks** — DSAT's 88 public car parks as map markers with entrances, height limits and fees, plus live vacancy shown only while the clock is at the present; toggleable
+- **Layer panel** — desktop LAYERS panel split into TRANSIT (LRT / Bus / Air / Sea) and CITY (road works / schools / toilets / car parks) pages; every switch and the open page persist in localStorage; road works on by default, the other city layers off
 - **Automated ferry data** — GitHub Actions workflow scrapes TurboJET and CotaiJet timetables monthly and commits updated schedules if changed
 - **Time controls** — Play, pause (spacebar), speed up (1×–60×), jump to current time, or pick any date/time with the DateTimePicker; Esc toggles the sidebar menu
 - **Vehicle tracking** — Click a vehicle to follow it with smooth camera animation; freely zoom/pan while tracking
@@ -76,8 +77,8 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **Dark/Light mode** — Two map styles (CARTO Dark Matter / Positron)
 - **Trilingual UI** — English / 繁體中文 / Português — flight destinations, station names, and all labels switch with the language
 - **Cyberpunk-styled menu** — Hamburger menu with Orbitron-font title and gradient branding
-- **Responsive mobile UI** — Hamburger menu for map controls, compact legend buttons (LRT/Bus), optimized touch layout with safe-area support
-- **Lazy loading** — Code-split panels (VehicleInfoPanel, StationInfoPanel, FlightInfoPanel) for fast initial load
+- **Responsive mobile UI** — Hamburger menu for map controls, a chip stack for LRT / Bus / Air / Sea plus one CITY chip that opens a list of the four city layers (each keeps its own modal), optimized touch layout with safe-area support
+- **Lazy loading** — Code-split panels (VehicleInfoPanel, StationInfoPanel, FlightInfoPanel, RoadWorkInfoPanel, SchoolInfoPanel, ToiletInfoPanel, CarParkInfoPanel) for fast initial load
 - **Automated flight data** — GitHub Actions workflow syncs MFM flight schedules from the [AviationStack](https://aviationstack.com/) API daily
 
 </details>
@@ -297,11 +298,15 @@ mini-macau/
 │   │   ├── ControlPanel.tsx      # Playback speed controls
 │   │   ├── TimeDisplay.tsx       # Clock + DateTimePicker trigger
 │   │   ├── DateTimePicker.tsx    # Date/time selection overlay
-│   │   ├── LineLegend.tsx        # LRT/Bus/Flight legend (desktop + mobile)
+│   │   ├── LineLegend.tsx        # Layer legend — desktop TRANSIT/CITY pages + mobile chips
 │   │   ├── VehicleInfoPanel.tsx  # Vehicle detail + ETA
 │   │   ├── StationInfoPanel.tsx  # Station detail + next arrivals
 │   │   ├── FlightInfoPanel.tsx   # Flight detail panel
-│   │   └── FerryInfoPanel.tsx    # Ferry detail panel
+│   │   ├── FerryInfoPanel.tsx    # Ferry detail panel
+│   │   ├── RoadWorkInfoPanel.tsx # Road-work notice detail panel
+│   │   ├── SchoolInfoPanel.tsx   # School building detail panel
+│   │   ├── ToiletInfoPanel.tsx   # Public toilet detail panel
+│   │   └── CarParkInfoPanel.tsx  # Car park detail + live vacancy panel
 │   ├── engines/
 │   │   └── simulationEngine.ts   # Timetable-driven vehicle + flight position computation
 │   ├── data/
@@ -309,7 +314,8 @@ mini-macau/
 │   │   └── trips-*.json          # LRT timetable — bundled into anonymous hashed chunks, not served under /data/
 │   ├── hooks/
 │   │   ├── useSimulationClock.ts # RAF-based clock with speed/pause
-│   │   └── useTransitData.ts     # JSON data loader
+│   │   ├── useTransitData.ts     # JSON data loader
+│   │   └── useCarParkVacancy.ts  # Live car-park vacancy polling (1x + tab visible only)
 │   ├── layers/
 │   │   ├── Bus3DLayer.ts         # 3D bus model (fill-extrusion)
 │   │   ├── LRT3DLayer.ts         # 3D LRT model (fill-extrusion)
@@ -319,6 +325,10 @@ mini-macau/
 │   ├── App.tsx                   # Root layout + state management
 │   ├── main.tsx                  # React entry point with I18nProvider
 │   ├── routeGroups.ts            # Bus route grouping logic
+│   ├── roadWorks.ts              # Road-works notice helpers (status, colours)
+│   ├── schools.ts                # School overlay helpers (level colours, footprint features)
+│   ├── toilets.ts                # Public-toilet overlay helpers (variant, marker features)
+│   ├── carParks.ts               # Car-park overlay helpers + live-vacancy XML parsing
 │   ├── i18n.tsx                  # Internationalization (EN / 繁中 / PT)
 │   ├── types.ts                  # TypeScript interfaces
 │   └── index.css                 # Tailwind + MapLibre control overrides
@@ -330,7 +340,11 @@ mini-macau/
 │   │   ├── bus-routes.json
 │   │   ├── bus-stops.json
 │   │   ├── flights.json          # MFM flight schedules (with localized names)
-│   │   └── ferry-schedules.json  # TurboJET + CotaiJet monthly timetables
+│   │   ├── ferry-schedules.json  # TurboJET + CotaiJet monthly timetables
+│   │   ├── road-works.json       # DSAT road-works notices
+│   │   ├── schools.json          # School buildings + footprints
+│   │   ├── toilets.json          # IAM public toilets
+│   │   └── car-parks.json        # DSAT public car parks
 │   ├── favicon.svg
 │   ├── icons.svg
 │   ├── og-image.png
@@ -344,6 +358,10 @@ mini-macau/
 │   │   ├── fetch_bridge_geometry.py
 │   │   ├── fetch_flights.py      # AviationStack flight data sync (MFM)
 │   │   ├── fetch_ferry_schedules.py # TurboJET + CotaiJet monthly scraper
+│   │   ├── fetch_road_works.py   # DSAT road-works notice sync
+│   │   ├── fetch_schools.py      # DSEDJ school list + OSM footprints (manual)
+│   │   ├── fetch_toilets.py      # IAM public-toilet sync
+│   │   ├── fetch_car_parks.py    # DSAT public car-park sync
 │   │   ├── osrm_route.py
 │   │   ├── patch_bus_bridges.py
 │   │   └── generate_timetable.py
@@ -353,7 +371,10 @@ mini-macau/
 │   ├── deploy.yml                  # Cloudflare Pages CI/CD
 │   ├── service-status.yml          # Upstream service availability check
 │   ├── update-flights.yml          # Daily flight data update
-│   └── update-ferry-schedules.yml  # Monthly ferry data update
+│   ├── update-ferry-schedules.yml  # Monthly ferry data update
+│   ├── update-road-works.yml       # Daily road-works notice update
+│   ├── update-toilets.yml          # Daily public-toilet update
+│   └── update-car-parks.yml        # Daily car-park update
 └── index.html
 ```
 

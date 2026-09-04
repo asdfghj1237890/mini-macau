@@ -2,14 +2,12 @@
 
 ## 現況
 
-只有一個測試檔：[`src/engines/simulationEngine.test.ts`](../../src/engines/simulationEngine.test.ts)，用 [Vitest](https://vitest.dev/)，覆蓋 `simulationEngine.ts` 內的 pure function。
+`npm test`（[Vitest](https://vitest.dev/)）現在跑 **10 個測試檔、151 個 `it`**，< 1s。`ls src/**/*.test.ts*` 能看到其中 8 個：[`engines/simulationEngine.test.ts`](../../src/engines/simulationEngine.test.ts)、[`macauTime.test.ts`](../../src/macauTime.test.ts)、[`dataSchemas.test.ts`](../../src/dataSchemas.test.ts)、[`roadWorks.test.ts`](../../src/roadWorks.test.ts)、[`schools.test.ts`](../../src/schools.test.ts)、[`toilets.test.ts`](../../src/toilets.test.ts)、[`carParks.test.ts`](../../src/carParks.test.ts)、[`hooks/useTransitData.test.ts`](../../src/hooks/useTransitData.test.ts)。另外 2 個在 `src/` 之外的 `plugins/seo-content/`——SEO 注入外掛自己的既有測試，跟這裡的城市資料更新無關，CLAUDE.md 已經另外提過。
 
 ```bash
 npm test            # 一次性
 npm run test:watch  # 互動模式
 ```
-
-37 個 `it`、執行時間 < 300 ms。
 
 ## 為什麼只測 `simulationEngine.ts`
 
@@ -32,6 +30,19 @@ npm run test:watch  # 互動模式
 | `computeBusCycleSec` | 服務時段內、開始前、跨午夜 wrap、Sunday bucket、staggered 車輛 lag |
 | `getBusSchedule` | bilateral / circular、過短 polyline 回 null、`WeakMap` cache 行為 |
 
+## 城市資料 helper（`roadWorks` / `schools` / `toilets` / `carParks`）
+
+跟 `simulationEngine.ts` 同一套邏輯：這四個 helper 都是 pure function（notice/school/toilet/car-park 陣列 in，feature/count/label 陣列 out），不摸 DOM、不摸網路，容易上 fixture，所以也測了。
+
+| 檔案 | 測試重點 |
+|------|----------|
+| `roadWorks.test.ts` | `roadWorkStatus` 的 active/upcoming/hidden 邊界、`daysBetween` 跨月跨年、`pickText` 語言 fallback |
+| `schools.test.ts` | `buildSchoolFeatures` 的顏色/skip 規則、`filterSchoolsByLevel` 全開時保留 array identity、`loadSchoolLevelsOn`/`saveSchoolLevelsOn` round-trip 與壞資料容錯 |
+| `toilets.test.ts` | `toiletVariant` 優先權（closed 蓋過 accessible）、`pickToiletText` 三語 fallback、`buildToiletFeatures` 的座標 skip |
+| `carParks.test.ts` | `parseCarParkVacancyXml` / `parseCarParkTime` 解析 DSAT XML 與美式日期時間、`buildCarParkFeatures` 的 vacancy 標籤規則 |
+
+`dataSchemas.test.ts` 是另一種測試：拿 zod schema（[`dataSchemas.ts`](../../src/dataSchemas.ts)）去 parse `public/data/*.json` 實際檔案內容，包括新的 `road-works.json` / `schools.json` / `toilets.json` / `car-parks.json`——保證 commit 進來的資料本身合法，不是測程式邏輯。
+
 ## 沒測什麼
 
 刻意略過：
@@ -40,7 +51,7 @@ npm run test:watch  # 互動模式
 - **`computeFlightVehicles`** — 大量 hard-coded waypoint（apron stand、taxi route、landing route、holding center），測下去基本上是把座標常數重抄一遍。
 - **`computeFerryVehicles`** — 同樣理由：泊位 + 海上航線 waypoint hard-coded。
 - **`*3DLayer.ts`** — 視覺驗證為主。
-- **`useSimulationClock` / `useTransitData`** — React hook、要 jsdom + `@testing-library/react`，目前不值得加依賴。
+- **`useSimulationClock` / `useTransitData` 的 hook 本體** — 要 jsdom + `@testing-library/react`，目前不值得加依賴（`useTransitData.test.ts` 測的是它匯出的 pure helper——`buildFlightIndex`、`ymdMacau`、`weekdayOf`——不是 hook 本身）。
 - **`realtimeClient.ts`** — `BusTracker` 的 dead-reckoning 邏輯實際上**很值得測**（同站 commit、wrap-around、speed cap 等等）。是 backlog 第一名，但目前是 hand-tested。
 
 ## 測試 fixture pattern

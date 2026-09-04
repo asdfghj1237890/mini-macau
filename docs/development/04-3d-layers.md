@@ -61,6 +61,34 @@ Window 用 `windowDots()` 算法分布：根據機身長度沿著 fuselage 長�
 
 `addVehicleLayers(map, lang)` 一次性註冊，`updateVehicleData(map, vehicles)` 每 sim tick 餵新的 FeatureCollection。`updateVehicleLabelLang(map, lang)` 切語言時更新 label 的 `text-field` 表達式。
 
+## 城市資料層（非車輛）── 學校 / 道路工程 / 公廁 / 停車場
+
+這四層跟上面的車輛 layer 不是同一類東西：不隨 sim tick 動，資料是靜態或準靜態的點/面。各自的 helper 集中在 [`src/schools.ts`](../../src/schools.ts)、[`src/roadWorks.ts`](../../src/roadWorks.ts)、[`src/toilets.ts`](../../src/toilets.ts)、[`src/carParks.ts`](../../src/carParks.ts)，`MapView.tsx` 只管 addSource/addLayer 跟 setData。
+
+### 學校：自己畫 extrusion，不吃 basemap
+
+OpenFreeMap 的建築 tile 會把同高度的建築合併成一個 multipolygon feature（一個 z14 tile 裡 ~8000 棟樓只有 ~120 個 feature），沒辦法對單一建築做 `setFeatureState` 染色——那個 feature 底下可能塞了十幾棟不相干的房子。`schools.json` 因此自己帶 footprint（`buildSchoolFeatures`），MapView 開一個獨立的 `school-buildings` source + layer。
+
+插入點刻意跟 `3d-buildings` 同一個 anchor（`firstSymbolId`），緊接在它後面加，所以校舍色塊穩穩疊在灰色 basemap 建築正上方，又還在所有 label/車輛 layer 下面。高度比 basemap 同一棟樓多 `SCHOOL_HEIGHT_MARGIN_M = 2`（公尺）——原本試過 0.5m，大片低矮屋頂（操場旁 5m 禮堂、60° pitch 看）會跟 basemap 自己的屋頂 z-fight 出白色條紋，z14→15.5 的高度 ramp 又會把 margin 一起縮小，所以拉到 2m。
+
+### 道路工程：跟著模擬曆日，不是牆鐘時間
+
+`road-works` source 的 FeatureCollection 只在模擬曆日變動、或 notice 陣列 identity 變動（資料到齊/面板開關）時重建（`roadWorksRenderRef`，比對 `macauDayIndex(simTime)`），其餘每 frame 只是一次整數比較。`roadWorkStatus` 回 `'active'`（在 `startDate`–`endDate` 內）或 `'upcoming'`（`ROAD_WORKS_UPCOMING_DAYS = 7` 天內即將開始），upcoming 的 icon `icon-opacity` 降到 0.5 跟 active 的 1 區分開。
+
+### 公廁 / 停車場：canvas 畫圖示，不用 emoji
+
+WC 跟 P 的 marker 都是 `drawToiletIcon` / `drawCarParkIcon` 現畫成 `ImageData`，`pixelRatio: 2` 註冊成 `map.addImage`。刻意不用 emoji：廁所 emoji 在每個平台長得不一樣，而且沒辦法重新上色——canvas 版本可以照 `TOILET_COLORS[variant]` 換色，還能跟其他城市圖層的視覺語言（同樣的圓角方框 + 白邊）對齊。`setStyle({diff:false})` 換 basemap 主題時圖片會被一起丟掉，所以圖片註冊包在 `hasImage` guard 裡，每次 style load 都重跑一次。
+
+### Selected-highlight 層
+
+WORKS / WC / P 三層各自多一個 `*-selected` circle layer，疊在 icon 下面，`filter: ['==', ['get','id'], selectedXId ?? '']`，白色 14% 透明填色 + 75% 透明白邊，半徑隨 zoom 內插（10→9px，15→17px，18→22px）。SCHOOLS 不用這招——building 面積夠大，直接用 `setFeatureState({selected: true})` 把整棟樓換成白色（`SCHOOL_SELECTED_COLOR`），不需要額外畫一個高亮圈。
+
+### 停車場空位標籤
+
+`vacancy` 屬性只在「有即時列、沒被標記維護中、車位數不是 null」時才附上（`buildCarParkFeatures`），所以 `text-field: ['get','vacancy']` 在未知/維護中/沒在 polling 時自然不顯示，不用另外判斷。標籤彼此會搶位置（同一棟樓兩個出入口只隔幾公尺），所以 `text-optional: true` 讓圖示贏、標籤讓位，`symbol-sort-key` 用遞增的數字 id 當優先權，避免地圖一動兩個標籤互相閃爍。z14 以下 `text-size` 直接是 0——城市尺度只看得到「P」牌，看不到數字。
+
+即時數字只在 `carParksOn && clock.isLive`（1× 播放速度、在「現在」附近）時才 poll（[`useCarParkVacancy.ts`](../../src/hooks/useCarParkVacancy.ts)），規則一變 false 就立刻把 `vacancy` 設回 `null`，不會讓舊數字停在畫面上冒充即時。
+
 ## 大型優化：單一 `bus-routes` source
 
 巴士 92 條路線曾經是 92 個 `addSource` + 92 個 `addLayer`。每次 zoom MapLibre 都要對每個 source 各做一輪 worker tile-index rebuild + postMessage。合成單一 source 後，per-route 的 dim/highlight 改用 `setFeatureState({ source: 'bus-routes', id }, { inService })` 配合 paint expression `['case', ['==', ['feature-state', 'inService'], false], DIM, FULL]`。

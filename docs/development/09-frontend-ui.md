@@ -38,8 +38,50 @@ const HTML_LANG_TAG = { zh: 'zh-Hant', pt: 'pt-PT', en: 'en' }
 
 - **3D layer minzoom 行動 16，桌面 16.9**（[`Bus3DLayer.ts:30`](../../src/layers/Bus3DLayer.ts) 的 `IS_MOBILE`）：手機螢幕窄，得早一點看到 3D 細節。
 - **漢堡選單**：`<MapView>` 自帶 `<HamburgerMenu>`，集中放控制項。
-- **LineLegend** 在桌面是側邊長條、行動是底部 LRT/Bus 兩顆按鈕，按了才展開。
+- **LineLegend** 桌面是右上角固定面板（TRANSIT/CITY 兩頁）、行動是右側 chip 疊 + CITY chip 開 modal；細節見下一節。
 - **safe-area inset**：用 `env(safe-area-inset-*)` 處理 iPhone notch / home indicator。
+
+## 圖層面板（LAYERS）與城市資料層
+
+[`src/components/LineLegend.tsx`](../../src/components/LineLegend.tsx)。桌面版是右上角固定寬度（240px）面板，行動版是右側一疊 chip + 置中 modal。
+
+### 桌面：TRANSIT / CITY 兩頁
+
+面板頭下方有兩個分頁（`LAYERS_TABS = ['transit', 'city']`，state `layersTab`，寫回 `mm-layers-tab`）：**TRANSIT** 放原本就有的 LRT / BUS / AIR / SEA，**CITY** 放 WORKS / SCHOOLS / WC / P 這幾次 commit 加的城市資料層。分頁不影響地圖畫什麼，純粹是面板分類——城市圖層清單以後還會繼續長。
+
+CITY 頁裡除 SCHOOLS 外每一列都固定五欄：圖示 → hatch 色塊 → 標籤 → 數字 → ON/OFF，欄寬是寫死的 class（不是 flex 自動撐開），所以任兩列的「數字」和「ON/OFF」永遠對在同一條垂直線上，不管標籤多長。加新城市圖層列時照抄這個五欄結構。
+
+### SCHOOLS：唯一的複合列
+
+SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<button>`。點本體（圖示到數字那段）展開/收合下面五個 per-level 子列（`schoolsLegendOpen`，存 `mm-schools-legend-open`，預設展開）；最右邊的 ON/OFF 才是整層總開關（`onToggleSchools`），跟本體點擊互不干擾。沒有 chevron——底下露出來的子列本身就是「已展開」的視覺線索。每個子列自己也是「色塊、標籤、EN 縮寫、數量、ON/OFF」，數量是該教育階段的學校總數（未過濾）。行動版 SCHOOLS modal 把同一組子列直接攤平（modal 本來就是全展開狀態，用不著桌面版那層可收合殼）。
+
+### 行動版：chip 疊 + CITY chip
+
+`sm:hidden` 疊出一排 36px chip：LRT / BUS / AIR / SEA 不變，接一條 hairline，再接一顆 **CITY** chip（建築物圖示，任一城市圖層開著就亮）。點開是一個列表 modal（`cityLayerRows`，只有背後有資料的圖層才出現一列）：列名（左半）點下去換成那個圖層自己的 modal（SCHOOLS 換成上面攤平版），列右邊的數字 + ON/OFF 原地切換，不用先進子 modal。四個城市圖層的 modal 都跟桌面版共用同一組 `onToggle*` handler。
+
+### Info panel 互斥
+
+四個新圖層各自有 `RoadWorkInfoPanel` / `SchoolInfoPanel` / `ToiletInfoPanel` / `CarParkInfoPanel`（[`src/components/`](../../src/components/)，由 [`App.tsx`](../../src/App.tsx) lazy import）。點地圖上任一 marker/block，對應的 `on*Click` handler 會把其餘五種 selection（vehicle、station、road-work、school、toilet、car-park）全部清空——同一時間只有一個 info panel 開著。關掉某個城市圖層也連帶清掉它的 selection（`useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])` 這個 pattern 四層各一個，SCHOOLS 多一層 `schoolLevelsOn` 版本），因為對應的 marker 已經從地圖上消失了。
+
+### localStorage key
+
+| Key | 存什麼 | 預設 |
+|---|---|---|
+| `mm-layers-tab` | TRANSIT / CITY 分頁 | `transit` |
+| `mm-layers-desktop-open` | 桌面面板展開/收合 | 展開 |
+| `mm-layers-collapsed-groups` | BUS 分組收合狀態 | 全部收合 |
+| `mm-schools-legend-open` | SCHOOLS 子列展開/收合 | 展開 |
+| `mini-macau-lrt-on` | 哪些 LRT 線可見 | 全開（資料到齊後寫入） |
+| `mini-macau-visible-routes` | 哪些巴士路線可見 | 未設定 = auto-by-time |
+| `mini-macau-flights-on` | AIR 總開關 | 開 |
+| `mini-macau-ferries-on` | SEA 總開關 | 開 |
+| `mini-macau-roadworks-on` | WORKS 總開關 | 開 |
+| `mini-macau-schools-on` | SCHOOLS 總開關 | 關 |
+| `mini-macau-school-levels-on` | 五個教育階段個別開關 | 全開 |
+| `mini-macau-toilets-on` | WC 總開關 | 關 |
+| `mini-macau-carparks-on` | P 總開關 | 關 |
+
+WORKS 預設開、SCHOOLS/WC/P 預設關：道路工程改道是大家都想看的即時資訊，後三層是空間密度高的靜態圖層（全開會蓋掉地圖），留給想找的人自己開。
 
 ## 車輛追蹤鏡頭
 
