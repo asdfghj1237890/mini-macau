@@ -229,12 +229,18 @@ describe('loadHiddenWasteTypes / saveHiddenWasteTypes', () => {
     expect([...loadHiddenWasteTypes()]).toEqual(['compactor', 'lamp_battery'])
   })
 
-  it('hides nothing for missing, corrupt or wrongly-shaped storage', () => {
+  it('starts with the five recycling rows hidden for missing, corrupt or wrongly-shaped storage', () => {
+    const expected = ['smart_machine', 'three_colour', 'e_waste', 'lamp_battery', 'eco_station']
     stubStorage()
-    expect(loadHiddenWasteTypes().size).toBe(0)
+    expect([...loadHiddenWasteTypes()].sort()).toEqual([...expected].sort())
     stubStorage({ [LS_WASTE_TYPES_KEY]: '{not json' })
-    expect(loadHiddenWasteTypes().size).toBe(0)
+    expect([...loadHiddenWasteTypes()].sort()).toEqual([...expected].sort())
     stubStorage({ [LS_WASTE_TYPES_KEY]: '"a string"' })
+    expect([...loadHiddenWasteTypes()].sort()).toEqual([...expected].sort())
+  })
+
+  it('keeps an explicitly emptied set — a visitor who turned everything on stays that way', () => {
+    stubStorage({ [LS_WASTE_TYPES_KEY]: '[]' })
     expect(loadHiddenWasteTypes().size).toBe(0)
   })
 
@@ -249,7 +255,7 @@ describe('loadHiddenWasteTypes / saveHiddenWasteTypes', () => {
       setItem: () => { throw new Error('denied') },
       removeItem: () => { throw new Error('denied') },
     })
-    expect(loadHiddenWasteTypes().size).toBe(0)
+    expect(loadHiddenWasteTypes().size).toBe(5)
     expect(() => saveHiddenWasteTypes(new Set<WasteSiteType>(['e_waste']))).not.toThrow()
   })
 })

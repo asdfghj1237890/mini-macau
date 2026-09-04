@@ -87,7 +87,7 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-carparks-on` | P 總開關 | 關 |
 | `mini-macau-waste-on` | WASTE 總開關（專注模式） | 關 |
 | `mini-macau-waste-focus-snapshot` | WASTE 開啟前其他圖層的可見狀態快照（JSON） | 無 |
-| `mini-macau-waste-types` | 隱藏的垃圾回收子類型（七選，key 為 type id，含 `incinerator`） | 全部顯示 |
+| `mini-macau-waste-types` | 隱藏的垃圾回收子類型（九選，key 為 type id） | 回收類預設隱藏：`smart_machine`、`three_colour`、`e_waste`、`lamp_battery`、`eco_station`；垃圾房、壓縮式垃圾收集點、垃圾站、處理設施預設顯示 |
 | `mini-macau-water-on` | WATER 總開關（專注模式） | 關 |
 | `mini-macau-water-focus-snapshot` | WATER 開啟前其他圖層的可見狀態快照（JSON） | 無 |
 | `mini-macau-power-on` | POWER 總開關（專注模式） | 關 |

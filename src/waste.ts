@@ -208,6 +208,15 @@ export type WasteTypeSet = ReadonlySet<WasteLayerType>
 // Nothing hidden — the default, and the fallback for missing/corrupt storage.
 export const NO_HIDDEN_WASTE_TYPES: WasteTypeSet = new Set<WasteLayerType>()
 
+// What a first-time visitor sees: the collection and treatment rows (refuse
+// rooms, compactors, refuse stations, treatment facilities) are on, the five
+// recycling rows start hidden — 850 recycling points would otherwise bury the
+// 300 collection points the layer is named after. Applies only when nothing is
+// stored; a visitor who has toggled anything keeps their own set.
+export const DEFAULT_HIDDEN_WASTE_TYPES: WasteTypeSet = new Set<WasteLayerType>([
+  'smart_machine', 'three_colour', 'e_waste', 'lamp_battery', 'eco_station',
+])
+
 // localStorage key for the hidden types (a JSON array of type ids).
 export const LS_WASTE_TYPES_KEY = 'mini-macau-waste-types'
 
@@ -297,12 +306,12 @@ export function visibleWasteFacilities(
 export function loadHiddenWasteTypes(): WasteTypeSet {
   try {
     const raw = localStorage.getItem(LS_WASTE_TYPES_KEY)
-    if (!raw) return NO_HIDDEN_WASTE_TYPES
+    if (!raw) return DEFAULT_HIDDEN_WASTE_TYPES
     const arr: unknown = JSON.parse(raw)
-    if (!Array.isArray(arr)) return NO_HIDDEN_WASTE_TYPES
+    if (!Array.isArray(arr)) return DEFAULT_HIDDEN_WASTE_TYPES
     return new Set(WASTE_LAYER_TYPES.filter(type => arr.includes(type)))
   } catch {
-    return NO_HIDDEN_WASTE_TYPES
+    return DEFAULT_HIDDEN_WASTE_TYPES
   }
 }
 
