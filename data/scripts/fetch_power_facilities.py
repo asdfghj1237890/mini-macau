@@ -264,17 +264,22 @@ LANDMARK_ANCHORS = {
 #            point of the cable is not published.
 #   南通道 琴蓮甲/乙/丙線  橫琴 220 kV 琴韻變電站 (OSM w443620082, west-central
 #            Hengqin) → 蓮花變電站, 3 × 220 kV cables, 2011-12-30. The inlet is
-#            the Lotus Bridge landing, 14.5 m off 蓮花路 — the only fixed link
-#            between Hengqin and Cotai, ~1 km from the substation.
+#            海濱圓形地 Rotunda Marginal (OSM w108771106), the roundabout under
+#            the Lotus Bridge's Macau abutment — the bridge ways end 100 m west
+#            of it — i.e. the point where the only fixed link from Hengqin
+#            enters Cotai, ~2 km by road from the substation.
 #   中通道 (第三通道)     珠海 220 kV 煙墩變電站 → 北安變電站, ~10.3 km of cable,
 #            commissioned 2022-11; the Zhuhai section (5.75 km, all underground,
 #            ~30 % under water) "穿越馬騮洲、匯金灣及十字門三條水道" — i.e. it
 #            reaches Macau across the 十字門 channel from the Hengqin side, NOT
 #            over the HZMB port island in the north-east (where it used to be
 #            drawn). The Macau landing is not published; the inlet is placed on
-#            Taipa's west shore at 海洋花園, the closest Macau land across
-#            十字門 from Hengqin (~24 m off the shore road), 10.3 − 5.75 ≈ 4.5 km
-#            of cable from 北安 — and is flagged `approximate`.
+#            the shore ~40 m north-west of 海洋花園變電站 (110 kV, OSM
+#            w321628441) at Taipa's north-western tip facing 十字門 — a real
+#            CEM site on the shore the route implies, 8 m off a service road —
+#            with 10.3 − 5.75 ≈ 4.5 km of cable to 北安. It is flagged
+#            `approximate`; the 110 kV station itself is not the landing, so the
+#            220 kV line starts at the inlet, not at that substation.
 # ----------------------------------------------------------------------------
 INLET_NODES = [
     {
@@ -293,16 +298,18 @@ INLET_NODES = [
             "en": "Guangdong grid infeed (Lotus Bridge)",
             "pt": "Interligação com a rede de Guangdong (Flor de Lótus)",
         },
-        "coordinates": [113.562340, 22.139220],
+        # The north-east edge of the roundabout ring: from the ring's centre
+        # OSRM snaps onto the bridge deck above it and drives into Hengqin.
+        "coordinates": [113.552900, 22.140200],
     },
     {
         "id": "inlet-pac-on", "kind": "inlet", "corridor": 3, "since": 2022,
         "name": {
-            "zh": "廣東電網輸入（十字門 → 北安）",
-            "en": "Guangdong grid infeed (Shizimen → Pac On)",
-            "pt": "Interligação com a rede de Guangdong (Shizimen → Pac On)",
+            "zh": "廣東電網輸入（海洋花園 → 北安）",
+            "en": "Guangdong grid infeed (Jardins do Oceano → Pac On)",
+            "pt": "Interligação com a rede de Guangdong (Jardins do Oceano → Pac On)",
         },
-        "coordinates": [113.544900, 22.157500],
+        "coordinates": [113.539600, 22.163440],
         # Landing point estimated from the published route (see above).
         "approximate": True,
     },
@@ -435,7 +442,11 @@ def routed_line(a: list[float], b: list[float]) -> list[list[float]] | None:
     OSRM_CACHE_DIR.mkdir(parents=True, exist_ok=True)
     cache_file = OSRM_CACHE_DIR / (hashlib.sha1(key.encode("utf-8")).hexdigest() + ".json")
     if cache_file.exists() and time.time() - cache_file.stat().st_mtime < OSRM_CACHE_TTL_S:
-        return json.loads(cache_file.read_text(encoding="utf-8"))
+        try:
+            return json.loads(cache_file.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            # A truncated entry (the disk filled mid-write) is a miss, not a crash.
+            cache_file.unlink()
     coords = get_road_geometry([list(a), list(b)], profile="driving")
     time.sleep(OSRM_PACING_S)
     if not coords or len(coords) < 2 or path_enters_hengqin(coords):
@@ -458,7 +469,17 @@ def line_geometry(a: list[float], b: list[float]) -> tuple[list[list[float]], bo
     if length < LOCAL_CONNECTOR_M:
         return straight, True, False  # same site: not worth a routing call
 
+    # A cable does not obey one-way streets, so the route is asked for in both
+    # directions and the shorter one wins (flipped so the line still runs from
+    # `a` to `b`). Driving OUT of the 海洋花園 pocket at Taipa's north-western
+    # tip, for instance, is an 11 km loop over the bridges to the peninsula
+    # and back, while driving in is the 5.6 km along the north shore.
     routed = routed_line(a, b)
+    reverse = routed_line(b, a)
+    if reverse is not None:
+        reverse = list(reversed(reverse))
+        if routed is None or line_length_m(reverse) < line_length_m(routed):
+            routed = reverse
     if routed is None:
         return straight, False, True  # OSRM failed; the line is a guess
 
