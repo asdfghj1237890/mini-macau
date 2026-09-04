@@ -99,6 +99,8 @@ const translations = {
     cityLayers: 'City layers',
     carParks: 'Public car parks',
     carParksCount: (n: number) => `${n} car parks`,
+    water: 'Water supply',
+    waterCount: (n: number) => `${n} facilities`,
     noServiceToday: 'No service today',
     // ---- MapView drawer ----
     mapSettings: 'Map Settings',
@@ -124,6 +126,7 @@ const translations = {
     dataSourceSchoolsLabel: 'Schools',
     dataSourceToiletsLabel: 'Public toilets',
     dataSourceCarParksLabel: 'Car parks',
+    dataSourceWaterLabel: 'Water supply',
     // ---- ControlPanel ----
     amPeak: 'AM PEAK',
     pmPeak: 'PM PEAK',
@@ -258,6 +261,37 @@ const translations = {
     carParkVacancyPaused: 'Publication suspended',
     carParkVacancyOnlyAtRealtime: 'Live vacancy shows only while the clock is at the present',
     carParkSource: 'SOURCE',
+    waterLabel: 'WATER',
+    waterTypePlant: 'Treatment plant',
+    waterTypeReservoir: 'Reservoir',
+    waterTypeTank: 'Elevated tank',
+    waterTypeRawPumping: 'Raw water pumping station',
+    waterTypePumping: 'Pumping station',
+    // The Zhuhai raw-water inlet — a node of our schematic network, not one of
+    // the 22 facilities Macao Water lists.
+    waterTypeInlet: 'Raw water inlet',
+    waterInletNote: 'About 96% of the raw water Macau uses comes from the Xijiang, delivered through Zhuhai.',
+    // Shown wherever the pipes are: they are our own drawing, snapped to roads,
+    // not Macao Water's real mains.
+    waterNetworkNote: 'Schematic pipe network',
+    waterPipes: (n: number) => `${n} pipe${n === 1 ? '' : 's'} connected`,
+    // Legend key rows for the pipe styles.
+    waterPipeRaw: 'Raw-water main',
+    waterPipeTreated: 'Treated-water main',
+    waterPipeFallback: 'Straight-line stand-in',
+    // The basemap's roads restyled as thin pipes — a plausible distribution
+    // network, not a surveyed one, which is what the wording has to convey.
+    waterLegendDistribution: 'Distribution network (schematic, along every road)',
+    // Ownership. Most of the overlay is the concessionaire's; the government
+    // raw-water reservoirs are not, and the panel has to say so.
+    waterOperatorMacaoWater: 'Macao Water facility',
+    waterOperatorDsama: 'Government raw-water reservoir (DSAMA) · not a Macao Water facility',
+    waterNo: 'FACILITY No.',
+    waterApproximate: 'Approximate location',
+    waterCoLocatedWith: (name: string) => `Sited at ${name}`,
+    waterBuildings: (n: number) => `${n} footprint${n === 1 ? '' : 's'}`,
+    waterFootprints: 'FOOTPRINTS',
+    waterSource: 'SOURCE',
     // ---- VehicleInfoPanel ----
     terminalStop: 'End',
   },
@@ -322,6 +356,8 @@ const translations = {
     cityLayers: '城市資料',
     carParks: '公共停車場',
     carParksCount: (n: number) => `${n} 個停車場`,
+    water: '供水設施',
+    waterCount: (n: number) => `${n} 項供水設施`,
     noServiceToday: '本日無服務',
     mapSettings: '地圖設定',
     plan2D: '2D 平面',
@@ -345,6 +381,7 @@ const translations = {
     dataSourceSchoolsLabel: '學校',
     dataSourceToiletsLabel: '公廁',
     dataSourceCarParksLabel: '停車場',
+    dataSourceWaterLabel: '供水設施',
     amPeak: '早尖峰',
     pmPeak: '晚尖峰',
     nowShort: '現在',
@@ -468,6 +505,28 @@ const translations = {
     carParkVacancyPaused: '暫停發佈',
     carParkVacancyOnlyAtRealtime: '即時空位只在時間為「現在」時顯示',
     carParkSource: '來源',
+    waterLabel: '供水',
+    waterTypePlant: '水廠',
+    waterTypeReservoir: '水塘',
+    waterTypeTank: '高位水池',
+    waterTypeRawPumping: '原水泵站',
+    waterTypePumping: '泵站',
+    waterTypeInlet: '原水輸入',
+    waterInletNote: '澳門約 96% 的原水取自西江，經珠海輸澳。',
+    waterNetworkNote: '管網為示意',
+    waterPipes: (n: number) => `連接 ${n} 條管線`,
+    waterPipeRaw: '原水管',
+    waterPipeTreated: '淨水管',
+    waterPipeFallback: '示意直線',
+    waterLegendDistribution: '配水管網（示意，沿全澳道路）',
+    waterOperatorMacaoWater: '澳門自來水設施',
+    waterOperatorDsama: '政府原水水庫（海事及水務局）· 非自來水公司設施',
+    waterNo: '設施編號',
+    waterApproximate: '約略位置',
+    waterCoLocatedWith: (name: string) => `位於${name}`,
+    waterBuildings: (n: number) => `${n} 個範圍`,
+    waterFootprints: '建築範圍',
+    waterSource: '來源',
     terminalStop: '終站',
   },
   pt: {
@@ -531,6 +590,8 @@ const translations = {
     cityLayers: 'Camadas urbanas',
     carParks: 'Parques de estacionamento',
     carParksCount: (n: number) => `${n} parques`,
+    water: 'Abastecimento de água',
+    waterCount: (n: number) => `${n} instalações`,
     noServiceToday: 'Sem serviço hoje',
     mapSettings: 'Definições',
     plan2D: '2D Plano',
@@ -554,6 +615,7 @@ const translations = {
     dataSourceSchoolsLabel: 'Escolas',
     dataSourceToiletsLabel: 'Sanitários',
     dataSourceCarParksLabel: 'Estacionamentos',
+    dataSourceWaterLabel: 'Abastecimento de água',
     amPeak: 'PICO MANHÃ',
     pmPeak: 'PICO TARDE',
     nowShort: 'AGORA',
@@ -678,6 +740,28 @@ const translations = {
     carParkVacancyPaused: 'Publicação suspensa',
     carParkVacancyOnlyAtRealtime: 'Lugares livres só aparecem com o relógio no presente',
     carParkSource: 'FONTE',
+    waterLabel: 'ÁGUA',
+    waterTypePlant: 'Estação de tratamento',
+    waterTypeReservoir: 'Reservatório',
+    waterTypeTank: 'Tanque elevado',
+    waterTypeRawPumping: 'Bombagem de água bruta',
+    waterTypePumping: 'Estação de bombagem',
+    waterTypeInlet: 'Entrada de água bruta',
+    waterInletNote: 'Cerca de 96% da água bruta usada em Macau vem do rio Xijiang, através de Zhuhai.',
+    waterNetworkNote: 'Rede de condutas esquemática',
+    waterPipes: (n: number) => `${n} conduta${n === 1 ? '' : 's'} ligada${n === 1 ? '' : 's'}`,
+    waterPipeRaw: 'Conduta de água bruta',
+    waterPipeTreated: 'Conduta de água tratada',
+    waterPipeFallback: 'Traçado em linha recta',
+    waterLegendDistribution: 'Rede de distribuição (esquemática, ao longo das vias)',
+    waterOperatorMacaoWater: 'Instalação da Macao Water',
+    waterOperatorDsama: 'Reservatório de água bruta do Governo (DSAMA) · não é uma instalação da Macao Water',
+    waterNo: 'N.º DA INSTALAÇÃO',
+    waterApproximate: 'Localização aproximada',
+    waterCoLocatedWith: (name: string) => `Junto a ${name}`,
+    waterBuildings: (n: number) => `${n} implantaç${n === 1 ? 'ão' : 'ões'}`,
+    waterFootprints: 'IMPLANTAÇÕES',
+    waterSource: 'FONTE',
     terminalStop: 'Terminal',
   },
 }
@@ -743,6 +827,8 @@ export interface Translations {
   cityLayers: string
   carParks: string
   carParksCount: (n: number) => string
+  water: string
+  waterCount: (n: number) => string
   noServiceToday: string
   mapSettings: string
   plan2D: string
@@ -766,6 +852,7 @@ export interface Translations {
   dataSourceSchoolsLabel: string
   dataSourceToiletsLabel: string
   dataSourceCarParksLabel: string
+  dataSourceWaterLabel: string
   amPeak: string
   pmPeak: string
   nowShort: string
@@ -885,6 +972,28 @@ export interface Translations {
   carParkVacancyPaused: string
   carParkVacancyOnlyAtRealtime: string
   carParkSource: string
+  waterLabel: string
+  waterTypePlant: string
+  waterTypeReservoir: string
+  waterTypeTank: string
+  waterTypeRawPumping: string
+  waterTypePumping: string
+  waterTypeInlet: string
+  waterInletNote: string
+  waterNetworkNote: string
+  waterPipes: (n: number) => string
+  waterPipeRaw: string
+  waterPipeTreated: string
+  waterPipeFallback: string
+  waterLegendDistribution: string
+  waterOperatorMacaoWater: string
+  waterOperatorDsama: string
+  waterNo: string
+  waterApproximate: string
+  waterCoLocatedWith: (name: string) => string
+  waterBuildings: (n: number) => string
+  waterFootprints: string
+  waterSource: string
   terminalStop: string
 }
 

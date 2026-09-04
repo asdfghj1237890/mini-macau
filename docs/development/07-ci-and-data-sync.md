@@ -14,7 +14,7 @@
 | [`update-toilets.yml`](../../.github/workflows/update-toilets.yml) | daily 18:40 UTC（澳門 02:40） | data.gov.mo → `toilets.json` |
 | [`update-car-parks.yml`](../../.github/workflows/update-car-parks.yml) | daily 18:50 UTC（澳門 02:50） | DSAT API gateway → `car-parks.json` |
 
-`schools.json` 沒有對應的排程 workflow：`fetch_schools.py` 純手動執行（見 [05-data-pipeline.md](05-data-pipeline.md)）；跑完一樣要過 `validate_output.py schools`，沒過就不 commit。
+`schools.json` 跟 `water-facilities.json` 沒有對應的排程 workflow：`fetch_schools.py` 與 `fetch_water_facilities.py` 都是純手動執行（見 [05-data-pipeline.md](05-data-pipeline.md)）；跑完一樣要過 `validate_output.py schools` / `validate_output.py water-facilities`，沒過就不 commit。
 
 ## `deploy.yml` — Cloudflare Pages
 

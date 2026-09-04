@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WaterFacility, WaterNetwork, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -17,6 +17,7 @@ import {
   SchoolsFileSchema,
   ToiletsFileSchema,
   CarParksFileSchema,
+  WaterFacilitiesFileSchema,
 } from '../dataSchemas'
 
 const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
@@ -114,6 +115,19 @@ interface CarParksFile {
   fetchedAtUtc: string
   sources: Record<string, string>
   carParks: CarPark[]
+}
+
+// water-facilities.json — Macao Water's 22 supply facilities, same envelope
+// pattern again: only `facilities` reaches TransitData, `sources` stays
+// provenance metadata (the panel and sidebar carry static labels).
+interface WaterFacilitiesFile {
+  fetchedAtUtc: string
+  sources: Record<string, string>
+  facilities: WaterFacility[]
+  // The schematic pipe network was added after the facility list shipped, so
+  // it is optional here and in the zod schema: an older file simply draws no
+  // pipes rather than failing validation.
+  network?: WaterNetwork
 }
 
 function hhmmToMinutes(s: string): number | null {
@@ -348,6 +362,8 @@ export function useTransitData(): UseTransitDataResult {
     schools: [],
     toilets: [],
     carParks: [],
+    waterFacilities: [],
+    waterNetwork: null,
     loading: true,
   })
   // Multi-day timetable lives in its own state slot rather than on
@@ -480,6 +496,16 @@ export function useTransitData(): UseTransitDataResult {
     // no "P" markers and no legend row, everything else unaffected.
     loadJson<CarParksFile>('/data/car-parks.json', CarParksFileSchema, 'car-parks.json')
       .then(file => commit('carParks', file.carParks))
+      .catch(() => {})
+
+    // Macao Water supply facilities — a static (manually regenerated) overlay
+    // like the schools, loaded the same non-critical way: a missing file just
+    // leaves the blocks and droplet markers off the map.
+    loadJson<WaterFacilitiesFile>('/data/water-facilities.json', WaterFacilitiesFileSchema, 'water-facilities.json')
+      .then(file => {
+        commit('waterFacilities', file.facilities)
+        commit('waterNetwork', file.network ?? null)
+      })
       .catch(() => {})
 
     return () => { cancelledRef.current = true }

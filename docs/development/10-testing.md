@@ -41,7 +41,9 @@ npm run test:watch  # 互動模式
 | `toilets.test.ts` | `toiletVariant` 優先權（closed 蓋過 accessible）、`pickToiletText` 三語 fallback、`buildToiletFeatures` 的座標 skip |
 | `carParks.test.ts` | `parseCarParkVacancyXml` / `parseCarParkTime` 解析 DSAT XML 與美式日期時間、`buildCarParkFeatures` 的 vacancy 標籤規則 |
 
-`dataSchemas.test.ts` 是另一種測試：拿 zod schema（[`dataSchemas.ts`](../../src/dataSchemas.ts)）去 parse `public/data/*.json` 實際檔案內容，包括新的 `road-works.json` / `schools.json` / `toilets.json` / `car-parks.json`——保證 commit 進來的資料本身合法，不是測程式邏輯。
+`dataSchemas.test.ts` 是另一種測試：拿 zod schema（[`dataSchemas.ts`](../../src/dataSchemas.ts)）去 parse `public/data/*.json` 實際檔案內容，包括新的 `road-works.json` / `schools.json` / `toilets.json` / `car-parks.json` / `water-facilities.json`——保證 commit 進來的資料本身合法，不是測程式邏輯。
+
+瀏覽器端的 zod schema 與 pipeline 端的 [`validate_output.py`](../../data/scripts/validate_output.py) 是**互相對照的兩份**，改一邊要改另一邊。目前 `validate_output.py` 認得的 dataset：`lrt-lines`、`stations`、`trips-*`、`bus-routes`、`bus-stops`、`flights`、`flights-timetable`、`ferries`、`service-status`、`road-works`、`schools`、`water-facilities`、`toilets`、`car-parks`（`all` 一次跑完）。`schools` 與 `water-facilities` 共用同一個 3D 建築足跡檢查（`check_footprint_building`：`osmId` / `height` / `minHeight` / 每個環閉合且在澳門範圍內），差別只在 `water-facilities` 的 `kind` 是 `building` / `tile` / `outline` 三選一的列舉。
 
 ## 沒測什麼
 

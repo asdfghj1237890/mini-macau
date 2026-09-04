@@ -21,11 +21,13 @@
 //   node scripts/inspect.mjs flights                # flights.json summary
 //   node scripts/inspect.mjs road-works [YYYY-MM-DD] # road-works.json summary + active/upcoming for a date (default: today, Macau)
 //   node scripts/inspect.mjs schools                # schools.json summary (by level/system, buildings, unmatched/dropped)
+//   node scripts/inspect.mjs water-facilities       # water-facilities.json summary (by type, exact vs approximate + anchors, footprints, schematic pipe network)
+//   node scripts/inspect.mjs water-distribution     # water-distribution.json summary (Macau-only road network: by class, km, bbox, file size)
 //   node scripts/inspect.mjs toilets                # toilets.json summary (accessible/family/closed counts, closed list)
 //   node scripts/inspect.mjs car-parks              # car-parks.json summary (by zone, height-limit histogram, no-limit ids)
 // bucket = weekday | sat | sun (default weekday)
 
-import { readFileSync } from 'node:fs'
+import { readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -189,6 +191,162 @@ function cmdSchools() {
   console.log(`\ndroppedOsm: ${droppedOsm.length}`)
 }
 
+function cmdWaterFacilities() {
+  const { fetchedAtUtc, anchors = {}, facilities, network } = load('public/data/water-facilities.json')
+
+  const byType = {}
+  // macao_water = one of the 22 numbered facilities; dsama = a government
+  // reservoir (黑沙水庫) that is on the map but not on Macao Water's list.
+  const byOperator = {}
+  let totalBuildings = 0
+  let totalWater = 0
+  const exact = []
+  const approximate = []
+  for (const f of facilities) {
+    byType[f.type] = (byType[f.type] || 0) + 1
+    byOperator[f.operator] = (byOperator[f.operator] || 0) + 1
+    totalBuildings += f.buildings.length
+    totalWater += f.water.length
+    ;(f.approximate ? approximate : exact).push(f)
+  }
+
+  console.log(`total facilities: ${facilities.length}   fetchedAtUtc: ${fetchedAtUtc}`)
+  console.log('by type:', byType)
+  console.log('by operator:', byOperator)
+  console.log(`exact: ${exact.length}   approximate: ${approximate.length}   buildings: ${totalBuildings}   water polygons: ${totalWater}`)
+
+  // Resolve an anchor to something a human recognises: another facility's
+  // Chinese name, or the OSM element a `district:` anchor landed on.
+  const nameById = new Map(facilities.map((f) => [f.id, f.name.zh]))
+  const anchorLabel = (a) =>
+    a === null ? '—' : a.startsWith('district:') ? `${a} (${anchors[a]?.osmId ?? '?'} ${anchors[a]?.name ?? '?'})` : `${a} (${nameById.get(a) ?? '?'})`
+
+  console.log(`\nexact (${exact.length}) — OSM footprints:`)
+  for (const f of exact) {
+    console.log(`  ${(f.no === null ? '--' : String(f.no)).padStart(2)} ${f.id.padEnd(20)} ${f.type.padEnd(12)} ${f.operator.padEnd(11)} buildings ${String(f.buildings.length).padStart(2)}  water ${f.water.length}  ${f.osm.join(',')}  ${f.name.zh}`)
+  }
+
+  console.log(`\napproximate (${approximate.length}) — marker only:`)
+  for (const f of approximate) {
+    console.log(`  ${(f.no === null ? '--' : String(f.no)).padStart(2)} ${f.id.padEnd(20)} ${f.type.padEnd(12)} ${f.operator.padEnd(11)} anchor ${anchorLabel(f.anchor)}  ${f.name.zh}`)
+  }
+
+  const kinds = {}
+  for (const f of facilities) for (const b of f.buildings) kinds[b.kind] = (kinds[b.kind] || 0) + 1
+  console.log('\nbuilding kinds:', kinds)
+
+  // The pipe network is OUR schematic (an edge list hard-coded in
+  // fetch_water_facilities.py, geometry from OSRM), not Macao Water's mains.
+  const { nodes = [], pipes = [] } = network ?? {}
+  // Straight-line distance between a pipe's two ends, so the ratio below says
+  // how far out of its way the road route went. `direct` pipes are 1.00 by
+  // construction — they ARE the straight line.
+  const straightM = (p) => {
+    const [a, b] = [p.coordinates[0], p.coordinates[p.coordinates.length - 1]]
+    const x = (b[0] - a[0]) * 111320 * Math.cos((22.16 * Math.PI) / 180)
+    const y = (b[1] - a[1]) * 110540
+    return Math.hypot(x, y)
+  }
+
+  const byKind = {}
+  let totalM = 0
+  let points = 0
+  const fallbacks = []
+  const direct = []
+  let longest = null
+  let maxRatio = null
+  for (const p of pipes) {
+    byKind[p.kind] = (byKind[p.kind] || 0) + 1
+    totalM += p.lengthM
+    points += p.coordinates.length
+    if (p.fallback) fallbacks.push(p.id)
+    if (p.direct) direct.push(p.id)
+    if (longest === null || p.lengthM > longest.lengthM) longest = p
+    const r = p.lengthM / straightM(p)
+    if (!p.direct && (maxRatio === null || r > maxRatio.r)) maxRatio = { r, id: p.id }
+  }
+
+  console.log(`\nnetwork: ${pipes.length} pipes   ${(totalM / 1000).toFixed(1)} km total   ${points} coordinate points`)
+  console.log('by kind:', byKind)
+  console.log(`direct connectors: ${direct.length}   routed: ${pipes.length - direct.length}`)
+  console.log(`extra nodes: ${nodes.map((n) => `${n.id} (${n.kind}) ${n.name.zh}`).join(', ') || '—'}`)
+  console.log(`straight-line fallbacks: ${fallbacks.length}${fallbacks.length ? ` — ${fallbacks.join(', ')}` : ''}`)
+  if (longest) console.log(`longest: ${longest.id}  ${longest.lengthM} m  ${longest.coordinates.length} pts`)
+  if (maxRatio) console.log(`max routed detour: ${maxRatio.id}  x${maxRatio.r.toFixed(2)}`)
+
+  console.log('\npipes (= direct, ~ fallback):')
+  for (const p of pipes) {
+    const mark = p.fallback ? '~' : p.direct ? '=' : ' '
+    const ratio = (p.lengthM / straightM(p)).toFixed(2)
+    console.log(`  ${mark}${p.kind.padEnd(8)} ${p.from.padEnd(20)} -> ${p.to.padEnd(20)} ${String(p.lengthM).padStart(6)} m  ${String(p.coordinates.length).padStart(4)} pts  straight ${String(Math.round(straightM(p))).padStart(6)} m  x${ratio}`)
+  }
+}
+
+function cmdWaterDistribution() {
+  const { fetchedAtUtc, sources, classes, flowSources = [], unreached = 0, splits = 0, roads } = load('public/data/water-distribution.json')
+
+  // Planar metres at Macau's latitude — the same approximation the pipeline
+  // simplifies with, so the km here matches the km it printed.
+  const LAT0 = 22.16
+  const mx = (lng) => lng * 111320 * Math.cos((LAT0 * Math.PI) / 180)
+  const my = (lat) => lat * 110540
+
+  const byClass = {}
+  const kmByClass = {}
+  let points = 0
+  let totalM = 0
+  const bbox = [Infinity, Infinity, -Infinity, -Infinity]
+  for (const r of roads) {
+    byClass[r.class] = (byClass[r.class] || 0) + 1
+    points += r.coordinates.length
+    let m = 0
+    for (let i = 1; i < r.coordinates.length; i++) {
+      const [a, b] = [r.coordinates[i - 1], r.coordinates[i]]
+      m += Math.hypot(mx(b[0]) - mx(a[0]), my(b[1]) - my(a[1]))
+    }
+    totalM += m
+    kmByClass[r.class] = (kmByClass[r.class] || 0) + m / 1000
+    for (const [lng, lat] of r.coordinates) {
+      if (lng < bbox[0]) bbox[0] = lng
+      if (lat < bbox[1]) bbox[1] = lat
+      if (lng > bbox[2]) bbox[2] = lng
+      if (lat > bbox[3]) bbox[3] = lat
+    }
+  }
+
+  const bytes = statSync(join(ROOT, 'public/data/water-distribution.json')).size
+  console.log(`total roads: ${roads.length}   coordinate points: ${points}   fetchedAtUtc: ${fetchedAtUtc}`)
+  console.log(`total length: ${(totalM / 1000).toFixed(1)} km   file size: ${(bytes / 1024).toFixed(1)} KiB`)
+  console.log(`boundary: ${sources.boundary}`)
+  console.log(`bbox: [${bbox.map((v) => v.toFixed(5)).join(', ')}]`)
+
+  console.log('\nby class (declared order):')
+  for (const c of classes) {
+    if (!byClass[c]) continue
+    console.log(`  ${c.padEnd(14)} ${String(byClass[c]).padStart(5)} roads  ${kmByClass[c].toFixed(1).padStart(7)} km`)
+  }
+  const unknown = Object.keys(byClass).filter((c) => !classes.includes(c))
+  if (unknown.length) console.log(`classes not declared in \`classes\`: ${unknown.join(', ')}`)
+
+  // Flow: each road's coordinates run from the end nearer a treated-water
+  // source to the end further away, so the dash animation flows outward.
+  // A road that came back with `dist === null` is in a component no source
+  // reaches, and keeps whatever order OSM drew it in.
+  const reached = roads.filter((r) => r.dist !== null)
+  const nulls = roads.length - reached.length
+  const maxDist = reached.length ? Math.max(...reached.map((r) => r.distEnd)) : 0
+  const backwards = reached.filter((r) => r.distEnd < r.dist).length
+
+  console.log(`\nflow: ${reached.length} roads oriented, ${nulls} unreached (header says ${unreached})`)
+  console.log(`sources (${flowSources.length}): ${flowSources.join(', ')}`)
+  console.log(`max dist from a source: ${maxDist} m   ways split at a local minimum: ${splits}`)
+  console.log(`roads pointing the wrong way (distEnd < dist): ${backwards}`)
+
+  const hist = {}
+  for (const r of reached) hist[Math.floor(r.dist / 1000)] = (hist[Math.floor(r.dist / 1000)] || 0) + 1
+  console.log('start-distance histogram (km buckets):', hist)
+}
+
 function cmdToilets() {
   const { updatedAt, toilets } = load('public/data/toilets.json')
   const accessible = toilets.filter((t) => t.accessible).length
@@ -248,9 +406,11 @@ switch (cmd) {
   case 'flights': summarizeJson('public/data/flights.json'); break
   case 'road-works': cmdRoadWorks(pos[0]); break
   case 'schools': cmdSchools(); break
+  case 'water-facilities': cmdWaterFacilities(); break
+  case 'water-distribution': cmdWaterDistribution(); break
   case 'toilets': cmdToilets(); break
   case 'car-parks': cmdCarParks(); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | toilets | car-parks')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | toilets | car-parks')
     if (cmd) process.exit(1)
 }

@@ -274,6 +274,145 @@ export interface CarParkVacancy {
   timeParsed: Date | null // that stamp as an instant, null when unparseable
 }
 
+// Trilingual free text for a Macao Water facility. The zh + en forms come from
+// Macao Water's own 供水設施 list; `pt` is only filled where OSM tags the
+// feature with `name:pt`, so it is often "" (see `pickWaterText`).
+export interface WaterText {
+  zh: string
+  pt: string
+  en: string
+}
+
+// What kind of supply facility this is, and therefore the colour it is drawn
+// in. `raw_pumping` moves untreated water (reservoir → plant), `pumping` moves
+// treated water into the network; `tank` is an elevated storage tank.
+export type WaterFacilityType = 'plant' | 'reservoir' | 'tank' | 'raw_pumping' | 'pumping'
+
+// One building footprint of a water facility, from
+// public/data/water-facilities.json. Deliberately the same contract as
+// `SchoolBuilding` (`height` is the basemap's render_height, `minHeight` the
+// render_min_height) so both overlays can share the +2 m margin and the z14→15.5
+// height ramp. `kind` records where the footprint came from — an OSM
+// `building` polygon, a recut basemap tile part, or the facility `outline`
+// itself when the basemap has no part there.
+export interface WaterBuilding {
+  osmId: string
+  name: string | null
+  height: number
+  minHeight: number
+  kind?: string // 'building' | 'tile' | 'outline' — not read by the runtime
+  coordinates: [number, number][][]
+}
+
+// One reservoir surface ring. No height: MapView draws these flat and
+// translucent, because a reservoir is a water body rather than a structure.
+export interface WaterSurface {
+  osmId: string
+  coordinates: [number, number][][]
+}
+
+// One Macao Water supply facility (22 in total, numbered 1–22 by the operator).
+// `coordinates` is the marker position [lng, lat]. When `approximate` is true
+// Macao Water lists the facility but OSM has no footprint for it, so the marker
+// sits at the facility named by `anchor` (or a `district:<slug>` point) instead
+// of a surveyed position — the info panel says so.
+// Who owns and runs a facility. Almost everything on the map is Macao Water's;
+// `dsama` is 海事及水務局 (the government Marine and Water Bureau), which holds
+// raw-water reservoirs the concessionaire does not. The distinction is a fact
+// the panel must state, not a styling hint. Absent in files written before the
+// field existed — read it through `waterOperator`, never directly.
+export type WaterOperator = 'macao_water' | 'dsama'
+
+export interface WaterFacility {
+  id: string
+  // Macao Water's own facility number, 1–22 — null for a facility that is not
+  // on its list (a government reservoir), whose panel then shows no number.
+  no: number | null
+  type: WaterFacilityType
+  operator?: WaterOperator
+  name: WaterText
+  coordinates: [number, number] // [lng, lat]
+  approximate: boolean
+  anchor: string | null // facility id, "district:<slug>", or null when exact
+  osm: string[] // the OSM features this facility was matched to
+  buildings: WaterBuilding[] // may be empty (reservoirs, approximate records)
+  water: WaterSurface[] // non-empty only for the three reservoirs
+}
+
+// What a pipe carries. `raw` is untreated water on its way from a reservoir or
+// the Zhuhai inlet to a treatment plant; `treated` is drinking water leaving a
+// plant for the tanks and pumping stations.
+export type WaterPipeKind = 'raw' | 'treated'
+
+// An extra node of the schematic network that is NOT one of the 22 facilities.
+// Today that is exactly one: the point where raw water from Zhuhai enters
+// Macau. `kind` is free text ('inlet') rather than an enum so the pipeline can
+// add a node type without breaking the runtime.
+export interface WaterNetworkNode {
+  id: string
+  kind: string
+  name: WaterText
+  coordinates: [number, number] // [lng, lat]
+}
+
+// One edge of the network. `from`/`to` are facility ids or a node id;
+// `coordinates` is the OSRM driving route between the two markers, so the pipe
+// follows real streets. `fallback` marks the ones OSRM could not route — those
+// are a straight line between the endpoints and are drawn grey to say so.
+export interface WaterPipe {
+  id: string
+  from: string
+  to: string
+  kind: WaterPipeKind
+  lengthM: number
+  fallback: boolean
+  // A deliberate short straight connector between co-located facilities (two
+  // points, no road to follow) rather than a routing failure — so it is drawn
+  // exactly like any other pipe of its `kind`, unlike a `fallback`.
+  direct?: boolean
+  coordinates: [number, number][]
+}
+
+// OUR schematic supply network, not Macao Water's real mains: an explicit edge
+// list we drew between the published facilities, with road geometry from OSRM.
+// Every surface that shows it says so (see `waterNetworkNote` in i18n).
+export interface WaterNetwork {
+  nodes: WaterNetworkNode[]
+  pipes: WaterPipe[]
+}
+
+// One road of the schematic DISTRIBUTION network: Macau's own streets, from
+// water-distribution.json, drawn as thin pipes under the trunk mains. Our own
+// OSM extract rather than the basemap's `transportation` layer, because the
+// basemap's roads cannot be clipped to Macau — and a pipe network that runs
+// into Zhuhai would be saying something false.
+export interface WaterDistributionRoad {
+  class: string // OSM highway class: motorway … service
+  // Metres along the network from the nearest treated-water source, at the
+  // first and last vertex. Null where the outward walk never reached the road.
+  dist?: number | null
+  distEnd?: number | null
+  // ORIENTED: the pipeline emits each road running AWAY from the treated-water
+  // source that feeds it, so vertex order carries the direction of supply — the
+  // same contract as WaterPipe, and what lets the flow layer animate outward.
+  coordinates: [number, number][]
+}
+
+// water-distribution.json. Loaded lazily, the first time the WATER layer goes
+// on, rather than at startup: it is ~0.5 MB and most visits never ask for it.
+export interface WaterDistributionFile {
+  fetchedAtUtc?: string
+  sources?: Record<string, string> | unknown[]
+  classes?: string[]
+  // Bookkeeping from the outward orientation pass — provenance, never read by
+  // the map: the facilities the walk started from, the roads it never reached,
+  // and the count of roads split at a junction.
+  flowSources?: string[]
+  unreached?: number
+  splits?: number
+  roads: WaterDistributionRoad[]
+}
+
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
@@ -286,6 +425,10 @@ export interface TransitData {
   schools: School[]
   toilets: Toilet[]
   carParks: CarPark[]
+  waterFacilities: WaterFacility[]
+  // The schematic pipe network, or null when water-facilities.json predates it
+  // (the `network` block is optional) or the WATER layer is off.
+  waterNetwork: WaterNetwork | null
   loading: boolean
 }
 

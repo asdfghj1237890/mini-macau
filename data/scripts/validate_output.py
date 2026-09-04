@@ -577,6 +577,40 @@ def check_building_ring(errs: list[str], ctx: str, ring: object) -> None:
         errs.append(f"{ctx}: ring is not closed (first point != last point)")
 
 
+def check_footprint_building(errs: list[str], bctx: str, b: object, *, kinds: set[str] | None = None) -> None:
+    """One 3D building record: ids, heights and closed rings inside Macau.
+
+    Shared by schools and water facilities — both overlays feed the same
+    fill-extrusion contract (`osmId`, `name`, `height`, `minHeight`,
+    `coordinates`), so a bad ring must fail the same way in both. `kinds`
+    constrains the `kind` field where it is an enum (water facilities);
+    schools leave it free-form because it carries the OSM `building` tag.
+    """
+    if not require_fields(errs, bctx, b, ("osmId", "name", "height", "minHeight", "coordinates")):
+        return
+    if not (isinstance(b["osmId"], str) and b["osmId"]):
+        errs.append(f"{bctx}: osmId must be a non-empty string")
+    if not (b["name"] is None or isinstance(b["name"], str)):
+        errs.append(f"{bctx}: name must be null or a string")
+    height = b["height"]
+    height_ok = isinstance(height, (int, float)) and not isinstance(height, bool) and height > 0
+    if not height_ok:
+        errs.append(f"{bctx}: height must be a number > 0")
+    min_height = b["minHeight"]
+    if not (isinstance(min_height, (int, float)) and not isinstance(min_height, bool) and min_height >= 0):
+        errs.append(f"{bctx}: minHeight must be a number >= 0")
+    elif height_ok and min_height >= height:
+        errs.append(f"{bctx}: minHeight must be < height")
+    if kinds is not None and b.get("kind") not in kinds:
+        errs.append(f"{bctx}: kind '{b.get('kind')}' invalid")
+    rings = b["coordinates"]
+    if not (isinstance(rings, list) and rings):
+        errs.append(f"{bctx}: coordinates must be a non-empty list of rings")
+        return
+    for k, ring in enumerate(rings):
+        check_building_ring(errs, f"{bctx}.coordinates[{k}]", ring)
+
+
 def v_schools(data: object) -> list[str]:
     errs: list[str] = []
     if not require_fields(
@@ -652,28 +686,9 @@ def v_schools(data: object) -> list[str]:
             continue
         total_buildings += len(buildings)
         for j, b in enumerate(buildings):
-            bctx = f"{label}.buildings[{j}]"
-            if not require_fields(errs, bctx, b, ("osmId", "name", "height", "minHeight", "coordinates")):
-                continue
-            if not (isinstance(b["osmId"], str) and b["osmId"]):
-                errs.append(f"{bctx}: osmId must be a non-empty string")
-            if not (b["name"] is None or isinstance(b["name"], str)):
-                errs.append(f"{bctx}: name must be null or a string")
-            height = b["height"]
-            height_ok = isinstance(height, (int, float)) and not isinstance(height, bool) and height > 0
-            if not height_ok:
-                errs.append(f"{bctx}: height must be a number > 0")
-            min_height = b["minHeight"]
-            if not (isinstance(min_height, (int, float)) and not isinstance(min_height, bool) and min_height >= 0):
-                errs.append(f"{bctx}: minHeight must be a number >= 0")
-            elif height_ok and min_height >= height:
-                errs.append(f"{bctx}: minHeight must be < height")
-            rings = b["coordinates"]
-            if not (isinstance(rings, list) and rings):
-                errs.append(f"{bctx}: coordinates must be a non-empty list of rings")
-            else:
-                for k, ring in enumerate(rings):
-                    check_building_ring(errs, f"{bctx}.coordinates[{k}]", ring)
+            # `kind` is free-form here (it carries the OSM `building` tag),
+            # unlike water-facilities' three-value enum.
+            check_footprint_building(errs, f"{label}.buildings[{j}]", b)
 
     if len(data["schools"]) < SCHOOLS_MIN_COUNT:
         errs.append(
@@ -857,6 +872,448 @@ def v_car_parks(data: object) -> list[str]:
     return errs
 
 
+WATER_FACILITY_TYPES = {"plant", "reservoir", "tank", "raw_pumping", "pumping"}
+WATER_BUILDING_KINDS = {"building", "tile", "outline"}
+WATER_OPERATORS = {"macao_water", "dsama"}
+# Macao Water publishes exactly 22 numbered supply facilities, so this is an
+# equality check, not a floor: a short list means the table in
+# fetch_water_facilities.py was edited or the OSM re-query silently dropped
+# something. 11 of the 22 are grounded in OSM (4 plants + 3 reservoirs +
+# 3 elevated tanks + 1 pump house), hence the 8-with-buildings / 4-with-water
+# floors — mirrored by the script's own guard.
+#
+# The 23rd facility is 黑沙水庫, which belongs to 海事及水務局 (DSAMA), not to
+# Macao Water: it carries `operator: "dsama"` and `no: null`, and the split is
+# checked exactly, because silently letting a government reservoir into the
+# numbered list would put a wrong number in the UI.
+WATER_MACAO_WATER_COUNT = 22
+WATER_DSAMA_COUNT = 1
+WATER_FACILITY_COUNT = WATER_MACAO_WATER_COUNT + WATER_DSAMA_COUNT
+WATER_MIN_WITH_BUILDINGS = 8
+WATER_MIN_WITH_WATER = 4
+
+# The `network` block is a schematic drawn by fetch_water_facilities.py, not
+# Macao Water's real mains: the edge list is hard-coded there (PIPES), so the
+# count is an equality check like the facility count, and only the geometry
+# comes from outside (an OSRM driving route per edge). A pipe that could not be
+# routed degrades to a straight line and says so via `fallback`; a handful is
+# survivable, but a whole file of them means OSRM was down and the "network"
+# is a fan of lines through buildings and across the harbour.
+WATER_NODE_KINDS = {"inlet"}
+WATER_PIPE_KINDS = {"raw", "treated"}
+WATER_PIPE_COUNT = 23
+WATER_MAX_PIPE_FALLBACKS = 3
+
+
+def v_water_network(errs: list[str], network: object, facility_ids: set[str]) -> None:
+    ctx = "water-facilities.network"
+    if not require_fields(errs, ctx, network, ("nodes", "pipes")):
+        return
+
+    # `nodes` carries only the extra non-facility endpoints (today: the Zhuhai
+    # raw-water inlet). Facilities are implicit nodes, referenced by their id.
+    node_ids: set[str] = set()
+    nodes = network["nodes"]
+    if not isinstance(nodes, list):
+        errs.append(f"{ctx}.nodes: expected a list")
+        nodes = []
+    for i, n in enumerate(nodes):
+        nctx = f"{ctx}.nodes[{i}]"
+        if not require_fields(errs, nctx, n, ("id", "kind", "name", "coordinates")):
+            continue
+        nid = n["id"]
+        if not (isinstance(nid, str) and nid):
+            errs.append(f"{nctx}: id must be a non-empty string")
+        elif nid in node_ids or nid in facility_ids:
+            errs.append(f"{nctx}: duplicate node id '{nid}'")
+        else:
+            node_ids.add(nid)
+        if n["kind"] not in WATER_NODE_KINDS:
+            errs.append(f"{nctx}: kind '{n['kind']}' invalid")
+        if require_fields(errs, f"{nctx}.name", n["name"], ("zh", "en", "pt")):
+            for lang in ("zh", "en", "pt"):
+                if not (isinstance(n["name"][lang], str) and n["name"][lang]):
+                    errs.append(f"{nctx}.name.{lang} must be a non-empty string")
+        check_coords(errs, nctx, n["coordinates"])
+
+    pipes = network["pipes"]
+    if not isinstance(pipes, list):
+        errs.append(f"{ctx}.pipes: expected a list")
+        return
+
+    known = facility_ids | node_ids
+    seen_pipe_ids: set[str] = set()
+    fallbacks = 0
+    for i, p in enumerate(pipes):
+        pctx = f"{ctx}.pipes[{i}]"
+        if not require_fields(
+            errs, pctx, p,
+            ("id", "from", "to", "kind", "lengthM", "direct", "fallback", "coordinates"),
+        ):
+            continue
+
+        pid = p["id"]
+        if not (isinstance(pid, str) and pid):
+            errs.append(f"{pctx}: id must be a non-empty string")
+        elif pid in seen_pipe_ids:
+            errs.append(f"{pctx}: duplicate id '{pid}'")
+        else:
+            seen_pipe_ids.add(pid)
+        label = f"{pctx} ({pid if isinstance(pid, str) and pid else '?'})"
+
+        for end in ("from", "to"):
+            if p[end] not in known:
+                errs.append(f"{label}: {end} '{p[end]}' is neither a facility id "
+                            "nor a network node id")
+
+        if p["kind"] not in WATER_PIPE_KINDS:
+            errs.append(f"{label}: kind '{p['kind']}' invalid")
+
+        length = p["lengthM"]
+        if not (isinstance(length, int) and not isinstance(length, bool) and length >= 0):
+            errs.append(f"{label}: lengthM must be an int >= 0")
+
+        # `direct` = a deliberate two-point stub (same site, or the road route
+        # was an absurd detour); `fallback` = OSRM failed. They are different
+        # things and must not be conflated, so a direct pipe is never a
+        # fallback and is always exactly one straight segment.
+        direct = p["direct"]
+        if not isinstance(direct, bool):
+            errs.append(f"{label}: direct must be a boolean")
+            direct = False
+
+        if not isinstance(p["fallback"], bool):
+            errs.append(f"{label}: fallback must be a boolean")
+        else:
+            if p["fallback"]:
+                fallbacks += 1
+            if p["fallback"] and direct:
+                errs.append(f"{label}: a direct pipe cannot also be a fallback")
+
+        line = p["coordinates"]
+        if not (isinstance(line, list) and len(line) >= 2):
+            errs.append(f"{label}: coordinates must be a list of >= 2 [lng, lat] points")
+            continue
+        if direct and len(line) != 2:
+            errs.append(f"{label}: a direct pipe must be exactly 2 coordinates, "
+                        f"got {len(line)}")
+        for j, pt in enumerate(line):
+            check_coords(errs, f"{label}.coordinates[{j}]", pt)
+
+    if len(pipes) != WATER_PIPE_COUNT:
+        errs.append(f"{ctx}: {len(pipes)} pipes, expected exactly {WATER_PIPE_COUNT}")
+    if fallbacks > WATER_MAX_PIPE_FALLBACKS:
+        errs.append(
+            f"{ctx}: {fallbacks} pipes fell back to straight lines "
+            f"(> {WATER_MAX_PIPE_FALLBACKS}) — OSRM was probably down"
+        )
+
+
+def v_water_facilities(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(
+        errs, "water-facilities", data, ("fetchedAtUtc", "sources", "facilities", "network")
+    ):
+        return errs
+
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("water-facilities: fetchedAtUtc must be a string")
+
+    sources = data["sources"]
+    if require_fields(errs, "water-facilities.sources", sources, ("name", "facilities", "osm")):
+        for key in ("name", "facilities", "osm"):
+            if not isinstance(sources[key], str):
+                errs.append(f"water-facilities.sources: '{key}' must be a string")
+
+    # `anchors` is optional metadata (which OSM element a `district:` anchor
+    # resolved to); validate it when present rather than requiring it.
+    anchors = data.get("anchors")
+    anchor_keys: set[str] = set()
+    if anchors is not None:
+        if not isinstance(anchors, dict):
+            errs.append("water-facilities.anchors: expected an object")
+        else:
+            anchor_keys = set(anchors)
+            for key, a in anchors.items():
+                actx = f"water-facilities.anchors['{key}']"
+                if not key.startswith("district:"):
+                    errs.append(f"{actx}: key must start with 'district:'")
+                if not require_fields(errs, actx, a, ("osmId", "name", "coordinates")):
+                    continue
+                for field in ("osmId", "name"):
+                    if not (isinstance(a[field], str) and a[field]):
+                        errs.append(f"{actx}: {field} must be a non-empty string")
+                check_coords(errs, actx, a["coordinates"])
+
+    if not require_nonempty_list(errs, "water-facilities.facilities", data["facilities"]):
+        return errs
+
+    facilities = data["facilities"]
+    seen_ids: set[str] = set()
+    seen_nos: set[int] = set()
+    by_operator: dict[str, int] = {}
+    with_buildings = 0
+    with_water = 0
+    for i, f in enumerate(facilities):
+        ctx = f"water-facilities.facilities[{i}]"
+        if not require_fields(
+            errs, ctx, f,
+            ("id", "no", "type", "operator", "name", "coordinates", "approximate",
+             "anchor", "osm", "buildings", "water"),
+        ):
+            continue
+
+        fid = f["id"]
+        if not (isinstance(fid, str) and fid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif fid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{fid}'")
+        else:
+            seen_ids.add(fid)
+        label = f"{ctx} ({fid if isinstance(fid, str) and fid else '?'})"
+
+        operator = f["operator"]
+        if operator not in WATER_OPERATORS:
+            errs.append(f"{label}: operator '{operator}' invalid")
+        else:
+            by_operator[operator] = by_operator.get(operator, 0) + 1
+
+        # Only Macao Water's own facilities carry its 1..22 numbering; anything
+        # else on the map (today: 黑沙水庫, DSAMA) must have `no: null` so the UI
+        # cannot print a number that does not exist upstream.
+        no = f["no"]
+        if operator == "macao_water":
+            if not (isinstance(no, int) and not isinstance(no, bool)
+                    and 1 <= no <= WATER_MACAO_WATER_COUNT):
+                errs.append(f"{label}: no must be an int in 1..{WATER_MACAO_WATER_COUNT}")
+            elif no in seen_nos:
+                errs.append(f"{label}: duplicate no {no}")
+            else:
+                seen_nos.add(no)
+        elif no is not None:
+            errs.append(f"{label}: no must be null for a non-Macao-Water facility")
+
+        if f["type"] not in WATER_FACILITY_TYPES:
+            errs.append(f"{label}: type '{f['type']}' invalid")
+
+        name = f["name"]
+        if require_fields(errs, f"{label}.name", name, ("zh", "en", "pt")):
+            for lang in ("zh", "en"):
+                if not (isinstance(name[lang], str) and name[lang]):
+                    errs.append(f"{label}.name.{lang} must be a non-empty string")
+            # Macao Water publishes no Portuguese names for the pumping stations
+            # and the Taipa 70 m tank; rather than ship invented translations the
+            # pipeline leaves `pt` empty and the UI falls back pt → en → zh.
+            if not isinstance(name["pt"], str):
+                errs.append(f"{label}.name.pt must be a string")
+
+        check_coords(errs, label, f["coordinates"])
+
+        approximate = f["approximate"]
+        if not isinstance(approximate, bool):
+            errs.append(f"{label}: approximate must be a boolean")
+
+        anchor = f["anchor"]
+        if anchor is None:
+            if approximate is True:
+                errs.append(f"{label}: approximate facilities need an anchor")
+        elif not (isinstance(anchor, str) and anchor):
+            errs.append(f"{label}: anchor must be null or a non-empty string")
+        elif approximate is False:
+            errs.append(f"{label}: exact facilities must have anchor null")
+
+        if not isinstance(f["osm"], list):
+            errs.append(f"{label}.osm must be a list")
+        else:
+            for j, o in enumerate(f["osm"]):
+                if not (isinstance(o, str) and o):
+                    errs.append(f"{label}.osm[{j}] must be a non-empty string")
+            if approximate is False and not f["osm"]:
+                errs.append(f"{label}: an exact facility must cite at least one OSM id")
+
+        buildings = f["buildings"]
+        if not isinstance(buildings, list):
+            errs.append(f"{label}.buildings must be a list")
+        else:
+            if buildings:
+                with_buildings += 1
+            for j, b in enumerate(buildings):
+                check_footprint_building(errs, f"{label}.buildings[{j}]", b, kinds=WATER_BUILDING_KINDS)
+
+        water = f["water"]
+        if not isinstance(water, list):
+            errs.append(f"{label}.water must be a list")
+        else:
+            if water:
+                with_water += 1
+            for j, w in enumerate(water):
+                wctx = f"{label}.water[{j}]"
+                if not require_fields(errs, wctx, w, ("osmId", "coordinates")):
+                    continue
+                if not (isinstance(w["osmId"], str) and w["osmId"]):
+                    errs.append(f"{wctx}: osmId must be a non-empty string")
+                rings = w["coordinates"]
+                if not (isinstance(rings, list) and rings):
+                    errs.append(f"{wctx}: coordinates must be a non-empty list of rings")
+                    continue
+                for k, ring in enumerate(rings):
+                    check_building_ring(errs, f"{wctx}.coordinates[{k}]", ring)
+
+    # Anchors must resolve: a facility id for a co-located one, an `anchors`
+    # entry (when the file carries one) for a district-level fallback.
+    for f in facilities:
+        if not isinstance(f, dict):
+            continue
+        anchor = f.get("anchor")
+        if not isinstance(anchor, str) or not anchor:
+            continue
+        label = f"water-facilities.facilities ({f.get('id', '?')})"
+        if anchor.startswith("district:"):
+            if anchor_keys and anchor not in anchor_keys:
+                errs.append(f"{label}: anchor '{anchor}' is not in `anchors`")
+        elif anchor not in seen_ids:
+            errs.append(f"{label}: anchor '{anchor}' is not a facility id")
+
+    if len(facilities) != WATER_FACILITY_COUNT:
+        errs.append(
+            f"water-facilities: {len(facilities)} facilities, expected exactly {WATER_FACILITY_COUNT}"
+        )
+    for op, expected in (("macao_water", WATER_MACAO_WATER_COUNT),
+                         ("dsama", WATER_DSAMA_COUNT)):
+        if by_operator.get(op, 0) != expected:
+            errs.append(
+                f"water-facilities: {by_operator.get(op, 0)} facilities with operator "
+                f"'{op}', expected exactly {expected}"
+            )
+    if with_buildings < WATER_MIN_WITH_BUILDINGS:
+        errs.append(
+            f"water-facilities: only {with_buildings} facilities have buildings "
+            f"(< {WATER_MIN_WITH_BUILDINGS}) — looks like a degenerate run"
+        )
+    if with_water < WATER_MIN_WITH_WATER:
+        errs.append(
+            f"water-facilities: only {with_water} facilities have water polygons "
+            f"(< {WATER_MIN_WITH_WATER}) — looks like a degenerate run"
+        )
+
+    v_water_network(errs, data["network"], seen_ids)
+
+    return errs
+
+
+# The Macau-only road network the water overlay draws its distribution layer
+# on. It is shipped rather than styled out of the basemap because OpenFreeMap's
+# tiles cannot be clipped to the SAR — a restyled basemap layer would light up
+# Zhuhai just as brightly. ~4,900 ways come back from OSM after simplification;
+# the floor catches a truncated Overpass answer, not a slow OSM week.
+#
+# Each road also carries a FLOW DIRECTION: its coordinates run from the end
+# nearer a treated-water source to the end further away, so the frontend's dash
+# animation reads as water flowing outward. `dist`/`distEnd` are the metres at
+# the two ends, which makes the invariant checkable — if `distEnd < dist` the
+# pipeline forgot to reverse an array and that road's water would run backwards.
+# Roads no source can reach carry `null` for both.
+WATER_DISTRIBUTION_MIN_ROADS = 2000
+
+
+def v_water_distribution(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(
+        errs, "water-distribution", data,
+        ("fetchedAtUtc", "sources", "classes", "flowSources", "unreached", "splits", "roads"),
+    ):
+        return errs
+
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("water-distribution: fetchedAtUtc must be a string")
+
+    sources = data["sources"]
+    if require_fields(errs, "water-distribution.sources", sources, ("osm", "boundary")):
+        for key in ("osm", "boundary"):
+            if not (isinstance(sources[key], str) and sources[key]):
+                errs.append(f"water-distribution.sources: '{key}' must be a non-empty string")
+
+    # `classes` is the file's own enum, so a new road class only has to be added
+    # in the pipeline; this checks the roads against whatever it declares.
+    classes = data["classes"]
+    if not require_nonempty_list(errs, "water-distribution.classes", classes):
+        return errs
+    for i, c in enumerate(classes):
+        if not (isinstance(c, str) and c):
+            errs.append(f"water-distribution.classes[{i}] must be a non-empty string")
+    known = {c for c in classes if isinstance(c, str)}
+
+    # The facilities the flow field was seeded from. Named `flowSources`
+    # because `sources` is the provenance block every dataset here carries.
+    if not require_nonempty_list(errs, "water-distribution.flowSources", data["flowSources"]):
+        return errs
+    for i, s in enumerate(data["flowSources"]):
+        if not (isinstance(s, str) and s):
+            errs.append(f"water-distribution.flowSources[{i}] must be a non-empty string")
+
+    unreached = data["unreached"]
+    if not (isinstance(unreached, int) and not isinstance(unreached, bool) and unreached >= 0):
+        errs.append("water-distribution: unreached must be an int >= 0")
+    splits = data["splits"]
+    if not (isinstance(splits, int) and not isinstance(splits, bool) and splits >= 0):
+        errs.append("water-distribution: splits must be an int >= 0")
+
+    if not require_nonempty_list(errs, "water-distribution.roads", data["roads"]):
+        return errs
+
+    roads = data["roads"]
+    unflowed = 0
+    for i, r in enumerate(roads):
+        ctx = f"water-distribution.roads[{i}]"
+        if not require_fields(errs, ctx, r, ("class", "dist", "distEnd", "coordinates")):
+            continue
+        if r["class"] not in known:
+            errs.append(f"{ctx}: class '{r['class']}' is not one of `classes`")
+
+        # Both ends are set, or neither is: a road with only one end measured
+        # would leave the frontend guessing which way the water goes.
+        ends = []
+        for field in ("dist", "distEnd"):
+            v = r[field]
+            if v is None:
+                ends.append(None)
+            elif isinstance(v, int) and not isinstance(v, bool) and v >= 0:
+                ends.append(v)
+            else:
+                errs.append(f"{ctx}: {field} must be null or an int >= 0")
+                ends.append(None)
+        if (r["dist"] is None) != (r["distEnd"] is None):
+            errs.append(f"{ctx}: dist and distEnd must both be set or both be null")
+        elif r["dist"] is None:
+            unflowed += 1
+        elif ends[0] is not None and ends[1] is not None and ends[1] < ends[0]:
+            errs.append(
+                f"{ctx}: distEnd ({ends[1]}) < dist ({ends[0]}) — the road was not "
+                "oriented outward from its source"
+            )
+
+        line = r["coordinates"]
+        if not (isinstance(line, list) and len(line) >= 2):
+            errs.append(f"{ctx}: coordinates must be a list of >= 2 [lng, lat] points")
+            continue
+        for j, pt in enumerate(line):
+            check_coords(errs, f"{ctx}.coordinates[{j}]", pt)
+
+    if isinstance(unreached, int) and not isinstance(unreached, bool) and unreached != unflowed:
+        errs.append(
+            f"water-distribution: `unreached` says {unreached} but {unflowed} roads "
+            "have a null dist"
+        )
+
+    if len(roads) < WATER_DISTRIBUTION_MIN_ROADS:
+        errs.append(
+            f"water-distribution: only {len(roads)} roads "
+            f"(< {WATER_DISTRIBUTION_MIN_ROADS}) — looks like a degenerate run"
+        )
+
+    return errs
+
+
 # name -> (absolute path, validator)
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
@@ -872,6 +1329,8 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "service-status": (PUBLIC / "service-status.json", v_service_status),
     "road-works": (PUBLIC / "data/road-works.json", v_road_works),
     "schools": (PUBLIC / "data/schools.json", v_schools),
+    "water-facilities": (PUBLIC / "data/water-facilities.json", v_water_facilities),
+    "water-distribution": (PUBLIC / "data/water-distribution.json", v_water_distribution),
     "toilets": (PUBLIC / "data/toilets.json", v_toilets),
     "car-parks": (PUBLIC / "data/car-parks.json", v_car_parks),
 }

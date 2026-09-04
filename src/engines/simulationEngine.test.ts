@@ -375,6 +375,8 @@ describe('computeBusCycleSec', () => {
       schools: [],
       toilets: [],
       carParks: [],
+      waterFacilities: [],
+      waterNetwork: null,
       loading: false,
     }
 
@@ -401,6 +403,8 @@ describe('computeBusCycleSec', () => {
       schools: [],
       toilets: [],
       carParks: [],
+      waterFacilities: [],
+      waterNetwork: null,
       loading: false,
     }
 

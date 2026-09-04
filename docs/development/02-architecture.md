@@ -29,6 +29,8 @@
    │  - schools.json                      │
    │  - toilets.json                      │
    │  - car-parks.json                    │
+   │  - water-facilities.json             │
+   │  - water-distribution.json           │
    └───────┬──────────────────────────────┘
            │ fetch on page load
            ▼
@@ -58,6 +60,8 @@
 | DSEDJ + OSM Overpass | 學校清單（核准級別）與校舍建築足跡 | `fetch_schools.py`（手動執行，name matching） |
 | data.gov.mo | IAM 公共廁所 / 無障礙公廁名單 | `fetch_toilets.py`（下載 ZIP 內 JSON，含重試） |
 | data.gov.mo | DSAT 停車場資料（車位詳情 + 即時空位） | `fetch_car_parks.py`（API gateway，APPCODE header，含重試） |
+| 澳門自來水 + OSM Overpass | 22 個供水設施（＋黑沙水庫）清單與建築足跡／水體、示意管網 | `fetch_water_facilities.py`（手動執行，清單寫死在腳本裡） |
+| OSM Overpass | 澳門境內可行車道路（給供水配水層當底稿，裁到 SAR 邊界） | `fetch_water_distribution.py`（手動執行） |
 
 ### Stage 2 — Python pipeline
 
@@ -141,6 +145,9 @@ data/
 │   ├── fetch_service_status.py      # daily via service-status.yml
 │   ├── fetch_road_works.py          # daily via update-road-works.yml
 │   ├── fetch_schools.py             # manual; DSEDJ list + OSM footprints → schools.json
+│   ├── fetch_water_facilities.py    # manual; Macao Water 的 22 個設施 + OSM → water-facilities.json
+│   ├── fetch_water_distribution.py  # manual; 澳門境內道路（裁到 SAR 邊界）→ water-distribution.json
+│   ├── osm_footprints.py            # 上面兩支共用的 Overpass / basemap tile footprint helper
 │   ├── fetch_toilets.py             # daily via update-toilets.yml
 │   ├── fetch_car_parks.py           # daily via update-car-parks.yml
 │   ├── osrm_route.py

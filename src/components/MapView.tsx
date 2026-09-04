@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -19,6 +19,27 @@ import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks
 import { SCHOOL_FEATURE_ID_PROPERTY, buildSchoolFeatures } from '../schools'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
+import {
+  WATER_COLORS,
+  WATER_FEATURE_ID_PROPERTY,
+  WATER_INLET_COLOR,
+  WATER_INLET_ICON,
+  WATER_PIPE_COLORS,
+  WATER_DISTRIBUTION_COLOR,
+  WATER_DISTRIBUTION_MAJOR_CLASSES,
+  WATER_PIPE_FALLBACK_COLOR,
+  WATER_PIPE_FLOW_COLOR,
+  WATER_PIPE_GLOW_COLOR,
+  WATER_TYPE_ORDER,
+  buildDashFlowSteps,
+  buildWaterBuildingFeatures,
+  buildWaterDistributionFeatures,
+  buildWaterMarkerFeatures,
+  buildWaterPipeFeatures,
+  buildWaterSurfaceFeatures,
+  waterIconName,
+  waterLabelField,
+} from '../water'
 import { useI18n } from '../i18n'
 import { ga } from '../analytics/ga'
 
@@ -335,6 +356,383 @@ const SCHOOLS_LAYER_ID = 'school-buildings'
 // whole campus at once.
 const SCHOOL_SELECTED_COLOR = '#ffffff'
 
+// ---- Macao Water supply facilities overlay -------------------------------
+// Three layers off one dataset: a translucent fill for the reservoir surfaces,
+// coloured fill-extrusions for the plants/tanks/pump house (the same contract
+// as the schools blocks, for the same OpenFreeMap-merging reason), and a
+// droplet marker for every facility — including the ones with no footprint,
+// which are drawn hollow because their position is only approximate.
+const WATER_SURFACES_SOURCE_ID = 'water-surfaces'
+const WATER_SURFACES_LAYER_ID = 'water-surfaces'
+const WATER_BUILDINGS_SOURCE_ID = 'water-buildings'
+const WATER_BUILDINGS_LAYER_ID = 'water-buildings'
+const WATER_MARKERS_SOURCE_ID = 'water-markers'
+const WATER_ICON_LAYER_ID = 'water-icon'
+const WATER_SELECTED_LAYER_ID = 'water-selected'
+// The schematic pipe network: a glow under two cores. Three layers rather than
+// the two you might expect because `line-dasharray` cannot be varied per
+// feature the way a colour can — MapLibre bakes one dash texture per layer — so
+// the dashed pipes (raw water, plus any straight-line fallback of either kind)
+// need a layer of their own, drawn under the solid treated core.
+const WATER_PIPES_SOURCE_ID = 'water-pipes'
+const WATER_PIPES_GLOW_LAYER_ID = 'water-pipes-glow'
+const WATER_PIPES_DASHED_PREFIX = 'water-pipes-dashed'
+const WATER_PIPES_LAYER_ID = 'water-pipes'
+// The moving dots on the treated mains, drawn ON TOP of the solid core. The raw
+// mains show their flow by animating their own dashes; a solid line cannot, so
+// it gets this second, much thinner layer instead.
+const WATER_PIPES_FLOW_PREFIX = 'water-pipes-flow'
+const WATER_PIPE_GLOW_OPACITY = 0.28
+
+// Trunk mains vs distribution grid: the whole point of the two networks is that
+// you can tell them apart at a glance, so the trunk core is ~5× the width of a
+// distribution line and the halo under it is wider still.
+const WATER_TRUNK_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 4.5, 16, 7]
+const WATER_TRUNK_GLOW_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 12, 16, 18]
+// The dots are ~75 % of the core they ride on: wide enough to be unmistakable
+// at city zoom, still narrow enough that the pale-blue core shows either side
+// and the pipe reads as a pipe with something moving along it.
+const WATER_TRUNK_FLOW_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 3.4, 16, 5.2]
+
+// The city-wide DISTRIBUTION network: Macau's streets drawn as thin pipes under
+// the trunk mains, from OUR OWN water-distribution.json rather than the
+// basemap's `transportation` layer. The basemap's roads cannot be clipped to
+// Macau, and a distribution network running off into Zhuhai would be claiming
+// something false — so the pipeline ships a Macau-only extract instead, loaded
+// lazily the first time the layer goes on (useWaterDistribution).
+const WATER_DISTRIBUTION_SOURCE_ID = 'water-distribution'
+const WATER_DISTRIBUTION_GLOW_LAYER_ID = 'water-distribution-glow'
+const WATER_DISTRIBUTION_LAYER_ID = 'water-distribution'
+// Dots travelling OUTWARD along the distribution mesh. DESKTOP ONLY: it is
+// thousands of extra dashed lines, and on a phone that is both a real cost and
+// visually illegible at the widths involved — so on a narrow viewport the layer
+// is never created at all (see `isDesktopRef` / WATER_DESKTOP_QUERY), rather
+// than created and hidden.
+//
+// This IS a direction claim, not decoration: the pipeline orients every road
+// away from the treated-water source that feeds it, so advancing the dash phase
+// along vertex order — exactly as the trunk dots do — shows water leaving the
+// plants and tanks for the streets. The dots stay small so the mains still
+// dominate, but they move at the trunk's phase step: at half of it the mesh
+// read as static rather than slow.
+// Layer-id PREFIX, not an id: the flow is drawn as WATER_MESH_PHASES layers,
+// one per dash phase, of which exactly one is opaque at a time. The comment
+// above addPhaseLayers explains why the phase cannot simply be animated.
+const WATER_DISTRIBUTION_FLOW_PREFIX = 'water-distribution-flow'
+const WATER_DISTRIBUTION_FLOW_OPACITY = 0.5
+// ~0.6× the distribution core. No per-class width bonus: a motorway's dots
+// running fatter than a lane's would imply a hierarchy of supply that the road
+// classes do not carry — they say how big the street is, not how much water
+// goes down it.
+const WATER_DISTRIBUTION_FLOW_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 0.5, 16, 1]
+// The app's own `sm:` breakpoint, so "desktop" here means exactly what it means
+// in the Tailwind classes everywhere else.
+const WATER_DESKTOP_QUERY = '(min-width: 640px)'
+
+// A motorway should read as a slightly bigger main than a service road — but
+// only slightly: the width budget belongs to the trunk-vs-distribution
+// distinction, so the class spread is a flat +0.4 px rather than a ramp of its
+// own. `match` falls through to the thin branch for any class added later.
+const WATER_DISTRIBUTION_MAJOR_BONUS = 0.4
+
+// WHY THE FLOW IS DRAWN AS MANY LAYERS INSTEAD OF ONE ANIMATED LAYER
+// ------------------------------------------------------------------
+// `line-dasharray` is a CROSS-FADED property. `StyleLayer.setPaintProperty`
+// returns requiresRelayout=true for it, so `Style._updateLayer` marks the
+// layer's SOURCE `'reload'` and pauses its SourceCache — every tile of a
+// GeoJSON source re-tessellates. At 14 ticks a second across three layers that
+// is ~43 reload marks per source per 3 s, and the tiles visibly blink as they
+// come back. That was the flicker.
+//
+// So the dash phase is never animated. Each animated group is built ONCE as K
+// sibling layers that differ only in their fixed `line-dasharray`, and the
+// animation swaps which one is opaque. `line-opacity` is a plain paint
+// property — no relayout, no source reload — and MapLibre's line draw pass
+// early-returns on `line-opacity === 0`, so the K-1 hidden phases cost no draw
+// calls either. (`setLayoutProperty('visibility')` would ALSO mark the source
+// for reload, so it is not usable per tick.)
+const WATER_TRUNK_PHASES = 8
+const WATER_MESH_PHASES = 6
+
+function phaseLayerId(prefix: string, k: number): string {
+  return `${prefix}-${k}`
+}
+
+interface PhaseGroupSpec {
+  prefix: string
+  source: string
+  filter?: maplibregl.FilterSpecification
+  color: string | maplibregl.ExpressionSpecification
+  width: maplibregl.ExpressionSpecification
+  opacity: number
+  steps: number[][]
+}
+
+// All K layers share one filter and one LAYOUT, so MapLibre buckets their
+// geometry once — the extra layers cost a dash texture each, not a copy of the
+// road network. Phase 0 is the opaque one; the animation moves that from there.
+function addPhaseLayers(
+  m: maplibregl.Map, spec: PhaseGroupSpec, visible: boolean, beforeId?: string,
+): void {
+  spec.steps.forEach((dash, k) => {
+    const id = phaseLayerId(spec.prefix, k)
+    if (m.getLayer(id)) return
+    m.addLayer({
+      id, type: 'line', source: spec.source,
+      ...(spec.filter ? { filter: spec.filter } : {}),
+      layout: {
+        'line-cap': 'round', 'line-join': 'round',
+        visibility: visible ? 'visible' : 'none',
+      },
+      paint: {
+        'line-color': spec.color,
+        'line-opacity': k === 0 ? spec.opacity : 0,
+        'line-width': spec.width,
+        'line-dasharray': dash,
+      },
+    }, beforeId)
+  })
+}
+
+// Every phase layer of a group, for the focus-visibility sweep and for removal.
+function phaseLayerIds(prefix: string, count: number): string[] {
+  return Array.from({ length: count }, (_, k) => phaseLayerId(prefix, k))
+}
+
+// The distribution mesh's phase layers. Added from TWO places — addCustomLayers
+// on a fresh style, and the breakpoint effect when a window is dragged past
+// 640 px — so the spec lives in one function and the two can never disagree.
+// Inserted directly above the distribution core and below the trunk glow.
+function addDistributionFlowLayer(
+  m: maplibregl.Map, visible: boolean, fallbackBeforeId?: string,
+): void {
+  const beforeId = m.getLayer(WATER_PIPES_GLOW_LAYER_ID)
+    ? WATER_PIPES_GLOW_LAYER_ID
+    : fallbackBeforeId
+  addPhaseLayers(m, {
+    prefix: WATER_DISTRIBUTION_FLOW_PREFIX,
+    source: WATER_DISTRIBUTION_SOURCE_ID,
+    color: WATER_PIPE_FLOW_COLOR,
+    width: WATER_DISTRIBUTION_FLOW_WIDTH,
+    // Faint on purpose: at ~5 000 roads dots this thin still read, and anything
+    // brighter turns the mesh into the loudest thing on the map.
+    opacity: WATER_DISTRIBUTION_FLOW_OPACITY,
+    steps: WATER_DISTRIBUTION_FLOW_STEPS,
+  }, visible, beforeId)
+}
+
+function distributionWidth(at12: number, at16: number): maplibregl.ExpressionSpecification {
+  const byClass = (w: number): maplibregl.ExpressionSpecification => [
+    'match', ['get', 'class'], [...WATER_DISTRIBUTION_MAJOR_CLASSES],
+    w + WATER_DISTRIBUTION_MAJOR_BONUS, w,
+  ]
+  return ['interpolate', ['linear'], ['zoom'], 12, byClass(at12), 16, byClass(at16)]
+}
+// Same rule as the schools blocks: every footprint of a facility shares the
+// promoted feature id, so one setFeatureState whitens the whole site.
+const WATER_SELECTED_COLOR = '#ffffff'
+const WATER_SURFACE_OPACITY = 0.35
+
+// Same device-pixel budget as the WC / P markers (registered at pixelRatio 2).
+const WATER_ICON_PX = 40
+
+// A droplet on a rounded square, drawn once per (type, approximate) pair into
+// an ImageData for map.addImage(). The solid variant is the type colour with a
+// white rim and a white droplet; the approximate variant is hollow — a dark
+// plate with a coloured rim and a coloured OUTLINE droplet — so a facility whose
+// position we inferred never looks as certain as a surveyed footprint. Returns
+// null when the 2D context is unavailable (headless/blocked), in which case the
+// caller skips that image.
+function drawWaterIcon(color: string, approximate: boolean): ImageData | null {
+  const size = WATER_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const border = 3 // 1.5 CSS px at pixelRatio 2
+  const inset = border / 2 + 1
+  const r = 6 // 3 CSS px corner radius
+  const x = inset
+  const y = inset
+  const w = size - inset * 2
+  const h = size - inset * 2
+
+  // Hand-rolled rounded rect, like the sibling markers: ctx.roundRect() is
+  // still missing on enough engines that a fallback would be needed anyway.
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.arcTo(x + w, y, x + w, y + r, r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+  ctx.lineTo(x + r, y + h)
+  ctx.arcTo(x, y + h, x, y + h - r, r)
+  ctx.lineTo(x, y + r)
+  ctx.arcTo(x, y, x + r, y, r)
+  ctx.closePath()
+
+  // Hollow = the map's own near-black behind a coloured rim. A fully
+  // transparent plate disappears over the basemap's water and building fills,
+  // which is exactly where these facilities sit.
+  ctx.fillStyle = approximate ? 'rgba(11,11,12,0.72)' : color
+  ctx.fill()
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = border
+  ctx.strokeStyle = approximate ? color : '#ffffff'
+  ctx.stroke()
+
+  // Droplet: a teardrop — apex at the top, a circular belly below.
+  const cx = size / 2
+  const top = size * 0.26
+  const belly = size * 0.63
+  const rad = size * 0.185
+  ctx.beginPath()
+  ctx.moveTo(cx, top)
+  ctx.quadraticCurveTo(cx + rad * 1.35, belly - rad * 0.5, cx + rad, belly)
+  ctx.arc(cx, belly, rad, 0, Math.PI)
+  ctx.quadraticCurveTo(cx - rad * 1.35, belly - rad * 0.5, cx, top)
+  ctx.closePath()
+  if (approximate) {
+    ctx.lineWidth = 2.5
+    ctx.strokeStyle = color
+    ctx.stroke()
+  } else {
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+  }
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// The Zhuhai raw-water inlet: a filled disc with a white arrow pointing INTO
+// it, so it reads as "water enters Macau here" rather than as a 23rd facility.
+// Same 40 px / pixelRatio 2 budget and the same null-on-no-context contract as
+// drawWaterIcon above.
+function drawWaterInletIcon(): ImageData | null {
+  const size = WATER_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const cx = size / 2
+  const cy = size / 2
+  ctx.beginPath()
+  ctx.arc(cx, cy, size / 2 - 3, 0, Math.PI * 2)
+  ctx.fillStyle = WATER_INLET_COLOR
+  ctx.fill()
+  ctx.lineWidth = 3
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+
+  // Arrow: a shaft from the left rim to the centre, capped with a head. Points
+  // right (inward) — the direction is symbolic, not a bearing.
+  ctx.strokeStyle = '#ffffff'
+  ctx.lineWidth = 3.5
+  ctx.lineCap = 'round'
+  ctx.beginPath()
+  ctx.moveTo(cx - size * 0.22, cy)
+  ctx.lineTo(cx + size * 0.06, cy)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(cx + size * 0.20, cy)
+  ctx.lineTo(cx - size * 0.02, cy - size * 0.15)
+  ctx.lineTo(cx - size * 0.02, cy + size * 0.15)
+  ctx.closePath()
+  ctx.fillStyle = '#ffffff'
+  ctx.fill()
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// One PRE-BUILT dash phase per entry, each shifted a little further along the
+// line than the last, so showing them in order walks the pattern from a pipe's
+// `from` end to its `to` end (see buildDashFlowSteps, and the vertex-order note
+// on buildWaterPipeFeatures). Each array becomes one layer with that dasharray
+// baked in — nothing here is ever handed to setPaintProperty at runtime.
+//
+// Raw pipes carry their OWN 2 / 1.5 dashes; the treated core is solid, so its
+// motion comes from the separate `water-pipes-flow` group — chunky white dots
+// with long gaps between them, which is what makes the direction of travel
+// readable at city zoom rather than a shimmer you have to hunt for.
+//
+// K is a memory budget as much as a smoothness knob: every phase is a layer.
+// 8 for the trunk groups (a 560 ms cycle at 70 ms a phase), 6 for the mesh,
+// which steps every SECOND tick — 840 ms, gentler than the mains and sharing
+// no period with them, so nothing pulses in lockstep.
+const WATER_PIPE_DASH_STEPS: number[][] = buildDashFlowSteps(2, 1.5, WATER_TRUNK_PHASES)
+const WATER_PIPE_FLOW_STEPS: number[][] = buildDashFlowSteps(2.2, 5.5, WATER_TRUNK_PHASES)
+const WATER_DISTRIBUTION_FLOW_STEPS: number[][] = buildDashFlowSteps(1.2, 7, WATER_MESH_PHASES)
+const WATER_PIPE_DASH_MS = 70
+// Opacity of the ONE opaque phase in each trunk group.
+const WATER_PIPES_DASHED_OPACITY = 1
+const WATER_PIPES_FLOW_OPACITY = 0.95
+
+// The layers that survive an empty `transitData` because they are built from
+// `allTransitData`: the bus route polylines (one shared source, dimmed by
+// feature-state rather than filtered) and the LRT station pins. Water focus
+// mode hides them by layout visibility for as long as it is on — nothing else
+// touches these two properties, so there is no state to fight over.
+const WATER_FOCUS_HIDDEN_LAYERS = [
+  'bus-routes', 'bus-routes-highlighted', 'stations-circle', 'stations-label',
+] as const
+
+// The mirror image: layers that exist ONLY for focus mode. The distribution
+// network is drawn from the basemap's own tiles, so there is no data array to
+// empty when the layer goes off — visibility is the whole mechanism.
+const WATER_FOCUS_SHOWN_LAYERS: readonly string[] = [
+  WATER_DISTRIBUTION_GLOW_LAYER_ID, WATER_DISTRIBUTION_LAYER_ID,
+  // Every phase layer of the mesh flow. None of them may exist (narrow
+  // viewport) — the loop skips missing layers. Visibility and opacity are
+  // orthogonal here: focus mode shows them all, and exactly one is opaque.
+  ...phaseLayerIds(WATER_DISTRIBUTION_FLOW_PREFIX, WATER_MESH_PHASES),
+]
+
+function applyWaterFocusVisibility(m: maplibregl.Map, focus: boolean): void {
+  for (const id of WATER_FOCUS_HIDDEN_LAYERS) {
+    if (!m.getLayer(id)) continue
+    m.setLayoutProperty(id, 'visibility', focus ? 'none' : 'visible')
+  }
+  for (const id of WATER_FOCUS_SHOWN_LAYERS) {
+    if (!m.getLayer(id)) continue
+    m.setLayoutProperty(id, 'visibility', focus ? 'visible' : 'none')
+  }
+  // The LRT track + viaduct layers are per-line, and their visibility belongs
+  // to the [transitData.lrtLines] effect below — which restores them the moment
+  // focus ends (its deps change as the line array refills). So focus only ever
+  // forces them OFF, and never claims to restore them. This also covers the
+  // style swap, which re-adds every layer visible: addCustomLayers calls this
+  // last, before the LRT effect has had any chance to re-run.
+  if (!focus) return
+  // getStyle() is undefined (or throws) until the style has loaded — this
+  // effect can fire on mount, before addCustomLayers has run. That is a no-op
+  // by definition: the LRT layers do not exist yet, and addCustomLayers calls
+  // this again once they do.
+  let layers: { id: string }[] = []
+  try { layers = m.getStyle()?.layers ?? [] } catch { return }
+  for (const layer of layers) {
+    if (/^lrt-(line|viaduct)-/.test(layer.id)) {
+      m.setLayoutProperty(layer.id, 'visibility', 'none')
+    }
+  }
+}
+
+// Every (type, approximate) combination the marker layer can ask for. Both
+// variants of all five types are registered up front, because the file decides
+// which it needs and a missing image would silently drop the marker.
+const WATER_ICON_VARIANTS: readonly { type: WaterFacilityType; approximate: boolean }[] =
+  WATER_TYPE_ORDER.flatMap(type => [
+    { type, approximate: false },
+    { type, approximate: true },
+  ])
+
 const MACAU_CENTER: [number, number] = [113.55920888434439, 22.160440018223373]
 const MACAU_ZOOM = 13
 const STYLES = {
@@ -355,6 +753,21 @@ interface Props {
   onSchoolClick?: (school: School, buildingName: string | null) => void
   onToiletClick?: (toilet: Toilet | null) => void
   onCarParkClick?: (carPark: CarPark | null) => void
+  onWaterFacilityClick?: (facility: WaterFacility | null) => void
+  // The extra network nodes (today: the Zhuhai inlet) share the facility marker
+  // layer but are NOT facilities, so they open their own panel variant.
+  onWaterNodeClick?: (node: WaterNetworkNode | null) => void
+  // WATER is a focus mode: while it is on, App has already emptied every other
+  // layer's data. That hides the vehicles, the LRT tracks and every overlay,
+  // but NOT the bus route polylines or the station pins — those are drawn from
+  // `allTransitData` on purpose (the dimming is a feature-state, so the lines
+  // stay put while routes go in and out of service). This flag hides them for
+  // the duration, so focus mode really does leave only the water network.
+  waterFocus?: boolean
+  // Macau's streets, drawn as the thin distribution pipes. Null until the lazy
+  // fetch lands (see useWaterDistribution) — the rest of the water overlay
+  // renders immediately and this fills in behind it.
+  waterDistributionRoads?: WaterDistributionRoad[] | null
   // Live vacancy keyed by car-park id, from useCarParkVacancy. A new Map
   // identity (≈ every 30 s while polling) is what re-labels the markers.
   carParkVacancy?: Map<string, CarParkVacancy> | null
@@ -364,12 +777,14 @@ interface Props {
   selectedSchoolId?: string | null
   selectedToiletId?: string | null
   selectedCarParkId?: string | null
+  selectedWaterFacilityId?: string | null
+  selectedWaterNodeId?: string | null
   onVehicleCount?: (count: number) => void
   showTimeBar?: boolean
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWaterFacilityId, selectedWaterNodeId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -432,6 +847,46 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   selectedCarParkIdRef.current = selectedCarParkId ?? null
   const carParkVacancyRef = useRef<Map<string, CarParkVacancy> | null>(carParkVacancy ?? null)
   carParkVacancyRef.current = carParkVacancy ?? null
+  // Water facilities carry BOTH highlight mechanisms of the overlays above: a
+  // marker ring (a filter, like the toilets) and whitened blocks (a
+  // feature-state, like the schools), so addCustomLayers needs the id for each.
+  const selectedWaterFacilityIdRef = useRef<string | null>(selectedWaterFacilityId ?? null)
+  selectedWaterFacilityIdRef.current = selectedWaterFacilityId ?? null
+  const waterStateIdRef = useRef<string | null>(null)
+  // The inlet shares the marker layer, so its selection ring is the same filter
+  // — one id from each side, at most one of them non-null at a time.
+  const selectedWaterNodeIdRef = useRef<string | null>(selectedWaterNodeId ?? null)
+  selectedWaterNodeIdRef.current = selectedWaterNodeId ?? null
+  // Focus mode is a layout-visibility flag, so a style swap (which re-adds
+  // every layer at its default visibility) has to re-apply it from here.
+  const waterFocusRef = useRef(waterFocus)
+  waterFocusRef.current = waterFocus
+  // Same style-swap contract for the distribution roads: addCustomLayers seeds
+  // the source from here, so a theme change after the lazy fetch landed redraws
+  // the thin pipes without waiting for anything.
+  // Is this a desktop-width viewport? Gates the distribution flow layer's very
+  // EXISTENCE, not just its visibility — see WATER_DISTRIBUTION_FLOW_PREFIX.
+  // Read from matchMedia rather than a resize handler so it fires once per
+  // crossing of the breakpoint instead of once per pixel of drag.
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window === 'undefined' || window.matchMedia(WATER_DESKTOP_QUERY).matches
+  )
+  useEffect(() => {
+    const mq = window.matchMedia(WATER_DESKTOP_QUERY)
+    const onChange = (e: MediaQueryListEvent) => setIsDesktop(e.matches)
+    mq.addEventListener('change', onChange)
+    setIsDesktop(mq.matches)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  const isDesktopRef = useRef(isDesktop)
+  isDesktopRef.current = isDesktop
+  // Which dash phase is currently opaque, per animated group. A REF, not a
+  // local counter in the interval: addCustomLayers rebuilds the layers with
+  // phase 0 opaque after a style swap, and the animation has to be told, or it
+  // would clear a phase that is already transparent and leave two showing.
+  const waterPhaseRef = useRef({ trunk: 0, mesh: 0, tick: 0 })
+  const waterDistributionRef = useRef<WaterDistributionRoad[] | null>(waterDistributionRoads)
+  waterDistributionRef.current = waterDistributionRoads
 
   // Highlight = one feature-state per school id. `promoteId` makes every
   // building of a school share that id, so this single pair of calls repaints
@@ -447,6 +902,19 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
     if (next) m.setFeatureState({ source: SCHOOLS_SOURCE_ID, id: next }, { selected: true })
     schoolStateIdRef.current = next
+  }, [])
+
+  // Same contract for the water blocks: every footprint of a facility shares
+  // the promoted `facilityId`, so one pair of calls repaints the whole site.
+  const applyWaterSelection = useCallback((m: maplibregl.Map) => {
+    if (!m.getSource(WATER_BUILDINGS_SOURCE_ID)) return
+    const next = selectedWaterFacilityIdRef.current
+    const prev = waterStateIdRef.current
+    if (prev && prev !== next) {
+      m.setFeatureState({ source: WATER_BUILDINGS_SOURCE_ID, id: prev }, { selected: false })
+    }
+    if (next) m.setFeatureState({ source: WATER_BUILDINGS_SOURCE_ID, id: next }, { selected: true })
+    waterStateIdRef.current = next
   }, [])
 
   const addCustomLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
@@ -654,6 +1122,157 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             'case',
             ['boolean', ['feature-state', 'selected'], false],
             SCHOOL_SELECTED_COLOR,
+            ['get', 'color'],
+          ],
+          'fill-extrusion-height': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'height'],
+          ],
+          'fill-extrusion-base': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'minHeight'],
+          ],
+          'fill-extrusion-opacity': 0.95,
+          'fill-extrusion-vertical-gradient': true,
+        },
+      }, firstSymbolId)
+
+      // Macao Water. Same anchor and the same seeding rule as the schools
+      // above (transitRef, not a closure, so a theme swap long after
+      // water-facilities.json landed still redraws it). Order matters: the
+      // reservoir surfaces are a flat fill and go in FIRST, so the extruded
+      // blocks of a plant standing beside a reservoir draw over the water
+      // rather than under it.
+      m.addSource(WATER_SURFACES_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterSurfaceFeatures(transitRef.current.waterFacilities),
+      })
+      m.addLayer({
+        id: WATER_SURFACES_LAYER_ID, type: 'fill', source: WATER_SURFACES_SOURCE_ID,
+        paint: {
+          'fill-color': ['get', 'color'],
+          'fill-opacity': WATER_SURFACE_OPACITY,
+          // A reservoir reads as an area, not an object — a hairline rim is
+          // enough to separate it from the basemap's own water polygon.
+          'fill-outline-color': ['get', 'color'],
+        },
+      }, firstSymbolId)
+      // The distribution network, first of the pipe layers so the trunk mains
+      // draw over it. Seeded from the ref, which is empty until the lazy fetch
+      // lands — the source is created regardless so the layers exist, and the
+      // [waterDistributionRoads] effect fills them in when the file arrives.
+      // Visibility is seeded from the focus flag: unlike the other water layers
+      // this data is CACHED once fetched, so emptying it is not the "off"
+      // mechanism — layout visibility is (see applyWaterFocusVisibility).
+      const roadVisibility = waterFocusRef.current ? 'visible' : 'none'
+      m.addSource(WATER_DISTRIBUTION_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterDistributionFeatures(waterDistributionRef.current),
+      })
+      m.addLayer({
+        id: WATER_DISTRIBUTION_GLOW_LAYER_ID, type: 'line',
+        source: WATER_DISTRIBUTION_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: roadVisibility },
+        paint: {
+          'line-color': WATER_PIPE_GLOW_COLOR,
+          'line-opacity': 0.12,
+          'line-width': distributionWidth(3, 5),
+        },
+      }, firstSymbolId)
+      m.addLayer({
+        id: WATER_DISTRIBUTION_LAYER_ID, type: 'line',
+        source: WATER_DISTRIBUTION_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: roadVisibility },
+        paint: {
+          'line-color': WATER_DISTRIBUTION_COLOR,
+          'line-opacity': 0.7,
+          'line-width': distributionWidth(0.8, 1.6),
+        },
+      }, firstSymbolId)
+      // Desktop only. The trunk layers are added after this, so on a fresh
+      // style there is no `water-pipes-glow` to sit under yet — hence the
+      // firstSymbolId fallback, which lands it in the same slot.
+      if (isDesktopRef.current) {
+        addDistributionFlowLayer(m, waterFocusRef.current, firstSymbolId)
+      }
+
+      // The pipe network, between the reservoir fills and the facility blocks:
+      // over the water (so a pipe crossing a reservoir stays readable) and under
+      // every block and marker, which are the things a user clicks. Four layers,
+      // glow first — see the WATER_PIPES_* constants for why the dashed core
+      // cannot just be a paint expression on the solid one, and why the treated
+      // core needs a separate layer to show its flow.
+      m.addSource(WATER_PIPES_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterPipeFeatures(transitRef.current.waterNetwork),
+      })
+      m.addLayer({
+        id: WATER_PIPES_GLOW_LAYER_ID, type: 'line', source: WATER_PIPES_SOURCE_ID,
+        layout: {
+          'line-cap': 'round', 'line-join': 'round',
+          // Treated water over raw where the two share a street.
+          'line-sort-key': ['get', 'sortKey'],
+        },
+        paint: {
+          'line-color': WATER_PIPE_GLOW_COLOR,
+          'line-opacity': WATER_PIPE_GLOW_OPACITY,
+          'line-width': WATER_TRUNK_GLOW_WIDTH,
+        },
+      }, firstSymbolId)
+      // Raw water, plus any pipe whose OSRM lookup fell back to a straight
+      // line — a stand-in geometry should never look like a surveyed route.
+      // One layer per dash phase; the animation swaps which is opaque.
+      addPhaseLayers(m, {
+        prefix: WATER_PIPES_DASHED_PREFIX,
+        source: WATER_PIPES_SOURCE_ID,
+        filter: ['any', ['==', ['get', 'kind'], 'raw'], ['==', ['get', 'fallback'], true]],
+        color: [
+          'case', ['get', 'fallback'], WATER_PIPE_FALLBACK_COLOR, WATER_PIPE_COLORS.raw,
+        ],
+        width: WATER_TRUNK_WIDTH,
+        opacity: WATER_PIPES_DASHED_OPACITY,
+        steps: WATER_PIPE_DASH_STEPS,
+      }, true, firstSymbolId)
+      m.addLayer({
+        id: WATER_PIPES_LAYER_ID, type: 'line', source: WATER_PIPES_SOURCE_ID,
+        filter: ['all', ['==', ['get', 'kind'], 'treated'], ['!=', ['get', 'fallback'], true]],
+        layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['get', 'sortKey'] },
+        paint: {
+          'line-color': WATER_PIPE_COLORS.treated,
+          'line-width': WATER_TRUNK_WIDTH,
+        },
+      }, firstSymbolId)
+      // The dots that travel along the treated mains — their own group above
+      // the solid core, because one line layer carries one dash pattern and the
+      // core has to stay solid. Every treated pipe gets dots, including a
+      // fallback one: the flow is a statement about direction, not about how
+      // trustworthy the geometry is (the grey dashes below already say that).
+      addPhaseLayers(m, {
+        prefix: WATER_PIPES_FLOW_PREFIX,
+        source: WATER_PIPES_SOURCE_ID,
+        filter: ['==', ['get', 'kind'], 'treated'],
+        color: WATER_PIPE_FLOW_COLOR,
+        width: WATER_TRUNK_FLOW_WIDTH,
+        opacity: WATER_PIPES_FLOW_OPACITY,
+        steps: WATER_PIPE_FLOW_STEPS,
+      }, true, firstSymbolId)
+
+      m.addSource(WATER_BUILDINGS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterBuildingFeatures(transitRef.current.waterFacilities),
+        promoteId: WATER_FEATURE_ID_PROPERTY,
+      })
+      // Identical height treatment to the school blocks: the SAME z14→z15.5
+      // ramp as the basemap buildings, so a facility block stays exactly its
+      // 2 m margin proud of its grey neighbours while they grow, and degrades
+      // to a flat coloured footprint where the basemap draws no buildings.
+      m.addLayer({
+        id: WATER_BUILDINGS_LAYER_ID, type: 'fill-extrusion', source: WATER_BUILDINGS_SOURCE_ID,
+        paint: {
+          'fill-extrusion-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            WATER_SELECTED_COLOR,
             ['get', 'color'],
           ],
           'fill-extrusion-height': [
@@ -898,6 +1517,75 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         },
       })
 
+      // Water-facility markers. Same image contract as the WC / P plates —
+      // setStyle({diff:false}) drops registered images with the layers, so both
+      // variants of all five types are redrawn here under a hasImage guard —
+      // and the same transitRef seeding, since the data has no time dimension.
+      for (const variant of WATER_ICON_VARIANTS) {
+        const name = waterIconName(variant.type, variant.approximate)
+        if (m.hasImage(name)) continue
+        const img = drawWaterIcon(WATER_COLORS[variant.type], variant.approximate)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      if (!m.hasImage(WATER_INLET_ICON)) {
+        const inletImg = drawWaterInletIcon()
+        if (inletImg) m.addImage(WATER_INLET_ICON, inletImg, { pixelRatio: 2 })
+      }
+      m.addSource(WATER_MARKERS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterMarkerFeatures(
+          transitRef.current.waterFacilities, transitRef.current.waterNetwork,
+        ),
+      })
+      m.addLayer({
+        id: WATER_SELECTED_LAYER_ID, type: 'circle', source: WATER_MARKERS_SOURCE_ID,
+        // One ring for both kinds of marker: a facility id from one prop, a
+        // network-node id from the other, at most one of them set.
+        filter: ['in', ['get', WATER_FEATURE_ID_PROPERTY], ['literal', [
+          selectedWaterFacilityIdRef.current ?? '', selectedWaterNodeIdRef.current ?? '',
+        ]]],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      })
+      m.addLayer({
+        id: WATER_ICON_LAYER_ID, type: 'symbol', source: WATER_MARKERS_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          // The approximate pumping stations sit ~25 m from the facility they
+          // are co-located with, which is one pixel at city zoom — collision
+          // hiding would silently drop half the list, so they always draw.
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+          // Only the network nodes carry a label (the inlet has to name itself;
+          // a facility is named by the panel its marker opens), so this reads
+          // as null — no text — for all 22 facilities. Swapped, not rebuilt, on
+          // a language change: see the [lang] effect below.
+          'text-field': ['get', waterLabelField(currentLang)],
+          'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+          'text-size': ['step', ['zoom'], 0, 12, 10, 15, 11],
+          'text-offset': [0, 1.1],
+          'text-anchor': 'top',
+          // The label may collide; the marker never does. `text-optional` keeps
+          // the icon when its label loses the placement.
+          'text-optional': true,
+        },
+        paint: {
+          // The hollow plate already says "inferred position"; a slight fade
+          // keeps it from competing with the facilities we actually mapped.
+          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
+          'text-color': '#dbeafe',
+          'text-halo-color': '#0b0b0c',
+          'text-halo-width': 1.2,
+        },
+      })
+
       addVehicleLayers(m, currentLang)
 
       const bus3DLayer = new Bus3DLayer()
@@ -925,6 +1613,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       // selected school has to be re-marked on the freshly added source.
       schoolStateIdRef.current = null
       applySchoolSelection(m)
+      // Ditto for the water blocks, whose highlight is the same feature-state.
+      waterStateIdRef.current = null
+      applyWaterSelection(m)
+      // Every phase group was just rebuilt with phase 0 opaque.
+      waterPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
+      // A style swap re-adds every layer visible; re-assert focus mode.
+      applyWaterFocusVisibility(m, waterFocusRef.current)
     }
 
     addCustomLayersRef.current = addCustomLayers
@@ -1007,6 +1702,34 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       m.on('mouseenter', CAR_PARKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', CAR_PARKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
 
+      // Water facilities: the droplet marker AND the coloured blocks open the
+      // same panel, so a user can click either the pin or the plant itself.
+      // Registered before the vehicle handlers for the usual reason — a bus
+      // driving past a treatment plant should not steal the click.
+      const openWaterFacility = (e: maplibregl.MapLayerMouseEvent) => {
+        const feature = e.features?.[0]
+        if (!feature) return
+        const fid = feature.properties?.[WATER_FEATURE_ID_PROPERTY]
+        // Current list (transitRef), not a closed-over snapshot —
+        // water-facilities.json lands after this handler is attached, and the
+        // legend toggle swaps the array.
+        const facility = transitRef.current.waterFacilities.find(f => f.id === fid)
+        if (facility) { onWaterFacilityClick?.(facility); e.preventDefault(); return }
+        // Not a facility → one of the network's own nodes (the Zhuhai inlet),
+        // which shares this marker layer but opens its own panel variant.
+        const node = transitRef.current.waterNetwork?.nodes.find(n => n.id === fid)
+        if (node) { onWaterNodeClick?.(node); e.preventDefault() }
+      }
+      // Blocks first, marker second: an approximate marker sits ON TOP of the
+      // facility it is co-located with, so both layers report a hit — and
+      // delegated listeners all fire, last one wins. The marker is the smaller,
+      // more deliberate target, so it must be the one that ends up selected.
+      for (const layerId of [WATER_BUILDINGS_LAYER_ID, WATER_ICON_LAYER_ID]) {
+        m.on('click', layerId, openWaterFacility)
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+      }
+
       m.on('click', 'vehicles-circle', (e) => {
         const feature = e.features?.[0]
         if (feature) {
@@ -1038,7 +1761,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       m.on('click', (e) => {
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, ...model3DLayers],
+          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, ...model3DLayers],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -1104,6 +1827,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const labelField = lang === 'zh' ? 'nameCn' : lang === 'pt' ? 'namePt' : 'name'
     if (map.getLayer('stations-label')) {
       map.setLayoutProperty('stations-label', 'text-field', ['get', labelField])
+    }
+    // Same trick for the water network's node labels (the Zhuhai inlet): all
+    // three forms ride in the feature, so switching language is a text-field
+    // swap rather than a source rebuild.
+    if (map.getLayer(WATER_ICON_LAYER_ID)) {
+      map.setLayoutProperty(WATER_ICON_LAYER_ID, 'text-field', ['get', waterLabelField(lang)])
     }
     updateVehicleLabelLang(map, lang)
   }, [lang])
@@ -1172,6 +1901,122 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     if (!map || !map.getLayer(CAR_PARKS_SELECTED_LAYER_ID)) return
     map.setFilter(CAR_PARKS_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedCarParkId ?? ''])
   }, [selectedCarParkId])
+
+  // Water facilities — three sources off one array, pushed together on array
+  // identity (the file arriving, or the legend toggle swapping in the empty
+  // array). Like the schools this data never goes through the RAF tick; a style
+  // rebuild is covered by addCustomLayers seeding all three from transitRef.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const setData = (sourceId: string, data: GeoJSON.FeatureCollection) => {
+      const src = map.getSource(sourceId) as unknown as
+        { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+      src?.setData?.(data)
+    }
+    setData(WATER_SURFACES_SOURCE_ID, buildWaterSurfaceFeatures(transitData.waterFacilities))
+    setData(WATER_BUILDINGS_SOURCE_ID, buildWaterBuildingFeatures(transitData.waterFacilities))
+    setData(WATER_PIPES_SOURCE_ID, buildWaterPipeFeatures(transitData.waterNetwork))
+    setData(
+      WATER_MARKERS_SOURCE_ID,
+      buildWaterMarkerFeatures(transitData.waterFacilities, transitData.waterNetwork),
+    )
+  }, [transitData.waterFacilities, transitData.waterNetwork])
+
+  // The distribution roads land once, from their own lazy fetch, so this fires
+  // at most twice per session (null → loaded) and never from the RAF tick.
+  useEffect(() => {
+    const map = mapRef.current
+    const src = map?.getSource(WATER_DISTRIBUTION_SOURCE_ID) as unknown as
+      { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    src?.setData?.(buildWaterDistributionFeatures(waterDistributionRoads))
+  }, [waterDistributionRoads])
+
+  // Selected water facility: the marker ring is a filter swap (toilet rule) and
+  // the blocks are a feature-state (school rule), so both run here.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    if (map.getLayer(WATER_SELECTED_LAYER_ID)) {
+      map.setFilter(
+        WATER_SELECTED_LAYER_ID,
+        ['in', ['get', WATER_FEATURE_ID_PROPERTY], ['literal', [
+          selectedWaterFacilityId ?? '', selectedWaterNodeId ?? '',
+        ]]],
+      )
+    }
+    applyWaterSelection(map)
+  }, [selectedWaterFacilityId, selectedWaterNodeId, applyWaterSelection])
+
+  // Crossing the 640 px breakpoint adds or REMOVES the distribution flow,
+  // rather than toggling its visibility: on a narrow viewport the layer should
+  // not exist at all, so a phone never pays to tile 5 600 dashed lines.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.getSource(WATER_DISTRIBUTION_SOURCE_ID)) return
+    if (isDesktop) {
+      addDistributionFlowLayer(map, waterFocusRef.current)
+      // Freshly added layers have phase 0 opaque; keep the animation's idea of
+      // "current" in step with that or it would clear the wrong one next tick.
+      waterPhaseRef.current.mesh = 0
+    } else {
+      for (const id of phaseLayerIds(WATER_DISTRIBUTION_FLOW_PREFIX, WATER_MESH_PHASES)) {
+        if (map.getLayer(id)) map.removeLayer(id)
+      }
+    }
+  }, [isDesktop])
+
+  // The network "flows" while the WATER layer is on: ONE interval advancing
+  // every animated layer — the raw pipes' own dashes, the dots riding the
+  // treated core, and (desktop only) the distribution flow — so they can never
+  // drift out of step and the cost stays at most SIX line-opacity writes per
+  // 70 ms tick. Deliberately NOT in the RAF tick, which must stay
+  // free of paint writes; each layer it touches is skipped when absent, which
+  // is how the flow costs nothing on a narrow viewport. The phase index counts
+  // up so the patterns walk forward along each line's vertex order — for a
+  // pipe, from its `from` end to its `to` end; for a road, away from the source
+  // feeding it.
+  useEffect(() => {
+    if (!waterFocus) return
+    const timer = window.setInterval(() => {
+      const map = mapRef.current
+      if (!map) return
+      const st = waterPhaseRef.current
+      st.tick++
+      // Hide the phase that was showing, show the next one. Two opacity writes
+      // per group: a plain paint change, so no relayout and no source reload —
+      // which is the entire point of the phase layers (see addPhaseLayers).
+      const swap = (prefix: string, from: number, to: number, opacity: number) => {
+        const hide = phaseLayerId(prefix, from)
+        const show = phaseLayerId(prefix, to)
+        if (map.getLayer(hide)) map.setPaintProperty(hide, 'line-opacity', 0)
+        if (map.getLayer(show)) map.setPaintProperty(show, 'line-opacity', opacity)
+      }
+      const nextTrunk = (st.trunk + 1) % WATER_TRUNK_PHASES
+      swap(WATER_PIPES_DASHED_PREFIX, st.trunk, nextTrunk, WATER_PIPES_DASHED_OPACITY)
+      swap(WATER_PIPES_FLOW_PREFIX, st.trunk, nextTrunk, WATER_PIPES_FLOW_OPACITY)
+      st.trunk = nextTrunk
+      // The mesh steps every SECOND tick: fewer, larger phases keep its layer
+      // count down, and half the rate keeps it gentler than the mains.
+      if (st.tick % 2 === 0) {
+        const nextMesh = (st.mesh + 1) % WATER_MESH_PHASES
+        swap(
+          WATER_DISTRIBUTION_FLOW_PREFIX, st.mesh, nextMesh,
+          WATER_DISTRIBUTION_FLOW_OPACITY,
+        )
+        st.mesh = nextMesh
+      }
+    }, WATER_PIPE_DASH_MS)
+    return () => window.clearInterval(timer)
+  }, [waterFocus])
+
+  // Water focus mode. App has already emptied every other layer's data; this
+  // hides the two things that are drawn from `allTransitData` and so would
+  // otherwise survive — the bus route polylines and the station pins.
+  useEffect(() => {
+    const map = mapRef.current
+    if (map) applyWaterFocusVisibility(map, waterFocus)
+  }, [waterFocus])
 
   useEffect(() => {
     const map = mapRef.current
@@ -1885,6 +2730,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                       rel="noopener noreferrer"
                       className="hover:text-amber-200 transition-colors"
                     >data.gov.mo</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceWaterLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                    <a
+                      href="https://www.macaowater.com/about-macao-water/water-supply-facilities"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >Macao Water</a>
+                    <span className="text-white/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.openstreetmap.org/copyright"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >OSM</a>
                   </span>
                 </li>
               </ul>

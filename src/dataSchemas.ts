@@ -290,6 +290,124 @@ export const CarParksFileSchema = z.object({
   ),
 })
 
+// water-facilities.json — Macao Water's 22 supply facilities, geometry taken
+// from OSM. Mirrors the `water-facilities` block in
+// data/scripts/validate_output.py. `type` is the enum the overlay colours by,
+// so it is checked strictly; `buildings` reuses the schools contract (the
+// runtime shares the +2 m margin and the height ramp), `water` carries the
+// reservoir surfaces, and `anchor` is null for an exact facility, a facility id
+// or a "district:<slug>" point for an approximate one.
+const waterFacilityType = z.enum(['plant', 'reservoir', 'tank', 'raw_pumping', 'pumping'])
+const waterText = z.object({ zh: z.string(), pt: z.string(), en: z.string() })
+
+// The schematic pipe network. OPTIONAL on purpose: it was added after the
+// facility list shipped, so a file without it must still validate (and the
+// runtime just draws no pipes). Facilities are implicit nodes — `from`/`to`
+// name a facility id or one of the extra `nodes` (today: the Zhuhai inlet) —
+// and a pipe needs at least two points to be a line at all.
+const waterNetwork = z.object({
+  nodes: z.array(
+    z.object({
+      id: z.string(),
+      kind: z.string(),
+      name: waterText,
+      coordinates: lngLat,
+    }),
+  ),
+  pipes: z.array(
+    z.object({
+      id: z.string(),
+      from: z.string(),
+      to: z.string(),
+      kind: z.enum(['raw', 'treated']),
+      lengthM: z.number(),
+      fallback: z.boolean(),
+      // Optional: a deliberate straight stub between co-located facilities.
+      // Absent means false, and it changes no paint — only `fallback` does.
+      direct: z.boolean().optional(),
+      coordinates: z.array(lngLat).min(2),
+    }),
+  ),
+})
+
+export const WaterFacilitiesFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  sources: z.record(z.string(), z.string()),
+  facilities: z.array(
+    z.object({
+      id: z.string(),
+      // Null for a facility Macao Water does not list (a government reservoir).
+      no: z.number().int().nullable(),
+      type: waterFacilityType,
+      // Defaulted rather than required, so a file written before ownership was
+      // recorded still validates. `parseData` returns the RAW object, so the
+      // runtime reads this through `waterOperator`, which applies the same
+      // default — see src/water.ts.
+      operator: z.enum(['macao_water', 'dsama']).default('macao_water'),
+      name: waterText,
+      coordinates: lngLat,
+      approximate: z.boolean(),
+      anchor: z.string().nullable(),
+      osm: z.array(z.string()),
+      buildings: z.array(
+        z.object({
+          osmId: z.string(),
+          name: z.string().nullable(),
+          height: z.number(),
+          minHeight: z.number(),
+          kind: z.string().optional(),
+          // GeoJSON Polygon coordinates: at least one ring of [lng, lat].
+          coordinates: z.array(z.array(lngLat)).min(1),
+        }),
+      ),
+      water: z.array(
+        z.object({
+          osmId: z.string(),
+          coordinates: z.array(z.array(lngLat)).min(1),
+        }),
+      ),
+    }),
+  ),
+  network: waterNetwork.optional(),
+})
+
+// water-distribution.json — Macau's own streets, drawn as the thin distribution
+// pipes under the trunk mains. Deliberately LENIENT: everything but `roads` is
+// provenance the runtime never reads, and this file is loaded lazily and
+// best-effort (a failure just leaves the thin pipes out), so a envelope tweak
+// upstream must not throw in dev. `class` is a free string, not an enum — the
+// pipeline decides which OSM classes to ship and the width expression falls
+// back to the thin branch for anything it does not recognise.
+export const WaterDistributionFileSchema = z.object({
+  fetchedAtUtc: z.string().optional(),
+  // The provenance map every dataset carries. Kept as a union because this
+  // file's envelope has already changed twice and the runtime reads none of
+  // it — a shape we do not depend on should not be a shape we can break on.
+  sources: z.union([
+    z.record(z.string(), z.string()),
+    z.array(z.unknown()),
+  ]).optional(),
+  classes: z.array(z.string()).optional(),
+  // Bookkeeping from the outward orientation pass: which facilities the walk
+  // started from, how many roads it never reached, and how many were split at
+  // a junction. Provenance only — nothing here reaches the map.
+  flowSources: z.array(z.string()).optional(),
+  unreached: z.number().int().optional(),
+  splits: z.number().int().optional(),
+  roads: z.array(
+    z.object({
+      class: z.string(),
+      // Metres along the network from the nearest treated-water source, at the
+      // road's first and last vertex. Null where the walk never reached it.
+      // Carried for provenance and possible future styling; the layer does not
+      // read them today, so they stay out of the GeoJSON features.
+      dist: z.number().nullable().optional(),
+      distEnd: z.number().nullable().optional(),
+      coordinates: z.array(lngLat).min(2),
+    }),
+  ),
+})
+
 // Validate `raw` against `schema`. On mismatch: throw in dev (so tests and the
 // dev server surface contract drift immediately) and console.error in prod (so
 // the live site logs the problem but still renders best-effort). Returns the

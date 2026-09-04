@@ -61,7 +61,7 @@ Window 用 `windowDots()` 算法分布：根據機身長度沿著 fuselage 長�
 
 `addVehicleLayers(map, lang)` 一次性註冊，`updateVehicleData(map, vehicles)` 每 sim tick 餵新的 FeatureCollection。`updateVehicleLabelLang(map, lang)` 切語言時更新 label 的 `text-field` 表達式。
 
-## 城市資料層（非車輛）── 學校 / 道路工程 / 公廁 / 停車場
+## 城市資料層（非車輛）── 學校 / 道路工程 / 公廁 / 停車場 / 供水
 
 這四層跟上面的車輛 layer 不是同一類東西：不隨 sim tick 動，資料是靜態或準靜態的點/面。各自的 helper 集中在 [`src/schools.ts`](../../src/schools.ts)、[`src/roadWorks.ts`](../../src/roadWorks.ts)、[`src/toilets.ts`](../../src/toilets.ts)、[`src/carParks.ts`](../../src/carParks.ts)，`MapView.tsx` 只管 addSource/addLayer 跟 setData。
 
@@ -88,6 +88,16 @@ WORKS / WC / P 三層各自多一個 `*-selected` circle layer，疊在 icon 下
 `vacancy` 屬性只在「有即時列、沒被標記維護中、車位數不是 null」時才附上（`buildCarParkFeatures`），所以 `text-field: ['get','vacancy']` 在未知/維護中/沒在 polling 時自然不顯示，不用另外判斷。標籤彼此會搶位置（同一棟樓兩個出入口只隔幾公尺），所以 `text-optional: true` 讓圖示贏、標籤讓位，`symbol-sort-key` 用遞增的數字 id 當優先權，避免地圖一動兩個標籤互相閃爍。z14 以下 `text-size` 直接是 0——城市尺度只看得到「P」牌，看不到數字。
 
 即時數字只在 `carParksOn && clock.isLive`（1× 播放速度、在「現在」附近）時才 poll（[`useCarParkVacancy.ts`](../../src/hooks/useCarParkVacancy.ts)），規則一變 false 就立刻把 `vacancy` 設回 `null`，不會讓舊數字停在畫面上冒充即時。
+
+### 供水設施：色塊 + 水面 + 標記 + 管線，只在專注模式出現
+
+WATER 一層有九個 layer，全部在 `addCustomLayers` 建、換底圖後重建，可見性跟著 `waterFocus`（[`src/water.ts`](../../src/water.ts) 出 feature，[`MapView.tsx`](../../src/components/MapView.tsx) 管 layer）：
+
+- `water-surfaces`（fill，三個自來水水塘＋黑沙水庫的水面，半透明藍）、`water-buildings`（fill-extrusion，水廠建築、高位水池、石排灣泵房；跟學校同一套 promoteId／選取變白／2 m 餘量／插入點）、`water-icon`（canvas 水滴，依類型上色；約略位置畫成空心；珠海原水輸入口是另一個圖示並帶 `text-field` 標籤，語言切換時只換 `text-field`，不重建 source）、`water-selected`。
+- 主幹管四層：`water-pipes-glow`（寬、半透明）、`water-pipes-dashed`（原水與 `fallback` 管段——`line-dasharray` 一層只能烤一種花紋，所以虛線自成一層）、`water-pipes`（淨水實線）、`water-pipes-flow`（淨水實線上的白色粗點，約核心線寬的 0.75 倍，表現流向）。幾何來自 `water-facilities.json` 的 `network`（OSRM 沿路，同址短接為直線 `direct`，頂點順序一律 from→to，流動方向才對）。**動畫不能改 `line-dasharray`**：它是 cross-faded 屬性，任何 `setPaintProperty` 都會讓整個 source 重切瓦片（`Style._updateLayer` → source `reload`），4,910 段道路每秒重切十幾次畫面就會閃（`visibility` 切換也一樣會重載；`sourcedata` 的 `content` 事件看不到 GeoJSON 重載，要看 `style._updatedSources`）。所以每個會動的群組（原水虛線、淨水流點、配水流點）都預先建好 K 個相位圖層（主幹 8、配水網 6），各自固定一組 dasharray，唯一的 ~70 ms interval 每 tick 只把上一相位的 `line-opacity` 設 0、下一相位設回原值——常數對常數的 paint 變更不重切圖，而 MapLibre 對 opacity 0 的線圖層直接跳過繪製，所以隱藏的相位沒有 draw call。實測穩態零次重載、85 fps。主幹管刻意比配水路網粗很多（核心約 4.5→7 px 對 0.8→1.6 px），層級才分得出來。
+- 配水路網：`water-distribution-glow` / `water-distribution`，來源是延遲載入的 `water-distribution.json`（澳門邊界內的 OSM 道路，每條路一個 LineString，線寬依道路等級，透明度 0.7），疊在主幹管之下、底圖道路之上；不在 RAF tick 裡碰它。桌面版（`min-width: 640px`）另有 `water-distribution-flow`：白色細點沿全部道路流動，由同一個 interval 推進；窄視口不建這一層。流向是真的：`fetch_water_distribution.py` 把道路接成圖，從每個自來水的水廠／高位水池／泵站（吸附到最近頂點）做多源 Dijkstra，再把每條路的頂點順序改成「離水源近→遠」（碰到兩個水源的路在最低點切開），並附 `dist`／`distEnd`（公尺，未連通的為 null）；前端只要沿頂點順序推 dash offset，水就從廠站往最遠的街道流。
+
+點擊順序：`water-buildings` 先註冊、`water-icon` 後註冊——同址的約略標記疊在廠區色塊上，兩層都會命中，最後註冊的贏，所以點到的是標記。
 
 ## 大型優化：單一 `bus-routes` source
 

@@ -29,6 +29,8 @@ data/scripts/
 ├── fetch_ferry_schedules.py   # TurboJET / CotaiJet → ferry-schedules.json
 ├── fetch_road_works.py        # data.gov.mo (DSAT) → road-works.json
 ├── fetch_schools.py           # manual; DSEDJ list + OSM footprints → schools.json
+├── fetch_water_facilities.py  # manual; 澳門自來水的 22 個設施 + OSM → water-facilities.json
+├── osm_footprints.py          # 上面兩支共用：Overpass 存取 + basemap tile 足跡重切
 ├── fetch_toilets.py           # data.gov.mo (IAM) → toilets.json
 ├── fetch_car_parks.py         # data.gov.mo (DSAT) → car-parks.json
 └── fetch_service_status.py    # 每天 scrape 巴士停駛公告 → service-status.json
@@ -116,6 +118,8 @@ AviationStack `flights` endpoint，filter `arr_iata=MFM` + `dep_iata=MFM`，吐�
 
 Overpass 查詢分兩層：先在 Macau bbox 內抓齊所有教育特徵——`amenity=school/kindergarten/college/university`，加上只標成建築的學校（`building=school`、`building=kindergarten`、名稱含「學校／中學／小學／幼稚園／書院」的 `building=*`；澳門不少學校在 OSM 只有這種標法）（`out geom` 而非 tags-only，因為大學校區是 multipolygon relation，tags-only 會丟 member），比對出實際學校後，再依學校座標或所屬 relation 逐一撈校內的 `building` ways（每批最多 20 校）。校區輪廓有時畫到整個街區，所以 `building=apartments/hotel/office/…` 這類明顯不是校舍的建築會被排除（大學宿舍保留）；OSM 只負責決定「哪些建築屬於哪所學校」；**幾何與高度一律改用底圖自己的圖磚**：抓 OpenFreeMap z14 圖磚，把底圖合併過的建築 multipolygon 拆成部件，凡是有 ≥ 50% 面積落在某棟認領建築輪廓內的部件，就以該部件的形狀與 `render_height` 取代 OSM 輪廓（裙樓＋塔樓會各成一筆，`osmId` 加 `#p1`、`#p2` 後綴）。這樣不管 OSM 有沒有標高度、有沒有 `building:part`、圖磚怎麼取整，我們畫的都跟底圖同形同高；輪廓再外擴 0.5 m 避免牆面 z-fighting，高度則存底圖的原值，由前端建圖層時加 2 m 餘量（`SCHOOL_HEIGHT_MARGIN_M`，見 `src/schools.ts`）——餘量放在前端是因為縮放高度漸變也在前端算，資料側 0.5 m 曾在大面積低矮平頂上出現屋頂 z-fighting。校區內完全撈不到 `building` way 的（校舍以 relation 或 `building:part` 標示、或根本沒畫），直接用校區輪廓去切圖磚部件（`kind: "tile"`）；連圖磚也沒有建築時才退化成校區輪廓的低矮色塊（`kind: "outline"`）。圖磚裡沒有對應部件的 OSM 輪廓（極小的建築被量化掉）才用 OpenMapTiles 規則自己算高度（`height` → `building:levels × 3.66` → 預設 5 m，無條件進位到整數後加 0.5 m）。
 
+> 上面這整套（Overpass 存取、OSM 輪廓 → footprint、拿底圖圖磚重切）放在 [`osm_footprints.py`](../../data/scripts/osm_footprints.py)，跟 `fetch_water_facilities.py` 共用；`fetch_schools.py` 只負責「哪些建築屬於哪所學校」。
+
 > `overpass()` 依序輪替 overpass-api.de → overpass.kumi.systems → maps.mail.ru 三個端點（連線失敗或 5xx 換下一個，429 留在原站退避），最多重試 8 次，退避時間 `min(5 * 2^i, 60)` 秒；每次成功呼叫之間也固定停 2 秒。回應以查詢字串的 SHA-1 快取在系統暫存目錄（`mini-macau-overpass-cache/`，24 小時有效），中途斷線後重跑不用重打已完成的查詢。整趟通常 5–15 分鐘，時間幾乎都花在 429 退避上。
 
 跟其他 `fetch_*.py` 不一樣，這支**純手動跑**、沒有排程 workflow——學校清單跟 OSM 建築不會常常變，需要時才重跑：
@@ -125,6 +129,44 @@ cd data && uv run python scripts/fetch_schools.py
 ```
 
 跑完要過 `validate_output.py schools`。
+
+### 供水設施 — `fetch_water_facilities.py`
+
+**清單是澳門自來水的，幾何是 OSM 的。** 名單來自澳門自來水「[供水設施](https://www.macaowater.com/about-macao-water/water-supply-facilities)」頁：22 個編號設施（4 座水廠、3 個水塘／水庫、4 個高位水池、4 個原水泵站、7 個泵站）。那頁的示意圖（`Facilities.jpg`）**有版權而且沒有地理座標**，所以一點都不描它——只取「有哪些設施、編號、名字」這些事實，座標一律來自 OpenStreetMap。上游沒有機器可讀的清單（整頁是散文加一張圖），因此 22 筆連同各自對應的 OSM element id 直接寫死在腳本的 `FACILITIES` 表裡；每次跑都會重新查一次那些 id（`out geom`），查不到就中止，OSM 的 `name:pt` / `name:en` 只要不比表裡的名字籠統就蓋過表值（`r10266785` 只標成「水塘 / Reservatório」，指的是那片湖而不是「大水塘」這個設施，所以表值留著）。
+
+四種幾何取法：**水廠**用 `man_made=water_works` 的廠區輪廓，把落在裡面的 `building` way/relation 全部認領；**高位水池**本身就是一棟 `man_made=water_tower` 建築；**水塘／水庫**取水體多邊形，存進 `water[]`（只有環，沒有高度，前端畫半透明填充）；石排灣原水泵站則是 `w945543066`「水塘泵房 Bombagem de Agua」那塊 landuse 多邊形，比照廠區處理。認領到的足跡一律再拿底圖圖磚重切（跟學校同一套 `osm_footprints.py`，見上一節），`kind` 記成 `building`（OSM 建築，已對齊底圖部件）／`tile`（OSM 沒建築，直接切底圖部件）／`outline`（底圖也沒有，退化成輪廓色塊）。三個高位水池的 OSM `height` 是 58.3／81.4／58.4——那是海拔（水池蓋在松山跟氹仔大潭山上），不是樓高，所以只有退化成 `outline` 時才會用到並砍到 20 m 上限；底圖有畫部件時仍照底圖高度，跟其他足跡一致。
+
+22 個裡只有 11 個在 OSM 找得到（4 水廠 + 3 水塘 + 3 個高位水池 + 石排灣泵房）。**其餘 11 個 OSM 根本沒畫**，只給一個 marker 並標 `approximate: true`：座標取「與它同址的那個設施」的 marker 往外推 `APPROX_OFFSET_M` = **70 m**（方向用編號乘黃金角 137.5° 決定，所以同址的兩個 marker 不會疊在同一個像素上）；同址設施也不知道的，退到 district anchor——回力（`回力酒店 Hotel Jai Alai`）、西灣湖（`Lago Sai Van`，取湖岸東北角，即民國大馬路那側，marker 落在湖中央會看起來像 bug）、二龍喉公園（`Jardim da Flora`）——這三個都是**按名字**查 OSM、取面積最大的多邊形，查到的 element 寫進輸出的 `anchors` 供對帳。錨在水體上的泵站（九澳原水泵站）會先被推到水塘岸邊再外推，泵房不會浮在水面上。
+
+推 70 m 而不是原本的 25 m，是因為 25 m 在「看得到管網」的縮放層級還是疊在一起；同址的泵站本來就是廠區裡另一棟建築，不是插在廠房屋頂上的針。代價是黃金角可能把 marker 推下水——17 號（大水塘泵站）的方位角剛好正南，正好是大水塘湖面——所以 `first_dry_bearing` 會以 30° 為級距左右輪流試（0°、+30°、−30°、+60°…），取第一個不落在任何水體環裡的方位角；大水塘泵站因此從 177.5° 改成 207.5°。
+
+#### 第 23 個設施：黑沙水庫（不是自來水公司的）
+
+清單之外還多放一個 **黑沙水庫 Hac Sa Reservoir**（OSM `w108309153`）：它**不在**澳門自來水那 22 個編號裡，是**海事及水務局（DSAMA）**的原水水庫，但它供水給路環水廠，畫在圖上才說得通。因此每筆設施都多了一個 `operator` 欄位——22 個是 `"macao_water"`、黑沙水庫是 `"dsama"`——而黑沙水庫的 `no` 是 `null`（沒有上游編號就不要在 UI 印一個假的）。`sources.hacSa` 也寫明它的來源與歸屬。它的 marker 不取水體重心，而是取**離路環水廠最近的岸邊頂點**（`marker="shore:wtp-coloane"`），因為取水口跟管線都在那一側。管網也跟著多一條 raw 管 `raw-res-hac-sa-wtp-coloane`，共 23 條。
+
+#### 管網是「示意」，不是自來水公司的管線
+
+輸出還帶一段 `network`：`nodes`（目前只有一個非設施節點：珠海原水輸入 `inlet-zhuhai`，放在鴨涌河澳門這岸、青洲水廠北邊約 190 m 的陸地上，在 OSM 澳門邊界 relation `1867188` 內、緊鄰鴨涌馬路好讓 OSRM 有路可貼）與 `pipes`（23 條）。**那份 edge list 是我們自己編的**——澳門自來水沒有公開管線走向，`fetch_water_facilities.py` 的 `PIPES` 就是照設施清單推出來的合理管路（原水從珠海與三個水塘進廠、清水經泵站送到高位水池），設施本身即是隱含節點，用 id 互相引用。**只有幾何是真的**：每條管線是兩端 marker 之間的一次 OSRM `route/v1/driving`（`overview=full&geometries=geojson`），所以管線沿著街道走、過海走橋，像 Cities: Skylines 的管線，而不是穿樓的直線。沿用 [`osrm_route.py`](../../data/scripts/osrm_route.py) 的 Hengqin 排除區與重試；路不通就退化成直線並標 `fallback: true`（超過 3 條就當 OSRM 掛了，整個 run 中止）。OSRM 會把端點吸到最近的道路上（水塘的 marker 在水面中央，離路可以幾百公尺），所以輸出會把兩端 marker 的原座標補回頭尾——管線一定起訖於設施本身。**同址短接則根本不問 OSRM**：兩端直線距離 < 150 m，或是直線 < 600 m 而 OSRM 走出超過 3 倍的路（廠區裡 70 m 的一步，OSRM 會叫車繞 1.2 km），就直接畫成兩點的直線段並標 `direct: true`——那是刻意的短接，所以 `fallback` 仍是 `false`（`fallback` 只代表 OSRM 失敗）。目前 23 條裡 14 條是 `direct`、9 條是實走路網的幹管，實走管線最大繞行倍率 3.58×（路環水廠→石排灣泵站，跨山的幹管刻意保留沿路）。`lengthM` 是沿著**輸出的**折線量的（含補回去的頭尾），不是 OSRM 自己的 `distance`。OSRM 回應跟 Overpass 一樣快取在 OS temp dir（`OSRM_CACHE_DIR`，7 天），重跑不會再打一次。
+
+跟 `fetch_schools.py` 一樣**純手動跑**、沒有排程 workflow：
+
+```bash
+cd data && uv run python scripts/fetch_water_facilities.py
+```
+
+產出 `public/data/water-facilities.json`，跑完要過 `validate_output.py water-facilities`（守門條件：剛好 23 筆、其中 `operator` 為 `macao_water` 的剛好 22 筆且 `no` 是不重複的 1–22、`dsama` 的剛好 1 筆且 `no` 為 `null`、`id` 不重複、`type` 與 `operator` 都在列舉內、座標在澳門範圍內、至少 8 個有 `buildings`、4 個有 `water`；`network` 則是剛好 23 條管線、`id` 不重複、`from`／`to` 都能對到設施 id 或節點 id、`kind` 是 `raw`／`treated`、`lengthM` 是 ≥ 0 的整數、`direct` 與 `fallback` 都是布林值且不會同時為真、`direct` 的剛好 2 個座標、其餘至少 2 個且都在澳門範圍內、`fallback` 最多 3 條）。只打 3 次 Overpass、每條非 `direct` 管線 1 次 OSRM，兩邊的快取讓重跑幾乎免費。`node scripts/inspect.mjs water-facilities` 會把設施摘要（含 operator 分組）跟管網（依 `kind` 分組、direct／routed 數、總公里數、fallback 數、最長的一條、每條的繞行倍率）一起印出來。
+
+#### 配水底稿 — `fetch_water_distribution.py`（另一支腳本、另一個檔）
+
+配水層要「沿著每一條路」畫，但**不能**靠改底圖樣式做：OpenFreeMap 的圖磚涵蓋整個珠三角，把 `transportation` layer 重新上色的話，珠海跟橫琴會跟澳門一樣亮——而這一層的意思就是「**澳門的**配水網」。裁切只能發生在做資料的地方，所以道路自己出一個小檔案。
+
+`fetch_water_distribution.py` 打一次 Overpass，用 `area(3601867188)`（＝ OSM relation `1867188` 澳門，area id 是 relation id + 3600000000）圈出範圍，抓 `highway` 為 `motorway`／`trunk`／`primary`／`secondary`／`tertiary`／`unclassified`／`residential`／`living_street`／`service` 的 way（regex 有錨點，所以 `*_link` 不會混進來），再丟掉 `service=parking_aisle|driveway|drive-through`（那是停車場家具，不是街道）。**注意 Overpass 的 `(area)` 對 way 是「只要有一個節點在範圍內」**，`out geom` 會把整條 way 給你——港珠澳口岸人工島的珠海側、蓮花大橋往橫琴口岸的引道就這樣混進來（實測 4.7 km 的珠海道路），所以每條 way 都會再拿邊界多邊形 `intersection` 裁一次，跨境的 way 會被切成一段或多段澳門側。那個邊界**包含**澳大橫琴校區（租借地，OSM 邊界照法定界線走）、**不包含**橫琴鎮，已驗證。
+
+裁完在公尺投影下用 6 m 容差 `simplify`（在經緯度上做會被 cos(lat) 壓扁），座標留 5 位小數（約 1.1 m）。**簡化時會保護「兩條 way 共用的頂點」**：Douglas-Peucker 只保證頭尾不被砍，砍掉一個共用頂點就等於把 T 字路口拆成兩條互不相連的街，整個街區會被下面的流向場漏掉，所以每條 way 是以共用頂點為界一段一段簡化。短於 25 m 的碎段**只從輸出拿掉、仍留在圖裡**——12 m 的小連接往往正是兩個街廓之間唯一的路。
+
+**流向**：每條路的座標順序是有意義的，從「離清水源近的一端」指向「遠的一端」，前端的虛線動畫就會像水從水廠往外流。作法是拿簡化後的幾何建圖（節點＝座標，邊＝相鄰頂點、權重是公尺），以 `water-facilities.json` 裡 `operator=macao_water` 且 `type` 為 `plant`／`tank`／`pumping` 的 15 個**清水側**設施當種子（原水側的水塘與 `raw_pumping` 刻意不放，原水是流「進」水廠的，放了會讓半個城市看起來往大水塘倒流；黑沙水庫也因 operator 過濾一併排除），各自吸附到最近的圖節點（最遠 133.8 m，是松山 50 米水池——山上本來就沒有路），再跑一次多源 Dijkstra（純 `heapq`，沒加相依套件）。每條路依兩端 `dist` 決定要不要反轉；若中間出現局部極小值（例如一條路兩頭各碰到一個水源），就在極小值處切成兩條，兩半各自往外流。輸出多了 `dist`／`distEnd`（起訖端離水源的公尺數，整數）、`flowSources`（用到的設施 id；叫 `flowSources` 是因為 `sources` 已經是 provenance 區塊）、`unreached`（沒有任何水源能走到的路的條數，這些維持原順序、`dist` 為 `null`）與 `splits`。
+
+輸出 `public/data/water-distribution.json`（compact JSON，沒有 id，只有 `class` / `dist` / `distEnd` / `coordinates`），目前 4,910 條（4,767 有流向、143 unreached、219 條被切）、587.6 km、621 KiB（預算 700 KiB）。跑完要過 `validate_output.py water-distribution`（守門條件：頂層欄位齊、每條 `class` 在檔案自己宣告的 `classes` 內、`dist`／`distEnd` 是 `null` 或 ≥ 0 的整數且**要嘛都有要嘛都沒有**、有值時 `distEnd >= dist`、`unreached` 與實際 `dist: null` 的條數一致、每條至少 2 點、每點在澳門範圍內、至少 2,000 條）。`node scripts/inspect.mjs water-distribution` 印分級統計、總公里數、bbox、檔案大小，以及流向摘要（有流向／unreached、最大距離、切段數、反向的條數應為 0）。
 
 ### 公廁 — `fetch_toilets.py`
 

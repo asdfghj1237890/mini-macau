@@ -18,8 +18,19 @@ import {
   saveSchoolLevelsOn,
   type SchoolLevelSet,
 } from './schools'
+import {
+  applyLayerSnapshot,
+  applyWaterFocus,
+  captureLayerSnapshot,
+  loadWaterFocusSnapshot,
+  saveWaterFocusSnapshot,
+  type LayerVisibilityApply,
+  type LayerVisibilityState,
+} from './water'
 import { useCarParkVacancy } from './hooks/useCarParkVacancy'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark } from './types'
+import { useWaterDistribution } from './hooks/useWaterDistribution'
+import { ignoreClockShortcut } from './timeControls'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WaterFacility, WaterNetworkNode } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -37,6 +48,10 @@ const RoadWorkInfoPanel = lazy(() => import('./components/RoadWorkInfoPanel').th
 const SchoolInfoPanel = lazy(() => import('./components/SchoolInfoPanel').then(m => ({ default: m.SchoolInfoPanel })))
 const ToiletInfoPanel = lazy(() => import('./components/ToiletInfoPanel').then(m => ({ default: m.ToiletInfoPanel })))
 const CarParkInfoPanel = lazy(() => import('./components/CarParkInfoPanel').then(m => ({ default: m.CarParkInfoPanel })))
+const WaterFacilityInfoPanel = lazy(() => import('./components/WaterFacilityInfoPanel').then(m => ({ default: m.WaterFacilityInfoPanel })))
+// The inlet variant lives in the same module, so this resolves the same chunk
+// rather than adding a second network request.
+const WaterInletInfoPanel = lazy(() => import('./components/WaterFacilityInfoPanel').then(m => ({ default: m.WaterInletInfoPanel })))
 
 const LS_KEY = 'mini-macau-visible-routes'
 
@@ -81,6 +96,7 @@ const LS_ROADWORKS_KEY = 'mini-macau-roadworks-on'
 const LS_SCHOOLS_KEY = 'mini-macau-schools-on'
 const LS_TOILETS_KEY = 'mini-macau-toilets-on'
 const LS_CARPARKS_KEY = 'mini-macau-carparks-on'
+const LS_WATER_KEY = 'mini-macau-water-on'
 
 // Stable empty array for the "schools off" case. filteredTransitData is
 // rebuilt on every clock tick (dateAwareFlights depends on currentTime), and
@@ -93,6 +109,9 @@ const NO_ROAD_WORKS: RoadWorkNotice[] = []
 const NO_TOILETS: Toilet[] = []
 // Ditto for the "P" markers.
 const NO_CAR_PARKS: CarPark[] = []
+// And for the water overlay, which pushes THREE sources (surfaces, blocks,
+// markers) on one array identity — a fresh `[]` would rebuild all three.
+const NO_WATER_FACILITIES: WaterFacility[] = []
 const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 
 export default function App() {
@@ -130,6 +149,11 @@ export default function App() {
   >(null)
   const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null)
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null)
+  const [selectedWaterFacility, setSelectedWaterFacility] = useState<WaterFacility | null>(null)
+  // A node of the schematic pipe network — today only the Zhuhai raw-water
+  // inlet. Its own slot rather than a widened `selectedWaterFacility`, because
+  // it is not one of Macao Water's 22 and gets a different panel.
+  const [selectedWaterNode, setSelectedWaterNode] = useState<WaterNetworkNode | null>(null)
   const [trackedVehicleId, setTrackedVehicleId] = useState<string | null>(null)
   const [vehicleCount, setVehicleCount] = useState(0)
   const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
@@ -145,6 +169,13 @@ export default function App() {
   // Car parks are opt-in as well — 88 "P" plates over the peninsula, and the
   // layer is the only thing that starts the live-vacancy polling.
   const [carParksOn, setCarParksOn] = useState(() => localStorage.getItem(LS_CARPARKS_KEY) === '1')
+  // Water facilities are opt-in like the rest of the CITY page: 22 markers plus
+  // three reservoir fills are infrastructure trivia until asked for, so `=== '1'`.
+  const [waterOn, setWaterOn] = useState(() => localStorage.getItem(LS_WATER_KEY) === '1')
+  // The layer state to put back when water focus ends. Seeded from storage so a
+  // reload with water already on (nothing to snapshot at that point — every
+  // other layer is already off) still restores the pre-focus map later.
+  const waterFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadWaterFocusSnapshot())
   // Which of the five teaching stages are drawn. Independent of `schoolsOn`,
   // which is the master switch for the whole layer.
   const [schoolLevelsOn, setSchoolLevelsOn] = useState<SchoolLevelSet>(loadSchoolLevelsOn)
@@ -199,6 +230,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_SCHOOLS_KEY, schoolsOn ? '1' : '0') }, [schoolsOn])
   useEffect(() => { localStorage.setItem(LS_TOILETS_KEY, toiletsOn ? '1' : '0') }, [toiletsOn])
   useEffect(() => { localStorage.setItem(LS_CARPARKS_KEY, carParksOn ? '1' : '0') }, [carParksOn])
+  useEffect(() => { localStorage.setItem(LS_WATER_KEY, waterOn ? '1' : '0') }, [waterOn])
   useEffect(() => { saveSchoolLevelsOn(schoolLevelsOn) }, [schoolLevelsOn])
   // Hiding the layer must also close its panel — the marker it describes is
   // gone from the map.
@@ -206,6 +238,11 @@ export default function App() {
   useEffect(() => { if (!schoolsOn) setSelectedSchool(null) }, [schoolsOn])
   useEffect(() => { if (!toiletsOn) setSelectedToilet(null) }, [toiletsOn])
   useEffect(() => { if (!carParksOn) setSelectedCarPark(null) }, [carParksOn])
+  useEffect(() => {
+    if (waterOn) return
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
+  }, [waterOn])
   // Same rule one level down: switching off a teaching stage removes those
   // blocks, so a panel describing one of them has to close too.
   useEffect(() => {
@@ -291,7 +328,18 @@ export default function App() {
     schools: visibleSchools,
     toilets: toiletsOn ? transitData.toilets : NO_TOILETS,
     carParks: carParksOn ? transitData.carParks : NO_CAR_PARKS,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, toiletsOn, carParksOn])
+    waterFacilities: waterOn ? transitData.waterFacilities : NO_WATER_FACILITIES,
+    // The pipes go with the facilities: null empties the pipe source and drops
+    // the inlet marker, exactly as the empty array empties the other three.
+    waterNetwork: waterOn ? transitData.waterNetwork : null,
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, toiletsOn, carParksOn, waterOn])
+
+  // Macau's streets, for the thin distribution pipes. Fetched the first time
+  // WATER goes on and kept for the session — the hook ignores later toggles, so
+  // switching the layer off and on again costs no second request. Passed
+  // straight to MapView rather than through TransitData: it is a lazily loaded
+  // extra, not part of the pipeline contract the simulation reads.
+  const waterDistribution = useWaterDistribution(waterOn)
 
   // Live car-park vacancy. Polled ONLY while the layer is on AND the clock
   // runs at 1× — at any other speed the simulated moment is not "now", so a
@@ -400,6 +448,8 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
     setTrackedVehicleId(vehicle?.id ?? null)
     if (vehicle) ga.vehicleSelected(vehicle.type, vehicle.id)
   }, [])
@@ -415,6 +465,8 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
     setTrackedVehicleId(null)
     if (station) ga.stationSelected(station.id)
   }, [])
@@ -428,6 +480,8 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -439,6 +493,8 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -450,6 +506,8 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedCarPark(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -461,6 +519,36 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedToilet(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
+    setTrackedVehicleId(null)
+  }, [])
+
+  // Water facilities — reached from either the droplet marker or the coloured
+  // block, and mutually exclusive with everything above like the rest.
+  const onWaterFacilityClick = useCallback((facility: WaterFacility | null) => {
+    setSelectedWaterFacility(facility)
+    setSelectedWaterNode(null)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
+    setSelectedToilet(null)
+    setSelectedCarPark(null)
+    setTrackedVehicleId(null)
+  }, [])
+
+  // A node of the pipe network (the Zhuhai inlet). Shares the marker layer with
+  // the facilities, so it follows the same one-panel-at-a-time rule.
+  const onWaterNodeClick = useCallback((node: WaterNetworkNode | null) => {
+    setSelectedWaterNode(node)
+    setSelectedWaterFacility(null)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
+    setSelectedToilet(null)
+    setSelectedCarPark(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -471,6 +559,8 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -508,6 +598,59 @@ export default function App() {
     ga.layerToggled('carparks', !v)
     return !v
   }), [])
+
+  // The setters the water focus mode drives. Bus visibility is set as one
+  // operation (routes + mode) and mirrored into its own localStorage key the
+  // same way the manual controls do it, so a reload during focus mode reads a
+  // consistent "buses off" — the snapshot is what restores it, not that key.
+  const layerApply = useMemo<LayerVisibilityApply>(() => ({
+    setLrt: ids => setLrtOn(new Set(ids)),
+    setBus: (routeIds, auto) => {
+      const next = new Set(routeIds)
+      if (auto) clearSavedRoutes()
+      else saveRoutes(next)
+      setVisibleRoutes(next)
+      setIsAutoMode(auto)
+    },
+    setFlights: setFlightsOn,
+    setFerries: setFerriesOn,
+    setRoadWorks: setRoadWorksOn,
+    setSchools: setSchoolsOn,
+    setToilets: setToiletsOn,
+    setCarParks: setCarParksOn,
+  }), [])
+
+  // WATER is a focus mode: switching it on snapshots every other layer and
+  // clears them, switching it off puts that exact snapshot back — even if the
+  // user flipped other switches in between. The snapshot lives in a ref (read
+  // at click time, never rendered) seeded from localStorage, so a reload while
+  // water is on still restores correctly afterwards.
+  const toggleWater = useCallback(() => {
+    const next = !waterOn
+    ga.layerToggled('water', next)
+    if (next) {
+      const snapshot = captureLayerSnapshot({
+        lrt: [...lrtOn],
+        busAuto: isAutoMode,
+        busRoutes: [...visibleRoutes],
+        flights: flightsOn,
+        ferries: ferriesOn,
+        roadWorks: roadWorksOn,
+        schools: schoolsOn,
+        toilets: toiletsOn,
+        carParks: carParksOn,
+      })
+      waterFocusSnapshotRef.current = snapshot
+      saveWaterFocusSnapshot(snapshot)
+      applyWaterFocus(layerApply)
+    } else {
+      const snapshot = waterFocusSnapshotRef.current
+      if (snapshot) applyLayerSnapshot(snapshot, layerApply)
+      waterFocusSnapshotRef.current = null
+      saveWaterFocusSnapshot(null)
+    }
+    setWaterOn(next)
+  }, [waterOn, lrtOn, isAutoMode, visibleRoutes, flightsOn, ferriesOn, roadWorksOn, schoolsOn, toiletsOn, carParksOn, layerApply])
   const toggleSchoolLevel = useCallback((level: SchoolLevel) => {
     setSchoolLevelsOn(prev => {
       const next = new Set(prev)
@@ -525,7 +668,11 @@ export default function App() {
   const { togglePause } = clock
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+      const isTextEntry =
+        e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
+      // Locked during WATER focus mode, exactly like the buttons — otherwise
+      // the one control that ISN'T dimmed would still pause the clock.
+      if (ignoreClockShortcut(waterOn, isTextEntry)) return
       if (e.code === 'Space') {
         e.preventDefault()
         togglePause()
@@ -533,7 +680,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [togglePause])
+  }, [togglePause, waterOn])
 
   return (
     <div className="relative w-full h-full">
@@ -550,6 +697,10 @@ export default function App() {
             onSchoolClick={onSchoolClick}
             onToiletClick={onToiletClick}
             onCarParkClick={onCarParkClick}
+            onWaterFacilityClick={onWaterFacilityClick}
+            onWaterNodeClick={onWaterNodeClick}
+            waterFocus={waterOn}
+            waterDistributionRoads={waterDistribution?.roads ?? null}
             carParkVacancy={carParkVacancy.vacancy}
             onClearSelection={clearSelection}
             trackedVehicleId={trackedVehicleId}
@@ -557,6 +708,8 @@ export default function App() {
             selectedSchoolId={selectedSchool?.school.id ?? null}
             selectedToiletId={selectedToilet?.id ?? null}
             selectedCarParkId={selectedCarPark?.id ?? null}
+            selectedWaterFacilityId={selectedWaterFacility?.id ?? null}
+            selectedWaterNodeId={selectedWaterNode?.id ?? null}
             onVehicleCount={onVehicleCount}
             showTimeBar={showTimeBar}
             onToggleTimeBar={toggleTimeBar}
@@ -565,7 +718,17 @@ export default function App() {
       ) : (
         <MapSplash />
       )}
-      {showTimeBar && <TimeDisplay clock={clock} vehicleCount={vehicleCount} />}
+      {/* WATER focus mode takes the clock UI OFF the screen. The supply network
+          has no time dimension — nothing on it moves, nothing about it differs
+          between 03:00 and 18:00 — so a clock and a scrubber would only invite
+          the user to drive something that changes nothing they can see.
+          Unmounted rather than hidden, and the state that matters survives it:
+          the clock itself lives in this component and keeps ticking, and the
+          bar's expanded/collapsed choice is persisted (`mm_tl_expanded`), so
+          both come back exactly as they were when WATER goes off. */}
+      {showTimeBar && !waterOn && (
+        <TimeDisplay clock={clock} vehicleCount={vehicleCount} />
+      )}
       <LineLegend
         transitData={filteredTransitData}
         // Pass the date-aware total here too so the "active / total"
@@ -585,6 +748,7 @@ export default function App() {
         schoolLevelCounts={schoolLevelCounts}
         toiletsOn={toiletsOn}
         carParksOn={carParksOn}
+        waterOn={waterOn}
         clock={clock}
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
@@ -594,6 +758,7 @@ export default function App() {
         onToggleSchoolLevel={toggleSchoolLevel}
         onToggleToilets={toggleToilets}
         onToggleCarParks={toggleCarParks}
+        onToggleWater={toggleWater}
         onToggleRoute={onToggleRoute}
         onToggleAll={onToggleAll}
         onShowAll={onShowAll}
@@ -601,7 +766,7 @@ export default function App() {
         onToggleGroup={onToggleGroup}
         onResetAuto={onResetAuto}
       />
-      <ControlPanel clock={clock} />
+      {!waterOn && <ControlPanel clock={clock} />}
       <Suspense>
         {selectedVehicle && selectedVehicle.type === 'flight' && (
           <FlightInfoPanel
@@ -658,6 +823,23 @@ export default function App() {
             carPark={selectedCarPark}
             vacancy={carParkVacancy.vacancy?.get(selectedCarPark.id) ?? null}
             polling={carParkVacancy.polling}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedWaterFacility && (
+          <WaterFacilityInfoPanel
+            facility={selectedWaterFacility}
+            // The UNFILTERED list: an approximate marker names the facility it
+            // sits at, which may not be one the panel's own filter kept.
+            facilities={transitData.waterFacilities}
+            network={transitData.waterNetwork}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedWaterNode && (
+          <WaterInletInfoPanel
+            node={selectedWaterNode}
+            network={transitData.waterNetwork}
             onClose={clearSelection}
           />
         )}

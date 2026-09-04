@@ -291,7 +291,7 @@ export function ControlPanel({ clock }: Props) {
                 onClick={() => setSpeedMenuOpen(o => !o)}
                 aria-haspopup="menu"
                 aria-expanded={speedMenuOpen}
-                className="h-11 px-3 flex items-center gap-1 text-amber-200
+                  className="h-11 px-3 flex items-center gap-1 text-amber-200
                            active:bg-white/10 rounded-sm"
               >
                 <span className="mm-mono mm-tabular text-[13px] font-bold">{speed}×</span>
@@ -313,7 +313,7 @@ export function ControlPanel({ clock }: Props) {
                       type="button"
                       role="menuitemradio"
                       aria-checked={s === speed}
-                      onClick={() => { clock.setSpeed(s); setSpeedMenuOpen(false) }}
+                              onClick={() => { clock.setSpeed(s); setSpeedMenuOpen(false) }}
                       className={`h-10 px-3 text-left mm-mono mm-tabular text-[13px]
                                   active:bg-white/10
                                   ${s === speed
@@ -433,7 +433,7 @@ export function ControlPanel({ clock }: Props) {
                 type="button"
                 onClick={() => clock.setSpeed(s)}
                 aria-pressed={active}
-                className={`mm-mono mm-tabular text-[10px] px-1.5 h-6 rounded-sm transition
+                  className={`mm-mono mm-tabular text-[10px] px-1.5 h-6 rounded-sm transition
                            ${active
                              ? 'bg-amber-300/15 text-amber-200'
                              : 'text-white/40 hover:text-white/80'}`}

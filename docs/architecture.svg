@@ -29,82 +29,91 @@
 <rect x="760" y="64" width="216" height="496" rx="10" fill="#121316" stroke="rgba(255,255,255,0.08)"/>
 <text x="772" y="86" class="m" font-size="11" letter-spacing="2.5" fill="#e5e7eb">BROWSER RUNTIME</text>
 <text x="772" y="101" class="t" font-size="11" fill="rgba(229,231,235,0.55)">replays on a sim clock</text>
-<path id="e0" d="M226,159 C266,159 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e1" d="M226,209 C266,209 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e2" d="M226,259 C266,259 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e3" d="M226,309 C266,309 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e4" d="M226,359 C266,359 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e5" d="M226,409 C266,409 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e6" d="M226,459 C266,459 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e7" d="M470,283 C510,283 254,333 294,333" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e8" d="M470,333 C510,333 254,383 294,383" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e9" d="M470,233 C510,233 498,133 538,133" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e10" d="M470,233 C510,233 498,183 538,183" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e11" d="M470,233 C510,233 498,333 538,333" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e12" d="M470,383 C510,383 498,233 538,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e13" d="M470,383 C510,383 498,283 538,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e14" d="M470,383 C510,383 498,383 538,383" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e15" d="M470,383 C510,383 498,433 538,433" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e16" d="M470,383 C510,383 498,483 538,483" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e17" d="M704,133 C744,133 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e18" d="M704,183 C744,183 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e19" d="M704,233 C744,233 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e20" d="M704,283 C744,283 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e21" d="M704,333 C744,333 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e22" d="M704,383 C744,383 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e23" d="M704,433 C744,433 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e24" d="M704,483 C744,483 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e25" d="M226,509 C252,509 256,528 270,528 L728,528 C742,528 746,528 772,528" fill="none" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.7" marker-end="url(#arrow)"/>
-<path id="e26" d="M964,378 C1004,378 732,478 772,478" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e27" d="M964,428 C1004,428 732,478 772,478" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e28" d="M964,528 C1004,528 732,478 772,478" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e0" d="M226,134 C266,134 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e1" d="M226,184 C266,184 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e2" d="M226,234 C266,234 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e3" d="M226,284 C266,284 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e4" d="M226,484 C266,484 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e5" d="M226,334 C266,334 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e6" d="M226,384 C266,384 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e7" d="M226,434 C266,434 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e8" d="M470,283 C510,283 254,333 294,333" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e9" d="M470,333 C510,333 254,383 294,383" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e10" d="M470,233 C510,233 498,140 538,140" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e11" d="M470,233 C510,233 498,182 538,182" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e12" d="M470,233 C510,233 498,308 538,308" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e13" d="M470,233 C510,233 498,476 538,476" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e14" d="M470,383 C510,383 498,224 538,224" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e15" d="M470,383 C510,383 498,266 538,266" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e16" d="M470,383 C510,383 498,350 538,350" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e17" d="M470,383 C510,383 498,392 538,392" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e18" d="M470,383 C510,383 498,434 538,434" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e19" d="M704,140 C744,140 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e20" d="M704,182 C744,182 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e21" d="M704,224 C744,224 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e22" d="M704,266 C744,266 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e23" d="M704,308 C744,308 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e24" d="M704,350 C744,350 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e25" d="M704,392 C744,392 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e26" d="M704,434 C744,434 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e27" d="M704,476 C744,476 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e28" d="M226,534 C252,534 256,528 270,528 L728,528 C742,528 746,528 772,528" fill="none" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.7" marker-end="url(#arrow)"/>
+<path id="e29" d="M964,378 C1004,378 732,478 772,478" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e30" d="M964,428 C1004,428 732,478 772,478" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e31" d="M964,528 C1004,528 732,478 772,478" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
 <g>
-<rect x="36" y="139" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="147" width="3" height="24" rx="1.5" fill="#fcd34d"/>
-<text x="48" y="156" class="t" font-size="12" font-weight="600" fill="#e5e7eb">OpenStreetMap</text>
-<text x="48" y="170" class="t" font-size="10" fill="rgba(229,231,235,0.55)">geometry · school footprints</text>
+<rect x="36" y="114" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="122" width="3" height="24" rx="1.5" fill="#fcd34d"/>
+<text x="48" y="131" class="t" font-size="12" font-weight="600" fill="#e5e7eb">OpenStreetMap</text>
+<text x="48" y="145" class="t" font-size="10" fill="rgba(229,231,235,0.55)">geometry · school footprints</text>
 </g>
 <g>
-<rect x="36" y="189" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="197" width="3" height="24" rx="1.5" fill="#fcd34d"/>
-<text x="48" y="206" class="t" font-size="12" font-weight="600" fill="#e5e7eb">MLM LRT timetables</text>
-<text x="48" y="220" class="t" font-size="10" fill="rgba(229,231,235,0.55)">transcribed boards</text>
+<rect x="36" y="164" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="172" width="3" height="24" rx="1.5" fill="#fcd34d"/>
+<text x="48" y="181" class="t" font-size="12" font-weight="600" fill="#e5e7eb">MLM LRT timetables</text>
+<text x="48" y="195" class="t" font-size="10" fill="rgba(229,231,235,0.55)">transcribed boards</text>
 </g>
 <g>
-<rect x="36" y="239" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="247" width="3" height="24" rx="1.5" fill="#6ee7b7"/>
-<text x="48" y="256" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSAT bus frequencies</text>
-<text x="48" y="270" class="t" font-size="10" fill="rgba(229,231,235,0.55)">service hours</text>
+<rect x="36" y="214" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="222" width="3" height="24" rx="1.5" fill="#6ee7b7"/>
+<text x="48" y="231" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSAT bus frequencies</text>
+<text x="48" y="245" class="t" font-size="10" fill="rgba(229,231,235,0.55)">service hours</text>
 </g>
 <g>
-<rect x="36" y="289" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="297" width="3" height="24" rx="1.5" fill="#c4b5fd"/>
-<text x="48" y="306" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSEDJ school list</text>
-<text x="48" y="320" class="t" font-size="10" fill="rgba(229,231,235,0.55)">data.gov.mo</text>
+<rect x="36" y="264" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="272" width="3" height="24" rx="1.5" fill="#c4b5fd"/>
+<text x="48" y="281" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSEDJ school list</text>
+<text x="48" y="295" class="t" font-size="10" fill="rgba(229,231,235,0.55)">data.gov.mo</text>
 </g>
 <g>
-<rect x="36" y="339" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="347" width="3" height="24" rx="1.5" fill="#7dd3fc"/>
-<text x="48" y="356" class="t" font-size="12" font-weight="600" fill="#e5e7eb">AviationStack API</text>
-<text x="48" y="370" class="t" font-size="10" fill="rgba(229,231,235,0.55)">MFM flights</text>
+<rect x="36" y="314" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="322" width="3" height="24" rx="1.5" fill="#7dd3fc"/>
+<text x="48" y="331" class="t" font-size="12" font-weight="600" fill="#e5e7eb">AviationStack API</text>
+<text x="48" y="345" class="t" font-size="10" fill="rgba(229,231,235,0.55)">MFM flights</text>
 </g>
 <g>
-<rect x="36" y="389" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="397" width="3" height="24" rx="1.5" fill="#fca5a5"/>
-<text x="48" y="406" class="t" font-size="12" font-weight="600" fill="#e5e7eb">TurboJET · CotaiJet</text>
-<text x="48" y="420" class="t" font-size="10" fill="rgba(229,231,235,0.55)">timetable scrape</text>
+<rect x="36" y="364" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="372" width="3" height="24" rx="1.5" fill="#fca5a5"/>
+<text x="48" y="381" class="t" font-size="12" font-weight="600" fill="#e5e7eb">TurboJET · CotaiJet</text>
+<text x="48" y="395" class="t" font-size="10" fill="rgba(229,231,235,0.55)">timetable scrape</text>
 </g>
 <g>
-<rect x="36" y="439" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="447" width="3" height="24" rx="1.5" fill="#5eead4"/>
-<text x="48" y="456" class="t" font-size="12" font-weight="600" fill="#e5e7eb">data.gov.mo</text>
-<text x="48" y="470" class="t" font-size="10" fill="rgba(229,231,235,0.55)">road works · toilets · car parks</text>
+<rect x="36" y="414" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="422" width="3" height="24" rx="1.5" fill="#5eead4"/>
+<text x="48" y="431" class="t" font-size="12" font-weight="600" fill="#e5e7eb">data.gov.mo</text>
+<text x="48" y="445" class="t" font-size="10" fill="rgba(229,231,235,0.55)">road works · toilets · car parks</text>
 </g>
 <g>
-<rect x="36" y="489" width="190" height="40" rx="6" fill="#17181c" stroke="#93c5fd" stroke-dasharray="3 3" class="pulse"/>
-<rect x="36" y="497" width="3" height="24" rx="1.5" fill="#93c5fd"/>
-<text x="48" y="506" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSAT car-park vacancy</text>
-<text x="48" y="520" class="t" font-size="10" fill="rgba(229,231,235,0.55)">API gateway · every 10 s</text>
+<rect x="36" y="464" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="472" width="3" height="24" rx="1.5" fill="#7dd3fc"/>
+<text x="48" y="481" class="t" font-size="12" font-weight="600" fill="#e5e7eb">Macao Water facilities</text>
+<text x="48" y="495" class="t" font-size="10" fill="rgba(229,231,235,0.55)">22-item list · geometry from OSM</text>
+</g>
+<g>
+<rect x="36" y="514" width="190" height="40" rx="6" fill="#17181c" stroke="#93c5fd" stroke-dasharray="3 3" class="pulse"/>
+<rect x="36" y="522" width="3" height="24" rx="1.5" fill="#93c5fd"/>
+<text x="48" y="531" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSAT car-park vacancy</text>
+<text x="48" y="545" class="t" font-size="10" fill="rgba(229,231,235,0.55)">API gateway · every 10 s</text>
 </g>
 <g>
 <rect x="294" y="213" width="176" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
@@ -131,44 +140,49 @@
 <text x="306" y="394" class="t" font-size="10" fill="rgba(229,231,235,0.55)">only when the JSON changed</text>
 </g>
 <g>
-<rect x="538" y="113" width="166" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="538" y="121" width="3" height="24" rx="1.5" fill="#fcd34d"/>
-<text x="550" y="137" class="t" font-size="12" font-weight="600" fill="#e5e7eb">lrt-lines · stations · trips</text>
+<rect x="538" y="123" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="538" y="131" width="3" height="18" rx="1.5" fill="#fcd34d"/>
+<text x="550" y="144" class="t" font-size="12" font-weight="600" fill="#e5e7eb">lrt-lines · stations · trips</text>
 </g>
 <g>
-<rect x="538" y="163" width="166" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="538" y="171" width="3" height="24" rx="1.5" fill="#6ee7b7"/>
-<text x="550" y="187" class="t" font-size="12" font-weight="600" fill="#e5e7eb">bus-routes · bus-stops</text>
+<rect x="538" y="165" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="538" y="173" width="3" height="18" rx="1.5" fill="#6ee7b7"/>
+<text x="550" y="186" class="t" font-size="12" font-weight="600" fill="#e5e7eb">bus-routes · bus-stops</text>
 </g>
 <g>
-<rect x="538" y="213" width="166" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="538" y="221" width="3" height="24" rx="1.5" fill="#7dd3fc"/>
-<text x="550" y="237" class="t" font-size="12" font-weight="600" fill="#e5e7eb">flights · flights-timetable</text>
+<rect x="538" y="207" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="538" y="215" width="3" height="18" rx="1.5" fill="#7dd3fc"/>
+<text x="550" y="228" class="t" font-size="12" font-weight="600" fill="#e5e7eb">flights · flights-timetable</text>
 </g>
 <g>
-<rect x="538" y="263" width="166" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="538" y="271" width="3" height="24" rx="1.5" fill="#fca5a5"/>
-<text x="550" y="287" class="t" font-size="12" font-weight="600" fill="#e5e7eb">ferry-schedules</text>
+<rect x="538" y="249" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="538" y="257" width="3" height="18" rx="1.5" fill="#fca5a5"/>
+<text x="550" y="270" class="t" font-size="12" font-weight="600" fill="#e5e7eb">ferry-schedules</text>
 </g>
 <g>
-<rect x="538" y="313" width="166" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="538" y="321" width="3" height="24" rx="1.5" fill="#c4b5fd"/>
-<text x="550" y="337" class="t" font-size="12" font-weight="600" fill="#e5e7eb">schools</text>
+<rect x="538" y="291" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="538" y="299" width="3" height="18" rx="1.5" fill="#c4b5fd"/>
+<text x="550" y="312" class="t" font-size="12" font-weight="600" fill="#e5e7eb">schools</text>
 </g>
 <g>
-<rect x="538" y="363" width="166" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="538" y="371" width="3" height="24" rx="1.5" fill="#5eead4"/>
-<text x="550" y="387" class="t" font-size="12" font-weight="600" fill="#e5e7eb">road-works</text>
+<rect x="538" y="333" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="538" y="341" width="3" height="18" rx="1.5" fill="#5eead4"/>
+<text x="550" y="354" class="t" font-size="12" font-weight="600" fill="#e5e7eb">road-works</text>
 </g>
 <g>
-<rect x="538" y="413" width="166" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="538" y="421" width="3" height="24" rx="1.5" fill="#5eead4"/>
-<text x="550" y="437" class="t" font-size="12" font-weight="600" fill="#e5e7eb">toilets</text>
+<rect x="538" y="375" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="538" y="383" width="3" height="18" rx="1.5" fill="#5eead4"/>
+<text x="550" y="396" class="t" font-size="12" font-weight="600" fill="#e5e7eb">toilets</text>
 </g>
 <g>
-<rect x="538" y="463" width="166" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="538" y="471" width="3" height="24" rx="1.5" fill="#93c5fd"/>
-<text x="550" y="487" class="t" font-size="12" font-weight="600" fill="#e5e7eb">car-parks</text>
+<rect x="538" y="417" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="538" y="425" width="3" height="18" rx="1.5" fill="#93c5fd"/>
+<text x="550" y="438" class="t" font-size="12" font-weight="600" fill="#e5e7eb">car-parks</text>
+</g>
+<g>
+<rect x="538" y="459" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="538" y="467" width="3" height="18" rx="1.5" fill="#7dd3fc"/>
+<text x="550" y="480" class="t" font-size="12" font-weight="600" fill="#e5e7eb">water-facilities</text>
 </g>
 <g>
 <rect x="772" y="358" width="192" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
@@ -214,23 +228,23 @@
   <animateMotion dur="3.2s" begin="1.48s" repeatCount="indefinite" rotate="auto"><mpath href="#e4"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.48s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#fca5a5" opacity="0">
+<circle r="2.6" fill="#7dd3fc" opacity="0">
   <animateMotion dur="3.2s" begin="1.85s" repeatCount="indefinite" rotate="auto"><mpath href="#e5"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.85s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#5eead4" opacity="0">
+<circle r="2.6" fill="#fca5a5" opacity="0">
   <animateMotion dur="3.2s" begin="2.22s" repeatCount="indefinite" rotate="auto"><mpath href="#e6"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="2.22s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#7dd3fc" opacity="0">
+<circle r="2.6" fill="#5eead4" opacity="0">
   <animateMotion dur="3.2s" begin="2.59s" repeatCount="indefinite" rotate="auto"><mpath href="#e7"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="2.59s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#f5f5f5" opacity="0">
+<circle r="2.6" fill="#7dd3fc" opacity="0">
   <animateMotion dur="3.2s" begin="2.96s" repeatCount="indefinite" rotate="auto"><mpath href="#e8"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="2.96s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#fcd34d" opacity="0">
+<circle r="2.6" fill="#f5f5f5" opacity="0">
   <animateMotion dur="3.2s" begin="0.13s" repeatCount="indefinite" rotate="auto"><mpath href="#e9"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.13s" repeatCount="indefinite"/>
 </circle>
@@ -242,11 +256,11 @@
   <animateMotion dur="3.2s" begin="0.87s" repeatCount="indefinite" rotate="auto"><mpath href="#e11"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.87s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#f5f5f5" opacity="0">
+<circle r="2.6" fill="#fcd34d" opacity="0">
   <animateMotion dur="3.2s" begin="1.24s" repeatCount="indefinite" rotate="auto"><mpath href="#e12"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.24s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#f5f5f5" opacity="0">
+<circle r="2.6" fill="#fcd34d" opacity="0">
   <animateMotion dur="3.2s" begin="1.61s" repeatCount="indefinite" rotate="auto"><mpath href="#e13"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.61s" repeatCount="indefinite"/>
 </circle>
@@ -262,53 +276,65 @@
   <animateMotion dur="3.2s" begin="2.72s" repeatCount="indefinite" rotate="auto"><mpath href="#e16"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="2.72s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#fcd34d" opacity="0">
+<circle r="2.6" fill="#f5f5f5" opacity="0">
   <animateMotion dur="3.2s" begin="3.09s" repeatCount="indefinite" rotate="auto"><mpath href="#e17"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="3.09s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#6ee7b7" opacity="0">
+<circle r="2.6" fill="#f5f5f5" opacity="0">
   <animateMotion dur="3.2s" begin="0.26s" repeatCount="indefinite" rotate="auto"><mpath href="#e18"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.26s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#7dd3fc" opacity="0">
+<circle r="2.6" fill="#fcd34d" opacity="0">
   <animateMotion dur="3.2s" begin="0.63s" repeatCount="indefinite" rotate="auto"><mpath href="#e19"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.63s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#fca5a5" opacity="0">
+<circle r="2.6" fill="#6ee7b7" opacity="0">
   <animateMotion dur="3.2s" begin="1.00s" repeatCount="indefinite" rotate="auto"><mpath href="#e20"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.00s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#c4b5fd" opacity="0">
+<circle r="2.6" fill="#7dd3fc" opacity="0">
   <animateMotion dur="3.2s" begin="1.37s" repeatCount="indefinite" rotate="auto"><mpath href="#e21"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.37s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#5eead4" opacity="0">
+<circle r="2.6" fill="#fca5a5" opacity="0">
   <animateMotion dur="3.2s" begin="1.74s" repeatCount="indefinite" rotate="auto"><mpath href="#e22"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.74s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#5eead4" opacity="0">
+<circle r="2.6" fill="#c4b5fd" opacity="0">
   <animateMotion dur="3.2s" begin="2.11s" repeatCount="indefinite" rotate="auto"><mpath href="#e23"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="2.11s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#93c5fd" opacity="0">
+<circle r="2.6" fill="#5eead4" opacity="0">
   <animateMotion dur="3.2s" begin="2.48s" repeatCount="indefinite" rotate="auto"><mpath href="#e24"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="2.48s" repeatCount="indefinite"/>
 </circle>
-<circle r="3" fill="#93c5fd" opacity="0">
-  <animateMotion dur="1.6s" begin="1.25s" repeatCount="indefinite" rotate="auto"><mpath href="#e25"/></animateMotion>
-  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" begin="1.25s" repeatCount="indefinite"/>
+<circle r="2.6" fill="#5eead4" opacity="0">
+  <animateMotion dur="3.2s" begin="2.85s" repeatCount="indefinite" rotate="auto"><mpath href="#e25"/></animateMotion>
+  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="2.85s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#fcd34d" opacity="0">
+<circle r="2.6" fill="#93c5fd" opacity="0">
   <animateMotion dur="3.2s" begin="0.02s" repeatCount="indefinite" rotate="auto"><mpath href="#e26"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.02s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#5eead4" opacity="0">
+<circle r="2.6" fill="#7dd3fc" opacity="0">
   <animateMotion dur="3.2s" begin="0.39s" repeatCount="indefinite" rotate="auto"><mpath href="#e27"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.39s" repeatCount="indefinite"/>
 </circle>
+<circle r="3" fill="#93c5fd" opacity="0">
+  <animateMotion dur="1.6s" begin="0.76s" repeatCount="indefinite" rotate="auto"><mpath href="#e28"/></animateMotion>
+  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" begin="0.76s" repeatCount="indefinite"/>
+</circle>
+<circle r="2.6" fill="#fcd34d" opacity="0">
+  <animateMotion dur="3.2s" begin="1.13s" repeatCount="indefinite" rotate="auto"><mpath href="#e29"/></animateMotion>
+  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.13s" repeatCount="indefinite"/>
+</circle>
+<circle r="2.6" fill="#5eead4" opacity="0">
+  <animateMotion dur="3.2s" begin="1.50s" repeatCount="indefinite" rotate="auto"><mpath href="#e30"/></animateMotion>
+  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.50s" repeatCount="indefinite"/>
+</circle>
 <circle r="2.6" fill="#93c5fd" opacity="0">
-  <animateMotion dur="3.2s" begin="0.76s" repeatCount="indefinite" rotate="auto"><mpath href="#e28"/></animateMotion>
-  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.76s" repeatCount="indefinite"/>
+  <animateMotion dur="3.2s" begin="1.87s" repeatCount="indefinite" rotate="auto"><mpath href="#e31"/></animateMotion>
+  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.87s" repeatCount="indefinite"/>
 </circle>
 <g transform="translate(902, 76)">
   <rect width="62" height="20" rx="4" fill="#0b0b0c" stroke="rgba(252,211,77,0.35)"/>

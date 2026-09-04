@@ -9,6 +9,7 @@ import {
   schoolLevelLabel,
   type SchoolLevelSet,
 } from '../schools'
+import { waterLegendRows, type WaterLegendRow } from '../water'
 
 // The five level colours as one 8×8 swatch. Only the mobile modal header uses
 // it now — the desktop row shows the same violet hatch as the other layers,
@@ -37,6 +38,117 @@ const TOILET_HATCH = 'repeating-linear-gradient(-45deg, rgba(20,184,166,0.45) 0 
 
 // Blue hatch for the car-park row — the marker colour (#3b82f6).
 const CAR_PARK_HATCH = 'repeating-linear-gradient(-45deg, rgba(59,130,246,0.45) 0 1px, transparent 1px 3px)'
+
+// Sky hatch for the WATER row — the reservoir colour (#38bdf8), which is the
+// overlay's dominant tone on the map.
+const WATER_HATCH = 'repeating-linear-gradient(-45deg, rgba(56,189,248,0.45) 0 1px, transparent 1px 3px)'
+
+// 12px droplet for the WATER row — the same stroked style as the sibling row
+// glyphs, so it dims with the row instead of staying lit like an emoji would.
+function WaterIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8 1.75c2.6 3 4.25 5.05 4.25 7.1a4.25 4.25 0 0 1-8.5 0c0-2.05 1.65-4.1 4.25-7.1z" />
+    </svg>
+  )
+}
+
+// ---- WATER legend key -----------------------------------------------------
+// A Cities-Skylines style 圖例: every mark the water overlay puts on the map,
+// named. Static and non-interactive — nothing here toggles anything, so it is
+// plain <div>s, not buttons, and it sits in its own block so the five-column
+// grid of the rows above and below is untouched.
+
+// 12px droplet, filled for a mapped facility and outline-only for the hollow
+// "approximate" plate — the same distinction the markers themselves draw.
+function KeyDroplet({ color, hollow }: { color: string; hollow: boolean }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16"
+         fill={hollow ? 'none' : color} stroke={color}
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8 1.75c2.6 3 4.25 5.05 4.25 7.1a4.25 4.25 0 0 1-8.5 0c0-2.05 1.65-4.1 4.25-7.1z" />
+    </svg>
+  )
+}
+
+// 12px disc with an inward arrow — the inlet marker at legend scale.
+function KeyInlet({ color }: { color: string }) {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
+      <circle cx="8" cy="8" r="6.5" fill={color} />
+      <path d="M3.5 8h5M11.5 8l-3.6-2.4v4.8z" fill="#ffffff" stroke="#ffffff"
+            strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+// The swatch for one key row. A 12px box either way, so every label starts at
+// the same x whether its glyph is a square, a droplet or a line sample.
+function KeyGlyph({ row }: { row: WaterLegendRow }) {
+  const box = 'inline-flex items-center justify-center w-[12px] h-[12px] shrink-0'
+  if (row.glyph === 'droplet' || row.glyph === 'dropletHollow') {
+    return (
+      <span className={box} style={{ color: row.color }}>
+        <KeyDroplet color={row.color} hollow={row.glyph === 'dropletHollow'} />
+      </span>
+    )
+  }
+  if (row.glyph === 'inlet') {
+    return <span className={box}><KeyInlet color={row.color} /></span>
+  }
+  if (row.glyph === 'line') {
+    // 16×2 px sample; the dashed variant repeats the same 4/3 rhythm as the
+    // map's dasharray so the two read as the same style. `thin` is the
+    // distribution network, drawn 1 px and faded exactly as it is on the map,
+    // so it cannot be mistaken for the treated-water main above it.
+    return (
+      <span className="inline-flex items-center w-[16px] h-[12px] shrink-0">
+        <span
+          className={`inline-block w-[16px] ${row.thin ? 'h-[1px] opacity-70' : 'h-[2px]'}`}
+          style={row.dashed
+            ? { backgroundImage: `repeating-linear-gradient(to right, ${row.color} 0 4px, transparent 4px 7px)` }
+            : { backgroundColor: row.color }}
+        />
+      </span>
+    )
+  }
+  // `squareFill` is the reservoir surface: the same translucent fill and thin
+  // rim the map draws it with, rather than a solid block.
+  return (
+    <span className={box}>
+      <span
+        className="inline-block w-[8px] h-[8px]"
+        style={row.glyph === 'squareFill'
+          ? { backgroundColor: `${row.color}59`, boxShadow: `inset 0 0 0 1px ${row.color}` }
+          : { backgroundColor: row.color }}
+      />
+    </span>
+  )
+}
+
+// The key itself. `network` decides which pipe rows appear (see
+// waterLegendRows) — a file with no pipes shows the facility rows only.
+function WaterKey({ network, caption }: { network: TransitData['waterNetwork']; caption: string }) {
+  const { t } = useI18n()
+  const rows = waterLegendRows(t, network)
+  return (
+    <div className="pb-1.5">
+      {rows.map(row => (
+        <div key={row.id} className="w-full flex items-center gap-2 py-[2px] pl-8 pr-3">
+          <KeyGlyph row={row} />
+          <span className="text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate text-white/60"
+                title={row.label}>
+            {row.label}
+          </span>
+        </div>
+      ))}
+      <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
+        {caption}
+      </div>
+    </div>
+  )
+}
 
 // 12px "P" plate for the car-park row: a rounded-square outline with the
 // parking P, in the same stroked style as the sibling row glyphs.
@@ -118,6 +230,12 @@ const CAR_PARK_ICON_16 = (
     <path d="M6.25 11.75V4.75h2.1a2.1 2.1 0 0 1 0 4.2h-2.1" />
   </svg>
 )
+const WATER_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M8 1.75c2.6 3 4.25 5.05 4.25 7.1a4.25 4.25 0 0 1-8.5 0c0-2.05 1.65-4.1 4.25-7.1z" />
+  </svg>
+)
 // Building glyph for the CITY chip (16px) and the modal header (12px).
 function CityIcon({ size = 16 }: { size?: number }) {
   return (
@@ -168,6 +286,11 @@ interface Props {
   // Public car parks — opt-in like the toilets; the count is the whole
   // register, which only changes when the daily workflow lands a new file.
   carParksOn?: boolean
+  // Macao Water supply facilities. Also opt-in, but unlike its neighbours this
+  // one is a FOCUS mode: App clears every other layer while it is on and puts
+  // them back when it goes off (see toggleWater), so the row's ON state also
+  // means "everything else is off".
+  waterOn?: boolean
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
@@ -177,6 +300,7 @@ interface Props {
   onToggleSchoolLevel?: (level: SchoolLevel) => void
   onToggleToilets?: () => void
   onToggleCarParks?: () => void
+  onToggleWater?: () => void
   onToggleRoute?: (routeId: string) => void
   onToggleAll?: () => void
   onShowAll?: () => void
@@ -185,7 +309,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'city' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'water' | 'city' | null
 
 export function LineLegend({
   transitData,
@@ -203,6 +327,7 @@ export function LineLegend({
   schoolLevelCounts,
   toiletsOn = false,
   carParksOn = false,
+  waterOn = false,
   clock,
   onToggleLrt,
   onToggleFlights,
@@ -212,6 +337,7 @@ export function LineLegend({
   onToggleSchoolLevel,
   onToggleToilets,
   onToggleCarParks,
+  onToggleWater,
   onToggleRoute,
   onShowAll,
   onHideAll,
@@ -325,6 +451,12 @@ export function LineLegend({
   const toiletCount = allTransitData?.toilets.length ?? transitData.toilets.length
   // Same for the car parks: the row always shows the full register.
   const carParkCount = allTransitData?.carParks.length ?? transitData.carParks.length
+  // And for the water facilities — Macao Water's list is a fixed 22.
+  const waterCount = allTransitData?.waterFacilities.length ?? transitData.waterFacilities.length
+  // The UNFILTERED network, for the same reason as the count above: the key
+  // describes what the layer draws when it is on, and `transitData` is nulled
+  // out while it is off.
+  const waterNetwork = allTransitData?.waterNetwork ?? transitData.waterNetwork
 
   // Mobile CITY modal — the city overlays in one list, the counterpart of the
   // desktop panel's CITY page. A row's name opens that layer's own modal; its
@@ -349,6 +481,11 @@ export function LineLegend({
       panel: 'carparks' as const, label: 'P · 停車場', icon: CAR_PARK_ICON_16, on: carParksOn,
       count: String(carParkCount), iconOn: 'text-blue-300', countOn: 'text-blue-300/80',
       toggle: onToggleCarParks,
+    } : null,
+    waterCount > 0 ? {
+      panel: 'water' as const, label: 'WATER · 供水', icon: WATER_ICON_16, on: waterOn,
+      count: String(waterCount), iconOn: 'text-sky-300', countOn: 'text-sky-300/80',
+      toggle: onToggleWater,
     } : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null)
   const cityLayerTotal = cityLayerRows.length
@@ -913,6 +1050,49 @@ export function LineLegend({
                 {carParksOn ? 'ON' : 'OFF'}
               </span>
             </button>
+          )}
+
+          {/* MACAO WATER — same five columns as P above it. Unlike its
+              neighbours this is a focus mode: switching it on clears every
+              other layer (App snapshots them first) so the supply network is
+              read against an empty city, and switching it off restores them. */}
+          {waterCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleWater}
+              disabled={!onToggleWater}
+              aria-pressed={waterOn}
+              // The hover text carries the disclaimer the map itself cannot:
+              // the pipes are our schematic, not Macao Water's real mains.
+              title={`${t.waterCount(waterCount)} · ${t.waterNetworkNote}`}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+                         ${waterOn
+                           ? 'bg-sky-400/[0.05] hover:bg-sky-400/[0.1]'
+                           : 'hover:bg-white/[0.03] opacity-50'}
+                         ${onToggleWater ? '' : 'cursor-default'}`}
+            >
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${waterOn ? 'text-white/45' : 'text-white/40'}`}>
+                <WaterIcon />
+              </span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: WATER_HATCH }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+                WATER · 供水
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${waterOn ? 'text-sky-300/80' : 'text-white/25'}`}>
+                {waterCount}
+              </span>
+              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${waterOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                {waterOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
+          {/* The key, only while the layer is on — it explains marks that are
+              on screen, so it has nothing to say when they are not. */}
+          {waterCount > 0 && waterOn && (
+            <WaterKey network={waterNetwork} caption={t.waterNetworkNote} />
           )}
           </>)}
         </div>
@@ -1681,6 +1861,67 @@ export function LineLegend({
                   {carParksOn ? 'ON' : 'OFF'}
                 </span>
               </button>
+            </div>
+          )}
+
+          {/* MACAO WATER */}
+          {mobilePanel === 'water' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-sky-400/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-sky-300/85">
+                  <WaterIcon />
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: WATER_HATCH }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">WATER · 供水</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                    {waterOn ? waterCount : 0}/{waterCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleWater}
+                disabled={!onToggleWater}
+                aria-pressed={waterOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${waterOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${onToggleWater ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={waterOn ? 'text-sky-400' : 'text-white/40'}>
+                    <WaterIcon />
+                  </span>
+                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                    {t.waterCount(waterCount)}
+                  </span>
+                </span>
+                <span className={`mm-mono text-[10px] tracking-[0.2em] ${waterOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                  {waterOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+              {/* The same key as the desktop panel. Shown whether or not the
+                  layer is on: a touch device has no hover, so this modal is
+                  the only place the marks are ever explained. Its caption
+                  carries the "schematic" disclaimer. */}
+              <div className="border-t border-white/10 pt-1.5">
+                <WaterKey network={waterNetwork} caption={t.waterNetworkNote} />
+              </div>
             </div>
           )}
         </div>

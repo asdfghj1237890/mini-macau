@@ -71,7 +71,8 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **School buildings** — Every school and tertiary campus rendered as coloured 3D blocks by level (kindergarten / primary / secondary / university / all-through); the legend section collapses and each level can be switched on/off on its own; click a block for the school's name, level, system and approved stages
 - **Public toilets** — IAM public toilets as map markers with opening hours, barrier-free / family cubicles and temporary closures; toggleable
 - **Public car parks** — DSAT's 88 public car parks as map markers with entrances, height limits and fees, plus live vacancy shown only while the clock is at the present; toggleable
-- **Layer panel** — desktop LAYERS panel split into TRANSIT (LRT / Bus / Air / Sea) and CITY (road works / schools / toilets / car parks) pages; every switch and the open page persist in localStorage; road works on by default, the other city layers off
+- **Water supply facilities** — Macao Water's 22 plants, reservoirs, elevated tanks and pumping stations, plus the government's own Hac Sa Reservoir; footprints coloured by type where OSM has them, markers for the rest flagged approximate, connected by a schematic pipe network drawn along the roads and a Macau-only distribution network along every road. Switching it on is a focus mode: every other layer (LRT, buses, air, sea, city overlays) is hidden along with the clock and time controls, and everything comes back exactly as it was when the layer is switched off
+- **Layer panel** — desktop LAYERS panel split into TRANSIT (LRT / Bus / Air / Sea) and CITY (road works / schools / toilets / car parks / water) pages; every switch and the open page persist in localStorage; road works on by default, the other city layers off
 - **Automated ferry data** — GitHub Actions workflow scrapes TurboJET and CotaiJet timetables monthly and commits updated schedules if changed
 - **Time controls** — Play, pause (spacebar), speed up (1×–60×), jump to current time, or pick any date/time with the DateTimePicker; Esc toggles the sidebar menu
 - **Vehicle tracking** — Click a vehicle to follow it with smooth camera animation; freely zoom/pan while tracking
@@ -106,7 +107,7 @@ Three clean stages: upstream sources get normalized by Python into versioned sta
 | Data pipeline | Python 3.13+, uv, OpenStreetMap Overpass API, OSRM |
 | Flight data | [AviationStack API](https://aviationstack.com/) (daily sync) |
 | Ferry data | [TurboJET](https://www2.turbojet.com.hk/) + [CotaiJet](https://www.cotaiwaterjet.com/) timetables (monthly web scraper) |
-| City data | [data.gov.mo](https://data.gov.mo/) — DSAT road works, IAM toilets, DSAT car parks + live vacancy (daily syncs); DSEDJ school list + OSM footprints (manual) |
+| City data | [data.gov.mo](https://data.gov.mo/) — DSAT road works, IAM toilets, DSAT car parks + live vacancy (daily syncs); DSEDJ school list and Macao Water's facility list, both + OSM footprints (manual) |
 | Data validation | zod schemas at load time, mirrored by `validate_output.py` in CI |
 | Deployment | Cloudflare Pages (via GitHub Actions) |
 | Analytics | Google Analytics (gtag.js) |
@@ -222,6 +223,7 @@ Automated via GitHub Actions (`.github/workflows/update-ferry-schedules.yml`), w
 - **School buildings** — [DSEDJ school list](https://data.gov.mo/Detail?id=f0578833-7dd6-4ed5-b825-75e9c4f56012) on data.gov.mo + OpenStreetMap building footprints (manual refresh)
 - **Public toilets** — [IAM via data.gov.mo](https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5) (daily)
 - **Public car parks** — [DSAT via data.gov.mo](https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706) (daily) + [live vacancy](https://data.gov.mo/Detail?id=ea50a770-cc35-47cc-a3ba-7f60092d4bc4) (live, polled by the browser)
+- **Water supply facilities** — [Macao Water 供水設施](https://www.macaowater.com/about-macao-water/water-supply-facilities) (the list of 22) + OpenStreetMap footprints, plus 黑沙水庫 Hac Sa Reservoir from OpenStreetMap (a DSAMA government reservoir, not a Macao Water facility) (manual refresh)
 
 Everything under `/data/*.json` is fetchable as-is but served with `X-Robots-Tag: noindex, nofollow` (`public/_headers`) so the raw files stay out of search results. It is a header rather than a `robots.txt` Disallow on purpose: a crawler that is disallowed never sees the `noindex`, and a disallowed URL can still be listed bare when something links to it.
 
@@ -300,7 +302,9 @@ mini-macau/
 │   │   ├── road-works.json       # DSAT road-works notices
 │   │   ├── schools.json          # School buildings + footprints
 │   │   ├── toilets.json          # IAM public toilets
-│   │   └── car-parks.json        # DSAT public car parks
+│   │   ├── car-parks.json        # DSAT public car parks
+│   │   ├── water-facilities.json # Macao Water supply facilities + footprints
+│   │   └── water-distribution.json # Macau-only road network for the water layer
 │   ├── favicon.svg
 │   ├── icons.svg
 │   ├── og-image.png
@@ -316,6 +320,8 @@ mini-macau/
 │   │   ├── fetch_ferry_schedules.py # TurboJET + CotaiJet monthly scraper
 │   │   ├── fetch_road_works.py   # DSAT road-works notice sync
 │   │   ├── fetch_schools.py      # DSEDJ school list + OSM footprints (manual)
+│   │   ├── fetch_water_facilities.py # Macao Water's 22 facilities + OSM footprints (manual)
+│   │   ├── osm_footprints.py     # Shared Overpass + basemap-tile footprint helpers
 │   │   ├── fetch_toilets.py      # IAM public-toilet sync
 │   │   ├── fetch_car_parks.py    # DSAT public car-park sync
 │   │   ├── osrm_route.py

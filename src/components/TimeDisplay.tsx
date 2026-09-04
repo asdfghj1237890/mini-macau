@@ -54,12 +54,14 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
     setOpen(false)
   }, [clock])
 
+  const toggleOpen = useCallback(() => setOpen(p => !p), [])
+
   return (
     <>
       {/* Phone: compact inline chip next to hamburger. */}
       <button
         ref={phoneRef}
-        onClick={() => setOpen(p => !p)}
+        onClick={toggleOpen}
         title={t.clickToSetTime}
         aria-label={t.clickToSetTime}
         className="mm-ui-scale sm:hidden absolute top-2 left-[60px] z-30
@@ -94,7 +96,7 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
       {/* Tablet / Desktop: split-flap departure-board clock centered top. */}
       <button
         ref={deskRef}
-        onClick={() => setOpen(p => !p)}
+        onClick={toggleOpen}
         title={t.clickToSetTime}
         aria-label={t.clickToSetTime}
         className="mm-ui-scale hidden sm:block absolute top-3 left-1/2 -translate-x-1/2 z-30
