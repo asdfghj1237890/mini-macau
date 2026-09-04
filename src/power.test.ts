@@ -178,14 +178,14 @@ describe('powerTypeLabel', () => {
   const t = {
     powerTypePlant: '發電廠',
     powerTypeIncinerator: '垃圾焚化中心',
-    powerTypeSub220: '220 千伏變電站',
-    powerTypeSub110: '110 千伏變電站',
-    powerTypeSub66: '66 千伏變電站',
+    powerTypeSub220: '220 kV 變電站',
+    powerTypeSub110: '110 kV 變電站',
+    powerTypeSub66: '66 kV 變電站',
   } as Translations
 
   it('labels every type from the translation table', () => {
     expect([...POWER_TYPE_ORDER].map(type => powerTypeLabel(t, type)))
-      .toEqual(['發電廠', '垃圾焚化中心', '220 千伏變電站', '110 千伏變電站', '66 千伏變電站'])
+      .toEqual(['發電廠', '垃圾焚化中心', '220 kV 變電站', '110 kV 變電站', '66 kV 變電站'])
   })
 })
 
@@ -290,13 +290,13 @@ describe('powerLegendRows', () => {
   const t = {
     powerTypePlant: '發電廠',
     powerTypeIncinerator: '垃圾焚化中心',
-    powerTypeSub220: '220 千伏變電站',
-    powerTypeSub110: '110 千伏變電站',
-    powerTypeSub66: '66 千伏變電站',
+    powerTypeSub220: '220 kV 變電站',
+    powerTypeSub110: '110 kV 變電站',
+    powerTypeSub66: '66 kV 變電站',
     powerTypeInlet: '廣東電網輸入',
     powerApproximate: '約略位置',
     powerLegendDistribution: '配電網（示意，沿全澳道路）',
-    powerLineVoltage: (kv: number) => `${kv} 千伏線路`,
+    powerLineVoltage: (kv: number) => `${kv} kV 線路`,
   } as Translations
 
   it('always names the five types, the hollow plate and the distribution mesh', () => {
@@ -322,7 +322,7 @@ describe('powerLegendRows', () => {
     expect(ids).toContain('line-66')
     expect(ids).not.toContain('line-110')
     expect(ids.indexOf('line-220')).toBeLessThan(ids.indexOf('line-66'))
-    expect(powerLegendRows(t, net).find(r => r.id === 'line-220')!.label).toBe('220 千伏線路')
+    expect(powerLegendRows(t, net).find(r => r.id === 'line-220')!.label).toBe('220 kV 線路')
   })
 
   it('adds the inlet row only when the network really has import nodes', () => {

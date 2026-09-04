@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-09-04T10:08:23.775893+00:00",
+  "fetchedAtUtc": "2026-09-04T10:35:43.709423+00:00",
   "sources": {
     "name": "澳電 (CEM) – 營運 · OpenStreetMap",
     "operation": "https://www.cem-macau.com/zh/about-cem/company-profile/operation/",
@@ -3015,7 +3015,7 @@
       ],
       "details": {
         "capacityMw": 407.8,
-        "unitsZh": "A 廠 271.4 兆瓦低速柴油機組（1978–1996 年投產，2025 年佔本地發電量 6%）；B 廠 136.4 兆瓦複式循環燃氣渦輪機組（2002–2003 年投產，佔 94%）",
+        "unitsZh": "A 廠 271.4 MW 低速柴油機組（1978–1996 年投產，2025 年佔本地發電量 6%）；B 廠 136.4 MW 複式循環燃氣渦輪機組（2002–2003 年投產，佔 94%）",
         "unitsEn": "Station A: 271.4 MW low-speed diesel (commissioned 1978–1996, 6% of 2025 local output); Station B: 136.4 MW combined-cycle gas turbine (2002–2003, 94%)",
         "unitsPt": "Central A: 271,4 MW a diesel de baixa velocidade (1978–1996, 6% da produção local em 2025); Central B: 136,4 MW de ciclo combinado a gás (2002–2003, 94%)"
       }

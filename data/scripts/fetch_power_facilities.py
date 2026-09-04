@@ -142,8 +142,8 @@ PLANTS = [
         zh="路環發電廠", en="Coloane Power Station", pt="Central Térmica de Coloane",
         details={
             "capacityMw": 407.8,
-            "unitsZh": "A 廠 271.4 兆瓦低速柴油機組（1978–1996 年投產，2025 年佔本地發電量 6%）；"
-                       "B 廠 136.4 兆瓦複式循環燃氣渦輪機組（2002–2003 年投產，佔 94%）",
+            "unitsZh": "A 廠 271.4 MW 低速柴油機組（1978–1996 年投產，2025 年佔本地發電量 6%）；"
+                       "B 廠 136.4 MW 複式循環燃氣渦輪機組（2002–2003 年投產，佔 94%）",
             "unitsEn": "Station A: 271.4 MW low-speed diesel (commissioned 1978–1996, 6% of "
                        "2025 local output); Station B: 136.4 MW combined-cycle gas turbine "
                        "(2002–2003, 94%)",
