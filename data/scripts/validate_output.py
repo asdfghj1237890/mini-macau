@@ -1696,19 +1696,223 @@ def v_power_facilities(data: object) -> list[str]:
 # when zh/pt individually come back "" — that's real upstream data, not a
 # scrape failure). `upstreamStatus` is DSPA's own undocumented status code,
 # stored raw and NEVER derived from `closed` (see fetch_waste.py's docstring).
-WASTE_TYPES = {"refuse_room", "compactor", "smart_machine", "three_colour", "e_waste", "lamp_battery"}
-# Degenerate-fetch guards mirroring fetch_waste.py's own floors: ~1,094 sites
-# total (114 + 140 + 67 + 311 + 56 + 406 as of 2026-09), each type >= 20.
+# `refuse_station` (round 2) is IAM's own site id, not derived like the other
+# two IAM types — see fetch_waste.py's build_refuse_station().
+WASTE_TYPES = {"refuse_room", "refuse_station", "compactor", "smart_machine", "three_colour", "e_waste", "lamp_battery"}
+# Degenerate-fetch guards mirroring fetch_waste.py's own floors: ~1,136 sites
+# total (114 + 42 + 140 + 67 + 311 + 56 + 406 as of 2026-09), each type >= 20.
 WASTE_MIN_TOTAL = 800
 WASTE_MIN_PER_TYPE = 20
 # lamp_battery cites both the lightBulb and battery datasets (identical
-# lists, one type) alongside the other five, one dataset each.
-WASTE_SOURCE_COUNT = 7
+# lists, one type) alongside the other five, one dataset each; round 2 adds
+# one more (iam-refuse-station).
+WASTE_SOURCE_COUNT = 8
+
+# Round 2: treatment facilities, eco stations, incinerator stats.
+WASTE_FACILITY_KINDS = {"hazardous", "landfill"}
+WASTE_FACILITY_COUNT = 3
+WASTE_ECO_STATION_COUNT = 10
+WASTE_PERIOD_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
+WASTE_INCINERATOR_MAX_MONTHS = 12
+
+
+def v_waste_facilities(errs: list[str], facilities: object) -> None:
+    """`waste.facilities[]`: the hazardous-waste station + two OSM landfill
+    polygons (spec-waste-round2.md §2). `polygon` is null (marker-only) or a
+    single ring — reuses check_building_ring, which isn't building-specific."""
+    if not require_nonempty_list(errs, "waste.facilities", facilities):
+        return
+    seen_ids: set[str] = set()
+    for i, fac in enumerate(facilities):
+        ctx = f"waste.facilities[{i}]"
+        if not require_fields(
+            errs, ctx, fac,
+            ("id", "kind", "name", "coordinates", "approximate", "polygon", "note", "source", "osm"),
+        ):
+            continue
+        fid = fac["id"]
+        if not (isinstance(fid, str) and fid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif fid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{fid}'")
+        else:
+            seen_ids.add(fid)
+        label = f"{ctx} ({fid if isinstance(fid, str) and fid else '?'})"
+
+        if fac["kind"] not in WASTE_FACILITY_KINDS:
+            errs.append(f"{label}: kind '{fac['kind']}' invalid")
+
+        name = fac["name"]
+        if require_fields(errs, f"{label}.name", name, ("zh", "en", "pt")):
+            for lang in ("zh", "en", "pt"):
+                if not (isinstance(name[lang], str) and name[lang]):
+                    errs.append(f"{label}.name.{lang} must be a non-empty string")
+
+        check_coords(errs, label, fac["coordinates"])
+
+        if not isinstance(fac["approximate"], bool):
+            errs.append(f"{label}: approximate must be a boolean")
+
+        polygon = fac["polygon"]
+        if polygon is not None:
+            check_building_ring(errs, f"{label}.polygon", polygon)
+
+        note = fac["note"]
+        if require_fields(errs, f"{label}.note", note, ("zh", "en", "pt")):
+            for lang in ("zh", "en", "pt"):
+                if not (isinstance(note[lang], str) and note[lang]):
+                    errs.append(f"{label}.note.{lang} must be a non-empty string")
+
+        source = fac["source"]
+        if require_fields(errs, f"{label}.source", source, ("name", "url")):
+            for key in ("name", "url"):
+                if not (isinstance(source[key], str) and source[key]):
+                    errs.append(f"{label}.source.{key} must be a non-empty string")
+
+        osm = fac["osm"]
+        if not (isinstance(osm, list) and all(isinstance(o, str) and o for o in osm)):
+            errs.append(f"{label}.osm must be a list of non-empty strings")
+
+    if len(facilities) != WASTE_FACILITY_COUNT:
+        errs.append(f"waste.facilities: {len(facilities)} facilities, expected exactly {WASTE_FACILITY_COUNT}")
+
+
+def v_waste_eco_stations(errs: list[str], stations: object) -> None:
+    """`waste.ecoStations[]`: DSPA's 環保加Fun站, hand-transcribed (no open
+    dataset) — spec-waste-round2.md §3."""
+    if not require_nonempty_list(errs, "waste.ecoStations", stations):
+        return
+    seen_ids: set[str] = set()
+    for i, e in enumerate(stations):
+        ctx = f"waste.ecoStations[{i}]"
+        if not require_fields(
+            errs, ctx, e,
+            ("id", "name", "address", "coordinates", "approximate", "hours", "accepts", "since", "source"),
+        ):
+            continue
+        eid = e["id"]
+        if not (isinstance(eid, str) and eid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif eid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{eid}'")
+        else:
+            seen_ids.add(eid)
+        label = f"{ctx} ({eid if isinstance(eid, str) and eid else '?'})"
+
+        name = e["name"]
+        if require_fields(errs, f"{label}.name", name, ("zh", "en", "pt")):
+            for lang in ("zh", "en", "pt"):
+                if not (isinstance(name[lang], str) and name[lang]):
+                    errs.append(f"{label}.name.{lang} must be a non-empty string")
+
+        address = e["address"]
+        if require_fields(errs, f"{label}.address", address, ("zh", "pt")):
+            if not (isinstance(address["zh"], str) and address["zh"]):
+                errs.append(f"{label}.address.zh must be a non-empty string")
+            if not isinstance(address["pt"], str):
+                errs.append(f"{label}.address.pt must be a string")
+
+        check_coords(errs, label, e["coordinates"])
+
+        if not isinstance(e["approximate"], bool):
+            errs.append(f"{label}: approximate must be a boolean")
+
+        hours = e["hours"]
+        if require_fields(errs, f"{label}.hours", hours, ("zh", "en", "pt")):
+            for lang in ("zh", "en", "pt"):
+                if not (isinstance(hours[lang], str) and hours[lang]):
+                    errs.append(f"{label}.hours.{lang} must be a non-empty string")
+
+        accepts = e["accepts"]
+        if require_fields(errs, f"{label}.accepts", accepts, ("zh", "en", "pt")):
+            for lang in ("zh", "en", "pt"):
+                if not (isinstance(accepts[lang], str) and accepts[lang]):
+                    errs.append(f"{label}.accepts.{lang} must be a non-empty string")
+
+        since = e["since"]
+        if not (isinstance(since, int) and not isinstance(since, bool) and 2000 <= since <= 2100):
+            errs.append(f"{label}: since must be a plausible year (int)")
+
+        source = e["source"]
+        if require_fields(errs, f"{label}.source", source, ("name", "url")):
+            for key in ("name", "url"):
+                if not (isinstance(source[key], str) and source[key]):
+                    errs.append(f"{label}.source.{key} must be a non-empty string")
+
+    if len(stations) != WASTE_ECO_STATION_COUNT:
+        errs.append(f"waste.ecoStations: {len(stations)} entries, expected exactly {WASTE_ECO_STATION_COUNT}")
+
+
+def v_waste_incinerator(errs: list[str], incinerator: object) -> None:
+    """`waste.incinerator`: null (best-effort fetch failed) or DSPA's monthly
+    stats + hand-typed facts — spec-waste-round2.md §4."""
+    if incinerator is None:
+        return
+    ctx = "waste.incinerator"
+    if not require_fields(errs, ctx, incinerator, ("datasetId", "url", "latest", "months", "facts")):
+        return
+
+    if not (isinstance(incinerator["datasetId"], str) and incinerator["datasetId"]):
+        errs.append(f"{ctx}.datasetId must be a non-empty string")
+    if not (isinstance(incinerator["url"], str) and incinerator["url"]):
+        errs.append(f"{ctx}.url must be a non-empty string")
+
+    def check_month(mctx: str, m: object) -> bool:
+        if not require_fields(errs, mctx, m, ("period", "receivedT", "electricityMwh", "metalRecycledT")):
+            return False
+        ok = True
+        if not (isinstance(m["period"], str) and WASTE_PERIOD_RE.match(m["period"])):
+            errs.append(f"{mctx}.period must be 'YYYY-MM'")
+            ok = False
+        for key in ("receivedT", "electricityMwh", "metalRecycledT"):
+            v = m[key]
+            if not (isinstance(v, (int, float)) and not isinstance(v, bool) and v >= 0):
+                errs.append(f"{mctx}.{key} must be a number >= 0")
+        return ok
+
+    latest_ok = check_month(f"{ctx}.latest", incinerator["latest"])
+
+    months = incinerator["months"]
+    if not require_nonempty_list(errs, f"{ctx}.months", months):
+        months = []
+    else:
+        for i, m in enumerate(months):
+            check_month(f"{ctx}.months[{i}]", m)
+        if len(months) > WASTE_INCINERATOR_MAX_MONTHS:
+            errs.append(f"{ctx}.months: {len(months)} entries, expected at most {WASTE_INCINERATOR_MAX_MONTHS}")
+        periods = [m.get("period") for m in months if isinstance(m, dict)]
+        if periods != sorted(periods):
+            errs.append(f"{ctx}.months: periods must be in ascending order")
+        if (
+            latest_ok
+            and months
+            and isinstance(months[-1], dict)
+            and incinerator["latest"].get("period") != months[-1].get("period")
+        ):
+            errs.append(f"{ctx}.latest.period must match the last entry of months")
+
+    facts = incinerator["facts"]
+    if require_fields(errs, f"{ctx}.facts", facts, ("phases", "lines", "capacityTPerDay", "generationMw", "areaM2")):
+        phases = facts["phases"]
+        if not (
+            isinstance(phases, list) and phases
+            and all(isinstance(p, int) and not isinstance(p, bool) for p in phases)
+        ):
+            errs.append(f"{ctx}.facts.phases must be a non-empty list of ints")
+        for key in ("lines", "capacityTPerDay", "areaM2"):
+            if not (isinstance(facts[key], int) and not isinstance(facts[key], bool) and facts[key] > 0):
+                errs.append(f"{ctx}.facts.{key} must be an int > 0")
+        gen = facts["generationMw"]
+        if not (isinstance(gen, (int, float)) and not isinstance(gen, bool) and gen > 0):
+            errs.append(f"{ctx}.facts.generationMw must be a number > 0")
 
 
 def v_waste(data: object) -> list[str]:
     errs: list[str] = []
-    if not require_fields(errs, "waste", data, ("fetchedAtUtc", "sources", "counts", "sites")):
+    if not require_fields(
+        errs, "waste", data,
+        ("fetchedAtUtc", "sources", "counts", "sites", "facilities", "ecoStations", "incinerator"),
+    ):
         return errs
     if not isinstance(data["fetchedAtUtc"], str):
         errs.append("waste: fetchedAtUtc must be a string")
@@ -1818,6 +2022,10 @@ def v_waste(data: object) -> list[str]:
     for t in WASTE_TYPES:
         if t not in counts:
             errs.append(f"waste.counts: missing type '{t}'")
+
+    v_waste_facilities(errs, data["facilities"])
+    v_waste_eco_stations(errs, data["ecoStations"])
+    v_waste_incinerator(errs, data["incinerator"])
 
     return errs
 

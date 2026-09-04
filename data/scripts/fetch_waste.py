@@ -25,6 +25,30 @@ types:
       `sources`. A mismatch between the two id sets is logged as a warning,
       not treated as fatal — see the check after the fetch loop in run().)
 
+Round 2 adds a seventh site type and three more top-level blocks:
+  * `refuse_station` (42, sort key between refuse_room and compactor): IAM's
+    *combined* 全澳垃圾收集設施 list (6c7617b7-8165-4564-9b51-055ddda8b3ad,
+    `iam-refuse-station` source), fetched with a GET — not POST like the DSPA
+    gateway above — against iam.apigateway.data.gov.mo, same APPCODE header.
+    Its 296 rows mix in the refuse_room/compactor types already covered by
+    their own dedicated datasets above, so only `typeZh == "垃圾站"` is kept
+    (see build_refuse_station()). Unlike every other source, this source's
+    `sources[].count` is the FILTERED site count (42), not the raw fetch size
+    (296) — see the comment at that source's entry in run().
+  * `facilities[]` (3): a hand-placed hazardous-waste treatment station plus
+    two landfill polygons fetched fresh from OpenStreetMap (Overpass
+    `out geom`, ways 552848944 / 552740242) via osm_footprints.overpass() —
+    see FACILITIES_TABLE / fetch_landfill_polygons().
+  * `ecoStations[]` (10): DSPA's 環保加Fun站, hand-transcribed like
+    fetch_power_facilities.py's SUBSTATIONS table — no open dataset publishes
+    these. See ECO_STATIONS.
+  * `incinerator`: DSPA's monthly 焚化中心 statistics
+    (8142c05e-818a-478a-9256-4ecd494d3f87), POSTed to a sibling path on the
+    same DSPA gateway (fetch_dspa() grew an optional `base` argument for this).
+    BEST-EFFORT: unlike everything else in this file, a failure here does NOT
+    fail the run — the block is written as `null` and the frontend panel just
+    hides the stats. See build_incinerator_stats().
+
 Quirks handled here:
   * IAM records: `location` is "lat,lng" (lat first, like fetch_toilets.py).
     Names start with a zone code (M#, T#, C# = 澳門/氹仔/路環); unlike
@@ -66,11 +90,15 @@ import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
+from shapely.geometry import Polygon
+
 from fetch_toilets import fetch_zip
+from osm_footprints import metres_xy, overpass, polygon_of_element, xy_lnglat
 
 DSPA_BASE = "https://dspa.apigateway.data.gov.mo/T_Bas_POI_Basic"
 DETAIL = "https://data.gov.mo/Detail?id={id}"
 OUTPUT_PATH = Path(__file__).parent.parent.parent / "public" / "data" / "waste.json"
+LAT0 = 22.16  # local metres-per-degree reference, as in the other scripts
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; mini-macau data pipeline)"}
 TIMEOUT = 30
@@ -110,7 +138,7 @@ DATASET_TABLE = [
     ("dspa-battery", "lamp_battery", "a536616e-d870-4137-8dd6-0b2125a6c2a5", "battery",
      False, "電池回收位置清單", "Lista de locais de recolha de pilhas e baterias"),
 ]
-TYPE_ORDER = ["refuse_room", "compactor", "smart_machine", "three_colour", "e_waste", "lamp_battery"]
+TYPE_ORDER = ["refuse_room", "refuse_station", "compactor", "smart_machine", "three_colour", "e_waste", "lamp_battery"]
 
 
 def clean(s: object) -> str:
@@ -174,11 +202,13 @@ def read_zip(dataset_id: str) -> tuple[list[dict] | None, dict]:
     return records, readme
 
 
-def fetch_dspa(endpoint: str, appcode: str) -> list[dict]:
-    """POST an empty body to the DSPA API gateway — same public-APPCODE-header
-    pattern as fetch_car_parks.py's DSAT gateway — retrying network errors,
-    non-200s, and any body that doesn't parse as a JSON list."""
-    url = f"{DSPA_BASE}/{endpoint}"
+def fetch_dspa(endpoint: str, appcode: str, base: str = DSPA_BASE) -> list[dict]:
+    """POST an empty body to a DSPA API gateway endpoint — same public-APPCODE-
+    header pattern as fetch_car_parks.py's DSAT gateway — retrying network
+    errors, non-200s, and any body that doesn't parse as a JSON list. `base`
+    defaults to the recycling-points gateway (DSPA_BASE); round 2's incinerator
+    stats endpoint lives at a sibling path and passes its own `base`."""
+    url = f"{base}/{endpoint}"
     headers = {**HEADERS, "Authorization": f"APPCODE {appcode}"}
     last_error = "no attempts made"
     for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -197,6 +227,31 @@ def fetch_dspa(endpoint: str, appcode: str) -> list[dict]:
             print(f"  attempt {attempt} for {endpoint} failed ({last_error}); retrying in {delay:.0f}s", file=sys.stderr)
             time.sleep(delay)
     raise RuntimeError(f"DSPA gateway fetch {endpoint} failed after {MAX_ATTEMPTS} attempts: {last_error}")
+
+
+def fetch_iam_gateway(url: str, appcode: str) -> list[dict]:
+    """GET an IAM API gateway endpoint — same `Authorization: APPCODE` header
+    as fetch_dspa's POST gateway, but IAM's macaohygiene_allgarbage endpoint is
+    a GET — retrying network errors, non-200s, and any body that doesn't parse
+    as a JSON list."""
+    headers = {**HEADERS, "Authorization": f"APPCODE {appcode}"}
+    last_error = "no attempts made"
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            req = urllib.request.Request(url, headers=headers, method="GET")
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+                body = resp.read()
+            records = json.loads(body.decode("utf-8-sig"))
+            if isinstance(records, list):
+                return records
+            last_error = f"unexpected JSON shape: {type(records).__name__}"
+        except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as e:
+            last_error = f"{type(e).__name__}: {e}"
+        if attempt < MAX_ATTEMPTS:
+            delay = BACKOFF_BASE * (2 ** (attempt - 1))
+            print(f"  attempt {attempt} for {url} failed ({last_error}); retrying in {delay:.0f}s", file=sys.stderr)
+            time.sleep(delay)
+    raise RuntimeError(f"IAM gateway fetch {url} failed after {MAX_ATTEMPTS} attempts: {last_error}")
 
 
 def dataset_display_name(readme: dict, fallback_zh: str, fallback_pt: str) -> dict:
@@ -282,6 +337,298 @@ def build_dspa(records: list[dict], kind: str) -> list[dict]:
     return sites
 
 
+def build_refuse_station(records: list[dict]) -> list[dict]:
+    """Filter IAM's combined 全澳垃圾收集設施 list down to typeZh == '垃圾站'
+    (42 of 296 rows; the other two types duplicate the dedicated refuse_room /
+    compactor datasets fetched above) and shape them like every other site.
+    Unlike refuse_room/compactor's upstream `nameZh`, this dataset's `titleZh`
+    does NOT carry the zone code, so it is prefixed on here (IAM's code first,
+    as for the other IAM types) — see spec-waste-round2.md §1."""
+    sites = []
+    for r in records:
+        if clean(r.get("typeZh")) != "垃圾站":
+            continue
+        rid = clean(r.get("id"))
+        title_zh = clean(r.get("titleZh"))
+        coords = parse_iam_location(r.get("coordinate"))
+        if not rid or not title_zh or coords is None:
+            print(
+                f"  skipping refuse_station id={rid or '?'}: bad record "
+                f"(titleZh={title_zh!r} coordinate={r.get('coordinate')!r})",
+                file=sys.stderr,
+            )
+            continue
+        sites.append(
+            {
+                "id": f"refuse_station-{rid}",
+                "type": "refuse_station",
+                "name": {
+                    "zh": f"{rid} {title_zh}",
+                    "en": f"{rid} {clean(r.get('titleEn'))}",
+                    "pt": f"{rid} {clean(r.get('titlePt'))}",
+                },
+                "address": None,
+                "coordinates": coords,
+                "closed": bool(r.get("tempClose")),
+                "tel": None,
+                "photo": clean(r.get("image")) or None,
+                "upstreamStatus": None,
+            }
+        )
+    return sites
+
+
+# ----------------------------------------------------------------------------
+# round 2: treatment facilities (`facilities[]`)
+#
+# Hand-maintained like fetch_power_facilities.py's SUBSTATIONS / INLET_NODES
+# tables: `hazardous-station` is a marker at a DSPA-published address with no
+# OSM footprint; the two landfills are OSM ways fetched fresh each run — their
+# `coordinates` (centroid) / `polygon` (simplified outer ring) are filled in
+# by fetch_landfill_polygons() and merged into the table in run().
+# ----------------------------------------------------------------------------
+LANDFILL_OSM_WAYS = {
+    "landfill-construction": 552848944,
+    "landfill-ka-ho-ash": 552740242,
+}
+RING_SIMPLIFY_M = 0.5  # spec-waste-round2.md §2: "≤ 0.5 m simplification"
+
+FACILITIES_TABLE: list[dict] = [
+    {
+        "id": "hazardous-station",
+        "kind": "hazardous",
+        "name": {
+            "zh": "澳門特殊和危險廢物處理站",
+            "en": "Macau Special and Hazardous Waste Treatment Station",
+            "pt": "Estação de Tratamento de Resíduos Especiais e Perigosos de Macau",
+        },
+        "coordinates": [113.573000, 22.160800],
+        "approximate": True,
+        "polygon": None,
+        "osm": [],
+        "note": {
+            "zh": "位於氹仔北安信安馬路 U2 地段、垃圾焚化中心旁；處理廢舊輪胎、固態及液態危險廢物、動物屍體及屠場廢料、醫療廢物，設計處理量每日 24 公噸。",
+            "en": "At Avenida Son On lot U2, Pac On, beside the incineration plant; treats used tyres, solid and liquid hazardous waste, animal carcasses, abattoir and medical waste — designed for 24 t/day.",
+            "pt": "Na Avenida Son On, lote U2, Pac On, junto à central de incineração; trata pneus usados, resíduos perigosos sólidos e líquidos, carcaças de animais, resíduos de matadouro e hospitalares — capacidade de 24 t/dia.",
+        },
+        "source": {"name": "環境保護局 (DSPA)", "url": "https://www.dspa.gov.mo/place1_3.aspx"},
+    },
+    {
+        "id": "landfill-construction",
+        "kind": "landfill",
+        "name": {
+            "zh": "建築廢料堆填區",
+            "en": "Construction waste landfill",
+            "pt": "Aterro para resíduos de materiais de construção",
+        },
+        "approximate": False,
+        "osm": ["w552848944"],
+        "note": {
+            "zh": "機場南聯絡橋以西、路環發電廠以北，2003 年啟用的建築廢料堆填區（環境保護局）。",
+            "en": "West of the airport's south link bridge and north of the Coloane power station; receiving construction waste since 2003 (DSPA).",
+            "pt": "A oeste da ponte de ligação sul do aeroporto e a norte da central de Coloane; recebe resíduos de construção desde 2003 (DSPA).",
+        },
+        "source": {"name": "環境保護局 (DSPA) · OpenStreetMap", "url": "https://www.dspa.gov.mo/place1_3.aspx"},
+    },
+    {
+        "id": "landfill-ka-ho-ash",
+        "kind": "landfill",
+        "name": {
+            "zh": "九澳飛灰堆填區",
+            "en": "Ka Ho fly-ash landfill",
+            "pt": "Aterro de Cinzas Volantes de Ká-Hó",
+        },
+        "approximate": False,
+        "osm": ["w552740242"],
+        "note": {
+            "zh": "路環九澳，接收垃圾焚化中心穩定化處理後的飛灰。",
+            "en": "Ká-Hó, Coloane — receives the incineration plant's stabilised fly ash.",
+            "pt": "Ká-Hó, Coloane — recebe as cinzas volantes estabilizadas da central de incineração.",
+        },
+        "source": {"name": "OpenStreetMap", "url": "https://www.openstreetmap.org/way/552740242"},
+    },
+]
+
+
+def simplify_ring(poly: Polygon, tolerance_m: float = RING_SIMPLIFY_M) -> list[list[float]]:
+    """Outer ring of `poly`, Douglas-Peucker simplified at `tolerance_m` metres
+    and rounded to 6 dp. Overpass ways survey every kerb wiggle; the map only
+    needs a shape that reads at zoom."""
+    xy = Polygon([metres_xy(x, y, LAT0) for x, y in poly.exterior.coords])
+    simple = xy.simplify(tolerance_m)
+    if simple.geom_type == "MultiPolygon":
+        simple = max(simple.geoms, key=lambda g: g.area)
+    return [[round(v, 6) for v in xy_lnglat(x, y, LAT0)] for x, y in simple.exterior.coords]
+
+
+def facility_centroid(poly: Polygon) -> list[float]:
+    c = poly.centroid
+    if c.is_empty:
+        c = poly.representative_point()
+    return [round(c.x, 6), round(c.y, 6)]
+
+
+def fetch_landfill_polygons() -> dict[str, dict]:
+    """Overpass `out geom` for the two landfill ways ->
+    {facility id: {"coordinates": [centroid], "polygon": [ring]}}."""
+    ids = ",".join(str(w) for w in LANDFILL_OSM_WAYS.values())
+    elements = overpass(f"[out:json][timeout:60];way(id:{ids});out geom;")
+    by_way_id = {el["id"]: el for el in elements if el.get("type") == "way"}
+    result: dict[str, dict] = {}
+    for fac_id, way_id in LANDFILL_OSM_WAYS.items():
+        el = by_way_id.get(way_id)
+        if el is None:
+            raise RuntimeError(f"way {way_id} ({fac_id}) not returned by Overpass")
+        poly = polygon_of_element(el)
+        if poly is None or poly.geom_type != "Polygon":
+            raise RuntimeError(f"way {way_id} ({fac_id}) did not resolve to a single closed polygon")
+        result[fac_id] = {"coordinates": facility_centroid(poly), "polygon": simplify_ring(poly)}
+    return result
+
+
+# ----------------------------------------------------------------------------
+# round 2: eco stations (`ecoStations[]`)
+#
+# DSPA's 環保加Fun站 — no open dataset publishes these, so the table is
+# hand-transcribed from https://www.dspa.gov.mo/, like fetch_power_facilities
+# .py's SUBSTATIONS table. The 台山 station closed 2024-06 and is deliberately
+# excluded — see spec-waste-round2.md §3.
+# ----------------------------------------------------------------------------
+ECO_HOURS_STANDARD = {
+    "zh": "星期二至星期日 10:00–13:00、14:00–19:00（星期一及公眾假期休息）",
+    "en": "Tue–Sun 10:00–13:00, 14:00–19:00 (closed Mon and public holidays)",
+    "pt": "Ter–Dom 10:00–13:00, 14:00–19:00 (fechado seg. e feriados)",
+}
+# 官也街 is closed Tuesdays instead of Mondays.
+ECO_HOURS_RUA_DO_CUNHA = {
+    "zh": "星期一、星期三至星期日 10:00–13:00、14:00–19:00（星期二及公眾假期休息）",
+    "en": "Mon, Wed–Sun 10:00–13:00, 14:00–19:00 (closed Tue and public holidays)",
+    "pt": "Seg., Qua–Dom 10:00–13:00, 14:00–19:00 (fechado à ter. e feriados)",
+}
+ECO_ACCEPTS = {
+    "zh": "膠樽、鋁罐、光管、電池、舊衣、玻璃樽、廚餘等",
+    "en": "Plastic bottles, aluminium cans, fluorescent tubes, batteries, used clothing, glass bottles, food waste, etc.",
+    "pt": "Garrafas de plástico, latas de alumínio, lâmpadas fluorescentes, pilhas, roupas usadas, garrafas de vidro, resíduos alimentares, etc.",
+}
+ECO_SOURCE = {"name": "環境保護局 (DSPA)", "url": "https://www.dspa.gov.mo/"}
+
+# id, zh name, zh address, [lng, lat], approximate, since, en/pt district label
+ECO_STATIONS_RAW: list[tuple] = [
+    ("eco-seac-pai-van", "環保加Fun站（石排灣）", "路環和諧大馬路石排灣業興大廈第三座地下C舖",
+     [113.564510, 22.130280], False, 2018, "Seac Pai Van"),
+    ("eco-ilha-verde", "環保加Fun站（青洲）", "澳門青洲新馬路青洲社屋青雅樓地下A社會設施空間",
+     [113.537880, 22.212870], False, 2018, "Ilha Verde"),
+    ("eco-barbosa", "環保加Fun站（巴波沙）", "澳門台山平民新邨A座地下11、12號舖",
+     [113.548210, 22.212100], False, 2024, "Tamagnini Barbosa"),
+    ("eco-iao-hon", "環保加Fun站（祐漢）", "澳門永寧街永寧廣場大廈地面層96號及100號地下",
+     [113.553130, 22.212950], True, 2021, "Iao Hon"),
+    ("eco-ha-wan", "環保加Fun站（下環）", "澳門鵝眉街6-6A號怡景臺花園大廈地下及M層",
+     [113.535870, 22.191380], False, 2021, "Ha Wan"),
+    ("eco-hac-kiu", "環保加Fun站（黑橋）", "氹仔黑橋街平民新邨第10座75號E(M)地下",
+     [113.555740, 22.154590], True, 2021, "Hac Kiu"),
+    ("eco-mong-ha", "環保加Fun站（望廈）", "澳門俾利喇街望廈社屋望德樓一樓D社會設施",
+     [113.551430, 22.207180], False, 2022, "Mong Há"),
+    ("eco-rua-do-cunha", "環保加Fun站（官也街）", "氹仔告利雅施利華街25號地下",
+     [113.556600, 22.152800], True, 2024, "Rua do Cunha"),
+    ("eco-lam-mau", "環保加Fun站（林茂塘）", "澳門林茂海邊大馬路雨水箱涵排水口臨時污水處理設施地下",
+     [113.537520, 22.203380], False, 2025, "Lam Mau"),
+    ("eco-venceslau", "環保加Fun站（慕拉士）", "慕拉士大馬路望廈社屋望信樓第1座地下G",
+     [113.554190, 22.204840], False, 2025, "Venceslau de Morais"),
+]
+
+ECO_STATIONS: list[dict] = [
+    {
+        "id": eid,
+        "name": {
+            "zh": zh,
+            "en": f"Eco Fun Station ({district})",
+            "pt": f"Centro Ambiental Alegria ({district})",
+        },
+        "address": {"zh": addr_zh, "pt": ""},
+        "coordinates": coords,
+        "approximate": approx,
+        "hours": ECO_HOURS_RUA_DO_CUNHA if eid == "eco-rua-do-cunha" else ECO_HOURS_STANDARD,
+        "accepts": ECO_ACCEPTS,
+        "since": since,
+        "source": ECO_SOURCE,
+    }
+    for eid, zh, addr_zh, coords, approx, since, district in ECO_STATIONS_RAW
+]
+
+
+# ----------------------------------------------------------------------------
+# round 2: incinerator monthly statistics (`incinerator`) — BEST-EFFORT, see
+# build_incinerator_stats().
+# ----------------------------------------------------------------------------
+INCINERATOR_GATEWAY_BASE = "https://dspa.apigateway.data.gov.mo"
+INCINERATOR_ENDPOINT = "T_Bas_MRIP_Approved"
+INCINERATOR_DATASET_ID = "8142c05e-818a-478a-9256-4ecd494d3f87"
+INCINERATOR_MONTHS_KEPT = 12
+PERIOD_RE = re.compile(r"^(\d{4})/(\d{1,2})$")
+# Hand-typed from https://www.dspa.gov.mo/place1_2.aspx — see spec-waste-round2.md §4.
+INCINERATOR_FACTS = {
+    "phases": [1992, 2008, 2024],
+    "lines": 8,
+    "capacityTPerDay": 3000,
+    "generationMw": 56.7,
+    "areaM2": 51000,
+}
+
+
+def normalize_period(raw: object) -> str | None:
+    """DSPA's "YYYY/M" (no zero-padding, e.g. "2026/6") -> "YYYY-MM"."""
+    m = PERIOD_RE.match(clean(raw))
+    if not m:
+        return None
+    year, month = int(m.group(1)), int(m.group(2))
+    if not (1 <= month <= 12):
+        return None
+    return f"{year:04d}-{month:02d}"
+
+
+def build_incinerator_stats(appcode: str) -> dict | None:
+    """Best-effort: any failure (network, shape, no usable rows) returns None
+    — the run still succeeds and the frontend panel just hides the stats."""
+    try:
+        records = fetch_dspa(INCINERATOR_ENDPOINT, appcode, base=INCINERATOR_GATEWAY_BASE)
+    except RuntimeError as e:
+        print(f"  warning: incinerator stats fetch failed, block will be null: {e}", file=sys.stderr)
+        return None
+
+    by_period: dict[str, dict] = {}
+    for r in records:
+        period = normalize_period(r.get("CollectionPeriod"))
+        if period is None:
+            continue
+        try:
+            by_period[period] = {
+                "period": period,
+                "receivedT": float(clean(r.get("AmountReceived"))),
+                "electricityMwh": float(clean(r.get("ElectricityProduced"))),
+                "metalRecycledT": float(clean(r.get("MetalRecycled"))),
+            }
+        except ValueError:
+            continue
+
+    if not by_period:
+        print("  warning: incinerator stats had no usable rows, block will be null", file=sys.stderr)
+        return None
+
+    months = [by_period[p] for p in sorted(by_period)][-INCINERATOR_MONTHS_KEPT:]
+    return {
+        "datasetId": INCINERATOR_DATASET_ID,
+        "url": DETAIL.format(id=INCINERATOR_DATASET_ID),
+        "latest": months[-1],
+        "months": months,
+        "facts": INCINERATOR_FACTS,
+    }
+
+
+IAM_GATEWAY_URL = "https://iam.apigateway.data.gov.mo/macaohygiene_allgarbage"
+REFUSE_STATION_DATASET_ID = "6c7617b7-8165-4564-9b51-055ddda8b3ad"
+REFUSE_STATION_SOURCE_ID = "iam-refuse-station"
+
+
 def run() -> int:
     appcode = os.environ.get("DATAGOVMO_APPCODE")
     if not appcode:
@@ -293,7 +640,10 @@ def run() -> int:
         )
         return 2
 
-    print("Fetching IAM refuse rooms / compacting bins + DSPA recycling points")
+    print(
+        "Fetching IAM refuse rooms / compacting bins / refuse stations + DSPA "
+        "recycling points + treatment facilities + incinerator stats"
+    )
 
     sites: list[dict] = []
     sources: list[dict] = []
@@ -338,6 +688,41 @@ def run() -> int:
             }
         )
 
+    # --- round 2: IAM's all-facilities gateway -> 垃圾站 refuse_station -----
+    # A GET (not POST like the DSPA gateway above), same env-var APPCODE.
+    print(f"- {REFUSE_STATION_SOURCE_ID} ({REFUSE_STATION_DATASET_ID[:8]}...)")
+    try:
+        all_garbage = fetch_iam_gateway(IAM_GATEWAY_URL, appcode)
+        print(f"  {IAM_GATEWAY_URL}: {len(all_garbage)} records")
+        station_sites = build_refuse_station(all_garbage)
+        try:
+            _, refuse_station_readme = read_zip(REFUSE_STATION_DATASET_ID)
+        except (RuntimeError, zipfile.BadZipFile, json.JSONDecodeError, urllib.error.URLError, OSError) as e:
+            print(f"  warning: readme metadata fetch failed, using fallback name/null upstreamUpdatedAt: {e}", file=sys.stderr)
+            refuse_station_readme = {}
+        sites.extend(station_sites)
+        sources.append(
+            {
+                "id": REFUSE_STATION_SOURCE_ID,
+                "type": "refuse_station",
+                "datasetId": REFUSE_STATION_DATASET_ID,
+                "name": dataset_display_name(
+                    refuse_station_readme,
+                    "全澳垃圾收集設施的資訊列表",
+                    "Lista de informações sobre instalações de recolha de lixo de Macau",
+                ),
+                "url": DETAIL.format(id=REFUSE_STATION_DATASET_ID),
+                "upstreamUpdatedAt": raw_updated_at(refuse_station_readme),
+                # NOTE: unlike every other source, this is the FILTERED site
+                # count (42 垃圾站), not the raw fetch size (296 — see
+                # build_refuse_station()'s docstring) — spec-waste-round2.md §1.
+                "count": len(station_sites),
+            }
+        )
+    except RuntimeError as e:
+        print(f"  ERROR: {e}", file=sys.stderr)
+        failed.append(REFUSE_STATION_SOURCE_ID)
+
     if failed:
         print(f"ERROR: {len(failed)} source(s) failed after retries: {', '.join(failed)} — refusing to write", file=sys.stderr)
         return 1
@@ -364,11 +749,34 @@ def run() -> int:
 
     sites.sort(key=lambda s: (TYPE_ORDER.index(s["type"]), s["id"]))
 
+    # --- round 2: treatment facilities — fatal on failure, like everything
+    # above (unlike the incinerator stats block below). ---------------------
+    print("- treatment facilities (hazardous station + 2 landfill polygons)")
+    try:
+        landfill_geo = fetch_landfill_polygons()
+    except RuntimeError as e:
+        print(f"ERROR: landfill polygon fetch failed: {e} — refusing to write", file=sys.stderr)
+        return 1
+    facilities: list[dict] = []
+    for row in FACILITIES_TABLE:
+        fac = dict(row)
+        if fac["kind"] == "landfill":
+            fac.update(landfill_geo[fac["id"]])
+        facilities.append(fac)
+
+    # --- round 2: DSPA incinerator monthly statistics — BEST-EFFORT; see
+    # build_incinerator_stats()'s docstring. ---------------------------------
+    print("- dspa-incinerator-stats (best-effort)")
+    incinerator = build_incinerator_stats(appcode)
+
     output = {
         "fetchedAtUtc": datetime.now(tz=timezone.utc).isoformat(),
         "sources": sources,
         "counts": {k: counts[k] for k in TYPE_ORDER},
         "sites": sites,
+        "facilities": facilities,
+        "ecoStations": ECO_STATIONS,
+        "incinerator": incinerator,
     }
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     # Whitespace-minimal: 1,094 records at indent=2 would blow the 600 KiB
@@ -378,6 +786,10 @@ def run() -> int:
         json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
 
     print(f"Done. {len(sites)} sites across {len(counts)} types: {counts}")
+    print(
+        f"Facilities: {len(facilities)}   Eco stations: {len(ECO_STATIONS)}   "
+        f"Incinerator stats: {'ok (' + incinerator['latest']['period'] + ')' if incinerator else 'null (best-effort fetch failed)'}"
+    )
     print(f"Wrote {OUTPUT_PATH}")
     return 0
 

@@ -575,8 +575,13 @@ export function LineLegend({
     [allTransitData, transitData.powerFacilities]
   )
   const wasteCounts = useMemo(
-    () => wasteTypeCounts ?? countWasteByType(allWaste, wasteIncinerator(allPower)),
-    [wasteTypeCounts, allWaste, allPower]
+    () => wasteTypeCounts ?? countWasteByType(allWaste, {
+      incinerator: wasteIncinerator(allPower),
+      ecoStations: allTransitData?.wasteEcoStations ?? transitData.wasteEcoStations,
+      facilities: allTransitData?.wasteFacilities ?? transitData.wasteFacilities,
+    }),
+    [wasteTypeCounts, allWaste, allPower, allTransitData,
+      transitData.wasteEcoStations, transitData.wasteFacilities]
   )
   const grouped = useMemo(() => {
     const groups = new Map<typeof GROUP_ORDER[number], typeof busRoutes>()

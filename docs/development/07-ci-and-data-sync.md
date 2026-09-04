@@ -91,7 +91,7 @@ jobs:
 
 ### `update-waste.yml`
 
-每月 1 日 19:10 UTC（澳門 03:10）。垃圾房／回收點清單跟公廁一樣是近乎靜態的設施名冊，同樣改成月度。同一個 job 內先過 `fetch_waste.py`：IAM 的兩個 ZIP dataset 抓完接著打 DSPA API gateway 的五個 endpoint。跟 `update-car-parks.yml` 一樣需要 `DATAGOVMO_APPCODE` secret（同一把公開 APPCODE，一樣不寫進 repo）。跑完後要過 `validate_output.py waste`，沒過就不 commit。
+每月 1 日 19:10 UTC（澳門 03:10）。垃圾房／回收點清單跟公廁一樣是近乎靜態的設施名冊，同樣改成月度。同一個 job 內 `fetch_waste.py` 依序打八個上游：IAM 兩個 ZIP dataset、IAM 一個 API gateway GET（垃圾站）、DSPA 五個 API gateway POST（收集點）、Overpass 兩個 way（堆填區外環，走 `osm_footprints.py` 的快取）、DSPA 一個 API gateway POST（焚化中心月度統計）。跟 `update-car-parks.yml` 一樣需要 `DATAGOVMO_APPCODE` secret（同一把公開 APPCODE，一樣不寫進 repo）。焚化統計是 best-effort：那支 API 打不通只讓輸出的 `incinerator` 欄位變 `null`，不會讓整個 run 失敗，其餘七種收集點、環保站與處理設施照常 commit。跑完後要過 `validate_output.py waste`，沒過就不 commit。
 
 ## `ci.yml` — lint / test / build / 資料驗證
 

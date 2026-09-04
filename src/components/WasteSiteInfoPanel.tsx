@@ -1,12 +1,24 @@
 import type { ReactNode } from 'react'
 import { useI18n } from '../i18n'
-import type { PowerFacility, WasteSite, WasteSource, WasteText } from '../types'
+import type {
+  PowerFacility,
+  WasteEcoStation,
+  WasteFacility,
+  WasteIncineratorStats,
+  WasteSite,
+  WasteSource,
+  WasteText,
+} from '../types'
 import {
   WASTE_COLORS,
+  WASTE_ECO_STATION_COLOR,
+  WASTE_HAZARDOUS_COLOR,
   WASTE_INCINERATOR_COLOR,
-  WASTE_INCINERATOR_ID,
+  WASTE_LANDFILL_COLOR,
+  formatWasteAmount,
   pickWasteText,
   wasteAgency,
+  wasteMonthBars,
   wasteSourceForType,
   wasteTypeLabel,
 } from '../waste'
@@ -209,16 +221,26 @@ export function WasteSiteInfoPanel({ site, sources, onClose }: Props) {
 // its own variant — same card, different middle and a different provenance
 // line, because these footprints come from OSM rather than data.gov.mo.
 export function WasteIncineratorInfoPanel(
-  { facility, onClose }: { facility: PowerFacility; onClose: () => void },
+  { facility, stats, onClose }: {
+    facility: PowerFacility
+    // The plant's published monthly throughput. Null when waste.json predates
+    // the block or the upstream call failed, in which case the panel simply
+    // shows no stats rather than an empty chart.
+    stats?: WasteIncineratorStats | null
+    onClose: () => void
+  },
 ) {
   const { lang, t } = useI18n()
   const title = pickWasteText(facility.name, lang)
   const subtitle = otherScript(facility.name, lang, title)
+  const latest = stats?.latest ?? null
+  const facts = stats?.facts ?? null
+  const bars = wasteMonthBars(stats?.months)
 
   return (
     <Shell
       color={WASTE_INCINERATOR_COLOR}
-      kindLabel={wasteTypeLabel(t, WASTE_INCINERATOR_ID)}
+      kindLabel={t.wasteTypeIncinerator}
       title={title}
       subtitle={subtitle}
       onClose={onClose}
@@ -252,6 +274,209 @@ export function WasteIncineratorInfoPanel(
       <div className="px-3 pb-2 text-[10px] leading-[1.45] text-white/55 mm-han">
         {t.wasteIncineratorNote}
       </div>
+
+      {/* Throughput. The plant is the one place in this overlay where a NUMBER
+          is the story — how much refuse a city of 700,000 actually produces —
+          so: the latest published month, the plant's own scale, and a year of
+          received tonnes as a bar strip. Plain divs; a chart library for twelve
+          bars would cost more than the whole panel. */}
+      {(latest || facts || bars.length > 0) && (
+        <div className="px-3 py-2 border-t border-white/8 bg-white/[0.02] space-y-1.5">
+          <div className="flex items-baseline justify-between gap-2">
+            <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">
+              {t.wasteStats}
+            </span>
+            {latest && (
+              <span className="mm-mono text-[8px] tracking-wider text-white/35">
+                {t.wasteStatsLatest(latest.period)}
+              </span>
+            )}
+          </div>
+          {latest && (
+            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] mm-han">
+              <span className="text-white/45">
+                {t.wasteStatsReceived}{' '}
+                <span className="mm-mono mm-tabular text-lime-200">
+                  {t.wasteStatsTonnes(formatWasteAmount(latest.receivedT))}
+                </span>
+              </span>
+              <span className="text-white/45">
+                {t.wasteStatsElectricity}{' '}
+                <span className="mm-mono mm-tabular text-lime-200">
+                  {t.wasteStatsMwh(formatWasteAmount(latest.electricityMwh))}
+                </span>
+              </span>
+              <span className="text-white/45">
+                {t.wasteStatsMetal}{' '}
+                <span className="mm-mono mm-tabular text-lime-200">
+                  {t.wasteStatsTonnes(formatWasteAmount(latest.metalRecycledT))}
+                </span>
+              </span>
+            </div>
+          )}
+          {facts && (
+            <div className="text-[9px] leading-[1.4] text-white/40 mm-han">
+              {t.wasteStatsFacts(
+                t.wasteStatsPhases(facts.phases.join(' / ')),
+                facts.lines,
+                formatWasteAmount(facts.capacityTPerDay),
+                facts.generationMw,
+              )}
+            </div>
+          )}
+          {bars.length > 0 && (
+            <div className="pt-0.5">
+              <div className="flex items-end gap-[3px] h-[34px]">
+                {bars.map(bar => (
+                  <div
+                    key={bar.period}
+                    className="flex-1 bg-lime-300/45 rounded-[1px]"
+                    style={{ height: `${bar.percent}%` }}
+                    title={`${bar.period} · ${t.wasteStatsTonnes(formatWasteAmount(bar.value))}`}
+                  />
+                ))}
+              </div>
+              <div className="flex gap-[3px] pt-[2px]">
+                {bars.map(bar => (
+                  <span
+                    key={bar.period}
+                    className="flex-1 mm-mono mm-tabular text-[6px] text-white/25 text-center"
+                  >
+                    {bar.label}
+                  </span>
+                ))}
+              </div>
+              <div className="pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
+                {t.wasteStatsMonths}
+              </div>
+            </div>
+          )}
+          {stats?.url && (
+            <a
+              href={stats.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block mm-mono text-[8px] tracking-wider text-white/40
+                         hover:text-lime-200 transition-colors"
+            >
+              data.gov.mo
+            </a>
+          )}
+        </div>
+      )}
+    </Shell>
+  )
+}
+
+// 環保加Fun站 — a staffed DSPA drop-off centre. There is no open dataset for
+// these, so the list is hand-maintained in the pipeline; `approximate` marks a
+// station placed on its block rather than its unit, and the badge admits it.
+export function WasteEcoStationInfoPanel(
+  { station, onClose }: { station: WasteEcoStation; onClose: () => void },
+) {
+  const { lang, t } = useI18n()
+  const title = pickWasteText(station.name, lang)
+  const subtitle = otherScript(station.name, lang, title)
+  const address = pickWasteText(station.address, lang)
+  const hours = pickWasteText(station.hours, lang)
+  const accepts = pickWasteText(station.accepts, lang)
+
+  return (
+    <Shell
+      color={WASTE_ECO_STATION_COLOR}
+      kindLabel={t.wasteTypeEcoStation}
+      title={title}
+      subtitle={subtitle}
+      onClose={onClose}
+      footer={
+        <a
+          href={station.source?.url || DSPA_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-emerald-200 transition-colors"
+        >
+          {station.source?.name || '環境保護局 (DSPA)'}
+        </a>
+      }
+    >
+      <div className="px-3 py-2 space-y-1">
+        {address && <Row label={t.wasteAddress} value={address} />}
+        {hours && <Row label={t.wasteHours} value={hours} />}
+        {accepts && <Row label={t.wasteAccepts} value={accepts} />}
+        {station.since ? <Row label={t.wasteSince} value={String(station.since)} /> : null}
+      </div>
+      {station.approximate && (
+        <div className="px-3 pb-2 flex flex-wrap gap-1">
+          <span className="mm-han text-[9px] leading-none px-1.5 py-[3px] border
+                           border-white/20 bg-white/[0.06] text-white/70">
+            {t.wasteApproximate}
+          </span>
+        </div>
+      )}
+    </Shell>
+  )
+}
+
+// The hazardous-waste station and the two landfills — where refuse that cannot
+// be burned ends up. Their notes are written from DSPA's own pages and the
+// landfill outlines come from OSM, so each record is credited on its own rather
+// than from the shared `sources` list.
+export function WasteFacilityInfoPanel(
+  { facility, onClose }: { facility: WasteFacility; onClose: () => void },
+) {
+  const { lang, t } = useI18n()
+  const title = pickWasteText(facility.name, lang)
+  const subtitle = otherScript(facility.name, lang, title)
+  const note = pickWasteText(facility.note, lang)
+  const isLandfill = facility.kind === 'landfill'
+  const osmId = facility.osm?.[0]
+
+  return (
+    <Shell
+      color={isLandfill ? WASTE_LANDFILL_COLOR : WASTE_HAZARDOUS_COLOR}
+      kindLabel={isLandfill ? t.wasteKindLandfill : t.wasteKindHazardous}
+      title={title}
+      subtitle={subtitle}
+      onClose={onClose}
+      footer={
+        <>
+          <a
+            href={facility.source?.url || DSPA_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-emerald-200 transition-colors"
+          >
+            {facility.source?.name || '環境保護局 (DSPA)'}
+          </a>
+          {osmId && (
+            <>
+              {' · '}
+              <a
+                href={`https://www.openstreetmap.org/way/${osmId.replace(/^w/, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-emerald-200 transition-colors"
+              >
+                OSM
+              </a>
+            </>
+          )}
+        </>
+      }
+    >
+      {note && (
+        <div className="px-3 py-2 text-[10px] leading-[1.45] text-white/60 mm-han">
+          {note}
+        </div>
+      )}
+      {facility.approximate && (
+        <div className="px-3 pb-2 flex flex-wrap gap-1">
+          <span className="mm-han text-[9px] leading-none px-1.5 py-[3px] border
+                           border-white/20 bg-white/[0.06] text-white/70">
+            {t.wasteApproximate}
+          </span>
+        </div>
+      )}
     </Shell>
   )
 }

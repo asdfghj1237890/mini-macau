@@ -6,13 +6,23 @@
 // The overlay is time-independent: like the toilets and unlike the road works
 // there is no "in force today" notion, so nothing here takes a clock.
 import type { Lang, Translations } from './i18n'
-import type { PowerFacility, WasteSite, WasteSiteType, WasteSource, WasteText } from './types'
+import type {
+  PowerFacility,
+  WasteEcoStation,
+  WasteFacility,
+  WasteIncineratorMonth,
+  WasteSite,
+  WasteSiteType,
+  WasteSource,
+  WasteText,
+} from './types'
 
 // Registration order for the marker images, the legend's reading order, and
 // the order the per-type toggles appear in: the two IAM collection kinds first,
 // then DSPA's four recycling kinds.
 export const WASTE_TYPES: readonly WasteSiteType[] = [
-  'refuse_room', 'compactor', 'smart_machine', 'three_colour', 'e_waste', 'lamp_battery',
+  'refuse_room', 'compactor', 'refuse_station',
+  'smart_machine', 'three_colour', 'e_waste', 'lamp_battery',
 ] as const
 
 // Marker colours, chosen against the dark basemap and away from the other city
@@ -22,6 +32,10 @@ export const WASTE_TYPES: readonly WasteSiteType[] = [
 export const WASTE_COLORS: Record<WasteSiteType, string> = {
   refuse_room: '#a1a1aa',
   compactor: '#e4e4e7',
+  // Sand, so the 垃圾站 markers read apart from the two greys either side of
+  // them in the key — all three are IAM disposal points, and at city zoom the
+  // shape alone is not enough to tell them apart.
+  refuse_station: '#f5d0a9',
   smart_machine: '#2dd4bf',
   three_colour: '#4ade80',
   e_waste: '#c084fc',
@@ -42,8 +56,9 @@ export const WASTE_SORT_KEY: Record<WasteSiteType, number> = {
   e_waste: 1,
   three_colour: 2,
   refuse_room: 3,
-  compactor: 4,
-  lamp_battery: 5,
+  refuse_station: 4,
+  compactor: 5,
+  lamp_battery: 6,
 }
 
 // ---------------------------------------------------------------------------
@@ -56,8 +71,10 @@ export const WASTE_SORT_KEY: Record<WasteSiteType, number> = {
 // that would duplicate 11 footprints into a second file, the waste overlay
 // reads that same record and draws it in the same lime the POWER layer uses.
 //
-// So it is a seventh entry in the legend key and the hidden-type set, but NOT a
-// WasteSiteType — hence the wider `WasteLayerType` below.
+// It shares a key row with the OTHER end-of-life sites — the hazardous waste
+// station beside it and the two landfills — under 處理設施 (`facility`), because
+// what they have in common is that refuse arrives there rather than leaves.
+// None of them is a WasteSiteType, hence the wider `WasteLayerType` below.
 // ---------------------------------------------------------------------------
 
 export const WASTE_INCINERATOR_ID = 'incinerator'
@@ -66,22 +83,60 @@ export const WASTE_INCINERATOR_ID = 'incinerator'
 // marker, the waste blocks and the key swatch can never drift from it.
 export const WASTE_INCINERATOR_COLOR = '#a3e635'
 
-// Every togglable row of the WASTE key: the six site types plus the plant.
-export type WasteLayerType = WasteSiteType | typeof WASTE_INCINERATOR_ID
+// The DSPA 環保加Fun站 recycling centres — a key row of their own, because they
+// are staffed drop-off centres rather than street furniture.
+export const WASTE_ECO_STATION_ID = 'eco_station'
+export const WASTE_ECO_STATION_COLOR = '#86efac'
+
+// The 處理設施 row: the incinerator, the hazardous-waste station and the two
+// landfills, toggled together.
+export const WASTE_FACILITY_ID = 'facility'
+
+// Per-kind colours inside that row. The station is a warning red-orange; the
+// landfills are the same stone the polygons are filled with.
+export const WASTE_HAZARDOUS_COLOR = '#fb7185'
+export const WASTE_LANDFILL_COLOR = '#a8a29e'
+
+// The landfill polygons' fill opacity — low enough that the basemap's coastline
+// and the roads across the site still read through them.
+export const WASTE_AREA_FILL_OPACITY = 0.35
+
+// Every togglable row of the WASTE key: the seven site types, the eco stations
+// and the treatment facilities.
+export type WasteLayerType =
+  | WasteSiteType | typeof WASTE_ECO_STATION_ID | typeof WASTE_FACILITY_ID
 
 export const WASTE_LAYER_TYPES: readonly WasteLayerType[] = [
-  ...WASTE_TYPES, WASTE_INCINERATOR_ID,
+  ...WASTE_TYPES, WASTE_ECO_STATION_ID, WASTE_FACILITY_ID,
 ] as const
 
-// Registered MapLibre image for the plant's marker, alongside the six site
-// images. Same naming rule, so the addImage loop and the symbol layer's
-// `['get','icon']` still read one string.
+// Registered MapLibre images for the marks that are not collection points.
+// Same naming rule as `wasteIconName`, so the addImage loop and the symbol
+// layer's `['get','icon']` still read one string. The `-approx` variants are
+// hollow, exactly as the water and power markers distinguish a placed marker
+// from a surveyed one.
 export const WASTE_INCINERATOR_ICON = `waste-${WASTE_INCINERATOR_ID}`
+export const WASTE_LANDFILL_ICON = 'waste-landfill'
+export const WASTE_HAZARDOUS_ICON = 'waste-hazardous'
+export const WASTE_HAZARDOUS_ICON_APPROX = `${WASTE_HAZARDOUS_ICON}-approx`
+export const WASTE_ECO_STATION_ICON = `waste-${WASTE_ECO_STATION_ID}`
+export const WASTE_ECO_STATION_ICON_APPROX = `${WASTE_ECO_STATION_ICON}-approx`
 
-// Drawn last of all the waste markers: it is one point among ~1,100, and the
-// blocks under it already carry the plant, so it never needs to win a
-// collision against a bin.
-export const WASTE_INCINERATOR_SORT_KEY = WASTE_TYPES.length
+export function wasteEcoStationIcon(approximate: boolean): string {
+  return approximate ? WASTE_ECO_STATION_ICON_APPROX : WASTE_ECO_STATION_ICON
+}
+
+export function wasteFacilityIcon(facility: WasteFacility): string {
+  if (facility.kind === 'landfill') return WASTE_LANDFILL_ICON
+  return facility.approximate ? WASTE_HAZARDOUS_ICON_APPROX : WASTE_HAZARDOUS_ICON
+}
+
+// Collision priority for the non-collection marks. NEGATIVE, so all fourteen of
+// them outrank every bin: there are four facilities and ten eco stations among
+// ~1,150 marks, and losing one to a lamp-and-battery point would be losing the
+// only mark of its kind on the map.
+export const WASTE_FACILITY_SORT_KEY = -2
+export const WASTE_ECO_STATION_SORT_KEY = -1
 
 // The incinerator record out of the POWER facility list, or null when
 // power-facilities.json has not landed (or ever loses that record). Matched on
@@ -99,7 +154,9 @@ export function wasteIncinerator(facilities: PowerFacility[] | undefined): Power
 export type WasteAgency = 'iam' | 'dspa'
 
 export function wasteAgency(type: WasteLayerType): WasteAgency {
-  return type === 'refuse_room' || type === 'compactor' ? 'iam' : 'dspa'
+  return type === 'refuse_room' || type === 'compactor' || type === 'refuse_station'
+    ? 'iam'
+    : 'dspa'
 }
 
 // Name of the registered MapLibre image for a type. Kept next to the colour
@@ -124,9 +181,11 @@ export function pickWasteText(field: WasteText | null | undefined, lang: Lang): 
 // so the three UI languages stay consistent.
 export function wasteTypeLabel(t: Translations, type: WasteLayerType): string {
   switch (type) {
-    case WASTE_INCINERATOR_ID: return t.wasteTypeIncinerator
+    case WASTE_FACILITY_ID: return t.wasteTypeFacility
+    case WASTE_ECO_STATION_ID: return t.wasteTypeEcoStation
     case 'refuse_room': return t.wasteTypeRefuseRoom
     case 'compactor': return t.wasteTypeCompactor
+    case 'refuse_station': return t.wasteTypeRefuseStation
     case 'smart_machine': return t.wasteTypeSmartMachine
     case 'three_colour': return t.wasteTypeThreeColour
     case 'e_waste': return t.wasteTypeEWaste
@@ -160,28 +219,39 @@ export function visibleWasteSites(sites: WasteSite[], hidden: WasteTypeSet): Was
   return sites.filter(site => !hidden.has(site.type))
 }
 
-// How many sites carry each type, for the legend's per-type counts. Always has
-// all SEVEN keys, so a type with no sites reads 0 rather than undefined. The
-// plant is counted from the POWER record rather than from `sites` — it is 1
-// when power-facilities.json carries it and 0 when it does not, so the key
-// never promises a block the map cannot draw.
+// Everything the WASTE overlay draws besides the collection points. Grouped
+// into one bag so the count, the visibility filter and the feature builders all
+// take the same argument and cannot be given three inconsistent halves.
+export interface WasteExtras {
+  incinerator?: PowerFacility | null
+  ecoStations?: WasteEcoStation[]
+  facilities?: WasteFacility[]
+}
+
+// How many marks each key row stands for. Always has all NINE keys, so a row
+// with nothing behind it reads 0 rather than undefined. `facility` is the sum
+// of the plant (from the POWER record) and the treatment facilities, because
+// they share one row.
 export function countWasteByType(
   sites: WasteSite[],
-  incinerator?: PowerFacility | null,
+  extras?: WasteExtras | null,
 ): Record<WasteLayerType, number> {
+  const bag = extras ?? {}
   const counts = Object.fromEntries(
     WASTE_LAYER_TYPES.map(type => [type, 0])
   ) as Record<WasteLayerType, number>
   for (const site of sites) {
     if (site.type in counts) counts[site.type] += 1
   }
-  counts[WASTE_INCINERATOR_ID] = incinerator ? 1 : 0
+  counts[WASTE_ECO_STATION_ID] = bag.ecoStations?.length ?? 0
+  counts[WASTE_FACILITY_ID] =
+    (bag.incinerator ? 1 : 0) + (bag.facilities?.length ?? 0)
   return counts
 }
 
 // How many marks are actually drawn, given the hidden set — the number the
-// legend row shows next to WASTE (1,095 with everything on: 1,094 points plus
-// the plant).
+// legend row shows next to WASTE (1,150 with everything on: 1,136 collection
+// points, 10 eco stations and 4 treatment facilities).
 export function visibleWasteCount(
   counts: Record<WasteLayerType, number>,
   hidden: WasteTypeSet,
@@ -191,13 +261,35 @@ export function visibleWasteCount(
   )
 }
 
-// The plant, unless its key row is switched off. Null also when the POWER file
-// has not landed — the one place every waste reader asks "do we draw it?".
+// The plant, unless the 處理設施 row is switched off. Null also when the POWER
+// file has not landed — the one place every waste reader asks "do we draw it?".
 export function visibleWasteIncinerator(
   incinerator: PowerFacility | null,
   hidden: WasteTypeSet,
 ): PowerFacility | null {
-  return incinerator && !hidden.has(WASTE_INCINERATOR_ID) ? incinerator : null
+  return incinerator && !hidden.has(WASTE_FACILITY_ID) ? incinerator : null
+}
+
+// Stable empties, so a hidden row hands the caller's memo the SAME array every
+// render and MapView skips a needless setData.
+const NO_ECO_STATIONS: WasteEcoStation[] = []
+const NO_FACILITIES: WasteFacility[] = []
+
+export function visibleWasteEcoStations(
+  stations: WasteEcoStation[] | undefined,
+  hidden: WasteTypeSet,
+): WasteEcoStation[] {
+  if (!stations?.length || hidden.has(WASTE_ECO_STATION_ID)) return NO_ECO_STATIONS
+  return stations
+}
+
+// The treatment facilities share the plant's row, so one toggle empties both.
+export function visibleWasteFacilities(
+  facilities: WasteFacility[] | undefined,
+  hidden: WasteTypeSet,
+): WasteFacility[] {
+  if (!facilities?.length || hidden.has(WASTE_FACILITY_ID)) return NO_FACILITIES
+  return facilities
 }
 
 // Restore the hidden types. Anything unreadable, non-array or naming unknown
@@ -238,9 +330,17 @@ export interface WasteLegendRow {
   on: boolean // this type is NOT hidden
 }
 
-// One row per type, always all SEVEN — a type with zero sites still reads 0 so
-// the key describes the whole dataset rather than today's subset. The plant is
-// last: it is the destination the six collection kinds feed, not one of them.
+// The swatch colour for a key row.
+export function wasteLayerColor(type: WasteLayerType): string {
+  if (type === WASTE_FACILITY_ID) return WASTE_INCINERATOR_COLOR
+  if (type === WASTE_ECO_STATION_ID) return WASTE_ECO_STATION_COLOR
+  return WASTE_COLORS[type]
+}
+
+// One row per type, always all NINE — a row with nothing behind it still reads 0
+// so the key describes the whole dataset rather than today's subset. The two
+// destination rows come last: they are where the seven collection kinds feed,
+// not one of them.
 export function wasteLegendRows(
   t: Translations,
   counts: Record<WasteLayerType, number>,
@@ -249,7 +349,7 @@ export function wasteLegendRows(
   return WASTE_LAYER_TYPES.map(type => ({
     id: type,
     label: wasteTypeLabel(t, type),
-    color: type === WASTE_INCINERATOR_ID ? WASTE_INCINERATOR_COLOR : WASTE_COLORS[type],
+    color: wasteLayerColor(type),
     count: counts[type] ?? 0,
     on: !hidden.has(type),
   }))
@@ -263,11 +363,27 @@ export function wasteLegendRows(
 export type WasteSelection =
   | { kind: 'site'; site: WasteSite }
   | { kind: 'incinerator'; facility: PowerFacility }
+  | { kind: 'ecoStation'; station: WasteEcoStation }
+  | { kind: 'facility'; facility: WasteFacility }
 
-// The feature id the marker ring filters on, for either kind.
+// The feature id the marker ring filters on, for every kind.
 export function wasteSelectionId(selection: WasteSelection | null | undefined): string | null {
   if (!selection) return null
-  return selection.kind === 'site' ? selection.site.id : selection.facility.id
+  switch (selection.kind) {
+    case 'site': return selection.site.id
+    case 'ecoStation': return selection.station.id
+    default: return selection.facility.id
+  }
+}
+
+// The key row a selection belongs to, so App can close a panel whose row the
+// user has just switched off.
+export function wasteSelectionType(selection: WasteSelection): WasteLayerType {
+  switch (selection.kind) {
+    case 'site': return selection.site.type
+    case 'ecoStation': return WASTE_ECO_STATION_ID
+    default: return WASTE_FACILITY_ID
+  }
 }
 
 // The dataset a site came from, for the panel's provenance link and "as of"
@@ -286,42 +402,120 @@ export function wasteSourceForType(
 // rather than emitted as broken geometry (MapLibre would warn on every tile).
 export function buildWasteFeatures(
   sites: WasteSite[],
-  incinerator?: PowerFacility | null,
+  extras?: WasteExtras | null,
 ): GeoJSON.FeatureCollection {
+  const bag = extras ?? {}
   const features: GeoJSON.Feature[] = []
-  for (const site of sites) {
-    const coords = site.coordinates
-    if (!coords || coords.length < 2) continue
+  const point = (
+    coords: [number, number] | undefined,
+    properties: Record<string, string | number | boolean>,
+  ) => {
+    if (!coords || coords.length < 2) return
     features.push({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [coords[0], coords[1]] },
-      properties: {
-        id: site.id,
-        type: site.type,
-        icon: wasteIconName(site.type),
-        closed: !!site.closed,
-        sortKey: WASTE_SORT_KEY[site.type] ?? WASTE_TYPES.length,
-      },
+      properties,
     })
   }
-  // The plant rides in the SAME symbol source as the bins, so it collides with
-  // them, dims with them and is picked up by the one click handler — the only
-  // difference is where its record came from.
-  const plant = incinerator?.coordinates
-  if (plant && plant.length >= 2) {
+
+  for (const site of sites) {
+    point(site.coordinates, {
+      id: site.id,
+      type: site.type,
+      icon: wasteIconName(site.type),
+      closed: !!site.closed,
+      sortKey: WASTE_SORT_KEY[site.type] ?? WASTE_TYPES.length,
+    })
+  }
+  // Everything below rides in the SAME symbol source as the bins, so it collides
+  // with them, dims with them and is picked up by the one click handler — the
+  // only difference is where each record came from.
+  for (const station of bag.ecoStations ?? []) {
+    point(station.coordinates, {
+      id: station.id,
+      type: WASTE_ECO_STATION_ID,
+      icon: wasteEcoStationIcon(station.approximate),
+      closed: false,
+      sortKey: WASTE_ECO_STATION_SORT_KEY,
+    })
+  }
+  for (const facility of bag.facilities ?? []) {
+    // A landfill's mark sits at its ring's centroid, so clicking either the
+    // polygon or the mound opens the same panel.
+    point(facility.coordinates, {
+      id: facility.id,
+      type: WASTE_FACILITY_ID,
+      icon: wasteFacilityIcon(facility),
+      closed: false,
+      sortKey: WASTE_FACILITY_SORT_KEY,
+    })
+  }
+  point(bag.incinerator?.coordinates, {
+    id: WASTE_INCINERATOR_ID,
+    type: WASTE_FACILITY_ID,
+    icon: WASTE_INCINERATOR_ICON,
+    closed: false,
+    sortKey: WASTE_FACILITY_SORT_KEY,
+  })
+  return { type: 'FeatureCollection', features }
+}
+
+// The landfill outlines as fill polygons for the `waste-areas` layer. Only the
+// facilities that HAVE a ring appear — the hazardous station is a marker only,
+// because its position is approximate and inventing an outline for it would be
+// claiming something false.
+export function buildWasteAreaFeatures(
+  facilities: WasteFacility[] | undefined,
+): GeoJSON.FeatureCollection {
+  const features: GeoJSON.Feature[] = []
+  for (const facility of facilities ?? []) {
+    const ring = facility.polygon
+    if (!ring || ring.length < 4) continue
     features.push({
       type: 'Feature',
-      geometry: { type: 'Point', coordinates: [plant[0], plant[1]] },
+      geometry: { type: 'Polygon', coordinates: [ring] },
       properties: {
-        id: WASTE_INCINERATOR_ID,
-        type: WASTE_INCINERATOR_ID,
-        icon: WASTE_INCINERATOR_ICON,
-        closed: false,
-        sortKey: WASTE_INCINERATOR_SORT_KEY,
+        id: facility.id,
+        [WASTE_FEATURE_ID_PROPERTY]: facility.id,
+        color: WASTE_LANDFILL_COLOR,
       },
     })
   }
   return { type: 'FeatureCollection', features }
+}
+
+// ---------------------------------------------------------------------------
+// Incinerator statistics, for the plant panel's stats block.
+// ---------------------------------------------------------------------------
+
+// A published tonnage/MWh figure as the panel prints it: thousands separated,
+// no decimals. These are monthly totals in the tens of thousands — the two
+// decimal places upstream publishes are noise at that scale.
+export function formatWasteAmount(value: number): string {
+  if (!Number.isFinite(value)) return '—'
+  return Math.round(value).toLocaleString('en-US')
+}
+
+// "2026-06" → the label under a bar. Kept numeric so it reads the same in all
+// three UI languages.
+export function wasteMonthLabel(period: string): string {
+  const m = /^(\d{4})-(\d{2})$/.exec(period)
+  return m ? `${m[2]}` : period
+}
+
+// Each month's bar height as a percentage of the tallest, floored at 4 % so a
+// quiet month is still a visible mark rather than a gap in the strip.
+export function wasteMonthBars(
+  months: WasteIncineratorMonth[] | undefined,
+): { period: string; label: string; value: number; percent: number }[] {
+  const rows = months ?? []
+  const max = rows.reduce((m, r) => Math.max(m, r.receivedT || 0), 0)
+  return rows.map(r => ({
+    period: r.period,
+    label: wasteMonthLabel(r.period),
+    value: r.receivedT,
+    percent: max > 0 ? Math.max(4, Math.round((r.receivedT / max) * 100)) : 0,
+  }))
 }
 
 // The plant's 11 footprints as extrusion polygons — deliberately the same

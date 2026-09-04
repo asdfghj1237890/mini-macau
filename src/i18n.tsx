@@ -334,6 +334,7 @@ const translations = {
     wasteLabel: 'WASTE',
     wasteTypeRefuseRoom: 'Refuse room',
     wasteTypeCompactor: 'Compacting collection point',
+    wasteTypeRefuseStation: 'Refuse collection station',
     wasteTypeSmartMachine: 'Smart recycling machine',
     wasteTypeThreeColour: 'Three-colour recycling point',
     wasteTypeEWaste: 'Computer & telecom equipment',
@@ -341,6 +342,28 @@ const translations = {
     // The incineration plant — the seventh key row. Not a collection point:
     // it is where the six kinds above end up, read from the POWER dataset.
     wasteTypeIncinerator: 'Refuse incineration plant',
+    wasteTypeEcoStation: 'Eco Fun Station',
+    // The 處理設施 row: the incineration plant, the hazardous-waste station and
+    // the two landfills, which the map toggles together.
+    wasteTypeFacility: 'Treatment facilities',
+    wasteKindHazardous: 'Hazardous waste station',
+    wasteKindLandfill: 'Landfill',
+    wasteHours: 'HOURS',
+    wasteAccepts: 'ACCEPTS',
+    wasteSince: 'OPEN SINCE',
+    wasteApproximate: 'Approximate location',
+    // Incinerator statistics block.
+    wasteStats: 'THROUGHPUT',
+    wasteStatsLatest: (period: string) => `Latest month ${period}`,
+    wasteStatsReceived: 'received',
+    wasteStatsElectricity: 'electricity',
+    wasteStatsMetal: 'metal recovered',
+    wasteStatsTonnes: (n: string) => `${n} t`,
+    wasteStatsMwh: (n: string) => `${n} MWh`,
+    wasteStatsFacts: (phases: string, lines: number, capacity: string, mw: number) =>
+      `${phases} · ${lines} incineration lines · ~${capacity} t/day · ${mw} MW`,
+    wasteStatsPhases: (years: string) => `Three phases (${years})`,
+    wasteStatsMonths: 'Refuse received, last 12 months (t)',
     wasteIncineratorNote: 'The government incineration plant at Pac On, Taipa. It burns Macau’s collected refuse and sells the electricity it generates to CEM through the Incinerator substation.',
     wasteOperatorDspa: 'Environmental Protection Bureau (DSPA) facility',
     wasteOperator: 'OPERATOR',
@@ -629,11 +652,31 @@ const translations = {
     wasteLabel: '垃圾回收',
     wasteTypeRefuseRoom: '垃圾房',
     wasteTypeCompactor: '壓縮式垃圾收集點',
+    wasteTypeRefuseStation: '垃圾站',
     wasteTypeSmartMachine: '智能回收機',
     wasteTypeThreeColour: '三色資源回收點',
     wasteTypeEWaste: '電腦及通訊設備回收點',
     wasteTypeLampBattery: '光管及電池回收點',
     wasteTypeIncinerator: '垃圾焚化中心',
+    wasteTypeEcoStation: '環保加Fun站',
+    wasteTypeFacility: '處理設施',
+    wasteKindHazardous: '危險廢物處理站',
+    wasteKindLandfill: '堆填區',
+    wasteHours: '開放時間',
+    wasteAccepts: '回收種類',
+    wasteSince: '啟用年份',
+    wasteApproximate: '約略位置',
+    wasteStats: '處理量',
+    wasteStatsLatest: (period: string) => `最新月份 ${period}`,
+    wasteStatsReceived: '接收',
+    wasteStatsElectricity: '發電',
+    wasteStatsMetal: '回收金屬',
+    wasteStatsTonnes: (n: string) => `${n} 公噸`,
+    wasteStatsMwh: (n: string) => `${n} MWh`,
+    wasteStatsFacts: (phases: string, lines: number, capacity: string, mw: number) =>
+      `${phases} · ${lines} 條焚化線 · 約 ${capacity} 公噸／日 · ${mw} MW`,
+    wasteStatsPhases: (years: string) => `三期（${years}）`,
+    wasteStatsMonths: '近 12 個月接收垃圾量（公噸）',
     wasteIncineratorNote: '政府設於氹仔北安的垃圾焚化中心，焚燒全澳收集的垃圾，並透過焚化爐變電站將所發電力售予澳電。',
     wasteOperatorDspa: '環境保護局 (DSPA) 設施',
     wasteOperator: '營運',
@@ -918,11 +961,31 @@ const translations = {
     wasteLabel: 'RESÍDUOS',
     wasteTypeRefuseRoom: 'Depósito de lixo',
     wasteTypeCompactor: 'Ponto de recolha compactada',
+    wasteTypeRefuseStation: 'Posto de recolha de lixo',
     wasteTypeSmartMachine: 'Máquina de reciclagem inteligente',
     wasteTypeThreeColour: 'Ponto de reciclagem tricolor',
     wasteTypeEWaste: 'Equipamento informático e de telecomunicações',
     wasteTypeLampBattery: 'Lâmpadas e pilhas',
     wasteTypeIncinerator: 'Central de incineração de resíduos',
+    wasteTypeEcoStation: 'Centro Ambiental Alegria',
+    wasteTypeFacility: 'Instalações de tratamento',
+    wasteKindHazardous: 'Estação de resíduos perigosos',
+    wasteKindLandfill: 'Aterro',
+    wasteHours: 'HORÁRIO',
+    wasteAccepts: 'ACEITA',
+    wasteSince: 'EM SERVIÇO DESDE',
+    wasteApproximate: 'Localização aproximada',
+    wasteStats: 'TRATAMENTO',
+    wasteStatsLatest: (period: string) => `Mês mais recente ${period}`,
+    wasteStatsReceived: 'recebido',
+    wasteStatsElectricity: 'electricidade',
+    wasteStatsMetal: 'metal recuperado',
+    wasteStatsTonnes: (n: string) => `${n} t`,
+    wasteStatsMwh: (n: string) => `${n} MWh`,
+    wasteStatsFacts: (phases: string, lines: number, capacity: string, mw: number) =>
+      `${phases} · ${lines} linhas de incineração · ~${capacity} t/dia · ${mw} MW`,
+    wasteStatsPhases: (years: string) => `Três fases (${years})`,
+    wasteStatsMonths: 'Resíduos recebidos, últimos 12 meses (t)',
     wasteIncineratorNote: 'Central de incineração do Governo em Pac On, Taipa. Queima os resíduos recolhidos em Macau e vende a electricidade produzida à CEM através da subestação da incineradora.',
     wasteOperatorDspa: 'Instalação da Direcção dos Serviços de Protecção Ambiental (DSPA)',
     wasteOperator: 'OPERADOR',
@@ -1204,11 +1267,30 @@ export interface Translations {
   wasteLabel: string
   wasteTypeRefuseRoom: string
   wasteTypeCompactor: string
+  wasteTypeRefuseStation: string
   wasteTypeSmartMachine: string
   wasteTypeThreeColour: string
   wasteTypeEWaste: string
   wasteTypeLampBattery: string
   wasteTypeIncinerator: string
+  wasteTypeEcoStation: string
+  wasteTypeFacility: string
+  wasteKindHazardous: string
+  wasteKindLandfill: string
+  wasteHours: string
+  wasteAccepts: string
+  wasteSince: string
+  wasteApproximate: string
+  wasteStats: string
+  wasteStatsLatest: (period: string) => string
+  wasteStatsReceived: string
+  wasteStatsElectricity: string
+  wasteStatsMetal: string
+  wasteStatsTonnes: (n: string) => string
+  wasteStatsMwh: (n: string) => string
+  wasteStatsFacts: (phases: string, lines: number, capacity: string, mw: number) => string
+  wasteStatsPhases: (years: string) => string
+  wasteStatsMonths: string
   wasteIncineratorNote: string
   wasteOperatorDspa: string
   wasteOperator: string

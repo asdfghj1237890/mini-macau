@@ -275,12 +275,14 @@ export interface CarParkVacancy {
 }
 
 // ---- WASTE · 垃圾回收 -----------------------------------------------------
-// Six kinds of collection point from two agencies. IAM publishes the refuse
-// rooms and the compacting collection points; DSPA publishes the four kinds of
-// recycling point. `lamp_battery` folds two identical DSPA datasets (光管 and
-// 電池 — same ids, names and coordinates) into one type.
+// Seven kinds of collection point from two agencies. IAM publishes the refuse
+// rooms, the refuse collection stations and the compacting collection points;
+// DSPA publishes the four kinds of recycling point. `lamp_battery` folds two
+// identical DSPA datasets (光管 and 電池 — same ids, names and coordinates) into
+// one type.
 export type WasteSiteType =
-  | 'refuse_room' | 'compactor' | 'smart_machine' | 'three_colour' | 'e_waste' | 'lamp_battery'
+  | 'refuse_room' | 'compactor' | 'refuse_station'
+  | 'smart_machine' | 'three_colour' | 'e_waste' | 'lamp_battery'
 
 // Trilingual free text for a waste site. `en` is OPTIONAL and often "": the
 // DSPA feeds publish Chinese and Portuguese only, and the address block carries
@@ -308,8 +310,73 @@ export interface WasteSite {
   upstreamStatus: number | null
 }
 
+// Where a record's own page says it came from. The three blocks below each
+// carry their own, because they are hand-maintained lists and OSM rings rather
+// than data.gov.mo datasets with a `sources` entry.
+export interface WasteAttribution {
+  name: string // already the display string, e.g. "環境保護局 (DSPA)"
+  url: string
+}
+
+// A treatment facility: the special/hazardous waste station beside the
+// incinerator, and the two landfills. `polygon` is an OSM outer ring for the
+// landfills and null for the station (whose position is only approximate);
+// `coordinates` is the ring's centroid where there is one.
+export interface WasteFacility {
+  id: string
+  kind: 'hazardous' | 'landfill'
+  name: WasteText
+  coordinates: [number, number] // [lng, lat]
+  approximate: boolean
+  polygon: [number, number][] | null
+  osm?: string[]
+  note: WasteText
+  source: WasteAttribution
+}
+
+// A DSPA 環保加Fun站 recycling centre. There is no open dataset for these, so
+// the list is hand-maintained in the pipeline and the positions come from OSM
+// buildings — `approximate` marks the ones placed on the block rather than the
+// unit.
+export interface WasteEcoStation {
+  id: string
+  name: WasteText
+  address: WasteText
+  coordinates: [number, number] // [lng, lat]
+  approximate: boolean
+  hours: WasteText
+  accepts: WasteText
+  since: number // year the station opened
+  source: WasteAttribution
+}
+
+// One month of the incineration plant's published throughput.
+export interface WasteIncineratorMonth {
+  period: string // "YYYY-MM"
+  receivedT: number
+  electricityMwh: number
+  metalRecycledT: number
+}
+
+// The plant's monthly statistics plus the hand-typed plant facts. Null in
+// TransitData when the file predates the block or the upstream call failed —
+// the panel then simply shows no stats.
+export interface WasteIncineratorStats {
+  datasetId: string
+  url: string
+  latest: WasteIncineratorMonth | null
+  months: WasteIncineratorMonth[] // last 12, ascending
+  facts: {
+    phases: number[]
+    lines: number
+    capacityTPerDay: number
+    generationMw: number
+    areaM2: number
+  } | null
+}
+
 // One upstream dataset behind the overlay, for the panel's provenance line and
-// its "as of" stamp. Seven of them: the two IAM sets, the four DSPA ones, and
+// its "as of" stamp. Eight of them: the three IAM sets, the four DSPA ones, and
 // the 電池 twin of the 光管 list, which shares the `lamp_battery` type.
 export interface WasteSource {
   id: string
@@ -629,6 +696,13 @@ export interface TransitData {
   // Provenance for the waste overlay — never filtered, because the info panel
   // has to name the dataset a site came from even when its type is hidden.
   wasteSources: WasteSource[]
+  // The three blocks that are not collection points: the treatment facilities
+  // (hazardous station + two landfills), the ten 環保加Fun站, and the
+  // incineration plant's monthly throughput. All optional upstream, so they are
+  // empty/null until (and unless) waste.json carries them.
+  wasteFacilities: WasteFacility[]
+  wasteEcoStations: WasteEcoStation[]
+  wasteIncineratorStats: WasteIncineratorStats | null
   waterFacilities: WaterFacility[]
   // The schematic pipe network, or null when water-facilities.json predates it
   // (the `network` block is optional) or the WATER layer is off.

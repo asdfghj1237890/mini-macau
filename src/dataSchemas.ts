@@ -300,12 +300,24 @@ export const CarParksFileSchema = z.object({
 // null wherever the source has none, and `upstreamStatus` is DSPA's raw,
 // undocumented `status` — kept, never interpreted.
 const wasteSiteType = z.enum([
-  'refuse_room', 'compactor', 'smart_machine', 'three_colour', 'e_waste', 'lamp_battery',
+  'refuse_room', 'compactor', 'refuse_station',
+  'smart_machine', 'three_colour', 'e_waste', 'lamp_battery',
 ])
 const wasteText = z.object({
   zh: z.string(),
   pt: z.string(),
   en: z.string().optional(),
+})
+
+// The hand-maintained blocks carry their own already-formatted attribution
+// rather than pointing at a `sources` entry.
+const wasteAttribution = z.object({ name: z.string(), url: z.string() })
+
+const wasteIncineratorMonth = z.object({
+  period: z.string(),
+  receivedT: z.number(),
+  electricityMwh: z.number(),
+  metalRecycledT: z.number(),
 })
 
 export const WasteFileSchema = z.object({
@@ -337,6 +349,54 @@ export const WasteFileSchema = z.object({
       upstreamStatus: z.number().nullable(),
     }),
   ),
+  // The three non-collection blocks. ALL OPTIONAL: they were added after the
+  // file shipped, so a waste.json without them must still validate (the runtime
+  // just draws no facilities, no eco stations and no stats) — the same rule the
+  // water network's `network` block follows.
+  facilities: z.array(
+    z.object({
+      id: z.string(),
+      kind: z.enum(['hazardous', 'landfill']),
+      name: wasteText,
+      coordinates: lngLat,
+      approximate: z.boolean(),
+      // A landfill's OSM outer ring; null for the hazardous station, which has
+      // no mapped outline. A ring needs 4 points to close.
+      polygon: z.array(lngLat).min(4).nullable(),
+      osm: z.array(z.string()).optional(),
+      note: wasteText,
+      source: wasteAttribution,
+    }),
+  ).optional(),
+  ecoStations: z.array(
+    z.object({
+      id: z.string(),
+      name: wasteText,
+      address: wasteText,
+      coordinates: lngLat,
+      approximate: z.boolean(),
+      hours: wasteText,
+      accepts: wasteText,
+      since: z.number(),
+      source: wasteAttribution,
+    }),
+  ).optional(),
+  // `latest` and `facts` are nullable inside an otherwise present block: the
+  // pipeline writes the block best-effort, so a failed stats call leaves the
+  // months empty rather than failing the whole run.
+  incinerator: z.object({
+    datasetId: z.string(),
+    url: z.string(),
+    latest: wasteIncineratorMonth.nullable(),
+    months: z.array(wasteIncineratorMonth),
+    facts: z.object({
+      phases: z.array(z.number()),
+      lines: z.number(),
+      capacityTPerDay: z.number(),
+      generationMw: z.number(),
+      areaM2: z.number(),
+    }).nullable(),
+  }).nullable().optional(),
 })
 
 // water-facilities.json — Macao Water's 22 supply facilities, geometry taken

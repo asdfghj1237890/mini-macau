@@ -27,7 +27,7 @@
 //   node scripts/inspect.mjs power-distribution     # power-distribution.json summary (Macau-only road network: by class, km, bbox, file size)
 //   node scripts/inspect.mjs toilets                # toilets.json summary (accessible/family/closed counts, closed list)
 //   node scripts/inspect.mjs car-parks              # car-parks.json summary (by zone, height-limit histogram, no-limit ids)
-//   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt)
+//   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt, treatment facilities, eco stations, incinerator stats)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync, statSync } from 'node:fs'
@@ -488,7 +488,7 @@ function cmdCarParks() {
 }
 
 function cmdWaste() {
-  const { fetchedAtUtc, sources, counts, sites } = load('public/data/waste.json')
+  const { fetchedAtUtc, sources, counts, sites, facilities = [], ecoStations = [], incinerator = null } = load('public/data/waste.json')
   const bytes = statSync(join(ROOT, 'public/data/waste.json')).size
 
   console.log(`total sites: ${sites.length}   fetchedAtUtc: ${fetchedAtUtc}   file size: ${(bytes / 1024).toFixed(1)} KiB`)
@@ -523,6 +523,26 @@ function cmdWaste() {
   const noPhoto = sites.filter((s) => s.photo === null).length
   const noTel = sites.filter((s) => s.tel === null).length
   console.log(`\naddress null: ${noAddress}   photo null: ${noPhoto}   tel null: ${noTel}`)
+
+  console.log(`\nfacilities (${facilities.length}):`)
+  for (const f of facilities) {
+    const pts = f.polygon ? f.polygon.length : 0
+    console.log(`  ${f.id.padEnd(22)} ${f.kind.padEnd(10)} approx=${String(f.approximate).padEnd(5)} polygon pts=${String(pts).padStart(3)}  osm=${(f.osm ?? []).join(',') || '—'}  ${f.name.zh}`)
+  }
+
+  console.log(`\necoStations (${ecoStations.length}):`)
+  for (const e of ecoStations) {
+    console.log(`  ${e.id.padEnd(20)} since=${e.since}  approx=${String(e.approximate).padEnd(5)} ${e.name.zh}  — ${e.address.zh}`)
+  }
+
+  if (incinerator) {
+    const { latest, months, facts } = incinerator
+    console.log(`\nincinerator: latest ${latest.period}  received ${latest.receivedT} t  electricity ${latest.electricityMwh} MWh  metal ${latest.metalRecycledT} t`)
+    console.log(`  months: ${months.length} (${months[0].period} .. ${months[months.length - 1].period})`)
+    console.log(`  facts: phases ${facts.phases.join('/')}  lines ${facts.lines}  capacity ${facts.capacityTPerDay} t/day  generation ${facts.generationMw} MW  area ${facts.areaM2} m²`)
+  } else {
+    console.log('\nincinerator: null (best-effort fetch failed on the last run)')
+  }
 }
 
 function fail(msg) {

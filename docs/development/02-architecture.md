@@ -63,7 +63,7 @@
 | DSEDJ + OSM Overpass | 學校清單（核准級別）與校舍建築足跡 | `fetch_schools.py`（手動執行，name matching） |
 | data.gov.mo | IAM 公共廁所 / 無障礙公廁名單 | `fetch_toilets.py`（下載 ZIP 內 JSON，含重試） |
 | data.gov.mo | DSAT 停車場資料（車位詳情 + 即時空位） | `fetch_car_parks.py`（API gateway，APPCODE header，含重試） |
-| data.gov.mo | IAM 垃圾房 / 壓縮式垃圾收集點 + DSPA 智能回收機 / 三色資源回收點 / 電腦及通訊設備回收點 / 光管回收點 / 電池回收點（七個 dataset） | `fetch_waste.py`（IAM 兩個走 ZIP 下載，DSPA 五個走 API gateway，APPCODE header，都含重試） |
+| data.gov.mo + DSPA 官網 + OSM Overpass | IAM 垃圾房 / 壓縮式垃圾收集點 / 垃圾站 + DSPA 智能回收機 / 三色資源回收點 / 電腦及通訊設備回收點 / 光管回收點 / 電池回收點 / 垃圾焚化中心月度統計（八個 dataset），另加手放的環保加Fun站 10 個、特殊和危險廢物處理站，以及兩個堆填區的 OSM 輪廓；焚化中心本身的座標/建築借 `power-facilities.json` 現成的 | `fetch_waste.py`（IAM 三個走 ZIP／API gateway，DSPA 六個走 API gateway，OSM 兩個 way 走 Overpass，APPCODE header 都含重試；焚化統計 best-effort，失敗存 null 不中止） |
 | 澳門自來水 + OSM Overpass | 22 個供水設施（＋黑沙水庫）清單與建築足跡／水體、示意管網 | `fetch_water_facilities.py`（手動執行，清單寫死在腳本裡） |
 | 澳電 (CEM) + OSM Overpass | 33 座高壓變電站、路環發電廠、垃圾焚化中心的清單與建築足跡、示意電網 | `fetch_power_facilities.py`（手動執行，清單寫死在腳本裡） |
 | OSM Overpass | 澳門境內可行車道路（給供水／供電配水層當底稿，裁到 SAR 邊界） | `fetch_water_distribution.py`／`fetch_power_distribution.py`（手動執行，共用 `road_network.py`） |

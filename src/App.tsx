@@ -34,10 +34,14 @@ import {
   countWasteByType,
   loadHiddenWasteTypes,
   saveHiddenWasteTypes,
+  visibleWasteEcoStations,
+  visibleWasteFacilities,
   visibleWasteIncinerator,
   visibleWasteSites,
   wasteIncinerator,
   wasteSelectionId,
+  wasteSelectionType,
+  type WasteExtras,
   type WasteLayerType,
   type WasteSelection,
   type WasteTypeSet,
@@ -68,6 +72,8 @@ const WasteSiteInfoPanel = lazy(() => import('./components/WasteSiteInfoPanel').
 // The incineration plant's variant lives in the same module, so this resolves
 // the same chunk rather than adding a second network request.
 const WasteIncineratorInfoPanel = lazy(() => import('./components/WasteSiteInfoPanel').then(m => ({ default: m.WasteIncineratorInfoPanel })))
+const WasteEcoStationInfoPanel = lazy(() => import('./components/WasteSiteInfoPanel').then(m => ({ default: m.WasteEcoStationInfoPanel })))
+const WasteFacilityInfoPanel = lazy(() => import('./components/WasteSiteInfoPanel').then(m => ({ default: m.WasteFacilityInfoPanel })))
 const WaterFacilityInfoPanel = lazy(() => import('./components/WaterFacilityInfoPanel').then(m => ({ default: m.WaterFacilityInfoPanel })))
 // The inlet variant lives in the same module, so this resolves the same chunk
 // rather than adding a second network request.
@@ -137,6 +143,9 @@ const NO_TOILETS: Toilet[] = []
 const NO_CAR_PARKS: CarPark[] = []
 // And for the ~1,100 waste and recycling pins, pushed on array identity too.
 const NO_WASTE: WasteSite[] = []
+// Stable "nothing extra" bag for the layer-off case, for the same identity
+// reason as the empty arrays above.
+const NO_WASTE_EXTRAS: WasteExtras = {}
 // And for the water overlay, which pushes THREE sources (surfaces, blocks,
 // markers) on one array identity — a fresh `[]` would rebuild all three.
 const NO_WATER_FACILITIES: WaterFacility[] = []
@@ -301,11 +310,8 @@ export default function App() {
   // Same rule one level down: hiding a site type removes those markers, so a
   // panel describing one of them has to close too.
   useEffect(() => {
-    setSelectedWasteSite(prev => {
-      if (!prev) return prev
-      const type: WasteLayerType = prev.kind === 'site' ? prev.site.type : 'incinerator'
-      return wasteHiddenTypes.has(type) ? null : prev
-    })
+    setSelectedWasteSite(prev =>
+      (prev && wasteHiddenTypes.has(wasteSelectionType(prev)) ? null : prev))
   }, [wasteHiddenTypes])
   useEffect(() => {
     if (waterOn) return
@@ -408,19 +414,30 @@ export default function App() {
     [transitData.powerFacilities]
   )
 
-  // What MapView actually draws: the plant only while WASTE is on and its key
-  // row is not switched off. Null empties both its blocks and its marker.
-  const visibleIncinerator = useMemo(
-    () => (wasteOn ? visibleWasteIncinerator(incinerator, wasteHiddenTypes) : null),
-    [incinerator, wasteOn, wasteHiddenTypes]
-  )
+  // What MapView actually draws besides the collection points: the plant, the
+  // eco stations and the treatment facilities, each only while WASTE is on and
+  // its key row is not switched off. Emptying a slot is what removes its marks —
+  // and for the facilities, its landfill polygons too. Memoised as ONE object
+  // because MapView pushes all three sources on this identity.
+  const wasteExtras = useMemo<WasteExtras>(() => (wasteOn ? {
+    incinerator: visibleWasteIncinerator(incinerator, wasteHiddenTypes),
+    ecoStations: visibleWasteEcoStations(transitData.wasteEcoStations, wasteHiddenTypes),
+    facilities: visibleWasteFacilities(transitData.wasteFacilities, wasteHiddenTypes),
+  } : NO_WASTE_EXTRAS), [
+    incinerator, transitData.wasteEcoStations, transitData.wasteFacilities,
+    wasteOn, wasteHiddenTypes,
+  ])
 
   // Per-type totals for the legend, from the UNFILTERED data — the key rows show
-  // how many sites each type has, not how many are currently drawn. The plant
-  // is the seventh row, counted from the POWER record.
+  // how many marks each row stands for, not how many are currently drawn. The
+  // last two rows come from the POWER record and the two extra blocks.
   const wasteTypeCounts = useMemo(
-    () => countWasteByType(transitData.waste, incinerator),
-    [transitData.waste, incinerator]
+    () => countWasteByType(transitData.waste, {
+      incinerator,
+      ecoStations: transitData.wasteEcoStations,
+      facilities: transitData.wasteFacilities,
+    }),
+    [transitData.waste, incinerator, transitData.wasteEcoStations, transitData.wasteFacilities]
   )
 
   const filteredTransitData = useMemo(() => ({
@@ -789,8 +806,8 @@ export default function App() {
     ga.layerToggled('carparks', !v)
     return !v
   }), [])
-  // One of the six site types. Stored as the HIDDEN set, so "toggle" adds or
-  // removes the type there — see src/waste.ts for why hidden rather than shown.
+  // One of the nine key rows. Stored as the HIDDEN set, so "toggle" adds or
+  // removes the row there — see src/waste.ts for why hidden rather than shown.
   const toggleWasteType = useCallback((type: WasteLayerType) => {
     setWasteHiddenTypes(prev => {
       const next = new Set(prev)
@@ -939,7 +956,7 @@ export default function App() {
             onCarParkClick={onCarParkClick}
             onWasteSiteClick={onWasteSiteClick}
             wasteFocus={wasteOn}
-            wasteIncinerator={visibleIncinerator}
+            wasteExtras={wasteExtras}
             onWaterFacilityClick={onWaterFacilityClick}
             onWaterNodeClick={onWaterNodeClick}
             waterFocus={waterOn}
@@ -1096,6 +1113,19 @@ export default function App() {
         )}
         {selectedWasteSite?.kind === 'incinerator' && (
           <WasteIncineratorInfoPanel
+            facility={selectedWasteSite.facility}
+            stats={transitData.wasteIncineratorStats}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedWasteSite?.kind === 'ecoStation' && (
+          <WasteEcoStationInfoPanel
+            station={selectedWasteSite.station}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedWasteSite?.kind === 'facility' && (
+          <WasteFacilityInfoPanel
             facility={selectedWasteSite.facility}
             onClose={clearSelection}
           />

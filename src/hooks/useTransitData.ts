@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, WasteIncineratorStats, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -126,6 +126,12 @@ interface WasteFile {
   fetchedAtUtc: string
   sources: WasteSource[]
   sites: WasteSite[]
+  // Added after the file shipped, so all three are optional here and in the zod
+  // schema: an older waste.json simply draws no facilities, no eco stations and
+  // no throughput stats rather than failing validation.
+  facilities?: WasteFacility[]
+  ecoStations?: WasteEcoStation[]
+  incinerator?: WasteIncineratorStats | null
 }
 
 // water-facilities.json — Macao Water's 22 supply facilities, same envelope
@@ -388,6 +394,9 @@ export function useTransitData(): UseTransitDataResult {
     carParks: [],
     waste: [],
     wasteSources: [],
+    wasteFacilities: [],
+    wasteEcoStations: [],
+    wasteIncineratorStats: null,
     waterFacilities: [],
     waterNetwork: null,
     powerFacilities: [],
@@ -533,6 +542,9 @@ export function useTransitData(): UseTransitDataResult {
       .then(file => {
         commit('waste', file.sites)
         commit('wasteSources', file.sources ?? [])
+        commit('wasteFacilities', file.facilities ?? [])
+        commit('wasteEcoStations', file.ecoStations ?? [])
+        commit('wasteIncineratorStats', file.incinerator ?? null)
       })
       .catch(() => {})
 
