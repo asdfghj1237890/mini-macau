@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-09-03T21:27:53.040892+00:00",
-  "exportedAt": "2026-09-04T00:30:19+0800",
+  "fetchedAtUtc": "2026-09-04T21:08:58.769391+00:00",
+  "exportedAt": "2026-09-05T00:30:20+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -4164,6 +4164,126 @@
       "coordinates": [
         113.563949,
         22.150564
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "2601/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "體育館大馬路,射擊路",
+        "pt": "Avenida da Nave Desportiva,Rua do Tiro"
+      },
+      "reason": {
+        "zh": "行人路重整工程",
+        "pt": "Obra de Reordenamento de Passeio"
+      },
+      "principal": {
+        "zh": "交通事務局",
+        "pt": "DSAT"
+      },
+      "contractor": {
+        "zh": "黎培璧建築商",
+        "pt": ""
+      },
+      "details": {
+        "zh": "因進行行人路重整工程，於本年9月7日至30日，每日上午9時30分至下午4時30分，路氹城相關道路將實施有限度通車︰\n體育館大馬路近體育館圓形地的路段及近蓮花路的路段；\n射擊路近體育館圓形地的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido à obra de reordenamento de passeio, as seguintes vias em Cotai ficarão com condicionamentos ao trânsito, das 09H30 às 16H30, nos dias 07 a 30/09/2026:\nos troços da Avenida da Nave Desportiva junto da Rotunda da Nave Desportiva e junto da Estrada Flor de Lótus;\no troço da Rua do Tiro junto da Rotunda da Nave Desportiva.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 23,
+        "hours": 7
+      },
+      "startDate": "2026-09-07",
+      "endDate": "2026-09-30",
+      "onlineDate": "2026-09-05",
+      "coordinates": [
+        113.569044,
+        22.145296
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "2605/2026",
+      "restriction": "closed",
+      "restrictionText": {
+        "zh": "封閉交通",
+        "pt": "Ficará vedado ao trânsito"
+      },
+      "location": {
+        "zh": "觀光塔街,嘉樂庇總督大橋",
+        "pt": "Rua da Torre de Macau,Ponte Governador Nobre de Carvalho"
+      },
+      "reason": {
+        "zh": "《第34屆澳門國際煙花比賽匯演》之無人機表演",
+        "pt": "34.º os Espectáculos de drones de Concurso Internacional de Fogo-de-Artifício de Macau"
+      },
+      "principal": {
+        "zh": "旅遊局",
+        "pt": "Direcção dos Serviços de Turismo"
+      },
+      "contractor": {
+        "zh": "",
+        "pt": ""
+      },
+      "details": {
+        "zh": "為配合旅遊局舉辦《第34屆澳門國際煙花比賽匯演》之無人機表演的關係，以下道路將在警方協助下實施以下臨時交通管制措施：\n禁止停泊車輛(特許車輛、緊急車輛除外)\n本年9月7日上午9時至12日晚上9時30分、10月3日上午9時至4日晚上11時\n觀光塔街編號4278(1-10)、4279(11-20)、4281(21-43)及4283(44-54)的咪錶泊車位；\n觀光塔街近球場及近燈柱編號35C12的電單車泊車區。\n封閉交通\n本年9月8日至11日每日下午6時至晚上8時15分、9月12日晚上7時至9時30分、10月4日晚上7時30分至10時45分\n觀光塔街。\n其他\n本年9月8日至11日每日下午6時至晚上8時15分、9月12日晚上7時至9時30分、10月4日晚上7時30分至10時45分\n禁止行人於嘉樂庇總督大橋通行。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido à realização dos Espectáculos de drones de Concurso Internacional de Fogo-de-Artifício de Macau, organizada pela Direcção dos Serviços de Turismo, serão introduzidas alterações provisórias ao trânsito nas seguintes vias, e com apoio policial:\nProibição de estacionamento (com excepção dos veículos autorizados e de socorro)\nDas 09H00 do dia 07/09/2026 às 21H30 do dia 12/09/2026, e das 09H00 do dia 03/10/2026 às 23H00 do dia 04/10/2026\nnos lugares de estacionamento com contador de tempo n.ºs 4278(1-10), 4279(11-20), 4281(21-43) e 4283(44-54) na Rua da Torre de Macau;\nna zona de estacionamento para motociclos na Rua da Torre de Macau junto do campo e do poste de iluminação pública 35C12.\nFicará vedado ao trânsito\nDas 18H00 às 20H15, nos dias 08 a 11/09/2026, das 19H00 às 21H30 do dia 12/09/2026, e das 19H30 às 22H45 do dia 04/10/2026\nna Rua da Torre de Macau.\nOutros\nDas 18H00 às 20H15, nos dias 08 a 11/09/2026, das 19H00 às 21H30 do dia 12/09/2026, e das 19H30 às 22H45 do dia 04/10/2026\nÉ proibida a circulação de peões na Ponte Governador Nobre de Carvalho.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 27,
+        "hours": 14
+      },
+      "startDate": "2026-09-07",
+      "endDate": "2026-10-04",
+      "onlineDate": "2026-09-05",
+      "coordinates": [
+        113.538942,
+        22.180342
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "2610/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "馬萬祺博士大馬路",
+        "pt": "Avenida Doutor Ma Man Kei"
+      },
+      "reason": {
+        "zh": "行人路重整工程,安裝巴士候車亭工作",
+        "pt": "Obra de Reordenamento de Passeio,Trabalhos de Instalação do Abrigo para Paragem de Autocarros"
+      },
+      "principal": {
+        "zh": "交通事務局",
+        "pt": "DSAT"
+      },
+      "contractor": {
+        "zh": "蔣國良建築商,安穠建築工程有限公司",
+        "pt": "On Nong Construction Co. Ltd.,Construtor Civil Cheong Kuok Leong"
+      },
+      "details": {
+        "zh": "因進行行人路重整工程、安裝巴士候車亭工作，於本年9月7日至25日，每日上午9時30分至下午5時，馬萬祺博士大馬路近東強大廈(第四座)的路段及近東城第一街的路段將實施有限度通車，另准許相關運輸車輛，於工作時在設置適當交通標誌以及在警方協助的條件下，在該處停泊及上、落貨。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido à obra de reordenamento de passeio, trabalhos de instalação do abrigo para paragem de autocarros, os troços da Avenida Doutor Ma Man Kei junto do Edifício Tong Keong (Bloco 4) e junto da Rua Um da Zona Este ficarão com condicionamentos ao trânsito, sendo permitido o estacionamento do veículo de transporte no local durante as operações de cargas e descargas, que deverá estar devidamente sinalizadas e com apoio policial, das 09H30 às 17H00, nos dias 07 a 25/09/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 18,
+        "hours": 8
+      },
+      "startDate": "2026-09-07",
+      "endDate": "2026-09-25",
+      "onlineDate": "2026-09-05",
+      "coordinates": [
+        113.56389,
+        22.207386
       ],
       "previousNotice": null
     },
