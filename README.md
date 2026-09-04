@@ -7,19 +7,13 @@
 [![Deploy](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/deploy.yml?label=deploy&branch=master)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/deploy.yml)
 
 [![Flights sync](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-flights.yml?label=flights%20sync)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-flights.yml)
-[![Flight timetable](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-flights-timetable.yml?label=flight%20timetable)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-flights-timetable.yml)
 [![Ferries sync](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-ferry-schedules.yml?label=ferries%20sync)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-ferry-schedules.yml)
-[![Bus status](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/service-status.yml?label=bus%20status)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/service-status.yml)
-[![Road works](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-road-works.yml?label=road%20works)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-road-works.yml)
-[![Toilets](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-toilets.yml?label=toilets)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-toilets.yml)
-[![Car parks](https://img.shields.io/github/actions/workflow/status/asdfghj1237890/mini-macau/update-car-parks.yml?label=car%20parks)](https://github.com/asdfghj1237890/mini-macau/actions/workflows/update-car-parks.yml)
 
 [![License](https://img.shields.io/github/license/asdfghj1237890/mini-macau)](./LICENSE)
 [![Made with React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
 [![MapLibre GL](https://img.shields.io/badge/MapLibre_GL-5-396CB2?logo=maplibre&logoColor=white)](https://maplibre.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Python](https://img.shields.io/badge/Python-3.13-3776AB?logo=python&logoColor=white)](./data/pyproject.toml)
 
 3D visualization of Macau's public transit, ferry, and aviation system, inspired by [Mini Tokyo 3D](https://minitokyo3d.com) and [Mini Taiwan](https://mini-taiwan-learning-project.itsmigu.com/).
