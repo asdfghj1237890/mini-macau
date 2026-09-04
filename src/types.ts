@@ -500,6 +500,9 @@ export interface PowerNetworkNode {
   kind: string
   name: PowerText
   coordinates: [number, number] // [lng, lat]
+  // The landing point is the pipeline's estimate from the published route,
+  // not a published location — the panel says so.
+  approximate?: boolean
 }
 
 // One edge of the network. `from`/`to` are facility ids or a node id;

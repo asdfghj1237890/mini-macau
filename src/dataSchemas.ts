@@ -428,6 +428,7 @@ const powerNetwork = z.object({
       kind: z.string(),
       name: powerText,
       coordinates: lngLat,
+      approximate: z.boolean().optional(),
     }),
   ),
   lines: z.array(

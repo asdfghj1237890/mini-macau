@@ -267,6 +267,11 @@ export function PowerInletInfoPanel({ node, network, onClose }: InletProps) {
       <div className="px-3 py-2 text-[11px] text-white/75 mm-han leading-[1.5]">
         {t.powerInletNote}
       </div>
+      {node.approximate && (
+        <div className="px-3 py-1.5 border-t border-white/8 text-[10px] text-white/55 mm-han leading-[1.4]">
+          {t.powerApproximate}
+        </div>
+      )}
       {lines > 0 && (
         <div className="px-3 py-1.5 border-t border-white/8 text-[10px] text-white/55 mm-han leading-[1.4]">
           {t.powerLines(lines)}

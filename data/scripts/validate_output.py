@@ -1394,6 +1394,10 @@ def v_power_network(errs: list[str], network: object, facility_ids: set[str]) ->
                 if not (isinstance(n["name"][lang], str) and n["name"][lang]):
                     errs.append(f"{nctx}.name.{lang} must be a non-empty string")
         check_coords(errs, nctx, n["coordinates"])
+        # Optional: an inlet whose landing point is our estimate rather than a
+        # published location (the panel says so).
+        if "approximate" in n and not isinstance(n["approximate"], bool):
+            errs.append(f"{nctx}.approximate must be a boolean")
     if len(nodes) != POWER_INLET_COUNT:
         errs.append(f"{ctx}: {len(nodes)} inlet nodes, expected exactly {POWER_INLET_COUNT}")
 

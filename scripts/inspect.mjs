@@ -359,7 +359,7 @@ function cmdPowerFacilities() {
     if (byKv[kv]) console.log(`  ${String(kv).padStart(3)} kV  ${String(byKv[kv]).padStart(3)} lines  ${kmByKv[kv].toFixed(1).padStart(6)} km`)
   }
   console.log(`direct connectors: ${direct.length}   routed: ${lines.length - direct.length}`)
-  console.log(`inlet nodes: ${nodes.map((n) => `${n.id} (${n.kind}, ${n.since}) ${n.name.zh}`).join(', ') || '—'}`)
+  console.log(`inlet nodes: ${nodes.map((n) => `${n.approximate ? '~' : ''}${n.id} (${n.kind}, ${n.since}) ${n.name.zh}`).join(', ') || '—'}`)
   console.log(`straight-line fallbacks: ${fallbacks.length}${fallbacks.length ? ` — ${fallbacks.join(', ')}` : ''}`)
   if (longest) console.log(`longest: ${longest.id}  ${longest.lengthM} m  ${longest.coordinates.length} pts`)
   if (maxRatio) console.log(`max routed detour: ${maxRatio.id}  x${maxRatio.r.toFixed(2)}`)

@@ -255,10 +255,26 @@ LANDMARK_ANCHORS = {
 # Three inlet nodes stand for the Guangdong (China Southern Grid) corridors.
 # Each sits on the MACAU side of the border, on land and a few metres off a
 # road so OSRM has something to snap to — verified against OSM's Macau boundary
-# (relation 1867188) and the drivable-way set fetch_power_distribution.py uses:
-#   鴨涌河    34.6 m off 鴨涌馬路 Estrada do Canal dos Patos
-#   蓮花大橋  14.5 m off 蓮花路 Estrada Flor de Lótus, at the bridge landing
-#   港珠澳大橋 30.4 m off 澳門橋大馬路 on the HZMB Macau port island
+# (relation 1867188) and the drivable-way set fetch_power_distribution.py uses.
+# What is documented about the corridors (CEM press release 598, 2022-11;
+# hengqin-cooperation.gov.mo news 7228「粵澳聯網40載」):
+#   北通道 珠河甲/乙/丙線  珠海 220 kV 拱北變電站 (OSM w443670394, ~1 km NW of
+#            關閘) → 鴨涌河變電站, 2008. 鴨涌河 sits on the border river, so the
+#            inlet is the opposite bank: 34.6 m off 鴨涌馬路. Exact crossing
+#            point of the cable is not published.
+#   南通道 琴蓮甲/乙/丙線  橫琴 220 kV 琴韻變電站 (OSM w443620082, west-central
+#            Hengqin) → 蓮花變電站, 3 × 220 kV cables, 2011-12-30. The inlet is
+#            the Lotus Bridge landing, 14.5 m off 蓮花路 — the only fixed link
+#            between Hengqin and Cotai, ~1 km from the substation.
+#   中通道 (第三通道)     珠海 220 kV 煙墩變電站 → 北安變電站, ~10.3 km of cable,
+#            commissioned 2022-11; the Zhuhai section (5.75 km, all underground,
+#            ~30 % under water) "穿越馬騮洲、匯金灣及十字門三條水道" — i.e. it
+#            reaches Macau across the 十字門 channel from the Hengqin side, NOT
+#            over the HZMB port island in the north-east (where it used to be
+#            drawn). The Macau landing is not published; the inlet is placed on
+#            Taipa's west shore at 海洋花園, the closest Macau land across
+#            十字門 from Hengqin (~24 m off the shore road), 10.3 − 5.75 ≈ 4.5 km
+#            of cable from 北安 — and is flagged `approximate`.
 # ----------------------------------------------------------------------------
 INLET_NODES = [
     {
@@ -282,11 +298,13 @@ INLET_NODES = [
     {
         "id": "inlet-pac-on", "kind": "inlet", "corridor": 3, "since": 2022,
         "name": {
-            "zh": "廣東電網輸入（北安）",
-            "en": "Guangdong grid infeed (Pac On / HZMB)",
-            "pt": "Interligação com a rede de Guangdong (Pac On / Ponte HZMB)",
+            "zh": "廣東電網輸入（十字門 → 北安）",
+            "en": "Guangdong grid infeed (Shizimen → Pac On)",
+            "pt": "Interligação com a rede de Guangdong (Shizimen → Pac On)",
         },
-        "coordinates": [113.567200, 22.208000],
+        "coordinates": [113.544900, 22.157500],
+        # Landing point estimated from the published route (see above).
+        "approximate": True,
     },
 ]
 
