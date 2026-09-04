@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 600" width="1000" height="600" role="img" aria-labelledby="t d">
 <title id="t">Mini Map Macau architecture</title>
-<desc id="d">External sources are normalised by the Python pipeline into static JSON committed to public/data, which the browser runtime replays on a simulated clock; two live feeds bypass the pipeline: the DSAT realtime bus feed in local development and the DSAT car-park vacancy API, polled only while the clock is at the present.</desc>
+<desc id="d">External sources are normalised by the Python pipeline into static JSON committed to public/data, which the browser runtime replays on a simulated clock; one live feed bypasses the pipeline: the DSAT car-park vacancy API, polled only while the clock is at the present.</desc>
 <defs>
   <style>
     .t { font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Noto Sans', sans-serif; }
@@ -29,13 +29,13 @@
 <rect x="760" y="64" width="216" height="496" rx="10" fill="#121316" stroke="rgba(255,255,255,0.08)"/>
 <text x="772" y="86" class="m" font-size="11" letter-spacing="2.5" fill="#e5e7eb">BROWSER RUNTIME</text>
 <text x="772" y="101" class="t" font-size="11" fill="rgba(229,231,235,0.55)">replays on a sim clock</text>
-<path id="e0" d="M226,134 C266,134 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e1" d="M226,184 C266,184 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e2" d="M226,234 C266,234 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e3" d="M226,284 C266,284 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e4" d="M226,334 C266,334 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e5" d="M226,384 C266,384 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e6" d="M226,434 C266,434 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e0" d="M226,159 C266,159 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e1" d="M226,209 C266,209 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e2" d="M226,259 C266,259 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e3" d="M226,309 C266,309 254,233 294,233" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e4" d="M226,359 C266,359 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e5" d="M226,409 C266,409 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e6" d="M226,459 C266,459 254,283 294,283" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
 <path id="e7" d="M470,283 C510,283 254,333 294,333" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
 <path id="e8" d="M470,333 C510,333 254,383 294,383" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
 <path id="e9" d="M470,233 C510,233 498,133 538,133" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
@@ -46,73 +46,65 @@
 <path id="e14" d="M470,383 C510,383 498,383 538,383" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
 <path id="e15" d="M470,383 C510,383 498,433 538,433" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
 <path id="e16" d="M470,383 C510,383 498,483 538,483" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e17" d="M704,133 C744,133 732,328 772,328" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e18" d="M704,183 C744,183 732,328 772,328" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e19" d="M704,233 C744,233 732,328 772,328" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e20" d="M704,283 C744,283 732,328 772,328" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e21" d="M704,333 C744,333 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e22" d="M704,383 C744,383 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e23" d="M704,433 C744,433 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e24" d="M704,483 C744,483 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e25" d="M226,484 C252,484 256,528 270,528 L728,528 C742,528 746,478 772,478" fill="none" stroke="#6ee7b7" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.7" marker-end="url(#arrow)"/>
-<path id="e26" d="M226,534 C252,534 256,546 270,546 L728,546 C742,546 746,528 772,528" fill="none" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.7" marker-end="url(#arrow)"/>
-<path id="e27" d="M964,328 C1004,328 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e28" d="M964,378 C1004,378 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e29" d="M964,478 C1004,478 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
-<path id="e30" d="M964,528 C1004,528 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e17" d="M704,133 C744,133 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e18" d="M704,183 C744,183 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e19" d="M704,233 C744,233 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e20" d="M704,283 C744,283 732,378 772,378" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e21" d="M704,333 C744,333 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e22" d="M704,383 C744,383 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e23" d="M704,433 C744,433 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e24" d="M704,483 C744,483 732,428 772,428" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e25" d="M226,509 C252,509 256,528 270,528 L728,528 C742,528 746,528 772,528" fill="none" stroke="#93c5fd" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.7" marker-end="url(#arrow)"/>
+<path id="e26" d="M964,378 C1004,378 732,478 772,478" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e27" d="M964,428 C1004,428 732,478 772,478" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
+<path id="e28" d="M964,528 C1004,528 732,478 772,478" fill="none" stroke="rgba(229,231,235,0.22)" stroke-width="1.1"  marker-end="url(#arrow)"/>
 <g>
-<rect x="36" y="114" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="122" width="3" height="24" rx="1.5" fill="#fcd34d"/>
-<text x="48" y="131" class="t" font-size="12" font-weight="600" fill="#e5e7eb">OpenStreetMap</text>
-<text x="48" y="145" class="t" font-size="10" fill="rgba(229,231,235,0.55)">geometry · school footprints</text>
+<rect x="36" y="139" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="147" width="3" height="24" rx="1.5" fill="#fcd34d"/>
+<text x="48" y="156" class="t" font-size="12" font-weight="600" fill="#e5e7eb">OpenStreetMap</text>
+<text x="48" y="170" class="t" font-size="10" fill="rgba(229,231,235,0.55)">geometry · school footprints</text>
 </g>
 <g>
-<rect x="36" y="164" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="172" width="3" height="24" rx="1.5" fill="#fcd34d"/>
-<text x="48" y="181" class="t" font-size="12" font-weight="600" fill="#e5e7eb">MLM LRT timetables</text>
-<text x="48" y="195" class="t" font-size="10" fill="rgba(229,231,235,0.55)">transcribed boards</text>
+<rect x="36" y="189" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="197" width="3" height="24" rx="1.5" fill="#fcd34d"/>
+<text x="48" y="206" class="t" font-size="12" font-weight="600" fill="#e5e7eb">MLM LRT timetables</text>
+<text x="48" y="220" class="t" font-size="10" fill="rgba(229,231,235,0.55)">transcribed boards</text>
 </g>
 <g>
-<rect x="36" y="214" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="222" width="3" height="24" rx="1.5" fill="#6ee7b7"/>
-<text x="48" y="231" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSAT bus frequencies</text>
-<text x="48" y="245" class="t" font-size="10" fill="rgba(229,231,235,0.55)">service hours</text>
+<rect x="36" y="239" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="247" width="3" height="24" rx="1.5" fill="#6ee7b7"/>
+<text x="48" y="256" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSAT bus frequencies</text>
+<text x="48" y="270" class="t" font-size="10" fill="rgba(229,231,235,0.55)">service hours</text>
 </g>
 <g>
-<rect x="36" y="264" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="272" width="3" height="24" rx="1.5" fill="#c4b5fd"/>
-<text x="48" y="281" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSEDJ school list</text>
-<text x="48" y="295" class="t" font-size="10" fill="rgba(229,231,235,0.55)">data.gov.mo</text>
+<rect x="36" y="289" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="297" width="3" height="24" rx="1.5" fill="#c4b5fd"/>
+<text x="48" y="306" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSEDJ school list</text>
+<text x="48" y="320" class="t" font-size="10" fill="rgba(229,231,235,0.55)">data.gov.mo</text>
 </g>
 <g>
-<rect x="36" y="314" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="322" width="3" height="24" rx="1.5" fill="#7dd3fc"/>
-<text x="48" y="331" class="t" font-size="12" font-weight="600" fill="#e5e7eb">AviationStack API</text>
-<text x="48" y="345" class="t" font-size="10" fill="rgba(229,231,235,0.55)">MFM flights</text>
+<rect x="36" y="339" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="347" width="3" height="24" rx="1.5" fill="#7dd3fc"/>
+<text x="48" y="356" class="t" font-size="12" font-weight="600" fill="#e5e7eb">AviationStack API</text>
+<text x="48" y="370" class="t" font-size="10" fill="rgba(229,231,235,0.55)">MFM flights</text>
 </g>
 <g>
-<rect x="36" y="364" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="372" width="3" height="24" rx="1.5" fill="#fca5a5"/>
-<text x="48" y="381" class="t" font-size="12" font-weight="600" fill="#e5e7eb">TurboJET · CotaiJet</text>
-<text x="48" y="395" class="t" font-size="10" fill="rgba(229,231,235,0.55)">timetable scrape</text>
+<rect x="36" y="389" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="397" width="3" height="24" rx="1.5" fill="#fca5a5"/>
+<text x="48" y="406" class="t" font-size="12" font-weight="600" fill="#e5e7eb">TurboJET · CotaiJet</text>
+<text x="48" y="420" class="t" font-size="10" fill="rgba(229,231,235,0.55)">timetable scrape</text>
 </g>
 <g>
-<rect x="36" y="414" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="36" y="422" width="3" height="24" rx="1.5" fill="#5eead4"/>
-<text x="48" y="431" class="t" font-size="12" font-weight="600" fill="#e5e7eb">data.gov.mo</text>
-<text x="48" y="445" class="t" font-size="10" fill="rgba(229,231,235,0.55)">road works · toilets · car parks</text>
+<rect x="36" y="439" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="36" y="447" width="3" height="24" rx="1.5" fill="#5eead4"/>
+<text x="48" y="456" class="t" font-size="12" font-weight="600" fill="#e5e7eb">data.gov.mo</text>
+<text x="48" y="470" class="t" font-size="10" fill="rgba(229,231,235,0.55)">road works · toilets · car parks</text>
 </g>
 <g>
-<rect x="36" y="464" width="190" height="40" rx="6" fill="#17181c" stroke="#6ee7b7" stroke-dasharray="3 3" class="pulse"/>
-<rect x="36" y="472" width="3" height="24" rx="1.5" fill="#6ee7b7"/>
-<text x="48" y="481" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSAT realtime bus feed</text>
-<text x="48" y="495" class="t" font-size="10" fill="rgba(229,231,235,0.55)">dev only</text>
-</g>
-<g>
-<rect x="36" y="514" width="190" height="40" rx="6" fill="#17181c" stroke="#93c5fd" stroke-dasharray="3 3" class="pulse"/>
-<rect x="36" y="522" width="3" height="24" rx="1.5" fill="#93c5fd"/>
-<text x="48" y="531" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSAT car-park vacancy</text>
-<text x="48" y="545" class="t" font-size="10" fill="rgba(229,231,235,0.55)">API gateway · every 10 s</text>
+<rect x="36" y="489" width="190" height="40" rx="6" fill="#17181c" stroke="#93c5fd" stroke-dasharray="3 3" class="pulse"/>
+<rect x="36" y="497" width="3" height="24" rx="1.5" fill="#93c5fd"/>
+<text x="48" y="506" class="t" font-size="12" font-weight="600" fill="#e5e7eb">DSAT car-park vacancy</text>
+<text x="48" y="520" class="t" font-size="10" fill="rgba(229,231,235,0.55)">API gateway · every 10 s</text>
 </g>
 <g>
 <rect x="294" y="213" width="176" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
@@ -179,28 +171,22 @@
 <text x="550" y="487" class="t" font-size="12" font-weight="600" fill="#e5e7eb">car-parks</text>
 </g>
 <g>
-<rect x="772" y="308" width="192" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="772" y="316" width="3" height="24" rx="1.5" fill="#fcd34d"/>
-<text x="784" y="325" class="t" font-size="12" font-weight="600" fill="#e5e7eb">Simulation engine</text>
-<text x="784" y="339" class="t" font-size="10" fill="rgba(229,231,235,0.55)">timetable-driven playback</text>
-</g>
-<g>
 <rect x="772" y="358" width="192" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="772" y="366" width="3" height="24" rx="1.5" fill="#5eead4"/>
-<text x="784" y="375" class="t" font-size="12" font-weight="600" fill="#e5e7eb">City overlays</text>
-<text x="784" y="389" class="t" font-size="10" fill="rgba(229,231,235,0.55)">markers · extrusions · notices</text>
+<rect x="772" y="366" width="3" height="24" rx="1.5" fill="#fcd34d"/>
+<text x="784" y="375" class="t" font-size="12" font-weight="600" fill="#e5e7eb">Simulation engine</text>
+<text x="784" y="389" class="t" font-size="10" fill="rgba(229,231,235,0.55)">timetable-driven playback</text>
 </g>
 <g>
 <rect x="772" y="408" width="192" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
-<rect x="772" y="416" width="3" height="24" rx="1.5" fill="#f5f5f5"/>
-<text x="784" y="425" class="t" font-size="12" font-weight="600" fill="#e5e7eb">MapLibre layers + React UI</text>
-<text x="784" y="439" class="t" font-size="10" fill="rgba(229,231,235,0.55)">LAYERS panel · info panels · i18n</text>
+<rect x="772" y="416" width="3" height="24" rx="1.5" fill="#5eead4"/>
+<text x="784" y="425" class="t" font-size="12" font-weight="600" fill="#e5e7eb">City overlays</text>
+<text x="784" y="439" class="t" font-size="10" fill="rgba(229,231,235,0.55)">markers · extrusions · notices</text>
 </g>
 <g>
-<rect x="772" y="458" width="192" height="40" rx="6" fill="#17181c" stroke="#6ee7b7" stroke-dasharray="3 3" class="pulse"/>
-<rect x="772" y="466" width="3" height="24" rx="1.5" fill="#6ee7b7"/>
-<text x="784" y="475" class="t" font-size="12" font-weight="600" fill="#e5e7eb">RT client (dev only)</text>
-<text x="784" y="489" class="t" font-size="10" fill="rgba(229,231,235,0.55)">/api/dsat/batch via Vite</text>
+<rect x="772" y="458" width="192" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
+<rect x="772" y="466" width="3" height="24" rx="1.5" fill="#f5f5f5"/>
+<text x="784" y="475" class="t" font-size="12" font-weight="600" fill="#e5e7eb">MapLibre layers + React UI</text>
+<text x="784" y="489" class="t" font-size="10" fill="rgba(229,231,235,0.55)">LAYERS panel · info panels · i18n</text>
 </g>
 <g>
 <rect x="772" y="508" width="192" height="40" rx="6" fill="#17181c" stroke="#93c5fd" stroke-dasharray="3 3" class="pulse"/>
@@ -308,29 +294,21 @@
   <animateMotion dur="3.2s" begin="2.48s" repeatCount="indefinite" rotate="auto"><mpath href="#e24"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="2.48s" repeatCount="indefinite"/>
 </circle>
-<circle r="3" fill="#6ee7b7" opacity="0">
+<circle r="3" fill="#93c5fd" opacity="0">
   <animateMotion dur="1.6s" begin="1.25s" repeatCount="indefinite" rotate="auto"><mpath href="#e25"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" begin="1.25s" repeatCount="indefinite"/>
 </circle>
-<circle r="3" fill="#93c5fd" opacity="0">
-  <animateMotion dur="1.6s" begin="0.02s" repeatCount="indefinite" rotate="auto"><mpath href="#e26"/></animateMotion>
-  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.6s" begin="0.02s" repeatCount="indefinite"/>
-</circle>
 <circle r="2.6" fill="#fcd34d" opacity="0">
+  <animateMotion dur="3.2s" begin="0.02s" repeatCount="indefinite" rotate="auto"><mpath href="#e26"/></animateMotion>
+  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.02s" repeatCount="indefinite"/>
+</circle>
+<circle r="2.6" fill="#5eead4" opacity="0">
   <animateMotion dur="3.2s" begin="0.39s" repeatCount="indefinite" rotate="auto"><mpath href="#e27"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.39s" repeatCount="indefinite"/>
 </circle>
-<circle r="2.6" fill="#5eead4" opacity="0">
+<circle r="2.6" fill="#93c5fd" opacity="0">
   <animateMotion dur="3.2s" begin="0.76s" repeatCount="indefinite" rotate="auto"><mpath href="#e28"/></animateMotion>
   <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="0.76s" repeatCount="indefinite"/>
-</circle>
-<circle r="2.6" fill="#6ee7b7" opacity="0">
-  <animateMotion dur="3.2s" begin="1.13s" repeatCount="indefinite" rotate="auto"><mpath href="#e29"/></animateMotion>
-  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.13s" repeatCount="indefinite"/>
-</circle>
-<circle r="2.6" fill="#93c5fd" opacity="0">
-  <animateMotion dur="3.2s" begin="1.50s" repeatCount="indefinite" rotate="auto"><mpath href="#e30"/></animateMotion>
-  <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="3.2s" begin="1.50s" repeatCount="indefinite"/>
 </circle>
 <g transform="translate(902, 76)">
   <rect width="62" height="20" rx="4" fill="#0b0b0c" stroke="rgba(252,211,77,0.35)"/>
@@ -341,6 +319,6 @@
   <line x1="24" y1="578" x2="52" y2="578" stroke="rgba(229,231,235,0.35)" stroke-width="1.2"/>
   <text x="58" y="582">committed data path (pipeline → JSON → runtime)</text>
   <line x1="330" y1="578" x2="358" y2="578" stroke="#6ee7b7" stroke-width="1.2" stroke-dasharray="4 4"/>
-  <text x="364" y="582">live path, bypasses the pipeline (dev-only bus RT · car-park vacancy at "now")</text>
+  <text x="364" y="582">live path, bypasses the pipeline (car-park vacancy, polled only while the clock is at "now")</text>
 </g>
 </svg>

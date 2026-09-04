@@ -1,6 +1,6 @@
 # 02 · Architecture Overview
 
-整個系統乾乾淨淨地分三層：**外部資料源 → Python pipeline 產出 versioned JSON → 瀏覽器 runtime 在模擬時鐘上回放**。RT mode 是巴士唯一一條走真實 live feed 的旁路。
+整個系統乾乾淨淨地分三層：**外部資料源 → Python pipeline 產出 versioned JSON → 瀏覽器 runtime 在模擬時鐘上回放**。
 
 ```
 ┌──────────────────────────────┐
@@ -10,7 +10,6 @@
 │  - DSAT 巴士頻率              │
 │  - AviationStack (MFM 航班)  │
 │  - TurboJET / CotaiJet 時刻表 │
-│  - DSAT 即時巴士 feed         │
 └──────────┬───────────────────┘
            │
    ┌───────▼────────────────────────────────┐
@@ -36,17 +35,8 @@
    ┌────────────────────────────────────────┐
    │  Browser runtime                        │
    │  - simulationEngine.ts (timetable)      │
-   │  - realtimeClient.ts   (DSAT live)──┐  │
-   │  - 3D layers + React UI             │  │
-   └─────────────────────────────────────┼──┘
-                                         │
-                            opt-in toggle│
-   ┌─────────────────────────────────────┐
-   │  /api/dsat/batch (Vite dev plugin)  │
-   │  → bis.dsat.gov.mo                  │
-   │  · 8s shared cache                  │
-   │  · 15s client poll                  │
-   └─────────────────────────────────────┘
+   │  - 3D layers + React UI                 │
+   └────────────────────────────────────────┘
 ```
 
 > LRT trips（`src/data/trips-*.json`）刻意不放 `public/data/`：Vite 把它們打包成匿名 hash chunk，`useTransitData` 用 `import.meta.glob` 按 scheduleType lazy import，所以 MLM 時刻表沒有可猜的 `/data/` URL。其餘資料集仍以 `/data/*.json` 直接提供，但帶 `X-Robots-Tag: noindex`（`public/_headers`）。
@@ -68,7 +58,6 @@
 | DSEDJ + OSM Overpass | 學校清單（核准級別）與校舍建築足跡 | `fetch_schools.py`（手動執行，name matching） |
 | data.gov.mo | IAM 公共廁所 / 無障礙公廁名單 | `fetch_toilets.py`（下載 ZIP 內 JSON，含重試） |
 | data.gov.mo | DSAT 停車場資料（車位詳情 + 即時空位） | `fetch_car_parks.py`（API gateway，APPCODE header，含重試） |
-| DSAT realtime | 每車當前 stop / 速度 / 方向 | 瀏覽器（RT mode 才會 fetch） |
 
 ### Stage 2 — Python pipeline
 
@@ -91,8 +80,7 @@ App.tsx
    ├─ LRT3DLayer           ─ fill-extrusion 雙節列車
    ├─ Flight3DLayer        ─ fill-extrusion 機身/機翼/尾翼
    ├─ Ferry3DLayer         ─ fill-extrusion 噴射船（8 種 polygon）
-   ├─ VehicleLayer         ─ 2D circle layer（zoom out 時 fallback）
-   └─ realtimeClient       ─ RT mode 的 DSAT polling + dead-reckoning
+   └─ VehicleLayer         ─ 2D circle layer（zoom out 時 fallback）
 ```
 
 關鍵設計選擇：
@@ -100,7 +88,6 @@ App.tsx
 - **simulation engine 是 pure function**：給它 `(TransitData, Date)`，它回 `VehiclePosition[]`。沒有副作用，方便單元測試（[10-testing.md](10-testing.md)）。
 - **時鐘是 offset-based 而非 RAF-summed**：背景分頁 RAF 被 throttle 仍能保持時間正確。[`useSimulationClock.ts:11`](../../src/hooks/useSimulationClock.ts) 的 docstring 有完整論證。
 - **3D 車輛全部用 fill-extrusion**：不引入 Three.js 或 deck.gl。每台車就是 5–8 個小 polygon，用 maplibre 原生 layer 畫。詳見 [04-3d-layers.md](04-3d-layers.md)。
-- **RT mode 是 opt-in 旁路**：sim engine 永遠在跑；RT 只是把 sim 的巴士部分丟掉、用真資料覆蓋。LRT、航班、渡輪不受影響。
 
 ## 目錄結構（runtime）
 
@@ -131,8 +118,6 @@ src/
 │   ├── Flight3DLayer.ts
 │   ├── Ferry3DLayer.ts
 │   └── VehicleLayer.ts      # 2D circle fallback
-├── services/
-│   └── realtimeClient.ts    # DSAT batcher + BusTracker
 ├── analytics/
 │   └── ga.ts                # GA4 event taxonomy
 ├── routeGroups.ts           # 巴士路線分組規則

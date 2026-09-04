@@ -13,7 +13,6 @@
 | [03](03-simulation-engine.md) | Simulation engine | 要碰 [`simulationEngine.ts`](../../src/engines/simulationEngine.ts)、改 ETA / schedule / 車輛位置算法 |
 | [04](04-3d-layers.md) | 3D layers（Bus / LRT / Flight / Ferry）與城市資料層 | 要動 fill-extrusion 幾何、車身造型、自訂車輛 layer，或學校/道路工程/公廁/停車場這些非車輛 overlay |
 | [05](05-data-pipeline.md) | Python data pipeline | 要重新生成 LRT / 巴士 / 時刻表 JSON、改 OSM extraction、改 OSRM road snap |
-| [06](06-realtime-mode.md) | Realtime (RT) mode | 要動 DSAT live feed、`/api/dsat/batch` proxy、dead-reckoning |
 | [07](07-ci-and-data-sync.md) | CI 與自動資料同步 | 要改 GitHub Actions、deploy、定期 scrape job |
 | [08](08-performance-notes.md) | Performance notes（深度解析） | 想理解為什麼某些寫法不直覺、效能優化的權衡 |
 | [09](09-frontend-ui.md) | Frontend UI（i18n / 路線分組 / 響應式 / LAYERS 面板） | 要動 UI、加新語言、改路線分組規則，或改 LAYERS 面板與城市圖層開關 |
@@ -21,7 +20,7 @@
 
 ## 推薦閱讀順序
 
-新人 onboarding：**01 → 02 → 03 → 06 → 04**。把 runtime 的整體骨架建立起來再進到細節。
+新人 onboarding：**01 → 02 → 03 → 04**。把 runtime 的整體骨架建立起來再進到細節。
 
 要動效能：**08 → 03 → 04**。
 

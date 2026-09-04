@@ -42,7 +42,6 @@ interface BusStopETA {
 }
 
 function computeBusStopETAs(
-  vehicle: VehiclePosition,
   schedule: BusSchedule,
   busStopMap: Map<string, BusStop>,
   dirSec: number,
@@ -50,25 +49,6 @@ function computeBusStopETAs(
   nowMinutes: number,
 ): BusStopETA[] {
   const stops = returning ? schedule.backwardStops : schedule.forwardStops
-  const rtStopIndex = vehicle.rt?.stopIndex
-  // RT-anchored display: the bus is at `stops[rtStopIndex]` NOW, so we pin
-  // displayed[rtStopIndex] = nowMinutes and extrapolate every other stop
-  // using the scheduled inter-stop duration deltas (`stops[i].arriveSec -
-  // stops[rtStopIndex].arriveSec`). This means past stops show a plausible
-  // "when we were there" time in the past and future stops show an ETA
-  // derived from RT reality — regardless of whether the bus is running
-  // ahead of or behind its scheduled slot.
-  //
-  // An earlier implementation snapped the implied trip start to the nearest
-  // scheduled slot (`serviceHoursStart + k × frequency`) and printed the
-  // schedule for that slot. That looked "canonical" but made past stops
-  // show future times (and vice versa) whenever the bus was off schedule
-  // by more than ~15–30 seconds, which is essentially always.
-  let rtDirectionStartMin: number | null = null
-  if (rtStopIndex !== undefined && rtStopIndex >= 0 && rtStopIndex < stops.length) {
-    const currentStopArriveMin = stops[rtStopIndex].arriveSec / 60
-    rtDirectionStartMin = nowMinutes - currentStopArriveMin
-  }
 
   const result: BusStopETA[] = []
   for (let i = 0; i < stops.length; i++) {
@@ -76,17 +56,10 @@ function computeBusStopETAs(
     const stop = busStopMap.get(s.stopId)
     if (!stop) continue
 
-    const etaMin = rtDirectionStartMin != null
-      ? (rtDirectionStartMin + s.arriveSec / 60) - nowMinutes
-      : (s.arriveSec - dirSec) / 60
+    const etaMin = (s.arriveSec - dirSec) / 60
 
     let status: 'past' | 'dwelling' | 'arriving' | 'future'
-    if (rtStopIndex !== undefined) {
-      if (i < rtStopIndex) status = 'past'
-      else if (i === rtStopIndex) status = 'dwelling'
-      else if (i - rtStopIndex === 1) status = 'arriving'
-      else status = 'future'
-    } else if (dirSec >= s.arriveSec && dirSec <= s.departSec) status = 'dwelling'
+    if (dirSec >= s.arriveSec && dirSec <= s.departSec) status = 'dwelling'
     else if (etaMin > 0 && etaMin < 5) status = 'arriving'
     else if (etaMin >= 5) status = 'future'
     else status = 'past'
@@ -149,13 +122,12 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     if (!schedule) return null
     const cycleSec = computeBusCycleSec(vehicle.id, schedule, route, nowMinutesForETA, isSunBucket)
     const { dirSec, returning } = computeBusDirSec(cycleSec, schedule)
-    const effectiveReturning = vehicle.rt ? vehicle.rt.dir === 1 : returning
-    return { route, schedule, dirSec, returning: effectiveReturning }
+    return { route, schedule, dirSec, returning }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, vehicle?.rt?.stopIndex, vehicle?.rt?.observedAt, vehicle?.rt?.dir, nowMinutesForETA, isSunBucket, busStopMap, transitData.busRoutes])
+  }, [vehicle?.id, nowMinutesForETA, isSunBucket, busStopMap, transitData.busRoutes])
   const busETAs: BusStopETA[] = useMemo(() => {
     if (!vehicle || !busCtx) return []
-    return computeBusStopETAs(vehicle, busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA)
+    return computeBusStopETAs(busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vehicle?.id, busCtx, busStopMap, nowMinutesForETA, isSunBucket])
 
@@ -264,7 +236,6 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
   const nextSub = nextRow?.status === 'dwelling' ? 'dwell' : 'arr'
 
   const speed = useMemo(() => {
-    if (vehicle.rt && vehicle.rt.speed > 0) return vehicle.rt.speed
     if (vehicle.type === 'lrt' && trip && line) {
       const totalLenKm = length(line.geometry, { units: 'kilometers' })
       for (let i = 0; i < trip.entries.length; i++) {
@@ -302,13 +273,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
       const { schedule, returning } = busCtx
       const stops = returning ? schedule.backwardStops : schedule.forwardStops
 
-      let dirSec = busCtx.dirSec
-      if (vehicle.rt) {
-        const idx = vehicle.rt.stopIndex
-        if (idx >= 0 && idx < stops.length) {
-          dirSec = stops[idx].departSec + 0.5
-        }
-      }
+      const dirSec = busCtx.dirSec
 
       for (const s of stops) {
         if (dirSec >= s.arriveSec && dirSec <= s.departSec) return 0
@@ -345,7 +310,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     }
     return 0
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle.id, vehicle.type, vehicle.rt?.speed, vehicle.rt?.stopIndex, nowMinutes, trip, line, busCtx])
+  }, [vehicle.id, vehicle.type, nowMinutes, trip, line, busCtx])
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]

@@ -108,7 +108,6 @@ const translations = {
     darkMode: 'Dark Mode',
     lightMode: 'Light Mode',
     timeBar: 'Time Bar',
-    realtimeBus: 'Realtime Bus (β)',
     language: 'Language',
     langNameZh: '繁體中文',
     langNamePt: 'Português',
@@ -134,7 +133,6 @@ const translations = {
     collapse: 'Collapse',
     firstBusLabel: 'FIRST',
     lastBusLabel: 'LAST',
-    rtLocked: 'RT · locked 1×',
     // ---- TimeDisplay ----
     sec: 'SEC',
     timetable: 'TIMETABLE',
@@ -332,7 +330,6 @@ const translations = {
     darkMode: '深色模式',
     lightMode: '淺色模式',
     timeBar: '時間列',
-    realtimeBus: '實時巴士 (實驗)',
     language: '語系',
     langNameZh: '繁體中文',
     langNamePt: 'Português',
@@ -356,7 +353,6 @@ const translations = {
     collapse: '收合',
     firstBusLabel: '首班',
     lastBusLabel: '末班',
-    rtLocked: 'RT · 鎖定 1×',
     sec: '秒',
     timetable: '班表',
     live: '即時',
@@ -543,7 +539,6 @@ const translations = {
     darkMode: 'Modo Escuro',
     lightMode: 'Modo Claro',
     timeBar: 'Barra de Hora',
-    realtimeBus: 'Autocarro Tempo Real (β)',
     language: 'Idioma',
     langNameZh: '繁體中文',
     langNamePt: 'Português',
@@ -567,7 +562,6 @@ const translations = {
     collapse: 'Recolher',
     firstBusLabel: 'PRIM',
     lastBusLabel: 'ÚLT',
-    rtLocked: 'RT · bloqueado 1×',
     sec: 'SEG',
     timetable: 'HORÁRIO',
     live: 'AO VIVO',
@@ -757,7 +751,6 @@ export interface Translations {
   darkMode: string
   lightMode: string
   timeBar: string
-  realtimeBus: string
   language: string
   langNameZh: string
   langNamePt: string
@@ -781,7 +774,6 @@ export interface Translations {
   collapse: string
   firstBusLabel: string
   lastBusLabel: string
-  rtLocked: string
   sec: string
   timetable: string
   live: string

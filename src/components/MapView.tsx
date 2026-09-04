@@ -13,17 +13,13 @@ import {
   getBusServiceBucket,
   getBusServiceWindow,
   getScheduleType,
-  interpolateOnLine,
-  vertexOffsetsToProgress,
 } from '../engines/simulationEngine'
-import length from '@turf/length'
 import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay, macauYmd, macauDayIndex } from '../macauTime'
 import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks'
 import { SCHOOL_FEATURE_ID_PROPERTY, buildSchoolFeatures } from '../schools'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import { useI18n } from '../i18n'
-import type { BusTracker, RouteRealtimePoller, TrackedBusState } from '../services/realtimeClient'
 import { ga } from '../analytics/ga'
 
 declare global {
@@ -31,8 +27,6 @@ declare global {
     miniMacauInfo?: { open: () => void; close: () => void }
   }
 }
-
-const RT_BUILD = import.meta.env.VITE_ENABLE_RT === '1'
 
 const BUILDINGS_SOURCE_ID = 'openfreemap-buildings'
 const BUILDINGS_LAYER_ID = '3d-buildings'
@@ -121,39 +115,6 @@ function isBusInService(route: BusRoute, date: Date): boolean {
   if (endWithTail <= startMin) endWithTail += 1440
   return (nowMin >= startMin && nowMin < endWithTail)
     || (nowMin + 1440 >= startMin && nowMin + 1440 < endWithTail)
-}
-
-// Bbox = [minLng, minLat, maxLng, maxLat]. Cached per route geometry since
-// coordinates never change after load. Used to skip DSAT polling for routes
-// whose entire path lies outside the current viewport (+buffer).
-type Bbox = [number, number, number, number]
-const routeBboxCache = new WeakMap<BusRoute, Bbox>()
-function getRouteBbox(route: BusRoute): Bbox {
-  const cached = routeBboxCache.get(route)
-  if (cached) return cached
-  let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity
-  for (const [lng, lat] of route.geometry.geometry.coordinates) {
-    if (lng < minLng) minLng = lng
-    if (lat < minLat) minLat = lat
-    if (lng > maxLng) maxLng = lng
-    if (lat > maxLat) maxLat = lat
-  }
-  const bb: Bbox = [minLng, minLat, maxLng, maxLat]
-  routeBboxCache.set(route, bb)
-  return bb
-}
-
-function bboxIntersects(a: Bbox, b: Bbox): boolean {
-  return a[0] <= b[2] && a[2] >= b[0] && a[1] <= b[3] && a[3] >= b[1]
-}
-
-// Expand a viewport bbox by km so routes just outside the visible area still
-// poll — reduces "pop-in" when the user pans slowly.
-function expandBbox(b: Bbox, km: number): Bbox {
-  const degLat = km / 111
-  const midLat = (b[1] + b[3]) / 2
-  const degLng = km / (111 * Math.max(Math.cos((midLat * Math.PI) / 180), 1e-6))
-  return [b[0] - degLng, b[1] - degLat, b[2] + degLng, b[3] + degLat]
 }
 
 // ---- Road works (DSAT 工程改道) overlay ----------------------------------
@@ -435,32 +396,6 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     return () => { s.listeners.delete(cb) }
   }, [])
   const getZoomSnapshot = useCallback(() => zoomStoreRef.current.value, [])
-  const [rtUnlocked, setRtUnlocked] = useState(() =>
-    RT_BUILD && typeof window !== 'undefined' && localStorage.getItem('mm_rt_unlocked') === '1')
-  const [rtEnabled, setRtEnabled] = useState(() =>
-    RT_BUILD && typeof window !== 'undefined' && localStorage.getItem('mm_rt_enabled') === '1')
-  const srcTapsRef = useRef<number[]>([])
-  type RtDirState = {
-    route: BusRoute
-    dir: 0 | 1
-    geometry: GeoJSON.Feature<GeoJSON.LineString>
-    tracker: BusTracker
-    poller: RouteRealtimePoller
-    unsub: () => void
-  }
-  const rtStatesRef = useRef<Map<string, RtDirState>>(new Map())
-  const rtEnabledRef = useRef(rtEnabled)
-  rtEnabledRef.current = rtEnabled
-  const rtCachedVehiclesRef = useRef<VehiclePosition[]>([])
-  const rtCachedLiveIdsRef = useRef<Set<string>>(new Set())
-  const rtVisibleIdsRef = useRef<Set<string>>(new Set())
-  // Pool of reusable VehiclePosition objects keyed by vehicle id, so the
-  // RT tick can mutate in place instead of allocating ~300 fresh objects
-  // (plus their .rt sub-objects) five times a second. Entries for plates
-  // that are no longer tracked get evicted at the end of each tick.
-  const rtVehiclePoolRef = useRef<Map<string, VehiclePosition>>(new Map())
-  const rtVisibleIdsSourceRef = useRef<BusRoute[] | null>(null)
-  const rtLastTickAtRef = useRef(0)
   const { lang, t, setLang } = useI18n()
   const isDarkRef = useRef(isDark)
   const langRef = useRef(lang)
@@ -530,10 +465,6 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  const rtDataReady = allTransitData.busRoutes.length > 0 && allTransitData.busStops.length > 0
-  const busStopsRef = useRef(allTransitData.busStops)
-  busStopsRef.current = allTransitData.busStops
-  const rtModuleRef = useRef<typeof import('../services/realtimeClient') | null>(null)
   const pausedRef = useRef(clock.paused)
   pausedRef.current = clock.paused
   const speedRef = useRef(clock.speed)
@@ -542,152 +473,6 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // so effects can depend on it without depending on the whole `clock` object
   // (which is a fresh literal every render and would restart RAF loops).
   const { timeRef } = clock
-  const tabVisibleRef = useRef(typeof document === 'undefined' || !document.hidden)
-  // Current viewport bbox (expanded by buffer). null = "show everything"
-  // — used before the map reports its first bounds.
-  const viewBboxRef = useRef<Bbox | null>(null)
-
-  // Single source of truth for "should this poller be running right now?".
-  // A poller costs one DSAT request per ~15 s, so pausing pollers whose
-  // output the user can't see (tab hidden, outside viewport, outside
-  // service hours, clock paused) cuts the network bill dramatically without
-  // changing what the user sees. Every gate is evaluated here; all
-  // handlers (clock pause, tab visibility, map move, sim-minute flip) just
-  // re-invoke this.
-  const reconcilePollersRef = useRef<() => void>(() => {})
-  reconcilePollersRef.current = () => {
-    if (!RT_BUILD) return
-    const simTime = timeRef.current
-    const paused = pausedRef.current
-    const tabVisible = tabVisibleRef.current
-    const view = viewBboxRef.current
-    let anyRunning = false
-    for (const s of rtStatesRef.current.values()) {
-      const inService = isBusInService(s.route, simTime)
-      const inView = view === null || bboxIntersects(getRouteBbox(s.route), view)
-      const shouldRun = !paused && tabVisible && inService && inView
-      if (shouldRun) { s.poller.resume(); anyRunning = true }
-      else s.poller.pause()
-    }
-    if (anyRunning) rtLastTickAtRef.current = 0
-  }
-
-  useEffect(() => {
-    if (!RT_BUILD) return
-    return () => {
-      for (const s of rtStatesRef.current.values()) { s.unsub(); s.poller.stop() }
-      rtStatesRef.current = new Map()
-      rtCachedVehiclesRef.current = []
-      rtCachedLiveIdsRef.current = new Set()
-      rtVehiclePoolRef.current = new Map()
-      rtLastTickAtRef.current = 0
-    }
-  }, [rtEnabled, rtDataReady])
-
-  useEffect(() => {
-    if (!RT_BUILD) return
-    if (!rtEnabled || !rtDataReady) return
-
-    let cancelled = false
-    const staggerTimers: number[] = []
-
-    const sync = async () => {
-      const mod = rtModuleRef.current ?? (rtModuleRef.current = await import('../services/realtimeClient'))
-      if (cancelled) return
-      const { RouteRealtimePoller, BusTracker } = mod
-
-      const stopMap = new Map(busStopsRef.current.map(s => [s.id, s]))
-      const desired = new Map<string, { route: BusRoute; dir: 0 | 1 }>()
-      for (const route of transitData.busRoutes) {
-        const dirs: (0 | 1)[] = route.routeType === 'circular' ? [0] : [0, 1]
-        for (const dir of dirs) desired.set(`${route.id}:${dir}`, { route, dir })
-      }
-
-      const current = rtStatesRef.current
-      const removed: string[] = []
-      for (const [key, state] of current) {
-        if (!desired.has(key)) {
-          state.unsub()
-          state.poller.stop()
-          removed.push(key)
-        }
-      }
-      for (const k of removed) current.delete(k)
-
-      let staggerIdx = 0
-      for (const [key, { route, dir }] of desired) {
-        if (current.has(key)) continue
-        const stopsOrdered = dir === 0 ? route.stopsForward : route.stopsBackward
-        const coords = dir === 0
-          ? route.geometry.geometry.coordinates
-          : [...route.geometry.geometry.coordinates].reverse()
-        const geometry: GeoJSON.Feature<GeoJSON.LineString> = {
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates: coords },
-        }
-        const totalLenKm = length(geometry, { units: 'kilometers' })
-        const hasPublishedOffsets =
-          dir === 0
-          && route.stopOffsets.length === stopsOrdered.length
-        const stopProgress = hasPublishedOffsets
-          ? vertexOffsetsToProgress(geometry, route.stopOffsets)
-          : stopsOrdered.map(stopId => {
-              const stop = stopMap.get(stopId)
-              if (!stop || totalLenKm <= 0) return 0
-              const projected = nearestPointOnLine(geometry, stop.coordinates, { units: 'kilometers' })
-              return Math.max(0, Math.min(1, (projected.properties.location ?? 0) / totalLenKm))
-            })
-        const tracker = new BusTracker(stopProgress, route.routeType === 'circular', totalLenKm)
-        const poller = new RouteRealtimePoller(route.id, dir, 15_000)
-        const unsub = poller.subscribe(obs => { tracker.ingest(obs) })
-        current.set(key, { route, dir, geometry, tracker, poller, unsub })
-
-        const delay = staggerIdx * 40
-        const t = window.setTimeout(() => {
-          if (cancelled) return
-          poller.start()
-          // Apply current gating (tab visibility, viewport, service hours,
-          // clock pause) so a newly-spawned poller doesn't fire a request
-          // we'd immediately throw away.
-          reconcilePollersRef.current()
-        }, delay)
-        staggerTimers.push(t)
-        staggerIdx++
-      }
-
-      rtLastTickAtRef.current = 0
-    }
-
-    void sync()
-
-    return () => {
-      cancelled = true
-      for (const t of staggerTimers) clearTimeout(t)
-    }
-  }, [rtEnabled, rtDataReady, transitData.busRoutes])
-
-  // Kick the reconciler on clock-pause and on every sim-minute flip.
-  // Service windows change on minute boundaries, so a single re-evaluation
-  // per minute is enough.
-  const simMinuteKey = `${macauWeekday(clock.currentTime)}-${macauHours(clock.currentTime)}-${macauMinutes(clock.currentTime)}`
-  useEffect(() => {
-    if (!RT_BUILD) return
-    reconcilePollersRef.current()
-  }, [clock.paused, simMinuteKey])
-
-  // Tab visibility: pause every poller the moment the user switches tabs
-  // and restore proper state on return. visibilitychange fires on
-  // blur/focus, window minimize, and mobile background.
-  useEffect(() => {
-    if (!RT_BUILD) return
-    const onVis = () => {
-      tabVisibleRef.current = !document.hidden
-      reconcilePollersRef.current()
-    }
-    document.addEventListener('visibilitychange', onVis)
-    return () => document.removeEventListener('visibilitychange', onVis)
-  }, [])
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -1426,7 +1211,6 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   onTrackedUpdateRef.current = onTrackedVehicleUpdate
   const onClearSelectionRef = useRef(onClearSelection)
   onClearSelectionRef.current = onClearSelection
-  const lastTrackedSyncRef = useRef<{ id: string | null; observedAt: number | null }>({ id: null, observedAt: null })
   const lastSimSyncRef = useRef<{ id: string | null; at: number }>({ id: null, at: 0 })
   transitRef.current = transitData
   trackedRef.current = trackedVehicleId
@@ -1462,29 +1246,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
 
     const onMoveStart = () => { mapBusyRef.current = true }
-
-    // Update the gating viewport bbox on pan/zoom end, then ask the poller
-    // reconciler to pause routes that scrolled offscreen and wake ones
-    // that scrolled into view. 300 ms debounce swallows the flurry of
-    // moveends that fire during a flyTo or a momentum-scroll spindown.
-    const VIEW_BUFFER_KM = 2
-    let reconcileTimer: number | null = null
-    const updateViewAndReconcile = () => {
-      const b = map.getBounds()
-      viewBboxRef.current = expandBbox(
-        [b.getWest(), b.getSouth(), b.getEast(), b.getNorth()],
-        VIEW_BUFFER_KM,
-      )
-      reconcilePollersRef.current()
-    }
-    const onMoveEnd = () => {
-      mapBusyRef.current = false
-      if (reconcileTimer !== null) clearTimeout(reconcileTimer)
-      reconcileTimer = window.setTimeout(updateViewAndReconcile, 300)
-    }
-    // Initialize viewport bbox once the map has its first bounds so the
-    // reconciler can gate pollers on the very first pass.
-    updateViewAndReconcile()
+    const onMoveEnd = () => { mapBusyRef.current = false }
 
     const canvas = map.getCanvas()
     canvas.addEventListener('wheel', markInteracting, { passive: true })
@@ -1494,7 +1256,6 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     map.on('moveend', onMoveEnd)
 
     return () => {
-      if (reconcileTimer !== null) clearTimeout(reconcileTimer)
       canvas.removeEventListener('wheel', markInteracting)
       canvas.removeEventListener('mousedown', markInteracting)
       canvas.removeEventListener('touchstart', markInteracting)
@@ -1546,140 +1307,14 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         const shouldHeavy = nowTick - lastHeavyTick >= heavyInterval
         if (shouldTick) {
           lastSimTick = nowTick
-        const rtActive = RT_BUILD && rtEnabledRef.current
-        // In RT mode every sim bus is discarded (the map shows only
-        // DSAT-observed buses) so we skip the per-route bus rollup entirely
-        // — no point computing positions that will be filtered out.
-        const vehicles = computeVehiclePositions(td, timeRef.current, rtActive ? { skipBuses: true } : undefined)
-        if (rtActive) {
-          if (rtStatesRef.current.size > 0) {
-            const rtNow = performance.now()
-            if (rtVisibleIdsSourceRef.current !== td.busRoutes) {
-              rtVisibleIdsSourceRef.current = td.busRoutes
-              const next = new Set<string>()
-              for (const r of td.busRoutes) next.add(r.id)
-              rtVisibleIdsRef.current = next
-              rtLastTickAtRef.current = 0
-            }
-            // RT tick at 5 Hz. DSAT polls at 15 s and dead-reckoning runs
-            // between polls; 5 Hz is smooth (~3 m at 60 km/h between
-            // frames) and halves the per-tick cost vs the old 10 Hz.
-            if (!pausedRef.current && rtNow - rtLastTickAtRef.current >= 200) {
-              rtLastTickAtRef.current = rtNow
-              const visibleRouteIds = rtVisibleIdsRef.current
-              const liveRouteIds = new Set<string>()
-              const rtVehicles: VehiclePosition[] = []
-              const pool = rtVehiclePoolRef.current
-              const seenIds = new Set<string>()
-              const wallNow = Date.now()
-              // DSAT returns the same physical bus in every route whose
-              // path passes through the bus's current stop. Shared
-              // transit-dense stops (M12, M16/1, relevant termini) are
-              // on 20–40 routes each, so iterating route × plate naively
-              // inflates the displayed vehicle count by 1–2 orders of
-              // magnitude (5 real buses → 300–700 phantom rows). Dedup
-              // by plate, keeping the tracker most likely to be the
-              // bus's actual assigned route: one that has already seen
-              // a stop transition (prevStopIdx set) beats one that has
-              // only ever seen a single stop — because a ghost tracker
-              // on a non-assigned route usually sees the bus at one
-              // shared stop and then loses it, never accumulating
-              // progression. Tiebreak on newest lastAt.
-              type PlateBest = { s: RtDirState; state: TrackedBusState }
-              const bestByPlate = new Map<string, PlateBest>()
-              for (const s of rtStatesRef.current.values()) {
-                if (!visibleRouteIds.has(s.route.id)) continue
-                const states = s.tracker.getStates()
-                if (states.length === 0) continue
-                liveRouteIds.add(s.route.id)
-                for (const state of states) {
-                  const prev = bestByPlate.get(state.plate)
-                  if (!prev) {
-                    bestByPlate.set(state.plate, { s, state })
-                    continue
-                  }
-                  const prevHasProg = prev.state.prevStopIdx !== null
-                  const curHasProg = state.prevStopIdx !== null
-                  if (curHasProg && !prevHasProg) {
-                    bestByPlate.set(state.plate, { s, state })
-                  } else if (curHasProg === prevHasProg && state.lastAt > prev.state.lastAt) {
-                    bestByPlate.set(state.plate, { s, state })
-                  }
-                }
-              }
-              for (const { s, state } of bestByPlate.values()) {
-                const p = s.tracker.estimateProgress(state, wallNow)
-                const pos = interpolateOnLine(s.geometry, p)
-                // ID is plate-only — route-independent — because the
-                // "best" route can change tick-to-tick as the bus
-                // progresses. Keeping the pool entry across route
-                // swaps lets us preserve tracked-vehicle focus and
-                // avoids a fresh allocation every time the winning
-                // route flips.
-                const id = `rt-${state.plate}`
-                seenIds.add(id)
-                // Pool lookup: mutate-in-place for existing buses,
-                // fall back to a fresh object only on first sight.
-                // Downstream consumers (vehiclesToGeoJson, info
-                // panel) snapshot the fields they need each tick so
-                // in-place mutation is safe.
-                let v = pool.get(id)
-                if (!v) {
-                  v = {
-                    id,
-                    lineId: s.route.id,
-                    type: 'bus',
-                    coordinates: pos.coordinates,
-                    bearing: pos.bearing,
-                    progress: p,
-                    color: s.route.color,
-                    rt: {
-                      plate: state.plate,
-                      speed: state.speed,
-                      stopIndex: state.lastStopIdx,
-                      dir: s.dir,
-                      observedAt: state.lastAt,
-                    },
-                  }
-                  pool.set(id, v)
-                } else {
-                  // Winning route can change; keep lineId/color in
-                  // sync so the map dot and 3D mesh inherit the right
-                  // colour and the info panel shows the correct line.
-                  v.lineId = s.route.id
-                  v.color = s.route.color
-                  v.coordinates = pos.coordinates
-                  v.bearing = pos.bearing
-                  v.progress = p
-                  const rt = v.rt!
-                  rt.speed = state.speed
-                  rt.stopIndex = state.lastStopIdx
-                  rt.dir = s.dir
-                  rt.observedAt = state.lastAt
-                }
-                rtVehicles.push(v)
-              }
-              // Evict pooled entries for plates that disappeared from the
-              // feed this tick — otherwise the pool would grow forever as
-              // buses come off service.
-              if (pool.size > seenIds.size) {
-                for (const id of pool.keys()) {
-                  if (!seenIds.has(id)) pool.delete(id)
-                }
-              }
-              rtCachedVehiclesRef.current = rtVehicles
-              rtCachedLiveIdsRef.current = liveRouteIds
-            }
-            for (const v of rtCachedVehiclesRef.current) vehicles.push(v)
+          const vehicles = computeVehiclePositions(td, timeRef.current)
+          vehiclesRef.current = vehicles
+          if (shouldHeavy) {
+            lastHeavyTick = nowTick
+            bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
+            lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
+            ferry3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'ferry'))
           }
-        }
-        vehiclesRef.current = vehicles
-        if (shouldHeavy) {
-          lastHeavyTick = nowTick
-          bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
-          lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
-          ferry3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'ferry'))
-        }
         }
 
         // Advance local flight time smoothly from performance.now() delta.
@@ -1821,28 +1456,20 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             vehiclesRef.current.find(v => v.id === tid)
           if (!tracked && prevTrackedRef.current === tid) {
             // Tracked vehicle dropped out of the simulation (service ended,
-            // schedule ran out, RT mode toggle, scrubbed to time outside
-            // its window, etc). Clear the selection so the info panel
-            // closes instead of showing stale extrapolated ETAs.
+            // schedule ran out, scrubbed to a time outside its window, etc).
+            // Clear the selection so the info panel closes instead of
+            // showing stale extrapolated ETAs.
             // Reset prevTracked + smoothCam first so this branch fires
             // exactly once until React rolls trackedVehicleId back to null.
             prevTrackedRef.current = null
             smoothCam = null
             onClearSelectionRef.current?.()
           } else if (tracked) {
-            if (tracked.rt) {
-              const sync = lastTrackedSyncRef.current
-              if (sync.id !== tid || sync.observedAt !== tracked.rt.observedAt) {
-                lastTrackedSyncRef.current = { id: tid, observedAt: tracked.rt.observedAt }
-                onTrackedUpdateRef.current?.(tracked)
-              }
-            } else {
-              const perfNow = performance.now()
-              const sim = lastSimSyncRef.current
-              if (sim.id !== tid || perfNow - sim.at >= 150) {
-                lastSimSyncRef.current = { id: tid, at: perfNow }
-                onTrackedUpdateRef.current?.(tracked)
-              }
+            const perfNow = performance.now()
+            const sim = lastSimSyncRef.current
+            if (sim.id !== tid || perfNow - sim.at >= 150) {
+              lastSimSyncRef.current = { id: tid, at: perfNow }
+              onTrackedUpdateRef.current?.(tracked)
             }
             const isNewTrack = prevTrackedRef.current !== tid
             const now = performance.now()
@@ -2073,21 +1700,6 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 active={false}
                 onClick={() => { ga.infoPanelOpened(); window.miniMacauInfo?.open(); setMenuOpen(false) }}
               />
-              {RT_BUILD && rtUnlocked && (
-                <DrawerRow
-                  code="RT*"
-                  label={t.realtimeBus}
-                  active={rtEnabled}
-                  onClick={() => {
-                    setRtEnabled(e => {
-                      const next = !e
-                      localStorage.setItem('mm_rt_enabled', next ? '1' : '0')
-                      window.dispatchEvent(new Event('mm-rt-changed'))
-                      return next
-                    })
-                  }}
-                />
-              )}
             </div>
           </div>
 
@@ -2282,29 +1894,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           {/* Status footer */}
           <div className="border-t border-white/5 pt-2 mt-3 space-y-0.5">
             <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
-              <span
-                onClick={() => {
-                  if (!RT_BUILD) return
-                  const now = Date.now()
-                  const taps = srcTapsRef.current.filter(t => now - t < 2000)
-                  taps.push(now)
-                  srcTapsRef.current = taps
-                  if (taps.length >= 5) {
-                    srcTapsRef.current = []
-                    setRtUnlocked(u => {
-                      const next = !u
-                      localStorage.setItem('mm_rt_unlocked', next ? '1' : '0')
-                      if (!next) {
-                        setRtEnabled(false)
-                        localStorage.setItem('mm_rt_enabled', '0')
-                      }
-                      return next
-                    })
-                  }
-                }}
-                className="cursor-default select-none"
-              >SRC</span>
-              <span className="text-white/55">{RT_BUILD && rtEnabled ? 'GTFS · RT*' : 'GTFS · SIM'}</span>
+              <span className="cursor-default select-none">SRC</span>
+              <span className="text-white/55">GTFS · SIM</span>
             </div>
             <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
               <span>ZOOM</span>

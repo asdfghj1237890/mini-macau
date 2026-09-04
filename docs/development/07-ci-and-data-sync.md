@@ -29,8 +29,6 @@
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-注意：deploy 不開 `VITE_ENABLE_RT`，所以 Cloudflare Pages 上的 build **沒有 RT toggle**。RT mode 只在本機 `npm run dev` 存在，沒有對應的 production 版本。
-
 ## 資料 sync workflow 的共同骨架
 
 七個資料 workflow 長得一樣：

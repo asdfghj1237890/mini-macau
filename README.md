@@ -18,9 +18,9 @@
 
 3D visualization of Macau's public transit, ferry, and aviation system, inspired by [Mini Tokyo 3D](https://minitokyo3d.com) and [Mini Taiwan](https://mini-taiwan-learning-project.itsmigu.com/).
 
-Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Macau ferry routes**, and **MFM airport flights** on an interactive 3D map. Vehicles move along actual geometry in a **timetable-driven simulation**, with an **opt-in RT mode** that replaces simulated bus positions with live DSAT realtime data.
+Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Macau ferry routes**, and **MFM airport flights** on an interactive 3D map. Vehicles move along actual geometry in a **timetable-driven simulation**. A **CITY** layer set adds Macau's open data on top: DSAT road-works notices, every school's buildings coloured by level, IAM public toilets, and DSAT public car parks with live vacancy.
 
-> **How "live" is this?** See [Data freshness & update strategy](#data-freshness--update-strategy) for a per-layer breakdown — LRT / buses / flights / ferries each sit at a different point on the simulated-to-live spectrum.
+> **How fresh is this?** See [Data freshness & update strategy](#data-freshness--update-strategy) for a per-layer breakdown — LRT and buses run on simulated, manually regenerated timetables, while flights and ferries refresh on their own daily/monthly sync schedule.
 
 ![og-image](https://mini-map-macau.app/og-image.png)
 
@@ -52,7 +52,6 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **3D Aircraft** — 176 real MFM flights (87 dep + 89 arr) with detailed airplane models, apron stands, and taxi paths
 - **3D Ferries** — 6 HK/Shenzhen ↔ Macau sea routes (TurboJET + CotaiJet) with jetfoil-shaped hull, red belly belt, and multi-deck cabin
 - **Timetable-driven simulation** — Schedule-synced playback with ETAs, service status, and trilingual labels (EN / 繁中 / PT)
-- **RT mode (opt-in)** — Toggle replaces simulated bus positions with the DSAT live feed; simulation stays active for LRT / flights / ferries
 - **Time controls** — Play/pause, 1×–60× speed, jump-to-now, free date/time picker
 - **Vehicle tracking** — Click-to-follow with smooth camera and free zoom/pan
 
@@ -89,9 +88,9 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 
 ## Architecture
 
-Three clean stages: upstream sources get normalized by Python into versioned static JSON, which the browser runtime replays on a simulated clock. Two live feeds bypass the pipeline: the DSAT bus feed in local development (RT mode) and the DSAT car-park vacancy API, polled only while the clock sits at the present.
+Three clean stages: upstream sources get normalized by Python into versioned static JSON, which the browser runtime replays on a simulated clock. One live feed bypasses the pipeline: the DSAT car-park vacancy API, polled only while the clock sits at the present.
 
-![Architecture — sources flow through the Python pipeline into committed JSON, which the browser replays on a simulated clock; live feeds bypass the pipeline](./docs/architecture.svg)
+![Architecture — sources flow through the Python pipeline into committed JSON, which the browser replays on a simulated clock; the DSAT car-park vacancy feed bypasses the pipeline](./docs/architecture.svg)
 
 <sup>Animated SVG (SMIL, no scripts) — generated, see <code>docs/architecture.svg</code>.</sup>
 
@@ -107,6 +106,8 @@ Three clean stages: upstream sources get normalized by Python into versioned sta
 | Data pipeline | Python 3.13+, uv, OpenStreetMap Overpass API, OSRM |
 | Flight data | [AviationStack API](https://aviationstack.com/) (daily sync) |
 | Ferry data | [TurboJET](https://www2.turbojet.com.hk/) + [CotaiJet](https://www.cotaiwaterjet.com/) timetables (monthly web scraper) |
+| City data | [data.gov.mo](https://data.gov.mo/) — DSAT road works, IAM toilets, DSAT car parks + live vacancy (daily syncs); DSEDJ school list + OSM footprints (manual) |
+| Data validation | zod schemas at load time, mirrored by `validate_output.py` in CI |
 | Deployment | Cloudflare Pages (via GitHub Actions) |
 | Analytics | Google Analytics (gtag.js) |
 
@@ -226,20 +227,18 @@ Everything under `/data/*.json` is fetchable as-is but served with `X-Robots-Tag
 
 ## Data freshness & update strategy
 
-Not every layer is equally "live." The default view is **fully simulated**; RT mode is the only path that touches an actual realtime feed, and even then only for buses.
+Not every layer is equally fresh. LRT and buses are **fully simulated** from published timetables; flights and ferries are **static syncs** on their own schedule. None of the transit layers below touch a live feed.
 
 | Layer | Mode | Source | Refresh cadence | Staleness indicator |
 |-------|------|--------|-----------------|---------------------|
 | **LRT** | Simulated | OSM geometry + MLM published per-station timetable | Manual regen (`uv run python data/main.py`) | None — static JSON |
-| **Bus (default)** | Simulated | OSM geometry + DSAT published service frequencies | Manual regen | DSAT stop snapshot timestamp in `data/bus_reference/dsat_stops.json` (current: 2026-09-02 Macau) |
-| **Bus (RT toggle)** | **Live (local dev only)** | DSAT realtime feed via the Vite dev plugin's `/api/dsat/batch` endpoint | Client polls every 15 s | Per-bus `lastAt`; stale beyond 60 s window |
+| **Bus** | Simulated | OSM geometry + DSAT published service frequencies, dimmed by a daily service-status scrape | Manual regen (routes) · daily (`service-status.yml`) | DSAT stop snapshot timestamp in `data/bus_reference/dsat_stops.json` (current: 2026-09-02 Macau) |
 | **Flights** | Static daily sync | [AviationStack API](https://aviationstack.com/) | Daily at 04:00 Macau time — `update-flights.yml` | `fetchedAtUtc` embedded in `flights.json` |
 | **Ferries** | Static monthly sync | TurboJET + CotaiJet timetable pages (scraped) | 1st of month · `update-ferry-schedules.yml` | `fetchedAtUtc` + `effectiveAs` in `ferry-schedules.json` |
 
 **What each mode means**
 
 - **Simulated** — Vehicles are placed on pre-generated polylines and moved by the client clock using the published timetable. They don't reflect any single bus or train's actual position at that moment; they show "what the schedule says should be moving through this segment right now."
-- **Live (RT mode)** — The client polls DSAT's realtime endpoint through a batch fan-out provided by the Vite dev plugin in local development (`vite.config.ts`). DSAT itself only publishes current-stop, direction, and speed per plate — not continuous GPS — so the client interpolates between consecutive stop reports. RT mode is opt-in via the control-panel toggle in dev builds; the hosted production site never enables it (`VITE_ENABLE_RT` is only set in `.env.development`), so buses there always run the simulated timetable.
 - **Static sync** — A scheduled GitHub Actions job fetches upstream data and commits a new `public/data/*.json` if it changed. The app reads whatever was in the last build; there is no per-page-load fetch for flights or ferries.
 
 ## Project Structure
@@ -400,7 +399,6 @@ The zoom indicator in the HUD used to be a `useState`, so every `map.on('zoom', 
 - [OpenStreetMap](https://www.openstreetmap.org/) — LRT track geometry, bus routes, and stop locations
 - [MLM 澳門輕軌股份有限公司](https://www.mlm.com.mo/) — Official per-station LRT timetables (used to hand-transcribe `data/scripts/generate_timetable.py` for the Taipa / Seac Pai Van / Hengqin lines)
 - [MoTransport Info](https://motransportinfo.com/zh/search) — Curated Macau bus stop reference data
-- [DSAT 巴士資訊](https://bis.dsat.gov.mo/macauweb/index.html?language=zh-tw&fromDzzp=false) — Official Macau bus realtime feed (live bus positions in RT mode)
 - [AviationStack](https://aviationstack.com/) — MFM flight schedule data (arrivals + departures)
 - [TurboJET](https://www2.turbojet.com.hk/) — Ferry timetable (Hong Kong, HKIA, Shenzhen Airport, Shekou routes)
 - [CotaiJet](https://www.cotaiwaterjet.com/) — Ferry timetable (Hong Kong ↔ Macau Taipa route)

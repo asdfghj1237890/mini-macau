@@ -106,12 +106,6 @@ const z = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
 > Source: [`simulationEngine.ts`](../../src/engines/simulationEngine.ts) 行 1101 起的 cache slot。
 
-## 6. RT mode skip bus sim
-
-RT mode 開時，sim 算出來的所有巴士會被 RT 的 BusTracker 結果覆蓋掉。所以根本不必算。`computeVehiclePositions(transitData, time, { skipBuses: true })` 跳過整個 `computeBusVehicles`（90 路 × ~10 車 × per-tick 算 progress + queue + interpolation 不便宜）。
-
-> Source: [`simulationEngine.ts:1300`](../../src/engines/simulationEngine.ts) 的 `ComputeOptions`。Cross-link [06-realtime-mode.md](06-realtime-mode.md)。
-
 ## 7. 漸進載入 + lazy bundle split
 
 - **MapView lazy import**：[`App.tsx:21`](../../src/App.tsx)。`<MapSplash/>` 先撐住 LCP，後台 parse maplibre-gl bundle（~1 MB）。

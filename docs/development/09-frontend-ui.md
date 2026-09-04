@@ -113,7 +113,7 @@ UI 用法：把 `inactive: Set<string>` 拿來 dim 對應路線（透過 [08-per
 
 ## Analytics
 
-[`src/analytics/ga.ts`](../../src/analytics/ga.ts)。GA4 透過 `gtag.js`，只記匿名使用事件（語言切換、模擬倍率變更、time jump 距離、RT toggle、追蹤車輛 type）。`startEngagementTracker()` 在 [App.tsx:79](../../src/App.tsx) 啟動，會用 `document.visibilitychange` + idle timer 判定有效互動時長。
+[`src/analytics/ga.ts`](../../src/analytics/ga.ts)。GA4 透過 `gtag.js`，只記匿名使用事件（語言切換、模擬倍率變更、time jump 距離、追蹤車輛 type）。`startEngagementTracker()` 在 [App.tsx:79](../../src/App.tsx) 啟動，會用 `document.visibilitychange` + idle timer 判定有效互動時長。
 
 ## 鍵盤捷徑
 

@@ -52,7 +52,6 @@ npm run test:watch  # 互動模式
 - **`computeFerryVehicles`** — 同樣理由：泊位 + 海上航線 waypoint hard-coded。
 - **`*3DLayer.ts`** — 視覺驗證為主。
 - **`useSimulationClock` / `useTransitData` 的 hook 本體** — 要 jsdom + `@testing-library/react`，目前不值得加依賴（`useTransitData.test.ts` 測的是它匯出的 pure helper——`buildFlightIndex`、`ymdMacau`、`weekdayOf`——不是 hook 本身）。
-- **`realtimeClient.ts`** — `BusTracker` 的 dead-reckoning 邏輯實際上**很值得測**（同站 commit、wrap-around、speed cap 等等）。是 backlog 第一名，但目前是 hand-tested。
 
 ## 測試 fixture pattern
 
@@ -127,9 +126,8 @@ jobs:
 
 依優先序：
 
-1. **`BusTracker` (realtimeClient.ts)** — 同站再觀測時的 progress commit、環狀路線 wraparound、speed cap、stale 60 s drop。這是純函數 + 容易 fixture，但邏輯密度高、目前完全靠手測。
-2. **`computeFlightVehicles` 的 holding pattern** — `isRunwayBusy` 條件、orbit 多圈後 exit、`postTime` 邊界。
-3. **`computeBusVehicles` 的 queue 邏輯** — 同站多車排隊、端點 clamp 後的 perpendicular nudge。
-4. **`flattenFerrySchedules`** ([`useTransitData.ts:59`](../../src/hooks/useTransitData.ts)) — 把 raw schedule 攤平成 Ferry[]、berth 分配、跨日。
+1. **`computeFlightVehicles` 的 holding pattern** — `isRunwayBusy` 條件、orbit 多圈後 exit、`postTime` 邊界。
+2. **`computeBusVehicles` 的 queue 邏輯** — 同站多車排隊、端點 clamp 後的 perpendicular nudge。
+3. **`flattenFerrySchedules`** ([`useTransitData.ts:59`](../../src/hooks/useTransitData.ts)) — 把 raw schedule 攤平成 Ferry[]、berth 分配、跨日。
 
 這些都是純資料 in / 純資料 out，理論上不需要 mock 任何東西。

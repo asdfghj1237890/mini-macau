@@ -1363,18 +1363,9 @@ function computeFerryVehicles(
   return vehicles
 }
 
-export interface ComputeOptions {
-  // In RT mode the bus layer is driven entirely from DSAT observations;
-  // every sim bus is thrown away upstream. Skip the per-route schedule
-  // rollup (~90 routes × ~10 vehicles each) so RT ticks don't pay for
-  // work whose output is discarded.
-  skipBuses?: boolean
-}
-
 export function computeVehiclePositions(
   transitData: TransitData,
   time: Date,
-  opts?: ComputeOptions,
 ): VehiclePosition[] {
   const nowMinutes = timeToMinutes(time)
   const stationProgressMap = getStationProgressMap(transitData)
@@ -1388,14 +1379,12 @@ export function computeVehiclePositions(
     nowMinutes
   )
 
-  const busVehicles = opts?.skipBuses
-    ? []
-    : computeBusVehicles(
-        transitData.busRoutes,
-        getBusStopMap(transitData),
-        nowMinutes,
-        getBusServiceBucket(time),
-      )
+  const busVehicles = computeBusVehicles(
+    transitData.busRoutes,
+    getBusStopMap(transitData),
+    nowMinutes,
+    getBusServiceBucket(time),
+  )
 
   const flightVehicles = computeFlightVehicles(
     transitData.flights,
