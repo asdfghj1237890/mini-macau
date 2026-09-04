@@ -29,6 +29,7 @@
    │  - schools.json                      │
    │  - toilets.json                      │
    │  - car-parks.json                    │
+   │  - waste.json                        │
    │  - water-facilities.json             │
    │  - water-distribution.json           │
    │  - power-facilities.json             │
@@ -62,6 +63,7 @@
 | DSEDJ + OSM Overpass | 學校清單（核准級別）與校舍建築足跡 | `fetch_schools.py`（手動執行，name matching） |
 | data.gov.mo | IAM 公共廁所 / 無障礙公廁名單 | `fetch_toilets.py`（下載 ZIP 內 JSON，含重試） |
 | data.gov.mo | DSAT 停車場資料（車位詳情 + 即時空位） | `fetch_car_parks.py`（API gateway，APPCODE header，含重試） |
+| data.gov.mo | IAM 垃圾房 / 壓縮式垃圾收集點 + DSPA 智能回收機 / 三色資源回收點 / 電腦及通訊設備回收點 / 光管回收點 / 電池回收點（七個 dataset） | `fetch_waste.py`（IAM 兩個走 ZIP 下載，DSPA 五個走 API gateway，APPCODE header，都含重試） |
 | 澳門自來水 + OSM Overpass | 22 個供水設施（＋黑沙水庫）清單與建築足跡／水體、示意管網 | `fetch_water_facilities.py`（手動執行，清單寫死在腳本裡） |
 | 澳電 (CEM) + OSM Overpass | 33 座高壓變電站、路環發電廠、垃圾焚化中心的清單與建築足跡、示意電網 | `fetch_power_facilities.py`（手動執行，清單寫死在腳本裡） |
 | OSM Overpass | 澳門境內可行車道路（給供水／供電配水層當底稿，裁到 SAR 邊界） | `fetch_water_distribution.py`／`fetch_power_distribution.py`（手動執行，共用 `road_network.py`） |
@@ -154,8 +156,9 @@ data/
 │   ├── fetch_power_distribution.py  # manual; 同一份道路底稿，改由變電站定流向 → power-distribution.json
 │   ├── road_network.py              # 上面兩支 *_distribution 共用的道路底稿（裁邊界、簡化、流向場）
 │   ├── osm_footprints.py            # 學校／供水／供電共用的 Overpass / basemap tile footprint helper
-│   ├── fetch_toilets.py             # daily via update-toilets.yml
+│   ├── fetch_toilets.py             # monthly via update-toilets.yml
 │   ├── fetch_car_parks.py           # daily via update-car-parks.yml
+│   ├── fetch_waste.py               # monthly via update-waste.yml
 │   ├── osrm_route.py
 │   ├── patch_bus_bridges.py
 │   ├── patch_service_hours.py

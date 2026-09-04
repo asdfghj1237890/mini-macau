@@ -51,9 +51,13 @@ const HTML_LANG_TAG = { zh: 'zh-Hant', pt: 'pt-PT', en: 'en' }
 
 CITY 頁裡除 SCHOOLS 外每一列都固定五欄：圖示 → hatch 色塊 → 標籤 → 數字 → ON/OFF，欄寬是寫死的 class（不是 flex 自動撐開），所以任兩列的「數字」和「ON/OFF」永遠對在同一條垂直線上，不管標籤多長。加新城市圖層列時照抄這個五欄結構。
 
-### SCHOOLS：唯一的複合列
+### SCHOOLS：複合列
 
 SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<button>`。點本體（圖示到數字那段）展開/收合下面五個 per-level 子列（`schoolsLegendOpen`，存 `mm-schools-legend-open`，預設展開）；最右邊的 ON/OFF 才是整層總開關（`onToggleSchools`），跟本體點擊互不干擾。沒有 chevron——底下露出來的子列本身就是「已展開」的視覺線索。每個子列自己也是「色塊、標籤、EN 縮寫、數量、ON/OFF」，數量是該教育階段的學校總數（未過濾）。行動版 SCHOOLS modal 把同一組子列直接攤平（modal 本來就是全展開狀態，用不著桌面版那層可收合殼）。
+
+### WASTE：複合列，但數字會動
+
+垃圾回收列是第二個複合列，同一招：本體展開/收合、右側 ON/OFF 是總開關（`onToggleWaste`——這顆開關同時是 WASTE 專注模式的進出開關，見下面「localStorage key」之後的專注模式說明；展開/收合狀態是另一個獨立的 `wasteLegendOpen`，存 `mm-waste-legend-open`，預設展開）。跟 SCHOOLS 的差異：七個 per-type 子列（六種站點加垃圾焚化中心）只在 `wasteOn && wasteLegendOpen` 都成立時才渲染，不是本體一展開就看得到——WASTE 預設關，關著的時候看子列沒有意義。列本身的數字也會動：七個子列全開時顯示總數（1,095，含焚化中心），只要關掉任一種就換成 `可見/總數`（例如 `800/1094`），提醒使用者現在看到的不是全部（`wasteTypesAllOn` 判斷）。子列同樣是「色塊、標籤、數量、ON/OFF」，順序固定為 [`WASTE_TYPES`](../../src/waste.ts)：垃圾房、壓縮式垃圾收集點、智能回收機、三色資源回收點、電腦及通訊設備回收點、光管及電池回收點、垃圾焚化中心；隱藏的類型存進 `mini-macau-waste-types`（[`loadHiddenWasteTypes`/`saveHiddenWasteTypes`](../../src/waste.ts)，JSON 陣列，壞資料一律退回「全部顯示」）。行動版 WASTE modal 跟 SCHOOLS 一樣把七個子列直接攤平。
 
 ### 行動版：chip 疊 + CITY chip
 
@@ -61,7 +65,7 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 
 ### Info panel 互斥
 
-四個新圖層各自有 `RoadWorkInfoPanel` / `SchoolInfoPanel` / `ToiletInfoPanel` / `CarParkInfoPanel`（[`src/components/`](../../src/components/)，由 [`App.tsx`](../../src/App.tsx) lazy import）。點地圖上任一 marker/block，對應的 `on*Click` handler 會把其餘五種 selection（vehicle、station、road-work、school、toilet、car-park）全部清空——同一時間只有一個 info panel 開著。關掉某個城市圖層也連帶清掉它的 selection（`useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])` 這個 pattern 四層各一個，SCHOOLS 多一層 `schoolLevelsOn` 版本），因為對應的 marker 已經從地圖上消失了。
+五個新圖層各自有 `RoadWorkInfoPanel` / `SchoolInfoPanel` / `ToiletInfoPanel` / `CarParkInfoPanel` / `WasteSiteInfoPanel`（[`src/components/`](../../src/components/)，由 [`App.tsx`](../../src/App.tsx) lazy import）。點地圖上任一 marker/block，對應的 `on*Click` handler 會把其餘六種 selection（vehicle、station、road-work、school、toilet、car-park、waste）全部清空——同一時間只有一個 info panel 開著。關掉某個城市圖層也連帶清掉它的 selection（`useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])` 這個 pattern 五層各一個，SCHOOLS 多一層 `schoolLevelsOn` 版本），因為對應的 marker 已經從地圖上消失了。
 
 ### localStorage key
 
@@ -71,6 +75,7 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mm-layers-desktop-open` | 桌面面板展開/收合 | 展開 |
 | `mm-layers-collapsed-groups` | BUS 分組收合狀態 | 全部收合 |
 | `mm-schools-legend-open` | SCHOOLS 子列展開/收合 | 展開 |
+| `mm-waste-legend-open` | WASTE 子列展開/收合 | 展開 |
 | `mini-macau-lrt-on` | 哪些 LRT 線可見 | 全開（資料到齊後寫入） |
 | `mini-macau-visible-routes` | 哪些巴士路線可見 | 未設定 = auto-by-time |
 | `mini-macau-flights-on` | AIR 總開關 | 開 |
@@ -80,18 +85,21 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-school-levels-on` | 五個教育階段個別開關 | 全開 |
 | `mini-macau-toilets-on` | WC 總開關 | 關 |
 | `mini-macau-carparks-on` | P 總開關 | 關 |
+| `mini-macau-waste-on` | WASTE 總開關（專注模式） | 關 |
+| `mini-macau-waste-focus-snapshot` | WASTE 開啟前其他圖層的可見狀態快照（JSON） | 無 |
+| `mini-macau-waste-types` | 隱藏的垃圾回收子類型（七選，key 為 type id，含 `incinerator`） | 全部顯示 |
 | `mini-macau-water-on` | WATER 總開關（專注模式） | 關 |
 | `mini-macau-water-focus-snapshot` | WATER 開啟前其他圖層的可見狀態快照（JSON） | 無 |
 | `mini-macau-power-on` | POWER 總開關（專注模式） | 關 |
 | `mini-macau-power-focus-snapshot` | POWER 開啟前其他圖層的可見狀態快照（JSON） | 無 |
 
-**WATER 是專注模式**：開啟時先把其他所有圖層的可見狀態（LRT 線集合、巴士可見路線與自動模式旗標、AIR、SEA、WORKS、SCHOOLS、WC、P）存成快照，再全部關掉，地圖只剩供水設施（連 LRT 路軌與巴士路線軌跡也不畫）；關閉時原樣還原快照——中途手動改過的圖層也以快照為準——然後清掉快照。快照放 localStorage，重新整理後再關閉 WATER 仍能還原。專注模式期間時間控制整個消失（上方時鐘與下方的播放／暫停、倍速、時間軸、「現在」都不渲染，對應的鍵盤快捷鍵也不作用）——供水圖層沒有時間維度；模擬時鐘在背景照走，WATER 關閉即原樣回來。
+**WATER／POWER／WASTE 是同一套專注模式**（[`src/focusMode.ts`](../../src/focusMode.ts) 共用 capture／apply／persist 這一半：`FocusLayer = 'water' | 'power' | 'waste'`）：開啟其中一個時，先把其他所有圖層的可見狀態（LRT 線集合、巴士可見路線與自動模式旗標、AIR、SEA、WORKS、SCHOOLS、WC、P）存成快照，再全部關掉（連 LRT 路軌與巴士路線軌跡也不畫），地圖只剩該圖層自己的東西；關閉時原樣還原快照——中途手動改過的圖層也以快照為準——然後清掉快照。快照放 localStorage（`mini-macau-<layer>-focus-snapshot`），重新整理後再關閉仍能還原。專注模式期間時間控制整個消失（上方時鐘與下方的播放／暫停、倍速、時間軸、「現在」都不渲染，對應的鍵盤快捷鍵也不作用，判斷式是 `focusOn = waterOn || powerOn || wasteOn`）——這三層都沒有時間維度；模擬時鐘在背景照走，關閉任一個即原樣回來。
 
-**POWER · 電力** 是同一套專注模式（快照／還原／隱藏時間控制的 helper 兩層共用，鍵是 `mini-macau-power-on` 與 `mini-macau-power-focus-snapshot`），而且 WATER 與 POWER **互斥**：開其中一個時會先把另一個關掉並還原它的快照，再對其餘圖層做快照與隱藏。POWER 列下方同樣有靜態圖例（設施類型、220／110／66 kV 線路、配電網、廣東電網輸入口，標題「電網為示意」）。
+**三者互斥**：開其中一個時會先把當時開著的另一個關掉並還原它的快照，再對其餘圖層重新做一次快照與隱藏——這個「交接」寫在 [`focusHandoffSnapshot`](../../src/focusMode.ts) 裡，直接把舊快照過戶給新的一層，不會真的走「先還原、再重新隱藏」兩次 render；`activeFocusPeer` 負責在三者裡找出當下唯一開著的那個（storage 萬一同時存了兩個 on，`FOCUS_LAYERS` 陣列順序 `water → power → waste` 的第一個贏）。三層各自的差異只在開啟後多畫什麼：WATER 多畫供水設施（色塊＋水面＋管線）、POWER 多畫電網（設施類型、220／110／66 kV 線路、配電網、廣東電網輸入口，標題「電網為示意」）、WASTE 沒有額外的街道網——`MapView.tsx` 的 `applyFocusVisibility(m, water, power, waste)` 對 WASTE 只用來湊隱藏 `bus-routes`／`stations-*` 那組共用旗標，垃圾點本身跟 WC／P 一樣是資料陣列清空即消失，見 [04-3d-layers.md](04-3d-layers.md)「垃圾回收」一節。
 
 WATER 開啟時列下方會展開一個靜態圖例（`WaterKey`，手機版在 WATER modal 內）：設施類型（水廠、水塘、高位水池、原水泵站、泵站、約略位置空心水滴）與管線（原水管深藍虛線、淨水管淺藍實線、示意直線灰虛線——只在資料有 `fallback` 管段時出現、配水管網細線、珠海原水輸入口圖示），標題註明「管網為示意」。它是獨立區塊，不影響上下各列的欄位對齊。面板會標示營運者：澳門自來水設施，或黑沙水庫的「政府原水水庫（海事及水務局）· 非自來水公司設施」，並列出該設施接了幾條示意管線；點珠海原水輸入口開的是 `WaterInletInfoPanel`。配水路網（`water-distribution.json`，約 550 KiB）由 `useWaterDistribution` 在第一次開 WATER 時才抓一次，之後開關不再重抓。
 
-WORKS 預設開、SCHOOLS/WC/P 預設關：道路工程改道是大家都想看的即時資訊，後三層是空間密度高的靜態圖層（全開會蓋掉地圖），留給想找的人自己開。
+WORKS 預設開、SCHOOLS/WC/P 預設關：道路工程改道是大家都想看的即時資訊，後三層是空間密度高的靜態圖層（全開會蓋掉地圖），留給想找的人自己開。WATER/POWER/WASTE 三個專注模式圖層同樣預設關，理由不同——開啟會把整個地圖清空只留自己，不該一進站就把使用者丟進某個專注模式。
 
 ## 車輛追蹤鏡頭
 

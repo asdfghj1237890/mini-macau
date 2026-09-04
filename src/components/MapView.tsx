@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -19,6 +19,18 @@ import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks
 import { SCHOOL_FEATURE_ID_PROPERTY, buildSchoolFeatures } from '../schools'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
+import {
+  WASTE_COLORS,
+  WASTE_FEATURE_ID_PROPERTY,
+  WASTE_INCINERATOR_COLOR,
+  WASTE_INCINERATOR_ICON,
+  WASTE_THREE_COLOUR_BINS,
+  WASTE_TYPES,
+  buildWasteBuildingFeatures,
+  buildWasteFeatures,
+  wasteIconName,
+  type WasteSelection,
+} from '../waste'
 import {
   WATER_COLORS,
   WATER_FEATURE_ID_PROPERTY,
@@ -359,6 +371,215 @@ function drawCarParkIcon(color: string): ImageData | null {
   ctx.textBaseline = 'middle'
   ctx.fillText('P', size / 2, size / 2 + 1)
 
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// ---- Waste & recycling (IAM + DSPA) overlay ------------------------------
+const WASTE_SOURCE_ID = 'waste'
+const WASTE_ICON_LAYER_ID = 'waste-icon'
+const WASTE_SELECTED_LAYER_ID = 'waste-selected'
+// The incineration plant's 11 footprints, drawn as our own coloured extrusions
+// exactly like the schools / water / power blocks and for the same reason (see
+// the header of src/schools.ts). Its record comes from power-facilities.json.
+const WASTE_BUILDINGS_SOURCE_ID = 'waste-buildings'
+const WASTE_BUILDINGS_LAYER_ID = 'waste-buildings'
+const WASTE_SELECTED_COLOR = '#ffffff'
+
+// Same device-pixel budget as the WC / P plates (registered at pixelRatio 2).
+const WASTE_ICON_PX = 40
+
+// The plate every waste marker sits on: the same rounded square with a white
+// rim as the WC and P markers, so the city overlays read as one family. Drawn
+// once here rather than three times, because the six glyphs differ only in what
+// goes ON the plate.
+function wastePlate(color: string): { ctx: CanvasRenderingContext2D; size: number } | null {
+  const size = WASTE_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const border = 3 // 1.5 CSS px at pixelRatio 2
+  const inset = border / 2 + 1
+  const r = 6 // 3 CSS px corner radius
+  const x = inset
+  const y = inset
+  const w = size - inset * 2
+  const h = size - inset * 2
+
+  ctx.beginPath()
+  ctx.moveTo(x + r, y)
+  ctx.lineTo(x + w - r, y)
+  ctx.arcTo(x + w, y, x + w, y + r, r)
+  ctx.lineTo(x + w, y + h - r)
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
+  ctx.lineTo(x + r, y + h)
+  ctx.arcTo(x, y + h, x, y + h - r, r)
+  ctx.lineTo(x, y + r)
+  ctx.arcTo(x, y, x + r, y, r)
+  ctx.closePath()
+
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = border
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+  return { ctx, size }
+}
+
+// A lidded bin, the shared body of the two disposal glyphs: a tapered drum with
+// a lid bar and a handle. `ink` is white on the light plates and near-black on
+// the pale compactor plate, which is chosen by the caller.
+function drawBinBody(ctx: CanvasRenderingContext2D, size: number, ink: string, bottom: number) {
+  const cx = size / 2
+  ctx.strokeStyle = ink
+  ctx.fillStyle = ink
+  ctx.lineWidth = 2.4
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+  // Lid + handle
+  ctx.beginPath()
+  ctx.moveTo(cx - 9, 14)
+  ctx.lineTo(cx + 9, 14)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(cx - 3, 11)
+  ctx.lineTo(cx + 3, 11)
+  ctx.stroke()
+  // Tapered drum
+  ctx.beginPath()
+  ctx.moveTo(cx - 7.5, 17)
+  ctx.lineTo(cx - 5.5, bottom)
+  ctx.lineTo(cx + 5.5, bottom)
+  ctx.lineTo(cx + 7.5, 17)
+  ctx.closePath()
+  ctx.stroke()
+}
+
+// One marker image per site type. Every glyph is drawn on the type's own plate,
+// so colour AND shape carry the type — a colour-blind reader still gets six
+// distinguishable marks. Returns null when the 2D context is unavailable
+// (headless/blocked), in which case the caller skips that image.
+function drawWasteIcon(type: WasteSiteType): ImageData | null {
+  const plate = wastePlate(WASTE_COLORS[type])
+  if (!plate) return null
+  const { ctx, size } = plate
+  const cx = size / 2
+  // The two pale plates (compactor white, lamp/battery pink) need dark ink; the
+  // rest carry white, like the WC and P glyphs.
+  const ink = type === 'compactor' || type === 'lamp_battery' ? '#18181b' : '#ffffff'
+  ctx.strokeStyle = ink
+  ctx.fillStyle = ink
+  ctx.lineWidth = 2.4
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+
+  switch (type) {
+    // 垃圾房 — a lidded bin.
+    case 'refuse_room':
+      drawBinBody(ctx, size, ink, 30)
+      break
+    // 壓縮式垃圾收集點 — the same bin with a down-arrow inside it: what the
+    // machine does to the rubbish.
+    case 'compactor': {
+      drawBinBody(ctx, size, ink, 30)
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(cx, 19)
+      ctx.lineTo(cx, 26)
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.moveTo(cx - 3, 23)
+      ctx.lineTo(cx, 26.5)
+      ctx.lineTo(cx + 3, 23)
+      ctx.stroke()
+      break
+    }
+    // 智能回收機 — a cabinet with a deposit slot.
+    case 'smart_machine': {
+      ctx.lineWidth = 2.4
+      ctx.strokeRect(cx - 8, 11, 16, 19)
+      ctx.fillRect(cx - 5, 15, 10, 2.6)
+      ctx.beginPath()
+      ctx.arc(cx, 25, 2, 0, Math.PI * 2)
+      ctx.fill()
+      break
+    }
+    // 三色資源回收點 — the three bins themselves, in IAM's blue / yellow /
+    // brown, so the swatch and the marker say the same thing.
+    case 'three_colour': {
+      const w = 7
+      const gap = 1.6
+      const total = w * 3 + gap * 2
+      let x = cx - total / 2
+      for (const bin of WASTE_THREE_COLOUR_BINS) {
+        ctx.fillStyle = bin
+        ctx.fillRect(x, 14, w, 15)
+        ctx.strokeStyle = '#ffffff'
+        ctx.lineWidth = 1.2
+        ctx.strokeRect(x, 14, w, 15)
+        x += w + gap
+      }
+      break
+    }
+    // 電腦及通訊設備回收點 — a monitor on a stand.
+    case 'e_waste': {
+      ctx.lineWidth = 2.4
+      ctx.strokeRect(cx - 9, 12, 18, 13)
+      ctx.beginPath()
+      ctx.moveTo(cx, 25)
+      ctx.lineTo(cx, 29)
+      ctx.moveTo(cx - 5, 29.5)
+      ctx.lineTo(cx + 5, 29.5)
+      ctx.stroke()
+      break
+    }
+    // 光管及電池回收點 — a battery cell with its terminal cap.
+    default: {
+      ctx.lineWidth = 2.4
+      ctx.strokeRect(cx - 6, 14, 12, 16)
+      ctx.fillRect(cx - 2.5, 10.5, 5, 3)
+      ctx.fillRect(cx - 3.5, 19, 7, 6)
+      break
+    }
+  }
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// 澳門垃圾焚化中心 — a chimney with a flame above it, on the same lime plate the
+// blocks below it use. Drawn separately from `drawWasteIcon` because its type
+// is not one of the six and its colour comes from the POWER table.
+function drawWasteIncineratorIcon(): ImageData | null {
+  const plate = wastePlate(WASTE_INCINERATOR_COLOR)
+  if (!plate) return null
+  const { ctx, size } = plate
+  const cx = size / 2
+  const ink = '#18181b' // lime is a pale plate — dark ink, like the compactor
+  ctx.strokeStyle = ink
+  ctx.fillStyle = ink
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+  // The stack: a slightly tapered chimney standing on a base line.
+  ctx.lineWidth = 2.4
+  ctx.beginPath()
+  ctx.moveTo(cx - 4.5, 30)
+  ctx.lineTo(cx - 3.2, 19)
+  ctx.lineTo(cx + 3.2, 19)
+  ctx.lineTo(cx + 4.5, 30)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(cx - 7.5, 30.5)
+  ctx.lineTo(cx + 7.5, 30.5)
+  ctx.stroke()
+  // The flame above it — a teardrop, filled so it reads at 0.45 icon-size.
+  ctx.beginPath()
+  ctx.moveTo(cx, 8.5)
+  ctx.bezierCurveTo(cx + 5.5, 12.5, cx + 4.2, 16.8, cx, 16.8)
+  ctx.bezierCurveTo(cx - 4.2, 16.8, cx - 5.5, 12.5, cx, 8.5)
+  ctx.closePath()
+  ctx.fill()
   return ctx.getImageData(0, 0, size, size)
 }
 
@@ -790,9 +1011,9 @@ const POWER_FOCUS_SHOWN_LAYERS: readonly string[] = [
 // and is the single place layout visibility is decided: the city hides for
 // either, and each overlay's own street mesh shows only for its own.
 function applyFocusVisibility(
-  m: maplibregl.Map, water: boolean, power: boolean,
+  m: maplibregl.Map, water: boolean, power: boolean, waste: boolean,
 ): void {
-  const focus = water || power
+  const focus = water || power || waste
   for (const id of FOCUS_HIDDEN_LAYERS) {
     if (!m.getLayer(id)) continue
     m.setLayoutProperty(id, 'visibility', focus ? 'none' : 'visible')
@@ -987,6 +1208,15 @@ interface Props {
   onSchoolClick?: (school: School, buildingName: string | null) => void
   onToiletClick?: (toilet: Toilet | null) => void
   onCarParkClick?: (carPark: CarPark | null) => void
+  onWasteSiteClick?: (selection: WasteSelection | null) => void
+  // WASTE is the third focus mode, and behaves exactly like the two below: App
+  // empties every other layer's data while it is on, and this flag hides the
+  // two things drawn from `allTransitData` that would otherwise survive.
+  wasteFocus?: boolean
+  // The incineration plant, taken from the POWER dataset (see src/waste.ts).
+  // Null whenever the WASTE layer is off or its key row is switched off, which
+  // is what empties both its blocks and its marker.
+  wasteIncinerator?: PowerFacility | null
   onWaterFacilityClick?: (facility: WaterFacility | null) => void
   // The extra network nodes (today: the Zhuhai inlet) share the facility marker
   // layer but are NOT facilities, so they open their own panel variant.
@@ -1022,6 +1252,7 @@ interface Props {
   selectedSchoolId?: string | null
   selectedToiletId?: string | null
   selectedCarParkId?: string | null
+  selectedWasteSiteId?: string | null
   selectedWaterFacilityId?: string | null
   selectedWaterNodeId?: string | null
   selectedPowerFacilityId?: string | null
@@ -1031,7 +1262,7 @@ interface Props {
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteIncinerator = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -1092,6 +1323,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // the source with whatever numbers are already in hand after a style swap.
   const selectedCarParkIdRef = useRef<string | null>(selectedCarParkId ?? null)
   selectedCarParkIdRef.current = selectedCarParkId ?? null
+  // And the waste sites: same filter-on-the-marker-source highlight, so
+  // addCustomLayers has to restore it after a style swap.
+  const selectedWasteSiteIdRef = useRef<string | null>(selectedWasteSiteId ?? null)
+  selectedWasteSiteIdRef.current = selectedWasteSiteId ?? null
+  // The id whose  feature-state is set on the incinerator blocks, so
+  // the effect clears exactly one entry (the plant is the only member).
+  const wasteStateIdRef = useRef<string | null>(null)
   const carParkVacancyRef = useRef<Map<string, CarParkVacancy> | null>(carParkVacancy ?? null)
   carParkVacancyRef.current = carParkVacancy ?? null
   // Water facilities carry BOTH highlight mechanisms of the overlays above: a
@@ -1118,6 +1356,14 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   selectedPowerNodeIdRef.current = selectedPowerNodeId ?? null
   const powerFocusRef = useRef(powerFocus)
   powerFocusRef.current = powerFocus
+  // WASTE has no layers of its own to reveal (its markers are data-driven), so
+  // its focus flag only ever feeds applyFocusVisibility's "hide the city" half.
+  const wasteFocusRef = useRef(wasteFocus)
+  wasteFocusRef.current = wasteFocus
+  // Seeds both waste sources after a style swap, the same way transitRef does
+  // for every other overlay.
+  const wasteIncineratorRef = useRef(wasteIncinerator)
+  wasteIncineratorRef.current = wasteIncinerator
   // Same style-swap contract for the distribution roads: addCustomLayers seeds
   // the source from here, so a theme change after the lazy fetch landed redraws
   // the thin pipes without waiting for anything.
@@ -1187,6 +1433,19 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
     if (next) m.setFeatureState({ source: POWER_BUILDINGS_SOURCE_ID, id: next }, { selected: true })
     powerStateIdRef.current = next
+  }, [])
+
+  // And once more for the incineration plant’s blocks — one member, but the
+  // same contract, so a style swap re-applies it exactly like the others.
+  const applyWasteSelection = useCallback((m: maplibregl.Map) => {
+    if (!m.getSource(WASTE_BUILDINGS_SOURCE_ID)) return
+    const next = selectedWasteSiteIdRef.current
+    const prev = wasteStateIdRef.current
+    if (prev && prev !== next) {
+      m.setFeatureState({ source: WASTE_BUILDINGS_SOURCE_ID, id: prev }, { selected: false })
+    }
+    if (next) m.setFeatureState({ source: WASTE_BUILDINGS_SOURCE_ID, id: next }, { selected: true })
+    wasteStateIdRef.current = next
   }, [])
 
   const addCustomLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
@@ -1671,6 +1930,39 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         },
       }, firstSymbolId)
 
+      // The incineration plant, for the WASTE overlay. Deliberately the SAME
+      // code path as the electricity blocks above — same insertion point, same
+      // height ramp, same opacity, same promoted-id selection highlight —
+      // because it is the same record: power-facilities.json's `incinerator`,
+      // read a second time by a layer that cares about where refuse goes rather
+      // than where electricity comes from.
+      m.addSource(WASTE_BUILDINGS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWasteBuildingFeatures(wasteIncineratorRef.current),
+        promoteId: WASTE_FEATURE_ID_PROPERTY,
+      })
+      m.addLayer({
+        id: WASTE_BUILDINGS_LAYER_ID, type: 'fill-extrusion', source: WASTE_BUILDINGS_SOURCE_ID,
+        paint: {
+          'fill-extrusion-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            WASTE_SELECTED_COLOR,
+            ['get', 'color'],
+          ],
+          'fill-extrusion-height': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'height'],
+          ],
+          'fill-extrusion-base': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'minHeight'],
+          ],
+          'fill-extrusion-opacity': 0.95,
+          'fill-extrusion-vertical-gradient': true,
+        },
+      }, firstSymbolId)
+
       for (const line of allTransitData.lrtLines) {
         if (!line.geometry) continue
         m.addSource(`lrt-line-${line.id}`, { type: 'geojson', data: line.geometry })
@@ -1900,6 +2192,57 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         },
       })
 
+      // Waste & recycling markers. Same contract as the WC / P plates: the six
+      // images are redrawn here on every style load under a hasImage guard, and
+      // the source is seeded from transitRef so a theme swap keeps the markers.
+      for (const type of WASTE_TYPES) {
+        const name = wasteIconName(type)
+        if (m.hasImage(name)) continue
+        const img = drawWasteIcon(type)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      if (!m.hasImage(WASTE_INCINERATOR_ICON)) {
+        const img = drawWasteIncineratorIcon()
+        if (img) m.addImage(WASTE_INCINERATOR_ICON, img, { pixelRatio: 2 })
+      }
+      m.addSource(WASTE_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWasteFeatures(transitRef.current.waste, wasteIncineratorRef.current),
+      })
+      m.addLayer({
+        id: WASTE_SELECTED_LAYER_ID, type: 'circle', source: WASTE_SOURCE_ID,
+        filter: ['==', ['get', 'id'], selectedWasteSiteIdRef.current ?? ''],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      })
+      m.addLayer({
+        id: WASTE_ICON_LAYER_ID, type: 'symbol', source: WASTE_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          // Collision ON, unlike the WC and P plates: this is ~1,100 points, and
+          // 406 lamp/battery markers drawn over each other at city zoom would be
+          // a stain rather than a map. `symbol-sort-key` (ascending scarcity —
+          // see WASTE_SORT_KEY) decides who survives, so the rare smart machines
+          // stay visible and the winner is STABLE as the map moves rather than
+          // flickering between neighbours.
+          'icon-allow-overlap': false,
+          'icon-ignore-placement': false,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.45, 14, 0.7, 16, 1],
+          'symbol-sort-key': ['get', 'sortKey'],
+        },
+        paint: {
+          // Suspended sites read as "there, but not usable" — the same statement
+          // the closed WC markers make.
+          'icon-opacity': ['case', ['get', 'closed'], 0.45, 1],
+        },
+      })
+
       // Water-facility markers. Same image contract as the WC / P plates —
       // setStyle({diff:false}) drops registered images with the layers, so both
       // variants of all five types are redrawn here under a hasImage guard —
@@ -2063,11 +2406,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       applyWaterSelection(m)
       powerStateIdRef.current = null
       applyPowerSelection(m)
+      wasteStateIdRef.current = null
+      applyWasteSelection(m)
       // Every phase group was just rebuilt with phase 0 opaque.
       waterPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
       powerPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
       // A style swap re-adds every layer visible; re-assert focus mode.
-      applyFocusVisibility(m, waterFocusRef.current, powerFocusRef.current)
+      applyFocusVisibility(m, waterFocusRef.current, powerFocusRef.current, wasteFocusRef.current)
     }
 
     addCustomLayersRef.current = addCustomLayers
@@ -2150,6 +2495,34 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       m.on('mouseenter', CAR_PARKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', CAR_PARKS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
 
+      // Waste & recycling pins, registered before the vehicle handlers for the
+      // same reason: a bus passing over a bin should not steal the click.
+      const openWasteMark = (e: maplibregl.MapLayerMouseEvent) => {
+        const feature = e.features?.[0]
+        if (!feature) return
+        const wid = feature.properties?.id ?? feature.properties?.[WASTE_FEATURE_ID_PROPERTY]
+        // Current list (transitRef), not a closed-over snapshot — waste.json
+        // lands after this handler is attached, and the legend's master and
+        // per-type toggles swap the array.
+        const site = transitRef.current.waste.find(x => x.id === wid)
+        if (site) { onWasteSiteClick?.({ kind: 'site', site }); e.preventDefault(); return }
+        // Not a collection point → the incineration plant, which shares this
+        // marker layer (and adds the blocks) but opens its own panel variant.
+        const plant = wasteIncineratorRef.current
+        if (plant && wid === plant.id) {
+          onWasteSiteClick?.({ kind: 'incinerator', facility: plant })
+          e.preventDefault()
+        }
+      }
+      // Blocks first, marker second: the plant's marker sits ON TOP of its own
+      // footprints, so both layers report a hit — and delegated listeners all
+      // fire, last one wins. Same rule as the water facilities.
+      for (const layerId of [WASTE_BUILDINGS_LAYER_ID, WASTE_ICON_LAYER_ID]) {
+        m.on('click', layerId, openWasteMark)
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+      }
+
       // Water facilities: the droplet marker AND the coloured blocks open the
       // same panel, so a user can click either the pin or the plant itself.
       // Registered before the vehicle handlers for the usual reason — a bus
@@ -2229,7 +2602,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       m.on('click', (e) => {
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, ...model3DLayers],
+          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, ...model3DLayers],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -2372,6 +2745,30 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     if (!map || !map.getLayer(CAR_PARKS_SELECTED_LAYER_ID)) return
     map.setFilter(CAR_PARKS_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedCarParkId ?? ''])
   }, [selectedCarParkId])
+
+  // Waste & recycling markers. Same array-identity push as the toilets —
+  // waste.json arriving, the master switch swapping in the empty array, or a
+  // per-type toggle handing over a narrowed one.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const setData = (sourceId: string, data: GeoJSON.FeatureCollection) => {
+      const src = map.getSource(sourceId) as unknown as
+        { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+      src?.setData?.(data)
+    }
+    setData(WASTE_SOURCE_ID, buildWasteFeatures(transitData.waste, wasteIncinerator))
+    setData(WASTE_BUILDINGS_SOURCE_ID, buildWasteBuildingFeatures(wasteIncinerator))
+  }, [transitData.waste, wasteIncinerator])
+
+  // Selected waste-site highlight — a filter swap, same as the toilet ring.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    applyWasteSelection(map)
+    if (!map.getLayer(WASTE_SELECTED_LAYER_ID)) return
+    map.setFilter(WASTE_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedWasteSiteId ?? ''])
+  }, [selectedWasteSiteId, applyWasteSelection])
 
   // Water facilities — three sources off one array, pushed together on array
   // identity (the file arriving, or the legend toggle swapping in the empty
@@ -2564,8 +2961,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // one overlay's street mesh.
   useEffect(() => {
     const map = mapRef.current
-    if (map) applyFocusVisibility(map, waterFocus, powerFocus)
-  }, [waterFocus, powerFocus])
+    if (map) applyFocusVisibility(map, waterFocus, powerFocus, wasteFocus)
+  }, [waterFocus, powerFocus, wasteFocus])
 
   useEffect(() => {
     const map = mapRef.current
@@ -3279,6 +3676,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                       rel="noopener noreferrer"
                       className="hover:text-amber-200 transition-colors"
                     >data.gov.mo</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceWasteLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                    <a
+                      href="https://www.iam.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >IAM</a>
+                    <span className="text-white/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.dspa.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-amber-200 transition-colors"
+                    >DSPA</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">

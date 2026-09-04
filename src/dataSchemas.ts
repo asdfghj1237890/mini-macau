@@ -290,6 +290,55 @@ export const CarParksFileSchema = z.object({
   ),
 })
 
+// waste.json — the six kinds of waste and recycling collection point, from two
+// IAM datasets and four DSPA ones. Mirrors the `waste` block in
+// data/scripts/validate_output.py. `type` is the enum the overlay colours by,
+// so it is checked strictly. `en` is OPTIONAL in every text block: the DSPA
+// feeds publish no English and the address block is zh/pt only, so the runtime
+// falls back en → pt → zh (see `pickWasteText`) rather than requiring a field
+// upstream never sends. `address` is null for the refuse rooms, `photo`/`tel`
+// null wherever the source has none, and `upstreamStatus` is DSPA's raw,
+// undocumented `status` — kept, never interpreted.
+const wasteSiteType = z.enum([
+  'refuse_room', 'compactor', 'smart_machine', 'three_colour', 'e_waste', 'lamp_battery',
+])
+const wasteText = z.object({
+  zh: z.string(),
+  pt: z.string(),
+  en: z.string().optional(),
+})
+
+export const WasteFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  sources: z.array(
+    z.object({
+      id: z.string(),
+      type: wasteSiteType,
+      datasetId: z.string(),
+      name: z.object({ zh: z.string(), pt: z.string().optional(), en: z.string().optional() }),
+      url: z.string(),
+      upstreamUpdatedAt: z.string().nullable(),
+      count: z.number(),
+    }),
+  ),
+  // Per-type totals, kept as a plain record: the runtime recounts from `sites`
+  // (that is what the legend shows), so this is provenance, not a contract.
+  counts: z.record(z.string(), z.number()).optional(),
+  sites: z.array(
+    z.object({
+      id: z.string(),
+      type: wasteSiteType,
+      name: wasteText,
+      address: wasteText.nullable(),
+      coordinates: lngLat,
+      closed: z.boolean(),
+      tel: z.string().nullable(),
+      photo: z.string().nullable(),
+      upstreamStatus: z.number().nullable(),
+    }),
+  ),
+})
+
 // water-facilities.json — Macao Water's 22 supply facilities, geometry taken
 // from OSM. Mirrors the `water-facilities` block in
 // data/scripts/validate_output.py. `type` is the enum the overlay colours by,

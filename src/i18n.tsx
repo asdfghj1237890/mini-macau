@@ -103,6 +103,8 @@ const translations = {
     waterCount: (n: number) => `${n} facilities`,
     power: 'Electricity',
     powerCount: (n: number) => `${n} facilities`,
+    waste: 'Waste & recycling',
+    wasteCount: (n: number) => `${n} collection points`,
     noServiceToday: 'No service today',
     // ---- MapView drawer ----
     mapSettings: 'Map Settings',
@@ -130,6 +132,7 @@ const translations = {
     dataSourceCarParksLabel: 'Car parks',
     dataSourceWaterLabel: 'Water supply',
     dataSourcePowerLabel: 'Electricity',
+    dataSourceWasteLabel: 'Waste & recycling',
     // ---- ControlPanel ----
     amPeak: 'AM PEAK',
     pmPeak: 'PM PEAK',
@@ -327,6 +330,36 @@ const translations = {
     powerCommissioned: 'IN SERVICE',
     powerCapacityMw: (mw: number) => `${mw} MW`,
     powerSource: 'SOURCE',
+    // ---- WASTE overlay (IAM + DSPA) ----
+    wasteLabel: 'WASTE',
+    wasteTypeRefuseRoom: 'Refuse room',
+    wasteTypeCompactor: 'Compacting collection point',
+    wasteTypeSmartMachine: 'Smart recycling machine',
+    wasteTypeThreeColour: 'Three-colour recycling point',
+    wasteTypeEWaste: 'Computer & telecom equipment',
+    wasteTypeLampBattery: 'Lamps & batteries',
+    // The incineration plant — the seventh key row. Not a collection point:
+    // it is where the six kinds above end up, read from the POWER dataset.
+    wasteTypeIncinerator: 'Refuse incineration plant',
+    wasteIncineratorNote: 'The government incineration plant at Pac On, Taipa. It burns Macau’s collected refuse and sells the electricity it generates to CEM through the Incinerator substation.',
+    wasteOperatorDspa: 'Environmental Protection Bureau (DSPA) facility',
+    wasteOperator: 'OPERATOR',
+    // Shown under the six type rows: the counts are the whole published
+    // register, not what is on screen at this zoom.
+    wasteTypesHint: 'Tap a type to show or hide it',
+    // WASTE is a focus mode like WATER and POWER: the row's tooltip and the
+    // key's caption both carry what that means for the rest of the map.
+    wasteFocusNote: 'Focus mode — every other layer is hidden while this is on',
+    wasteExpandTitle: 'Show or hide the collection types',
+    wasteToggleAllTitle: 'Toggle the whole layer',
+    wasteClosed: 'Temporarily out of use',
+    wasteAddress: 'ADDRESS',
+    wasteTel: 'PHONE',
+    wastePhoto: 'Photo',
+    wasteUpdated: 'DATA UPDATED',
+    wasteSource: 'SOURCE',
+    wasteSourceIam: 'Municipal Affairs Bureau (IAM)',
+    wasteSourceDspa: 'Environmental Protection Bureau (DSPA)',
     // ---- VehicleInfoPanel ----
     terminalStop: 'End',
   },
@@ -395,6 +428,8 @@ const translations = {
     waterCount: (n: number) => `${n} 項供水設施`,
     power: '電力設施',
     powerCount: (n: number) => `${n} 項電力設施`,
+    waste: '垃圾回收',
+    wasteCount: (n: number) => `${n} 個回收／收集點`,
     noServiceToday: '本日無服務',
     mapSettings: '地圖設定',
     plan2D: '2D 平面',
@@ -420,6 +455,7 @@ const translations = {
     dataSourceCarParksLabel: '停車場',
     dataSourceWaterLabel: '供水設施',
     dataSourcePowerLabel: '電力',
+    dataSourceWasteLabel: '垃圾回收',
     amPeak: '早尖峰',
     pmPeak: '晚尖峰',
     nowShort: '現在',
@@ -590,6 +626,29 @@ const translations = {
     powerCommissioned: '投產年份',
     powerCapacityMw: (mw: number) => `${mw} MW`,
     powerSource: '來源',
+    wasteLabel: '垃圾回收',
+    wasteTypeRefuseRoom: '垃圾房',
+    wasteTypeCompactor: '壓縮式垃圾收集點',
+    wasteTypeSmartMachine: '智能回收機',
+    wasteTypeThreeColour: '三色資源回收點',
+    wasteTypeEWaste: '電腦及通訊設備回收點',
+    wasteTypeLampBattery: '光管及電池回收點',
+    wasteTypeIncinerator: '垃圾焚化中心',
+    wasteIncineratorNote: '政府設於氹仔北安的垃圾焚化中心，焚燒全澳收集的垃圾，並透過焚化爐變電站將所發電力售予澳電。',
+    wasteOperatorDspa: '環境保護局 (DSPA) 設施',
+    wasteOperator: '營運',
+    wasteTypesHint: '點擊類別以顯示或隱藏',
+    wasteFocusNote: '專注模式 — 開啟時其他圖層會隱藏',
+    wasteExpandTitle: '顯示或隱藏回收類別',
+    wasteToggleAllTitle: '開關整個圖層',
+    wasteClosed: '暫停使用',
+    wasteAddress: '地址',
+    wasteTel: '電話',
+    wastePhoto: '相片',
+    wasteUpdated: '資料更新',
+    wasteSource: '來源',
+    wasteSourceIam: '市政署 (IAM)',
+    wasteSourceDspa: '環境保護局 (DSPA)',
     terminalStop: '終站',
   },
   pt: {
@@ -657,6 +716,8 @@ const translations = {
     waterCount: (n: number) => `${n} instalações`,
     power: 'Electricidade',
     powerCount: (n: number) => `${n} instalações`,
+    waste: 'Resíduos e reciclagem',
+    wasteCount: (n: number) => `${n} pontos de recolha`,
     noServiceToday: 'Sem serviço hoje',
     mapSettings: 'Definições',
     plan2D: '2D Plano',
@@ -682,6 +743,7 @@ const translations = {
     dataSourceCarParksLabel: 'Estacionamentos',
     dataSourceWaterLabel: 'Abastecimento de água',
     dataSourcePowerLabel: 'Electricidade',
+    dataSourceWasteLabel: 'Resíduos e reciclagem',
     amPeak: 'PICO MANHÃ',
     pmPeak: 'PICO TARDE',
     nowShort: 'AGORA',
@@ -853,6 +915,29 @@ const translations = {
     powerCommissioned: 'EM SERVIÇO',
     powerCapacityMw: (mw: number) => `${mw} MW`,
     powerSource: 'FONTE',
+    wasteLabel: 'RESÍDUOS',
+    wasteTypeRefuseRoom: 'Depósito de lixo',
+    wasteTypeCompactor: 'Ponto de recolha compactada',
+    wasteTypeSmartMachine: 'Máquina de reciclagem inteligente',
+    wasteTypeThreeColour: 'Ponto de reciclagem tricolor',
+    wasteTypeEWaste: 'Equipamento informático e de telecomunicações',
+    wasteTypeLampBattery: 'Lâmpadas e pilhas',
+    wasteTypeIncinerator: 'Central de incineração de resíduos',
+    wasteIncineratorNote: 'Central de incineração do Governo em Pac On, Taipa. Queima os resíduos recolhidos em Macau e vende a electricidade produzida à CEM através da subestação da incineradora.',
+    wasteOperatorDspa: 'Instalação da Direcção dos Serviços de Protecção Ambiental (DSPA)',
+    wasteOperator: 'OPERADOR',
+    wasteTypesHint: 'Toque num tipo para mostrar ou esconder',
+    wasteFocusNote: 'Modo de foco — as outras camadas ficam ocultas',
+    wasteExpandTitle: 'Mostrar ou esconder os tipos de recolha',
+    wasteToggleAllTitle: 'Ligar ou desligar toda a camada',
+    wasteClosed: 'Temporariamente fora de serviço',
+    wasteAddress: 'MORADA',
+    wasteTel: 'TELEFONE',
+    wastePhoto: 'Foto',
+    wasteUpdated: 'DADOS ACTUALIZADOS',
+    wasteSource: 'FONTE',
+    wasteSourceIam: 'Instituto para os Assuntos Municipais (IAM)',
+    wasteSourceDspa: 'Direcção dos Serviços de Protecção Ambiental (DSPA)',
     terminalStop: 'Terminal',
   },
 }
@@ -922,6 +1007,8 @@ export interface Translations {
   waterCount: (n: number) => string
   power: string
   powerCount: (n: number) => string
+  waste: string
+  wasteCount: (n: number) => string
   noServiceToday: string
   mapSettings: string
   plan2D: string
@@ -947,6 +1034,7 @@ export interface Translations {
   dataSourceCarParksLabel: string
   dataSourceWaterLabel: string
   dataSourcePowerLabel: string
+  dataSourceWasteLabel: string
   amPeak: string
   pmPeak: string
   nowShort: string
@@ -1113,6 +1201,29 @@ export interface Translations {
   powerCommissioned: string
   powerCapacityMw: (mw: number) => string
   powerSource: string
+  wasteLabel: string
+  wasteTypeRefuseRoom: string
+  wasteTypeCompactor: string
+  wasteTypeSmartMachine: string
+  wasteTypeThreeColour: string
+  wasteTypeEWaste: string
+  wasteTypeLampBattery: string
+  wasteTypeIncinerator: string
+  wasteIncineratorNote: string
+  wasteOperatorDspa: string
+  wasteOperator: string
+  wasteTypesHint: string
+  wasteFocusNote: string
+  wasteExpandTitle: string
+  wasteToggleAllTitle: string
+  wasteClosed: string
+  wasteAddress: string
+  wasteTel: string
+  wastePhoto: string
+  wasteUpdated: string
+  wasteSource: string
+  wasteSourceIam: string
+  wasteSourceDspa: string
   terminalStop: string
 }
 

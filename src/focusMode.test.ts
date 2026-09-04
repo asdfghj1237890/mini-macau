@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
+  FOCUS_LAYERS,
+  activeFocusPeer,
   applyFocusMode,
   applyLayerSnapshot,
   captureLayerSnapshot,
@@ -7,6 +9,8 @@ import {
   focusSnapshotKey,
   loadFocusSnapshot,
   saveFocusSnapshot,
+  type FocusLayer,
+  type FocusPeer,
   type LayerVisibilityApply,
   type LayerVisibilityState,
 } from './focusMode'
@@ -58,10 +62,55 @@ function stubStorage(initial: Record<string, string> = {}) {
 afterEach(() => { vi.unstubAllGlobals() })
 
 describe('focusSnapshotKey', () => {
-  it('gives each focus layer its own key, so the two never read each other', () => {
+  it('gives each focus layer its own key, so no two ever read each other', () => {
     expect(focusSnapshotKey('water')).toBe('mini-macau-water-focus-snapshot')
     expect(focusSnapshotKey('power')).toBe('mini-macau-power-focus-snapshot')
-    expect(focusSnapshotKey('water')).not.toBe(focusSnapshotKey('power'))
+    expect(focusSnapshotKey('waste')).toBe('mini-macau-waste-focus-snapshot')
+    expect(new Set(FOCUS_LAYERS.map(focusSnapshotKey)).size).toBe(FOCUS_LAYERS.length)
+  })
+
+  it('knows all three focus layers', () => {
+    expect([...FOCUS_LAYERS]).toEqual(['water', 'power', 'waste'])
+  })
+})
+
+// WASTE is a focus layer, NOT one of the layers a focus mode hides — the
+// snapshot must not carry it, or turning WATER on would try to restore a
+// "waste: false" that WATER itself set.
+describe('the snapshot covers only the non-focus layers', () => {
+  it('has no `waste` key, and applyFocusMode never sets one', () => {
+    const snap = captureLayerSnapshot(state()) as unknown as Record<string, unknown>
+    expect('waste' in snap).toBe(false)
+    const { apply, calls } = recorder()
+    applyFocusMode(apply)
+    expect('waste' in calls).toBe(false)
+  })
+})
+
+describe('activeFocusPeer — the three focus layers are mutually exclusive', () => {
+  const peer = (layer: FocusLayer, on: boolean): FocusPeer =>
+    ({ layer, on, snapshot: on ? state({ flights: true }) : null })
+
+  it('is null when no other focus layer is on', () => {
+    expect(activeFocusPeer([peer('water', false), peer('power', false)])).toBeNull()
+    expect(activeFocusPeer([])).toBeNull()
+  })
+
+  it('names the one that is on, whichever of the three it is', () => {
+    expect(activeFocusPeer([peer('water', false), peer('power', true)])?.layer).toBe('power')
+    expect(activeFocusPeer([peer('power', false), peer('waste', true)])?.layer).toBe('waste')
+    expect(activeFocusPeer([peer('waste', false), peer('water', true)])?.layer).toBe('water')
+  })
+
+  it('resolves a corrupted "two are on" state in FOCUS_LAYERS order rather than guessing', () => {
+    expect(activeFocusPeer([peer('waste', true), peer('water', true)])?.layer).toBe('water')
+    expect(activeFocusPeer([peer('waste', true), peer('power', true)])?.layer).toBe('power')
+  })
+
+  it('carries the snapshot the incoming layer must inherit', () => {
+    const found = activeFocusPeer([peer('water', false), peer('waste', true)])
+    expect(focusHandoffSnapshot(state({ flights: false }), found?.snapshot ?? null, !!found))
+      .toEqual(captureLayerSnapshot(state({ flights: true })))
   })
 })
 

@@ -30,9 +30,9 @@ npm run test:watch  # 互動模式
 | `computeBusCycleSec` | 服務時段內、開始前、跨午夜 wrap、Sunday bucket、staggered 車輛 lag |
 | `getBusSchedule` | bilateral / circular、過短 polyline 回 null、`WeakMap` cache 行為 |
 
-## 城市資料 helper（`roadWorks` / `schools` / `toilets` / `carParks`）
+## 城市資料 helper（`roadWorks` / `schools` / `toilets` / `carParks` / `waste`）
 
-跟 `simulationEngine.ts` 同一套邏輯：這四個 helper 都是 pure function（notice/school/toilet/car-park 陣列 in，feature/count/label 陣列 out），不摸 DOM、不摸網路，容易上 fixture，所以也測了。
+跟 `simulationEngine.ts` 同一套邏輯：這五個 helper 都是 pure function（notice/school/toilet/car-park/waste-site 陣列 in，feature/count/label 陣列 out），不摸 DOM、不摸網路，容易上 fixture，所以也測了。`waste.ts` 是六型別的，多了型別本身的顏色/圖示/排序鍵一致性與 hidden-type 過濾兩塊，其餘同一套 pure-function 哲學（WASTE 本身雖然是專注模式，但這個 helper 只管顏色/文字/可見性這些跟專注模式無關的純運算）。
 
 | 檔案 | 測試重點 |
 |------|----------|
@@ -40,10 +40,11 @@ npm run test:watch  # 互動模式
 | `schools.test.ts` | `buildSchoolFeatures` 的顏色/skip 規則、`filterSchoolsByLevel` 全開時保留 array identity、`loadSchoolLevelsOn`/`saveSchoolLevelsOn` round-trip 與壞資料容錯 |
 | `toilets.test.ts` | `toiletVariant` 優先權（closed 蓋過 accessible）、`pickToiletText` 三語 fallback、`buildToiletFeatures` 的座標 skip |
 | `carParks.test.ts` | `parseCarParkVacancyXml` / `parseCarParkTime` 解析 DSAT XML 與美式日期時間、`buildCarParkFeatures` 的 vacancy 標籤規則 |
+| `waste.test.ts` | 六型別的顏色/圖示名/排序鍵互不重複、IAM／DSPA 來源歸類、`pickWasteText` en→pt→zh fallback（DSPA 沒有英文）、`visibleWasteSites` 隱藏類型過濾（沒有隱藏時保留 array identity）、`countWasteByType`／`visibleWasteCount`、`wasteLegendRows`、`loadHiddenWasteTypes`/`saveHiddenWasteTypes` 的 round-trip 與壞資料容錯 |
 
-`dataSchemas.test.ts` 是另一種測試：拿 zod schema（[`dataSchemas.ts`](../../src/dataSchemas.ts)）去 parse `public/data/*.json` 實際檔案內容，包括新的 `road-works.json` / `schools.json` / `toilets.json` / `car-parks.json` / `water-facilities.json`——保證 commit 進來的資料本身合法，不是測程式邏輯。
+`dataSchemas.test.ts` 是另一種測試：拿 zod schema（[`dataSchemas.ts`](../../src/dataSchemas.ts)）去 parse `public/data/*.json` 實際檔案內容，包括新的 `road-works.json` / `schools.json` / `toilets.json` / `car-parks.json` / `waste.json` / `water-facilities.json`——保證 commit 進來的資料本身合法，不是測程式邏輯。
 
-瀏覽器端的 zod schema 與 pipeline 端的 [`validate_output.py`](../../data/scripts/validate_output.py) 是**互相對照的兩份**，改一邊要改另一邊。目前 `validate_output.py` 認得的 dataset：`lrt-lines`、`stations`、`trips-*`、`bus-routes`、`bus-stops`、`flights`、`flights-timetable`、`ferries`、`service-status`、`road-works`、`schools`、`water-facilities`、`water-distribution`、`power-facilities`、`power-distribution`、`toilets`、`car-parks`（`all` 一次跑完）。`schools`、`water-facilities` 與 `power-facilities` 共用同一個 3D 建築足跡檢查（`check_footprint_building`：`osmId` / `height` / `minHeight` / 每個環閉合且在澳門範圍內），差別只在後兩者的 `kind` 是 `building` / `tile` / `outline` 三選一的列舉。`water-distribution` 與 `power-distribution` 是同一支 pipeline（`road_network.py`）產的同一種形狀，所以也共用同一個 validator（`v_distribution`，只差 dataset 名字）。
+瀏覽器端的 zod schema 與 pipeline 端的 [`validate_output.py`](../../data/scripts/validate_output.py) 是**互相對照的兩份**，改一邊要改另一邊。目前 `validate_output.py` 認得的 dataset：`lrt-lines`、`stations`、`trips-*`、`bus-routes`、`bus-stops`、`flights`、`flights-timetable`、`ferries`、`service-status`、`road-works`、`schools`、`water-facilities`、`water-distribution`、`power-facilities`、`power-distribution`、`toilets`、`car-parks`、`waste`（`all` 一次跑完）。`schools`、`water-facilities` 與 `power-facilities` 共用同一個 3D 建築足跡檢查（`check_footprint_building`：`osmId` / `height` / `minHeight` / 每個環閉合且在澳門範圍內），差別只在後兩者的 `kind` 是 `building` / `tile` / `outline` 三選一的列舉。`water-distribution` 與 `power-distribution` 是同一支 pipeline（`road_network.py`）產的同一種形狀，所以也共用同一個 validator（`v_distribution`，只差 dataset 名字）。
 
 ## 沒測什麼
 

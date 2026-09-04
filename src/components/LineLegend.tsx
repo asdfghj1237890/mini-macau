@@ -11,6 +11,15 @@ import {
 } from '../schools'
 import { waterLegendRows, type WaterLegendRow } from '../water'
 import { powerLegendRows, type PowerLegendRow } from '../power'
+import {
+  WASTE_LAYER_TYPES,
+  countWasteByType,
+  visibleWasteCount,
+  wasteIncinerator,
+  wasteLegendRows,
+  type WasteLayerType,
+  type WasteTypeSet,
+} from '../waste'
 
 // The five level colours as one 8×8 swatch. Only the mobile modal header uses
 // it now — the desktop row shows the same violet hatch as the other layers,
@@ -39,6 +48,11 @@ const TOILET_HATCH = 'repeating-linear-gradient(-45deg, rgba(20,184,166,0.45) 0 
 
 // Blue hatch for the car-park row — the marker colour (#3b82f6).
 const CAR_PARK_HATCH = 'repeating-linear-gradient(-45deg, rgba(59,130,246,0.45) 0 1px, transparent 1px 3px)'
+
+// Green hatch for the WASTE row — the three-colour recycling green (#4ade80).
+// The overlay has six colours and no single dominant one, so the row wears the
+// recycling green the map's largest recycling type is drawn in.
+const WASTE_HATCH = 'repeating-linear-gradient(-45deg, rgba(74,222,128,0.45) 0 1px, transparent 1px 3px)'
 
 // Sky hatch for the WATER row — the reservoir colour (#38bdf8), which is the
 // overlay's dominant tone on the map.
@@ -271,6 +285,20 @@ function ToiletIcon() {
   )
 }
 
+// 12px lidded bin with a recycling chevron for the WASTE row, in the same
+// stroked style as its siblings so it dims with the row.
+function WasteIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2.75 4.5h10.5" />
+      <path d="M6.5 4.5V3h3v1.5" />
+      <path d="M4 4.5l.85 8.4a.8.8 0 0 0 .8.6h4.7a.8.8 0 0 0 .8-.6l.85-8.4" />
+      <path d="M6.6 7.5v3.4M9.4 7.5v3.4" strokeWidth="1.1" opacity="0.65" />
+    </svg>
+  )
+}
+
 // 12px mortarboard for the SCHOOLS row's glyph slot.
 function MortarboardIcon() {
   return (
@@ -320,6 +348,15 @@ const CAR_PARK_ICON_16 = (
     <path d="M6.25 11.75V4.75h2.1a2.1 2.1 0 0 1 0 4.2h-2.1" />
   </svg>
 )
+const WASTE_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M2.75 4.5h10.5" />
+    <path d="M6.5 4.5V3h3v1.5" />
+    <path d="M4 4.5l.85 8.4a.8.8 0 0 0 .8.6h4.7a.8.8 0 0 0 .8-.6l.85-8.4" />
+    <path d="M6.6 7.5v3.4M9.4 7.5v3.4" strokeWidth="1.1" opacity="0.65" />
+  </svg>
+)
 const WATER_ICON_16 = (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -349,6 +386,10 @@ const CITY_HATCH = 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.30) 0 1
 const LS_DESKTOP_OPEN = 'mm-layers-desktop-open'
 const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
 const LS_SCHOOLS_LEGEND_OPEN = 'mm-schools-legend-open'
+const LS_WASTE_LEGEND_OPEN = 'mm-waste-legend-open'
+// Stable "nothing hidden" fallback for a legend rendered without the prop, so
+// the `??` below cannot hand a fresh Set to the render on every pass.
+const EMPTY_WASTE_TYPES: WasteTypeSet = new Set<WasteLayerType>()
 // Which page of the desktop panel is showing. The simulated transit layers
 // (LRT / BUS / AIR / SEA) and the static city overlays (WORKS / SCHOOLS / WC)
 // are different kinds of thing, and the city list will keep growing, so each
@@ -382,6 +423,13 @@ interface Props {
   // Public car parks — opt-in like the toilets; the count is the whole
   // register, which only changes when the daily workflow lands a new file.
   carParksOn?: boolean
+  // Waste and recycling points — opt-in like the toilets, and the one CITY row
+  // with sub-filters: `wasteHiddenTypes` is the set of the six site types that
+  // are switched OFF, and `wasteTypeCounts` their totals from the UNFILTERED
+  // data (so a key row keeps its number while its type is hidden).
+  wasteOn?: boolean
+  wasteHiddenTypes?: WasteTypeSet
+  wasteTypeCounts?: Record<WasteLayerType, number>
   // Macao Water supply facilities. Also opt-in, but unlike its neighbours this
   // one is a FOCUS mode: App clears every other layer while it is on and puts
   // them back when it goes off (see toggleWater), so the row's ON state also
@@ -400,6 +448,8 @@ interface Props {
   onToggleSchoolLevel?: (level: SchoolLevel) => void
   onToggleToilets?: () => void
   onToggleCarParks?: () => void
+  onToggleWaste?: () => void
+  onToggleWasteType?: (type: WasteLayerType) => void
   onToggleWater?: () => void
   onTogglePower?: () => void
   onToggleRoute?: (routeId: string) => void
@@ -410,7 +460,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'water' | 'power' | 'city' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'city' | null
 
 export function LineLegend({
   transitData,
@@ -428,6 +478,9 @@ export function LineLegend({
   schoolLevelCounts,
   toiletsOn = false,
   carParksOn = false,
+  wasteOn = false,
+  wasteHiddenTypes,
+  wasteTypeCounts,
   waterOn = false,
   powerOn = false,
   clock,
@@ -439,6 +492,8 @@ export function LineLegend({
   onToggleSchoolLevel,
   onToggleToilets,
   onToggleCarParks,
+  onToggleWaste,
+  onToggleWasteType,
   onToggleWater,
   onTogglePower,
   onToggleRoute,
@@ -454,6 +509,9 @@ export function LineLegend({
   })
   const [schoolsLegendOpen, setSchoolsLegendOpen] = useState(() => {
     try { return localStorage.getItem(LS_SCHOOLS_LEGEND_OPEN) !== '0' } catch { return true }
+  })
+  const [wasteLegendOpen, setWasteLegendOpen] = useState(() => {
+    try { return localStorage.getItem(LS_WASTE_LEGEND_OPEN) !== '0' } catch { return true }
   })
   const [layersTab, setLayersTab] = useState<LayersTab>(() => {
     try { return localStorage.getItem(LS_LAYERS_TAB) === 'city' ? 'city' : 'transit' } catch { return 'transit' }
@@ -474,6 +532,9 @@ export function LineLegend({
   useEffect(() => {
     localStorage.setItem(LS_SCHOOLS_LEGEND_OPEN, schoolsLegendOpen ? '1' : '0')
   }, [schoolsLegendOpen])
+  useEffect(() => {
+    localStorage.setItem(LS_WASTE_LEGEND_OPEN, wasteLegendOpen ? '1' : '0')
+  }, [wasteLegendOpen])
   useEffect(() => {
     localStorage.setItem(LS_DESKTOP_COLLAPSED_GROUPS, JSON.stringify([...collapsedGroups]))
   }, [collapsedGroups])
@@ -498,6 +559,24 @@ export function LineLegend({
   const levelCounts = useMemo(
     () => schoolLevelCounts ?? countSchoolsByLevel(allSchools),
     [schoolLevelCounts, allSchools]
+  )
+  // Same contract for the waste types: App passes them pre-counted from the
+  // UNFILTERED list, and the fallback keeps the key correct if the legend is
+  // ever rendered without them.
+  const allWaste = useMemo(
+    () => allTransitData?.waste ?? transitData.waste,
+    [allTransitData, transitData.waste]
+  )
+  // The incineration plant is the WASTE key's seventh row but lives in the
+  // POWER dataset, so the fallback count reads it from there — unfiltered, for
+  // the same reason as `allWaste`.
+  const allPower = useMemo(
+    () => allTransitData?.powerFacilities ?? transitData.powerFacilities,
+    [allTransitData, transitData.powerFacilities]
+  )
+  const wasteCounts = useMemo(
+    () => wasteTypeCounts ?? countWasteByType(allWaste, wasteIncinerator(allPower)),
+    [wasteTypeCounts, allWaste, allPower]
   )
   const grouped = useMemo(() => {
     const groups = new Map<typeof GROUP_ORDER[number], typeof busRoutes>()
@@ -554,6 +633,14 @@ export function LineLegend({
   const toiletCount = allTransitData?.toilets.length ?? transitData.toilets.length
   // Same for the car parks: the row always shows the full register.
   const carParkCount = allTransitData?.carParks.length ?? transitData.carParks.length
+  // Waste is the one CITY row whose count MOVES: the master switch is a whole-
+  // layer toggle like its neighbours, but the six type toggles narrow what is
+  // drawn, so the row shows the visible total (and enabled/total when some type
+  // is hidden) rather than the register size.
+  const wasteTotal = visibleWasteCount(wasteCounts, EMPTY_WASTE_TYPES)
+  const hiddenWasteTypes: WasteTypeSet = wasteHiddenTypes ?? EMPTY_WASTE_TYPES
+  const wasteTypesAllOn = WASTE_LAYER_TYPES.every(type => !hiddenWasteTypes.has(type))
+  const wasteVisibleCount = visibleWasteCount(wasteCounts, hiddenWasteTypes)
   // And for the water facilities — Macao Water's list is a fixed 22.
   const waterCount = allTransitData?.waterFacilities.length ?? transitData.waterFacilities.length
   // The UNFILTERED network, for the same reason as the count above: the key
@@ -585,9 +672,15 @@ export function LineLegend({
       toggle: onToggleToilets,
     } : null,
     carParkCount > 0 ? {
-      panel: 'carparks' as const, label: 'P · 停車場', icon: CAR_PARK_ICON_16, on: carParksOn,
+      panel: 'carparks' as const, label: 'PARKING · 停車場', icon: CAR_PARK_ICON_16, on: carParksOn,
       count: String(carParkCount), iconOn: 'text-blue-300', countOn: 'text-blue-300/80',
       toggle: onToggleCarParks,
+    } : null,
+    wasteTotal > 0 ? {
+      panel: 'waste' as const, label: 'WASTE · 垃圾回收', icon: WASTE_ICON_16, on: wasteOn,
+      count: wasteTypesAllOn ? String(wasteTotal) : `${wasteVisibleCount}/${wasteTotal}`,
+      iconOn: 'text-green-300', countOn: 'text-green-300/80',
+      toggle: onToggleWaste,
     } : null,
     waterCount > 0 ? {
       panel: 'water' as const, label: 'WATER · 供水', icon: WATER_ICON_16, on: waterOn,
@@ -1153,7 +1246,7 @@ export function LineLegend({
                 style={{ backgroundImage: CAR_PARK_HATCH }}
               />
               <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
-                P · 停車場
+                PARKING · 停車場
               </span>
               <span className={`mm-mono mm-tabular text-[9px] ${carParksOn ? 'text-blue-300/80' : 'text-white/25'}`}>
                 {carParkCount}
@@ -1162,6 +1255,109 @@ export function LineLegend({
                 {carParksOn ? 'ON' : 'OFF'}
               </span>
             </button>
+          )}
+
+          {/* WASTE & RECYCLING — a FOCUS mode like WATER and POWER below it
+              (switching it on clears every other layer, switching it off puts
+              them back), drawn with the SCHOOLS split interaction because it is
+              the one focus layer with sub-filters: the body expands the six type
+              rows, the ON/OFF button at the right is the whole-layer switch.
+              Same five columns as PARKING above it, and the same 6 px + 6 px
+              split so the count→ON gap stays 12 px like every other row. */}
+          {wasteTotal > 0 && (
+            <>
+              <div className={`flex items-stretch border-t border-white/10 transition
+                              ${wasteOn ? 'bg-green-400/[0.05]' : 'opacity-50'}`}>
+                <button
+                  type="button"
+                  onClick={() => setWasteLegendOpen(v => !v)}
+                  aria-expanded={wasteLegendOpen}
+                  title={`${t.wasteExpandTitle} · ${t.wasteFocusNote}`}
+                  className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3 pr-1.5
+                             hover:bg-green-400/[0.1] transition"
+                >
+                  <span className={`inline-flex items-center justify-center w-[12px] shrink-0
+                                    ${wasteOn ? 'text-white/45' : 'text-white/40'}`}>
+                    <WasteIcon />
+                  </span>
+                  <span
+                    className="inline-block w-[8px] h-[8px] shrink-0"
+                    style={{ backgroundImage: WASTE_HATCH }}
+                  />
+                  <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45
+                                   flex-1 min-w-0 text-left truncate">
+                    WASTE · 垃圾回收
+                  </span>
+                  <span className={`mm-mono mm-tabular text-[9px] shrink-0
+                                    ${wasteOn ? 'text-green-300/80' : 'text-white/25'}`}>
+                    {wasteTypesAllOn ? wasteTotal : `${wasteVisibleCount}/${wasteTotal}`}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onToggleWaste}
+                  disabled={!onToggleWaste}
+                  aria-pressed={wasteOn}
+                  title={`${t.wasteCount(wasteVisibleCount)} · ${t.wasteFocusNote}`}
+                  className={`shrink-0 inline-flex items-center justify-end pl-1.5 pr-3
+                              hover:bg-emerald-300/[0.1] transition
+                              ${onToggleWaste ? '' : 'cursor-default'}`}
+                >
+                  <span className={`mm-mono text-[8px] tracking-[0.2em] ${wasteOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                    {wasteOn ? 'ON' : 'OFF'}
+                  </span>
+                </button>
+              </div>
+              {/* The key, only while the layer is on — it explains marks that
+                  are on screen, so it has nothing to say when they are not. */}
+              {wasteOn && wasteLegendOpen && (
+                <div className="pb-1 bg-green-400/[0.05]">
+                  {wasteLegendRows(t, wasteCounts, hiddenWasteTypes).map(row => (
+                    <button
+                      key={row.id}
+                      type="button"
+                      onClick={() => onToggleWasteType?.(row.id)}
+                      disabled={!onToggleWasteType}
+                      aria-pressed={row.on}
+                      // The label truncates for the longest EN/PT wording, so
+                      // keep the whole thing readable on hover.
+                      title={row.label}
+                      className={`w-full flex items-center gap-2 py-1 pl-8 pr-3
+                                  hover:bg-white/[0.04] transition
+                                  ${onToggleWasteType ? '' : 'cursor-default'}`}
+                    >
+                      <span
+                        className="inline-block w-[7px] h-[7px] shrink-0"
+                        style={row.on
+                          ? { backgroundColor: row.color }
+                          : { boxShadow: `inset 0 0 0 1px ${row.color}99` }}
+                      />
+                      <span className={`text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
+                                        ${row.on ? 'text-white/75' : 'text-white/30'}`}>
+                        {row.label}
+                      </span>
+                      <span
+                        className={`mm-mono mm-tabular text-[9px] w-[26px] text-right shrink-0
+                                    ${row.on ? '' : 'text-white/25'}`}
+                        style={row.on ? { color: row.color } : undefined}
+                      >
+                        {row.count}
+                      </span>
+                      <span className={`mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+                                        ${row.on ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                        {row.on ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+                  ))}
+                  <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
+                    {t.wasteTypesHint}
+                  </div>
+                  <div className="pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
+                    {t.wasteFocusNote}
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           {/* MACAO WATER — same five columns as P above it. Unlike its
@@ -1978,7 +2174,7 @@ export function LineLegend({
                     className="inline-block w-[8px] h-[8px]"
                     style={{ backgroundImage: CAR_PARK_HATCH }}
                   />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">P · 停車場</span>
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">PARKING · 停車場</span>
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="mm-mono mm-tabular text-[9px] text-white/30">
@@ -2014,6 +2210,112 @@ export function LineLegend({
                   {carParksOn ? 'ON' : 'OFF'}
                 </span>
               </button>
+            </div>
+          )}
+
+          {/* WASTE & RECYCLING */}
+          {mobilePanel === 'waste' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-[#0b0b0c]
+                         border border-green-400/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+            >
+              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-green-300/85">
+                  <WasteIcon />
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: WASTE_HATCH }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">WASTE · 垃圾回收</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                    {wasteOn ? wasteVisibleCount : 0}/{wasteTotal}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleWaste}
+                disabled={!onToggleWaste}
+                aria-pressed={wasteOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${wasteOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${onToggleWaste ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={wasteOn ? 'text-green-400' : 'text-white/40'}>
+                    <WasteIcon />
+                  </span>
+                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                    {t.wasteCount(wasteVisibleCount)}
+                  </span>
+                </span>
+                <span className={`mm-mono text-[10px] tracking-[0.2em] ${wasteOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                  {wasteOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+              {/* Per-type rows — same handlers as the desktop key, at a 44px tap
+                  target. No collapsing: the modal is always expanded. */}
+              <div className={`pb-1 border-t border-white/10 ${wasteOn ? '' : 'opacity-40'}`}>
+                {wasteLegendRows(t, wasteCounts, hiddenWasteTypes).map(row => {
+                  // "Lit" = actually drawn on the map: the type is on AND the
+                  // master switch is on.
+                  const lit = wasteOn && row.on
+                  return (
+                    <button
+                      key={row.id}
+                      type="button"
+                      onClick={() => onToggleWasteType?.(row.id)}
+                      disabled={!onToggleWasteType}
+                      aria-pressed={row.on}
+                      title={row.label}
+                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-white/[0.04] transition
+                                  ${onToggleWasteType ? '' : 'cursor-default'}`}
+                    >
+                      <span
+                        className="inline-block w-[9px] h-[9px] shrink-0"
+                        style={row.on
+                          ? { backgroundColor: row.color }
+                          : { boxShadow: `inset 0 0 0 1px ${row.color}99` }}
+                      />
+                      <span className={`text-[12px] leading-[1.2] flex-1 min-w-0 text-left truncate
+                                        ${row.on ? 'text-white/75' : 'text-white/30'}`}>
+                        {row.label}
+                      </span>
+                      <span
+                        className={`mm-mono mm-tabular text-[11px] w-8 text-right shrink-0
+                                    ${lit ? '' : 'text-white/25'}`}
+                        style={lit ? { color: row.color } : undefined}
+                      >
+                        {row.count}
+                      </span>
+                      <span className={`mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
+                                        ${lit ? 'text-emerald-300' : 'text-white/25'}`}>
+                        {row.on ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+                  )
+                })}
+                {/* The same two captions as the desktop key: what the type rows
+                    do, and what switching the layer on does to the rest of the
+                    map — the counterpart of the WATER key's disclaimer. */}
+                <div className="px-3 pt-1 mm-mono text-[8px] tracking-[0.18em] text-white/30 uppercase">
+                  {t.wasteTypesHint}
+                </div>
+                <div className="px-3 pb-1 mm-mono text-[8px] tracking-[0.18em] text-white/30 uppercase">
+                  {t.wasteFocusNote}
+                </div>
+              </div>
             </div>
           )}
 

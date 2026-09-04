@@ -11,7 +11,7 @@
 | [01](01-getting-started.md) | Getting started | 第一次 clone repo、跑 dev server、build production |
 | [02](02-architecture.md) | Architecture overview | 想理解 Source → Pipeline → Static JSON → Runtime 的整體 data flow |
 | [03](03-simulation-engine.md) | Simulation engine | 要碰 [`simulationEngine.ts`](../../src/engines/simulationEngine.ts)、改 ETA / schedule / 車輛位置算法 |
-| [04](04-3d-layers.md) | 3D layers（Bus / LRT / Flight / Ferry）與城市資料層 | 要動 fill-extrusion 幾何、車身造型、自訂車輛 layer，或學校/道路工程/公廁/停車場這些非車輛 overlay |
+| [04](04-3d-layers.md) | 3D layers（Bus / LRT / Flight / Ferry）與城市資料層 | 要動 fill-extrusion 幾何、車身造型、自訂車輛 layer，或學校/道路工程/公廁/停車場/垃圾回收這些非車輛 overlay |
 | [05](05-data-pipeline.md) | Python data pipeline | 要重新生成 LRT / 巴士 / 時刻表 JSON、改 OSM extraction、改 OSRM road snap |
 | [07](07-ci-and-data-sync.md) | CI 與自動資料同步 | 要改 GitHub Actions、deploy、定期 scrape job |
 | [08](08-performance-notes.md) | Performance notes（深度解析） | 想理解為什麼某些寫法不直覺、效能優化的權衡 |

@@ -1,6 +1,6 @@
 # 07 · CI 與自動資料同步
 
-`.github/workflows/` 一共 9 個 workflow：
+`.github/workflows/` 一共 10 個 workflow：
 
 | Workflow | Trigger | 做什麼 |
 |----------|---------|--------|
@@ -11,8 +11,9 @@
 | [`update-ferry-schedules.yml`](../../.github/workflows/update-ferry-schedules.yml) | 月初 00:00 UTC | Scrape TurboJET / CotaiJet → `ferry-schedules.json` |
 | [`service-status.yml`](../../.github/workflows/service-status.yml) | daily 23:00 UTC（澳門 07:00） | Scrape DSAT 公告 → `service-status.json` |
 | [`update-road-works.yml`](../../.github/workflows/update-road-works.yml) | daily 18:20 UTC（澳門 02:20） | data.gov.mo → `road-works.json` |
-| [`update-toilets.yml`](../../.github/workflows/update-toilets.yml) | daily 18:40 UTC（澳門 02:40） | data.gov.mo → `toilets.json` |
+| [`update-toilets.yml`](../../.github/workflows/update-toilets.yml) | 每月 1 日 18:40 UTC（澳門 02:40） | data.gov.mo → `toilets.json` |
 | [`update-car-parks.yml`](../../.github/workflows/update-car-parks.yml) | daily 18:50 UTC（澳門 02:50） | DSAT API gateway → `car-parks.json` |
+| [`update-waste.yml`](../../.github/workflows/update-waste.yml) | 每月 1 日 19:10 UTC（澳門 03:10） | data.gov.mo（IAM ZIP + DSPA API gateway）→ `waste.json` |
 
 `schools.json` 跟 `water-facilities.json` 沒有對應的排程 workflow：`fetch_schools.py` 與 `fetch_water_facilities.py` 都是純手動執行（見 [05-data-pipeline.md](05-data-pipeline.md)）；跑完一樣要過 `validate_output.py schools` / `validate_output.py water-facilities`，沒過就不 commit。
 
@@ -31,7 +32,7 @@
 
 ## 資料 sync workflow 的共同骨架
 
-七個資料 workflow 長得一樣：
+八個資料 workflow 長得一樣：
 
 ```yaml
 on:
@@ -82,11 +83,15 @@ jobs:
 
 ### `update-toilets.yml`
 
-每日 18:40 UTC（澳門 02:40）。上游（data.gov.mo 的 IAM 公廁 dataset）大約澳門時間 10:00 更新，抓的時間點其實沒那麼要緊，這個時段只是跟其他每日/每夜的資料 job 錯開。跑完 `fetch_toilets.py` 後還要過 `validate_output.py toilets`，沒過就不 commit。
+每月 1 日 18:40 UTC（澳門 02:40）。公廁清單不常變，跟車位一樣不需要每天抓，因此比照渡輪時刻表改成月度；上游（data.gov.mo 的 IAM 公廁 dataset）大約澳門時間 10:00 更新，抓的時間點其實沒那麼要緊，這個時段只是跟其他資料 job 錯開。跑完 `fetch_toilets.py` 後還要過 `validate_output.py toilets`，沒過就不 commit。
 
 ### `update-car-parks.yml`
 
 每日 18:50 UTC（澳門 02:50）。上游（DSAT car_park_detail，經 data.gov.mo 的 API gateway）是個變動很少的靜態清單，抓的時間點同樣不要緊，這個時段只是跟其他每日/每夜的資料 job 錯開。Fetch 這步需要 `DATAGOVMO_APPCODE` secret（DSAT 印在 dataset 頁面上給所有訪客看的公開 APPCODE，當 `Authorization: APPCODE <key>` header 送出；雖然公開，一樣不寫進 repo，只透過 secret / 環境變數傳遞）。跑完 `fetch_car_parks.py` 後還要過 `validate_output.py car-parks`，沒過就不 commit。
+
+### `update-waste.yml`
+
+每月 1 日 19:10 UTC（澳門 03:10）。垃圾房／回收點清單跟公廁一樣是近乎靜態的設施名冊，同樣改成月度。同一個 job 內先過 `fetch_waste.py`：IAM 的兩個 ZIP dataset 抓完接著打 DSPA API gateway 的五個 endpoint。跟 `update-car-parks.yml` 一樣需要 `DATAGOVMO_APPCODE` secret（同一把公開 APPCODE，一樣不寫進 repo）。跑完後要過 `validate_output.py waste`，沒過就不 commit。
 
 ## `ci.yml` — lint / test / build / 資料驗證
 

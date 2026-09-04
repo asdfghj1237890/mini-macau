@@ -1,15 +1,15 @@
-name: Update Toilets Data
+name: Update Waste Data
 
 on:
   schedule:
-    # Monthly, on the 1st at 18:40 UTC = 02:40 Macau (UTC+8). The upstream
-    # (data.gov.mo IAM public toilets dataset) is refreshed daily but the list
-    # itself barely changes, so once a month is plenty (2026-09-04 decision);
+    # Monthly, on the 1st at 19:10 UTC = 03:10 Macau (UTC+8). Seven upstream
+    # datasets (two IAM ZIPs + five DSPA gateway calls) that are mostly static
+    # (the DSPA lists carry 2025 update stamps), so once a month is plenty;
     # `workflow_dispatch` covers anything urgent. The slot keeps clear of the
     # other nightly data jobs, and the off-the-hour minute plus the in-job
     # random delay below jitters the fetch window so it doesn't land at a fixed
-    # predictable time. Combined window lands somewhere in 02:40–03:30 Macau.
-    - cron: '40 18 1 * *'
+    # predictable time. Combined window lands somewhere in 03:10–04:00 Macau.
+    - cron: '10 19 1 * *'
   workflow_dispatch: # allow manual trigger from GitHub UI
 
 jobs:
@@ -30,30 +30,32 @@ jobs:
       - name: Random pre-fetch delay (jitter)
         # Skipped on workflow_dispatch so manual triggers run immediately.
         # 0–3000s = 0–50 minutes of jitter on top of the cron minute, so the
-        # actual fetch lands somewhere in the 02:40–03:30 Macau window.
+        # actual fetch lands somewhere in the 03:10–04:00 Macau window.
         if: github.event_name == 'schedule'
         run: |
           delay=$((RANDOM % 3000))
           echo "Sleeping ${delay}s before fetching..."
           sleep "$delay"
 
-      - name: Fetch IAM public toilets (with retry)
+      - name: Fetch IAM refuse rooms/compactors + DSPA recycling points (with retry)
         working-directory: data
-        # Outer retry on top of fetch_toilets.py's own in-process
-        # 6-attempt backoff (it already retries the intermittent
-        # {"msg":"內部錯誤"} response on its own). If it still exits
-        # non-zero — e.g. a persistent non-ZIP body or a sub-MIN_TOILETS
-        # parse — wait 60s and try once more rather than leave
-        # toilets.json unrefreshed for the day.
+        env:
+          DATAGOVMO_APPCODE: ${{ secrets.DATAGOVMO_APPCODE }}
+        # Outer retry on top of fetch_waste.py's own in-process backoff on
+        # each of the seven sources (it already retries the intermittent
+        # {"msg":"內部錯誤"} ZIP response and DSPA gateway errors on its own).
+        # If it still exits non-zero — e.g. a persistent failure on one
+        # source or a sub-20-sites type — wait 60s and try once more rather
+        # than leave waste.json unrefreshed for the day.
         run: |
           attempt=1
           max_attempts=2
-          until uv run python scripts/fetch_toilets.py; do
+          until uv run python scripts/fetch_waste.py; do
             if [ $attempt -ge $max_attempts ]; then
-              echo "::error::fetch_toilets.py failed after $attempt attempts"
+              echo "::error::fetch_waste.py failed after $attempt attempts"
               exit 1
             fi
-            echo "::warning::fetch_toilets.py attempt $attempt failed — retrying in 60s"
+            echo "::warning::fetch_waste.py attempt $attempt failed — retrying in 60s"
             sleep 60
             attempt=$((attempt + 1))
           done
@@ -62,14 +64,14 @@ jobs:
         working-directory: data
         # Hard gate: a malformed scrape fails the run here, before the commit
         # step, so broken data can never auto-deploy to production.
-        run: uv run python scripts/validate_output.py toilets
+        run: uv run python scripts/validate_output.py waste
 
       - name: Commit and push if changed
         id: commit
         uses: ./.github/actions/commit-data
         with:
-          file: public/data/toilets.json
-          message: 'chore: update IAM public toilets'
+          file: public/data/waste.json
+          message: 'chore: update IAM/DSPA waste and recycling points'
 
   # Pushes made with the default GITHUB_TOKEN don't fire `on: push` workflows
   # (anti-recursion), so the data commit above would never reach the live site

@@ -18,7 +18,7 @@
 
 3D visualization of Macau's public transit, ferry, and aviation system, inspired by [Mini Tokyo 3D](https://minitokyo3d.com) and [Mini Taiwan](https://mini-taiwan-learning-project.itsmigu.com/).
 
-Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Macau ferry routes**, and **MFM airport flights** on an interactive 3D map. Vehicles move along actual geometry in a **timetable-driven simulation**. A **CITY** layer set adds Macau's open data on top: DSAT road-works notices, every school's buildings coloured by level, IAM public toilets, and DSAT public car parks with live vacancy.
+Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Macau ferry routes**, and **MFM airport flights** on an interactive 3D map. Vehicles move along actual geometry in a **timetable-driven simulation**. A **CITY** layer set adds Macau's open data on top: DSAT road-works notices, every school's buildings coloured by level, IAM public toilets, DSAT public car parks with live vacancy, and IAM/DSPA refuse rooms, compacting bins and recycling points.
 
 > **How fresh is this?** See [Data freshness & update strategy](#data-freshness--update-strategy) for a per-layer breakdown — LRT and buses run on simulated, manually regenerated timetables, while flights and ferries refresh on their own daily/monthly sync schedule.
 
@@ -71,9 +71,10 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **School buildings** — Every school and tertiary campus rendered as coloured 3D blocks by level (kindergarten / primary / secondary / university / all-through); the legend section collapses and each level can be switched on/off on its own; click a block for the school's name, level, system and approved stages
 - **Public toilets** — IAM public toilets as map markers with opening hours, barrier-free / family cubicles and temporary closures; toggleable
 - **Public car parks** — DSAT's 88 public car parks as map markers with entrances, height limits and fees, plus live vacancy shown only while the clock is at the present; toggleable
+- **Waste & recycling** — IAM's refuse rooms and compacting bins plus DSPA's smart recycling machines, three-colour recycling points, e-waste points and lamp/battery points, ≈1,094 sites, plus the 澳門垃圾焚化中心 incineration plant at Pac On drawn as coloured 3D buildings (the same OSM footprints the electricity layer uses) — all seven key rows toggleable in the legend. A focus mode like water and power (the three are mutually exclusive): switching it on hides every other layer — LRT, buses, air, sea, road works, schools, toilets, car parks — along with the clock and time controls, and restores them exactly as they were when it's switched off
 - **Water supply facilities** — Macao Water's 22 plants, reservoirs, elevated tanks and pumping stations, plus the government's own Hac Sa Reservoir; footprints coloured by type where OSM has them, markers for the rest flagged approximate, connected by a schematic pipe network drawn along the roads and a Macau-only distribution network along every road. Switching it on is a focus mode: every other layer (LRT, buses, air, sea, city overlays) is hidden along with the clock and time controls, and everything comes back exactly as it was when the layer is switched off
-- **Electricity grid** — CEM's power station, the incineration plant and 33 HV substations (220 / 110 / 66 kV) with a schematic grid drawn along the roads and the three Guangdong interconnection inlets; a focus mode like the water layer
-- **Layer panel** — desktop LAYERS panel split into TRANSIT (LRT / Bus / Air / Sea) and CITY (road works / schools / toilets / car parks / water / power) pages; every switch and the open page persist in localStorage; road works on by default, the other city layers off
+- **Electricity grid** — CEM's power station, the incineration plant and 33 HV substations (220 / 110 / 66 kV) with a schematic grid drawn along the roads and the three Guangdong interconnection inlets; a focus mode like water and waste (the three are mutually exclusive)
+- **Layer panel** — desktop LAYERS panel split into TRANSIT (LRT / Bus / Air / Sea) and CITY (road works / schools / toilets / car parks / waste / water / power) pages; every switch and the open page persist in localStorage; road works on by default, the other city layers off
 - **Automated ferry data** — GitHub Actions workflow scrapes TurboJET and CotaiJet timetables monthly and commits updated schedules if changed
 - **Time controls** — Play, pause (spacebar), speed up (1×–60×), jump to current time, or pick any date/time with the DateTimePicker; Esc toggles the sidebar menu
 - **Vehicle tracking** — Click a vehicle to follow it with smooth camera animation; freely zoom/pan while tracking
@@ -83,7 +84,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **Trilingual UI** — English / 繁體中文 / Português — flight destinations, station names, and all labels switch with the language
 - **Cyberpunk-styled menu** — Hamburger menu with Orbitron-font title and gradient branding
 - **Responsive mobile UI** — Hamburger menu for map controls, a chip stack for LRT / Bus / Air / Sea plus one CITY chip that opens a list of the four city layers (each keeps its own modal), optimized touch layout with safe-area support
-- **Lazy loading** — Code-split panels (VehicleInfoPanel, StationInfoPanel, FlightInfoPanel, RoadWorkInfoPanel, SchoolInfoPanel, ToiletInfoPanel, CarParkInfoPanel) for fast initial load
+- **Lazy loading** — Code-split panels (VehicleInfoPanel, StationInfoPanel, FlightInfoPanel, RoadWorkInfoPanel, SchoolInfoPanel, ToiletInfoPanel, CarParkInfoPanel, WasteSiteInfoPanel) for fast initial load
 - **Automated flight data** — GitHub Actions workflow syncs MFM flight schedules from the [AviationStack](https://aviationstack.com/) API daily
 
 </details>
@@ -108,7 +109,7 @@ Three clean stages: upstream sources get normalized by Python into versioned sta
 | Data pipeline | Python 3.13+, uv, OpenStreetMap Overpass API, OSRM |
 | Flight data | [AviationStack API](https://aviationstack.com/) (daily sync) |
 | Ferry data | [TurboJET](https://www2.turbojet.com.hk/) + [CotaiJet](https://www.cotaiwaterjet.com/) timetables (monthly web scraper) |
-| City data | [data.gov.mo](https://data.gov.mo/) — DSAT road works, IAM toilets, DSAT car parks + live vacancy (daily syncs); DSEDJ school list, Macao Water's facility list and CEM's substation list, all + OSM footprints (manual) |
+| City data | [data.gov.mo](https://data.gov.mo/) — DSAT road works, DSAT car parks + live vacancy (daily syncs); IAM toilets, IAM/DSPA waste & recycling points (monthly syncs); DSEDJ school list, Macao Water's facility list and CEM's substation list, all + OSM footprints (manual) |
 | Data validation | zod schemas at load time, mirrored by `validate_output.py` in CI |
 | Deployment | Cloudflare Pages (via GitHub Actions) |
 | Analytics | Google Analytics (gtag.js) |
@@ -222,8 +223,9 @@ Automated via GitHub Actions (`.github/workflows/update-ferry-schedules.yml`), w
 - **Ferry schedules** — [TurboJET](https://www2.turbojet.com.hk/zh-tw/%E6%B5%B7-%E8%88%B9/) + [CotaiJet](https://m.cotaiwaterjet.com/hk/ferry-schedule/hongkong-macau-taipa.html) official monthly timetables
 - **Road-works notices** — [DSAT via data.gov.mo](https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01) (daily)
 - **School buildings** — [DSEDJ school list](https://data.gov.mo/Detail?id=f0578833-7dd6-4ed5-b825-75e9c4f56012) on data.gov.mo + OpenStreetMap building footprints (manual refresh)
-- **Public toilets** — [IAM via data.gov.mo](https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5) (daily)
+- **Public toilets** — [IAM via data.gov.mo](https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5) (monthly)
 - **Public car parks** — [DSAT via data.gov.mo](https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706) (daily) + [live vacancy](https://data.gov.mo/Detail?id=ea50a770-cc35-47cc-a3ba-7f60092d4bc4) (live, polled by the browser)
+- **Waste & recycling** — IAM [垃圾房](https://data.gov.mo/Detail?id=57964cb5-5868-47e5-bd8d-334385467a21) (refuse rooms) + [壓縮式垃圾收集點](https://data.gov.mo/Detail?id=e49ac4a5-83c1-48f8-8317-e783f4a1867e) (compactors) via data.gov.mo ZIP download (monthly); DSPA [智能回收機](https://data.gov.mo/Detail?id=12d42ec3-6d61-4daf-b713-eecbfcff5daa) (smart recycling machines), [三色資源回收點](https://data.gov.mo/Detail?id=db6f226e-1fbe-413a-b558-b5c2b2b0be52) (three-colour recycling), [電腦及通訊設備回收點](https://data.gov.mo/Detail?id=d358a990-06f2-4a65-9045-7543ae9f826f) (e-waste), and [光管](https://data.gov.mo/Detail?id=33264820-4523-4e8b-a91a-9089f922220a) + [電池回收點](https://data.gov.mo/Detail?id=a536616e-d870-4137-8dd6-0b2125a6c2a5) (lamp/battery, merged — identical site lists) via the data.gov.mo API gateway (monthly) — seven datasets, ≈1,094 sites total; the incineration plant's buildings come from OpenStreetMap through `power-facilities.json`, no extra dataset
 - **Water supply facilities** — [Macao Water 供水設施](https://www.macaowater.com/about-macao-water/water-supply-facilities) (the list of 22) + OpenStreetMap footprints, plus 黑沙水庫 Hac Sa Reservoir from OpenStreetMap (a DSAMA government reservoir, not a Macao Water facility) (manual refresh)
 - **Electricity grid** — [CEM 澳電 營運](https://www.cem-macau.com/zh/about-cem/company-profile/operation/) (the substation list, the 2025 generation/import figures and the Guangdong interconnection history) + OpenStreetMap footprints; the 220/110/66 kV lines between them are our schematic, not CEM's cable routes, which are underground and unmapped (manual refresh)
 
@@ -266,7 +268,8 @@ mini-macau/
 │   │   ├── RoadWorkInfoPanel.tsx # Road-work notice detail panel
 │   │   ├── SchoolInfoPanel.tsx   # School building detail panel
 │   │   ├── ToiletInfoPanel.tsx   # Public toilet detail panel
-│   │   └── CarParkInfoPanel.tsx  # Car park detail + live vacancy panel
+│   │   ├── CarParkInfoPanel.tsx  # Car park detail + live vacancy panel
+│   │   └── WasteSiteInfoPanel.tsx # Waste site detail panel
 │   ├── engines/
 │   │   └── simulationEngine.ts   # Timetable-driven vehicle + flight position computation
 │   ├── data/
@@ -289,6 +292,7 @@ mini-macau/
 │   ├── schools.ts                # School overlay helpers (level colours, footprint features)
 │   ├── toilets.ts                # Public-toilet overlay helpers (variant, marker features)
 │   ├── carParks.ts               # Car-park overlay helpers + live-vacancy XML parsing
+│   ├── waste.ts                  # Waste & recycling overlay helpers (colours, text pickers, visible-site filtering)
 │   ├── i18n.tsx                  # Internationalization (EN / 繁中 / PT)
 │   ├── types.ts                  # TypeScript interfaces
 │   └── index.css                 # Tailwind + MapLibre control overrides
@@ -305,6 +309,7 @@ mini-macau/
 │   │   ├── schools.json          # School buildings + footprints
 │   │   ├── toilets.json          # IAM public toilets
 │   │   ├── car-parks.json        # DSAT public car parks
+│   │   ├── waste.json            # IAM + DSPA refuse rooms, compactors and recycling points
 │   │   ├── water-facilities.json # Macao Water supply facilities + footprints
 │   │   ├── water-distribution.json # Macau-only road network for the water layer
 │   │   ├── power-facilities.json # CEM power station, incinerator, HV substations + schematic grid
@@ -332,6 +337,7 @@ mini-macau/
 │   │   ├── osm_footprints.py     # Shared Overpass + basemap-tile footprint helpers
 │   │   ├── fetch_toilets.py      # IAM public-toilet sync
 │   │   ├── fetch_car_parks.py    # DSAT public car-park sync
+│   │   ├── fetch_waste.py        # IAM + DSPA waste & recycling sync
 │   │   ├── osrm_route.py
 │   │   ├── patch_bus_bridges.py
 │   │   └── generate_timetable.py
@@ -343,8 +349,9 @@ mini-macau/
 │   ├── update-flights.yml          # Daily flight data update
 │   ├── update-ferry-schedules.yml  # Monthly ferry data update
 │   ├── update-road-works.yml       # Daily road-works notice update
-│   ├── update-toilets.yml          # Daily public-toilet update
-│   └── update-car-parks.yml        # Daily car-park update
+│   ├── update-toilets.yml          # Monthly public-toilet update
+│   ├── update-car-parks.yml        # Daily car-park update
+│   └── update-waste.yml            # Monthly waste & recycling update
 └── index.html
 ```
 

@@ -27,6 +27,7 @@
 //   node scripts/inspect.mjs power-distribution     # power-distribution.json summary (Macau-only road network: by class, km, bbox, file size)
 //   node scripts/inspect.mjs toilets                # toilets.json summary (accessible/family/closed counts, closed list)
 //   node scripts/inspect.mjs car-parks              # car-parks.json summary (by zone, height-limit histogram, no-limit ids)
+//   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync, statSync } from 'node:fs'
@@ -486,6 +487,44 @@ function cmdCarParks() {
   for (const id of noLimit) console.log(`  ${id}`)
 }
 
+function cmdWaste() {
+  const { fetchedAtUtc, sources, counts, sites } = load('public/data/waste.json')
+  const bytes = statSync(join(ROOT, 'public/data/waste.json')).size
+
+  console.log(`total sites: ${sites.length}   fetchedAtUtc: ${fetchedAtUtc}   file size: ${(bytes / 1024).toFixed(1)} KiB`)
+  console.log('by type (counts):', counts)
+
+  const byType = {}
+  for (const s of sites) byType[s.type] = (byType[s.type] || 0) + 1
+  const mismatched = Object.keys(counts).filter((t) => counts[t] !== (byType[t] || 0))
+  if (mismatched.length) console.log(`  MISMATCH vs actual site tally: ${mismatched.map((t) => `${t} counts=${counts[t]} actual=${byType[t] || 0}`).join(', ')}`)
+
+  const closed = sites.filter((s) => s.closed)
+  console.log(`\nclosed: ${closed.length}`)
+  for (const s of closed) console.log(`  ${s.id.padEnd(28)} ${s.name.zh}`)
+
+  console.log(`\nsources (${sources.length}):`)
+  for (const s of sources) {
+    console.log(`  ${s.id.padEnd(20)} ${s.type.padEnd(14)} ${s.datasetId.slice(0, 8)}  count ${String(s.count).padStart(3)}  updated ${s.upstreamUpdatedAt ?? '(unknown)'}  ${s.name.zh}`)
+  }
+
+  const emptyEn = sites.filter((s) => !s.name.en)
+  const emptyPt = sites.filter((s) => !s.name.pt)
+  console.log(`\nsites with empty name.en: ${emptyEn.length}   empty name.pt: ${emptyPt.length}`)
+  const byTypeEmptyEn = {}
+  for (const s of emptyEn) byTypeEmptyEn[s.type] = (byTypeEmptyEn[s.type] || 0) + 1
+  console.log('  empty name.en by type:', byTypeEmptyEn)
+
+  const statusCounts = {}
+  for (const s of sites) statusCounts[s.upstreamStatus] = (statusCounts[s.upstreamStatus] || 0) + 1
+  console.log(`\nupstreamStatus tally:`, statusCounts)
+
+  const noAddress = sites.filter((s) => s.address === null).length
+  const noPhoto = sites.filter((s) => s.photo === null).length
+  const noTel = sites.filter((s) => s.tel === null).length
+  console.log(`\naddress null: ${noAddress}   photo null: ${noPhoto}   tel null: ${noTel}`)
+}
+
 function fail(msg) {
   console.error(`error: ${msg}`)
   process.exit(1)
@@ -511,7 +550,8 @@ switch (cmd) {
   case 'power-distribution': cmdDistribution('public/data/power-distribution.json'); break
   case 'toilets': cmdToilets(); break
   case 'car-parks': cmdCarParks(); break
+  case 'waste': cmdWaste(); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks | waste')
     if (cmd) process.exit(1)
 }

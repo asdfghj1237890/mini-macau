@@ -61,9 +61,9 @@ Window 用 `windowDots()` 算法分布：根據機身長度沿著 fuselage 長�
 
 `addVehicleLayers(map, lang)` 一次性註冊，`updateVehicleData(map, vehicles)` 每 sim tick 餵新的 FeatureCollection。`updateVehicleLabelLang(map, lang)` 切語言時更新 label 的 `text-field` 表達式。
 
-## 城市資料層（非車輛）── 學校 / 道路工程 / 公廁 / 停車場 / 供水
+## 城市資料層（非車輛）── 學校 / 道路工程 / 公廁 / 停車場 / 供水 / 垃圾回收
 
-這四層跟上面的車輛 layer 不是同一類東西：不隨 sim tick 動，資料是靜態或準靜態的點/面。各自的 helper 集中在 [`src/schools.ts`](../../src/schools.ts)、[`src/roadWorks.ts`](../../src/roadWorks.ts)、[`src/toilets.ts`](../../src/toilets.ts)、[`src/carParks.ts`](../../src/carParks.ts)，`MapView.tsx` 只管 addSource/addLayer 跟 setData。
+這四層跟上面的車輛 layer 不是同一類東西：不隨 sim tick 動，資料是靜態或準靜態的點/面。各自的 helper 集中在 [`src/schools.ts`](../../src/schools.ts)、[`src/roadWorks.ts`](../../src/roadWorks.ts)、[`src/toilets.ts`](../../src/toilets.ts)、[`src/carParks.ts`](../../src/carParks.ts)，`MapView.tsx` 只管 addSource/addLayer 跟 setData。WATER／POWER／WASTE 三個專注模式圖層另成一類，見下面各自的小節。
 
 ### 學校：自己畫 extrusion，不吃 basemap
 
@@ -88,6 +88,14 @@ WORKS / WC / P 三層各自多一個 `*-selected` circle layer，疊在 icon 下
 `vacancy` 屬性只在「有即時列、沒被標記維護中、車位數不是 null」時才附上（`buildCarParkFeatures`），所以 `text-field: ['get','vacancy']` 在未知/維護中/沒在 polling 時自然不顯示，不用另外判斷。標籤彼此會搶位置（同一棟樓兩個出入口只隔幾公尺），所以 `text-optional: true` 讓圖示贏、標籤讓位，`symbol-sort-key` 用遞增的數字 id 當優先權，避免地圖一動兩個標籤互相閃爍。z14 以下 `text-size` 直接是 0——城市尺度只看得到「P」牌，看不到數字。
 
 即時數字只在 `carParksOn && clock.isLive`（1× 播放速度、在「現在」附近）時才 poll（[`useCarParkVacancy.ts`](../../src/hooks/useCarParkVacancy.ts)），規則一變 false 就立刻把 `vacancy` 設回 `null`，不會讓舊數字停在畫面上冒充即時。
+
+### 垃圾回收：第三個專注模式，但沒有自己的街道網
+
+垃圾房、壓縮式垃圾收集點、智能回收機、三色資源回收點、電腦及通訊設備回收點、光管及電池回收點（六型別）加上澳門垃圾焚化中心的建築（第七個子列；幾何直接用 `power-facilities.json` 裡 POWER 層已載入的 OSM 足跡，`waste-buildings` fill-extrusion 層以 `#a3e635` 上色，選取時整組變白，點建築或標記開 `WasteIncineratorInfoPanel`）是第三個專注模式，跟 WATER／POWER 共用同一套快照／還原機制（[`src/focusMode.ts`](../../src/focusMode.ts)：`FocusLayer = 'water' | 'power' | 'waste'`，三者互斥，`setFocus(layer, on)` 是唯一入口——切到另一個專注模式時直接把舊快照交給新的一個，不會真的走一次「還原再重新隱藏」的兩次 render）。開啟時跟 WATER／POWER 一樣把 LRT、巴士、AIR、SEA、WORKS、SCHOOLS、WC、P 全部收起來，時間控制也整個消失（`focusOn = waterOn || powerOn || wasteOn`，見 [09-frontend-ui.md](09-frontend-ui.md)）。
+
+跟 WATER／POWER 的差異：**垃圾回收沒有自己的街道網**。`applyFocusVisibility(m, water, power, waste)`（[`MapView.tsx`](../../src/components/MapView.tsx)）只把 `waste` 併進共用的 `focus` 旗標去強制隱藏 `bus-routes`／`stations-circle` 等四個靜態 layer，不像 `WATER_FOCUS_SHOWN_LAYERS`／`POWER_FOCUS_SHOWN_LAYERS` 那樣另外列一組「只在自己開時才顯示」的示意管網／電網 layer——垃圾點本來就是跟 WC／P 同一套「資料陣列一清空就消失」的機制（`wasteOn` 為 false 時 App 傳空陣列），開關全靠 `visibleWasteSites` 過濾出來，不需要另外切 layer visibility。
+
+Marker 畫法比照 WC／P：`drawWasteIcon(type)` 現畫六種 `ImageData`（垃圾房＝加蓋垃圾桶、壓縮式收集點＝垃圾桶配向下箭頭、智能回收機＝帶投入口的箱子、三色資源回收點＝三條直條紋、藍黃棕對應 [`WASTE_THREE_COLOUR_BINS`](../../src/waste.ts)、電腦及通訊設備回收點＝顯示器、光管及電池回收點＝電池；另有 `waste-incinerator`＝煙囪加火焰，給焚化中心的標記），`wastePlate()` 畫共用的圓角方框底板，一樣包在 `hasImage` guard 裡每次 style load 重註冊。單一 source `waste`＋一個 symbol layer `waste-icon`，`symbol-sort-key` 用 [`WASTE_SORT_KEY`](../../src/waste.ts)（智能回收機 0 排到光管及電池回收點 5，數字越小優先權越高），讓 67 台智能回收機不會在低 zoom 被 406 個光管及電池點擠掉；`closed`（IAM `tempClose`）站點 icon 透明度降到 0.45。另一個 `waste-selected` circle layer 疊在 icon 下面，`filter` 換 selected id，跟 WORKS/WC/P 的高亮圈同一招。點擊 `waste-icon` 開 `WasteSiteInfoPanel`，選取跟其他 selection 互斥。
 
 ### 供水設施：色塊 + 水面 + 標記 + 管線，只在專注模式出現
 

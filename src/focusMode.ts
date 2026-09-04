@@ -6,17 +6,23 @@
 // starts and wins on restore even if the user poked other switches meanwhile,
 // so the two states can never drift apart.
 //
-// Both overlays behave identically, so the capture / apply / persist half lives
-// here exactly once and each overlay only supplies its own storage key. App owns
-// the React setters and passes them in, which is what makes this testable
-// without a DOM. (src/water.ts re-exports these under its historical names.)
+// All three overlays (WATER, POWER, WASTE) behave identically, so the capture /
+// apply / persist half lives here exactly once and each overlay only supplies
+// its own storage key. App owns the React setters and passes them in, which is
+// what makes this testable without a DOM. (src/water.ts re-exports these under
+// its historical names.)
 //
-// The two are MUTUALLY EXCLUSIVE: turning one on turns the other off and hands
-// the snapshot over — see `focusHandoffSnapshot`.
+// The three are MUTUALLY EXCLUSIVE: turning one on turns whichever other one is
+// on off and hands its snapshot over — see `activeFocusPeer` and
+// `focusHandoffSnapshot`.
 
 // Which focus layer a snapshot belongs to. Each gets its own storage key, so
-// the two can never read each other's history.
-export type FocusLayer = 'water' | 'power'
+// no two can ever read each other's history.
+export type FocusLayer = 'water' | 'power' | 'waste'
+
+// All three, in the order they appear in the CITY legend. Exported so a caller
+// can ask "which OTHER focus layer is on?" without hard-coding the list.
+export const FOCUS_LAYERS: readonly FocusLayer[] = ['water', 'power', 'waste'] as const
 
 // Everything the focus mode has to put back. Bus visibility is TWO facts, not
 // one: `busAuto` records that the user was in auto-by-time mode, so restoring
@@ -101,15 +107,35 @@ export function applyLayerSnapshot(
   apply.setCarParks(snapshot.carParks)
 }
 
-// WATER and POWER are mutually exclusive, so turning one on while the other is
-// already focused means: end that focus (restoring its snapshot), then snapshot
-// the restored map and hide it again. Composing those two literally would push
-// the restore through React state and read it back on the next render — so this
-// collapses them into the one fact the composition produces: the state the
-// OTHER layer would have restored to is exactly what the new layer must
-// remember. `live` is used when no other focus was on (the ordinary case), and
-// as the honest fallback when the other layer's snapshot is missing (a reload
-// with cleared storage), where "restore" would have left the map as it is.
+// One focus layer's state as seen from another: is it on, and what would it
+// restore to? App fills these in from its own refs.
+export interface FocusPeer {
+  layer: FocusLayer
+  on: boolean
+  snapshot: LayerVisibilityState | null
+}
+
+// Which OTHER focus layer is currently on. The three are mutually exclusive, so
+// there is at most one — and if storage was ever corrupted into claiming two,
+// the FIRST in FOCUS_LAYERS order wins rather than the caller having to guess.
+// Null means the ordinary case: no focus mode was running.
+export function activeFocusPeer(peers: readonly FocusPeer[]): FocusPeer | null {
+  for (const layer of FOCUS_LAYERS) {
+    const peer = peers.find(p => p.layer === layer && p.on)
+    if (peer) return peer
+  }
+  return null
+}
+
+// The three focus layers are mutually exclusive, so turning one on while another
+// is already focused means: end that focus (restoring its snapshot), then
+// snapshot the restored map and hide it again. Composing those two literally
+// would push the restore through React state and read it back on the next
+// render — so this collapses them into the one fact the composition produces:
+// the state the OTHER layer would have restored to is exactly what the new layer
+// must remember. `live` is used when no other focus was on (the ordinary case),
+// and as the honest fallback when the other layer's snapshot is missing (a
+// reload with cleared storage), where "restore" would have left the map as is.
 export function focusHandoffSnapshot(
   live: LayerVisibilityState,
   otherSnapshot: LayerVisibilityState | null,

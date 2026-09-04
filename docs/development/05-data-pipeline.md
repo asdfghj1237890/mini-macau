@@ -37,6 +37,7 @@ data/scripts/
 ├── osm_footprints.py          # 學校／供水／供電共用：Overpass 存取 + basemap tile 足跡重切
 ├── fetch_toilets.py           # data.gov.mo (IAM) → toilets.json
 ├── fetch_car_parks.py         # data.gov.mo (DSAT) → car-parks.json
+├── fetch_waste.py             # data.gov.mo (IAM+DSPA) → waste.json
 └── fetch_service_status.py    # 每天 scrape 巴士停駛公告 → service-status.json
 ```
 
@@ -208,6 +209,12 @@ cd data && uv run python scripts/fetch_power_distribution.py   # 要先有 power
 DSAT 的停車場資料分兩個 dataset，都掛在 dsat.apigateway.data.gov.mo 這個 API gateway 後面，用同一把「公開」APPCODE（dataset 頁面直接印給每個訪客看，不用登入）當 `Authorization: APPCODE <key>` header：「車位詳情」（car_park_detail，88 個公共停車場，靜態、每日更新——這支腳本抓的）與「即時空位」（car_park_maintance，~87 筆，每 10 秒更新一次）。後者 CORS 開 `*`，直接由瀏覽器輪詢（且只在模擬時鐘顯示「現在」（1× 且與真實時間同步）時才打），不進這條 pipeline。兩者都回 XML：單一 `<CarPark>` root，每筆記錄是一個 `<Car_park_info ATTR="..." />`，欄位全部放在 ATTRIBUTES 裡。
 
 比較特別的欄位對應：`X_coords`其實是緯度、`Y_coords`才是經度（跟命名反著來），`coordinates` 要組成 `[float(Y_coords), float(X_coords)]`。收費／備註等多行欄位用字面 `"##"` 黏成一行，轉回 `"\n"` 時要把頭尾因為多餘分隔符產生的空行修掉；單一 `"-"` 是「不適用」的佔位符，轉成 `""`。`height`（限高，公尺）在沒有限高的車位是 `"--"`／`"---"`／空字串，parse 不出來就存 `null`。APPCODE 雖然公開，仍然不寫進任何檔案：從 `DATAGOVMO_APPCODE` 環境變數讀（CI 是 GitHub secret，本機手動 export），沒設就直接以 exit code 2 中止。產出 `public/data/car-parks.json`，跑完要過 `validate_output.py car-parks`。
+
+### 垃圾回收 — `fetch_waste.py`
+
+七個 data.gov.mo dataset、兩種抓法。市政署（IAM）兩個：「垃圾房」（`57964cb5-…`，114 筆，1 筆 `tempClose`）與「壓縮式垃圾收集點」（`e49ac4a5-…`，140 筆），跟 `fetch_toilets.py` 一樣是免 token 的 ZIP 下載，端點偶爾回 `{"msg":"內部錯誤"}` 而不是 ZIP，因此共用同一套重試邏輯。環境保護局（DSPA）五個，都是 `POST https://dspa.apigateway.data.gov.mo/T_Bas_POI_Basic/{plasticNCanRecycle,recycleBin,electronicRecycling,lightBulb,battery}`，跟 `fetch_car_parks.py` 一樣用同一把公開 APPCODE 當 `Authorization: APPCODE <key>` header（從 `DATAGOVMO_APPCODE` 讀，沒設就 exit 2，不寫進 repo）：智能回收機（`12d42ec3-…`，67 筆）、三色資源回收點（`db6f226e-…`，311 筆，9 筆 `status` 為 `"2"`）、電腦及通訊設備回收點（`d358a990-…`，56 筆）、光管回收點（`33264820-…`）與電池回收點（`a536616e-…`）——後兩個 dataset 回傳的是同一份 406 筆清單（id／名稱／座標全部相同），因此合併成一種 `lamp_battery` 型別，但兩個 dataset 都記進 `sources`。
+
+IAM 記錄用 `nameZh/namePt/nameEn`、`location`（`"lat,lng"` 字串，緯度在前）、`photo`（iam.gov.mo 的 https URL）、`tempClose`；名稱開頭的分區代碼（`M12`／`T3`／`C1` = 澳門／氹仔／路環）保留在 `name` 裡，不像 `fetch_toilets.py` 那樣剝掉，因為 IAM 就是這樣標示的。DSPA 回傳的是 `{ID, name_tc, name_pt, address_tc, address_pt, status, latitude, longitude}`（字串），沒有英文名（`name.en` 留空，前端 en→pt→zh fallback）；`status` 欄位官方沒說明用途（三色資源回收點裡 9 筆是 `"2"`，其餘全部 `"1"`），原樣存成整數 `upstreamStatus`，**不**當成 closed 判斷。`closed` 只有 IAM 的 `tempClose: true` 會設為 true，DSPA 的站點一律 `false`。產出 `public/data/waste.json`（六型別、≈1,094 筆、7 個 `sources`），跑完要過 `validate_output.py waste`。
 
 ### 巴士停駛公告 — `fetch_service_status.py`
 

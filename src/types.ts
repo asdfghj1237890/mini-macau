@@ -274,6 +274,53 @@ export interface CarParkVacancy {
   timeParsed: Date | null // that stamp as an instant, null when unparseable
 }
 
+// ---- WASTE · 垃圾回收 -----------------------------------------------------
+// Six kinds of collection point from two agencies. IAM publishes the refuse
+// rooms and the compacting collection points; DSPA publishes the four kinds of
+// recycling point. `lamp_battery` folds two identical DSPA datasets (光管 and
+// 電池 — same ids, names and coordinates) into one type.
+export type WasteSiteType =
+  | 'refuse_room' | 'compactor' | 'smart_machine' | 'three_colour' | 'e_waste' | 'lamp_battery'
+
+// Trilingual free text for a waste site. `en` is OPTIONAL and often "": the
+// DSPA feeds publish Chinese and Portuguese only, and the address block carries
+// no English at all — so readers go through `pickWasteText`, which falls back
+// en → pt → zh the way the water overlay does.
+export interface WasteText {
+  zh: string
+  pt: string
+  en?: string
+}
+
+// One collection point, from public/data/waste.json. `coordinates` is
+// [lng, lat]. `closed` is IAM's `tempClose` (DSPA sites are never closed);
+// `upstreamStatus` is DSPA's undocumented `status` kept raw — it is NOT mapped
+// to closure, because nothing upstream says what it means.
+export interface WasteSite {
+  id: string // "<type>-<slug>" — stable across refetches
+  type: WasteSiteType
+  name: WasteText
+  address: WasteText | null // refuse rooms publish none
+  coordinates: [number, number] // [lng, lat]
+  closed: boolean
+  tel: string | null
+  photo: string | null // IAM photo URL
+  upstreamStatus: number | null
+}
+
+// One upstream dataset behind the overlay, for the panel's provenance line and
+// its "as of" stamp. Seven of them: the two IAM sets, the four DSPA ones, and
+// the 電池 twin of the 光管 list, which shares the `lamp_battery` type.
+export interface WasteSource {
+  id: string
+  type: WasteSiteType
+  datasetId: string
+  name: { zh: string; pt?: string; en?: string }
+  url: string
+  upstreamUpdatedAt: string | null
+  count: number
+}
+
 // Trilingual free text for a Macao Water facility. The zh + en forms come from
 // Macao Water's own 供水設施 list; `pt` is only filled where OSM tags the
 // feature with `name:pt`, so it is often "" (see `pickWaterText`).
@@ -576,6 +623,12 @@ export interface TransitData {
   schools: School[]
   toilets: Toilet[]
   carParks: CarPark[]
+  // Refuse rooms, compacting bins and the four recycling-point kinds. The
+  // per-type toggles narrow this array in App, exactly like the schools.
+  waste: WasteSite[]
+  // Provenance for the waste overlay — never filtered, because the info panel
+  // has to name the dataset a site came from even when its type is hidden.
+  wasteSources: WasteSource[]
   waterFacilities: WaterFacility[]
   // The schematic pipe network, or null when water-facilities.json predates it
   // (the `network` block is optional) or the WATER layer is off.

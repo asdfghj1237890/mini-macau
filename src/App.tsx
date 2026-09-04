@@ -19,6 +19,8 @@ import {
   type SchoolLevelSet,
 } from './schools'
 import {
+  FOCUS_LAYERS,
+  activeFocusPeer,
   applyFocusMode,
   applyLayerSnapshot,
   focusHandoffSnapshot,
@@ -28,11 +30,23 @@ import {
   type LayerVisibilityApply,
   type LayerVisibilityState,
 } from './focusMode'
+import {
+  countWasteByType,
+  loadHiddenWasteTypes,
+  saveHiddenWasteTypes,
+  visibleWasteIncinerator,
+  visibleWasteSites,
+  wasteIncinerator,
+  wasteSelectionId,
+  type WasteLayerType,
+  type WasteSelection,
+  type WasteTypeSet,
+} from './waste'
 import { useCarParkVacancy } from './hooks/useCarParkVacancy'
 import { useWaterDistribution } from './hooks/useWaterDistribution'
 import { usePowerDistribution } from './hooks/usePowerDistribution'
 import { ignoreClockShortcut } from './timeControls'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode } from './types'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -50,6 +64,10 @@ const RoadWorkInfoPanel = lazy(() => import('./components/RoadWorkInfoPanel').th
 const SchoolInfoPanel = lazy(() => import('./components/SchoolInfoPanel').then(m => ({ default: m.SchoolInfoPanel })))
 const ToiletInfoPanel = lazy(() => import('./components/ToiletInfoPanel').then(m => ({ default: m.ToiletInfoPanel })))
 const CarParkInfoPanel = lazy(() => import('./components/CarParkInfoPanel').then(m => ({ default: m.CarParkInfoPanel })))
+const WasteSiteInfoPanel = lazy(() => import('./components/WasteSiteInfoPanel').then(m => ({ default: m.WasteSiteInfoPanel })))
+// The incineration plant's variant lives in the same module, so this resolves
+// the same chunk rather than adding a second network request.
+const WasteIncineratorInfoPanel = lazy(() => import('./components/WasteSiteInfoPanel').then(m => ({ default: m.WasteIncineratorInfoPanel })))
 const WaterFacilityInfoPanel = lazy(() => import('./components/WaterFacilityInfoPanel').then(m => ({ default: m.WaterFacilityInfoPanel })))
 // The inlet variant lives in the same module, so this resolves the same chunk
 // rather than adding a second network request.
@@ -102,6 +120,7 @@ const LS_ROADWORKS_KEY = 'mini-macau-roadworks-on'
 const LS_SCHOOLS_KEY = 'mini-macau-schools-on'
 const LS_TOILETS_KEY = 'mini-macau-toilets-on'
 const LS_CARPARKS_KEY = 'mini-macau-carparks-on'
+const LS_WASTE_KEY = 'mini-macau-waste-on'
 const LS_WATER_KEY = 'mini-macau-water-on'
 const LS_POWER_KEY = 'mini-macau-power-on'
 
@@ -116,6 +135,8 @@ const NO_ROAD_WORKS: RoadWorkNotice[] = []
 const NO_TOILETS: Toilet[] = []
 // Ditto for the "P" markers.
 const NO_CAR_PARKS: CarPark[] = []
+// And for the ~1,100 waste and recycling pins, pushed on array identity too.
+const NO_WASTE: WasteSite[] = []
 // And for the water overlay, which pushes THREE sources (surfaces, blocks,
 // markers) on one array identity — a fresh `[]` would rebuild all three.
 const NO_WATER_FACILITIES: WaterFacility[] = []
@@ -159,6 +180,10 @@ export default function App() {
   >(null)
   const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null)
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null)
+  // Either kind of waste mark — a collection point or the incineration plant.
+  // One slot, because the two share a marker layer, a highlight and the
+  // one-panel-at-a-time rule; only the panel that opens differs.
+  const [selectedWasteSite, setSelectedWasteSite] = useState<WasteSelection | null>(null)
   const [selectedWaterFacility, setSelectedWaterFacility] = useState<WaterFacility | null>(null)
   // A node of the schematic pipe network — today only the Zhuhai raw-water
   // inlet. Its own slot rather than a widened `selectedWaterFacility`, because
@@ -184,6 +209,16 @@ export default function App() {
   // Car parks are opt-in as well — 88 "P" plates over the peninsula, and the
   // layer is the only thing that starts the live-vacancy polling.
   const [carParksOn, setCarParksOn] = useState(() => localStorage.getItem(LS_CARPARKS_KEY) === '1')
+  // Waste and recycling points — opt-in like every other CITY overlay, and the
+  // most so: ~1,100 pins would bury the map until someone asks for them.
+  const [wasteOn, setWasteOn] = useState(() => localStorage.getItem(LS_WASTE_KEY) === '1')
+  // WASTE is the THIRD focus mode, mutually exclusive with water and power: it
+  // gets its own snapshot slot, seeded from its own storage key like theirs.
+  const wasteFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('waste'))
+  // Which of the six site types are HIDDEN. Independent of `wasteOn`, which is
+  // the master switch for the whole layer. Stored as the hidden set so a type
+  // added later shows up by default (see src/waste.ts).
+  const [wasteHiddenTypes, setWasteHiddenTypes] = useState<WasteTypeSet>(loadHiddenWasteTypes)
   // Water facilities are opt-in like the rest of the CITY page: 22 markers plus
   // three reservoir fills are infrastructure trivia until asked for, so `=== '1'`.
   const [waterOn, setWaterOn] = useState(() => localStorage.getItem(LS_WATER_KEY) === '1')
@@ -251,6 +286,8 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_SCHOOLS_KEY, schoolsOn ? '1' : '0') }, [schoolsOn])
   useEffect(() => { localStorage.setItem(LS_TOILETS_KEY, toiletsOn ? '1' : '0') }, [toiletsOn])
   useEffect(() => { localStorage.setItem(LS_CARPARKS_KEY, carParksOn ? '1' : '0') }, [carParksOn])
+  useEffect(() => { localStorage.setItem(LS_WASTE_KEY, wasteOn ? '1' : '0') }, [wasteOn])
+  useEffect(() => { saveHiddenWasteTypes(wasteHiddenTypes) }, [wasteHiddenTypes])
   useEffect(() => { localStorage.setItem(LS_WATER_KEY, waterOn ? '1' : '0') }, [waterOn])
   useEffect(() => { localStorage.setItem(LS_POWER_KEY, powerOn ? '1' : '0') }, [powerOn])
   useEffect(() => { saveSchoolLevelsOn(schoolLevelsOn) }, [schoolLevelsOn])
@@ -260,6 +297,16 @@ export default function App() {
   useEffect(() => { if (!schoolsOn) setSelectedSchool(null) }, [schoolsOn])
   useEffect(() => { if (!toiletsOn) setSelectedToilet(null) }, [toiletsOn])
   useEffect(() => { if (!carParksOn) setSelectedCarPark(null) }, [carParksOn])
+  useEffect(() => { if (!wasteOn) setSelectedWasteSite(null) }, [wasteOn])
+  // Same rule one level down: hiding a site type removes those markers, so a
+  // panel describing one of them has to close too.
+  useEffect(() => {
+    setSelectedWasteSite(prev => {
+      if (!prev) return prev
+      const type: WasteLayerType = prev.kind === 'site' ? prev.site.type : 'incinerator'
+      return wasteHiddenTypes.has(type) ? null : prev
+    })
+  }, [wasteHiddenTypes])
   useEffect(() => {
     if (waterOn) return
     setSelectedWaterFacility(null)
@@ -345,6 +392,37 @@ export default function App() {
     [transitData.schools]
   )
 
+  // Same reasoning as `visibleSchools`: MapView pushes the waste markers on
+  // ARRAY IDENTITY, so this must only change when the master switch, the hidden
+  // set or the data itself does — not on every clock tick.
+  const visibleWaste = useMemo(
+    () => (wasteOn ? visibleWasteSites(transitData.waste, wasteHiddenTypes) : NO_WASTE),
+    [transitData.waste, wasteOn, wasteHiddenTypes]
+  )
+
+  // The incineration plant. It is not in waste.json: it is the `incinerator`
+  // record of power-facilities.json, already loaded at startup, read here from
+  // the UNFILTERED data (the POWER layer nulls its own copy out when off).
+  const incinerator = useMemo(
+    () => wasteIncinerator(transitData.powerFacilities),
+    [transitData.powerFacilities]
+  )
+
+  // What MapView actually draws: the plant only while WASTE is on and its key
+  // row is not switched off. Null empties both its blocks and its marker.
+  const visibleIncinerator = useMemo(
+    () => (wasteOn ? visibleWasteIncinerator(incinerator, wasteHiddenTypes) : null),
+    [incinerator, wasteOn, wasteHiddenTypes]
+  )
+
+  // Per-type totals for the legend, from the UNFILTERED data — the key rows show
+  // how many sites each type has, not how many are currently drawn. The plant
+  // is the seventh row, counted from the POWER record.
+  const wasteTypeCounts = useMemo(
+    () => countWasteByType(transitData.waste, incinerator),
+    [transitData.waste, incinerator]
+  )
+
   const filteredTransitData = useMemo(() => ({
     ...transitData,
     busRoutes: transitData.busRoutes.filter(r => visibleRoutes.has(r.id)),
@@ -355,6 +433,7 @@ export default function App() {
     schools: visibleSchools,
     toilets: toiletsOn ? transitData.toilets : NO_TOILETS,
     carParks: carParksOn ? transitData.carParks : NO_CAR_PARKS,
+    waste: visibleWaste,
     waterFacilities: waterOn ? transitData.waterFacilities : NO_WATER_FACILITIES,
     // The pipes go with the facilities: null empties the pipe source and drops
     // the inlet marker, exactly as the empty array empties the other three.
@@ -362,7 +441,7 @@ export default function App() {
     powerFacilities: powerOn ? transitData.powerFacilities : NO_POWER_FACILITIES,
     // Same rule for the HV lines and the Guangdong import markers.
     powerNetwork: powerOn ? transitData.powerNetwork : null,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, toiletsOn, carParksOn, waterOn, powerOn])
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, toiletsOn, carParksOn, visibleWaste, waterOn, powerOn])
 
   // Macau's streets, for the thin distribution pipes. Fetched the first time
   // WATER goes on and kept for the session — the hook ignores later toggles, so
@@ -483,6 +562,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
     setSelectedPowerFacility(null)
@@ -502,6 +582,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
     setSelectedPowerFacility(null)
@@ -519,6 +600,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
     setSelectedPowerFacility(null)
@@ -534,6 +616,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
     setSelectedPowerFacility(null)
@@ -549,6 +632,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
     setSelectedPowerFacility(null)
@@ -564,6 +648,23 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedToilet(null)
+    setSelectedWasteSite(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
+    setSelectedPowerFacility(null)
+    setSelectedPowerNode(null)
+    setTrackedVehicleId(null)
+  }, [])
+
+  // Waste and recycling pins, same exclusivity rule.
+  const onWasteSiteClick = useCallback((selection: WasteSelection | null) => {
+    setSelectedWasteSite(selection)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
+    setSelectedToilet(null)
+    setSelectedCarPark(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
     setSelectedPowerFacility(null)
@@ -582,6 +683,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedPowerFacility(null)
     setSelectedPowerNode(null)
     setTrackedVehicleId(null)
@@ -598,6 +700,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedPowerFacility(null)
     setSelectedPowerNode(null)
     setTrackedVehicleId(null)
@@ -614,6 +717,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
     setTrackedVehicleId(null)
@@ -630,6 +734,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
     setTrackedVehicleId(null)
@@ -642,6 +747,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
+    setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
     setSelectedPowerFacility(null)
@@ -683,6 +789,17 @@ export default function App() {
     ga.layerToggled('carparks', !v)
     return !v
   }), [])
+  // One of the six site types. Stored as the HIDDEN set, so "toggle" adds or
+  // removes the type there — see src/waste.ts for why hidden rather than shown.
+  const toggleWasteType = useCallback((type: WasteLayerType) => {
+    setWasteHiddenTypes(prev => {
+      const next = new Set(prev)
+      if (next.has(type)) next.delete(type)
+      else next.add(type)
+      ga.layerToggled(`waste_${type}`, !next.has(type))
+      return next
+    })
+  }, [])
 
   // The setters the water focus mode drives. Bus visibility is set as one
   // operation (routes + mode) and mirrored into its own localStorage key the
@@ -720,32 +837,40 @@ export default function App() {
     carParks: carParksOn,
   }), [lrtOn, isAutoMode, visibleRoutes, flightsOn, ferriesOn, roadWorksOn, schoolsOn, toiletsOn, carParksOn])
 
-  // WATER and POWER are focus modes: switching one on snapshots every other
-  // layer and clears them, switching it off puts that exact snapshot back —
-  // even if the user flipped other switches in between. Each snapshot lives in
+  // WATER, POWER and WASTE are focus modes: switching one on snapshots every
+  // other layer and clears them, switching it off puts that exact snapshot back
+  // — even if the user flipped other switches in between. Each snapshot lives in
   // a ref seeded from its own localStorage key, so a reload while a focus mode
   // is on still restores correctly afterwards.
   //
-  // The two are MUTUALLY EXCLUSIVE. Turning one on while the other is focused
+  // The three are MUTUALLY EXCLUSIVE. Turning one on while another is focused
   // ends that focus (which would restore its snapshot) and immediately
   // re-hides everything, so what the new layer must remember is the OTHER
   // layer's snapshot — see focusHandoffSnapshot, which is that composition
-  // written down once instead of pushed through a React render.
+  // written down once instead of pushed through a React render, and
+  // activeFocusPeer, which names the at-most-one layer it applies to.
   const setFocus = useCallback((layer: FocusLayer, on: boolean) => {
-    const isWater = layer === 'water'
-    const selfRef = isWater ? waterFocusSnapshotRef : powerFocusSnapshotRef
-    const otherLayer: FocusLayer = isWater ? 'power' : 'water'
-    const otherRef = isWater ? powerFocusSnapshotRef : waterFocusSnapshotRef
-    const otherOn = isWater ? powerOn : waterOn
-    const setSelfOn = isWater ? setWaterOn : setPowerOn
-    const setOtherOn = isWater ? setPowerOn : setWaterOn
+    const refFor = (l: FocusLayer) =>
+      l === 'water' ? waterFocusSnapshotRef
+        : l === 'power' ? powerFocusSnapshotRef
+          : wasteFocusSnapshotRef
+    const setOnFor = (l: FocusLayer) =>
+      l === 'water' ? setWaterOn : l === 'power' ? setPowerOn : setWasteOn
+    const isOn = (l: FocusLayer) =>
+      l === 'water' ? waterOn : l === 'power' ? powerOn : wasteOn
+    const selfRef = refFor(layer)
     ga.layerToggled(layer, on)
     if (on) {
-      const snapshot = focusHandoffSnapshot(liveLayerState, otherRef.current, otherOn)
-      if (otherOn) {
-        otherRef.current = null
-        saveFocusSnapshot(otherLayer, null)
-        setOtherOn(false)
+      const peer = activeFocusPeer(
+        FOCUS_LAYERS.filter(l => l !== layer).map(l => ({
+          layer: l, on: isOn(l), snapshot: refFor(l).current,
+        }))
+      )
+      const snapshot = focusHandoffSnapshot(liveLayerState, peer?.snapshot ?? null, !!peer)
+      if (peer) {
+        refFor(peer.layer).current = null
+        saveFocusSnapshot(peer.layer, null)
+        setOnFor(peer.layer)(false)
       }
       selfRef.current = snapshot
       saveFocusSnapshot(layer, snapshot)
@@ -756,11 +881,12 @@ export default function App() {
       selfRef.current = null
       saveFocusSnapshot(layer, null)
     }
-    setSelfOn(on)
-  }, [liveLayerState, waterOn, powerOn, layerApply])
+    setOnFor(layer)(on)
+  }, [liveLayerState, waterOn, powerOn, wasteOn, layerApply])
 
   const toggleWater = useCallback(() => setFocus('water', !waterOn), [setFocus, waterOn])
   const togglePower = useCallback(() => setFocus('power', !powerOn), [setFocus, powerOn])
+  const toggleWaste = useCallback(() => setFocus('waste', !wasteOn), [setFocus, wasteOn])
   const toggleSchoolLevel = useCallback((level: SchoolLevel) => {
     setSchoolLevelsOn(prev => {
       const next = new Set(prev)
@@ -777,7 +903,7 @@ export default function App() {
 
   // Either focus mode takes the clock UI off the screen, so both lock the
   // keyboard shortcut and both hide the time controls below.
-  const focusOn = waterOn || powerOn
+  const focusOn = waterOn || powerOn || wasteOn
 
   const { togglePause } = clock
   useEffect(() => {
@@ -811,6 +937,9 @@ export default function App() {
             onSchoolClick={onSchoolClick}
             onToiletClick={onToiletClick}
             onCarParkClick={onCarParkClick}
+            onWasteSiteClick={onWasteSiteClick}
+            wasteFocus={wasteOn}
+            wasteIncinerator={visibleIncinerator}
             onWaterFacilityClick={onWaterFacilityClick}
             onWaterNodeClick={onWaterNodeClick}
             waterFocus={waterOn}
@@ -826,6 +955,7 @@ export default function App() {
             selectedSchoolId={selectedSchool?.school.id ?? null}
             selectedToiletId={selectedToilet?.id ?? null}
             selectedCarParkId={selectedCarPark?.id ?? null}
+            selectedWasteSiteId={wasteSelectionId(selectedWasteSite)}
             selectedWaterFacilityId={selectedWaterFacility?.id ?? null}
             selectedWaterNodeId={selectedWaterNode?.id ?? null}
             selectedPowerFacilityId={selectedPowerFacility?.id ?? null}
@@ -869,6 +999,9 @@ export default function App() {
         schoolLevelCounts={schoolLevelCounts}
         toiletsOn={toiletsOn}
         carParksOn={carParksOn}
+        wasteOn={wasteOn}
+        wasteHiddenTypes={wasteHiddenTypes}
+        wasteTypeCounts={wasteTypeCounts}
         waterOn={waterOn}
         powerOn={powerOn}
         clock={clock}
@@ -880,6 +1013,8 @@ export default function App() {
         onToggleSchoolLevel={toggleSchoolLevel}
         onToggleToilets={toggleToilets}
         onToggleCarParks={toggleCarParks}
+        onToggleWaste={toggleWaste}
+        onToggleWasteType={toggleWasteType}
         onToggleWater={toggleWater}
         onTogglePower={togglePower}
         onToggleRoute={onToggleRoute}
@@ -946,6 +1081,22 @@ export default function App() {
             carPark={selectedCarPark}
             vacancy={carParkVacancy.vacancy?.get(selectedCarPark.id) ?? null}
             polling={carParkVacancy.polling}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedWasteSite?.kind === 'site' && (
+          <WasteSiteInfoPanel
+            site={selectedWasteSite.site}
+            // The UNFILTERED source list: the panel names the dataset a site
+            // came from, which is provenance rather than something the type
+            // toggles narrow.
+            sources={transitData.wasteSources}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedWasteSite?.kind === 'incinerator' && (
+          <WasteIncineratorInfoPanel
+            facility={selectedWasteSite.facility}
             onClose={clearSelection}
           />
         )}

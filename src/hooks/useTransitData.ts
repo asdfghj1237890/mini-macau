@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -17,6 +17,7 @@ import {
   SchoolsFileSchema,
   ToiletsFileSchema,
   CarParksFileSchema,
+  WasteFileSchema,
   WaterFacilitiesFileSchema,
   PowerFacilitiesFileSchema,
 } from '../dataSchemas'
@@ -116,6 +117,15 @@ interface CarParksFile {
   fetchedAtUtc: string
   sources: Record<string, string>
   carParks: CarPark[]
+}
+
+// waste.json — the six kinds of collection point. Unlike its neighbours BOTH
+// halves reach TransitData: the info panel names the dataset a site came from
+// and shows its upstream timestamp, so `sources` is not just metadata here.
+interface WasteFile {
+  fetchedAtUtc: string
+  sources: WasteSource[]
+  sites: WasteSite[]
 }
 
 // water-facilities.json — Macao Water's 22 supply facilities, same envelope
@@ -376,6 +386,8 @@ export function useTransitData(): UseTransitDataResult {
     schools: [],
     toilets: [],
     carParks: [],
+    waste: [],
+    wasteSources: [],
     waterFacilities: [],
     waterNetwork: null,
     powerFacilities: [],
@@ -512,6 +524,16 @@ export function useTransitData(): UseTransitDataResult {
     // no "P" markers and no legend row, everything else unaffected.
     loadJson<CarParksFile>('/data/car-parks.json', CarParksFileSchema, 'car-parks.json')
       .then(file => commit('carParks', file.carParks))
+      .catch(() => {})
+
+    // Waste and recycling points — another independent, non-critical overlay
+    // that is OFF by default, so a missing or malformed file just leaves the
+    // markers out instead of failing the load.
+    loadJson<WasteFile>('/data/waste.json', WasteFileSchema, 'waste.json')
+      .then(file => {
+        commit('waste', file.sites)
+        commit('wasteSources', file.sources ?? [])
+      })
       .catch(() => {})
 
     // Macao Water supply facilities — a static (manually regenerated) overlay

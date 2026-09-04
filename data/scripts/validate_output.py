@@ -1691,6 +1691,137 @@ def v_power_facilities(data: object) -> list[str]:
     return errs
 
 
+# Bilingual (zh/en/pt) name, {zh,pt}-or-null address: IAM refuse rooms have no
+# address upstream; IAM compactors and every DSPA type always carry one (even
+# when zh/pt individually come back "" — that's real upstream data, not a
+# scrape failure). `upstreamStatus` is DSPA's own undocumented status code,
+# stored raw and NEVER derived from `closed` (see fetch_waste.py's docstring).
+WASTE_TYPES = {"refuse_room", "compactor", "smart_machine", "three_colour", "e_waste", "lamp_battery"}
+# Degenerate-fetch guards mirroring fetch_waste.py's own floors: ~1,094 sites
+# total (114 + 140 + 67 + 311 + 56 + 406 as of 2026-09), each type >= 20.
+WASTE_MIN_TOTAL = 800
+WASTE_MIN_PER_TYPE = 20
+# lamp_battery cites both the lightBulb and battery datasets (identical
+# lists, one type) alongside the other five, one dataset each.
+WASTE_SOURCE_COUNT = 7
+
+
+def v_waste(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(errs, "waste", data, ("fetchedAtUtc", "sources", "counts", "sites")):
+        return errs
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("waste: fetchedAtUtc must be a string")
+
+    sources = data["sources"]
+    if not (isinstance(sources, list) and sources):
+        errs.append("waste.sources: expected a non-empty array")
+        sources = []
+    for i, s in enumerate(sources):
+        ctx = f"waste.sources[{i}]"
+        if not require_fields(
+            errs, ctx, s, ("id", "type", "datasetId", "name", "url", "upstreamUpdatedAt", "count")
+        ):
+            continue
+        if not (isinstance(s["id"], str) and s["id"]):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        if s["type"] not in WASTE_TYPES:
+            errs.append(f"{ctx}: type '{s['type']}' invalid")
+        if not (isinstance(s["datasetId"], str) and s["datasetId"]):
+            errs.append(f"{ctx}: datasetId must be a non-empty string")
+        if not (isinstance(s["url"], str) and s["url"]):
+            errs.append(f"{ctx}: url must be a non-empty string")
+        if not (s["upstreamUpdatedAt"] is None or isinstance(s["upstreamUpdatedAt"], str)):
+            errs.append(f"{ctx}: upstreamUpdatedAt must be null or a string")
+        if not (isinstance(s["count"], int) and not isinstance(s["count"], bool) and s["count"] >= 0):
+            errs.append(f"{ctx}: count must be an int >= 0")
+    if len(sources) != WASTE_SOURCE_COUNT:
+        errs.append(f"waste: {len(sources)} sources, expected exactly {WASTE_SOURCE_COUNT}")
+
+    counts = data["counts"]
+    if not isinstance(counts, dict):
+        errs.append("waste.counts: expected an object")
+        counts = {}
+
+    if not require_nonempty_list(errs, "waste.sites", data["sites"]):
+        return errs
+
+    seen_ids: set[str] = set()
+    tally: dict[str, int] = {}
+    for i, s in enumerate(data["sites"]):
+        ctx = f"waste.sites[{i}]"
+        if not require_fields(
+            errs, ctx, s,
+            ("id", "type", "name", "address", "coordinates", "closed", "tel", "photo", "upstreamStatus"),
+        ):
+            continue
+        sid = s["id"]
+        if not (isinstance(sid, str) and sid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif sid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{sid}'")
+        else:
+            seen_ids.add(sid)
+        label = f"{ctx} ({sid if isinstance(sid, str) and sid else '?'})"
+
+        if s["type"] not in WASTE_TYPES:
+            errs.append(f"{label}: type '{s['type']}' invalid")
+        else:
+            tally[s["type"]] = tally.get(s["type"], 0) + 1
+
+        name = s["name"]
+        if require_fields(errs, f"{label}.name", name, ("zh", "en", "pt")):
+            if not (isinstance(name["zh"], str) and name["zh"]):
+                errs.append(f"{label}.name.zh must be a non-empty string")
+            for lang in ("en", "pt"):
+                if not isinstance(name[lang], str):
+                    errs.append(f"{label}.name.{lang} must be a string")
+
+        address = s["address"]
+        if address is not None:
+            if require_fields(errs, f"{label}.address", address, ("zh", "pt")):
+                for lang in ("zh", "pt"):
+                    if not isinstance(address[lang], str):
+                        errs.append(f"{label}.address.{lang} must be a string")
+
+        check_coords(errs, label, s["coordinates"])
+
+        if not isinstance(s["closed"], bool):
+            errs.append(f"{label}: closed must be a boolean")
+
+        tel = s["tel"]
+        if not (tel is None or isinstance(tel, str)):
+            errs.append(f"{label}: tel must be null or a string")
+
+        photo = s["photo"]
+        if not (photo is None or (isinstance(photo, str) and photo.startswith("https"))):
+            errs.append(f"{label}: photo must be null or an https URL")
+
+        status = s["upstreamStatus"]
+        if not (status is None or (isinstance(status, int) and not isinstance(status, bool))):
+            errs.append(f"{label}: upstreamStatus must be null or an int")
+
+    total = len(data["sites"])
+    if total < WASTE_MIN_TOTAL:
+        errs.append(f"waste: only {total} sites (< {WASTE_MIN_TOTAL}) — looks like a degenerate run")
+
+    for t in WASTE_TYPES:
+        n = tally.get(t, 0)
+        if n < WASTE_MIN_PER_TYPE:
+            errs.append(f"waste: only {n} sites of type '{t}' (< {WASTE_MIN_PER_TYPE})")
+
+    for t, n in counts.items():
+        if not (isinstance(n, int) and not isinstance(n, bool) and n >= 0):
+            errs.append(f"waste.counts.{t} must be an int >= 0")
+        elif tally.get(t, 0) != n:
+            errs.append(f"waste.counts.{t} says {n} but {tally.get(t, 0)} sites have type '{t}'")
+    for t in WASTE_TYPES:
+        if t not in counts:
+            errs.append(f"waste.counts: missing type '{t}'")
+
+    return errs
+
+
 # name -> (absolute path, validator)
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
@@ -1712,6 +1843,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "power-distribution": (PUBLIC / "data/power-distribution.json", v_power_distribution),
     "toilets": (PUBLIC / "data/toilets.json", v_toilets),
     "car-parks": (PUBLIC / "data/car-parks.json", v_car_parks),
+    "waste": (PUBLIC / "data/waste.json", v_waste),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.
