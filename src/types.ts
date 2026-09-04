@@ -320,20 +320,39 @@ export interface WasteAttribution {
   url: string
 }
 
-// A treatment facility: the special/hazardous waste station beside the
-// incinerator, and the two landfills. `polygon` is an OSM outer ring for the
-// landfills and null for the station (whose position is only approximate);
-// `coordinates` is the ring's centroid where there is one.
+// Where refuse ends up once it has been collected: the special/hazardous waste
+// station beside the incinerator, the two landfills, and the five DSPA sewage
+// works. `polygon` is an OSM outer ring for the landfills (an area on the map)
+// and null for the rest; `buildings` are extruded footprints in exactly the
+// power-facility shape, which is what the sewage works carry instead.
+// `statsKey` names this facility's series in dspa-stats.json — "hazardous",
+// "landfill", "wwtp.macau" … — and is null for a facility DSPA publishes no
+// figures for (the Ká-Hó ash landfill, the airport station).
 export interface WasteFacility {
   id: string
-  kind: 'hazardous' | 'landfill'
+  kind: 'hazardous' | 'landfill' | 'wwtp'
   name: WasteText
   coordinates: [number, number] // [lng, lat]
   approximate: boolean
   polygon: [number, number][] | null
+  buildings?: WasteBuilding[]
   osm?: string[]
+  operator?: string // 'dspa' — free-form, only ever rendered through i18n
+  statsKey?: string | null
   note: WasteText
   source: WasteAttribution
+}
+
+// One extruded footprint of a waste facility. Deliberately the same contract as
+// `PowerBuilding` (the incinerator's own footprints ARE power records), so both
+// share the +2 m margin and the z14→15.5 height ramp.
+export interface WasteBuilding {
+  osmId: string
+  name: string | null
+  height: number
+  minHeight: number
+  kind?: string
+  coordinates: [number, number][][]
 }
 
 // A DSPA 環保加Fun站 recycling centre. There is no open dataset for these, so
@@ -352,28 +371,60 @@ export interface WasteEcoStation {
   source: WasteAttribution
 }
 
-// One month of the incineration plant's published throughput.
-export interface WasteIncineratorMonth {
+// ---- DSPA monthly statistics (public/data/dspa-stats.json) ----------------
+// One published figure per month, per plant. Every series shares the period and
+// differs only in which measures it carries, so the readers below take a picker
+// rather than a fixed field name.
+export interface DspaStatsMonth {
   period: string // "YYYY-MM"
-  receivedT: number
-  electricityMwh: number
-  metalRecycledT: number
+  receivedT?: number
+  processedT?: number
+  electricityMwh?: number
+  metalRecycledT?: number
+  volumeM3?: number
+  basicM3?: number
+  biologicalM3?: number
+  totalM3?: number
 }
 
-// The plant's monthly statistics plus the hand-typed plant facts. Null in
-// TransitData when the file predates the block or the upstream call failed —
-// the panel then simply shows no stats.
-export interface WasteIncineratorStats {
-  datasetId: string
+// What a chart's numbers are counted in, spelled the way the file spells it.
+// Drives the axis step and the unit suffix on every tooltip and chip.
+export type DspaStatsUnit = 't' | 'm3'
+
+export interface DspaSeries {
+  // Null for a series DSPA publishes only on its own GIS pages.
+  datasetId: string | null
   url: string
-  latest: WasteIncineratorMonth | null
-  months: WasteIncineratorMonth[] // last 12, ascending
-  facts: {
-    phases: number[]
-    lines: number
-    capacityTPerDay: number
-    generationMw: number
-    areaM2: number
+  unit: DspaStatsUnit
+  latest: DspaStatsMonth | null
+  months: DspaStatsMonth[] // last 12, ascending
+  // Only the incinerator series carries this: the plant's hand-typed scale,
+  // which is a fact about the plant rather than a monthly measure.
+  facts?: DspaIncineratorFacts | null
+}
+
+// The incineration plant's hand-typed scale, moved here out of waste.json.
+export interface DspaIncineratorFacts {
+  phases: number[]
+  lines: number
+  capacityTPerDay: number
+  generationMw: number
+  areaM2: number
+}
+
+// Every series is best-effort upstream: a failed endpoint leaves its key null
+// and the panel simply shows no chart.
+export interface DspaStats {
+  fetchedAtUtc?: string
+  incinerator: DspaSeries | null
+  hazardous: DspaSeries | null
+  landfill: DspaSeries | null
+  wwtp: {
+    macau: DspaSeries | null
+    taipa: DspaSeries | null
+    coloane: DspaSeries | null
+    crossborder: DspaSeries | null
+    mia: DspaSeries | null
   } | null
 }
 
@@ -704,7 +755,10 @@ export interface TransitData {
   // empty/null until (and unless) waste.json carries them.
   wasteFacilities: WasteFacility[]
   wasteEcoStations: WasteEcoStation[]
-  wasteIncineratorStats: WasteIncineratorStats | null
+  // DSPA's monthly throughput for the incinerator, the hazardous-waste station,
+  // the construction-waste landfill and the sewage works. Null until
+  // dspa-stats.json lands (or if it ever fails to load).
+  dspaStats: DspaStats | null
   waterFacilities: WaterFacility[]
   // The schematic pipe network, or null when water-facilities.json predates it
   // (the `network` block is optional) or the WATER layer is off.

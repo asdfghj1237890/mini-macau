@@ -30,6 +30,7 @@
    │  - toilets.json                      │
    │  - car-parks.json                    │
    │  - waste.json                        │
+   │  - dspa-stats.json                   │
    │  - water-facilities.json             │
    │  - water-distribution.json           │
    │  - power-facilities.json             │
@@ -63,7 +64,8 @@
 | DSEDJ + OSM Overpass | 學校清單（核准級別）與校舍建築足跡 | `fetch_schools.py`（手動執行，name matching） |
 | data.gov.mo | IAM 公共廁所 / 無障礙公廁名單 | `fetch_toilets.py`（下載 ZIP 內 JSON，含重試） |
 | data.gov.mo | DSAT 停車場資料（車位詳情 + 即時空位） | `fetch_car_parks.py`（API gateway，APPCODE header，含重試） |
-| data.gov.mo + DSPA 官網 + OSM Overpass | IAM 垃圾房 / 壓縮式垃圾收集點 / 垃圾站 + DSPA 智能回收機 / 三色資源回收點 / 電腦及通訊設備回收點 / 光管回收點 / 電池回收點 / 垃圾焚化中心月度統計（八個 dataset），另加手放的環保加Fun站 10 個、特殊和危險廢物處理站，以及兩個堆填區的 OSM 輪廓；焚化中心本身的座標/建築借 `power-facilities.json` 現成的 | `fetch_waste.py`（IAM 三個走 ZIP／API gateway，DSPA 六個走 API gateway，OSM 兩個 way 走 Overpass，APPCODE header 都含重試；焚化統計 best-effort，失敗存 null 不中止） |
+| data.gov.mo + IAM 自家頁面 + OSM Overpass | IAM 垃圾房 / 壓縮式垃圾收集點 / 垃圾站 + IAM 環境資訊網（玻璃樽／衣物回收點，非 data.gov.mo）+ DSPA 智能回收機 / 三色資源回收點 / 電腦及通訊設備回收點 / 光管回收點 / 電池回收點（八個 dataset + 1 個 IAM 自家 JSON），另加手放的環保加Fun站 10 個、特殊和危險廢物處理站、兩個堆填區的 OSM 輪廓，以及五座污水處理廠（OSM 足跡，比照水／電廠房切圖磚，機場廠除外沒有 buildings 的以 statsKey 帶月度數字）；焚化中心本身的座標/建築借 `power-facilities.json` 現成的 | `fetch_waste.py`（IAM 四個走 ZIP／API gateway／自家 JSON，DSPA 六個走 API gateway，OSM 兩個 way 走 Overpass，APPCODE header 都含重試） |
+| data.gov.mo（4 個 dataset）+ DSPA GIS 頁面（3 個，無 dataset id） | 垃圾焚化中心／特殊和危險廢物處理站／建築廢料堆填區／四座污水處理廠（機場廠沒有公開數字）的月度統計：收/處理量、發電量、回收金屬、堆埋體積、處理水量 | `fetch_dspa_stats.py`（API gateway，APPCODE header，含重試；每條 series 各自 best-effort，單一端點失敗只讓那個 series 存 null，不中止整個 run） |
 | 澳門自來水 + OSM Overpass | 22 個供水設施（＋黑沙水庫）清單與建築足跡／水體、示意管網 | `fetch_water_facilities.py`（手動執行，清單寫死在腳本裡） |
 | 澳電 (CEM) + OSM Overpass | 33 座高壓變電站、路環發電廠、垃圾焚化中心的清單與建築足跡、示意電網 | `fetch_power_facilities.py`（手動執行，清單寫死在腳本裡） |
 | OSM Overpass | 澳門境內可行車道路（給供水／供電配水層當底稿，裁到 SAR 邊界） | `fetch_water_distribution.py`／`fetch_power_distribution.py`（手動執行，共用 `road_network.py`） |
@@ -159,6 +161,7 @@ data/
 │   ├── fetch_toilets.py             # monthly via update-toilets.yml
 │   ├── fetch_car_parks.py           # daily via update-car-parks.yml
 │   ├── fetch_waste.py               # monthly via update-waste.yml
+│   ├── fetch_dspa_stats.py          # monthly via update-dspa-stats.yml
 │   ├── osrm_route.py
 │   ├── patch_bus_bridges.py
 │   ├── patch_service_hours.py

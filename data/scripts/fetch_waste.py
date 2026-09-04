@@ -42,12 +42,27 @@ Round 2 adds a seventh site type and three more top-level blocks:
   * `ecoStations[]` (10): DSPA's 環保加Fun站, hand-transcribed like
     fetch_power_facilities.py's SUBSTATIONS table — no open dataset publishes
     these. See ECO_STATIONS.
-  * `incinerator`: DSPA's monthly 焚化中心 statistics
-    (8142c05e-818a-478a-9256-4ecd494d3f87), POSTed to a sibling path on the
-    same DSPA gateway (fetch_dspa() grew an optional `base` argument for this).
-    BEST-EFFORT: unlike everything else in this file, a failure here does NOT
-    fail the run — the block is written as `null` and the frontend panel just
-    hides the stats. See build_incinerator_stats().
+  * `incinerator`: DSPA's monthly 焚化中心 statistics, BEST-EFFORT (a failure
+    did not fail the run — the block was written as `null`). RETIRED round 4:
+    this now lives in public/data/dspa-stats.json (fetch_dspa_stats.py), which
+    carries the incinerator series alongside the hazardous station, the
+    landfill and the four DSPA-published wastewater treatment plants. See the
+    round 4 note below.
+
+Round 4 adds a `statsKey` to every entry in `facilities[]` (null where no
+monthly series exists) and five more entries there, kind `wwtp`: the DSPA
+sewage treatment plants, each with its own OSM building footprints via the
+same "compound" claim-buildings-inside + recut-against-basemap-tiles pipeline
+fetch_water_facilities.py / fetch_power_facilities.py use for their own
+plants — copied here, not shared, like everything else in this file (see
+WWTP_TABLE / build_wwtp_facilities()). `statsKey` points into
+public/data/dspa-stats.json: "hazardous" / "landfill" / "wwtp.<plant>" for
+five of the eight facilities, `null` for the two with no monthly series (the
+Ka Ho ash landfill, wwtp-mia — see fetch_dspa_stats.py's docstring for why
+wwtp-mia has none). The incinerator's own monthly stats moved OUT of this
+file entirely (see the retired bullet above) — `facilities[]` has no
+`kind == "incinerator"`; the incineration plant itself already appears on the
+POWER overlay (fetch_power_facilities.py) and is not duplicated here.
 
 Round 3 adds two more site types, both filtered from one shared feed:
   * `glass` (5) and `clothing` (16): IAM's public facility-map JSON
@@ -108,9 +123,23 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from shapely.geometry import Polygon
+from shapely.ops import unary_union
 
 from fetch_toilets import fetch_zip
-from osm_footprints import metres_xy, overpass, polygon_of_element, xy_lnglat
+from osm_footprints import (
+    TilePartIndex,
+    building_record,
+    buffered_footprint,
+    fetch_tile_building_parts,
+    metres_xy,
+    overpass,
+    parse_height,
+    part_record,
+    polygon_of_element,
+    strip_private,
+    tiles_covering,
+    xy_lnglat,
+)
 
 DSPA_BASE = "https://dspa.apigateway.data.gov.mo/T_Bas_POI_Basic"
 DETAIL = "https://data.gov.mo/Detail?id={id}"
@@ -229,13 +258,11 @@ def read_zip(dataset_id: str) -> tuple[list[dict] | None, dict]:
     return records, readme
 
 
-def fetch_dspa(endpoint: str, appcode: str, base: str = DSPA_BASE) -> list[dict]:
+def fetch_dspa(endpoint: str, appcode: str) -> list[dict]:
     """POST an empty body to a DSPA API gateway endpoint — same public-APPCODE-
     header pattern as fetch_car_parks.py's DSAT gateway — retrying network
-    errors, non-200s, and any body that doesn't parse as a JSON list. `base`
-    defaults to the recycling-points gateway (DSPA_BASE); round 2's incinerator
-    stats endpoint lives at a sibling path and passes its own `base`."""
-    url = f"{base}/{endpoint}"
+    errors, non-200s, and any body that doesn't parse as a JSON list."""
+    url = f"{DSPA_BASE}/{endpoint}"
     headers = {**HEADERS, "Authorization": f"APPCODE {appcode}"}
     last_error = "no attempts made"
     for attempt in range(1, MAX_ATTEMPTS + 1):
@@ -439,6 +466,8 @@ FACILITIES_TABLE: list[dict] = [
             "pt": "Na Avenida Son On, lote U2, Pac On, junto à central de incineração; trata pneus usados, resíduos perigosos sólidos e líquidos, carcaças de animais, resíduos de matadouro e hospitalares — capacidade de 24 t/dia.",
         },
         "source": {"name": "環境保護局 (DSPA)", "url": "https://www.dspa.gov.mo/place1_3.aspx"},
+        "statsKey": "hazardous",
+        "buildings": [],
     },
     {
         "id": "landfill-construction",
@@ -456,6 +485,8 @@ FACILITIES_TABLE: list[dict] = [
             "pt": "A oeste da ponte de ligação sul do aeroporto e a norte da central de Coloane; recebe resíduos de construção desde 2003 (DSPA).",
         },
         "source": {"name": "環境保護局 (DSPA) · OpenStreetMap", "url": "https://www.dspa.gov.mo/place1_3.aspx"},
+        "statsKey": "landfill",
+        "buildings": [],
     },
     {
         "id": "landfill-ka-ho-ash",
@@ -473,6 +504,8 @@ FACILITIES_TABLE: list[dict] = [
             "pt": "Ká-Hó, Coloane — recebe as cinzas volantes estabilizadas da central de incineração.",
         },
         "source": {"name": "OpenStreetMap", "url": "https://www.openstreetmap.org/way/552740242"},
+        "statsKey": None,
+        "buildings": [],
     },
 ]
 
@@ -511,6 +544,291 @@ def fetch_landfill_polygons() -> dict[str, dict]:
             raise RuntimeError(f"way {way_id} ({fac_id}) did not resolve to a single closed polygon")
         result[fac_id] = {"coordinates": facility_centroid(poly), "polygon": simplify_ring(poly)}
     return result
+
+
+# ----------------------------------------------------------------------------
+# round 4: sewage treatment plants join `facilities[]` (kind "wwtp"), each with
+# OSM building footprints — the same "compound" claim-buildings-inside +
+# recut-against-basemap-tiles pipeline fetch_water_facilities.py and
+# fetch_power_facilities.py use for their own plants (see osm_footprints.py
+# for the shared low-level pieces; the orchestration below is its own copy,
+# like every other fetch_*.py — see the module docstring).
+#
+# Every `osm` ref, whether it already carries a `building` tag (e.g. the
+# standalone buildings inside 澳門半島/氹仔's compounds, or 路環再生水站
+# w679638321) or is only the plant's own area outline, is fed into the SAME
+# "compound" polygon set: the buildings-inside-compound Overpass query then
+# claims any ref that is itself a building sitting inside another ref's area,
+# and the outline/tile fallback below still fires for any facility with
+# nothing claimed at all — so a bare compound with nothing else mapped inside
+# it still gets exactly one footprint (an outline slab of its own shape),
+# which is what guarantees "every wwtp has >= 1 building" without
+# special-casing any one plant. build_wwtp_facilities() raises if that ever
+# comes up empty regardless — fatal on failure, like the landfill polygons
+# above (unlike dspa-stats.json's monthly figures, this is core map content).
+#
+# `statsKey` points into public/data/dspa-stats.json (fetch_dspa_stats.py);
+# null for wwtp-mia, which has no open dataset (see that script's docstring).
+# ----------------------------------------------------------------------------
+WWTP_SOURCE = {"name": "環境保護局 (DSPA) · OpenStreetMap", "url": "https://www.dspa.gov.mo/place1_3.aspx"}
+WWTP_OUTLINE_MAX_HEIGHT_M = 20.0  # a slab drawn from an outline the basemap does not render
+
+WWTP_TABLE: list[dict] = [
+    {
+        "id": "wwtp-macau", "osm": ["w330666093", "w330666087"], "statsKey": "wwtp.macau",
+        "name": {
+            "zh": "澳門半島污水處理廠",
+            "en": "Macau Peninsula Wastewater Treatment Plant",
+            "pt": "Estação de Tratamento de Águas Residuais da Península de Macau",
+        },
+        "note": {
+            "zh": "環境保護局轄下污水處理廠，1995 年啟用，處理澳門半島的城市污水。",
+            "en": "A DSPA wastewater treatment plant commissioned in 1995, serving the Macau peninsula.",
+            "pt": "Estação de tratamento de águas residuais da DSPA, em funcionamento desde 1995, ao serviço da península de Macau.",
+        },
+    },
+    {
+        "id": "wwtp-taipa", "osm": ["w679817667", "w192095995"], "statsKey": "wwtp.taipa",
+        "name": {
+            "zh": "氹仔污水處理廠",
+            "en": "Taipa Wastewater Treatment Plant",
+            "pt": "Estação de Tratamento de Águas Residuais da Taipa",
+        },
+        "note": {
+            "zh": "環境保護局轄下污水處理廠，1997 年啟用，處理氹仔的城市污水。",
+            "en": "A DSPA wastewater treatment plant commissioned in 1997, serving Taipa.",
+            "pt": "Estação de tratamento de águas residuais da DSPA, em funcionamento desde 1997, ao serviço da Taipa.",
+        },
+    },
+    {
+        "id": "wwtp-coloane", "osm": ["w679638313", "w241741095", "w241741096", "w679638321"],
+        "statsKey": "wwtp.coloane",
+        "name": {
+            "zh": "路環污水處理廠",
+            "en": "Coloane Wastewater Treatment Plant",
+            "pt": "Estação de Tratamento de Águas Residuais de Coloane",
+        },
+        "note": {
+            "zh": "環境保護局轄下污水處理廠，處理路環的城市污水；廠區內的路環再生水站於 2026 年 3 月啟用。",
+            "en": "A DSPA wastewater treatment plant serving Coloane; the Coloane Recycled Water Plant on the same site opened in March 2026.",
+            "pt": "Estação de tratamento de águas residuais da DSPA ao serviço de Coloane; a Estação de Água Reciclada de Coloane, no mesmo terreno, abriu em março de 2026.",
+        },
+    },
+    {
+        "id": "wwtp-crossborder", "osm": ["w679372916"], "statsKey": "wwtp.crossborder",
+        "name": {
+            "zh": "澳門跨境工業區污水處理站",
+            "en": "Cross-Border Industrial Zone Wastewater Treatment Station",
+            "pt": "Estação de Tratamento de Águas Residuais do Parque Industrial Transfronteiriço",
+        },
+        "note": {
+            "zh": "環境保護局轄下污水處理站，2009 年啟用，處理澳門跨境工業區的污水。",
+            "en": "A DSPA wastewater treatment station commissioned in 2009, serving the Cross-Border Industrial Zone.",
+            "pt": "Estação de tratamento de águas residuais da DSPA, em funcionamento desde 2009, ao serviço do Parque Industrial Transfronteiriço.",
+        },
+    },
+    {
+        "id": "wwtp-mia", "osm": ["w817108499"], "statsKey": None,
+        "name": {
+            "zh": "澳門國際機場污水處理站",
+            "en": "Macau International Airport Wastewater Treatment Station",
+            "pt": "Estação de Tratamento de Águas Residuais do Aeroporto Internacional de Macau",
+        },
+        "note": {
+            "zh": "環境保護局轄下污水處理站，處理澳門國際機場的污水。",
+            "en": "A DSPA wastewater treatment station serving Macau International Airport.",
+            "pt": "Estação de tratamento de águas residuais da DSPA ao serviço do Aeroporto Internacional de Macau.",
+        },
+    },
+]
+
+
+def osm_ref(el: dict) -> str:
+    return f"{el['type'][0]}{el['id']}"
+
+
+def fetch_wwtp_elements() -> dict[str, dict]:
+    """Re-query every OSM id WWTP_TABLE names, keyed by "<type letter><id>" —
+    same pattern as fetch_water_facilities.py's fetch_listed_elements()."""
+    refs = [ref for f in WWTP_TABLE for ref in f["osm"]]
+    kinds = {"w": "way", "r": "relation", "n": "node"}
+    body = "".join(f"{kinds[ref[0]]}({ref[1:]});" for ref in refs)
+    print(f"  fetching {len(refs)} OSM elements for {len(WWTP_TABLE)} wastewater treatment plants")
+    els = overpass(f"[out:json][timeout:120];({body});out geom;")
+    found = {osm_ref(el): el for el in els}
+    missing = [r for r in refs if r not in found]
+    if missing:
+        raise RuntimeError(f"OSM ids in WWTP_TABLE no longer exist: {missing}")
+    return found
+
+
+def fetch_wwtp_buildings_in(polys: list[Polygon]) -> list[dict]:
+    """Every building way/relation inside any of the given compound polygons —
+    same pattern as fetch_water_facilities.py / fetch_power_facilities.py."""
+    parts = []
+    for poly in polys:
+        geoms = list(poly.geoms) if poly.geom_type == "MultiPolygon" else [poly]
+        for g in geoms:
+            ring = " ".join(f"{y:.6f} {x:.6f}" for x, y in g.exterior.coords)
+            parts.append(f'nwr["building"](poly:"{ring}");')
+    print(f"  fetching buildings inside {len(polys)} compound polygons")
+    # `out geom` (not `out tags geom`): the tags-only mode drops relation
+    # members, and a courtyard building is a multipolygon relation.
+    return overpass(f"[out:json][timeout:180];({''.join(parts)});out geom;")
+
+
+def wwtp_records_from_element(el: dict) -> list[dict]:
+    """Building record(s) for one OSM building way or multipolygon relation."""
+    if el["type"] == "way":
+        rec = building_record(el, LAT0)
+        return [rec] if rec else []
+    poly = polygon_of_element(el)
+    if poly is None or poly.is_empty:
+        return []
+    geoms = list(poly.geoms) if poly.geom_type == "MultiPolygon" else [poly]
+    h, mh = parse_height(el.get("tags", {}))
+    out = []
+    for i, g in enumerate(geoms):
+        out.append({
+            "osmId": f"r{el['id']}" + (f"#{i}" if i else ""),
+            "name": el.get("tags", {}).get("name") or None,
+            "height": round(h, 1),
+            "minHeight": mh,
+            "coordinates": buffered_footprint(g, LAT0),
+            "_poly": g,
+        })
+    return out
+
+
+def wwtp_outline_record(el: dict, poly: Polygon, index: int) -> dict:
+    """Low slab cut straight from an outline the basemap does not render."""
+    h, mh = parse_height(el.get("tags", {}))
+    return {
+        "osmId": osm_ref(el) + (f"#{index}" if index else ""),
+        "name": el.get("tags", {}).get("name") or None,
+        "height": round(min(h, WWTP_OUTLINE_MAX_HEIGHT_M), 1),
+        "minHeight": mh,
+        "kind": "outline",
+        "coordinates": buffered_footprint(poly, LAT0),
+        "_poly": poly,
+    }
+
+
+def wwtp_finalize(rec: dict, kind: str) -> dict:
+    rec["kind"] = kind
+    return rec
+
+
+def wwtp_centroid(polys: list[Polygon]) -> list[float]:
+    merged = unary_union(polys)
+    c = merged.centroid
+    if c.is_empty:
+        c = merged.representative_point()
+    return [round(c.x, 6), round(c.y, 6)]
+
+
+def build_wwtp_facilities() -> list[dict]:
+    """The five `kind: "wwtp"` facilities: OSM building footprints claimed
+    inside each plant's compound polygon(s) and recut against the basemap's
+    own building parts, exactly like fetch_water_facilities.py's `run()` —
+    see the section comment above for how a bare compound (no OSM buildings
+    mapped inside it) still ends up with one outline footprint."""
+    elements = fetch_wwtp_elements()
+
+    areas: dict[str, list[tuple[dict, Polygon]]] = {}
+    for f in WWTP_TABLE:
+        pairs = []
+        for ref in f["osm"]:
+            el = elements[ref]
+            poly = polygon_of_element(el)
+            if poly is None or poly.is_empty:
+                raise RuntimeError(f"{f['id']}: OSM {ref} has no usable polygon")
+            geoms = list(poly.geoms) if poly.geom_type == "MultiPolygon" else [poly]
+            pairs += [(el, g) for g in geoms]
+        areas[f["id"]] = pairs
+
+    wwtp_ids = [f["id"] for f in WWTP_TABLE]
+    compound_polys = [g for fid in wwtp_ids for _, g in areas[fid]]
+    building_els = fetch_wwtp_buildings_in(compound_polys)
+    print(f"  {len(building_els)} building features inside the compounds")
+
+    claimed: dict[str, list[dict]] = {fid: [] for fid in wwtp_ids}
+    seen_osm: set[str] = set()
+    for el in building_els:
+        for rec in wwtp_records_from_element(el):
+            if rec["osmId"] in seen_osm:
+                continue
+            rep = rec["_poly"].representative_point()
+            for fid in wwtp_ids:
+                if any(g.contains(rep) for _, g in areas[fid]):
+                    seen_osm.add(rec["osmId"])
+                    claimed[fid].append(wwtp_finalize(rec, "building"))
+                    break
+
+    # --- re-cut everything against the basemap's own building parts --------
+    fallback = [(fid, el, g) for fid in wwtp_ids if not claimed[fid] for el, g in areas[fid]]
+    geoms_for_tiles = [rec["_poly"] for recs in claimed.values() for rec in recs]
+    geoms_for_tiles += [g for _, _, g in fallback]
+    tiles = tiles_covering(geoms_for_tiles)
+    print(f"  re-cutting footprints against basemap tiles ({len(tiles)} tiles; "
+          f"{len(fallback)} compounds need fallback footprints)")
+    index = TilePartIndex(fetch_tile_building_parts(tiles))
+
+    recut = 0
+    for fid, recs in claimed.items():
+        new_recs: list[dict] = []
+        for rec in recs:
+            inside = index.within(rec["_poly"])
+            if not inside:
+                # Nothing quantised into this outline: the basemap draws no
+                # block here, so a capped slab of the OSM shape stands in.
+                rec["height"] = round(min(rec["height"], WWTP_OUTLINE_MAX_HEIGHT_M), 1)
+                new_recs.append(wwtp_finalize(rec, "outline"))
+                continue
+            recut += 1
+            for i, part in enumerate(inside):
+                osm_id = f"{rec['osmId']}#p{i}" if i else rec["osmId"]
+                new_recs.append(wwtp_finalize(
+                    part_record(part, LAT0, osm_id, rec.get("name"), "building"), "building"))
+        claimed[fid] = new_recs
+    print(f"  {recut} OSM footprints replaced by the basemap's parts")
+
+    for fid, el, g in fallback:
+        inside = index.within(g)
+        if inside:
+            for part in inside:
+                claimed[fid].append(wwtp_finalize(
+                    part_record(part, LAT0, part["id"], None, "tile"), "tile"))
+            print(f"  {fid}: {len(inside)} basemap building parts")
+        else:
+            claimed[fid].append(wwtp_outline_record(el, g, len(claimed[fid])))
+            print(f"  {fid}: no basemap part — outline slab")
+
+    # --- assemble ------------------------------------------------------------
+    facilities = []
+    for f in WWTP_TABLE:
+        buildings = [strip_private(b) for b in claimed[f["id"]]]
+        polys = [Polygon(b["coordinates"][0]) for b in buildings] or [g for _, g in areas[f["id"]]]
+        facilities.append({
+            "id": f["id"],
+            "kind": "wwtp",
+            "name": f["name"],
+            "coordinates": wwtp_centroid(polys),
+            "approximate": False,
+            "polygon": None,
+            "osm": list(f["osm"]),
+            "note": f["note"],
+            "source": WWTP_SOURCE,
+            "statsKey": f["statsKey"],
+            "buildings": buildings,
+        })
+
+    empty = [fac["id"] for fac in facilities if not fac["buildings"]]
+    if empty:
+        raise RuntimeError(f"wwtp facilit(ies) with no building claimed at all: {empty}")
+
+    print("  " + "  ".join(f"{fac['id']} (b={len(fac['buildings'])})" for fac in facilities))
+    return facilities
 
 
 # ----------------------------------------------------------------------------
@@ -581,74 +899,6 @@ ECO_STATIONS: list[dict] = [
     }
     for eid, zh, addr_zh, coords, approx, since, district in ECO_STATIONS_RAW
 ]
-
-
-# ----------------------------------------------------------------------------
-# round 2: incinerator monthly statistics (`incinerator`) — BEST-EFFORT, see
-# build_incinerator_stats().
-# ----------------------------------------------------------------------------
-INCINERATOR_GATEWAY_BASE = "https://dspa.apigateway.data.gov.mo"
-INCINERATOR_ENDPOINT = "T_Bas_MRIP_Approved"
-INCINERATOR_DATASET_ID = "8142c05e-818a-478a-9256-4ecd494d3f87"
-INCINERATOR_MONTHS_KEPT = 12
-PERIOD_RE = re.compile(r"^(\d{4})/(\d{1,2})$")
-# Hand-typed from https://www.dspa.gov.mo/place1_2.aspx — see spec-waste-round2.md §4.
-INCINERATOR_FACTS = {
-    "phases": [1992, 2008, 2024],
-    "lines": 8,
-    "capacityTPerDay": 3000,
-    "generationMw": 56.7,
-    "areaM2": 51000,
-}
-
-
-def normalize_period(raw: object) -> str | None:
-    """DSPA's "YYYY/M" (no zero-padding, e.g. "2026/6") -> "YYYY-MM"."""
-    m = PERIOD_RE.match(clean(raw))
-    if not m:
-        return None
-    year, month = int(m.group(1)), int(m.group(2))
-    if not (1 <= month <= 12):
-        return None
-    return f"{year:04d}-{month:02d}"
-
-
-def build_incinerator_stats(appcode: str) -> dict | None:
-    """Best-effort: any failure (network, shape, no usable rows) returns None
-    — the run still succeeds and the frontend panel just hides the stats."""
-    try:
-        records = fetch_dspa(INCINERATOR_ENDPOINT, appcode, base=INCINERATOR_GATEWAY_BASE)
-    except RuntimeError as e:
-        print(f"  warning: incinerator stats fetch failed, block will be null: {e}", file=sys.stderr)
-        return None
-
-    by_period: dict[str, dict] = {}
-    for r in records:
-        period = normalize_period(r.get("CollectionPeriod"))
-        if period is None:
-            continue
-        try:
-            by_period[period] = {
-                "period": period,
-                "receivedT": float(clean(r.get("AmountReceived"))),
-                "electricityMwh": float(clean(r.get("ElectricityProduced"))),
-                "metalRecycledT": float(clean(r.get("MetalRecycled"))),
-            }
-        except ValueError:
-            continue
-
-    if not by_period:
-        print("  warning: incinerator stats had no usable rows, block will be null", file=sys.stderr)
-        return None
-
-    months = [by_period[p] for p in sorted(by_period)][-INCINERATOR_MONTHS_KEPT:]
-    return {
-        "datasetId": INCINERATOR_DATASET_ID,
-        "url": DETAIL.format(id=INCINERATOR_DATASET_ID),
-        "latest": months[-1],
-        "months": months,
-        "facts": INCINERATOR_FACTS,
-    }
 
 
 IAM_GATEWAY_URL = "https://iam.apigateway.data.gov.mo/macaohygiene_allgarbage"
@@ -785,7 +1035,7 @@ def run() -> int:
 
     print(
         "Fetching IAM refuse rooms / compacting bins / refuse stations + DSPA "
-        "recycling points + treatment facilities + incinerator stats"
+        "recycling points + treatment facilities (incl. wwtp footprints)"
     )
 
     sites: list[dict] = []
@@ -931,8 +1181,11 @@ def run() -> int:
 
     sites.sort(key=lambda s: (TYPE_ORDER.index(s["type"]), s["id"]))
 
-    # --- round 2: treatment facilities — fatal on failure, like everything
-    # above (unlike the incinerator stats block below). ---------------------
+    # --- round 2/4: treatment facilities — fatal on failure, like everything
+    # above. The hazardous station and both landfills are hand-placed/OSM
+    # -fetched (round 2); round 4 adds the five DSPA wastewater treatment
+    # plants (kind "wwtp"), each with OSM building footprints — see
+    # build_wwtp_facilities(). ------------------------------------------------
     print("- treatment facilities (hazardous station + 2 landfill polygons)")
     try:
         landfill_geo = fetch_landfill_polygons()
@@ -946,10 +1199,12 @@ def run() -> int:
             fac.update(landfill_geo[fac["id"]])
         facilities.append(fac)
 
-    # --- round 2: DSPA incinerator monthly statistics — BEST-EFFORT; see
-    # build_incinerator_stats()'s docstring. ---------------------------------
-    print("- dspa-incinerator-stats (best-effort)")
-    incinerator = build_incinerator_stats(appcode)
+    print(f"- {len(WWTP_TABLE)} wastewater treatment plants (OSM building footprints)")
+    try:
+        facilities.extend(build_wwtp_facilities())
+    except RuntimeError as e:
+        print(f"ERROR: wwtp facility fetch failed: {e} — refusing to write", file=sys.stderr)
+        return 1
 
     output = {
         "fetchedAtUtc": datetime.now(tz=timezone.utc).isoformat(),
@@ -958,7 +1213,6 @@ def run() -> int:
         "sites": sites,
         "facilities": facilities,
         "ecoStations": ECO_STATIONS,
-        "incinerator": incinerator,
     }
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
     # Whitespace-minimal: 1,094 records at indent=2 would blow the 600 KiB
@@ -968,9 +1222,10 @@ def run() -> int:
         json.dump(output, f, ensure_ascii=False, separators=(",", ":"))
 
     print(f"Done. {len(sites)} sites across {len(counts)} types: {counts}")
+    total_fac_buildings = sum(len(f["buildings"]) for f in facilities)
     print(
-        f"Facilities: {len(facilities)}   Eco stations: {len(ECO_STATIONS)}   "
-        f"Incinerator stats: {'ok (' + incinerator['latest']['period'] + ')' if incinerator else 'null (best-effort fetch failed)'}"
+        f"Facilities: {len(facilities)} ({total_fac_buildings} buildings total)   "
+        f"Eco stations: {len(ECO_STATIONS)}"
     )
     print(f"Wrote {OUTPUT_PATH}")
     return 0

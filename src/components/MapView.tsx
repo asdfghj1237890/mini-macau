@@ -33,6 +33,8 @@ import {
   WASTE_INCINERATOR_ICON,
   WASTE_LANDFILL_COLOR,
   WASTE_LANDFILL_ICON,
+  WASTE_WWTP_COLOR,
+  WASTE_WWTP_ICON,
   WASTE_THREE_COLOUR_BINS,
   WASTE_TYPES,
   buildWasteAreaFeatures,
@@ -736,6 +738,40 @@ function drawWasteHazardousIcon(approximate: boolean): ImageData | null {
   ctx.stroke()
   ctx.beginPath()
   ctx.arc(cx, 26.5, 1.5, 0, Math.PI * 2)
+  ctx.fill()
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// 污水處理廠 — a droplet with an arrow through it: water in, treated water out.
+// Violet, matching the extruded blocks of the works themselves.
+function drawWasteWwtpIcon(): ImageData | null {
+  const plate = wastePlate(WASTE_WWTP_COLOR)
+  if (!plate) return null
+  const { ctx, size } = plate
+  const cx = size / 2
+  const ink = '#18181b' // violet is a pale plate — dark ink, like the compactor
+  ctx.strokeStyle = ink
+  ctx.fillStyle = ink
+  ctx.lineJoin = 'round'
+  ctx.lineCap = 'round'
+  // The droplet, filled so it survives at 0.45 icon-size.
+  ctx.beginPath()
+  ctx.moveTo(cx - 1, 9.5)
+  ctx.bezierCurveTo(cx + 5.5, 15, cx + 4, 20.5, cx - 1, 20.5)
+  ctx.bezierCurveTo(cx - 6, 20.5, cx - 7.5, 15, cx - 1, 9.5)
+  ctx.closePath()
+  ctx.fill()
+  // The arrow under it: the treated flow leaving the works.
+  ctx.lineWidth = 2.4
+  ctx.beginPath()
+  ctx.moveTo(cx - 9, 27)
+  ctx.lineTo(cx + 7, 27)
+  ctx.stroke()
+  ctx.beginPath()
+  ctx.moveTo(cx + 3.5, 23.5)
+  ctx.lineTo(cx + 8.5, 27)
+  ctx.lineTo(cx + 3.5, 30.5)
+  ctx.closePath()
   ctx.fill()
   return ctx.getImageData(0, 0, size, size)
 }
@@ -2159,7 +2195,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       m.addSource(WASTE_BUILDINGS_SOURCE_ID, {
         type: 'geojson',
-        data: buildWasteBuildingFeatures(wasteExtrasRef.current.incinerator ?? null),
+        data: buildWasteBuildingFeatures(
+          wasteExtrasRef.current.incinerator ?? null, wasteExtrasRef.current.facilities,
+        ),
         promoteId: WASTE_FEATURE_ID_PROPERTY,
       })
       m.addLayer({
@@ -2429,6 +2467,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       const extraWasteImages: [string, () => ImageData | null][] = [
         [WASTE_INCINERATOR_ICON, drawWasteIncineratorIcon],
         [WASTE_LANDFILL_ICON, drawWasteLandfillIcon],
+        [WASTE_WWTP_ICON, drawWasteWwtpIcon],
         [WASTE_HAZARDOUS_ICON, () => drawWasteHazardousIcon(false)],
         [WASTE_HAZARDOUS_ICON_APPROX, () => drawWasteHazardousIcon(true)],
         [WASTE_ECO_STATION_ICON, () => drawWasteEcoStationIcon(false)],
@@ -2998,7 +3037,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       src?.setData?.(data)
     }
     setData(WASTE_SOURCE_ID, buildWasteFeatures(transitData.waste, wasteExtras))
-    setData(WASTE_BUILDINGS_SOURCE_ID, buildWasteBuildingFeatures(wasteExtras.incinerator ?? null))
+    setData(
+      WASTE_BUILDINGS_SOURCE_ID,
+      buildWasteBuildingFeatures(wasteExtras.incinerator ?? null, wasteExtras.facilities),
+    )
     setData(WASTE_AREAS_SOURCE_ID, buildWasteAreaFeatures(wasteExtras.facilities))
   }, [transitData.waste, wasteExtras])
 

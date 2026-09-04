@@ -16,6 +16,7 @@ import {
   ToiletsFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
+  DspaStatsFileSchema,
   WaterFacilitiesFileSchema,
   WaterDistributionFileSchema,
   PowerFacilitiesFileSchema,
@@ -60,6 +61,7 @@ describe('committed data files satisfy their schemas', () => {
   it('toilets.json', () => expectValid(ToiletsFileSchema, 'toilets.json'))
   it('car-parks.json', () => expectValid(CarParksFileSchema, 'car-parks.json'))
   it('waste.json', () => expectValid(WasteFileSchema, 'waste.json'))
+  it('dspa-stats.json', () => expectValid(DspaStatsFileSchema, 'dspa-stats.json'))
   it('water-facilities.json', () => expectValid(WaterFacilitiesFileSchema, 'water-facilities.json'))
   it('water-distribution.json', () => expectValid(WaterDistributionFileSchema, 'water-distribution.json'))
   it('power-facilities.json', () => expectValid(PowerFacilitiesFileSchema, 'power-facilities.json'))

@@ -57,7 +57,9 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 
 ### WASTE：複合列，但數字會動
 
-垃圾回收列是第二個複合列，同一招：本體展開/收合、右側 ON/OFF 是總開關（`onToggleWaste`——這顆開關同時是 WASTE 專注模式的進出開關，見下面「localStorage key」之後的專注模式說明；展開/收合狀態是另一個獨立的 `wasteLegendOpen`，存 `mm-waste-legend-open`，預設展開）。跟 SCHOOLS 的差異：十一個子列只在 `wasteOn && wasteLegendOpen` 都成立時才渲染，不是本體一展開就看得到——WASTE 預設關，關著的時候看子列沒有意義。列本身的數字也會動：十一列全開時顯示總數 1,171，只要關掉任一列就換成 `可見/總數`，提醒使用者現在看到的不是全部（`wasteTypesAllOn` 判斷）。子列同樣是「色塊、標籤、數量、ON/OFF」，順序固定為 [`WASTE_LAYER_TYPES`](../../src/waste.ts)——九種收集點（[`WASTE_TYPES`](../../src/waste.ts)：垃圾房、壓縮式垃圾收集點、垃圾站、智能回收機、三色資源回收點、電腦及通訊設備回收點、光管及電池回收點、玻璃樽回收點、衣物回收點）之後接環保加Fun站（`eco_station`，10 個 DSPA 回收站）、處理設施（`facility`，焚化中心＋特殊和危險廢物處理站＋兩個堆填區合計 4 個，一個開關一起收放）。這兩列不是收集點，`countWasteByType` 用單獨的算式湊數（`facility` 是「焚化中心存不存在」加堆填區／危廢站的筆數）。隱藏的列存進同一把 `mini-macau-waste-types`（[`loadHiddenWasteTypes`/`saveHiddenWasteTypes`](../../src/waste.ts)，JSON 陣列，壞資料或沒有存檔一律退回預設（七個回收列隱藏），未知 id 一律忽略——新增列不會被舊存檔誤關）。行動版 WASTE modal 跟 SCHOOLS 一樣把十一個子列直接攤平。
+垃圾回收列是第二個複合列，同一招：本體展開/收合、右側 ON/OFF 是總開關（`onToggleWaste`——這顆開關同時是 WASTE 專注模式的進出開關，見下面「localStorage key」之後的專注模式說明；展開/收合狀態是另一個獨立的 `wasteLegendOpen`，存 `mm-waste-legend-open`，預設展開）。跟 SCHOOLS 的差異：十二個子列只在 `wasteOn && wasteLegendOpen` 都成立時才渲染，不是本體一展開就看得到——WASTE 預設關，關著的時候看子列沒有意義。列本身的數字也會動：十二列全開時顯示總數 1,176，只要關掉任一列就換成 `可見/總數`，提醒使用者現在看到的不是全部（`wasteTypesAllOn` 判斷）。子列同樣是「色塊、標籤、數量、ON/OFF」，順序固定為 [`WASTE_LAYER_TYPES`](../../src/waste.ts)——九種收集點（[`WASTE_TYPES`](../../src/waste.ts)：垃圾房、壓縮式垃圾收集點、垃圾站、智能回收機、三色資源回收點、電腦及通訊設備回收點、光管及電池回收點、玻璃樽回收點、衣物回收點）之後接環保加Fun站（`eco_station`，10 個 DSPA 回收站）、處理設施（`facility`，焚化中心＋特殊和危險廢物處理站＋兩個堆填區合計 4 個）、污水處理廠（`wwtp`，5 座 DSPA 污水處理廠——跟處理設施分開一列，而且**預設顯示**，因為污水不是垃圾，不該讓「垃圾去哪了」這個問題順手把處理污水的廠也關掉）。後三列不是收集點，`countWasteByType` 用單獨的算式湊數（`facilities[]` 先按 `kind` 拆成 `wwtp` 跟其餘，`facility` 再加上焚化中心那 1 筆）。隱藏的列存進同一把 `mini-macau-waste-types`（[`loadHiddenWasteTypes`/`saveHiddenWasteTypes`](../../src/waste.ts)，JSON 陣列，壞資料或沒有存檔一律退回預設——七個回收/環保站列隱藏，垃圾房、壓縮式垃圾收集點、垃圾站、處理設施、污水處理廠預設顯示）。新增預設隱藏列時的遷移另用一把 `mini-macau-waste-types-seen` 記這個瀏覽器已經套用過哪些預設隱藏 id：`DEFAULT_HIDDEN_WASTE_TYPES` 之後如果再多一個，沒看過的訪客會被自動補上一次（且僅一次）隱藏，訪客自己切過的列永遠不會被這套遷移覆蓋——`wwtp` 不在預設隱藏清單裡，不會觸發這套遷移，單純跟垃圾房一樣一開始就顯示。行動版 WASTE modal 跟 SCHOOLS 一樣把十二個子列直接攤平。
+
+每個處理設施／污水廠面板的統計圖表共用同一個 [`StatsChart`](../../src/components/StatsChart.tsx) 元件（title、latest-month chip、12 根月度長條、y 軸 0／一半／取整最大值三個刻度、gridline、逐條 tooltip、最新一根特別標示），換算與軸刻度規則在 [`src/dspaStats.ts`](../../src/dspaStats.ts)：`statsAxisMax`／`statsAxisStep` 把峰值無條件進位到 1／2／5 × 10ⁿ 的「整數」刻度（噸級抓萬、立方米級抓十萬到百萬），避免十二根高度相近的柱子被放大成鋸齒狀假趨勢——這幾個 series 本來就是月月差不多的平穩量，軸不能跟著資料範圍縮放。沒有 published series 的設施（九澳飛灰堆填區、機場污水廠）走 `StatsUnavailable`，印一行「沒有公開統計」而不是空白圖表或缺角的軸線。
 
 ### 行動版：chip 疊 + CITY chip
 
@@ -87,7 +89,8 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-carparks-on` | P 總開關 | 關 |
 | `mini-macau-waste-on` | WASTE 總開關（專注模式） | 關 |
 | `mini-macau-waste-focus-snapshot` | WASTE 開啟前其他圖層的可見狀態快照（JSON） | 無 |
-| `mini-macau-waste-types` | 隱藏的垃圾回收子類型（九選，key 為 type id） | 回收類預設隱藏：`smart_machine`、`three_colour`、`e_waste`、`lamp_battery`、`glass`、`clothing`、`eco_station`；垃圾房、壓縮式垃圾收集點、垃圾站、處理設施預設顯示 |
+| `mini-macau-waste-types` | 隱藏的垃圾回收子類型（十二選，key 為 type id） | 回收類預設隱藏：`smart_machine`、`three_colour`、`e_waste`、`lamp_battery`、`glass`、`clothing`、`eco_station`；垃圾房、壓縮式垃圾收集點、垃圾站、處理設施、污水處理廠預設顯示 |
+| `mini-macau-waste-types-seen` | 這個瀏覽器已經套用過的預設隱藏列 id；之後新增的預設隱藏列（例如第三輪的玻璃樽／衣物）對舊訪客也會先隱藏一次，訪客自己切過的不動 | 無（第一次載入時寫入） |
 | `mini-macau-water-on` | WATER 總開關（專注模式） | 關 |
 | `mini-macau-water-focus-snapshot` | WATER 開啟前其他圖層的可見狀態快照（JSON） | 無 |
 | `mini-macau-power-on` | POWER 總開關（專注模式） | 關 |

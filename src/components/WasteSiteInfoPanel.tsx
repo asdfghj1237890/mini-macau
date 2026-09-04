@@ -1,28 +1,32 @@
 import type { ReactNode } from 'react'
 import { useI18n } from '../i18n'
 import type {
+  DspaStats,
   PowerFacility,
   WasteEcoStation,
   WasteFacility,
-  WasteIncineratorStats,
   WasteSite,
   WasteSource,
   WasteText,
 } from '../types'
+import { StatsChart, StatsUnavailable } from './StatsChart'
+import {
+  formatStatsAmount,
+  formatStatsValue,
+  pickReceivedT,
+  pickTotalM3,
+  pickVolumeM3,
+  seriesForKey,
+} from '../dspaStats'
 import {
   WASTE_COLORS,
   WASTE_ECO_STATION_COLOR,
-  WASTE_HAZARDOUS_COLOR,
   WASTE_INCINERATOR_COLOR,
-  WASTE_LANDFILL_COLOR,
   WASTE_IAM_MAP_URL,
-  formatWasteAmount,
   pickWasteText,
-  wasteAxisMax,
-  wasteAxisTicks,
   wasteAgency,
+  wasteFacilityColor,
   wasteFromIamMap,
-  wasteMonthBars,
   wasteSourceForType,
   wasteTypeLabel,
 } from '../waste'
@@ -230,20 +234,23 @@ export function WasteSiteInfoPanel({ site, sources, onClose }: Props) {
 export function WasteIncineratorInfoPanel(
   { facility, stats, onClose }: {
     facility: PowerFacility
-    // The plant's published monthly throughput. Null when waste.json predates
-    // the block or the upstream call failed, in which case the panel simply
-    // shows no stats rather than an empty chart.
-    stats?: WasteIncineratorStats | null
+    // DSPA's whole statistics file. Null when dspa-stats.json has not landed or
+    // failed to load, in which case the panel shows no chart and no facts
+    // rather than an empty one.
+    stats?: DspaStats | null
     onClose: () => void
   },
 ) {
   const { lang, t } = useI18n()
   const title = pickWasteText(facility.name, lang)
   const subtitle = otherScript(facility.name, lang, title)
-  const latest = stats?.latest ?? null
-  const facts = stats?.facts ?? null
-  const bars = wasteMonthBars(stats?.months)
-  const axisTicks = wasteAxisTicks(wasteAxisMax(stats?.months))
+  // Both halves used to live in waste.json; they now come from the shared DSPA
+  // statistics file, and the panel simply shows less when it has not landed.
+  const series = stats?.incinerator ?? null
+  const latest = series?.latest ?? null
+  const unit = series?.unit ?? 't'
+  // The plant's scale rides on its own series rather than the file root.
+  const facts = series?.facts ?? null
 
   return (
     <Shell
@@ -284,125 +291,26 @@ export function WasteIncineratorInfoPanel(
       </div>
 
       {/* Throughput. The plant is the one place in this overlay where a NUMBER
-          is the story — how much refuse a city of 700,000 actually produces —
-          so: the latest published month, the plant's own scale, and a year of
-          received tonnes as a bar strip. Plain divs; a chart library for twelve
-          bars would cost more than the whole panel. */}
-      {(latest || facts || bars.length > 0) && (
-        <div className="px-3 py-2 border-t border-white/8 bg-white/[0.02] space-y-1.5">
-          <div className="flex items-baseline justify-between gap-2">
-            <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">
-              {t.wasteStats}
-            </span>
-            {latest && (
-              <span className="mm-mono text-[8px] tracking-wider text-white/35">
-                {t.wasteStatsLatest(latest.period)}
-              </span>
-            )}
-          </div>
-          {latest && (
-            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[10px] mm-han">
-              <span className="text-white/45">
-                {t.wasteStatsReceived}{' '}
-                <span className="mm-mono mm-tabular text-lime-200">
-                  {t.wasteStatsTonnes(formatWasteAmount(latest.receivedT))}
-                </span>
-              </span>
-              <span className="text-white/45">
-                {t.wasteStatsElectricity}{' '}
-                <span className="mm-mono mm-tabular text-lime-200">
-                  {t.wasteStatsMwh(formatWasteAmount(latest.electricityMwh))}
-                </span>
-              </span>
-              <span className="text-white/45">
-                {t.wasteStatsMetal}{' '}
-                <span className="mm-mono mm-tabular text-lime-200">
-                  {t.wasteStatsTonnes(formatWasteAmount(latest.metalRecycledT))}
-                </span>
-              </span>
-            </div>
-          )}
-          {facts && (
-            <div className="text-[9px] leading-[1.4] text-white/40 mm-han">
-              {t.wasteStatsFacts(
-                t.wasteStatsPhases(facts.phases.join(' / ')),
-                facts.lines,
-                formatWasteAmount(facts.capacityTPerDay),
-                facts.generationMw,
-              )}
-            </div>
-          )}
-          {bars.length > 0 && (
-            <div className="pt-0.5">
-              {/* A zero-based axis, not a data-range one. The plant runs at a
-                  steady ~58–62 kt a month, so scaling twelve bars to the data
-                  range would magnify a 6 % spread into a full-height sawtooth
-                  and invite the reader to see a trend that is not there. The
-                  ticks (max / half / 0) and the gridlines behind the bars are
-                  what let "they are all about the same" be read off the chart.
-                  Plain divs: the gutter is a fixed 22 px, the plot fills the
-                  rest, and both stay inside the 340 px card on a phone. */}
-              <div className="flex items-stretch gap-1">
-                <div className="relative w-[22px] shrink-0 h-[44px]">
-                  {axisTicks.map(tick => (
-                    <span
-                      key={tick.value}
-                      className="absolute right-0 mm-mono mm-tabular text-[6px] text-white/30
-                                 leading-none -translate-y-1/2"
-                      style={{ top: `${tick.offset}%` }}
-                    >
-                      {tick.label}
-                    </span>
-                  ))}
-                </div>
-                <div className="relative flex-1 min-w-0 h-[44px]">
-                  {axisTicks.map(tick => (
-                    <span
-                      key={tick.value}
-                      className="absolute left-0 right-0 border-t border-white/10"
-                      style={{ top: `${tick.offset}%` }}
-                      aria-hidden="true"
-                    />
-                  ))}
-                  <div className="absolute inset-0 flex items-end gap-[3px]">
-                    {bars.map(bar => (
-                      <div
-                        key={bar.period}
-                        className={`flex-1 rounded-[1px] ${
-                          bar.latest ? 'bg-lime-300/85' : 'bg-lime-300/40'}`}
-                        style={{ height: `${bar.percent}%` }}
-                        title={`${bar.period} · ${t.wasteStatsTonnes(formatWasteAmount(bar.value))}`}
-                      />
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-[3px] pt-[2px] pl-[26px]">
-                {bars.map(bar => (
-                  <span
-                    key={bar.period}
-                    className={`flex-1 mm-mono mm-tabular text-[6px] text-center
-                                ${bar.latest ? 'text-lime-200/70' : 'text-white/25'}`}
-                  >
-                    {bar.label}
-                  </span>
-                ))}
-              </div>
-              <div className="pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
-                {t.wasteStatsMonthsAxis(t.wasteStatsUnitTonnes)}
-              </div>
-            </div>
-          )}
-          {stats?.url && (
-            <a
-              href={stats.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-block mm-mono text-[8px] tracking-wider text-white/40
-                         hover:text-lime-200 transition-colors"
-            >
-              data.gov.mo
-            </a>
+          is the story — how much refuse a city of 700,000 actually produces.
+          The chart itself is shared with every other DSPA series (see
+          StatsChart), so tonnes and cubic metres round and scale alike. */}
+      <StatsChart
+        title={t.statsThroughput}
+        series={series}
+        pick={pickReceivedT}
+        chips={latest ? [
+          { label: t.statsReceived, value: formatStatsValue(t, latest.receivedT, unit) },
+          { label: t.wasteStatsElectricity, value: t.wasteStatsMwh(formatStatsAmount(latest.electricityMwh)) },
+          { label: t.wasteStatsMetal, value: formatStatsValue(t, latest.metalRecycledT, unit) },
+        ] : []}
+      />
+      {facts && (
+        <div className="px-3 pb-2 text-[9px] leading-[1.4] text-white/40 mm-han">
+          {t.wasteStatsFacts(
+            t.wasteStatsPhases(facts.phases.join(' / ')),
+            facts.lines,
+            formatStatsAmount(facts.capacityTPerDay),
+            facts.generationMw,
           )}
         </div>
       )}
@@ -464,19 +372,57 @@ export function WasteEcoStationInfoPanel(
 // landfill outlines come from OSM, so each record is credited on its own rather
 // than from the shared `sources` list.
 export function WasteFacilityInfoPanel(
-  { facility, onClose }: { facility: WasteFacility; onClose: () => void },
+  { facility, stats, onClose }: {
+    facility: WasteFacility
+    // DSPA's whole statistics file; the facility names its own series through
+    // `statsKey`, so the panel never has to know the file's shape.
+    stats?: DspaStats | null
+    onClose: () => void
+  },
 ) {
   const { lang, t } = useI18n()
   const title = pickWasteText(facility.name, lang)
   const subtitle = otherScript(facility.name, lang, title)
   const note = pickWasteText(facility.note, lang)
   const isLandfill = facility.kind === 'landfill'
+  const isWwtp = facility.kind === 'wwtp'
   const osmId = facility.osm?.[0]
+
+  // The chart. Each kind plots a different measure of the same shape of series,
+  // and a facility DSPA publishes nothing for (the Ká-Hó ash landfill, the
+  // airport station) says so rather than showing an empty frame.
+  const series = seriesForKey(stats, facility.statsKey)
+  const latest = series?.latest ?? null
+  const unit = series?.unit ?? (isWwtp || isLandfill ? 'm3' : 't')
+  const chartTitle = isWwtp ? t.statsTreatedVolume
+    : isLandfill ? t.statsLandfilled
+      : t.statsThroughput
+  // The peninsula plant is the one with two published halves — a preliminary
+  // stream and a biological one — which is why its chips differ from the rest.
+  const chips: { label: string; value: string }[] = []
+  if (latest) {
+    if (isWwtp) {
+      if (typeof latest.basicM3 === 'number') {
+        chips.push({ label: t.statsBasic, value: formatStatsValue(t, latest.basicM3, unit) })
+      }
+      if (typeof latest.biologicalM3 === 'number') {
+        chips.push({ label: t.statsBiological, value: formatStatsValue(t, latest.biologicalM3, unit) })
+      }
+      chips.push({ label: t.statsTotal, value: formatStatsValue(t, latest.totalM3, unit) })
+    } else if (isLandfill) {
+      chips.push({ label: t.statsTotal, value: formatStatsValue(t, latest.volumeM3, unit) })
+    } else {
+      chips.push({ label: t.statsReceived, value: formatStatsValue(t, latest.receivedT, unit) })
+      if (typeof latest.processedT === 'number') {
+        chips.push({ label: t.statsProcessed, value: formatStatsValue(t, latest.processedT, unit) })
+      }
+    }
+  }
 
   return (
     <Shell
-      color={isLandfill ? WASTE_LANDFILL_COLOR : WASTE_HAZARDOUS_COLOR}
-      kindLabel={isLandfill ? t.wasteKindLandfill : t.wasteKindHazardous}
+      color={wasteFacilityColor(facility)}
+      kindLabel={isWwtp ? t.wasteTypeWwtp : isLandfill ? t.wasteKindLandfill : t.wasteKindHazardous}
       title={title}
       subtitle={subtitle}
       onClose={onClose}
@@ -506,6 +452,15 @@ export function WasteFacilityInfoPanel(
         </>
       }
     >
+      {/* Who runs it. The sewage works are DSPA's by definition, so the row is
+          keyed on the kind rather than on an `operator` field the file need not
+          carry — naming the bureau is the whole point of it: these are
+          government works, not the concessionaire's. */}
+      {(isWwtp || facility.operator) && (
+        <div className="px-3 py-2 space-y-1">
+          <Row label={t.wasteOperator} value={t.wasteOperatorDspa} />
+        </div>
+      )}
       {note && (
         <div className="px-3 py-2 text-[10px] leading-[1.45] text-white/60 mm-han">
           {note}
@@ -518,6 +473,19 @@ export function WasteFacilityInfoPanel(
             {t.wasteApproximate}
           </span>
         </div>
+      )}
+      {series ? (
+        <StatsChart
+          title={chartTitle}
+          series={series}
+          pick={isWwtp ? pickTotalM3 : isLandfill ? pickVolumeM3 : pickReceivedT}
+          chips={chips}
+          accentClass={isWwtp ? 'text-violet-200' : 'text-white/80'}
+          barClass={isWwtp ? 'bg-violet-300' : 'bg-white/70'}
+        />
+      ) : (
+        // Say so, rather than leaving a gap that reads as a loading failure.
+        <StatsUnavailable title={chartTitle} />
       )}
     </Shell>
   )

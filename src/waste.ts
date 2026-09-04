@@ -10,7 +10,6 @@ import type {
   PowerFacility,
   WasteEcoStation,
   WasteFacility,
-  WasteIncineratorMonth,
   WasteSite,
   WasteSiteType,
   WasteSource,
@@ -103,6 +102,12 @@ export const WASTE_ECO_STATION_COLOR = '#86efac'
 // landfills, toggled together.
 export const WASTE_FACILITY_ID = 'facility'
 
+// The five DSPA sewage works. Their own row rather than part of 處理設施: they
+// treat water, not refuse, and a reader looking for "where does my rubbish go"
+// should not have to switch them off to answer it.
+export const WASTE_WWTP_ID = 'wwtp'
+export const WASTE_WWTP_COLOR = '#a78bfa'
+
 // Per-kind colours inside that row. The station is a warning red-orange; the
 // landfills are the same stone the polygons are filled with.
 export const WASTE_HAZARDOUS_COLOR = '#fb7185'
@@ -115,11 +120,18 @@ export const WASTE_AREA_FILL_OPACITY = 0.35
 // Every togglable row of the WASTE key: the seven site types, the eco stations
 // and the treatment facilities.
 export type WasteLayerType =
-  | WasteSiteType | typeof WASTE_ECO_STATION_ID | typeof WASTE_FACILITY_ID
+  | WasteSiteType
+  | typeof WASTE_ECO_STATION_ID | typeof WASTE_FACILITY_ID | typeof WASTE_WWTP_ID
 
 export const WASTE_LAYER_TYPES: readonly WasteLayerType[] = [
-  ...WASTE_TYPES, WASTE_ECO_STATION_ID, WASTE_FACILITY_ID,
+  ...WASTE_TYPES, WASTE_ECO_STATION_ID, WASTE_FACILITY_ID, WASTE_WWTP_ID,
 ] as const
+
+// Which key row a treatment facility belongs to: the sewage works have their
+// own, everything else shares 處理設施 with the incineration plant.
+export function wasteFacilityRow(facility: WasteFacility): WasteLayerType {
+  return facility.kind === 'wwtp' ? WASTE_WWTP_ID : WASTE_FACILITY_ID
+}
 
 // Registered MapLibre images for the marks that are not collection points.
 // Same naming rule as `wasteIconName`, so the addImage loop and the symbol
@@ -132,14 +144,23 @@ export const WASTE_HAZARDOUS_ICON = 'waste-hazardous'
 export const WASTE_HAZARDOUS_ICON_APPROX = `${WASTE_HAZARDOUS_ICON}-approx`
 export const WASTE_ECO_STATION_ICON = `waste-${WASTE_ECO_STATION_ID}`
 export const WASTE_ECO_STATION_ICON_APPROX = `${WASTE_ECO_STATION_ICON}-approx`
+export const WASTE_WWTP_ICON = `waste-${WASTE_WWTP_ID}`
 
 export function wasteEcoStationIcon(approximate: boolean): string {
   return approximate ? WASTE_ECO_STATION_ICON_APPROX : WASTE_ECO_STATION_ICON
 }
 
 export function wasteFacilityIcon(facility: WasteFacility): string {
+  if (facility.kind === 'wwtp') return WASTE_WWTP_ICON
   if (facility.kind === 'landfill') return WASTE_LANDFILL_ICON
   return facility.approximate ? WASTE_HAZARDOUS_ICON_APPROX : WASTE_HAZARDOUS_ICON
+}
+
+// The colour a facility's marker plate, blocks and panel accent share.
+export function wasteFacilityColor(facility: WasteFacility): string {
+  if (facility.kind === 'wwtp') return WASTE_WWTP_COLOR
+  if (facility.kind === 'landfill') return WASTE_LANDFILL_COLOR
+  return WASTE_HAZARDOUS_COLOR
 }
 
 // Collision priority for the non-collection marks. NEGATIVE, so all fourteen of
@@ -204,6 +225,7 @@ export function pickWasteText(field: WasteText | null | undefined, lang: Lang): 
 // so the three UI languages stay consistent.
 export function wasteTypeLabel(t: Translations, type: WasteLayerType): string {
   switch (type) {
+    case WASTE_WWTP_ID: return t.wasteTypeWwtp
     case WASTE_FACILITY_ID: return t.wasteTypeFacility
     case WASTE_ECO_STATION_ID: return t.wasteTypeEcoStation
     case 'refuse_room': return t.wasteTypeRefuseRoom
@@ -245,6 +267,30 @@ export const DEFAULT_HIDDEN_WASTE_TYPES: WasteTypeSet = new Set<WasteLayerType>(
 
 // localStorage key for the hidden types (a JSON array of type ids).
 export const LS_WASTE_TYPES_KEY = 'mini-macau-waste-types'
+// The default-hidden ids this browser has already been shown. A row that is
+// added to DEFAULT_HIDDEN_WASTE_TYPES later starts hidden for returning
+// visitors too — their stored set predates the row and cannot have an opinion
+// about it — while everything they toggled themselves is kept.
+export const LS_WASTE_TYPES_SEEN_KEY = 'mini-macau-waste-types-seen'
+
+function readIdList(key: string): WasteLayerType[] | null {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return null
+    const arr: unknown = JSON.parse(raw)
+    if (!Array.isArray(arr)) return null
+    return WASTE_LAYER_TYPES.filter(type => arr.includes(type))
+  } catch {
+    return null
+  }
+}
+
+function writeIdList(key: string, ids: Iterable<WasteLayerType>): void {
+  try {
+    const set = new Set(ids)
+    localStorage.setItem(key, JSON.stringify(WASTE_LAYER_TYPES.filter(type => set.has(type))))
+  } catch { /* ignore */ }
+}
 
 // Sites whose type is not hidden. With nothing hidden the input array is
 // returned as-is, so the caller's memo keeps its identity and MapView skips a
@@ -279,8 +325,12 @@ export function countWasteByType(
     if (site.type in counts) counts[site.type] += 1
   }
   counts[WASTE_ECO_STATION_ID] = bag.ecoStations?.length ?? 0
+  // The two destination rows split the same `facilities` array by kind, and the
+  // incineration plant (a POWER record) counts towards 處理設施.
+  const facilities = bag.facilities ?? []
+  counts[WASTE_WWTP_ID] = facilities.filter(f => f.kind === 'wwtp').length
   counts[WASTE_FACILITY_ID] =
-    (bag.incinerator ? 1 : 0) + (bag.facilities?.length ?? 0)
+    (bag.incinerator ? 1 : 0) + facilities.length - counts[WASTE_WWTP_ID]
   return counts
 }
 
@@ -318,39 +368,52 @@ export function visibleWasteEcoStations(
   return stations
 }
 
-// The treatment facilities share the plant's row, so one toggle empties both.
+// The treatment facilities are filtered by the row each one belongs to: 處理設施
+// covers the station and the landfills (with the incineration plant), 污水處理廠
+// the five sewage works. With both rows on the input array is returned as-is, so
+// the caller's memo keeps its identity and MapView skips a needless setData.
 export function visibleWasteFacilities(
   facilities: WasteFacility[] | undefined,
   hidden: WasteTypeSet,
 ): WasteFacility[] {
-  if (!facilities?.length || hidden.has(WASTE_FACILITY_ID)) return NO_FACILITIES
-  return facilities
+  if (!facilities?.length) return NO_FACILITIES
+  const treatmentOff = hidden.has(WASTE_FACILITY_ID)
+  const wwtpOff = hidden.has(WASTE_WWTP_ID)
+  if (treatmentOff && wwtpOff) return NO_FACILITIES
+  if (!treatmentOff && !wwtpOff) return facilities
+  return facilities.filter(f => !hidden.has(wasteFacilityRow(f)))
 }
 
 // Restore the hidden types. Anything unreadable, non-array or naming unknown
 // types degrades to "nothing hidden" rather than emptying the layer.
 export function loadHiddenWasteTypes(): WasteTypeSet {
-  try {
-    const raw = localStorage.getItem(LS_WASTE_TYPES_KEY)
-    if (!raw) return DEFAULT_HIDDEN_WASTE_TYPES
-    const arr: unknown = JSON.parse(raw)
-    if (!Array.isArray(arr)) return DEFAULT_HIDDEN_WASTE_TYPES
-    return new Set(WASTE_LAYER_TYPES.filter(type => arr.includes(type)))
-  } catch {
+  const stored = readIdList(LS_WASTE_TYPES_KEY)
+  if (stored === null) {
+    writeIdList(LS_WASTE_TYPES_SEEN_KEY, DEFAULT_HIDDEN_WASTE_TYPES)
     return DEFAULT_HIDDEN_WASTE_TYPES
   }
+  // Defaults this browser has not been shown yet (a stored set from before
+  // the row existed) are applied on top of what the visitor chose.
+  const seen = new Set(readIdList(LS_WASTE_TYPES_SEEN_KEY) ?? [])
+  const hidden = new Set<WasteLayerType>(stored)
+  let changed = false
+  for (const type of DEFAULT_HIDDEN_WASTE_TYPES) {
+    if (!seen.has(type)) { hidden.add(type); changed = true }
+  }
+  if (changed) {
+    writeIdList(LS_WASTE_TYPES_SEEN_KEY, DEFAULT_HIDDEN_WASTE_TYPES)
+    writeIdList(LS_WASTE_TYPES_KEY, hidden)
+  }
+  return hidden
 }
 
 // Persist the hidden types, in WASTE_TYPES order so the stored value is stable.
 // Storage can throw (private mode, quota) — losing the preference is never
 // worth breaking the toggle.
 export function saveHiddenWasteTypes(hidden: WasteTypeSet): void {
-  try {
-    localStorage.setItem(
-      LS_WASTE_TYPES_KEY,
-      JSON.stringify(WASTE_LAYER_TYPES.filter(type => hidden.has(type)))
-    )
-  } catch { /* ignore */ }
+  writeIdList(LS_WASTE_TYPES_KEY, hidden)
+  // A visitor who toggles has seen every current default; never re-apply them.
+  writeIdList(LS_WASTE_TYPES_SEEN_KEY, DEFAULT_HIDDEN_WASTE_TYPES)
 }
 
 // ---------------------------------------------------------------------------
@@ -367,6 +430,7 @@ export interface WasteLegendRow {
 
 // The swatch colour for a key row.
 export function wasteLayerColor(type: WasteLayerType): string {
+  if (type === WASTE_WWTP_ID) return WASTE_WWTP_COLOR
   if (type === WASTE_FACILITY_ID) return WASTE_INCINERATOR_COLOR
   if (type === WASTE_ECO_STATION_ID) return WASTE_ECO_STATION_COLOR
   return WASTE_COLORS[type]
@@ -417,6 +481,7 @@ export function wasteSelectionType(selection: WasteSelection): WasteLayerType {
   switch (selection.kind) {
     case 'site': return selection.site.type
     case 'ecoStation': return WASTE_ECO_STATION_ID
+    case 'facility': return wasteFacilityRow(selection.facility)
     default: return WASTE_FACILITY_ID
   }
 }
@@ -479,7 +544,9 @@ export function buildWasteFeatures(
     // polygon or the mound opens the same panel.
     point(facility.coordinates, {
       id: facility.id,
-      type: WASTE_FACILITY_ID,
+      // The row this mark belongs to, so a feature says which toggle owns it —
+      // the sewage works are 污水處理廠, everything else 處理設施.
+      type: wasteFacilityRow(facility),
       icon: wasteFacilityIcon(facility),
       closed: false,
       sortKey: WASTE_FACILITY_SORT_KEY,
@@ -519,104 +586,50 @@ export function buildWasteAreaFeatures(
   return { type: 'FeatureCollection', features }
 }
 
-// ---------------------------------------------------------------------------
-// Incinerator statistics, for the plant panel's stats block.
-// ---------------------------------------------------------------------------
-
-// A published tonnage/MWh figure as the panel prints it: thousands separated,
-// no decimals. These are monthly totals in the tens of thousands — the two
-// decimal places upstream publishes are noise at that scale.
-export function formatWasteAmount(value: number): string {
-  if (!Number.isFinite(value)) return '—'
-  return Math.round(value).toLocaleString('en-US')
-}
-
-// "2026-06" → the label under a bar. Kept numeric so it reads the same in all
-// three UI languages.
-export function wasteMonthLabel(period: string): string {
-  const m = /^(\d{4})-(\d{2})$/.exec(period)
-  return m ? `${m[2]}` : period
-}
-
-// The axis the bar strip is drawn against. Twelve months of a plant running at
-// a steady ~58–62 kt are twelve nearly identical bars, and scaling them to the
-// DATA range would turn a 6 % spread into a 100 % one — a chart that lies. So
-// the strip is drawn against a fixed zero-based axis whose top is the data max
-// rounded UP to the next 10,000 t, which is what makes "they are all about the
-// same" the honest reading.
-export const WASTE_AXIS_STEP_T = 10000
-
-export function wasteAxisMax(months: WasteIncineratorMonth[] | undefined): number {
-  const peak = (months ?? []).reduce((m, r) => Math.max(m, r.receivedT || 0), 0)
-  if (!(peak > 0)) return WASTE_AXIS_STEP_T
-  return Math.ceil(peak / WASTE_AXIS_STEP_T) * WASTE_AXIS_STEP_T
-}
-
-// A tick label: 60000 → "60k", 500 → "500", 0 → "0". Thousands only, because
-// the axis step is 10,000 and three labels have to fit a ~22 px gutter.
-export function formatWasteAxisTick(value: number): string {
-  if (!Number.isFinite(value) || value <= 0) return '0'
-  if (value % 1000 === 0) return `${value / 1000}k`
-  return formatWasteAmount(value)
-}
-
-// The three ticks, top-first: the axis max, its half, and zero. `offset` is the
-// distance from the TOP of the plot as a percentage, so a gridline and its
-// label can share one `top` value.
-export function wasteAxisTicks(max: number): { value: number; label: string; offset: number }[] {
-  const top = max > 0 ? max : WASTE_AXIS_STEP_T
-  return [top, top / 2, 0].map(value => ({
-    value,
-    label: formatWasteAxisTick(value),
-    offset: ((top - value) / top) * 100,
-  }))
-}
-
-// Each month's bar height as a percentage of the AXIS max (never of the data
-// max). A month with a real but tiny figure keeps a 2 % stub so it reads as a
-// bar rather than a gap; a true zero draws nothing, which is the truth.
-// `latest` marks the newest month, which the panel emphasises.
-export function wasteMonthBars(
-  months: WasteIncineratorMonth[] | undefined,
-): { period: string; label: string; value: number; percent: number; latest: boolean }[] {
-  const rows = months ?? []
-  const max = wasteAxisMax(rows)
-  return rows.map((r, i) => ({
-    period: r.period,
-    label: wasteMonthLabel(r.period),
-    value: r.receivedT,
-    percent: r.receivedT > 0 ? Math.max(2, Math.round((r.receivedT / max) * 100)) : 0,
-    latest: i === rows.length - 1,
-  }))
-}
-
-// The plant's 11 footprints as extrusion polygons — deliberately the same
-// contract as `buildPowerBuildingFeatures` (the record IS a POWER record), so
-// the waste blocks share the schools/water/power +2 m margin and z14→15.5
-// height ramp. `facilityId` doubles as the promoted feature id used for the
-// selection highlight. Null (layer off, type hidden, file missing) draws
-// nothing rather than an empty-geometry warning per tile.
+// Every extruded footprint the WASTE layer draws: the incineration plant's 11
+// (a POWER record) and the sewage works' own. Deliberately the same contract as
+// `buildPowerBuildingFeatures`, so the waste blocks share the
+// schools/water/power +2 m margin and z14→15.5 height ramp. `facilityId`
+// doubles as the promoted feature id used for the selection highlight, and each
+// block is coloured by the kind it belongs to. Nothing to draw (layer off, row
+// hidden, file missing) yields an empty collection rather than an
+// empty-geometry warning per tile.
 export const WASTE_BUILDING_HEIGHT_MARGIN_M = 2
 export const WASTE_FEATURE_ID_PROPERTY = 'facilityId'
 
 export function buildWasteBuildingFeatures(
   incinerator: PowerFacility | null,
+  facilities?: WasteFacility[],
 ): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = []
-  for (const building of incinerator?.buildings ?? []) {
-    const rings = building.coordinates
-    if (!rings?.length || !rings[0]?.length) continue
-    features.push({
-      type: 'Feature',
-      geometry: { type: 'Polygon', coordinates: rings },
-      properties: {
-        facilityId: WASTE_INCINERATOR_ID,
-        color: WASTE_INCINERATOR_COLOR,
-        height: building.height + WASTE_BUILDING_HEIGHT_MARGIN_M,
-        minHeight: building.minHeight,
-        name: building.name,
-      },
-    })
+  const push = (
+    id: string, color: string,
+    buildings: readonly { name: string | null; height: number; minHeight: number;
+      coordinates: [number, number][][] }[],
+  ) => {
+    for (const building of buildings) {
+      const rings = building.coordinates
+      if (!rings?.length || !rings[0]?.length) continue
+      features.push({
+        type: 'Feature',
+        geometry: { type: 'Polygon', coordinates: rings },
+        properties: {
+          facilityId: id,
+          color,
+          height: building.height + WASTE_BUILDING_HEIGHT_MARGIN_M,
+          minHeight: building.minHeight,
+          name: building.name,
+        },
+      })
+    }
+  }
+  // The incineration plant, whose footprints are a POWER record.
+  push(WASTE_INCINERATOR_ID, WASTE_INCINERATOR_COLOR, incinerator?.buildings ?? [])
+  // Every treatment facility that carries footprints — today the five sewage
+  // works. The landfills are areas instead and the station has no outline, so
+  // both simply contribute nothing here.
+  for (const facility of facilities ?? []) {
+    push(facility.id, wasteFacilityColor(facility), facility.buildings ?? [])
   }
   return { type: 'FeatureCollection', features }
 }

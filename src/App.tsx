@@ -1114,7 +1114,7 @@ export default function App() {
         {selectedWasteSite?.kind === 'incinerator' && (
           <WasteIncineratorInfoPanel
             facility={selectedWasteSite.facility}
-            stats={transitData.wasteIncineratorStats}
+            stats={transitData.dspaStats}
             onClose={clearSelection}
           />
         )}
@@ -1127,6 +1127,7 @@ export default function App() {
         {selectedWasteSite?.kind === 'facility' && (
           <WasteFacilityInfoPanel
             facility={selectedWasteSite.facility}
+            stats={transitData.dspaStats}
             onClose={clearSelection}
           />
         )}

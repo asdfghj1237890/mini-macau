@@ -27,7 +27,8 @@
 //   node scripts/inspect.mjs power-distribution     # power-distribution.json summary (Macau-only road network: by class, km, bbox, file size)
 //   node scripts/inspect.mjs toilets                # toilets.json summary (accessible/family/closed counts, closed list)
 //   node scripts/inspect.mjs car-parks              # car-parks.json summary (by zone, height-limit histogram, no-limit ids)
-//   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt, treatment facilities, eco stations, incinerator stats)
+//   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt, treatment facilities incl. wwtp buildings + statsKey, eco stations)
+//   node scripts/inspect.mjs dspa-stats              # dspa-stats.json summary (DSPA monthly stats: incinerator/hazardous/landfill/4x wwtp series, latest values, incinerator facts)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync, statSync } from 'node:fs'
@@ -488,7 +489,7 @@ function cmdCarParks() {
 }
 
 function cmdWaste() {
-  const { fetchedAtUtc, sources, counts, sites, facilities = [], ecoStations = [], incinerator = null } = load('public/data/waste.json')
+  const { fetchedAtUtc, sources, counts, sites, facilities = [], ecoStations = [] } = load('public/data/waste.json')
   const bytes = statSync(join(ROOT, 'public/data/waste.json')).size
 
   console.log(`total sites: ${sites.length}   fetchedAtUtc: ${fetchedAtUtc}   file size: ${(bytes / 1024).toFixed(1)} KiB`)
@@ -524,24 +525,52 @@ function cmdWaste() {
   const noTel = sites.filter((s) => s.tel === null).length
   console.log(`\naddress null: ${noAddress}   photo null: ${noPhoto}   tel null: ${noTel}`)
 
-  console.log(`\nfacilities (${facilities.length}):`)
+  const totalFacBuildings = facilities.reduce((n, f) => n + (f.buildings ? f.buildings.length : 0), 0)
+  console.log(`\nfacilities (${facilities.length}, ${totalFacBuildings} buildings total):`)
   for (const f of facilities) {
     const pts = f.polygon ? f.polygon.length : 0
-    console.log(`  ${f.id.padEnd(22)} ${f.kind.padEnd(10)} approx=${String(f.approximate).padEnd(5)} polygon pts=${String(pts).padStart(3)}  osm=${(f.osm ?? []).join(',') || '—'}  ${f.name.zh}`)
+    const buildings = f.buildings ? f.buildings.length : 0
+    console.log(`  ${f.id.padEnd(22)} ${f.kind.padEnd(10)} approx=${String(f.approximate).padEnd(5)} polygon pts=${String(pts).padStart(3)}  buildings=${String(buildings).padStart(2)}  statsKey=${(f.statsKey ?? '—').padEnd(16)} osm=${(f.osm ?? []).join(',') || '—'}  ${f.name.zh}`)
   }
 
   console.log(`\necoStations (${ecoStations.length}):`)
   for (const e of ecoStations) {
     console.log(`  ${e.id.padEnd(20)} since=${e.since}  approx=${String(e.approximate).padEnd(5)} ${e.name.zh}  — ${e.address.zh}`)
   }
+}
 
-  if (incinerator) {
-    const { latest, months, facts } = incinerator
-    console.log(`\nincinerator: latest ${latest.period}  received ${latest.receivedT} t  electricity ${latest.electricityMwh} MWh  metal ${latest.metalRecycledT} t`)
-    console.log(`  months: ${months.length} (${months[0].period} .. ${months[months.length - 1].period})`)
-    console.log(`  facts: phases ${facts.phases.join('/')}  lines ${facts.lines}  capacity ${facts.capacityTPerDay} t/day  generation ${facts.generationMw} MW  area ${facts.areaM2} m²`)
-  } else {
-    console.log('\nincinerator: null (best-effort fetch failed on the last run)')
+// dspa-stats.json: DSPA's monthly figures for the incinerator, the hazardous
+// -waste station, the landfill and the four DSPA-published wastewater
+// treatment plants (wwtp.mia has no open dataset and is always null) — see
+// fetch_dspa_stats.py. Every series is best-effort (null on a failed fetch),
+// unlike everything else in the pipeline.
+function cmdDspaStats() {
+  const data = load('public/data/dspa-stats.json')
+  const bytes = statSync(join(ROOT, 'public/data/dspa-stats.json')).size
+  console.log(`fetchedAtUtc: ${data.fetchedAtUtc}   file size: ${(bytes / 1024).toFixed(1)} KiB`)
+
+  const printSeries = (label, s) => {
+    if (!s) {
+      console.log(`  ${label.padEnd(18)} null`)
+      return
+    }
+    const vals = Object.entries(s.latest)
+      .filter(([k]) => k !== 'period')
+      .map(([k, v]) => `${k}=${v}`)
+      .join(' ')
+    console.log(`  ${label.padEnd(18)} latest ${s.latest.period}  ${vals}  (${s.months.length} months, unit ${s.unit}, dataset ${s.datasetId ?? '—'})`)
+  }
+
+  console.log('\nseries:')
+  printSeries('incinerator', data.incinerator)
+  if (data.incinerator) {
+    const f = data.incinerator.facts
+    console.log(`    facts: phases ${f.phases.join('/')}  lines ${f.lines}  capacity ${f.capacityTPerDay} t/day  generation ${f.generationMw} MW  area ${f.areaM2} m²`)
+  }
+  printSeries('hazardous', data.hazardous)
+  printSeries('landfill', data.landfill)
+  for (const key of ['macau', 'taipa', 'coloane', 'crossborder', 'mia']) {
+    printSeries(`wwtp.${key}`, data.wwtp[key])
   }
 }
 
@@ -571,7 +600,8 @@ switch (cmd) {
   case 'toilets': cmdToilets(); break
   case 'car-parks': cmdCarParks(); break
   case 'waste': cmdWaste(); break
+  case 'dspa-stats': cmdDspaStats(); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks | waste')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks | waste | dspa-stats')
     if (cmd) process.exit(1)
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, WasteIncineratorStats, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -18,6 +18,7 @@ import {
   ToiletsFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
+  DspaStatsFileSchema,
   WaterFacilitiesFileSchema,
   PowerFacilitiesFileSchema,
 } from '../dataSchemas'
@@ -131,7 +132,6 @@ interface WasteFile {
   // no throughput stats rather than failing validation.
   facilities?: WasteFacility[]
   ecoStations?: WasteEcoStation[]
-  incinerator?: WasteIncineratorStats | null
 }
 
 // water-facilities.json — Macao Water's 22 supply facilities, same envelope
@@ -396,7 +396,7 @@ export function useTransitData(): UseTransitDataResult {
     wasteSources: [],
     wasteFacilities: [],
     wasteEcoStations: [],
-    wasteIncineratorStats: null,
+    dspaStats: null,
     waterFacilities: [],
     waterNetwork: null,
     powerFacilities: [],
@@ -544,8 +544,14 @@ export function useTransitData(): UseTransitDataResult {
         commit('wasteSources', file.sources ?? [])
         commit('wasteFacilities', file.facilities ?? [])
         commit('wasteEcoStations', file.ecoStations ?? [])
-        commit('wasteIncineratorStats', file.incinerator ?? null)
       })
+      .catch(() => {})
+
+    // DSPA's monthly statistics — a small file (four series of twelve months),
+    // loaded at startup like the other overlays and just as non-critical: a
+    // missing or malformed file leaves every chart out and nothing else.
+    loadJson<DspaStats>('/data/dspa-stats.json', DspaStatsFileSchema, 'dspa-stats.json')
+      .then(file => commit('dspaStats', file))
       .catch(() => {})
 
     // Macao Water supply facilities — a static (manually regenerated) overlay

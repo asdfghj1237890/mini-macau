@@ -349,6 +349,21 @@ const translations = {
     // The 處理設施 row: the incineration plant, the hazardous-waste station and
     // the two landfills, which the map toggles together.
     wasteTypeFacility: 'Treatment facilities',
+    wasteTypeWwtp: 'Sewage treatment plant',
+    // Shared statistics chart (DSPA monthly series).
+    statsUnitTonnes: 't',
+    statsUnitCubicMetres: 'm³',
+    statsLatest: (period: string) => `Latest month ${period}`,
+    statsNoData: 'DSPA publishes no monthly statistics for this facility',
+    statsThroughput: 'THROUGHPUT',
+    statsTreatedVolume: 'TREATED VOLUME',
+    statsLandfilled: 'LANDFILLED',
+    statsReceived: 'received',
+    statsProcessed: 'processed',
+    statsBasic: 'preliminary',
+    statsBiological: 'biological + CEPT',
+    statsTotal: 'total',
+    statsMonthsAxis: (unit: string) => `Last 12 months (${unit})`,
     wasteKindHazardous: 'Hazardous waste station',
     wasteKindLandfill: 'Landfill',
     wasteHours: 'HOURS',
@@ -356,21 +371,12 @@ const translations = {
     wasteSince: 'OPEN SINCE',
     wasteApproximate: 'Approximate location',
     // Incinerator statistics block.
-    wasteStats: 'THROUGHPUT',
-    wasteStatsLatest: (period: string) => `Latest month ${period}`,
-    wasteStatsReceived: 'received',
     wasteStatsElectricity: 'electricity',
     wasteStatsMetal: 'metal recovered',
-    wasteStatsTonnes: (n: string) => `${n} t`,
     wasteStatsMwh: (n: string) => `${n} MWh`,
     wasteStatsFacts: (phases: string, lines: number, capacity: string, mw: number) =>
       `${phases} · ${lines} incineration lines · ~${capacity} t/day · ${mw} MW`,
     wasteStatsPhases: (years: string) => `Three phases (${years})`,
-    wasteStatsMonths: 'Refuse received, last 12 months (t)',
-    // The bar strip's own caption: the axis is zero-based and its ticks are
-    // unitless (60k / 30k / 0), so the unit is named once, here.
-    wasteStatsUnitTonnes: 't',
-    wasteStatsMonthsAxis: (unit: string) => `Refuse received, last 12 months (${unit})`,
     wasteIncineratorNote: 'The government incineration plant at Pac On, Taipa. It burns Macau’s collected refuse and sells the electricity it generates to CEM through the Incinerator substation.',
     wasteOperatorDspa: 'Environmental Protection Bureau (DSPA) facility',
     wasteOperator: 'OPERATOR',
@@ -669,25 +675,32 @@ const translations = {
     wasteTypeIncinerator: '垃圾焚化中心',
     wasteTypeEcoStation: '環保加Fun站',
     wasteTypeFacility: '處理設施',
+    wasteTypeWwtp: '污水處理廠',
+    statsUnitTonnes: '公噸',
+    statsUnitCubicMetres: 'm³',
+    statsLatest: (period: string) => `最新月份 ${period}`,
+    statsNoData: '環境保護局未有公佈此設施的每月數據',
+    statsThroughput: '處理量',
+    statsTreatedVolume: '污水處理量',
+    statsLandfilled: '每月堆埋體積',
+    statsReceived: '接收',
+    statsProcessed: '處理',
+    statsBasic: '基本處理',
+    statsBiological: '生物處理及 CEPT',
+    statsTotal: '合計',
+    statsMonthsAxis: (unit: string) => `近 12 個月（${unit}）`,
     wasteKindHazardous: '危險廢物處理站',
     wasteKindLandfill: '堆填區',
     wasteHours: '開放時間',
     wasteAccepts: '回收種類',
     wasteSince: '啟用年份',
     wasteApproximate: '約略位置',
-    wasteStats: '處理量',
-    wasteStatsLatest: (period: string) => `最新月份 ${period}`,
-    wasteStatsReceived: '接收',
     wasteStatsElectricity: '發電',
     wasteStatsMetal: '回收金屬',
-    wasteStatsTonnes: (n: string) => `${n} 公噸`,
     wasteStatsMwh: (n: string) => `${n} MWh`,
     wasteStatsFacts: (phases: string, lines: number, capacity: string, mw: number) =>
       `${phases} · ${lines} 條焚化線 · 約 ${capacity} 公噸／日 · ${mw} MW`,
     wasteStatsPhases: (years: string) => `三期（${years}）`,
-    wasteStatsMonths: '近 12 個月接收垃圾量（公噸）',
-    wasteStatsUnitTonnes: '公噸',
-    wasteStatsMonthsAxis: (unit: string) => `近 12 個月接收垃圾量（${unit}）`,
     wasteIncineratorNote: '政府設於氹仔北安的垃圾焚化中心，焚燒全澳收集的垃圾，並透過焚化爐變電站將所發電力售予澳電。',
     wasteOperatorDspa: '環境保護局 (DSPA) 設施',
     wasteOperator: '營運',
@@ -982,25 +995,32 @@ const translations = {
     wasteTypeIncinerator: 'Central de incineração de resíduos',
     wasteTypeEcoStation: 'Centro Ambiental Alegria',
     wasteTypeFacility: 'Instalações de tratamento',
+    wasteTypeWwtp: 'ETAR',
+    statsUnitTonnes: 't',
+    statsUnitCubicMetres: 'm³',
+    statsLatest: (period: string) => `Mês mais recente ${period}`,
+    statsNoData: 'A DSPA não publica estatísticas mensais desta instalação',
+    statsThroughput: 'TRATAMENTO',
+    statsTreatedVolume: 'VOLUME TRATADO',
+    statsLandfilled: 'VOLUME DEPOSITADO',
+    statsReceived: 'recebido',
+    statsProcessed: 'tratado',
+    statsBasic: 'preliminar',
+    statsBiological: 'biológico + CEPT',
+    statsTotal: 'total',
+    statsMonthsAxis: (unit: string) => `Últimos 12 meses (${unit})`,
     wasteKindHazardous: 'Estação de resíduos perigosos',
     wasteKindLandfill: 'Aterro',
     wasteHours: 'HORÁRIO',
     wasteAccepts: 'ACEITA',
     wasteSince: 'EM SERVIÇO DESDE',
     wasteApproximate: 'Localização aproximada',
-    wasteStats: 'TRATAMENTO',
-    wasteStatsLatest: (period: string) => `Mês mais recente ${period}`,
-    wasteStatsReceived: 'recebido',
     wasteStatsElectricity: 'electricidade',
     wasteStatsMetal: 'metal recuperado',
-    wasteStatsTonnes: (n: string) => `${n} t`,
     wasteStatsMwh: (n: string) => `${n} MWh`,
     wasteStatsFacts: (phases: string, lines: number, capacity: string, mw: number) =>
       `${phases} · ${lines} linhas de incineração · ~${capacity} t/dia · ${mw} MW`,
     wasteStatsPhases: (years: string) => `Três fases (${years})`,
-    wasteStatsMonths: 'Resíduos recebidos, últimos 12 meses (t)',
-    wasteStatsUnitTonnes: 't',
-    wasteStatsMonthsAxis: (unit: string) => `Resíduos recebidos, últimos 12 meses (${unit})`,
     wasteIncineratorNote: 'Central de incineração do Governo em Pac On, Taipa. Queima os resíduos recolhidos em Macau e vende a electricidade produzida à CEM através da subestação da incineradora.',
     wasteOperatorDspa: 'Instalação da Direcção dos Serviços de Protecção Ambiental (DSPA)',
     wasteOperator: 'OPERADOR',
@@ -1292,24 +1312,31 @@ export interface Translations {
   wasteTypeIncinerator: string
   wasteTypeEcoStation: string
   wasteTypeFacility: string
+  wasteTypeWwtp: string
+  statsUnitTonnes: string
+  statsUnitCubicMetres: string
+  statsLatest: (period: string) => string
+  statsNoData: string
+  statsThroughput: string
+  statsTreatedVolume: string
+  statsLandfilled: string
+  statsReceived: string
+  statsProcessed: string
+  statsBasic: string
+  statsBiological: string
+  statsTotal: string
+  statsMonthsAxis: (unit: string) => string
   wasteKindHazardous: string
   wasteKindLandfill: string
   wasteHours: string
   wasteAccepts: string
   wasteSince: string
   wasteApproximate: string
-  wasteStats: string
-  wasteStatsLatest: (period: string) => string
-  wasteStatsReceived: string
   wasteStatsElectricity: string
   wasteStatsMetal: string
-  wasteStatsTonnes: (n: string) => string
   wasteStatsMwh: (n: string) => string
   wasteStatsFacts: (phases: string, lines: number, capacity: string, mw: number) => string
   wasteStatsPhases: (years: string) => string
-  wasteStatsMonths: string
-  wasteStatsUnitTonnes: string
-  wasteStatsMonthsAxis: (unit: string) => string
   wasteIncineratorNote: string
   wasteOperatorDspa: string
   wasteOperator: string

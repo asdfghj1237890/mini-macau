@@ -1,0 +1,495 @@
+{
+  "fetchedAtUtc": "2026-09-04T16:50:46.814117+00:00",
+  "incinerator": {
+    "datasetId": "8142c05e-818a-478a-9256-4ecd494d3f87",
+    "url": "https://data.gov.mo/Detail?id=8142c05e-818a-478a-9256-4ecd494d3f87",
+    "unit": "t",
+    "latest": {
+      "period": "2026-06",
+      "receivedT": 58681.05,
+      "electricityMwh": 28136.8,
+      "metalRecycledT": 76.69
+    },
+    "months": [
+      {
+        "period": "2025-07",
+        "receivedT": 55052.72,
+        "electricityMwh": 24802.9,
+        "metalRecycledT": 65.377
+      },
+      {
+        "period": "2025-08",
+        "receivedT": 57562.17,
+        "electricityMwh": 23111.01,
+        "metalRecycledT": 57.608
+      },
+      {
+        "period": "2025-09",
+        "receivedT": 53384.135,
+        "electricityMwh": 26309.3,
+        "metalRecycledT": 36.975
+      },
+      {
+        "period": "2025-10",
+        "receivedT": 55597.975,
+        "electricityMwh": 25176.3,
+        "metalRecycledT": 110.97
+      },
+      {
+        "period": "2025-11",
+        "receivedT": 54816.115,
+        "electricityMwh": 26770.6,
+        "metalRecycledT": 62.875
+      },
+      {
+        "period": "2025-12",
+        "receivedT": 56809.375,
+        "electricityMwh": 28799.8,
+        "metalRecycledT": 77.715
+      },
+      {
+        "period": "2026-01",
+        "receivedT": 57429.285,
+        "electricityMwh": 26313.9,
+        "metalRecycledT": 92.29
+      },
+      {
+        "period": "2026-02",
+        "receivedT": 49300.425,
+        "electricityMwh": 24323.1,
+        "metalRecycledT": 56.8
+      },
+      {
+        "period": "2026-03",
+        "receivedT": 57783.71,
+        "electricityMwh": 26361.6,
+        "metalRecycledT": 63.77
+      },
+      {
+        "period": "2026-04",
+        "receivedT": 61663.54,
+        "electricityMwh": 26954.4,
+        "metalRecycledT": 82.14
+      },
+      {
+        "period": "2026-05",
+        "receivedT": 60084.64,
+        "electricityMwh": 27419.2,
+        "metalRecycledT": 65.865
+      },
+      {
+        "period": "2026-06",
+        "receivedT": 58681.05,
+        "electricityMwh": 28136.8,
+        "metalRecycledT": 76.69
+      }
+    ],
+    "facts": {
+      "phases": [
+        1992,
+        2008,
+        2024
+      ],
+      "lines": 8,
+      "capacityTPerDay": 3000,
+      "generationMw": 56.7,
+      "areaM2": 51000
+    }
+  },
+  "hazardous": {
+    "datasetId": null,
+    "url": "https://apps.dspa.gov.mo/gis/publicData.html?data=T_Bas_MHWTP_Approved&lng=zh-TW",
+    "unit": "t",
+    "latest": {
+      "period": "2026-06",
+      "receivedT": 517.61,
+      "processedT": 329.1
+    },
+    "months": [
+      {
+        "period": "2025-07",
+        "receivedT": 513.87,
+        "processedT": 459.805
+      },
+      {
+        "period": "2025-08",
+        "receivedT": 345.185,
+        "processedT": 224.055
+      },
+      {
+        "period": "2025-09",
+        "receivedT": 404.69,
+        "processedT": 292.85
+      },
+      {
+        "period": "2025-10",
+        "receivedT": 381.54,
+        "processedT": 315.46
+      },
+      {
+        "period": "2025-11",
+        "receivedT": 332.43,
+        "processedT": 258.55
+      },
+      {
+        "period": "2025-12",
+        "receivedT": 301.185,
+        "processedT": 291.34
+      },
+      {
+        "period": "2026-01",
+        "receivedT": 387.64,
+        "processedT": 361.885
+      },
+      {
+        "period": "2026-02",
+        "receivedT": 360.24,
+        "processedT": 305.76
+      },
+      {
+        "period": "2026-03",
+        "receivedT": 286.955,
+        "processedT": 217.41
+      },
+      {
+        "period": "2026-04",
+        "receivedT": 224.035,
+        "processedT": 196.195
+      },
+      {
+        "period": "2026-05",
+        "receivedT": 293.79,
+        "processedT": 303.175
+      },
+      {
+        "period": "2026-06",
+        "receivedT": 517.61,
+        "processedT": 329.1
+      }
+    ]
+  },
+  "landfill": {
+    "datasetId": null,
+    "url": "https://apps.dspa.gov.mo/gis/publicData.html?data=T_Bas_Landfill_Approved&lng=zh-TW",
+    "unit": "m3",
+    "latest": {
+      "period": "2026-06",
+      "volumeM3": 195728.0
+    },
+    "months": [
+      {
+        "period": "2025-07",
+        "volumeM3": 185179.0
+      },
+      {
+        "period": "2025-08",
+        "volumeM3": 133303.0
+      },
+      {
+        "period": "2025-09",
+        "volumeM3": 66324.0
+      },
+      {
+        "period": "2025-10",
+        "volumeM3": 70841.0
+      },
+      {
+        "period": "2025-11",
+        "volumeM3": 85075.0
+      },
+      {
+        "period": "2025-12",
+        "volumeM3": 94306.0
+      },
+      {
+        "period": "2026-01",
+        "volumeM3": 84421.0
+      },
+      {
+        "period": "2026-02",
+        "volumeM3": 61081.0
+      },
+      {
+        "period": "2026-03",
+        "volumeM3": 100159.0
+      },
+      {
+        "period": "2026-04",
+        "volumeM3": 91880.0
+      },
+      {
+        "period": "2026-05",
+        "volumeM3": 185758.0
+      },
+      {
+        "period": "2026-06",
+        "volumeM3": 195728.0
+      }
+    ]
+  },
+  "wwtp": {
+    "macau": {
+      "datasetId": "9c555082-70e8-452f-a86b-073cd0da4a55",
+      "url": "https://data.gov.mo/Detail?id=9c555082-70e8-452f-a86b-073cd0da4a55",
+      "unit": "m3",
+      "latest": {
+        "period": "2026-06",
+        "basicM3": 2267341.0,
+        "biologicalM3": 3806060.0,
+        "totalM3": 6073401.0
+      },
+      "months": [
+        {
+          "period": "2025-07",
+          "basicM3": 2271721.0,
+          "biologicalM3": 3492751.0,
+          "totalM3": 5764472.0
+        },
+        {
+          "period": "2025-08",
+          "basicM3": 2102113.0,
+          "biologicalM3": 3657423.0,
+          "totalM3": 5759536.0
+        },
+        {
+          "period": "2025-09",
+          "basicM3": 1795055.0,
+          "biologicalM3": 3706353.0,
+          "totalM3": 5501408.0
+        },
+        {
+          "period": "2025-10",
+          "basicM3": 2358565.0,
+          "biologicalM3": 3197661.0,
+          "totalM3": 5556226.0
+        },
+        {
+          "period": "2025-11",
+          "basicM3": 2193419.0,
+          "biologicalM3": 2858271.0,
+          "totalM3": 5051690.0
+        },
+        {
+          "period": "2025-12",
+          "basicM3": 1814985.0,
+          "biologicalM3": 3572110.0,
+          "totalM3": 5387095.0
+        },
+        {
+          "period": "2026-01",
+          "basicM3": 1809363.0,
+          "biologicalM3": 3261080.0,
+          "totalM3": 5070443.0
+        },
+        {
+          "period": "2026-02",
+          "basicM3": 1877789.0,
+          "biologicalM3": 3246726.0,
+          "totalM3": 5124515.0
+        },
+        {
+          "period": "2026-03",
+          "basicM3": 2207956.0,
+          "biologicalM3": 3645220.0,
+          "totalM3": 5853176.0
+        },
+        {
+          "period": "2026-04",
+          "basicM3": 1921651.0,
+          "biologicalM3": 3473751.0,
+          "totalM3": 5395402.0
+        },
+        {
+          "period": "2026-05",
+          "basicM3": 2309401.0,
+          "biologicalM3": 3869069.0,
+          "totalM3": 6178470.0
+        },
+        {
+          "period": "2026-06",
+          "basicM3": 2267341.0,
+          "biologicalM3": 3806060.0,
+          "totalM3": 6073401.0
+        }
+      ]
+    },
+    "taipa": {
+      "datasetId": "9d257556-9d52-4a59-afa0-d1a2a2bab0a8",
+      "url": "https://data.gov.mo/Detail?id=9d257556-9d52-4a59-afa0-d1a2a2bab0a8",
+      "unit": "m3",
+      "latest": {
+        "period": "2026-06",
+        "totalM3": 861725.0
+      },
+      "months": [
+        {
+          "period": "2025-07",
+          "totalM3": 787670.0
+        },
+        {
+          "period": "2025-08",
+          "totalM3": 968656.0
+        },
+        {
+          "period": "2025-09",
+          "totalM3": 835432.0
+        },
+        {
+          "period": "2025-10",
+          "totalM3": 767840.0
+        },
+        {
+          "period": "2025-11",
+          "totalM3": 641035.0
+        },
+        {
+          "period": "2025-12",
+          "totalM3": 585688.0
+        },
+        {
+          "period": "2026-01",
+          "totalM3": 619706.0
+        },
+        {
+          "period": "2026-02",
+          "totalM3": 655606.0
+        },
+        {
+          "period": "2026-03",
+          "totalM3": 826811.0
+        },
+        {
+          "period": "2026-04",
+          "totalM3": 817689.0
+        },
+        {
+          "period": "2026-05",
+          "totalM3": 904950.0
+        },
+        {
+          "period": "2026-06",
+          "totalM3": 861725.0
+        }
+      ]
+    },
+    "coloane": {
+      "datasetId": "a5a05d0e-30c5-4298-81d5-e6bee5af5e8b",
+      "url": "https://data.gov.mo/Detail?id=a5a05d0e-30c5-4298-81d5-e6bee5af5e8b",
+      "unit": "m3",
+      "latest": {
+        "period": "2026-06",
+        "totalM3": 1929535.0
+      },
+      "months": [
+        {
+          "period": "2025-07",
+          "totalM3": 1900669.0
+        },
+        {
+          "period": "2025-08",
+          "totalM3": 2147621.0
+        },
+        {
+          "period": "2025-09",
+          "totalM3": 1880137.0
+        },
+        {
+          "period": "2025-10",
+          "totalM3": 1545532.0
+        },
+        {
+          "period": "2025-11",
+          "totalM3": 1363810.0
+        },
+        {
+          "period": "2025-12",
+          "totalM3": 1496647.0
+        },
+        {
+          "period": "2026-01",
+          "totalM3": 1608742.0
+        },
+        {
+          "period": "2026-02",
+          "totalM3": 1492441.0
+        },
+        {
+          "period": "2026-03",
+          "totalM3": 1664105.0
+        },
+        {
+          "period": "2026-04",
+          "totalM3": 1705609.0
+        },
+        {
+          "period": "2026-05",
+          "totalM3": 2001468.0
+        },
+        {
+          "period": "2026-06",
+          "totalM3": 1929535.0
+        }
+      ]
+    },
+    "crossborder": {
+      "datasetId": "4a57b120-60f2-4a36-a6eb-7f93f340f2e6",
+      "url": "https://data.gov.mo/Detail?id=4a57b120-60f2-4a36-a6eb-7f93f340f2e6",
+      "unit": "m3",
+      "latest": {
+        "period": "2026-06",
+        "totalM3": 146178.0
+      },
+      "months": [
+        {
+          "period": "2025-07",
+          "totalM3": 89203.0
+        },
+        {
+          "period": "2025-08",
+          "totalM3": 83629.0
+        },
+        {
+          "period": "2025-09",
+          "totalM3": 77899.0
+        },
+        {
+          "period": "2025-10",
+          "totalM3": 75985.0
+        },
+        {
+          "period": "2025-11",
+          "totalM3": 69760.0
+        },
+        {
+          "period": "2025-12",
+          "totalM3": 79108.0
+        },
+        {
+          "period": "2026-01",
+          "totalM3": 75291.0
+        },
+        {
+          "period": "2026-02",
+          "totalM3": 68458.0
+        },
+        {
+          "period": "2026-03",
+          "totalM3": 82580.0
+        },
+        {
+          "period": "2026-04",
+          "totalM3": 133588.0
+        },
+        {
+          "period": "2026-05",
+          "totalM3": 140223.0
+        },
+        {
+          "period": "2026-06",
+          "totalM3": 146178.0
+        }
+      ]
+    },
+    "mia": null
+  }
+}

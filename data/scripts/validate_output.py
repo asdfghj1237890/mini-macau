@@ -1720,18 +1720,31 @@ WASTE_MIN_PER_TYPE = {"glass": 3, "clothing": 8}
 # iam-map-clothing).
 WASTE_SOURCE_COUNT = 10
 
-# Round 2: treatment facilities, eco stations, incinerator stats.
-WASTE_FACILITY_KINDS = {"hazardous", "landfill"}
-WASTE_FACILITY_COUNT = 3
+# Round 2/4: treatment facilities, eco stations. Round 4 adds `kind: "wwtp"`
+# (five DSPA sewage treatment plants, each with OSM building footprints — see
+# fetch_waste.py's build_wwtp_facilities()) and retires the old `incinerator`
+# monthly-stats block (moved to dspa-stats.json — see v_dspa_stats below).
+WASTE_FACILITY_KINDS = {"hazardous", "landfill", "wwtp"}
+WASTE_BUILDING_KINDS = {"building", "tile", "outline"}
+WASTE_FACILITY_COUNT = 8
 WASTE_ECO_STATION_COUNT = 10
-WASTE_PERIOD_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
-WASTE_INCINERATOR_MAX_MONTHS = 12
+# `statsKey` on a facility points into public/data/dspa-stats.json (see
+# v_dspa_stats): null for the two facilities with no monthly series (the Ka
+# Ho ash landfill, wwtp-mia).
+WASTE_STATS_KEYS = {
+    "hazardous", "landfill",
+    "wwtp.macau", "wwtp.taipa", "wwtp.coloane", "wwtp.crossborder",
+}
 
 
 def v_waste_facilities(errs: list[str], facilities: object) -> None:
-    """`waste.facilities[]`: the hazardous-waste station + two OSM landfill
-    polygons (spec-waste-round2.md §2). `polygon` is null (marker-only) or a
-    single ring — reuses check_building_ring, which isn't building-specific."""
+    """`waste.facilities[]`: the hazardous-waste station, two OSM landfill
+    polygons (spec-waste-round2.md §2) and, round 4, five DSPA wastewater
+    treatment plants (`kind: "wwtp"`). `polygon` is null (marker-only) or a
+    single ring — reuses check_building_ring, which isn't building-specific.
+    `buildings[]` reuses check_footprint_building, the same fill-extrusion
+    contract as schools/water/power facilities; every wwtp must claim at
+    least one (see fetch_waste.py's build_wwtp_facilities())."""
     if not require_nonempty_list(errs, "waste.facilities", facilities):
         return
     seen_ids: set[str] = set()
@@ -1739,7 +1752,8 @@ def v_waste_facilities(errs: list[str], facilities: object) -> None:
         ctx = f"waste.facilities[{i}]"
         if not require_fields(
             errs, ctx, fac,
-            ("id", "kind", "name", "coordinates", "approximate", "polygon", "note", "source", "osm"),
+            ("id", "kind", "name", "coordinates", "approximate", "polygon", "note", "source", "osm",
+             "statsKey", "buildings"),
         ):
             continue
         fid = fac["id"]
@@ -1751,8 +1765,9 @@ def v_waste_facilities(errs: list[str], facilities: object) -> None:
             seen_ids.add(fid)
         label = f"{ctx} ({fid if isinstance(fid, str) and fid else '?'})"
 
-        if fac["kind"] not in WASTE_FACILITY_KINDS:
-            errs.append(f"{label}: kind '{fac['kind']}' invalid")
+        kind = fac["kind"]
+        if kind not in WASTE_FACILITY_KINDS:
+            errs.append(f"{label}: kind '{kind}' invalid")
 
         name = fac["name"]
         if require_fields(errs, f"{label}.name", name, ("zh", "en", "pt")):
@@ -1784,6 +1799,19 @@ def v_waste_facilities(errs: list[str], facilities: object) -> None:
         osm = fac["osm"]
         if not (isinstance(osm, list) and all(isinstance(o, str) and o for o in osm)):
             errs.append(f"{label}.osm must be a list of non-empty strings")
+
+        stats_key = fac["statsKey"]
+        if not (stats_key is None or (isinstance(stats_key, str) and stats_key in WASTE_STATS_KEYS)):
+            errs.append(f"{label}: statsKey must be null or one of {sorted(WASTE_STATS_KEYS)}")
+
+        buildings = fac["buildings"]
+        if not isinstance(buildings, list):
+            errs.append(f"{label}.buildings must be a list")
+        else:
+            for j, b in enumerate(buildings):
+                check_footprint_building(errs, f"{label}.buildings[{j}]", b, kinds=WASTE_BUILDING_KINDS)
+            if kind == "wwtp" and not buildings:
+                errs.append(f"{label}: a wwtp facility must have at least one building")
 
     if len(facilities) != WASTE_FACILITY_COUNT:
         errs.append(f"waste.facilities: {len(facilities)} facilities, expected exactly {WASTE_FACILITY_COUNT}")
@@ -1855,75 +1883,11 @@ def v_waste_eco_stations(errs: list[str], stations: object) -> None:
         errs.append(f"waste.ecoStations: {len(stations)} entries, expected exactly {WASTE_ECO_STATION_COUNT}")
 
 
-def v_waste_incinerator(errs: list[str], incinerator: object) -> None:
-    """`waste.incinerator`: null (best-effort fetch failed) or DSPA's monthly
-    stats + hand-typed facts — spec-waste-round2.md §4."""
-    if incinerator is None:
-        return
-    ctx = "waste.incinerator"
-    if not require_fields(errs, ctx, incinerator, ("datasetId", "url", "latest", "months", "facts")):
-        return
-
-    if not (isinstance(incinerator["datasetId"], str) and incinerator["datasetId"]):
-        errs.append(f"{ctx}.datasetId must be a non-empty string")
-    if not (isinstance(incinerator["url"], str) and incinerator["url"]):
-        errs.append(f"{ctx}.url must be a non-empty string")
-
-    def check_month(mctx: str, m: object) -> bool:
-        if not require_fields(errs, mctx, m, ("period", "receivedT", "electricityMwh", "metalRecycledT")):
-            return False
-        ok = True
-        if not (isinstance(m["period"], str) and WASTE_PERIOD_RE.match(m["period"])):
-            errs.append(f"{mctx}.period must be 'YYYY-MM'")
-            ok = False
-        for key in ("receivedT", "electricityMwh", "metalRecycledT"):
-            v = m[key]
-            if not (isinstance(v, (int, float)) and not isinstance(v, bool) and v >= 0):
-                errs.append(f"{mctx}.{key} must be a number >= 0")
-        return ok
-
-    latest_ok = check_month(f"{ctx}.latest", incinerator["latest"])
-
-    months = incinerator["months"]
-    if not require_nonempty_list(errs, f"{ctx}.months", months):
-        months = []
-    else:
-        for i, m in enumerate(months):
-            check_month(f"{ctx}.months[{i}]", m)
-        if len(months) > WASTE_INCINERATOR_MAX_MONTHS:
-            errs.append(f"{ctx}.months: {len(months)} entries, expected at most {WASTE_INCINERATOR_MAX_MONTHS}")
-        periods = [m.get("period") for m in months if isinstance(m, dict)]
-        if periods != sorted(periods):
-            errs.append(f"{ctx}.months: periods must be in ascending order")
-        if (
-            latest_ok
-            and months
-            and isinstance(months[-1], dict)
-            and incinerator["latest"].get("period") != months[-1].get("period")
-        ):
-            errs.append(f"{ctx}.latest.period must match the last entry of months")
-
-    facts = incinerator["facts"]
-    if require_fields(errs, f"{ctx}.facts", facts, ("phases", "lines", "capacityTPerDay", "generationMw", "areaM2")):
-        phases = facts["phases"]
-        if not (
-            isinstance(phases, list) and phases
-            and all(isinstance(p, int) and not isinstance(p, bool) for p in phases)
-        ):
-            errs.append(f"{ctx}.facts.phases must be a non-empty list of ints")
-        for key in ("lines", "capacityTPerDay", "areaM2"):
-            if not (isinstance(facts[key], int) and not isinstance(facts[key], bool) and facts[key] > 0):
-                errs.append(f"{ctx}.facts.{key} must be an int > 0")
-        gen = facts["generationMw"]
-        if not (isinstance(gen, (int, float)) and not isinstance(gen, bool) and gen > 0):
-            errs.append(f"{ctx}.facts.generationMw must be a number > 0")
-
-
 def v_waste(data: object) -> list[str]:
     errs: list[str] = []
     if not require_fields(
         errs, "waste", data,
-        ("fetchedAtUtc", "sources", "counts", "sites", "facilities", "ecoStations", "incinerator"),
+        ("fetchedAtUtc", "sources", "counts", "sites", "facilities", "ecoStations"),
     ):
         return errs
     if not isinstance(data["fetchedAtUtc"], str):
@@ -2038,7 +2002,114 @@ def v_waste(data: object) -> list[str]:
 
     v_waste_facilities(errs, data["facilities"])
     v_waste_eco_stations(errs, data["ecoStations"])
-    v_waste_incinerator(errs, data["incinerator"])
+
+    return errs
+
+
+# ── DSPA monthly statistics (public/data/dspa-stats.json) ────────────────────
+#
+# fetch_dspa_stats.py's seven series: incinerator, hazardous, landfill, and
+# four wwtp.* (wwtp.mia has no open dataset and is always null — see that
+# script's docstring). Every series is BEST-EFFORT, so `null` is always valid;
+# check_dspa_series only checks shape when a series is present.
+DSPA_STATS_PERIOD_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
+DSPA_STATS_MAX_MONTHS = 12
+DSPA_STATS_UNITS = {"t", "m3"}
+
+
+def check_dspa_series(errs: list[str], ctx: str, series: object, value_fields: tuple[str, ...]) -> None:
+    """One dspa-stats series: null (best-effort fetch failed), or
+    `{datasetId, url, unit, latest, months}` with 1..12 ascending months —
+    shared shape for every series in dspa-stats.json."""
+    if series is None:
+        return
+    if not require_fields(errs, ctx, series, ("datasetId", "url", "unit", "latest", "months")):
+        return
+
+    if not (series["datasetId"] is None or (isinstance(series["datasetId"], str) and series["datasetId"])):
+        errs.append(f"{ctx}.datasetId must be null or a non-empty string")
+    if not (isinstance(series["url"], str) and series["url"]):
+        errs.append(f"{ctx}.url must be a non-empty string")
+    if series["unit"] not in DSPA_STATS_UNITS:
+        errs.append(f"{ctx}.unit '{series['unit']}' invalid")
+
+    def check_month(mctx: str, m: object) -> bool:
+        if not require_fields(errs, mctx, m, ("period",) + value_fields):
+            return False
+        ok = True
+        if not (isinstance(m["period"], str) and DSPA_STATS_PERIOD_RE.match(m["period"])):
+            errs.append(f"{mctx}.period must be 'YYYY-MM'")
+            ok = False
+        for key in value_fields:
+            v = m[key]
+            if not (isinstance(v, (int, float)) and not isinstance(v, bool) and v >= 0):
+                errs.append(f"{mctx}.{key} must be a number >= 0")
+        return ok
+
+    latest_ok = check_month(f"{ctx}.latest", series["latest"])
+
+    months = series["months"]
+    if not require_nonempty_list(errs, f"{ctx}.months", months):
+        return
+    for i, m in enumerate(months):
+        check_month(f"{ctx}.months[{i}]", m)
+    if len(months) > DSPA_STATS_MAX_MONTHS:
+        errs.append(f"{ctx}.months: {len(months)} entries, expected at most {DSPA_STATS_MAX_MONTHS}")
+    periods = [m.get("period") for m in months if isinstance(m, dict)]
+    if periods != sorted(periods):
+        errs.append(f"{ctx}.months: periods must be in ascending order")
+    if (
+        latest_ok
+        and months
+        and isinstance(months[-1], dict)
+        and series["latest"].get("period") != months[-1].get("period")
+    ):
+        errs.append(f"{ctx}.latest.period must match the last entry of months")
+
+
+def check_incinerator_facts(errs: list[str], ctx: str, facts: object) -> None:
+    if not require_fields(errs, ctx, facts, ("phases", "lines", "capacityTPerDay", "generationMw", "areaM2")):
+        return
+    phases = facts["phases"]
+    if not (
+        isinstance(phases, list) and phases
+        and all(isinstance(p, int) and not isinstance(p, bool) for p in phases)
+    ):
+        errs.append(f"{ctx}.phases must be a non-empty list of ints")
+    for key in ("lines", "capacityTPerDay", "areaM2"):
+        if not (isinstance(facts[key], int) and not isinstance(facts[key], bool) and facts[key] > 0):
+            errs.append(f"{ctx}.{key} must be an int > 0")
+    gen = facts["generationMw"]
+    if not (isinstance(gen, (int, float)) and not isinstance(gen, bool) and gen > 0):
+        errs.append(f"{ctx}.generationMw must be a number > 0")
+
+
+def v_dspa_stats(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(
+        errs, "dspa-stats", data, ("fetchedAtUtc", "incinerator", "hazardous", "landfill", "wwtp")
+    ):
+        return errs
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("dspa-stats: fetchedAtUtc must be a string")
+
+    check_dspa_series(errs, "dspa-stats.incinerator", data["incinerator"],
+                      ("receivedT", "electricityMwh", "metalRecycledT"))
+    incinerator = data["incinerator"]
+    if isinstance(incinerator, dict):
+        if require_fields(errs, "dspa-stats.incinerator", incinerator, ("facts",)):
+            check_incinerator_facts(errs, "dspa-stats.incinerator.facts", incinerator["facts"])
+
+    check_dspa_series(errs, "dspa-stats.hazardous", data["hazardous"], ("receivedT", "processedT"))
+    check_dspa_series(errs, "dspa-stats.landfill", data["landfill"], ("volumeM3",))
+
+    wwtp = data["wwtp"]
+    if require_fields(errs, "dspa-stats.wwtp", wwtp, ("macau", "taipa", "coloane", "crossborder", "mia")):
+        check_dspa_series(errs, "dspa-stats.wwtp.macau", wwtp["macau"], ("basicM3", "biologicalM3", "totalM3"))
+        for key in ("taipa", "coloane", "crossborder"):
+            check_dspa_series(errs, f"dspa-stats.wwtp.{key}", wwtp[key], ("totalM3",))
+        if wwtp["mia"] is not None:
+            errs.append("dspa-stats.wwtp.mia must be null — no open dataset publishes it")
 
     return errs
 
@@ -2065,6 +2136,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "toilets": (PUBLIC / "data/toilets.json", v_toilets),
     "car-parks": (PUBLIC / "data/car-parks.json", v_car_parks),
     "waste": (PUBLIC / "data/waste.json", v_waste),
+    "dspa-stats": (PUBLIC / "data/dspa-stats.json", v_dspa_stats),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.

@@ -101,7 +101,7 @@
 <rect x="36" y="414" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
 <rect x="36" y="422" width="3" height="24" rx="1.5" fill="#5eead4"/>
 <text x="48" y="431" class="t" font-size="12" font-weight="600" fill="#e5e7eb">data.gov.mo</text>
-<text x="48" y="445" class="t" font-size="10" fill="rgba(229,231,235,0.55)">road works · WC · parking · waste</text>
+<text x="48" y="445" class="t" font-size="10" fill="rgba(229,231,235,0.55)">road works · WC · P · waste · stats</text>
 </g>
 <g>
 <rect x="36" y="464" width="190" height="40" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
@@ -172,7 +172,7 @@
 <g>
 <rect x="538" y="375" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
 <rect x="538" y="383" width="3" height="18" rx="1.5" fill="#5eead4"/>
-<text x="550" y="396" class="t" font-size="12" font-weight="600" fill="#e5e7eb">toilets · waste</text>
+<text x="550" y="396" class="t" font-size="12" font-weight="600" fill="#e5e7eb">toilets · waste · stats</text>
 </g>
 <g>
 <rect x="538" y="417" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />

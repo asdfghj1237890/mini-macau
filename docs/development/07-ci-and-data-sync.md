@@ -1,6 +1,6 @@
 # 07 · CI 與自動資料同步
 
-`.github/workflows/` 一共 10 個 workflow：
+`.github/workflows/` 一共 11 個 workflow：
 
 | Workflow | Trigger | 做什麼 |
 |----------|---------|--------|
@@ -14,6 +14,7 @@
 | [`update-toilets.yml`](../../.github/workflows/update-toilets.yml) | 每月 1 日 18:40 UTC（澳門 02:40） | data.gov.mo → `toilets.json` |
 | [`update-car-parks.yml`](../../.github/workflows/update-car-parks.yml) | daily 18:50 UTC（澳門 02:50） | DSAT API gateway → `car-parks.json` |
 | [`update-waste.yml`](../../.github/workflows/update-waste.yml) | 每月 1 日 19:10 UTC（澳門 03:10） | data.gov.mo（IAM ZIP + DSPA API gateway）→ `waste.json` |
+| [`update-dspa-stats.yml`](../../.github/workflows/update-dspa-stats.yml) | 每月 1 日 19:20 UTC（澳門 03:20） | DSPA API gateway → `dspa-stats.json` |
 
 `schools.json` 跟 `water-facilities.json` 沒有對應的排程 workflow：`fetch_schools.py` 與 `fetch_water_facilities.py` 都是純手動執行（見 [05-data-pipeline.md](05-data-pipeline.md)）；跑完一樣要過 `validate_output.py schools` / `validate_output.py water-facilities`，沒過就不 commit。
 
@@ -32,7 +33,7 @@
 
 ## 資料 sync workflow 的共同骨架
 
-八個資料 workflow 長得一樣：
+九個資料 workflow 長得一樣：
 
 ```yaml
 on:
@@ -91,7 +92,11 @@ jobs:
 
 ### `update-waste.yml`
 
-每月 1 日 19:10 UTC（澳門 03:10）。垃圾房／回收點清單跟公廁一樣是近乎靜態的設施名冊，同樣改成月度。同一個 job 內 `fetch_waste.py` 依序打八個上游：IAM 兩個 ZIP dataset、IAM 一個 API gateway GET（垃圾站）、DSPA 五個 API gateway POST（收集點）、Overpass 兩個 way（堆填區外環，走 `osm_footprints.py` 的快取）、DSPA 一個 API gateway POST（焚化中心月度統計）。跟 `update-car-parks.yml` 一樣需要 `DATAGOVMO_APPCODE` secret（同一把公開 APPCODE，一樣不寫進 repo）。焚化統計是 best-effort：那支 API 打不通只讓輸出的 `incinerator` 欄位變 `null`，不會讓整個 run 失敗，其餘七種收集點、環保站與處理設施照常 commit。跑完後要過 `validate_output.py waste`，沒過就不 commit。
+每月 1 日 19:10 UTC（澳門 03:10）。垃圾房／回收點清單跟公廁一樣是近乎靜態的設施名冊，同樣改成月度。同一個 job 內 `fetch_waste.py` 依序打：IAM 兩個 ZIP dataset、IAM 一個 API gateway GET（垃圾站）、IAM 環境資訊網自家 JSON（玻璃樽／衣物回收點，非 data.gov.mo）、DSPA 五個 API gateway POST（收集點）、Overpass 兩個 way（堆填區外環）、五座污水處理廠的 OSM 建築足跡（比照水／電廠房切圖磚，走 `osm_footprints.py` 的快取）。跟 `update-car-parks.yml` 一樣需要 `DATAGOVMO_APPCODE` secret（同一把公開 APPCODE，一樣不寫進 repo）。焚化中心的月度統計不在這支腳本裡了，見下面 `update-dspa-stats.yml`。跑完後要過 `validate_output.py waste`，沒過就不 commit。
+
+### `update-dspa-stats.yml`
+
+每月 1 日 19:20 UTC（澳門 03:20），緊接在 `update-waste.yml` 後面十分鐘——`dspa-stats.json` 的 `statsKey` 是指到 `waste.json` 的 facility id，順序上讓 waste 先落地比較合理，雖然兩個檔案其實互相獨立、誰先誰後都能各自 commit。`fetch_dspa_stats.py` 打七個 DSPA 上游（焚化中心、危廢站、堆填區、四座有公開資料的污水廠），全部同一把 `DATAGOVMO_APPCODE` secret。七條 series 各自 best-effort：任一個端點打不到只讓那條 series 存 `null`，不會讓整個 run 失敗，其餘照常 commit。跑完要過 `validate_output.py dspa-stats`，沒過就不 commit。
 
 ## `ci.yml` — lint / test / build / 資料驗證
 

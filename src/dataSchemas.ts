@@ -314,13 +314,6 @@ const wasteText = z.object({
 // rather than pointing at a `sources` entry.
 const wasteAttribution = z.object({ name: z.string(), url: z.string() })
 
-const wasteIncineratorMonth = z.object({
-  period: z.string(),
-  receivedT: z.number(),
-  electricityMwh: z.number(),
-  metalRecycledT: z.number(),
-})
-
 export const WasteFileSchema = z.object({
   fetchedAtUtc: z.string(),
   sources: z.array(
@@ -357,14 +350,30 @@ export const WasteFileSchema = z.object({
   facilities: z.array(
     z.object({
       id: z.string(),
-      kind: z.enum(['hazardous', 'landfill']),
+      kind: z.enum(['hazardous', 'landfill', 'wwtp']),
       name: wasteText,
       coordinates: lngLat,
       approximate: z.boolean(),
-      // A landfill's OSM outer ring; null for the hazardous station, which has
-      // no mapped outline. A ring needs 4 points to close.
+      // A landfill's OSM outer ring; null for the station and the sewage works,
+      // which are drawn as extruded buildings instead. A ring needs 4 points.
       polygon: z.array(lngLat).min(4).nullable(),
+      // Extruded footprints, in the power-facility shape. Optional: only the
+      // sewage works carry them today.
+      buildings: z.array(
+        z.object({
+          osmId: z.string(),
+          name: z.string().nullable(),
+          height: z.number(),
+          minHeight: z.number(),
+          kind: z.string().optional(),
+          coordinates: z.array(z.array(lngLat)).min(1),
+        }),
+      ).optional(),
       osm: z.array(z.string()).optional(),
+      operator: z.string().optional(),
+      // The dspa-stats.json series this facility's chart reads, or null when
+      // DSPA publishes none for it.
+      statsKey: z.string().nullable().optional(),
       note: wasteText,
       source: wasteAttribution,
     }),
@@ -382,21 +391,54 @@ export const WasteFileSchema = z.object({
       source: wasteAttribution,
     }),
   ).optional(),
-  // `latest` and `facts` are nullable inside an otherwise present block: the
-  // pipeline writes the block best-effort, so a failed stats call leaves the
-  // months empty rather than failing the whole run.
-  incinerator: z.object({
-    datasetId: z.string(),
-    url: z.string(),
-    latest: wasteIncineratorMonth.nullable(),
-    months: z.array(wasteIncineratorMonth),
-    facts: z.object({
-      phases: z.array(z.number()),
-      lines: z.number(),
-      capacityTPerDay: z.number(),
-      generationMw: z.number(),
-      areaM2: z.number(),
-    }).nullable(),
+})
+
+// dspa-stats.json — DSPA's published monthly throughput for the incineration
+// plant, the hazardous-waste station, the construction-waste landfill and the
+// sewage works. EVERY series is nullable and optional: each endpoint is fetched
+// best-effort, so a failed one leaves its key null and the panel shows no chart
+// rather than the whole file failing to load.
+const dspaStatsMonth = z.object({
+  period: z.string(),
+  receivedT: z.number().optional(),
+  processedT: z.number().optional(),
+  electricityMwh: z.number().optional(),
+  metalRecycledT: z.number().optional(),
+  volumeM3: z.number().optional(),
+  basicM3: z.number().optional(),
+  biologicalM3: z.number().optional(),
+  totalM3: z.number().optional(),
+})
+
+const dspaSeries = z.object({
+  // Null for the two series DSPA publishes only on its GIS pages (the hazardous
+  // station and the construction-waste landfill), which have no data.gov.mo id.
+  datasetId: z.string().nullable(),
+  url: z.string(),
+  unit: z.enum(['t', 'm3']),
+  latest: dspaStatsMonth.nullable(),
+  months: z.array(dspaStatsMonth),
+  // Only the incinerator series carries this.
+  facts: z.object({
+    phases: z.array(z.number()),
+    lines: z.number(),
+    capacityTPerDay: z.number(),
+    generationMw: z.number(),
+    areaM2: z.number(),
+  }).nullable().optional(),
+}).nullable()
+
+export const DspaStatsFileSchema = z.object({
+  fetchedAtUtc: z.string().optional(),
+  incinerator: dspaSeries.optional(),
+  hazardous: dspaSeries.optional(),
+  landfill: dspaSeries.optional(),
+  wwtp: z.object({
+    macau: dspaSeries.optional(),
+    taipa: dspaSeries.optional(),
+    coloane: dspaSeries.optional(),
+    crossborder: dspaSeries.optional(),
+    mia: dspaSeries.optional(),
   }).nullable().optional(),
 })
 
