@@ -57,9 +57,9 @@ fetch_water_facilities.py / fetch_power_facilities.py use for their own
 plants — copied here, not shared, like everything else in this file (see
 WWTP_TABLE / build_wwtp_facilities()). `statsKey` points into
 public/data/dspa-stats.json: "hazardous" / "landfill" / "wwtp.<plant>" for
-five of the eight facilities, `null` for the two with no monthly series (the
-Ka Ho ash landfill, wwtp-mia — see fetch_dspa_stats.py's docstring for why
-wwtp-mia has none). The incinerator's own monthly stats moved OUT of this
+seven of the eight facilities, `null` only for the Ka Ho ash landfill, which
+has no monthly series (wwtp-mia's comes from DSPA's own GIS site — see
+fetch_dspa_stats.py's docstring). The incinerator's own monthly stats moved OUT of this
 file entirely (see the retired bullet above) — `facilities[]` has no
 `kind == "incinerator"`; the incineration plant itself already appears on the
 POWER overlay (fetch_power_facilities.py) and is not duplicated here.
@@ -568,7 +568,8 @@ def fetch_landfill_polygons() -> dict[str, dict]:
 # above (unlike dspa-stats.json's monthly figures, this is core map content).
 #
 # `statsKey` points into public/data/dspa-stats.json (fetch_dspa_stats.py);
-# null for wwtp-mia, which has no open dataset (see that script's docstring).
+# wwtp-mia's series is scraped from DSPA's own GIS site there (see that
+# script's docstring), so every plant has one.
 # ----------------------------------------------------------------------------
 WWTP_SOURCE = {"name": "環境保護局 (DSPA) · OpenStreetMap", "url": "https://www.dspa.gov.mo/place1_3.aspx"}
 WWTP_OUTLINE_MAX_HEIGHT_M = 20.0  # a slab drawn from an outline the basemap does not render
@@ -628,7 +629,7 @@ WWTP_TABLE: list[dict] = [
         },
     },
     {
-        "id": "wwtp-mia", "osm": ["w817108499"], "statsKey": None,
+        "id": "wwtp-mia", "osm": ["w817108499"], "statsKey": "wwtp.mia",
         "name": {
             "zh": "澳門國際機場污水處理站",
             "en": "Macau International Airport Wastewater Treatment Station",

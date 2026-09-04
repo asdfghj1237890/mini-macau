@@ -1733,7 +1733,7 @@ WASTE_ECO_STATION_COUNT = 10
 # Ho ash landfill, wwtp-mia).
 WASTE_STATS_KEYS = {
     "hazardous", "landfill",
-    "wwtp.macau", "wwtp.taipa", "wwtp.coloane", "wwtp.crossborder",
+    "wwtp.macau", "wwtp.taipa", "wwtp.mia", "wwtp.coloane", "wwtp.crossborder",
 }
 
 
@@ -2008,10 +2008,11 @@ def v_waste(data: object) -> list[str]:
 
 # ── DSPA monthly statistics (public/data/dspa-stats.json) ────────────────────
 #
-# fetch_dspa_stats.py's seven series: incinerator, hazardous, landfill, and
-# four wwtp.* (wwtp.mia has no open dataset and is always null — see that
-# script's docstring). Every series is BEST-EFFORT, so `null` is always valid;
-# check_dspa_series only checks shape when a series is present.
+# fetch_dspa_stats.py's eight series: incinerator, hazardous, landfill, and
+# five wwtp.* (wwtp.mia comes from DSPA's own GIS site rather than the API
+# gateway — see that script's docstring). Every series is BEST-EFFORT, so
+# `null` is always valid; check_dspa_series only checks shape when a series is
+# present.
 DSPA_STATS_PERIOD_RE = re.compile(r"^\d{4}-(0[1-9]|1[0-2])$")
 DSPA_STATS_MAX_MONTHS = 12
 DSPA_STATS_UNITS = {"t", "m3"}
@@ -2106,10 +2107,8 @@ def v_dspa_stats(data: object) -> list[str]:
     wwtp = data["wwtp"]
     if require_fields(errs, "dspa-stats.wwtp", wwtp, ("macau", "taipa", "coloane", "crossborder", "mia")):
         check_dspa_series(errs, "dspa-stats.wwtp.macau", wwtp["macau"], ("basicM3", "biologicalM3", "totalM3"))
-        for key in ("taipa", "coloane", "crossborder"):
+        for key in ("taipa", "coloane", "crossborder", "mia"):
             check_dspa_series(errs, f"dspa-stats.wwtp.{key}", wwtp[key], ("totalM3",))
-        if wwtp["mia"] is not None:
-            errs.append("dspa-stats.wwtp.mia must be null — no open dataset publishes it")
 
     return errs
 

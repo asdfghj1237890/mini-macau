@@ -14,7 +14,7 @@ see fetch_waste.py's own module docstring for the same convention (only the
 low-level osm_footprints.py / osrm_route.py pieces are shared across
 data/scripts/*.py; per-file orchestration is each script's own copy).
 
-Seven series ship in the output, six of them fetched here:
+Eight series ship in the output, seven from the API gateway:
 
   key               endpoint (under https://dspa.apigateway.data.gov.mo/)   dataset id
   incinerator       T_Bas_MRIP_Approved            monthly    8142c05e-818a-478a-9256-4ecd494d3f87
@@ -24,7 +24,20 @@ Seven series ship in the output, six of them fetched here:
   wwtp.taipa        V_T_Bas_MRIP_Approved_2        monthly    9d257556-9d52-4a59-afa0-d1a2a2bab0a8
   wwtp.coloane      V_T_Bas_WWTP_Approved/coloane  monthly    a5a05d0e-30c5-4298-81d5-e6bee5af5e8b
   wwtp.crossborder  V_T_Bas_WWTP_Approved/crossborder monthly 4a57b120-60f2-4a36-a6eb-7f93f340f2e6
-  wwtp.mia          — no open dataset (the airport's own system is not on data.gov.mo) — always `null`
+  wwtp.mia          (DSPA's own GIS site, see below)   monthly    (no data.gov.mo id — DSPA GIS page only)
+
+wwtp.mia (the airport's 澳門國際機場污水處理站) is the one series the API
+gateway does NOT expose: V_T_Bas_WWTP_Approved there carries only the taipa /
+coloane / crossborder categories. DSPA's own GIS site does show it
+(apps.dspa.gov.mo/gis/publicData.html?data=V_T_Bas_WWTP_Approved-mia), and
+that page loads its table through the site's internal
+`common/Service.svc/getDataByPeriodServerProcessing/<table>` with a
+DataTables server-side JSON body (`initFilter: " Category='mia' "`) and HTTP
+Basic auth for the anonymous account the site's own util.js hard-codes
+(`_un = "public", _pw = "public"`). fetch_gis() replays exactly that request
+— the same bytes the public page sends — but it is NOT an open API: it can
+change or be closed at any time, which is why this series is best-effort like
+the rest and the page URL, not a dataset id, is what the panel links to.
 
 wwtp.macau is the only DAILY feed (CollectionPeriod like "2026/6/9", ~6,400
 rows total): it is grouped by (year, month) here and its two flow fields
@@ -55,6 +68,7 @@ verbatim from fetch_waste.py's old INCINERATOR_FACTS. It lives inside the
 failed incinerator fetch drops it too, exactly like before.
 """
 
+import base64
 import json
 import os
 import re
@@ -120,6 +134,16 @@ SERIES_TABLE: list[tuple] = [
 WWTP_MACAU_ENDPOINT = "T_Bas_WWTP_Macau_Approved"
 WWTP_MACAU_DATASET_ID = "9c555082-70e8-452f-a86b-073cd0da4a55"
 
+# The airport plant: DSPA's own GIS site, not the API gateway — see the module
+# docstring. The account is the anonymous one the site's util.js hard-codes
+# for every visitor (`_un = "public", _pw = "public"`), not a secret.
+GIS_SERVICE = "https://apps.dspa.gov.mo/gis/common/Service.svc/getDataByPeriodServerProcessing/{table}"
+GIS_PUBLIC_AUTH = "Basic " + base64.b64encode(b"public:public").decode("ascii")
+WWTP_MIA_TABLE = "V_T_Bas_WWTP_Approved"
+WWTP_MIA_FILTER = " Category='mia' "
+WWTP_MIA_PAGE = GIS_PAGE.format(code="V_T_Bas_WWTP_Approved-mia")
+GIS_PAGE_LENGTH = 500  # the page offers up to 5,000; the series is ~210 rows
+
 
 def clean(s: object) -> str:
     return re.sub(r"\s+", " ", str(s or "")).strip()
@@ -173,6 +197,53 @@ def fetch_dspa(endpoint: str, appcode: str) -> list[dict]:
             print(f"  attempt {attempt} for {endpoint} failed ({last_error}); retrying in {delay:.0f}s", file=sys.stderr)
             time.sleep(delay)
     raise RuntimeError(f"DSPA gateway fetch {endpoint} failed after {MAX_ATTEMPTS} attempts: {last_error}")
+
+
+def fetch_gis(table: str, init_filter: str, columns: tuple[str, ...]) -> list[dict]:
+    """Replay the DSPA GIS site's own DataTables request for one table — the
+    request its publicData.html page sends (captured 2026-09-05): a JSON body
+    with the column list, a descending sort on the first column, `start` /
+    `length`, and the page's `initFilter` — with the site's anonymous Basic
+    auth. Returns the `data` rows; retries like fetch_dspa()."""
+    url = GIS_SERVICE.format(table=table)
+    body = json.dumps({
+        "draw": 1,
+        "columns": [
+            {"data": c, "name": c, "searchable": True, "orderable": True, "search": {"value": "", "regex": False}}
+            for c in columns
+        ],
+        "order": [{"column": 0, "dir": "desc"}],
+        "start": 0,
+        "length": GIS_PAGE_LENGTH,
+        "search": {"value": "", "regex": False},
+        "initFilter": init_filter,
+    }).encode("utf-8")
+    headers = {
+        **HEADERS,
+        "Authorization": GIS_PUBLIC_AUTH,
+        "Content-Type": "application/json; charset=utf-8",
+        "Accept": "application/json, text/javascript, */*; q=0.01",
+        "X-Requested-With": "XMLHttpRequest",
+        "Referer": WWTP_MIA_PAGE,
+    }
+    last_error = "no attempts made"
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            req = urllib.request.Request(url, data=body, headers=headers, method="POST")
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+                raw = resp.read()
+            answer = json.loads(raw.decode("utf-8-sig"))
+            rows = answer.get("data") if isinstance(answer, dict) else None
+            if isinstance(rows, list):
+                return rows
+            last_error = f"unexpected JSON shape: {type(answer).__name__}"
+        except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as e:
+            last_error = f"{type(e).__name__}: {e}"
+        if attempt < MAX_ATTEMPTS:
+            delay = BACKOFF_BASE * (2 ** (attempt - 1))
+            print(f"  attempt {attempt} for GIS {table} failed ({last_error}); retrying in {delay:.0f}s", file=sys.stderr)
+            time.sleep(delay)
+    raise RuntimeError(f"DSPA GIS fetch {table} failed after {MAX_ATTEMPTS} attempts: {last_error}")
 
 
 def build_series(records: list[dict], period_field: str, value_fields: dict[str, str],
@@ -290,6 +361,20 @@ def run() -> int:
     print(f"- wwtp.macau ({WWTP_MACAU_ENDPOINT}, daily rows summed per month)")
     wwtp_macau = fetch_series("wwtp.macau", WWTP_MACAU_ENDPOINT, appcode, build_wwtp_macau)
 
+    # The airport plant comes from DSPA's own GIS site (see the module
+    # docstring) — best-effort like everything else.
+    print(f"- wwtp.mia (GIS site, {WWTP_MIA_TABLE} filtered to Category='mia')")
+    wwtp_mia: dict | None = None
+    try:
+        gis_rows = fetch_gis(WWTP_MIA_TABLE, WWTP_MIA_FILTER, ("Period", "Influent_Flow"))
+        print(f"  GIS {WWTP_MIA_TABLE}: {len(gis_rows)} records")
+        wwtp_mia = build_series(gis_rows, "Period", {"Influent_Flow": "totalM3"},
+                                None, WWTP_MIA_PAGE, "m3", "Category", "mia")
+        if wwtp_mia is None:
+            print("  warning: wwtp.mia had no usable rows, series will be null", file=sys.stderr)
+    except RuntimeError as e:
+        print(f"  warning: wwtp.mia fetch failed, series will be null: {e}", file=sys.stderr)
+
     output = {
         "fetchedAtUtc": datetime.now(tz=timezone.utc).isoformat(),
         "incinerator": series["incinerator"],
@@ -300,7 +385,7 @@ def run() -> int:
             "taipa": series["wwtp.taipa"],
             "coloane": series["wwtp.coloane"],
             "crossborder": series["wwtp.crossborder"],
-            "mia": None,  # no open dataset — see the module docstring
+            "mia": wwtp_mia,
         },
     }
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)

@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-09-04T16:50:46.814117+00:00",
+  "fetchedAtUtc": "2026-09-04T17:29:47.952726+00:00",
   "incinerator": {
     "datasetId": "8142c05e-818a-478a-9256-4ecd494d3f87",
     "url": "https://data.gov.mo/Detail?id=8142c05e-818a-478a-9256-4ecd494d3f87",
@@ -490,6 +490,64 @@
         }
       ]
     },
-    "mia": null
+    "mia": {
+      "datasetId": null,
+      "url": "https://apps.dspa.gov.mo/gis/publicData.html?data=V_T_Bas_WWTP_Approved-mia&lng=zh-TW",
+      "unit": "m3",
+      "latest": {
+        "period": "2026-06",
+        "totalM3": 3407.0
+      },
+      "months": [
+        {
+          "period": "2025-07",
+          "totalM3": 4024.0
+        },
+        {
+          "period": "2025-08",
+          "totalM3": 1737.0
+        },
+        {
+          "period": "2025-09",
+          "totalM3": 2150.0
+        },
+        {
+          "period": "2025-10",
+          "totalM3": 3343.0
+        },
+        {
+          "period": "2025-11",
+          "totalM3": 3338.0
+        },
+        {
+          "period": "2025-12",
+          "totalM3": 3846.0
+        },
+        {
+          "period": "2026-01",
+          "totalM3": 3974.0
+        },
+        {
+          "period": "2026-02",
+          "totalM3": 2028.0
+        },
+        {
+          "period": "2026-03",
+          "totalM3": 2418.0
+        },
+        {
+          "period": "2026-04",
+          "totalM3": 3143.0
+        },
+        {
+          "period": "2026-05",
+          "totalM3": 3227.0
+        },
+        {
+          "period": "2026-06",
+          "totalM3": 3407.0
+        }
+      ]
+    }
   }
 }
