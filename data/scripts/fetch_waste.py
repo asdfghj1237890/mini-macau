@@ -3,7 +3,7 @@ Daily fetch: IAM (市政署) refuse rooms / compacting bins + DSPA (環境保護
 recycling-point lists from the Macau open-data platform, normalised into
 public/data/waste.json for the map's WASTE overlay.
 
-Seven upstream datasets (data.gov.mo, all WGS84) collapse into six site
+Seven data.gov.mo datasets plus IAM's facility-map JSON (all WGS84) collapse into nine site
 types:
 
   IAM, via the same ZIP-download endpoint as fetch_toilets.py (no APPCODE):
@@ -49,6 +49,23 @@ Round 2 adds a seventh site type and three more top-level blocks:
     fail the run — the block is written as `null` and the frontend panel just
     hides the stats. See build_incinerator_stats().
 
+Round 3 adds two more site types, both filtered from one shared feed:
+  * `glass` (5) and `clothing` (16): IAM's public facility-map JSON
+    (https://www.iam.gov.mo/macaohygiene/data/facility_c.json — plain GET, a
+    browser-like User-Agent, no APPCODE at all; this is NOT a data.gov.mo
+    dataset, unlike everything else in this file). 1,457 rows across many
+    categories (public toilets, pet-waste bins, dog runs, …); only
+    `category == "玻璃樽公共回收點"` / `"全澳衣物公共回收點"` are kept (see
+    build_iam_map_sites()). The two types share one fetch and one raw record
+    list but get their own `sources` entries (`iam-map-glass`,
+    `iam-map-clothing`), each `upstreamUpdatedAt` the max `lastModDate` among
+    that type's own rows. Unlike every other type, `closed` here is derived
+    from a date window (`suspendStartDate`/`suspendEndDate` span today, Macau
+    date) rather than a tempClose/status flag — see parse_suspend_ymd().
+    Genuinely small counts (5 / 16), so the degenerate-fetch floor is a table
+    (TYPE_MIN_PER_TYPE), not the one-size-fits-all TYPE_MIN_DEFAULT used by
+    every other type — validate_output.py mirrors the same table.
+
 Quirks handled here:
   * IAM records: `location` is "lat,lng" (lat first, like fetch_toilets.py).
     Names start with a zone code (M#, T#, C# = 澳門/氹仔/路環); unlike
@@ -87,7 +104,7 @@ import time
 import urllib.error
 import urllib.request
 import zipfile
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from shapely.geometry import Polygon
@@ -99,6 +116,7 @@ DSPA_BASE = "https://dspa.apigateway.data.gov.mo/T_Bas_POI_Basic"
 DETAIL = "https://data.gov.mo/Detail?id={id}"
 OUTPUT_PATH = Path(__file__).parent.parent.parent / "public" / "data" / "waste.json"
 LAT0 = 22.16  # local metres-per-degree reference, as in the other scripts
+MACAU_TZ = timezone(timedelta(hours=8))  # round 3: suspend dates are Macau wall-clock dates
 
 HEADERS = {"User-Agent": "Mozilla/5.0 (compatible; mini-macau data pipeline)"}
 TIMEOUT = 30
@@ -107,8 +125,11 @@ BACKOFF_BASE = 2.0  # seconds; 2, 4, 8, 16
 
 # Degenerate-fetch guard, per type: refuse to write a file where an upstream
 # scrape broke silently. validate_output.py enforces the same floor again
-# before commit.
-TYPE_MIN = 20
+# before commit. Round 3's glass/clothing recycling points are genuinely rare
+# upstream (5 and 16 — not a scrape failure), so the floor is a table rather
+# than one constant.
+TYPE_MIN_DEFAULT = 20
+TYPE_MIN_PER_TYPE = {"glass": 3, "clothing": 8}
 
 # Generous Macau-region bounding box (validate_output.py enforces the real,
 # tighter bbox before commit — this is just a sanity net on the raw fetch).
@@ -138,11 +159,17 @@ DATASET_TABLE = [
     ("dspa-battery", "lamp_battery", "a536616e-d870-4137-8dd6-0b2125a6c2a5", "battery",
      False, "電池回收位置清單", "Lista de locais de recolha de pilhas e baterias"),
 ]
-TYPE_ORDER = ["refuse_room", "refuse_station", "compactor", "smart_machine", "three_colour", "e_waste", "lamp_battery"]
+TYPE_ORDER = ["refuse_room", "refuse_station", "compactor", "smart_machine", "three_colour", "e_waste", "lamp_battery", "glass", "clothing"]
 
 
 def clean(s: object) -> str:
     return re.sub(r"\s+", " ", str(s or "")).strip()
+
+
+def today_macau_ymd() -> str:
+    """Round 3: "today" for the suspendStartDate/suspendEndDate window check,
+    as Macau wall-clock "YYYY-MM-DD"."""
+    return datetime.now(tz=MACAU_TZ).strftime("%Y-%m-%d")
 
 
 def parse_iam_location(raw: object) -> list[float] | None:
@@ -629,6 +656,122 @@ REFUSE_STATION_DATASET_ID = "6c7617b7-8165-4564-9b51-055ddda8b3ad"
 REFUSE_STATION_SOURCE_ID = "iam-refuse-station"
 
 
+# ----------------------------------------------------------------------------
+# round 3: glass-bottle + clothing recycling points (`glass` / `clothing`)
+#
+# IAM's public facility-map JSON — the feed behind
+# https://www.iam.gov.mo/macaohygiene/c/allgarbage/map, NOT a data.gov.mo
+# dataset and not behind the APPCODE gateway at all. 1,457 rows across many
+# categories (public toilets, pet-waste bins, dog runs, large-furniture
+# collection, …); only the two recycling categories are kept here. See
+# build_iam_map_sites().
+# ----------------------------------------------------------------------------
+IAM_MAP_URL = "https://www.iam.gov.mo/macaohygiene/data/facility_c.json"
+IAM_MAP_SOURCE_URL = "https://www.iam.gov.mo/macaohygiene/c/allgarbage/map"
+IAM_MAP_DATASET_ID = "facility_c.json"
+# A real desktop UA — unlike HEADERS above, which self-identifies as a bot —
+# because this endpoint isn't a data.gov.mo API and expects a browser.
+IAM_MAP_HEADERS = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+
+# upstream category (zh, as published) -> (our type id, fallback bilingual
+# `sources[].name` — there is no separate readme for this feed, unlike the ZIP
+# datasets above, so this is always what ships).
+IAM_MAP_CATEGORIES: list[tuple[str, str, dict]] = [
+    ("玻璃樽公共回收點", "glass", {"zh": "玻璃樽公共回收點", "pt": "Pontos de recolha pública de garrafas de vidro"}),
+    ("全澳衣物公共回收點", "clothing", {"zh": "全澳衣物公共回收點", "pt": "Pontos de recolha pública de roupas usadas"}),
+]
+
+
+def parse_suspend_ymd(raw: object) -> str | None:
+    """IAM map's suspendStartDate/suspendEndDate: "YYYY-MM-DDTHH:MM:SS" (Macau
+    wall time, no offset) or "" when unset -> just the "YYYY-MM-DD" date part,
+    or None when unset/unparseable."""
+    s = clean(raw)
+    if len(s) < 10 or s[4:5] != "-" or s[7:8] != "-":
+        return None
+    return s[:10]
+
+
+def iam_map_photo(r: dict) -> str | None:
+    """First non-empty photo1..photo4, made absolute against iam.gov.mo (the
+    upstream paths are already percent-encoded, site-relative)."""
+    for key in ("photo1", "photo2", "photo3", "photo4"):
+        p = clean(r.get(key))
+        if p:
+            return p if p.startswith("http") else f"https://www.iam.gov.mo{p}"
+    return None
+
+
+def format_last_mod(raw: str) -> str:
+    """"2018-10-07T14:35:27" -> "2018-10-07 14:35:27" (also truncates any
+    fractional seconds/offset the upstream might one day add)."""
+    return raw.replace("T", " ")[:19]
+
+
+def build_iam_map_sites(records: list[dict], category: str, kind: str, today_ymd: str) -> list[dict]:
+    """Filter IAM's shared facility-map list (facility_c.json) down to one
+    `category` and shape it like every other waste site. `closed` is the only
+    type in this file derived from a suspend-date window rather than a
+    tempClose/status flag."""
+    sites = []
+    for r in records:
+        if clean(r.get("category")) != category:
+            continue
+        rid = clean(r.get("id"))
+        name_zh = clean(r.get("name"))
+        coords = parse_iam_location(r.get("mapLink"))
+        if not rid or not name_zh or coords is None:
+            print(
+                f"  skipping {kind} id={rid or '?'}: bad record "
+                f"(name={name_zh!r} mapLink={r.get('mapLink')!r})",
+                file=sys.stderr,
+            )
+            continue
+        addr_zh = clean(r.get("address"))
+        start = parse_suspend_ymd(r.get("suspendStartDate"))
+        end = parse_suspend_ymd(r.get("suspendEndDate"))
+        sites.append(
+            {
+                "id": f"{kind}-{rid[:8]}",
+                "type": kind,
+                "name": {"zh": name_zh, "en": "", "pt": ""},
+                "address": {"zh": addr_zh, "pt": ""} if addr_zh else None,
+                "coordinates": coords,
+                "closed": start is not None and end is not None and start <= today_ymd <= end,
+                "tel": None,
+                "photo": iam_map_photo(r),
+                "upstreamStatus": None,
+            }
+        )
+    return sites
+
+
+def fetch_iam_map(url: str) -> list[dict]:
+    """GET IAM's public facility-map JSON — a plain fetch with no
+    Authorization header (unlike fetch_iam_gateway/fetch_dspa, this feed isn't
+    behind data.gov.mo's APPCODE gateway at all). Same retry/backoff shape as
+    the other fetch_* helpers here. The response envelope is `{"data": [...]}`,
+    not a bare list like every other source in this file."""
+    last_error = "no attempts made"
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        try:
+            req = urllib.request.Request(url, headers=IAM_MAP_HEADERS, method="GET")
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
+                body = resp.read()
+            parsed = json.loads(body.decode("utf-8-sig"))
+            records = parsed.get("data") if isinstance(parsed, dict) else parsed
+            if isinstance(records, list):
+                return records
+            last_error = f"unexpected JSON shape: {type(parsed).__name__}"
+        except (urllib.error.URLError, TimeoutError, OSError, json.JSONDecodeError) as e:
+            last_error = f"{type(e).__name__}: {e}"
+        if attempt < MAX_ATTEMPTS:
+            delay = BACKOFF_BASE * (2 ** (attempt - 1))
+            print(f"  attempt {attempt} for {url} failed ({last_error}); retrying in {delay:.0f}s", file=sys.stderr)
+            time.sleep(delay)
+    raise RuntimeError(f"IAM map fetch {url} failed after {MAX_ATTEMPTS} attempts: {last_error}")
+
+
 def run() -> int:
     appcode = os.environ.get("DATAGOVMO_APPCODE")
     if not appcode:
@@ -723,6 +866,41 @@ def run() -> int:
         print(f"  ERROR: {e}", file=sys.stderr)
         failed.append(REFUSE_STATION_SOURCE_ID)
 
+    # --- round 3: IAM's public facility-map JSON -> glass + clothing
+    # recycling points. Plain GET, no APPCODE — fatal on failure like
+    # everything else above. -------------------------------------------------
+    print(f"- iam-map-glass / iam-map-clothing ({IAM_MAP_DATASET_ID})")
+    try:
+        facility_map = fetch_iam_map(IAM_MAP_URL)
+        print(f"  {IAM_MAP_URL}: {len(facility_map)} records")
+        today_ymd = today_macau_ymd()
+        for category, kind, fallback_name in IAM_MAP_CATEGORIES:
+            kind_sites = build_iam_map_sites(facility_map, category, kind, today_ymd)
+            sites.extend(kind_sites)
+            last_mods = sorted(
+                clean(r.get("lastModDate"))
+                for r in facility_map
+                if clean(r.get("category")) == category and clean(r.get("lastModDate"))
+            )
+            sources.append(
+                {
+                    "id": f"iam-map-{kind}",
+                    "type": kind,
+                    "datasetId": IAM_MAP_DATASET_ID,
+                    "name": fallback_name,
+                    "url": IAM_MAP_SOURCE_URL,
+                    "upstreamUpdatedAt": format_last_mod(last_mods[-1]) if last_mods else None,
+                    # Like refuse_station, this is the FILTERED site count for
+                    # this one category, not the raw fetch size (1,457, shared
+                    # across every category in the feed).
+                    "count": len(kind_sites),
+                }
+            )
+    except RuntimeError as e:
+        print(f"  ERROR: {e}", file=sys.stderr)
+        failed.append("iam-map-glass")
+        failed.append("iam-map-clothing")
+
     if failed:
         print(f"ERROR: {len(failed)} source(s) failed after retries: {', '.join(failed)} — refusing to write", file=sys.stderr)
         return 1
@@ -742,9 +920,13 @@ def run() -> int:
     for s in sites:
         counts[s["type"]] = counts.get(s["type"], 0) + 1
 
-    short = {k: counts.get(k, 0) for k in TYPE_ORDER if counts.get(k, 0) < TYPE_MIN}
+    short = {
+        k: counts.get(k, 0)
+        for k in TYPE_ORDER
+        if counts.get(k, 0) < TYPE_MIN_PER_TYPE.get(k, TYPE_MIN_DEFAULT)
+    }
     if short:
-        print(f"ERROR: type(s) below the {TYPE_MIN}-site floor: {short} — refusing to write", file=sys.stderr)
+        print(f"ERROR: type(s) below their per-type floor: {short} — refusing to write", file=sys.stderr)
         return 1
 
     sites.sort(key=lambda s: (TYPE_ORDER.index(s["type"]), s["id"]))

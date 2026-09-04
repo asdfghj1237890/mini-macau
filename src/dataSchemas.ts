@@ -302,6 +302,7 @@ export const CarParksFileSchema = z.object({
 const wasteSiteType = z.enum([
   'refuse_room', 'compactor', 'refuse_station',
   'smart_machine', 'three_colour', 'e_waste', 'lamp_battery',
+  'glass', 'clothing',
 ])
 const wasteText = z.object({
   zh: z.string(),

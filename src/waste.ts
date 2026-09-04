@@ -18,11 +18,13 @@ import type {
 } from './types'
 
 // Registration order for the marker images, the legend's reading order, and
-// the order the per-type toggles appear in: the two IAM collection kinds first,
-// then DSPA's four recycling kinds.
+// the order the per-type toggles appear in: the three IAM collection kinds
+// first, then DSPA's four recycling kinds, then IAM's two single-material banks
+// (glass and clothing), which come from a different IAM source again.
 export const WASTE_TYPES: readonly WasteSiteType[] = [
   'refuse_room', 'compactor', 'refuse_station',
   'smart_machine', 'three_colour', 'e_waste', 'lamp_battery',
+  'glass', 'clothing',
 ] as const
 
 // Marker colours, chosen against the dark basemap and away from the other city
@@ -40,6 +42,11 @@ export const WASTE_COLORS: Record<WasteSiteType, string> = {
   three_colour: '#4ade80',
   e_waste: '#c084fc',
   lamp_battery: '#f9a8d4',
+  // The two single-material banks. Cyan reads as glass against the greens and
+  // teals around it; rose keeps the clothing bins apart from the pink
+  // lamp/battery points they are most often confused with in the key.
+  glass: '#67e8f9',
+  clothing: '#fda4af',
 }
 
 // The three bins a 三色 point actually holds — blue paper, yellow plastic,
@@ -52,13 +59,17 @@ export const WASTE_THREE_COLOUR_BINS: readonly string[] = ['#3b82f6', '#facc15',
 // under 406 lamp/battery points otherwise. Ascending scarcity, which is also
 // "the more specialised the service, the more worth showing".
 export const WASTE_SORT_KEY: Record<WasteSiteType, number> = {
-  smart_machine: 0,
-  e_waste: 1,
-  three_colour: 2,
-  refuse_room: 3,
-  refuse_station: 4,
-  compactor: 5,
-  lamp_battery: 6,
+  // Five glass banks and sixteen clothing banks in the whole territory: they
+  // are the scarcest marks on the layer, so they win every collision.
+  glass: 0,
+  clothing: 1,
+  smart_machine: 2,
+  e_waste: 3,
+  three_colour: 4,
+  refuse_room: 5,
+  refuse_station: 6,
+  compactor: 7,
+  lamp_battery: 8,
 }
 
 // ---------------------------------------------------------------------------
@@ -153,8 +164,20 @@ export function wasteIncinerator(facilities: PowerFacility[] | undefined): Power
 // incineration plant is DSPA's too.
 export type WasteAgency = 'iam' | 'dspa'
 
+// The two banks IAM publishes on its own 環境資訊網 facility map instead of
+// data.gov.mo. Their panels credit that map rather than the open-data portal,
+// because that is where the record actually comes from.
+export const WASTE_IAM_MAP_URL = 'https://www.iam.gov.mo/macaohygiene/c/allgarbage/map'
+
+const WASTE_IAM_MAP_TYPES = new Set<WasteLayerType>(['glass', 'clothing'])
+
+export function wasteFromIamMap(type: WasteLayerType): boolean {
+  return WASTE_IAM_MAP_TYPES.has(type)
+}
+
 export function wasteAgency(type: WasteLayerType): WasteAgency {
   return type === 'refuse_room' || type === 'compactor' || type === 'refuse_station'
+    || wasteFromIamMap(type)
     ? 'iam'
     : 'dspa'
 }
@@ -189,6 +212,8 @@ export function wasteTypeLabel(t: Translations, type: WasteLayerType): string {
     case 'smart_machine': return t.wasteTypeSmartMachine
     case 'three_colour': return t.wasteTypeThreeColour
     case 'e_waste': return t.wasteTypeEWaste
+    case 'glass': return t.wasteTypeGlass
+    case 'clothing': return t.wasteTypeClothing
     default: return t.wasteTypeLampBattery
   }
 }
@@ -209,12 +234,13 @@ export type WasteTypeSet = ReadonlySet<WasteLayerType>
 export const NO_HIDDEN_WASTE_TYPES: WasteTypeSet = new Set<WasteLayerType>()
 
 // What a first-time visitor sees: the collection and treatment rows (refuse
-// rooms, compactors, refuse stations, treatment facilities) are on, the five
-// recycling rows start hidden — 850 recycling points would otherwise bury the
+// rooms, compactors, refuse stations, treatment facilities) are on, the seven
+// recycling rows start hidden — 870 recycling points would otherwise bury the
 // 300 collection points the layer is named after. Applies only when nothing is
 // stored; a visitor who has toggled anything keeps their own set.
 export const DEFAULT_HIDDEN_WASTE_TYPES: WasteTypeSet = new Set<WasteLayerType>([
-  'smart_machine', 'three_colour', 'e_waste', 'lamp_battery', 'eco_station',
+  'smart_machine', 'three_colour', 'e_waste', 'lamp_battery',
+  'glass', 'clothing', 'eco_station',
 ])
 
 // localStorage key for the hidden types (a JSON array of type ids).
@@ -512,18 +538,55 @@ export function wasteMonthLabel(period: string): string {
   return m ? `${m[2]}` : period
 }
 
-// Each month's bar height as a percentage of the tallest, floored at 4 % so a
-// quiet month is still a visible mark rather than a gap in the strip.
+// The axis the bar strip is drawn against. Twelve months of a plant running at
+// a steady ~58–62 kt are twelve nearly identical bars, and scaling them to the
+// DATA range would turn a 6 % spread into a 100 % one — a chart that lies. So
+// the strip is drawn against a fixed zero-based axis whose top is the data max
+// rounded UP to the next 10,000 t, which is what makes "they are all about the
+// same" the honest reading.
+export const WASTE_AXIS_STEP_T = 10000
+
+export function wasteAxisMax(months: WasteIncineratorMonth[] | undefined): number {
+  const peak = (months ?? []).reduce((m, r) => Math.max(m, r.receivedT || 0), 0)
+  if (!(peak > 0)) return WASTE_AXIS_STEP_T
+  return Math.ceil(peak / WASTE_AXIS_STEP_T) * WASTE_AXIS_STEP_T
+}
+
+// A tick label: 60000 → "60k", 500 → "500", 0 → "0". Thousands only, because
+// the axis step is 10,000 and three labels have to fit a ~22 px gutter.
+export function formatWasteAxisTick(value: number): string {
+  if (!Number.isFinite(value) || value <= 0) return '0'
+  if (value % 1000 === 0) return `${value / 1000}k`
+  return formatWasteAmount(value)
+}
+
+// The three ticks, top-first: the axis max, its half, and zero. `offset` is the
+// distance from the TOP of the plot as a percentage, so a gridline and its
+// label can share one `top` value.
+export function wasteAxisTicks(max: number): { value: number; label: string; offset: number }[] {
+  const top = max > 0 ? max : WASTE_AXIS_STEP_T
+  return [top, top / 2, 0].map(value => ({
+    value,
+    label: formatWasteAxisTick(value),
+    offset: ((top - value) / top) * 100,
+  }))
+}
+
+// Each month's bar height as a percentage of the AXIS max (never of the data
+// max). A month with a real but tiny figure keeps a 2 % stub so it reads as a
+// bar rather than a gap; a true zero draws nothing, which is the truth.
+// `latest` marks the newest month, which the panel emphasises.
 export function wasteMonthBars(
   months: WasteIncineratorMonth[] | undefined,
-): { period: string; label: string; value: number; percent: number }[] {
+): { period: string; label: string; value: number; percent: number; latest: boolean }[] {
   const rows = months ?? []
-  const max = rows.reduce((m, r) => Math.max(m, r.receivedT || 0), 0)
-  return rows.map(r => ({
+  const max = wasteAxisMax(rows)
+  return rows.map((r, i) => ({
     period: r.period,
     label: wasteMonthLabel(r.period),
     value: r.receivedT,
-    percent: max > 0 ? Math.max(4, Math.round((r.receivedT / max) * 100)) : 0,
+    percent: r.receivedT > 0 ? Math.max(2, Math.round((r.receivedT / max) * 100)) : 0,
+    latest: i === rows.length - 1,
   }))
 }
 

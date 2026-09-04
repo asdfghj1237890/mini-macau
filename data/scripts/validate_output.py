@@ -1698,15 +1698,27 @@ def v_power_facilities(data: object) -> list[str]:
 # stored raw and NEVER derived from `closed` (see fetch_waste.py's docstring).
 # `refuse_station` (round 2) is IAM's own site id, not derived like the other
 # two IAM types — see fetch_waste.py's build_refuse_station().
-WASTE_TYPES = {"refuse_room", "refuse_station", "compactor", "smart_machine", "three_colour", "e_waste", "lamp_battery"}
-# Degenerate-fetch guards mirroring fetch_waste.py's own floors: ~1,136 sites
-# total (114 + 42 + 140 + 67 + 311 + 56 + 406 as of 2026-09), each type >= 20.
+# `glass`/`clothing` (round 3) come from a third, unrelated IAM feed
+# (facility_c.json, no APPCODE) and are the only two types where `closed` is
+# derived from a date window (suspendStartDate/suspendEndDate span today)
+# rather than a tempClose/status flag — see fetch_waste.py's
+# build_iam_map_sites().
+WASTE_TYPES = {
+    "refuse_room", "refuse_station", "compactor", "smart_machine", "three_colour",
+    "e_waste", "lamp_battery", "glass", "clothing",
+}
+# Degenerate-fetch guards mirroring fetch_waste.py's own floors: ~1,157 sites
+# total (114 + 42 + 140 + 67 + 311 + 56 + 406 + 5 + 16 as of 2026-09). Round 3's
+# glass/clothing recycling points are genuinely rare upstream (not a scrape
+# failure), so the per-type floor is a table rather than one constant.
 WASTE_MIN_TOTAL = 800
-WASTE_MIN_PER_TYPE = 20
+WASTE_MIN_PER_TYPE_DEFAULT = 20
+WASTE_MIN_PER_TYPE = {"glass": 3, "clothing": 8}
 # lamp_battery cites both the lightBulb and battery datasets (identical
 # lists, one type) alongside the other five, one dataset each; round 2 adds
-# one more (iam-refuse-station).
-WASTE_SOURCE_COUNT = 8
+# one more (iam-refuse-station); round 3 adds two more (iam-map-glass,
+# iam-map-clothing).
+WASTE_SOURCE_COUNT = 10
 
 # Round 2: treatment facilities, eco stations, incinerator stats.
 WASTE_FACILITY_KINDS = {"hazardous", "landfill"}
@@ -2011,8 +2023,9 @@ def v_waste(data: object) -> list[str]:
 
     for t in WASTE_TYPES:
         n = tally.get(t, 0)
-        if n < WASTE_MIN_PER_TYPE:
-            errs.append(f"waste: only {n} sites of type '{t}' (< {WASTE_MIN_PER_TYPE})")
+        floor = WASTE_MIN_PER_TYPE.get(t, WASTE_MIN_PER_TYPE_DEFAULT)
+        if n < floor:
+            errs.append(f"waste: only {n} sites of type '{t}' (< {floor})")
 
     for t, n in counts.items():
         if not (isinstance(n, int) and not isinstance(n, bool) and n >= 0):

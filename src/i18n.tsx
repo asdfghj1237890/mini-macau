@@ -339,6 +339,9 @@ const translations = {
     wasteTypeThreeColour: 'Three-colour recycling point',
     wasteTypeEWaste: 'Computer & telecom equipment',
     wasteTypeLampBattery: 'Lamps & batteries',
+    // IAM's two single-material banks, from its 環境資訊網 facility map.
+    wasteTypeGlass: 'Glass bottle recycling point',
+    wasteTypeClothing: 'Clothing recycling point',
     // The incineration plant — the seventh key row. Not a collection point:
     // it is where the six kinds above end up, read from the POWER dataset.
     wasteTypeIncinerator: 'Refuse incineration plant',
@@ -364,6 +367,10 @@ const translations = {
       `${phases} · ${lines} incineration lines · ~${capacity} t/day · ${mw} MW`,
     wasteStatsPhases: (years: string) => `Three phases (${years})`,
     wasteStatsMonths: 'Refuse received, last 12 months (t)',
+    // The bar strip's own caption: the axis is zero-based and its ticks are
+    // unitless (60k / 30k / 0), so the unit is named once, here.
+    wasteStatsUnitTonnes: 't',
+    wasteStatsMonthsAxis: (unit: string) => `Refuse received, last 12 months (${unit})`,
     wasteIncineratorNote: 'The government incineration plant at Pac On, Taipa. It burns Macau’s collected refuse and sells the electricity it generates to CEM through the Incinerator substation.',
     wasteOperatorDspa: 'Environmental Protection Bureau (DSPA) facility',
     wasteOperator: 'OPERATOR',
@@ -657,6 +664,8 @@ const translations = {
     wasteTypeThreeColour: '三色資源回收點',
     wasteTypeEWaste: '電腦及通訊設備回收點',
     wasteTypeLampBattery: '光管及電池回收點',
+    wasteTypeGlass: '玻璃樽回收點',
+    wasteTypeClothing: '衣物回收點',
     wasteTypeIncinerator: '垃圾焚化中心',
     wasteTypeEcoStation: '環保加Fun站',
     wasteTypeFacility: '處理設施',
@@ -677,6 +686,8 @@ const translations = {
       `${phases} · ${lines} 條焚化線 · 約 ${capacity} 公噸／日 · ${mw} MW`,
     wasteStatsPhases: (years: string) => `三期（${years}）`,
     wasteStatsMonths: '近 12 個月接收垃圾量（公噸）',
+    wasteStatsUnitTonnes: '公噸',
+    wasteStatsMonthsAxis: (unit: string) => `近 12 個月接收垃圾量（${unit}）`,
     wasteIncineratorNote: '政府設於氹仔北安的垃圾焚化中心，焚燒全澳收集的垃圾，並透過焚化爐變電站將所發電力售予澳電。',
     wasteOperatorDspa: '環境保護局 (DSPA) 設施',
     wasteOperator: '營運',
@@ -966,6 +977,8 @@ const translations = {
     wasteTypeThreeColour: 'Ponto de reciclagem tricolor',
     wasteTypeEWaste: 'Equipamento informático e de telecomunicações',
     wasteTypeLampBattery: 'Lâmpadas e pilhas',
+    wasteTypeGlass: 'Ponto de recolha de garrafas de vidro',
+    wasteTypeClothing: 'Ponto de recolha de roupa',
     wasteTypeIncinerator: 'Central de incineração de resíduos',
     wasteTypeEcoStation: 'Centro Ambiental Alegria',
     wasteTypeFacility: 'Instalações de tratamento',
@@ -986,6 +999,8 @@ const translations = {
       `${phases} · ${lines} linhas de incineração · ~${capacity} t/dia · ${mw} MW`,
     wasteStatsPhases: (years: string) => `Três fases (${years})`,
     wasteStatsMonths: 'Resíduos recebidos, últimos 12 meses (t)',
+    wasteStatsUnitTonnes: 't',
+    wasteStatsMonthsAxis: (unit: string) => `Resíduos recebidos, últimos 12 meses (${unit})`,
     wasteIncineratorNote: 'Central de incineração do Governo em Pac On, Taipa. Queima os resíduos recolhidos em Macau e vende a electricidade produzida à CEM através da subestação da incineradora.',
     wasteOperatorDspa: 'Instalação da Direcção dos Serviços de Protecção Ambiental (DSPA)',
     wasteOperator: 'OPERADOR',
@@ -1272,6 +1287,8 @@ export interface Translations {
   wasteTypeThreeColour: string
   wasteTypeEWaste: string
   wasteTypeLampBattery: string
+  wasteTypeGlass: string
+  wasteTypeClothing: string
   wasteTypeIncinerator: string
   wasteTypeEcoStation: string
   wasteTypeFacility: string
@@ -1291,6 +1308,8 @@ export interface Translations {
   wasteStatsFacts: (phases: string, lines: number, capacity: string, mw: number) => string
   wasteStatsPhases: (years: string) => string
   wasteStatsMonths: string
+  wasteStatsUnitTonnes: string
+  wasteStatsMonthsAxis: (unit: string) => string
   wasteIncineratorNote: string
   wasteOperatorDspa: string
   wasteOperator: string

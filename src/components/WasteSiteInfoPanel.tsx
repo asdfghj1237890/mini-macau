@@ -15,9 +15,13 @@ import {
   WASTE_HAZARDOUS_COLOR,
   WASTE_INCINERATOR_COLOR,
   WASTE_LANDFILL_COLOR,
+  WASTE_IAM_MAP_URL,
   formatWasteAmount,
   pickWasteText,
+  wasteAxisMax,
+  wasteAxisTicks,
   wasteAgency,
+  wasteFromIamMap,
   wasteMonthBars,
   wasteSourceForType,
   wasteTypeLabel,
@@ -147,6 +151,9 @@ export function WasteSiteInfoPanel({ site, sources, onClose }: Props) {
 
   const agency = wasteAgency(site.type)
   const source = wasteSourceForType(sources, site.type)
+  // The glass and clothing banks come from IAM's own facility map, not
+  // data.gov.mo — so their second link names that map instead of the portal.
+  const fromIamMap = wasteFromIamMap(site.type)
 
   return (
     <Shell
@@ -180,12 +187,12 @@ export function WasteSiteInfoPanel({ site, sources, onClose }: Props) {
           </a>
           {' · '}
           <a
-            href={source?.url || DATA_PORTAL_URL}
+            href={source?.url || (fromIamMap ? WASTE_IAM_MAP_URL : DATA_PORTAL_URL)}
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-emerald-200 transition-colors"
           >
-            data.gov.mo
+            {fromIamMap ? '環境資訊網' : 'data.gov.mo'}
           </a>
         </>
       }
@@ -236,6 +243,7 @@ export function WasteIncineratorInfoPanel(
   const latest = stats?.latest ?? null
   const facts = stats?.facts ?? null
   const bars = wasteMonthBars(stats?.months)
+  const axisTicks = wasteAxisTicks(wasteAxisMax(stats?.months))
 
   return (
     <Shell
@@ -326,28 +334,62 @@ export function WasteIncineratorInfoPanel(
           )}
           {bars.length > 0 && (
             <div className="pt-0.5">
-              <div className="flex items-end gap-[3px] h-[34px]">
-                {bars.map(bar => (
-                  <div
-                    key={bar.period}
-                    className="flex-1 bg-lime-300/45 rounded-[1px]"
-                    style={{ height: `${bar.percent}%` }}
-                    title={`${bar.period} · ${t.wasteStatsTonnes(formatWasteAmount(bar.value))}`}
-                  />
-                ))}
+              {/* A zero-based axis, not a data-range one. The plant runs at a
+                  steady ~58–62 kt a month, so scaling twelve bars to the data
+                  range would magnify a 6 % spread into a full-height sawtooth
+                  and invite the reader to see a trend that is not there. The
+                  ticks (max / half / 0) and the gridlines behind the bars are
+                  what let "they are all about the same" be read off the chart.
+                  Plain divs: the gutter is a fixed 22 px, the plot fills the
+                  rest, and both stay inside the 340 px card on a phone. */}
+              <div className="flex items-stretch gap-1">
+                <div className="relative w-[22px] shrink-0 h-[44px]">
+                  {axisTicks.map(tick => (
+                    <span
+                      key={tick.value}
+                      className="absolute right-0 mm-mono mm-tabular text-[6px] text-white/30
+                                 leading-none -translate-y-1/2"
+                      style={{ top: `${tick.offset}%` }}
+                    >
+                      {tick.label}
+                    </span>
+                  ))}
+                </div>
+                <div className="relative flex-1 min-w-0 h-[44px]">
+                  {axisTicks.map(tick => (
+                    <span
+                      key={tick.value}
+                      className="absolute left-0 right-0 border-t border-white/10"
+                      style={{ top: `${tick.offset}%` }}
+                      aria-hidden="true"
+                    />
+                  ))}
+                  <div className="absolute inset-0 flex items-end gap-[3px]">
+                    {bars.map(bar => (
+                      <div
+                        key={bar.period}
+                        className={`flex-1 rounded-[1px] ${
+                          bar.latest ? 'bg-lime-300/85' : 'bg-lime-300/40'}`}
+                        style={{ height: `${bar.percent}%` }}
+                        title={`${bar.period} · ${t.wasteStatsTonnes(formatWasteAmount(bar.value))}`}
+                      />
+                    ))}
+                  </div>
+                </div>
               </div>
-              <div className="flex gap-[3px] pt-[2px]">
+              <div className="flex gap-[3px] pt-[2px] pl-[26px]">
                 {bars.map(bar => (
                   <span
                     key={bar.period}
-                    className="flex-1 mm-mono mm-tabular text-[6px] text-white/25 text-center"
+                    className={`flex-1 mm-mono mm-tabular text-[6px] text-center
+                                ${bar.latest ? 'text-lime-200/70' : 'text-white/25'}`}
                   >
                     {bar.label}
                   </span>
                 ))}
               </div>
               <div className="pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
-                {t.wasteStatsMonths}
+                {t.wasteStatsMonthsAxis(t.wasteStatsUnitTonnes)}
               </div>
             </div>
           )}

@@ -412,7 +412,9 @@ const WASTE_ICON_PX = 40
 // Plates pale enough to need dark ink rather than the white the WC and P glyphs
 // carry: the near-white compactor, the sand refuse station and the pink
 // lamp/battery plate.
-const WASTE_PALE_PLATES = new Set<WasteSiteType>(['compactor', 'refuse_station', 'lamp_battery'])
+const WASTE_PALE_PLATES = new Set<WasteSiteType>([
+  'compactor', 'refuse_station', 'lamp_battery', 'glass', 'clothing',
+])
 
 // The plate every waste marker sits on: the same rounded square with a white
 // rim as the WC and P markers, so the city overlays read as one family. Drawn
@@ -577,6 +579,51 @@ function drawWasteIcon(type: WasteSiteType): ImageData | null {
       ctx.lineTo(cx, 29)
       ctx.moveTo(cx - 5, 29.5)
       ctx.lineTo(cx + 5, 29.5)
+      ctx.stroke()
+      break
+    }
+    // 玻璃樽公共回收點 — a bottle: neck, shoulder and body.
+    case 'glass': {
+      ctx.lineWidth = 2.4
+      ctx.beginPath()
+      ctx.moveTo(cx - 2.5, 9)
+      ctx.lineTo(cx + 2.5, 9)
+      ctx.lineTo(cx + 2.5, 14)
+      // Shoulders flaring out to the body.
+      ctx.quadraticCurveTo(cx + 6.5, 17, cx + 6.5, 22)
+      ctx.lineTo(cx + 6.5, 29)
+      ctx.lineTo(cx - 6.5, 29)
+      ctx.lineTo(cx - 6.5, 22)
+      ctx.quadraticCurveTo(cx - 6.5, 17, cx - 2.5, 14)
+      ctx.closePath()
+      ctx.stroke()
+      // The label band, which is what makes it a bottle rather than a flask.
+      ctx.beginPath()
+      ctx.moveTo(cx - 6.5, 23)
+      ctx.lineTo(cx + 6.5, 23)
+      ctx.stroke()
+      break
+    }
+    // 全澳衣物公共回收點 — a T-shirt: sleeves, collar and body.
+    case 'clothing': {
+      ctx.lineWidth = 2.2
+      ctx.beginPath()
+      ctx.moveTo(cx - 5, 11)
+      ctx.lineTo(cx - 10, 15.5)
+      ctx.lineTo(cx - 7.5, 19.5)
+      ctx.lineTo(cx - 5.5, 18)
+      ctx.lineTo(cx - 5.5, 29.5)
+      ctx.lineTo(cx + 5.5, 29.5)
+      ctx.lineTo(cx + 5.5, 18)
+      ctx.lineTo(cx + 7.5, 19.5)
+      ctx.lineTo(cx + 10, 15.5)
+      ctx.lineTo(cx + 5, 11)
+      ctx.closePath()
+      ctx.stroke()
+      // The collar.
+      ctx.beginPath()
+      ctx.moveTo(cx - 5, 11)
+      ctx.quadraticCurveTo(cx, 15, cx + 5, 11)
       ctx.stroke()
       break
     }

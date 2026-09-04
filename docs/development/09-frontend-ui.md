@@ -57,7 +57,7 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 
 ### WASTE：複合列，但數字會動
 
-垃圾回收列是第二個複合列，同一招：本體展開/收合、右側 ON/OFF 是總開關（`onToggleWaste`——這顆開關同時是 WASTE 專注模式的進出開關，見下面「localStorage key」之後的專注模式說明；展開/收合狀態是另一個獨立的 `wasteLegendOpen`，存 `mm-waste-legend-open`，預設展開）。跟 SCHOOLS 的差異：九個子列只在 `wasteOn && wasteLegendOpen` 都成立時才渲染，不是本體一展開就看得到——WASTE 預設關，關著的時候看子列沒有意義。列本身的數字也會動：九列全開時顯示總數 1,150，只要關掉任一列就換成 `可見/總數`，提醒使用者現在看到的不是全部（`wasteTypesAllOn` 判斷）。子列同樣是「色塊、標籤、數量、ON/OFF」，順序固定為 [`WASTE_LAYER_TYPES`](../../src/waste.ts)——七種收集點（[`WASTE_TYPES`](../../src/waste.ts)：垃圾房、壓縮式垃圾收集點、垃圾站、智能回收機、三色資源回收點、電腦及通訊設備回收點、光管及電池回收點）之後接環保加Fun站（`eco_station`，10 個 DSPA 回收站）、處理設施（`facility`，焚化中心＋特殊和危險廢物處理站＋兩個堆填區合計 4 個，一個開關一起收放）。這兩列不是收集點，`countWasteByType` 用單獨的算式湊數（`facility` 是「焚化中心存不存在」加堆填區／危廢站的筆數）。隱藏的列存進同一把 `mini-macau-waste-types`（[`loadHiddenWasteTypes`/`saveHiddenWasteTypes`](../../src/waste.ts)，JSON 陣列，壞資料一律退回「全部顯示」，未知 id 一律忽略——新增列不會被舊存檔誤關）。行動版 WASTE modal 跟 SCHOOLS 一樣把九個子列直接攤平。
+垃圾回收列是第二個複合列，同一招：本體展開/收合、右側 ON/OFF 是總開關（`onToggleWaste`——這顆開關同時是 WASTE 專注模式的進出開關，見下面「localStorage key」之後的專注模式說明；展開/收合狀態是另一個獨立的 `wasteLegendOpen`，存 `mm-waste-legend-open`，預設展開）。跟 SCHOOLS 的差異：十一個子列只在 `wasteOn && wasteLegendOpen` 都成立時才渲染，不是本體一展開就看得到——WASTE 預設關，關著的時候看子列沒有意義。列本身的數字也會動：十一列全開時顯示總數 1,171，只要關掉任一列就換成 `可見/總數`，提醒使用者現在看到的不是全部（`wasteTypesAllOn` 判斷）。子列同樣是「色塊、標籤、數量、ON/OFF」，順序固定為 [`WASTE_LAYER_TYPES`](../../src/waste.ts)——九種收集點（[`WASTE_TYPES`](../../src/waste.ts)：垃圾房、壓縮式垃圾收集點、垃圾站、智能回收機、三色資源回收點、電腦及通訊設備回收點、光管及電池回收點、玻璃樽回收點、衣物回收點）之後接環保加Fun站（`eco_station`，10 個 DSPA 回收站）、處理設施（`facility`，焚化中心＋特殊和危險廢物處理站＋兩個堆填區合計 4 個，一個開關一起收放）。這兩列不是收集點，`countWasteByType` 用單獨的算式湊數（`facility` 是「焚化中心存不存在」加堆填區／危廢站的筆數）。隱藏的列存進同一把 `mini-macau-waste-types`（[`loadHiddenWasteTypes`/`saveHiddenWasteTypes`](../../src/waste.ts)，JSON 陣列，壞資料或沒有存檔一律退回預設（七個回收列隱藏），未知 id 一律忽略——新增列不會被舊存檔誤關）。行動版 WASTE modal 跟 SCHOOLS 一樣把十一個子列直接攤平。
 
 ### 行動版：chip 疊 + CITY chip
 
@@ -87,7 +87,7 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-carparks-on` | P 總開關 | 關 |
 | `mini-macau-waste-on` | WASTE 總開關（專注模式） | 關 |
 | `mini-macau-waste-focus-snapshot` | WASTE 開啟前其他圖層的可見狀態快照（JSON） | 無 |
-| `mini-macau-waste-types` | 隱藏的垃圾回收子類型（九選，key 為 type id） | 回收類預設隱藏：`smart_machine`、`three_colour`、`e_waste`、`lamp_battery`、`eco_station`；垃圾房、壓縮式垃圾收集點、垃圾站、處理設施預設顯示 |
+| `mini-macau-waste-types` | 隱藏的垃圾回收子類型（九選，key 為 type id） | 回收類預設隱藏：`smart_machine`、`three_colour`、`e_waste`、`lamp_battery`、`glass`、`clothing`、`eco_station`；垃圾房、壓縮式垃圾收集點、垃圾站、處理設施預設顯示 |
 | `mini-macau-water-on` | WATER 總開關（專注模式） | 關 |
 | `mini-macau-water-focus-snapshot` | WATER 開啟前其他圖層的可見狀態快照（JSON） | 無 |
 | `mini-macau-power-on` | POWER 總開關（專注模式） | 關 |

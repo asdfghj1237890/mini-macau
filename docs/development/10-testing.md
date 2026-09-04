@@ -40,7 +40,7 @@ npm run test:watch  # 互動模式
 | `schools.test.ts` | `buildSchoolFeatures` 的顏色/skip 規則、`filterSchoolsByLevel` 全開時保留 array identity、`loadSchoolLevelsOn`/`saveSchoolLevelsOn` round-trip 與壞資料容錯 |
 | `toilets.test.ts` | `toiletVariant` 優先權（closed 蓋過 accessible）、`pickToiletText` 三語 fallback、`buildToiletFeatures` 的座標 skip |
 | `carParks.test.ts` | `parseCarParkVacancyXml` / `parseCarParkTime` 解析 DSAT XML 與美式日期時間、`buildCarParkFeatures` 的 vacancy 標籤規則 |
-| `waste.test.ts` | 七型別的顏色/圖示名/排序鍵互不重複、IAM／DSPA 來源歸類、`pickWasteText` en→pt→zh fallback（DSPA 沒有英文）、`visibleWasteSites` 隱藏類型過濾（沒有隱藏時保留 array identity）、`countWasteByType`／`visibleWasteCount`、`wasteLegendRows`、`loadHiddenWasteTypes`/`saveHiddenWasteTypes` 的 round-trip 與壞資料容錯、焚化中心從 `power-facilities.json` 借記錄（id+type 雙重比對）、環保加Fun站與處理設施的可見性/計數、`formatWasteAmount`／`wasteMonthBars` 統計格式化、`buildWasteFeatures`／`buildWasteAreaFeatures`／`buildWasteBuildingFeatures` |
+| `waste.test.ts` | 九型別的顏色/圖示名/排序鍵互不重複、IAM／DSPA 來源歸類、`pickWasteText` en→pt→zh fallback（DSPA 沒有英文）、`visibleWasteSites` 隱藏類型過濾（沒有隱藏時保留 array identity）、`countWasteByType`／`visibleWasteCount`、`wasteLegendRows`、`loadHiddenWasteTypes`/`saveHiddenWasteTypes` 的 round-trip 與壞資料容錯、焚化中心從 `power-facilities.json` 借記錄（id+type 雙重比對）、環保加Fun站與處理設施的可見性/計數、`formatWasteAmount`／`wasteMonthBars` 統計格式化、`buildWasteFeatures`／`buildWasteAreaFeatures`／`buildWasteBuildingFeatures` |
 
 `dataSchemas.test.ts` 是另一種測試：拿 zod schema（[`dataSchemas.ts`](../../src/dataSchemas.ts)）去 parse `public/data/*.json` 實際檔案內容，包括新的 `road-works.json` / `schools.json` / `toilets.json` / `car-parks.json` / `waste.json` / `water-facilities.json`——保證 commit 進來的資料本身合法，不是測程式邏輯。
 

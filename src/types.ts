@@ -275,14 +275,16 @@ export interface CarParkVacancy {
 }
 
 // ---- WASTE · 垃圾回收 -----------------------------------------------------
-// Seven kinds of collection point from two agencies. IAM publishes the refuse
-// rooms, the refuse collection stations and the compacting collection points;
-// DSPA publishes the four kinds of recycling point. `lamp_battery` folds two
-// identical DSPA datasets (光管 and 電池 — same ids, names and coordinates) into
-// one type.
+// Nine kinds of collection point from two agencies. IAM publishes the refuse
+// rooms, the refuse collection stations, the compacting collection points and —
+// from its own 環境資訊網 facility map rather than data.gov.mo — the glass-bottle
+// and clothing banks; DSPA publishes the four kinds of recycling point.
+// `lamp_battery` folds two identical DSPA datasets (光管 and 電池 — same ids,
+// names and coordinates) into one type.
 export type WasteSiteType =
   | 'refuse_room' | 'compactor' | 'refuse_station'
   | 'smart_machine' | 'three_colour' | 'e_waste' | 'lamp_battery'
+  | 'glass' | 'clothing'
 
 // Trilingual free text for a waste site. `en` is OPTIONAL and often "": the
 // DSPA feeds publish Chinese and Portuguese only, and the address block carries

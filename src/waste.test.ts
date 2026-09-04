@@ -3,6 +3,7 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import {
+  DEFAULT_HIDDEN_WASTE_TYPES,
   LS_WASTE_TYPES_KEY,
   WASTE_COLORS,
   WASTE_ECO_STATION_COLOR,
@@ -34,7 +35,11 @@ import {
   formatWasteAmount,
   visibleWasteEcoStations,
   visibleWasteFacilities,
+  wasteFromIamMap,
   wasteIncinerator,
+  wasteAxisMax,
+  wasteAxisTicks,
+  formatWasteAxisTick,
   wasteMonthBars,
   wasteSelectionId,
   wasteSelectionType,
@@ -46,7 +51,7 @@ import type {
   PowerFacility, WasteEcoStation, WasteFacility, WasteSite, WasteSiteType, WasteSource,
 } from './types'
 
-// Only the seven type labels this module reads, the way schools.test.ts does it
+// Only the nine type labels this module reads, the way schools.test.ts does it
 // — the full table is module-private in i18n.tsx.
 const T = {
   wasteTypeRefuseRoom: '垃圾房',
@@ -59,6 +64,8 @@ const T = {
   wasteTypeRefuseStation: '垃圾站',
   wasteTypeEcoStation: '環保加Fun站',
   wasteTypeFacility: '處理設施',
+  wasteTypeGlass: '玻璃樽回收點',
+  wasteTypeClothing: '衣物回收點',
 } as Translations
 
 function site(over: Partial<WasteSite> = {}): WasteSite {
@@ -103,12 +110,12 @@ function stubStorage(initial: Record<string, string> = {}) {
 
 afterEach(() => { vi.unstubAllGlobals() })
 
-describe('the six site types', () => {
-  it('has exactly seven, each with a colour, a distinct icon name and a sort key', () => {
-    expect(WASTE_TYPES).toHaveLength(7)
-    expect(new Set(WASTE_TYPES).size).toBe(7)
+describe('the nine site types', () => {
+  it('has exactly nine, each with a colour, a distinct icon name and a sort key', () => {
+    expect(WASTE_TYPES).toHaveLength(9)
+    expect(new Set(WASTE_TYPES).size).toBe(9)
     const names = WASTE_TYPES.map(wasteIconName)
-    expect(new Set(names).size).toBe(7)
+    expect(new Set(names).size).toBe(9)
     expect(names).toContain('waste-refuse_room')
     for (const type of WASTE_TYPES) {
       expect(WASTE_COLORS[type]).toMatch(/^#[0-9a-f]{6}$/)
@@ -117,12 +124,26 @@ describe('the six site types', () => {
     // Rarer types must win the collision, so their sort key must be lower.
     expect(WASTE_SORT_KEY.smart_machine).toBeLessThan(WASTE_SORT_KEY.lamp_battery)
     expect(WASTE_SORT_KEY.e_waste).toBeLessThan(WASTE_SORT_KEY.compactor)
+    // Five glass banks and sixteen clothing banks: the scarcest marks win every
+    // collision, so their keys are below every other site type's.
+    for (const type of WASTE_TYPES) {
+      if (type === 'glass' || type === 'clothing') continue
+      expect(WASTE_SORT_KEY.glass).toBeLessThan(WASTE_SORT_KEY[type])
+      expect(WASTE_SORT_KEY.clothing).toBeLessThan(WASTE_SORT_KEY[type])
+    }
   })
 
   it('attributes the two disposal kinds to IAM and the recycling kinds to DSPA', () => {
     expect(wasteAgency('refuse_room')).toBe('iam')
     expect(wasteAgency('compactor')).toBe('iam')
     expect(wasteAgency('refuse_station')).toBe('iam')
+    // IAM's own facility map, not data.gov.mo — but still IAM.
+    expect(wasteAgency('glass')).toBe('iam')
+    expect(wasteAgency('clothing')).toBe('iam')
+    expect(wasteFromIamMap('glass')).toBe(true)
+    expect(wasteFromIamMap('clothing')).toBe(true)
+    expect(wasteFromIamMap('refuse_room')).toBe(false)
+    expect(wasteFromIamMap(WASTE_FACILITY_ID)).toBe(false)
     for (const type of ['smart_machine', 'three_colour', 'e_waste', 'lamp_battery'] as const) {
       expect(wasteAgency(type)).toBe('dspa')
     }
@@ -133,9 +154,9 @@ describe('the six site types', () => {
     expect(labels).toEqual([
       '垃圾房', '壓縮式垃圾收集點', '垃圾站', '智能回收機',
       '三色資源回收點', '電腦及通訊設備回收點', '光管及電池回收點',
-      '環保加Fun站', '處理設施',
+      '玻璃樽回收點', '衣物回收點', '環保加Fun站', '處理設施',
     ])
-    expect(new Set(labels).size).toBe(9)
+    expect(new Set(labels).size).toBe(11)
   })
 })
 
@@ -229,8 +250,11 @@ describe('loadHiddenWasteTypes / saveHiddenWasteTypes', () => {
     expect([...loadHiddenWasteTypes()]).toEqual(['compactor', 'lamp_battery'])
   })
 
-  it('starts with the five recycling rows hidden for missing, corrupt or wrongly-shaped storage', () => {
-    const expected = ['smart_machine', 'three_colour', 'e_waste', 'lamp_battery', 'eco_station']
+  it('starts with the seven recycling rows hidden for missing, corrupt or wrongly-shaped storage', () => {
+    const expected = [
+      'smart_machine', 'three_colour', 'e_waste', 'lamp_battery',
+      'glass', 'clothing', 'eco_station',
+    ]
     stubStorage()
     expect([...loadHiddenWasteTypes()].sort()).toEqual([...expected].sort())
     stubStorage({ [LS_WASTE_TYPES_KEY]: '{not json' })
@@ -255,7 +279,7 @@ describe('loadHiddenWasteTypes / saveHiddenWasteTypes', () => {
       setItem: () => { throw new Error('denied') },
       removeItem: () => { throw new Error('denied') },
     })
-    expect(loadHiddenWasteTypes().size).toBe(5)
+    expect(loadHiddenWasteTypes().size).toBe(DEFAULT_HIDDEN_WASTE_TYPES.size)
     expect(() => saveHiddenWasteTypes(new Set<WasteSiteType>(['e_waste']))).not.toThrow()
   })
 })
@@ -318,13 +342,13 @@ describe('the incineration plant', () => {
   it('shares the LAST key row (處理設施) with the other end-of-life sites', () => {
     const counts = countWasteByType([site()], { incinerator: plant(), facilities: FACILITIES })
     const rows = wasteLegendRows(T, counts, new Set())
-    expect(rows).toHaveLength(9)
-    expect(rows[8]).toMatchObject({
+    expect(rows).toHaveLength(11)
+    expect(rows[10]).toMatchObject({
       id: WASTE_FACILITY_ID, count: 4, on: true, color: WASTE_INCINERATOR_COLOR,
     })
-    expect(rows[8].label).toBe('處理設施')
+    expect(rows[10].label).toBe('處理設施')
     const hidden = wasteLegendRows(T, counts, new Set([WASTE_FACILITY_ID]))
-    expect(hidden[8].on).toBe(false)
+    expect(hidden[10].on).toBe(false)
   })
 
   it('adds 1 + the facilities to the row total, and hiding the row takes all 4 away', () => {
@@ -388,6 +412,55 @@ describe('the incineration plant', () => {
   })
 })
 
+// ---- Round 3: IAM's glass-bottle and clothing banks ------------------------
+// Not on data.gov.mo: these two come from IAM's own 環境資訊網 facility map, so
+// they are IAM records whose panel credits that map instead of the portal.
+describe('the glass and clothing banks', () => {
+  it('are the last two site rows, before the eco stations and the facilities', () => {
+    expect(WASTE_TYPES.slice(-2)).toEqual(['glass', 'clothing'])
+    expect(WASTE_LAYER_TYPES.indexOf('glass')).toBeGreaterThan(
+      WASTE_LAYER_TYPES.indexOf('lamp_battery'))
+    expect(WASTE_LAYER_TYPES.indexOf('clothing')).toBeLessThan(
+      WASTE_LAYER_TYPES.indexOf(WASTE_ECO_STATION_ID))
+  })
+
+  it('carry their own colours and icons', () => {
+    expect(WASTE_COLORS.glass).toBe('#67e8f9')
+    expect(WASTE_COLORS.clothing).toBe('#fda4af')
+    expect(wasteIconName('glass')).toBe('waste-glass')
+    expect(wasteIconName('clothing')).toBe('waste-clothing')
+  })
+
+  it('start hidden, like every other recycling row', () => {
+    expect(DEFAULT_HIDDEN_WASTE_TYPES.has('glass')).toBe(true)
+    expect(DEFAULT_HIDDEN_WASTE_TYPES.has('clothing')).toBe(true)
+    // ...and the collection rows the layer is named after stay on.
+    expect(DEFAULT_HIDDEN_WASTE_TYPES.has('refuse_room')).toBe(false)
+    expect(DEFAULT_HIDDEN_WASTE_TYPES.has('refuse_station')).toBe(false)
+  })
+
+  it('count, filter and draw like any other site type', () => {
+    const sites = [
+      site({ id: 'g1', type: 'glass' }),
+      site({ id: 'c1', type: 'clothing' }),
+      site({ id: 'r1', type: 'refuse_room' }),
+    ]
+    const counts = countWasteByType(sites)
+    expect(counts.glass).toBe(1)
+    expect(counts.clothing).toBe(1)
+    expect(visibleWasteCount(counts, new Set(['glass', 'clothing']))).toBe(1)
+    const fc = buildWasteFeatures(sites)
+    expect(fc.features.map(f => f.properties?.icon).slice(0, 2))
+      .toEqual(['waste-glass', 'waste-clothing'])
+  })
+
+  it('persist in the same hidden-type storage, in WASTE_TYPES order', () => {
+    stubStorage()
+    saveHiddenWasteTypes(new Set(['clothing', 'glass']))
+    expect([...loadHiddenWasteTypes()]).toEqual(['glass', 'clothing'])
+  })
+})
+
 // ---- Round 2: eco stations, treatment facilities, throughput ---------------
 
 function ecoStation(over: Partial<WasteEcoStation> = {}): WasteEcoStation {
@@ -435,9 +508,9 @@ describe('eco stations', () => {
     const counts = countWasteByType([site()], { ecoStations: [ecoStation(), ecoStation({ id: 'b' })] })
     expect(counts.eco_station).toBe(2)
     const rows = wasteLegendRows(T, counts, new Set())
-    expect(rows[7]).toMatchObject({ id: WASTE_ECO_STATION_ID, count: 2, on: true })
-    expect(rows[7].label).toBe('環保加Fun站')
-    expect(rows[7].color).toBe(WASTE_ECO_STATION_COLOR)
+    expect(rows[9]).toMatchObject({ id: WASTE_ECO_STATION_ID, count: 2, on: true })
+    expect(rows[9].label).toBe('環保加Fun站')
+    expect(rows[9].color).toBe(WASTE_ECO_STATION_COLOR)
   })
 
   it('are emptied by their own row and by an absent list — with a STABLE empty array', () => {
@@ -518,19 +591,59 @@ describe('incinerator throughput helpers', () => {
     expect(formatWasteAmount(Number.NaN)).toBe('—')
   })
 
-  it('scales the bars against the tallest month, with a visible floor', () => {
+  it('rounds the axis top UP to the next 10,000 t, never to the data max', () => {
+    // 58,681 must not become full height: the axis is what stops a 6 % spread
+    // being drawn as a 100 % one.
+    expect(wasteAxisMax([{ period: '2026-06', receivedT: 58681.05, electricityMwh: 0, metalRecycledT: 0 }]))
+      .toBe(60000)
+    expect(wasteAxisMax(months)).toBe(60000)
+    expect(wasteAxisMax([{ period: 'x', receivedT: 60000, electricityMwh: 0, metalRecycledT: 0 }]))
+      .toBe(60000)
+    expect(wasteAxisMax([{ period: 'x', receivedT: 60001, electricityMwh: 0, metalRecycledT: 0 }]))
+      .toBe(70000)
+    // No data at all still gives a real axis rather than a divide by zero.
+    expect(wasteAxisMax(undefined)).toBe(10000)
+    expect(wasteAxisMax([])).toBe(10000)
+  })
+
+  it('labels the ticks max / half / 0, top-first, with their offsets', () => {
+    expect(wasteAxisTicks(60000)).toEqual([
+      { value: 60000, label: '60k', offset: 0 },
+      { value: 30000, label: '30k', offset: 50 },
+      { value: 0, label: '0', offset: 100 },
+    ])
+    expect(formatWasteAxisTick(60000)).toBe('60k')
+    expect(formatWasteAxisTick(500)).toBe('500')
+    expect(formatWasteAxisTick(0)).toBe('0')
+    expect(formatWasteAxisTick(Number.NaN)).toBe('0')
+    // A degenerate max must not produce Infinity offsets.
+    expect(wasteAxisTicks(0).map(t => t.offset)).toEqual([0, 50, 100])
+  })
+
+  it('scales the bars against the AXIS, and flags the newest month', () => {
     const bars = wasteMonthBars(months)
     expect(bars.map(b => b.label)).toEqual(['07', '08', '09'])
+    // 60,000 of a 60,000 axis, and 40,000 of it.
     expect(bars[1].percent).toBe(100)
     expect(bars[0].percent).toBe(67)
-    // A zero month still leaves a mark rather than a gap in the strip.
-    expect(bars[2].percent).toBe(4)
+    // A true zero draws nothing — that is the honest height.
+    expect(bars[2].percent).toBe(0)
+    expect(bars.map(b => b.latest)).toEqual([false, false, true])
+  })
+
+  it('keeps a 2 % stub for a real but tiny month, so it is not a gap', () => {
+    const tiny = wasteMonthBars([
+      { period: '2026-01', receivedT: 60000, electricityMwh: 0, metalRecycledT: 0 },
+      { period: '2026-02', receivedT: 12, electricityMwh: 0, metalRecycledT: 0 },
+    ])
+    expect(tiny[1].percent).toBe(2)
   })
 
   it('is empty for a missing block, and flat when every month is zero', () => {
     expect(wasteMonthBars(undefined)).toEqual([])
     const flat = wasteMonthBars([months[2]])
     expect(flat[0].percent).toBe(0)
+    expect(flat[0].latest).toBe(true)
   })
 })
 
