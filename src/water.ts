@@ -25,6 +25,7 @@ import type {
   WaterDistributionRoad,
   WaterNetwork,
   WaterOperator,
+  WaterPipe,
   WaterPipeKind,
   WaterText,
 } from './types'
@@ -40,14 +41,45 @@ export const WATER_COLORS: Record<WaterFacilityType, string> = {
   pumping: '#7dd3fc',
 }
 
-// Display order: the supply chain as water actually travels it — reservoir →
-// raw-water pump → plant is the physical order, but the LIST is ordered the
-// way Macao Water numbers its facilities (plants 1–4, reservoirs 5–7, tanks
-// 8–11, raw pumping 12–15, pumping 16–22), which is what a reader comparing
-// the map against the source page expects.
+// Display order: the supply chain as water actually travels it. Macao Water's
+// own list is numbered differently (plants 1–4, reservoirs 5–7, tanks 8–11,
+// raw pumping 12–15, pumping 16–22) — that number is still on every info
+// panel, but the map, the legend and the marker badges all read in FLOW order,
+// because "where does the water go next" is the question this overlay exists
+// to answer. Keep this in step with WATER_STAGES below.
 export const WATER_TYPE_ORDER: readonly WaterFacilityType[] = [
-  'plant', 'reservoir', 'tank', 'raw_pumping', 'pumping',
+  'reservoir', 'raw_pumping', 'plant', 'pumping', 'tank',
 ] as const
+
+// ---------------------------------------------------------------------------
+// STAGES. The chain as one numbered story — raw water in, storage, raw-water
+// pumping, treatment, treated-water pumping, elevated storage, and finally the
+// street mesh — so the legend, the badge on every marker and the info panel
+// can all say "step ④" and mean the same thing. `inlet` is a network node and
+// `distribution` the mesh: neither is a facility, but both are chapters.
+// ---------------------------------------------------------------------------
+export type WaterStageKind = WaterFacilityType | 'inlet' | 'distribution'
+
+export const WATER_STAGES: readonly WaterStageKind[] = [
+  'inlet', 'reservoir', 'raw_pumping', 'plant', 'pumping', 'tank', 'distribution',
+] as const
+
+// 1-based stage number of a facility type or network-node kind, or 0 for a
+// kind the chain does not know — a future node type gets no badge rather than
+// a wrong one, and callers filter on `> 0`.
+export function waterStage(kind: string): number {
+  const i = (WATER_STAGES as readonly string[]).indexOf(kind)
+  return i < 0 ? 0 : i + 1
+}
+
+// Name of the registered badge image for a stage — the small numbered disc
+// drawn at the corner of a marker plate. Kept here for the same reason as
+// waterIconName: MapView's addImage loop and the symbol layer's `icon-image`
+// expression must spell it identically.
+export const WATER_BADGE_ICON_PREFIX = 'water-badge'
+export function waterBadgeIconName(stage: number): string {
+  return `${WATER_BADGE_ICON_PREFIX}-${stage}`
+}
 
 // The feature property MapView promotes to the GeoJSON feature id
 // (`promoteId`). Every building of a facility carries the same value, so ONE
@@ -142,9 +174,10 @@ export function waterLabelField(lang: Lang): string {
 
 // How a key row draws its swatch. `square` is a facility block, `squareFill` a
 // reservoir surface (translucent + rim), `droplet` / `dropletHollow` the two
-// marker plates, `line` a pipe sample and `inlet` the arrow disc.
+// marker plates, `line` a pipe sample, `inlet` the arrow disc and `pulse` the
+// bright wave that walks the chain.
 export type WaterLegendGlyph =
-  | 'square' | 'squareFill' | 'droplet' | 'dropletHollow' | 'line' | 'inlet'
+  | 'square' | 'squareFill' | 'droplet' | 'dropletHollow' | 'line' | 'inlet' | 'pulse'
 
 export interface WaterLegendRow {
   id: string
@@ -156,6 +189,11 @@ export interface WaterLegendRow {
   // than a trunk main, and its swatch says so — otherwise it would be
   // indistinguishable from the treated-water row above it.
   thin: boolean
+  // Stage number (1–7, see WATER_STAGES) for the rows that ARE the chain, in
+  // the order water travels it; 0 for the style rows (pipe kinds, the hollow
+  // plate, the wave) that explain a mark without being a step. The legend
+  // draws the numbered rows as a linked chain and the rest as a plain key.
+  stage: number
 }
 
 export function waterLegendRows(
@@ -163,42 +201,54 @@ export function waterLegendRows(
   network?: WaterNetwork | null,
 ): WaterLegendRow[] {
   const box = { dashed: false, thin: false }
-  const rows: WaterLegendRow[] = [
-    { id: 'plant', label: t.waterTypePlant, glyph: 'square', color: WATER_COLORS.plant, ...box },
-    { id: 'reservoir', label: t.waterTypeReservoir, glyph: 'squareFill', color: WATER_COLORS.reservoir, ...box },
-    { id: 'tank', label: t.waterTypeTank, glyph: 'square', color: WATER_COLORS.tank, ...box },
-    { id: 'raw_pumping', label: t.waterTypeRawPumping, glyph: 'droplet', color: WATER_COLORS.raw_pumping, ...box },
-    { id: 'pumping', label: t.waterTypePumping, glyph: 'droplet', color: WATER_COLORS.pumping, ...box },
-    // The hollow plate is a statement about certainty, not about type, so the
-    // row uses the commonest approximate type's colour and says what it means.
-    { id: 'approximate', label: t.waterApproximate, glyph: 'dropletHollow', color: WATER_COLORS.pumping, ...box },
-  ]
   const pipes = network?.pipes ?? []
+  const rows: WaterLegendRow[] = []
+  // The chain, one row per stage in FLOW order — the same order the wave on
+  // the map lights them. The inlet row only when the file has an inlet node,
+  // but its NUMBER is fixed either way (waterStage), so a badge on the map
+  // never means something different from the legend.
+  if (network?.nodes?.some(n => n.kind === 'inlet')) {
+    rows.push({
+      id: 'inlet', label: t.waterTypeInlet, glyph: 'inlet', color: WATER_INLET_COLOR, ...box,
+      stage: waterStage('inlet'),
+    })
+  }
+  rows.push(
+    { id: 'reservoir', label: t.waterTypeReservoir, glyph: 'squareFill', color: WATER_COLORS.reservoir, ...box, stage: waterStage('reservoir') },
+    { id: 'raw_pumping', label: t.waterTypeRawPumping, glyph: 'droplet', color: WATER_COLORS.raw_pumping, ...box, stage: waterStage('raw_pumping') },
+    { id: 'plant', label: t.waterTypePlant, glyph: 'square', color: WATER_COLORS.plant, ...box, stage: waterStage('plant') },
+    { id: 'pumping', label: t.waterTypePumping, glyph: 'droplet', color: WATER_COLORS.pumping, ...box, stage: waterStage('pumping') },
+    { id: 'tank', label: t.waterTypeTank, glyph: 'square', color: WATER_COLORS.tank, ...box, stage: waterStage('tank') },
+    // Unconditional: the distribution network is on the map whenever the
+    // layer is, network file or not.
+    {
+      id: 'distribution', label: t.waterLegendDistribution, glyph: 'line',
+      color: WATER_DISTRIBUTION_COLOR, dashed: false, thin: true, stage: waterStage('distribution'),
+    },
+  )
+  // The style rows: what a mark looks like, not which step it is. The wave
+  // first, because it is the thing the numbers above are explaining.
+  rows.push({ id: 'pulse', label: t.waterPulse, glyph: 'pulse', color: WATER_PULSE_COLOR, ...box, stage: 0 })
   if (pipes.length) {
     rows.push(
-      { id: 'pipe-raw', label: t.waterPipeRaw, glyph: 'line', color: WATER_PIPE_COLORS.raw, dashed: true, thin: false },
-      { id: 'pipe-treated', label: t.waterPipeTreated, glyph: 'line', color: WATER_PIPE_COLORS.treated, dashed: false, thin: false },
+      { id: 'pipe-raw', label: t.waterPipeRaw, glyph: 'line', color: WATER_PIPE_COLORS.raw, dashed: true, thin: false, stage: 0 },
+      { id: 'pipe-treated', label: t.waterPipeTreated, glyph: 'line', color: WATER_PIPE_COLORS.treated, dashed: false, thin: false, stage: 0 },
     )
   }
-  // Unconditional: the distribution network is the basemap's own roads
-  // restyled, so it is on the map whenever the layer is, network file or not.
-  rows.push({
-    id: 'distribution', label: t.waterLegendDistribution, glyph: 'line',
-    color: WATER_DISTRIBUTION_COLOR, dashed: false, thin: true,
-  })
   // Only when the map really is drawing a straight-line stand-in somewhere;
   // otherwise the row would explain a mark that is not on screen.
   if (pipes.some(p => p.fallback)) {
     rows.push({
       id: 'pipe-fallback', label: t.waterPipeFallback, glyph: 'line',
-      color: WATER_PIPE_FALLBACK_COLOR, dashed: true, thin: false,
+      color: WATER_PIPE_FALLBACK_COLOR, dashed: true, thin: false, stage: 0,
     })
   }
-  if (network?.nodes?.some(n => n.kind === 'inlet')) {
-    rows.push({
-      id: 'inlet', label: t.waterTypeInlet, glyph: 'inlet', color: WATER_INLET_COLOR, ...box,
-    })
-  }
+  // The hollow plate is a statement about certainty, not about type, so the
+  // row uses the commonest approximate type's colour and says what it means.
+  rows.push({
+    id: 'approximate', label: t.waterApproximate, glyph: 'dropletHollow',
+    color: WATER_COLORS.pumping, ...box, stage: 0,
+  })
   return rows
 }
 
@@ -391,29 +441,37 @@ export function buildWaterMarkerFeatures(
         type: facility.type,
         approximate: facility.approximate,
         icon: waterIconName(facility.type, facility.approximate),
+        // The step number at the plate's corner (see WATER_STAGES). `badge`
+        // is the image name so the symbol layer stays a plain ['get'].
+        stage: waterStage(facility.type),
+        badge: waterBadgeIconName(waterStage(facility.type)),
       },
     })
   }
-  // The network's own nodes — today just the Zhuhai raw-water inlet — ride the
-  // SAME source and symbol layer as the facilities, so one click handler and
-  // one selection ring cover both. They are the only markers with a map label:
-  // the inlet is a place a reader has to be told about, whereas a facility is
-  // named by the panel its marker opens. All three languages are baked in and
-  // MapView picks one with `text-field` (see waterLabelField) rather than
-  // rebuilding the source when the language changes.
+  // The network's own nodes — the raw-water inlets — ride the SAME source and
+  // symbol layer as the facilities, so one click handler and one selection
+  // ring cover both. They are the only markers with a map label: an inlet is a
+  // place a reader has to be told about, whereas a facility is named by the
+  // panel its marker opens. All three languages are baked in and MapView picks
+  // one with `text-field` (see waterLabelField) rather than rebuilding the
+  // source when the language changes.
   for (const node of network?.nodes ?? []) {
     const coords = node.coordinates
     if (!coords || coords.length < 2) continue
+    const stage = waterStage(node.kind)
     features.push({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [coords[0], coords[1]] },
       properties: {
         facilityId: node.id,
         type: node.kind,
-        // A node is a point we chose deliberately, not an inferred stand-in for
-        // a facility we could not locate — so it never draws hollow.
-        approximate: false,
+        // A node whose real crossing is not published is flagged in the data;
+        // the symbol layer fades it a little, and the panel says why.
+        approximate: node.approximate === true,
         icon: WATER_INLET_ICON,
+        // 0 for a kind the chain does not know; the badge layer filters it out.
+        stage,
+        badge: waterBadgeIconName(stage),
         label_zh: pickWaterText(node.name, 'zh'),
         label_en: pickWaterText(node.name, 'en'),
         label_pt: pickWaterText(node.name, 'pt'),
@@ -430,13 +488,18 @@ export const WATER_DISTRIBUTION_MAJOR_CLASSES: readonly string[] = [
   'motorway', 'trunk', 'primary',
 ] as const
 
-// One LineString per road, carrying only its class. Deliberately NOT one
-// MultiLineString per class: the per-road features are what let MapLibre cull,
-// query and width-ramp each street individually, and the source is written once
-// (on load and after a style swap) rather than per frame, so the feature count
-// costs nothing at runtime. Roads with fewer than two points are skipped.
+// One LineString per road, carrying its class and its pulse bucket (the road's
+// distance from the nearest treated-water source in WATER_PULSE_BUCKET_M
+// steps — null where the outward walk never reached it, so it never lights).
+// Deliberately NOT one MultiLineString per class: the per-road features are
+// what let MapLibre cull, query and width-ramp each street individually, and
+// the source is written once (on load and after a style swap) rather than per
+// frame, so the feature count costs nothing at runtime. Roads with fewer than
+// two points are skipped.
 export function buildWaterDistributionFeatures(
   roads: WaterDistributionRoad[] | null | undefined,
+  bucketM: number = WATER_PULSE_BUCKET_M,
+  buckets: number = WATER_MESH_PULSE_BUCKETS,
 ): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = []
   for (const road of roads ?? []) {
@@ -445,10 +508,28 @@ export function buildWaterDistributionFeatures(
     features.push({
       type: 'Feature',
       geometry: { type: 'LineString', coordinates: coords },
-      properties: { class: road.class },
+      properties: {
+        class: road.class,
+        bucket: waterDistanceBucket(road.dist, bucketM, buckets),
+      },
     })
   }
   return { type: 'FeatureCollection', features }
+}
+
+// How many mesh buckets the loaded roads actually fill — the wave walks this
+// far and no further (see WaterPulseBuild.buckets for the trunk twin).
+export function waterDistributionBucketCount(
+  roads: WaterDistributionRoad[] | null | undefined,
+  bucketM: number = WATER_PULSE_BUCKET_M,
+  buckets: number = WATER_MESH_PULSE_BUCKETS,
+): number {
+  let max = -1
+  for (const road of roads ?? []) {
+    const b = waterDistanceBucket(road.dist, bucketM, buckets)
+    if (b !== null && b > max) max = b
+  }
+  return max + 1
 }
 
 // One LineString per pipe. `sortKey` puts treated water above raw where the two
@@ -484,4 +565,250 @@ export function buildWaterPipeFeatures(
     })
   }
   return { type: 'FeatureCollection', features }
+}
+
+// ---------------------------------------------------------------------------
+// THE PULSE. A bright wave that walks the whole chain in order — out of the
+// inlets (and the catchment reservoirs, which have no upstream), along the raw
+// mains into the plants, on through the treated mains to the tanks, and then
+// outward through the street mesh — so the SEQUENCE is visible, not just the
+// direction. The per-pipe dash and dot flows show which way each pipe runs;
+// only a wave that starts somewhere and arrives somewhere shows what comes
+// before what.
+//
+// It is drawn with the same no-relayout trick as the flows: every pipe is cut
+// into chunks by distance from the wave's start, each chunk tagged with a
+// bucket number, and MapView adds ONE line layer per bucket (filtered on it)
+// whose only per-tick change is `line-opacity`. `advanceWaterPulse` is the
+// state machine that says which buckets are lit how brightly on a given tick.
+//
+// Distances are metres ALONG the network. Arrival at a node is the shortest
+// path from any root (multi-source Dijkstra over the pipe graph), so a plant
+// fed two ways lights when the first water reaches it, and everything
+// downstream continues from there.
+// ---------------------------------------------------------------------------
+
+// Bucket length. 400 m per step at two ticks a step (WATER_PULSE_STEP_TICKS)
+// walks the ~13 km from the Ilha Verde inlet to the Taipa tanks in about 4.5 s
+// — slow enough to follow with the eye at city zoom, fast enough that the
+// whole story fits one cycle.
+export const WATER_PULSE_BUCKET_M = 400
+// Layer budgets. Both groups are built ONCE per style with this many layers,
+// before any data has arrived, so the counts are fixed caps rather than
+// data-derived: a chunk past the last bucket is clamped into it. 40 × 400 m
+// covers a 16 km trunk chain; 20 × 400 m an 8 km walk from the nearest
+// treated-water source, beyond the mesh's 7.7 km maximum.
+export const WATER_TRUNK_PULSE_BUCKETS = 40
+export const WATER_MESH_PULSE_BUCKETS = 20
+// The head and the fading tail behind it, as opacities: bucket `head` gets
+// tail[0], `head-1` tail[1], … and the bucket behind the tail is written to 0.
+export const WATER_PULSE_TAIL: readonly number[] = [1, 0.55, 0.25]
+// Ticks per step (a tick is MapView's FLOW_TICK_MS), and the rest at the end
+// of a cycle in steps, so the story has a beat of silence before it repeats.
+export const WATER_PULSE_STEP_TICKS = 2
+export const WATER_PULSE_REST_STEPS = 10
+// Pale cyan-white: brighter than every base colour it passes over, so a lit
+// chunk reads as the pipe itself lighting up rather than a new line on top.
+export const WATER_PULSE_COLOR = '#e0fbff'
+
+const EARTH_RADIUS_M = 6371008.8
+
+// Great-circle distance in metres between two [lng, lat] points.
+export function haversineM(a: readonly number[], b: readonly number[]): number {
+  const toRad = Math.PI / 180
+  const dLat = (b[1] - a[1]) * toRad
+  const dLng = (b[0] - a[0]) * toRad
+  const s = Math.sin(dLat / 2) ** 2
+    + Math.cos(a[1] * toRad) * Math.cos(b[1] * toRad) * Math.sin(dLng / 2) ** 2
+  return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(s)))
+}
+
+// Length of a pipe along its own vertices — the distance the wave walks. The
+// file's `lengthM` is the same number rounded; recomputing keeps the chunk
+// boundaries and the node arrivals in exactly one unit.
+export function waterPipeLengthM(pipe: WaterPipe): number {
+  const c = pipe.coordinates
+  let m = 0
+  for (let i = 1; i < c.length; i++) m += haversineM(c[i - 1], c[i])
+  return m
+}
+
+// Metres along the network from the nearest ROOT to every node. A root is a
+// node nothing flows into: the inlets, and a catchment reservoir that has no
+// pipe feeding it. Roots sit at 0 and light first. A node with no route from
+// any root (only possible inside a cycle) is absent from the map, and the
+// pulse builder treats it as its own start.
+export function waterArrivalDistances(
+  network: WaterNetwork | null | undefined,
+): Map<string, number> {
+  const pipes = (network?.pipes ?? []).filter(p => (p.coordinates?.length ?? 0) >= 2)
+  const ids = new Set<string>()
+  const inbound = new Set<string>()
+  for (const p of pipes) { ids.add(p.from); ids.add(p.to); inbound.add(p.to) }
+  for (const n of network?.nodes ?? []) ids.add(n.id)
+  const dist = new Map<string, number>()
+  for (const id of ids) if (!inbound.has(id)) dist.set(id, 0)
+  // Dijkstra with a linear scan: two dozen nodes, so a heap would be noise.
+  const settled = new Set<string>()
+  for (;;) {
+    let best: string | null = null
+    let bestD = Infinity
+    for (const [id, d] of dist) {
+      if (!settled.has(id) && d < bestD) { best = id; bestD = d }
+    }
+    if (best === null) break
+    settled.add(best)
+    for (const p of pipes) {
+      if (p.from !== best) continue
+      const nd = bestD + waterPipeLengthM(p)
+      const cur = dist.get(p.to)
+      if (cur === undefined || nd < cur) dist.set(p.to, nd)
+    }
+  }
+  return dist
+}
+
+// Bucket index of a distance, clamped into the layer budget; null where the
+// distance is unknown (a mesh road the outward walk never reached), so the
+// filter matches nothing and the road simply never lights.
+export function waterDistanceBucket(
+  distM: number | null | undefined, bucketM: number, buckets: number,
+): number | null {
+  if (distM === null || distM === undefined || !Number.isFinite(distM) || distM < 0) return null
+  return Math.min(Math.floor(distM / bucketM), buckets - 1)
+}
+
+export interface WaterPulseBuild {
+  features: GeoJSON.FeatureCollection
+  // How many buckets the network actually fills (≤ the layer budget) — the
+  // animation walks this far and no further, so a short network does not
+  // spend half its cycle sweeping empty layers.
+  buckets: number
+}
+
+// Every pipe cut into chunks of one bucket each. Chunk boundaries fall exactly
+// at bucket-length distances from the wave's start (arrival at `from` plus the
+// distance along the pipe), interpolated onto the segment they land in, so
+// consecutive chunks share their boundary vertex and the lit wave has no gaps.
+// Vertex order is preserved, `from` end first, like buildWaterPipeFeatures.
+export function buildWaterPulseFeatures(
+  network: WaterNetwork | null | undefined,
+  bucketM: number = WATER_PULSE_BUCKET_M,
+  buckets: number = WATER_TRUNK_PULSE_BUCKETS,
+): WaterPulseBuild {
+  const features: GeoJSON.Feature[] = []
+  const arrival = waterArrivalDistances(network)
+  let maxBucket = -1
+  const emit = (coords: number[][], bucket: number, pipe: WaterPipe) => {
+    // A chunk with no extent (a boundary landing exactly on a vertex) would
+    // draw as a round-cap dot, so it is dropped rather than emitted.
+    if (coords.length < 2) return
+    if (coords.every(c => c[0] === coords[0][0] && c[1] === coords[0][1])) return
+    const b = Math.min(bucket, buckets - 1)
+    if (b > maxBucket) maxBucket = b
+    features.push({
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: coords },
+      properties: { bucket: b, kind: pipe.kind, pipeId: pipe.id },
+    })
+  }
+  for (const pipe of network?.pipes ?? []) {
+    const c = pipe.coordinates
+    if (!c || c.length < 2) continue
+    const d0 = arrival.get(pipe.from) ?? 0
+    let bucket = Math.floor(d0 / bucketM)
+    let s = 0 // metres along the pipe at the start of the current segment
+    let chunk: number[][] = [[c[0][0], c[0][1]]]
+    for (let i = 1; i < c.length; i++) {
+      const a = c[i - 1]
+      const b = c[i]
+      const seg = haversineM(a, b)
+      // Walk every bucket boundary that falls strictly inside this segment.
+      for (;;) {
+        const boundary = (bucket + 1) * bucketM - d0 // pipe metres where the next bucket starts
+        if (!(seg > 0) || boundary >= s + seg) break
+        const t = Math.max(0, (boundary - s) / seg)
+        const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
+        chunk.push(p)
+        emit(chunk, bucket, pipe)
+        chunk = [p]
+        bucket++
+      }
+      chunk.push([b[0], b[1]])
+      s += seg
+    }
+    emit(chunk, bucket, pipe)
+  }
+  return { features: { type: 'FeatureCollection', features }, buckets: maxBucket + 1 }
+}
+
+export type WaterPulsePhase = 'trunk' | 'mesh' | 'rest'
+
+export interface WaterPulseState {
+  phase: WaterPulsePhase
+  // Bucket index of the wave's head; in `rest`, the number of steps rested.
+  head: number
+  tick: number
+}
+
+export interface WaterPulseCounts {
+  trunk: number
+  mesh: number
+}
+
+export interface WaterPulseWrite {
+  group: 'trunk' | 'mesh'
+  index: number
+  opacity: number
+}
+
+// Fresh layers are all at opacity 0, and the first step lights bucket 0.
+export function initialWaterPulseState(): WaterPulseState {
+  return { phase: 'trunk', head: -1, tick: 0 }
+}
+
+// One tick of the wave. Returns the next state and the opacity writes that
+// take the layers from the previous tick's picture to this one — at most
+// tail.length + 1 of them, and none at all on the ticks between steps.
+//
+// A phase walks its head from bucket 0 to `count - 1 + tail.length`, so the
+// tail fades out past the last bucket instead of being cut off; a phase with
+// nothing to light (no network yet; the mesh not loaded, or absent on a phone)
+// is skipped in the same step. Rest counts steps and then hands back to the
+// trunk. Pure: the caller keeps the state and applies the writes.
+export function advanceWaterPulse(
+  state: WaterPulseState,
+  counts: WaterPulseCounts,
+  stepTicks: number = WATER_PULSE_STEP_TICKS,
+  restSteps: number = WATER_PULSE_REST_STEPS,
+  tail: readonly number[] = WATER_PULSE_TAIL,
+): { next: WaterPulseState; writes: WaterPulseWrite[] } {
+  const tick = state.tick + 1
+  if (tick % stepTicks !== 0) return { next: { ...state, tick }, writes: [] }
+  let phase = state.phase
+  let head = state.head + 1
+  // Hop past empty or finished phases. Three phases, so three hops is enough
+  // to land somewhere that either lights or rests.
+  for (let hop = 0; hop < 3; hop++) {
+    if (phase === 'rest') {
+      if (head < restSteps) break
+      phase = 'trunk'
+      head = 0
+      continue
+    }
+    const count = phase === 'trunk' ? counts.trunk : counts.mesh
+    if (count > 0 && head < count + tail.length) break
+    phase = phase === 'trunk' ? 'mesh' : 'rest'
+    head = 0
+  }
+  const writes: WaterPulseWrite[] = []
+  if (phase !== 'rest') {
+    const count = phase === 'trunk' ? counts.trunk : counts.mesh
+    for (let o = 0; o <= tail.length; o++) {
+      const index = head - o
+      if (index < 0 || index >= count) continue
+      writes.push({ group: phase, index, opacity: o < tail.length ? tail[o] : 0 })
+    }
+  }
+  return { next: { phase, head, tick }, writes }
 }

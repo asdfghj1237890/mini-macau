@@ -455,8 +455,8 @@ const waterText = z.object({ zh: z.string(), pt: z.string(), en: z.string() })
 // The schematic pipe network. OPTIONAL on purpose: it was added after the
 // facility list shipped, so a file without it must still validate (and the
 // runtime just draws no pipes). Facilities are implicit nodes — `from`/`to`
-// name a facility id or one of the extra `nodes` (today: the Zhuhai inlet) —
-// and a pipe needs at least two points to be a line at all.
+// name a facility id or one of the extra `nodes` (the raw-water inlets) — and
+// a pipe needs at least two points to be a line at all.
 const waterNetwork = z.object({
   nodes: z.array(
     z.object({
@@ -464,6 +464,10 @@ const waterNetwork = z.object({
       kind: z.string(),
       name: waterText,
       coordinates: lngLat,
+      // Optional, like the power inlets: a schematic position the panel must
+      // flag, and the pipeline's own note on it.
+      approximate: z.boolean().optional(),
+      note: waterText.optional(),
     }),
   ),
   pipes: z.array(

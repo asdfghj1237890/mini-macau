@@ -127,6 +127,17 @@ function KeyGlyph({ row }: { row: WaterLegendRow }) {
   if (row.glyph === 'inlet') {
     return <span className={box}><KeyInlet color={row.color} /></span>
   }
+  if (row.glyph === 'pulse') {
+    // The wave: a short bright bar with the same soft glow it has on the map.
+    return (
+      <span className="inline-flex items-center w-[16px] h-[12px] shrink-0">
+        <span
+          className="inline-block w-[16px] h-[3px] rounded-full"
+          style={{ backgroundColor: row.color, boxShadow: `0 0 4px ${row.color}` }}
+        />
+      </span>
+    )
+  }
   if (row.glyph === 'line') {
     // 16×2 px sample; the dashed variant repeats the same 4/3 rhythm as the
     // map's dasharray so the two read as the same style. `thin` is the
@@ -157,20 +168,61 @@ function KeyGlyph({ row }: { row: WaterLegendRow }) {
   )
 }
 
-// The key itself. `network` decides which pipe rows appear (see
-// waterLegendRows) — a file with no pipes shows the facility rows only.
+// The step number of a chain row: a 12px dark disc with a white rim, the same
+// mark the map draws at the corner of that facility's plate.
+function StageBadge({ n, label }: { n: number; label: string }) {
+  return (
+    <span
+      className="relative z-10 inline-flex items-center justify-center w-[12px] h-[12px] shrink-0
+                 rounded-full bg-[#0b0b0c] border border-white/70 mm-mono text-[7px] leading-none text-white"
+      title={label}
+      aria-label={label}
+    >
+      {n}
+    </span>
+  )
+}
+
+// The key itself, in two parts. First the CHAIN: one numbered row per stage in
+// the order the water travels — and the order the wave on the map lights them
+// — joined by a vertical rule so it reads as a sequence, not a list. Then the
+// style rows (pipe kinds, the wave, the hollow plate), which explain a mark
+// without being a step; they keep an empty badge column so every glyph and
+// label sits on the same x as the chain above. `network` decides which rows
+// appear (see waterLegendRows).
 function WaterKey({ network, caption }: { network: TransitData['waterNetwork']; caption: string }) {
   const { t } = useI18n()
   const rows = waterLegendRows(t, network)
+  const chain = rows.filter(row => row.stage > 0)
+  const styles = rows.filter(row => row.stage === 0)
+  const label = (row: WaterLegendRow) => (
+    <span className="text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate text-white/60"
+          title={row.label}>
+      {row.label}
+    </span>
+  )
   return (
     <div className="pb-1.5">
-      {rows.map(row => (
+      <div className="relative">
+        {/* The rule runs badge-centre to badge-centre: pl-8 (32px) + half a
+            12px badge, and inset by half a row's height at both ends. */}
+        {chain.length > 1 && (
+          <span aria-hidden="true"
+                className="absolute left-[37.5px] top-[9px] bottom-[9px] w-px bg-white/20" />
+        )}
+        {chain.map(row => (
+          <div key={row.id} className="w-full flex items-center gap-2 py-[2px] pl-8 pr-3">
+            <StageBadge n={row.stage} label={t.waterStage(row.stage)} />
+            <KeyGlyph row={row} />
+            {label(row)}
+          </div>
+        ))}
+      </div>
+      {styles.map(row => (
         <div key={row.id} className="w-full flex items-center gap-2 py-[2px] pl-8 pr-3">
+          <span aria-hidden="true" className="inline-block w-[12px] shrink-0" />
           <KeyGlyph row={row} />
-          <span className="text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate text-white/60"
-                title={row.label}>
-            {row.label}
-          </span>
+          {label(row)}
         </div>
       ))}
       <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">

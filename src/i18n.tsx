@@ -294,6 +294,13 @@ const translations = {
     waterOperatorDsama: 'Government raw-water reservoir (DSAMA) · not a Macao Water facility',
     waterNo: 'FACILITY No.',
     waterApproximate: 'Approximate location',
+    // The bright wave on the map and the numbered chain in the legend: the
+    // stages light in this order, inlet to street.
+    waterPulse: 'Pulse: supply sequence ① → ⑦',
+    waterStage: (n: number) => `Stage ${n}`,
+    // An inlet whose real crossing is not published: the marker is a chosen
+    // point, and the panel must say so before the reader trusts it.
+    waterSchematicPosition: 'Schematic position',
     waterCoLocatedWith: (name: string) => `Sited at ${name}`,
     waterBuildings: (n: number) => `${n} footprint${n === 1 ? '' : 's'}`,
     waterFootprints: 'FOOTPRINTS',
@@ -633,6 +640,9 @@ const translations = {
     waterOperatorDsama: '政府原水水庫（海事及水務局）· 非自來水公司設施',
     waterNo: '設施編號',
     waterApproximate: '約略位置',
+    waterPulse: '脈衝：供水順序 ① → ⑦',
+    waterStage: (n: number) => `第 ${n} 階段`,
+    waterSchematicPosition: '示意位置',
     waterCoLocatedWith: (name: string) => `位於${name}`,
     waterBuildings: (n: number) => `${n} 個範圍`,
     waterFootprints: '建築範圍',
@@ -953,6 +963,9 @@ const translations = {
     waterOperatorDsama: 'Reservatório de água bruta do Governo (DSAMA) · não é uma instalação da Macao Water',
     waterNo: 'N.º DA INSTALAÇÃO',
     waterApproximate: 'Localização aproximada',
+    waterPulse: 'Impulso: sequência de abastecimento ① → ⑦',
+    waterStage: (n: number) => `Fase ${n}`,
+    waterSchematicPosition: 'Posição esquemática',
     waterCoLocatedWith: (name: string) => `Junto a ${name}`,
     waterBuildings: (n: number) => `${n} implantaç${n === 1 ? 'ão' : 'ões'}`,
     waterFootprints: 'IMPLANTAÇÕES',
@@ -1270,6 +1283,9 @@ export interface Translations {
   waterOperatorDsama: string
   waterNo: string
   waterApproximate: string
+  waterPulse: string
+  waterStage: (n: number) => string
+  waterSchematicPosition: string
   waterCoLocatedWith: (name: string) => string
   waterBuildings: (n: number) => string
   waterFootprints: string

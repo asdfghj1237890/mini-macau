@@ -249,27 +249,81 @@ DISTRICT_ANCHORS = {
 # OSRM driving route between the two markers, so it runs down streets and over
 # bridges like a Cities-Skylines pipe instead of cutting through blocks.
 #
-# The one node that is not a facility: raw water arrives from Zhuhai across the
-# border canal. The marker sits on the MACAU bank of 鴨涌河 (Canal dos Patos),
-# ~190 m north of the Ilha Verde plant — inside OSM's Macau boundary (relation
-# 1867188), on land, and a few metres off 鴨涌馬路 so OSRM has a road to snap to.
+# The nodes that are not facilities: the two points where raw water from
+# Zhuhai enters Macau.
+#
+#   * inlet-zhuhai — the original mains (pipelines 1–3, ~20 km from 掛定角 /
+#     竹仙洞水庫) cross the border canal at Ilha Verde. The marker sits on the
+#     MACAU bank of 鴨涌河 (Canal dos Patos), ~190 m north of the Ilha Verde
+#     plant — inside OSM's Macau boundary (relation 1867188), on land, and a
+#     few metres off 鴨涌馬路 so OSRM has a road to snap to.
+#   * inlet-lotus — the 4th pipeline (第四條對澳供水管道). What is documented:
+#     15 km of new pipe and a new 洪灣泵站, +200 000 m³/day, opened 2019-10-17,
+#     and it「增加了從氹仔方向進入澳門的供水管路」i.e. reaches Macau from the
+#     Taipa side via Hengqin (Xinhua via 中聯辦, 2019-10-18); it supplies the
+#     石排灣水廠 (「由第4條珠澳原水管由橫琴供應」, TDM 2021-12-17 via
+#     zh.wikipedia 石排灣水塘; plant commissioned 2021-11-30, SUEZ press
+#     release). What is NOT published is where the pipe actually crosses into
+#     Cotai. So the marker is a SCHEMATIC position — the same point the power
+#     overlay uses for the Hengqin corridor, 海濱圓形地 under the Lotus Bridge's
+#     Macau abutment (the one fixed link from Hengqin) — flagged `approximate`
+#     and carrying a `note` that says exactly this, which the panel shows.
 # ----------------------------------------------------------------------------
-INLET_NODE = {
-    "id": "inlet-zhuhai",
-    "kind": "inlet",
-    "name": {
-        "zh": "珠海原水輸入",
-        "en": "Raw water from Zhuhai",
-        "pt": "Água bruta de Zhuhai",
+INLET_NODES = [
+    {
+        "id": "inlet-zhuhai",
+        "kind": "inlet",
+        "name": {
+            "zh": "珠海原水輸入",
+            "en": "Raw water from Zhuhai",
+            "pt": "Água bruta de Zhuhai",
+        },
+        "coordinates": [113.540000, 22.213100],
     },
-    "coordinates": [113.540000, 22.213100],
-}
+    {
+        "id": "inlet-lotus",
+        "kind": "inlet",
+        # Named like its Ilha Verde sibling, with only the route in brackets:
+        # the UI does not number pipelines (a "4th" invites "where are 2 and
+        # 3?"), it says where the water comes in.
+        "name": {
+            "zh": "珠海原水輸入（橫琴）",
+            "en": "Raw water from Zhuhai (via Hengqin)",
+            "pt": "Água bruta de Zhuhai (via Hengqin)",
+        },
+        # The north-east edge of the roundabout ring, as in
+        # fetch_power_facilities.py: from the ring's centre OSRM snaps onto the
+        # bridge deck above it and drives into Hengqin.
+        "coordinates": [113.552900, 22.140200],
+        "approximate": True,
+        "note": {
+            "zh": "位置為示意，不代表實際入澳點：管道經橫琴自氹仔方向入澳，"
+                  "實際過河位置未公開，故標於蓮花大橋澳門端的海濱圓形地。",
+            "en": "Schematic position, not the real crossing: the pipeline enters "
+                  "Macau from the Taipa side via Hengqin, and where it actually "
+                  "crosses is not published, so the marker stands at Rotunda "
+                  "Marginal, the Macau end of the Lotus Bridge.",
+            "pt": "Posição esquemática, não o ponto real de entrada: a conduta "
+                  "entra em Macau pelo lado da Taipa via Hengqin e o local da "
+                  "travessia não é público, pelo que o marcador está na Rotunda "
+                  "Marginal, na extremidade de Macau da Ponte Flor de Lótus.",
+        },
+    },
+]
 
 PIPE_KINDS = ("raw", "treated")
-# (kind, from, to); `from`/`to` are facility ids or INLET_NODE's id.
+# (kind, from, to); `from`/`to` are facility ids or an INLET_NODES id.
+#
+# Raw side. Zhuhai's mains feed 青洲 and 大水塘 plants directly, with surplus
+# raw water sent to storage (zh.wikipedia 澳門供水:「多餘的原水則輸往新口岸水塘或
+# 再引到石排灣水庫作儲備」); 回力原水泵站 has no published role, so its two
+# edges — from the inlet and into 大水塘 — are the schematic's reading of a
+# raw-water pumping station beside the reservoir. The 4th pipeline reaches
+# 石排灣 (see inlet-lotus), so it feeds that plant and its storage reservoir.
 PIPES = [
     ("raw", "inlet-zhuhai", "wtp-ilha-verde"),
     ("raw", "inlet-zhuhai", "wtp-main-reservoir"),
+    ("raw", "inlet-zhuhai", "rwps-jai-alai"),
     ("raw", "rwps-jai-alai", "res-main"),
     ("raw", "res-main", "rwps-main-reservoir"),
     ("raw", "rwps-main-reservoir", "wtp-main-reservoir"),
@@ -278,6 +332,8 @@ PIPES = [
     ("raw", "res-ka-ho", "rwps-ka-ho"),
     ("raw", "rwps-ka-ho", "wtp-coloane"),
     ("raw", "res-hac-sa", "wtp-coloane"),
+    ("raw", "inlet-lotus", "wtp-seac-pai-van"),
+    ("raw", "inlet-lotus", "res-seac-pai-van"),
     ("treated", "wtp-ilha-verde", "ps-ilha-verde"),
     ("treated", "ps-ilha-verde", "tank-guia-50"),
     ("treated", "wtp-main-reservoir", "ps-main-reservoir"),
@@ -484,9 +540,10 @@ def pipe_geometry(a: list[float], b: list[float]) -> tuple[list[list[float]], bo
 
 
 def build_network(markers: dict[str, list[float]]) -> dict:
-    """The `network` block: the extra inlet node plus every pipe."""
+    """The `network` block: the extra inlet nodes plus every pipe."""
     coords = dict(markers)
-    coords[INLET_NODE["id"]] = INLET_NODE["coordinates"]
+    for node in INLET_NODES:
+        coords[node["id"]] = node["coordinates"]
     print(f"\nBuilding {len(PIPES)} schematic pipes (OSRM routes + local connectors)")
     pipes = []
     for kind, src, dst in PIPES:
@@ -509,7 +566,7 @@ def build_network(markers: dict[str, list[float]]) -> dict:
               f"  straight {straight:>6.0f} m  x{ratio:.2f}"
               + ("  (straight-line FALLBACK)" if fallback
                  else "  (direct connector)" if direct else ""))
-    return {"nodes": [INLET_NODE], "pipes": pipes}
+    return {"nodes": [dict(node) for node in INLET_NODES], "pipes": pipes}
 
 
 # ----------------------------------------------------------------------------

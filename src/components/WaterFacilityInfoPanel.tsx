@@ -10,6 +10,7 @@ import {
   waterOperator,
   waterOperatorLabel,
   waterPipeCount,
+  waterStage,
   waterTypeLabel,
 } from '../water'
 
@@ -45,9 +46,13 @@ function Row({ label, value }: { label: string; value: string }) {
 // signboard header (colour bar + WATER kicker + kind + name + close) and the
 // same provenance footer. Only the middle differs, so the facility panel and
 // the inlet panel can never drift apart visually.
-function Shell({ color, kindLabel, title, subtitle, onClose, children }: {
+function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: {
   color: string
   kindLabel: string
+  // Step number in the supply chain (WATER_STAGES) — the same badge the map
+  // draws on this marker's plate and the legend draws on its row, so the
+  // panel names the step the reader just clicked. 0 = no badge.
+  stage: number
   title: string
   subtitle: string
   onClose: () => void
@@ -70,7 +75,19 @@ function Shell({ color, kindLabel, title, subtitle, onClose, children }: {
               <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">
                 {'💧'} {t.waterLabel}
               </div>
-              <div className="text-[13px] font-bold text-white leading-tight mm-han whitespace-nowrap">
+              <div className="text-[13px] font-bold text-white leading-tight mm-han whitespace-nowrap
+                              flex items-center gap-1.5">
+                {stage > 0 && (
+                  <span
+                    className="inline-flex items-center justify-center w-[15px] h-[15px] shrink-0
+                               rounded-full bg-[#0b0b0c] border border-white/70 mm-mono text-[9px]
+                               leading-none text-white"
+                    title={t.waterStage(stage)}
+                    aria-label={t.waterStage(stage)}
+                  >
+                    {stage}
+                  </span>
+                )}
                 {kindLabel}
               </div>
             </div>
@@ -160,6 +177,7 @@ export function WaterFacilityInfoPanel({ facility, facilities, network, onClose 
     <Shell
       color={color}
       kindLabel={waterTypeLabel(t, facility.type)}
+      stage={waterStage(facility.type)}
       title={title}
       subtitle={subtitle}
       onClose={onClose}
@@ -218,23 +236,42 @@ interface InletProps {
   onClose: () => void
 }
 
-// The Zhuhai raw-water inlet. Not one of Macao Water's 22 facilities but the
-// point every raw-water pipe starts from, so it gets a panel of its own: the
-// name, what it is, and the single fact that makes it worth a marker.
+// A raw-water inlet. Not one of Macao Water's 22 facilities but a point the
+// raw-water pipes start from, so it gets a panel of its own: the name, what it
+// is, the single fact that makes it worth a marker — and, for an inlet whose
+// real crossing is not published, the pipeline's own note saying the position
+// is schematic, shown before anything else a reader might take literally.
 export function WaterInletInfoPanel({ node, network, onClose }: InletProps) {
   const { lang, t } = useI18n()
   const title = pickWaterText(node.name, lang)
   const subtitle = otherScript(node.name, lang, title)
   const pipes = waterPipeCount(network, node.id)
+  const note = node.note ? pickWaterText(node.note, lang) : ''
 
   return (
     <Shell
       color={WATER_INLET_COLOR}
       kindLabel={t.waterTypeInlet}
+      stage={waterStage(node.kind)}
       title={title}
       subtitle={subtitle}
       onClose={onClose}
     >
+      {(node.approximate || note) && (
+        <div className="px-3 pt-2 pb-1 space-y-1">
+          {node.approximate && (
+            <span className="inline-block mm-han text-[9px] leading-none px-1.5 py-[3px] border"
+                  style={{ borderColor: `${WATER_INLET_COLOR}66`, color: WATER_INLET_COLOR }}>
+              {t.waterSchematicPosition}
+            </span>
+          )}
+          {note && (
+            <div className="text-[10px] text-amber-200/80 mm-han leading-[1.4]">
+              {note}
+            </div>
+          )}
+        </div>
+      )}
       <div className="px-3 py-2 text-[11px] text-white/75 mm-han leading-[1.5]">
         {t.waterInletNote}
       </div>

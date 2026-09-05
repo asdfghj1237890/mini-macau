@@ -901,7 +901,9 @@ WATER_MIN_WITH_WATER = 4
 # is a fan of lines through buildings and across the harbour.
 WATER_NODE_KINDS = {"inlet"}
 WATER_PIPE_KINDS = {"raw", "treated"}
-WATER_PIPE_COUNT = 23
+# The PIPES list in fetch_water_facilities.py: 13 raw (two inlets, the
+# reservoirs, the raw-water pumps) + 13 treated.
+WATER_PIPE_COUNT = 26
 WATER_MAX_PIPE_FALLBACKS = 3
 
 
@@ -910,8 +912,8 @@ def v_water_network(errs: list[str], network: object, facility_ids: set[str]) ->
     if not require_fields(errs, ctx, network, ("nodes", "pipes")):
         return
 
-    # `nodes` carries only the extra non-facility endpoints (today: the Zhuhai
-    # raw-water inlet). Facilities are implicit nodes, referenced by their id.
+    # `nodes` carries only the extra non-facility endpoints (the raw-water
+    # inlets). Facilities are implicit nodes, referenced by their id.
     node_ids: set[str] = set()
     nodes = network["nodes"]
     if not isinstance(nodes, list):
@@ -935,6 +937,15 @@ def v_water_network(errs: list[str], network: object, facility_ids: set[str]) ->
                 if not (isinstance(n["name"][lang], str) and n["name"][lang]):
                     errs.append(f"{nctx}.name.{lang} must be a non-empty string")
         check_coords(errs, nctx, n["coordinates"])
+        # A node standing in for an unpublished crossing says so, like the power
+        # inlets: `approximate` is a boolean, and `note` (why the position is
+        # schematic) is trilingual when present.
+        if "approximate" in n and not isinstance(n["approximate"], bool):
+            errs.append(f"{nctx}.approximate must be a boolean")
+        if "note" in n and require_fields(errs, f"{nctx}.note", n["note"], ("zh", "en", "pt")):
+            for lang in ("zh", "en", "pt"):
+                if not (isinstance(n["note"][lang], str) and n["note"][lang]):
+                    errs.append(f"{nctx}.note.{lang} must be a non-empty string")
 
     pipes = network["pipes"]
     if not isinstance(pipes, list):

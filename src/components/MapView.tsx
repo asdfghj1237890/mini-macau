@@ -55,15 +55,26 @@ import {
   WATER_PIPE_FALLBACK_COLOR,
   WATER_PIPE_FLOW_COLOR,
   WATER_PIPE_GLOW_COLOR,
+  WATER_PULSE_COLOR,
+  WATER_MESH_PULSE_BUCKETS,
+  WATER_STAGES,
+  WATER_TRUNK_PULSE_BUCKETS,
   WATER_TYPE_ORDER,
+  advanceWaterPulse,
   buildDashFlowSteps,
   buildWaterBuildingFeatures,
   buildWaterDistributionFeatures,
   buildWaterMarkerFeatures,
   buildWaterPipeFeatures,
+  buildWaterPulseFeatures,
   buildWaterSurfaceFeatures,
+  initialWaterPulseState,
+  waterBadgeIconName,
+  waterDistributionBucketCount,
   waterIconName,
   waterLabelField,
+  type WaterPulseCounts,
+  type WaterPulseState,
 } from '../water'
 import {
   POWER_COLORS,
@@ -840,6 +851,27 @@ const WATER_PIPES_LAYER_ID = 'water-pipes'
 // it gets this second, much thinner layer instead.
 const WATER_PIPES_FLOW_PREFIX = 'water-pipes-flow'
 const WATER_PIPE_GLOW_OPACITY = 0.28
+// THE PULSE — the bright wave that walks the chain in order (see the block of
+// that name in src/water.ts). Its trunk half rides its OWN source, the pipes
+// cut into distance buckets, as WATER_TRUNK_PULSE_BUCKETS layers filtered one
+// per bucket; its mesh half rides the distribution source the same way as
+// WATER_MESH_PULSE_BUCKETS layers. Both are layer-id PREFIXES, and both animate
+// by `line-opacity` alone — the same no-relayout rule as the phase groups.
+const WATER_PULSE_SOURCE_ID = 'water-pulse'
+const WATER_PULSE_TRUNK_PREFIX = 'water-pulse-trunk'
+const WATER_PULSE_MESH_PREFIX = 'water-pulse-mesh'
+// A lit chunk is a soft bar a little wider than the trunk core, so it reads as
+// the pipe itself glowing rather than a new line laid on top.
+const WATER_PULSE_TRUNK_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 7, 16, 11]
+const WATER_PULSE_TRUNK_BLUR = 2
+const WATER_PULSE_MESH_BLUR = 1
+// The STATIC half of the story, for a reader who did not catch the wave:
+// chevrons riding the trunk mains in the direction of flow, and a numbered
+// stage badge at the corner of every marker plate (WATER_STAGES).
+const WATER_ARROWS_LAYER_ID = 'water-pipes-arrows'
+const WATER_ARROW_ICON = 'water-arrow'
+const WATER_BADGES_LAYER_ID = 'water-badges'
 
 // Trunk mains vs distribution grid: the whole point of the two networks is that
 // you can tell them apart at a glance, so the trunk core is ~5× the width of a
@@ -992,6 +1024,66 @@ function distributionWidth(
   ]
   return ['interpolate', ['linear'], ['zoom'], 12, byClass(at12), 16, byClass(at16)]
 }
+
+// The pulse's layer groups. Like addPhaseLayers, K sibling layers that the
+// animation only ever touches through `line-opacity` — but where a phase group
+// draws the SAME features K ways and shows one, a bucket group partitions the
+// features by their `bucket` property and shows a moving few. All K start
+// dark; advanceWaterPulse decides which light. Together the K buckets hold
+// each feature exactly once, so the group costs one copy of the geometry.
+interface BucketGroupSpec {
+  prefix: string
+  source: string
+  count: number
+  color: string
+  width: maplibregl.ExpressionSpecification
+  blur: number
+}
+
+function addBucketLayers(
+  m: maplibregl.Map, spec: BucketGroupSpec, visible: boolean, beforeId?: string,
+): void {
+  for (let k = 0; k < spec.count; k++) {
+    const id = phaseLayerId(spec.prefix, k)
+    if (m.getLayer(id)) continue
+    m.addLayer({
+      id, type: 'line', source: spec.source,
+      filter: ['==', ['get', 'bucket'], k],
+      layout: {
+        'line-cap': 'round', 'line-join': 'round',
+        visibility: visible ? 'visible' : 'none',
+      },
+      paint: {
+        'line-color': spec.color,
+        'line-opacity': 0,
+        'line-width': spec.width,
+        'line-blur': spec.blur,
+      },
+    }, beforeId)
+  }
+}
+
+// The mesh half of the pulse: the distribution roads bucketed by distance from
+// the nearest treated-water source, lit outward after the trunk wave arrives.
+// Slotted where the mesh dots go — above the mesh core, under the trunk glow —
+// so the wave belongs to the streets and the mains still draw over it.
+function addDistributionPulseLayers(
+  m: maplibregl.Map, visible: boolean, fallbackBeforeId?: string,
+): void {
+  const beforeId = m.getLayer(WATER_PIPES_GLOW_LAYER_ID)
+    ? WATER_PIPES_GLOW_LAYER_ID
+    : fallbackBeforeId
+  addBucketLayers(m, {
+    prefix: WATER_PULSE_MESH_PREFIX,
+    source: WATER_DISTRIBUTION_SOURCE_ID,
+    count: WATER_MESH_PULSE_BUCKETS,
+    color: WATER_PULSE_COLOR,
+    // A shade wider than the mesh core, so a lit street reads as lit rather
+    // than as a slightly different blue.
+    width: distributionWidth(2.2, 4),
+    blur: WATER_PULSE_MESH_BLUR,
+  }, visible, beforeId)
+}
 // Same rule as the schools blocks: every footprint of a facility shares the
 // promoted feature id, so one setFeatureState whitens the whole site.
 const WATER_SELECTED_COLOR = '#ffffff'
@@ -1112,6 +1204,73 @@ function drawWaterInletIcon(): ImageData | null {
   return ctx.getImageData(0, 0, size, size)
 }
 
+// A chevron pointing +x, for the arrows that ride the trunk mains: MapLibre
+// rotates a line-placed icon to the line's direction, so "+x" becomes "the way
+// the vertices run", which is the way the water flows. White over a dark
+// outline, so it reads on the pale treated core and the dark raw dashes alike.
+// Same 40 px / pixelRatio 2 budget and null-on-no-context contract as above.
+function drawWaterArrowIcon(): ImageData | null {
+  const size = WATER_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const cy = size / 2
+  const tipX = size * 0.70
+  const backX = size * 0.36
+  const half = size * 0.21
+  const chevron = () => {
+    ctx.beginPath()
+    ctx.moveTo(backX, cy - half)
+    ctx.lineTo(tipX, cy)
+    ctx.lineTo(backX, cy + half)
+  }
+  ctx.lineCap = 'round'
+  ctx.lineJoin = 'round'
+  chevron()
+  ctx.lineWidth = 9
+  ctx.strokeStyle = 'rgba(11,11,12,0.85)'
+  ctx.stroke()
+  chevron()
+  ctx.lineWidth = 4.5
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// The stage badge: a small dark disc with a white rim and the step number,
+// drawn at the top-right corner of a marker plate by its own symbol layer.
+// 28 px at pixelRatio 2 — 14 CSS px, a third of the plate — one image per
+// stage in WATER_STAGES, registered up front like the plates.
+const WATER_BADGE_PX = 28
+function drawWaterBadgeIcon(stage: number): ImageData | null {
+  const size = WATER_BADGE_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const c = size / 2
+  ctx.beginPath()
+  ctx.arc(c, c, c - 2, 0, Math.PI * 2)
+  ctx.fillStyle = '#0b0b0c'
+  ctx.fill()
+  ctx.lineWidth = 2
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+  ctx.fillStyle = '#ffffff'
+  ctx.font = 'bold 17px system-ui, "Segoe UI", Roboto, sans-serif'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(String(stage), c, c + 1)
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
 // One PRE-BUILT dash phase per entry, each shifted a little further along the
 // line than the last, so showing them in order walks the pattern from a pipe's
 // `from` end to its `to` end (see buildDashFlowSteps, and the vertex-order note
@@ -1218,6 +1377,8 @@ const WATER_FOCUS_SHOWN_LAYERS: readonly string[] = [
   // viewport) — the loop skips missing layers. Visibility and opacity are
   // orthogonal here: focus mode shows them all, and exactly one is opaque.
   ...phaseLayerIds(WATER_DISTRIBUTION_FLOW_PREFIX, WATER_MESH_PHASES),
+  // And every bucket layer of the mesh half of the pulse, on the same terms.
+  ...phaseLayerIds(WATER_PULSE_MESH_PREFIX, WATER_MESH_PULSE_BUCKETS),
 ]
 
 // The electricity overlay's mirror image of the list above.
@@ -1610,6 +1771,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // phase 0 opaque after a style swap, and the animation has to be told, or it
   // would clear a phase that is already transparent and leave two showing.
   const waterPhaseRef = useRef({ trunk: 0, mesh: 0, tick: 0 })
+  // The pulse's state machine and how far each half of it has to walk: the
+  // trunk count comes from the pipe file (how many buckets the chain fills),
+  // the mesh count from the distribution file. Refs for the same reason as
+  // waterPhaseRef — a style swap rebuilds every bucket layer dark, and the
+  // state is reset to match.
+  const waterPulseRef = useRef<WaterPulseState>(initialWaterPulseState())
+  const waterPulseCountsRef = useRef<WaterPulseCounts>({ trunk: 0, mesh: 0 })
   const waterDistributionRef = useRef<WaterDistributionRoad[] | null>(waterDistributionRoads)
   waterDistributionRef.current = waterDistributionRoads
   const powerPhaseRef = useRef({ trunk: 0, mesh: 0, tick: 0 })
@@ -1952,6 +2120,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       if (isDesktopRef.current) {
         addDistributionFlowLayer(m, waterFocusRef.current, firstSymbolId)
       }
+      // The mesh half of the pulse, on every viewport: plain (undashed) lines
+      // partitioned by bucket cost one extra copy of the mesh, not the dash
+      // textures that keep the dots desktop-only. Seeded from the ref like the
+      // source above — empty until the lazy fetch lands.
+      addDistributionPulseLayers(m, waterFocusRef.current, firstSymbolId)
+      waterPulseCountsRef.current.mesh = waterDistributionBucketCount(waterDistributionRef.current)
 
       // The pipe network, between the reservoir fills and the facility blocks:
       // over the water (so a pipe crossing a reservoir stays readable) and under
@@ -2013,6 +2187,52 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         opacity: WATER_PIPES_FLOW_OPACITY,
         steps: WATER_PIPE_FLOW_STEPS,
       }, true, firstSymbolId)
+      // THE PULSE, trunk half: the same pipes cut into distance buckets on a
+      // source of their own, one dark layer per bucket, lit in sequence by the
+      // interval below (advanceWaterPulse). Above the dots, so a lit chunk
+      // reads as the pipe itself glowing; still under everything clickable.
+      // The wave is told how many buckets the chain fills so it never sweeps
+      // the empty tail of the layer budget.
+      const pulse = buildWaterPulseFeatures(transitRef.current.waterNetwork)
+      waterPulseCountsRef.current.trunk = pulse.buckets
+      m.addSource(WATER_PULSE_SOURCE_ID, { type: 'geojson', data: pulse.features })
+      addBucketLayers(m, {
+        prefix: WATER_PULSE_TRUNK_PREFIX,
+        source: WATER_PULSE_SOURCE_ID,
+        count: WATER_TRUNK_PULSE_BUCKETS,
+        color: WATER_PULSE_COLOR,
+        width: WATER_PULSE_TRUNK_WIDTH,
+        blur: WATER_PULSE_TRUNK_BLUR,
+      }, true, firstSymbolId)
+      // Direction chevrons riding the trunk mains. MapLibre places line symbols
+      // walking the vertices `from` → `to` — the order buildWaterPipeFeatures
+      // emits and the dashes travel — so the arrows point the way the water
+      // goes even for a reader who never catches anything moving. Not on the
+      // mesh: five thousand streets of chevrons would be noise.
+      if (!m.hasImage(WATER_ARROW_ICON)) {
+        const arrowImg = drawWaterArrowIcon()
+        if (arrowImg) m.addImage(WATER_ARROW_ICON, arrowImg, { pixelRatio: 2 })
+      }
+      m.addLayer({
+        id: WATER_ARROWS_LAYER_ID, type: 'symbol', source: WATER_PIPES_SOURCE_ID,
+        // Below this the trunk is a hairline and an arrow would be bigger than
+        // the pipe it sits on.
+        minzoom: 12,
+        layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 110,
+          'icon-image': WATER_ARROW_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.55, 16, 0.85],
+          'icon-rotation-alignment': 'map',
+          'icon-pitch-alignment': 'map',
+          // Upright-flipping would turn a chevron on a westbound pipe into one
+          // pointing east; the direction IS the message.
+          'icon-keep-upright': false,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: { 'icon-opacity': 0.9 },
+      }, firstSymbolId)
 
       m.addSource(WATER_BUILDINGS_SOURCE_ID, {
         type: 'geojson',
@@ -2584,6 +2804,31 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           'text-halo-width': 1.2,
         },
       })
+      // The stage badges, a second symbol layer on the same source so the
+      // number rides its plate through the zoom ramp: same icon-size curve,
+      // and an offset (in CSS px, scaled by icon-size) that parks the disc on
+      // the plate's top-right corner. A kind the chain does not know has
+      // stage 0 and no badge.
+      for (let stage = 1; stage <= WATER_STAGES.length; stage++) {
+        const name = waterBadgeIconName(stage)
+        if (m.hasImage(name)) continue
+        const img = drawWaterBadgeIcon(stage)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      m.addLayer({
+        id: WATER_BADGES_LAYER_ID, type: 'symbol', source: WATER_MARKERS_SOURCE_ID,
+        filter: ['>', ['get', 'stage'], 0],
+        layout: {
+          'icon-image': ['get', 'badge'],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+          'icon-offset': [10, -10],
+        },
+        paint: {
+          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
+        },
+      })
 
       // Electricity markers. Same image contract, same layer pair (a ring that
       // is a filter swap, then the symbols) and the same transitRef seeding as
@@ -2681,8 +2926,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       applyPowerSelection(m)
       wasteStateIdRef.current = null
       applyWasteSelection(m)
-      // Every phase group was just rebuilt with phase 0 opaque.
+      // Every phase group was just rebuilt with phase 0 opaque, and every
+      // pulse bucket dark.
       waterPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
+      waterPulseRef.current = initialWaterPulseState()
       powerPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
       // A style swap re-adds every layer visible; re-assert focus mode.
       applyFocusVisibility(m, waterFocusRef.current, powerFocusRef.current, wasteFocusRef.current)
@@ -3072,6 +3319,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       WATER_MARKERS_SOURCE_ID,
       buildWaterMarkerFeatures(transitData.waterFacilities, transitData.waterNetwork),
     )
+    // The pulse chunks are cut from the same network, and the wave is told how
+    // far the chain reaches so it never sweeps empty buckets.
+    const pulse = buildWaterPulseFeatures(transitData.waterNetwork)
+    setData(WATER_PULSE_SOURCE_ID, pulse.features)
+    waterPulseCountsRef.current.trunk = pulse.buckets
   }, [transitData.waterFacilities, transitData.waterNetwork])
 
   // The electricity overlay, on exactly the same terms: three sources off one
@@ -3100,6 +3352,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const src = map?.getSource(WATER_DISTRIBUTION_SOURCE_ID) as unknown as
       { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
     src?.setData?.(buildWaterDistributionFeatures(waterDistributionRoads))
+    waterPulseCountsRef.current.mesh = waterDistributionBucketCount(waterDistributionRoads)
   }, [waterDistributionRoads])
 
   useEffect(() => {
@@ -3213,6 +3466,17 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             WATER_DISTRIBUTION_FLOW_OPACITY,
           )
           st.mesh = nextMesh
+        }
+        // The pulse, on the same tick: one pure step of its state machine,
+        // then at most four opacity writes (the head, two tail buckets, and
+        // the one going dark). Missing layers are skipped like everywhere else.
+        const pulse = advanceWaterPulse(waterPulseRef.current, waterPulseCountsRef.current)
+        waterPulseRef.current = pulse.next
+        for (const w of pulse.writes) {
+          const id = phaseLayerId(
+            w.group === 'trunk' ? WATER_PULSE_TRUNK_PREFIX : WATER_PULSE_MESH_PREFIX, w.index,
+          )
+          if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', w.opacity)
         }
       }
       // The electricity overlay, on the same tick and the same every-second

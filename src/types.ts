@@ -511,15 +511,21 @@ export interface WaterFacility {
 // plant for the tanks and pumping stations.
 export type WaterPipeKind = 'raw' | 'treated'
 
-// An extra node of the schematic network that is NOT one of the 22 facilities.
-// Today that is exactly one: the point where raw water from Zhuhai enters
-// Macau. `kind` is free text ('inlet') rather than an enum so the pipeline can
-// add a node type without breaking the runtime.
+// An extra node of the schematic network that is NOT one of the 22 facilities:
+// the points where raw water from Zhuhai enters Macau (the Ilha Verde border
+// canal, and the Lotus Bridge end for the 4th pipeline from Hengqin). `kind` is
+// free text ('inlet') rather than an enum so the pipeline can add a node type
+// without breaking the runtime.
 export interface WaterNetworkNode {
   id: string
   kind: string
   name: WaterText
   coordinates: [number, number] // [lng, lat]
+  // The marker stands for a crossing whose real position is not published —
+  // a schematic point, not a survey — and the panel says so. Absent = exact.
+  approximate?: boolean
+  // What the pipeline knows about that position, for the panel to show.
+  note?: WaterText
 }
 
 // One edge of the network. `from`/`to` are facility ids or a node id;
