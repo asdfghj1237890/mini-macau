@@ -248,6 +248,8 @@ export function sliceGrandPrixLoop(
 
 // The wake as a source's worth of GeoJSON: one LineString ending at the car,
 // or nothing (layer off, file not landed, degenerate track).
+export const GRAND_PRIX_WAKE_FEATURE_ID = 'wake'
+
 export function grandPrixWakeFeatures(
   circuit: GrandPrixCircuit | null, distanceM: number | null,
 ): GeoJSON.FeatureCollection {
@@ -261,10 +263,13 @@ export function grandPrixWakeFeatures(
     circuit.track.coordinates, profile.cumM, profile.totalM, distanceM - length, distanceM,
   )
   if (coords.length < 2) return empty
+  // One feature with a fixed id, so the per-tick rewrite can be a diff that
+  // reloads only the tiles the tail touches (see writeGrandPrixWake).
   return {
     type: 'FeatureCollection',
     features: [{
       type: 'Feature',
+      id: GRAND_PRIX_WAKE_FEATURE_ID,
       geometry: { type: 'LineString', coordinates: coords },
       properties: { kind: 'wake' },
     }],

@@ -12,7 +12,7 @@
 // top of that comes from the zoom (see grandPrixCarScale) so the car keeps a
 // readable screen size as the map zooms out.
 
-import type { Map as MapLibreMap } from 'maplibre-gl'
+import type { Map as MapLibreMap, GeoJSONSourceDiff } from 'maplibre-gl'
 import type { GrandPrixCarPose } from '../grandPrix'
 
 export const GRAND_PRIX_CAR_SOURCE_ID = 'grandprix-car'
@@ -116,8 +116,11 @@ function boxRing(
 // per tick.
 export function buildRaceCarFeatures(pose: GrandPrixCarPose, colors: RaceCarColors): RaceCarFeature[] {
   const scale = pose.scale > 0 ? pose.scale : 1
-  return CAR_BOXES.map(box => ({
+  // The id is the box's index: stable across poses, which is what lets the
+  // per-tick update be a diff instead of a whole new collection.
+  return CAR_BOXES.map((box, i) => ({
     type: 'Feature',
+    id: i,
     geometry: { type: 'Polygon', coordinates: [boxRing(pose.lng, pose.lat, pose.bearing, box, scale)] },
     properties: {
       part: box.part,
@@ -177,11 +180,17 @@ export class RaceCar3DLayer {
 
   // Null takes the car off the map — once: an already-empty source is not
   // re-sent on every tick the layer stays off.
+  // A full setData re-tiles every in-view tile of the source; a diff reloads
+  // only the tiles the moved boxes touch (one or two). So the car is written
+  // whole once, when it appears, and moved by diff from then on — a lot
+  // fewer tile rebuilds for a phone's worker and GPU at 30 Hz.
   setPose(pose: GrandPrixCarPose | null): void {
     const map = this.map
     if (!map) return
-    const src = map.getSource(GRAND_PRIX_CAR_SOURCE_ID) as unknown as
-      { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    const src = map.getSource(GRAND_PRIX_CAR_SOURCE_ID) as unknown as {
+      setData?: (d: GeoJSON.FeatureCollection) => void
+      updateData?: (diff: GeoJSONSourceDiff) => Promise<void>
+    } | undefined
     if (!src?.setData) return
     if (!pose) {
       if (this.isEmpty) return
@@ -189,7 +198,22 @@ export class RaceCar3DLayer {
       this.isEmpty = true
       return
     }
-    src.setData({ type: 'FeatureCollection', features: buildRaceCarFeatures(pose, this.colors) })
-    this.isEmpty = false
+    const features = buildRaceCarFeatures(pose, this.colors)
+    if (this.isEmpty || !src.updateData) {
+      src.setData({ type: 'FeatureCollection', features })
+      this.isEmpty = false
+      return
+    }
+    void src.updateData({
+      update: features.map(f => ({
+        id: f.id as number,
+        newGeometry: f.geometry,
+        addOrUpdateProperties: [
+          { key: 'color', value: f.properties.color },
+          { key: 'base', value: f.properties.base },
+          { key: 'height', value: f.properties.height },
+        ],
+      })),
+    }).catch(() => { /* reported by the map's error event */ })
   }
 }

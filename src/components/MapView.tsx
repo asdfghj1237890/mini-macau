@@ -115,6 +115,7 @@ import {
   grandPrixLabelField,
   grandPrixMotionColors,
   grandPrixWakeFeatures,
+  GRAND_PRIX_WAKE_FEATURE_ID,
   type GrandPrixCarState,
 } from '../grandPrix'
 import { RaceCar3DLayer } from '../layers/RaceCar3DLayer'
@@ -1534,12 +1535,20 @@ function flyToGrandPrix(map: maplibregl.Map, circuit: GrandPrixCircuit, desktop:
 
 // The wake source: one line per tick while the layer is on, emptied once
 // when it goes off.
+// A GeoJSON source that can take a diff. A full setData re-tiles every
+// in-view tile of the source in the worker and re-uploads them all; a diff
+// reloads only the tiles the changed features touch. The per-tick GRAND PRIX
+// writers below write whole once (empty → shown) and diff from then on.
+type DiffableSource = {
+  setData?: (d: GeoJSON.FeatureCollection) => void
+  updateData?: (diff: maplibregl.GeoJSONSourceDiff) => Promise<void>
+}
+
 function writeGrandPrixWake(
   map: maplibregl.Map, circuit: GrandPrixCircuit | null, state: GrandPrixCarState | null,
   emptyRef: { current: boolean },
 ): void {
-  const src = map.getSource(GRAND_PRIX_WAKE_SOURCE_ID) as unknown as
-    { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+  const src = map.getSource(GRAND_PRIX_WAKE_SOURCE_ID) as unknown as DiffableSource | undefined
   if (!src?.setData) return
   const fc = grandPrixWakeFeatures(circuit, state?.distanceM ?? null)
   if (fc.features.length === 0) {
@@ -1548,17 +1557,24 @@ function writeGrandPrixWake(
     emptyRef.current = true
     return
   }
-  src.setData(fc)
-  emptyRef.current = false
+  if (emptyRef.current || !src.updateData) {
+    src.setData(fc)
+    emptyRef.current = false
+    return
+  }
+  void src.updateData({
+    update: [{ id: GRAND_PRIX_WAKE_FEATURE_ID, newGeometry: fc.features[0].geometry }],
+  }).catch(() => { /* reported by the map's error event */ })
 }
+
+const GRAND_PRIX_CAR_LABEL_FEATURE_ID = 'label'
 
 // The live speed readout beside the car — one point whose text is rewritten
 // with every pose while the layer is on, and emptied once when it goes off.
 function writeGrandPrixCarLabel(
   map: maplibregl.Map, state: GrandPrixCarState | null, emptyRef: { current: boolean },
 ): void {
-  const src = map.getSource(GRAND_PRIX_CAR_LABEL_SOURCE_ID) as unknown as
-    { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+  const src = map.getSource(GRAND_PRIX_CAR_LABEL_SOURCE_ID) as unknown as DiffableSource | undefined
   if (!src?.setData) return
   if (!state) {
     if (emptyRef.current) return
@@ -1566,15 +1582,23 @@ function writeGrandPrixCarLabel(
     emptyRef.current = true
     return
   }
-  src.setData({
-    type: 'FeatureCollection',
-    features: [{
-      type: 'Feature',
-      geometry: { type: 'Point', coordinates: [state.pose.lng, state.pose.lat] },
-      properties: { label: `${Math.round(state.speedMs * 3.6)} km/h` },
+  const geometry: GeoJSON.Point = { type: 'Point', coordinates: [state.pose.lng, state.pose.lat] }
+  const label = `${Math.round(state.speedMs * 3.6)} km/h`
+  if (emptyRef.current || !src.updateData) {
+    src.setData({
+      type: 'FeatureCollection',
+      features: [{ type: 'Feature', id: GRAND_PRIX_CAR_LABEL_FEATURE_ID, geometry, properties: { label } }],
+    })
+    emptyRef.current = false
+    return
+  }
+  void src.updateData({
+    update: [{
+      id: GRAND_PRIX_CAR_LABEL_FEATURE_ID,
+      newGeometry: geometry,
+      addOrUpdateProperties: [{ key: 'label', value: label }],
     }],
-  })
-  emptyRef.current = false
+  }).catch(() => { /* reported by the map's error event */ })
 }
 const POWER_DISTRIBUTION_OPACITY = 0.7
 
@@ -4345,19 +4369,21 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
             ferry3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'ferry'))
           }
-          // The GRAND PRIX car: a dozen boxes at the sim tick while the layer
-          // is on, placed on the lap by the same clock the buses read, and
-          // sized for the current zoom. `td` is the filtered data, so it is
-          // null the moment the layer goes off.
-          if (grandPrixFocusRef.current && td.grandPrix) {
-            const state = grandPrixCarState(td.grandPrix, timeRef.current.getTime(), map.getZoom())
-            raceCarRef.current?.setPose(state?.pose ?? null)
-            writeGrandPrixCarLabel(map, state, grandPrixCarLabelEmptyRef)
-            writeGrandPrixWake(map, td.grandPrix, state, grandPrixWakeEmptyRef)
-          } else {
-            raceCarRef.current?.setPose(null)
-            writeGrandPrixCarLabel(map, null, grandPrixCarLabelEmptyRef)
-            writeGrandPrixWake(map, null, null, grandPrixWakeEmptyRef)
+          // The GRAND PRIX car: a dozen boxes at the sim tick on desktop and
+          // on the upload cadence on phones, placed on the lap by the same
+          // clock the buses read, and sized for the current zoom. `td` is the
+          // filtered data, so it is null the moment the layer goes off.
+          if (isDesktopRef.current || shouldHeavy) {
+            if (grandPrixFocusRef.current && td.grandPrix) {
+              const state = grandPrixCarState(td.grandPrix, timeRef.current.getTime(), map.getZoom())
+              raceCarRef.current?.setPose(state?.pose ?? null)
+              writeGrandPrixCarLabel(map, state, grandPrixCarLabelEmptyRef)
+              writeGrandPrixWake(map, td.grandPrix, state, grandPrixWakeEmptyRef)
+            } else {
+              raceCarRef.current?.setPose(null)
+              writeGrandPrixCarLabel(map, null, grandPrixCarLabelEmptyRef)
+              writeGrandPrixWake(map, null, null, grandPrixWakeEmptyRef)
+            }
           }
         }
 
