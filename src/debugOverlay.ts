@@ -6,6 +6,7 @@
 // Off by default; without the switch this installs nothing.
 
 const LS_KEY = 'mini-macau-debug'
+const LOG_KEY = 'mini-macau-debug-log'
 const MAX_LINES = 80
 
 function enabled(): boolean {
@@ -77,11 +78,24 @@ export function installDebugOverlay(): void {
     'font:11px/1.35 ui-monospace,Menlo,Consolas,monospace', 'z-index:2147483647',
     'white-space:pre-wrap', 'word-break:break-word',
   ].join(';')
+  // A page the OS kills (memory) leaves no error behind, but the log it wrote
+  // before dying is still in localStorage: show the previous load's tail
+  // above this one. Only this load's lines are persisted, so it never nests.
+  const previous: string[] = []
+  try {
+    const raw = localStorage.getItem(LOG_KEY)
+    const arr: unknown = raw ? JSON.parse(raw) : null
+    if (Array.isArray(arr)) {
+      const tail = arr.filter((l): l is string => typeof l === 'string').slice(-30)
+      if (tail.length) previous.push('--- previous page load ---', ...tail, '--- this page load ---')
+    }
+  } catch { /* unreadable or absent: nothing to show */ }
   const lines: string[] = []
   const write = (line: string) => {
     lines.push(`${new Date().toISOString().slice(11, 23)} ${line}`)
     if (lines.length > MAX_LINES) lines.shift()
-    box.textContent = lines.join('\n')
+    box.textContent = [...previous, ...lines].join('\n')
+    try { localStorage.setItem(LOG_KEY, JSON.stringify(lines)) } catch { /* private mode or quota */ }
   }
   const mount = () => {
     if (box.isConnected) return
