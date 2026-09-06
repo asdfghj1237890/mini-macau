@@ -41,6 +41,11 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
   map.addSource(SOURCE_ID, {
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] },
+    // Every setData re-tiles all in-view tiles of the source. Capping the
+    // tiling at z15 means a zoom-16 view is a handful of z15 tiles instead of
+    // ~20 z16 ones (and 4× fewer again per level above), at a coordinate
+    // quantisation of ~0.14 m — half a pixel at zoom 18.
+    maxzoom: VEHICLE_SOURCE_MAXZOOM,
   })
 
   map.addLayer({
@@ -123,6 +128,10 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
     minzoom: 15.9,
   })
 }
+
+// Shared by the 2D marker source and the 3D bus / LRT / ferry sources: the
+// per-tick setData cost is proportional to the number of in-view tiles.
+export const VEHICLE_SOURCE_MAXZOOM = 15
 
 export function updateVehicleData(map: MapLibreMap, vehicles: VehiclePosition[]) {
   const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined

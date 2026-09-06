@@ -1,5 +1,6 @@
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { VehiclePosition } from '../types'
+import { VEHICLE_SOURCE_MAXZOOM } from './VehicleLayer'
 
 export const FERRY_3D_SOURCE_ID = 'ferry-3d-source'
 export const FERRY_3D_HULL_LAYER = 'ferry-3d-hull'
@@ -296,6 +297,7 @@ export class Ferry3DLayer {
     map.addSource(FERRY_3D_SOURCE_ID, {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
+      maxzoom: VEHICLE_SOURCE_MAXZOOM,
     })
 
     // Order matters for painter's order on overlapping extrusions.

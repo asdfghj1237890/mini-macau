@@ -2225,9 +2225,25 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       map.once('load', () => debugLog('[map] style loaded'))
       map.once('render', () => debugLog('[map] first frame'))
       map.once('idle', () => debugLog('[map] idle'))
+      // Tile loads, with the four busiest sources named, so a phone's log
+      // says which source is doing the re-tiling — not just how much.
       let tiles = 0
+      const perSource = new Map<string, number>()
       map.on('sourcedata', e => {
-        if ((e as { tile?: unknown }).tile) debugStat('tiles', ++tiles)
+        const ev = e as { tile?: unknown; sourceId?: string }
+        if (!ev.tile) return
+        tiles++
+        const id = ev.sourceId ?? '?'
+        perSource.set(id, (perSource.get(id) ?? 0) + 1)
+        if (tiles % 20 === 0) {
+          const top = [...perSource.entries()].sort((a, b) => b[1] - a[1]).slice(0, 4)
+            .map(([k, v]) => `${k} ${v}`).join(', ')
+          debugStat('tiles', `${tiles} (${top})`)
+        }
+      })
+      let frames = 0
+      map.on('render', () => {
+        if (++frames % 30 === 0) debugStat('frames', frames)
       })
       const canvas = map.getCanvas()
       canvas.addEventListener('webglcontextlost', () => console.error('[map] webglcontextlost'))

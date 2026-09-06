@@ -1,5 +1,6 @@
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { VehiclePosition } from '../types'
+import { VEHICLE_SOURCE_MAXZOOM } from './VehicleLayer'
 
 const LRT_3D_SOURCE_ID = 'lrt-3d-source'
 const LRT_3D_BOGIE_LAYER = 'lrt-3d-bogie'
@@ -203,6 +204,7 @@ export class LRT3DLayer {
     map.addSource(LRT_3D_SOURCE_ID, {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
+      maxzoom: VEHICLE_SOURCE_MAXZOOM,
     })
 
     map.addLayer({

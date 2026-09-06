@@ -1,5 +1,6 @@
 import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { VehiclePosition } from '../types'
+import { VEHICLE_SOURCE_MAXZOOM } from './VehicleLayer'
 
 export const BUS_3D_SOURCE_ID = 'bus-3d-source'
 export const BUS_3D_WHEEL_LAYER_ID = 'bus-3d-wheel'
@@ -155,6 +156,7 @@ export class Bus3DLayer {
     map.addSource(BUS_3D_SOURCE_ID, {
       type: 'geojson',
       data: { type: 'FeatureCollection', features: [] },
+      maxzoom: VEHICLE_SOURCE_MAXZOOM,
     })
 
     map.addLayer({
