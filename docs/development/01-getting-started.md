@@ -17,7 +17,7 @@ Dev server 起在 `http://localhost:5173`。MapView 是 lazy-import 的（[App.t
 
 ## 重要的 dev 設定
 
-- **trips 是 lazy 載的，而且不走 `/data/`**：LRT 時刻表放在 `src/data/trips-*.json`，由 `import.meta.glob` 按 schedule type（mon_thu / friday / sat_sun）打包成各自的匿名 hash chunk。頁面初次載入只 import 今天對應的那個，其餘兩個在主資料完成後才背景 prefetch。見 [`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips`。
+- **trips 已經不在這個 repo 裡，執行期也不走 `/data/`**：LRT 時刻表現在維護在一個私有的資料 repo，瀏覽器改成打 `GET /api/lrt/<scheduleType>`（mon_thu / friday / sat_sun）這個 Cloudflare Pages Function（`functions/api/lrt/[stype].ts`，部署時才從私有 repo 灌進 git-ignored 的 `functions/_lrt/`）。頁面初次載入只 fetch 今天對應的那個 scheduleType，其餘兩個在主資料完成後才背景 prefetch。本機 `npm run dev`：`src/data/trips-<scheduleType>.json` 若有一份自己的（git-ignored）副本，[`plugins/lrt-dev-api.ts`](../../plugins/lrt-dev-api.ts) 會直接讀那份；沒有的話 Vite 的 `/api` proxy 轉發到正式站；兩者都沒有 LRT 圖層就是空的。見 [`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips`。
 
 ## Build
 
@@ -47,7 +47,8 @@ cd data
 uv sync
 uv run python scripts/fetch_flights.py            # 需 AVIATIONSTACK_API_KEY
 uv run python scripts/fetch_ferry_schedules.py    # 直接 scrape 官網
-uv run python scripts/generate_timetable.py       # 純資料、無外部依賴
 ```
+
+LRT 時刻表的產生器不在這個 repo 裡（維護在一個私有的資料 repo），流程另外記在那邊。
 
 完整流程見 [05-data-pipeline.md](05-data-pipeline.md)。

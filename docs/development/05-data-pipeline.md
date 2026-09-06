@@ -24,7 +24,6 @@ data/scripts/
 ├── patch_bus_bridges.py       # 把 OSRM 結果裡的橋段換成 fetch_bridge_geometry 的精確幾何
 ├── patch_service_hours.py     # 套 DSAT 服務時段
 ├── patch_service_hours_by_day.py  # Sun/PH 獨立的服務時段
-├── generate_timetable.py      # 從 MLM 圖片轉錄出來的時刻表 → trips-*.json
 ├── fetch_flights.py           # AviationStack → flights.json
 ├── fetch_ferry_schedules.py   # TurboJET / CotaiJet → ferry-schedules.json
 ├── fetch_road_works.py        # data.gov.mo (DSAT) → road-works.json
@@ -57,16 +56,14 @@ OSM (大橋) ──> fetch_bridge_geometry.py ──> raw/bridges.json ──┤
                               patch_service_hours{,_by_day}.py
                                             │
                                             ▼
-MLM 圖片 ──> 手轉 timetable_verified/*.md ──> generate_timetable.py
-                                            │
-                                            ▼
                            public/data/{lrt-lines,stations,
                                         bus-routes,bus-stops}.json
-                           src/data/trips-*.json
                            （腳本直接寫入使用位置，沒有中繼副本）
 ```
 
 > `data/main.py` 目前只是個 placeholder（[`main.py`](../../data/main.py)），實際工作都是個別腳本獨立跑。
+>
+> LRT 時刻表（`trips-*.json`）不在上面這張圖裡：轉錄與產生器維護在一個私有的資料 repo，不是這個 repo 的一部分，見下面「時刻表」一節。
 
 ## 腳本執行細節
 
@@ -84,15 +81,15 @@ MLM 圖片 ──> 手轉 timetable_verified/*.md ──> generate_timetable.py
 
 如果你只改了某一條路線，可以用 `_regenerate_specific.py` 跑單條重生成。
 
-### 時刻表 — `generate_timetable.py`
+### 時刻表
 
-LRT 沒有公開 API。MLM 提供的是每站獨立、HH:MM 一行的時刻表 PDF/JPG。流程：
+LRT 沒有公開 API，時刻表原本是 MLM 每站獨立、HH:MM 一行的 PDF/JPG。轉錄流程、產生器（原本在這裡的 `generate_timetable.py`）、OCR 小工具與人工驗證筆記都已經搬出這個 repo，跟看板圖片一起維護在一個私有的資料 repo，程序也記在那邊。
 
-1. 把官方 PDF/JPG 放進 `data/timetable_images/`。
-2. 人工轉錄到 `data/timetable_verified/*.md`（一行一站、HH:MM 列出當日所有發車）。
-3. `generate_timetable.py` 把 `.md` 解析成 per-station `dict[hour, list[minute]]`，再用 time-proximity matching 把不同站的同一班車對起來，產出每筆 `Trip { lineId, direction, scheduleType, entries[] }`。
+產生器吐出的每筆 `Trip { lineId, direction, scheduleType, entries[] }`（`entries[]` 是每站的到站/離站分鐘數）依三種 scheduleType（`mon_thu` / `friday` / `sat_sun`）各自成一檔：`trips-mon_thu.json` / `trips-friday.json` / `trips-sat_sun.json`。這三檔**不 commit 進這個 repo**，也不放 `public/data/`：runtime 改成打 `GET /api/lrt/<scheduleType>`，由一個 Cloudflare Pages Function（`functions/api/lrt/[stype].ts`）回應；Function 檢查允許的 Origin／Referer，回應標 `Cache-Control: private`。Function 本身在部署時才從私有資料 repo（唯讀 deploy key，存成 `LRT_DEPLOY_KEY` secret）checkout 三個 trips 檔進 git-ignored 的 `functions/_lrt/`，讓 wrangler 把它們一起 bundle 進去——前端靜態產物不包含時刻表。
 
-三種 scheduleType（Mon-Thu / Friday / Sat-Sun）各跑一次，產出 `trips-mon_thu.json` / `trips-friday.json` / `trips-sat_sun.json`。這三檔放 `src/data/`（不是 `public/data/`）：Vite 會把它們打包成匿名 hash chunk，runtime 按需 lazy import，不會以 `/data/*.json` 的形式公開。
+本機 `npm run dev`：`src/data/trips-<scheduleType>.json` 若有一份自己的（git-ignored）副本，[`plugins/lrt-dev-api.ts`](../../plugins/lrt-dev-api.ts) 直接讀那份；沒有的話 Vite 的 `/api` proxy 轉發到正式站；兩者都沒有 LRT 圖層就是空的。
+
+測試也跟著調整：[`dataSchemas.test.ts`](../../src/dataSchemas.test.ts) 的三個 trips case 在一般 CI 缺檔時可以 skip；明確設定 `LRT_TRIPS_DIR` 時，缺檔必須失敗（`LRT_TRIPS_DIR` 環境變數指到的目錄，或本機的 `src/data/` 副本），一般 CI 沒有這份資料就 skip；deploy job 會先 stage 時刻表、設好 `LRT_TRIPS_DIR` 再跑測試。`validate_output.py` 的 trip 方向 cross-check 一樣：磁碟上找不到 `trips-mon_thu.json`（`LRT_TRIPS_DIR` 可覆寫路徑）就印一行 note 跳過，不算失敗。
 
 ### 航班 — `fetch_flights.py`
 
@@ -241,7 +238,7 @@ Runtime 由 [`useServiceStatus.ts`](../../src/hooks/useServiceStatus.ts) 讀進�
 - **修一條路線的幾何錯誤**：改 `bus_reference/`（或 `extract_bus_data.py` 的 override）、跑 `_regenerate_specific.py`，它直接改寫 `public/data/bus-routes.json`；用 `git diff` 檢視後跑 `validate_output.py bus-routes bus-stops`。
 - **加新巴士路線**：DSAT 開新線時，先在 `bus_reference/` 加 reference data、跑全套 extract → osrm → patch、最後在 `routeGroups.ts` 把它分到對的 group。
 - **改服務時段**：`patch_service_hours.py` / `patch_service_hours_by_day.py`，在腳本裡硬編碼新的小時數，重跑。`patch_service_hours_by_day.py` 會把週六或週日的「不設服務」寫成對應的 `serviceHoursStartSat/Sun: null` / `serviceHoursEndSat/Sun: null`。
-- **新增 LRT 班次**：MLM 改點時刻表後，更新 `data/timetable_verified/*.md`，跑 `generate_timetable.py` 三種 scheduleType。
+- **新增 LRT 班次**：時刻表轉錄與產生器不在這個 repo 裡，程序記在私有的資料 repo；那邊產出三種 scheduleType 後，這裡的 deploy 會自動抓到最新版本。
 
 ## 自動化
 

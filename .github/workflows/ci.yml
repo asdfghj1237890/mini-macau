@@ -32,6 +32,9 @@ jobs:
       - name: Typecheck & build
         run: npm run build
 
+      - name: Check the LRT data boundary
+        run: npm run check:lrt-boundary
+
   data:
     runs-on: ubuntu-latest
     steps:

@@ -2,9 +2,24 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { seoContentPlugin } from './plugins/seo-content'
+import { lrtDevApiPlugin } from './plugins/lrt-dev-api'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), seoContentPlugin()],
+  plugins: [react(), tailwindcss(), seoContentPlugin(), lrtDevApiPlugin()],
+  server: {
+    // /api/* is a Cloudflare Pages Function in production (functions/). In
+    // dev, lrtDevApiPlugin serves /api/lrt/* from a local git-ignored copy of
+    // the timetable when there is one; otherwise the request falls through to
+    // this proxy and production answers. The Function only accepts requests
+    // that look like they come from the site, hence the Referer.
+    proxy: {
+      '/api': {
+        target: 'https://mini-map-macau.app',
+        changeOrigin: true,
+        headers: { Origin: 'https://mini-map-macau.app', Referer: 'https://mini-map-macau.app/' },
+      },
+    },
+  },
   build: {
     rolldownOptions: {
       output: {
@@ -14,15 +29,6 @@ export default defineConfig({
             { name: 'vendor-maplibre', test: /node_modules\/maplibre-gl/ },
           ],
         },
-        // The LRT timetable chunks (src/data/trips-*.json, lazily imported by
-        // useTransitData) get a bare content hash instead of the default
-        // `[name]-[hash]`, so the built URL says nothing about what it is.
-        // Obfuscation only — the chunk is still fetchable once found in the
-        // bundle graph.
-        chunkFileNames: (chunk) =>
-          /^trips-/.test(chunk.name) || /[\\/]src[\\/]data[\\/]trips-/.test(chunk.facadeModuleId ?? '')
-            ? 'assets/[hash].js'
-            : 'assets/[name]-[hash].js',
       },
     },
   },

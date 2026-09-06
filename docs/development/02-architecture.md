@@ -45,7 +45,7 @@
    └────────────────────────────────────────┘
 ```
 
-> LRT trips（`src/data/trips-*.json`）刻意不放 `public/data/`：Vite 把它們打包成匿名 hash chunk，`useTransitData` 用 `import.meta.glob` 按 scheduleType lazy import，所以 MLM 時刻表沒有可猜的 `/data/` URL。其餘資料集仍以 `/data/*.json` 直接提供，但帶 `X-Robots-Tag: noindex`（`public/_headers`）。
+> LRT trips 不是這個 repo 的檔案，也不放 `public/data/`：時刻表維護在一個私有的資料 repo，瀏覽器只能透過 `/api/lrt/<scheduleType>` 這個 Cloudflare Pages Function 拿到（部署時才把時刻表灌進 Function 的 bundle，前端靜態產物不包含時刻表），Function 檢查允許的 Origin／Referer，回應標 `Cache-Control: private`。其餘資料集仍以 `/data/*.json` 直接提供，但帶 `X-Robots-Tag: noindex`（`public/_headers`）。
 
 ## 三個階段各自負責什麼
 
@@ -56,7 +56,7 @@
 | 源頭 | 內容 | 取得方式 |
 |------|------|----------|
 | OSM Overpass | LRT 軌道幾何、巴士路線幾何、巴士站位置 | `data/scripts/extract_*.py`，手動觸發 |
-| MLM | 輕軌每站逐分鐘時刻表 | 官方 PDF/JPG → 手 transcribe 進 [`generate_timetable.py`](../../data/scripts/generate_timetable.py) |
+| MLM | 輕軌每站逐分鐘時刻表 | 官方 PDF/JPG → 手 transcribe，流程在一個私有的資料 repo 裡（不在這個 repo） |
 | DSAT 頻率 | 各路線發車間隔、服務時段 | `fetch_dsat_stops.py` + `patch_service_hours*.py` |
 | AviationStack | MFM 機場每日航班 | `fetch_flights.py`（需 API key） |
 | TurboJET / CotaiJet | 港澳渡輪月度時刻表 | `fetch_ferry_schedules.py`（直接 scrape HTML） |
@@ -164,10 +164,7 @@ data/
 │   ├── fetch_dspa_stats.py          # monthly via update-dspa-stats.yml
 │   ├── osrm_route.py
 │   ├── patch_bus_bridges.py
-│   ├── patch_service_hours.py
-│   └── generate_timetable.py
+│   └── patch_service_hours.py
 ├── bus_reference/           # 從 motransportinfo.com 抓的 reference JSON
-├── timetable_images/        # MLM 官方時刻表圖片
-├── timetable_verified/      # 手 transcribe 後的 .md
 └── raw/                     # extract_*.py 的中間產物
 ```

@@ -35,18 +35,25 @@ async function loadJson<T>(path: string, schema: z.ZodType, label: string): Prom
   return parseData<T>(schema, raw, label)
 }
 
-// LRT trips are NOT served from /data/ like the other datasets. The MLM
-// timetable is bundled from `src/data/trips-*.json` into anonymously named,
-// content-hashed chunks (see `chunkFileNames` in vite.config.ts), so there is
-// no guessable JSON endpoint for it. `import.meta.glob` keeps each
-// scheduleType a separate lazy chunk: today's loads first, the other two
-// prefetch in the background (see ensureScheduleTypeLoaded).
-const tripModules = import.meta.glob<unknown>('../data/trips-*.json', { import: 'default' })
-
+// LRT trips are NOT served from /data/ like the other datasets, and they are
+// not in this repository at all: the MLM timetable compilation lives in a
+// private data repo and reaches the browser only through the Pages Function
+// at /api/lrt/<scheduleType> (functions/api/lrt/[stype].ts), with source
+// checks and private browser caching. Source headers are not authentication.
+// One request per scheduleType: today's loads first, the other two prefetch
+// in the background (see ensureScheduleTypeLoaded). In dev the same URL is
+// served by plugins/lrt-dev-api.ts from a local git-ignored copy, or proxied
+// to production when there is none. A failure here leaves the LRT layer
+// empty and logs once — nothing else depends on the trips.
 async function loadTrips(stype: ScheduleType): Promise<Trip[]> {
-  const load = tripModules[`../data/trips-${stype}.json`]
-  if (!load) throw new Error(`no bundled trips chunk for scheduleType "${stype}"`)
-  return parseData<Trip[]>(TripsSchema, await load(), `trips-${stype}`)
+  // Previews use the production API too, where the domain's rate limit applies.
+  const base = /^(?:[a-z0-9-]+\.)?mini-map-macau\.pages\.dev$/.test(window.location.hostname)
+    ? 'https://mini-map-macau.app' : ''
+  const res = await fetch(`${base}/api/lrt/${stype}`)
+  if (!res.ok) throw new Error(`fetch trips-${stype} → HTTP ${res.status}`)
+  // Malformed trips must never enter the simulation. The existing catch leaves
+  // this schedule's LRT layer empty, including in production.
+  return TripsSchema.parse(await res.json())
 }
 
 interface FerryScheduleTime {

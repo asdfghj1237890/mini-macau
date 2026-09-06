@@ -12,5 +12,23 @@ tmp_*
 .claude/scheduled_tasks.lock
 .env.development
 .claude/settings.local.json
+.claude/settings.local.json.*
 .claude/worktrees/
 CLAUDE.md
+AGENTS.md
+
+# The LRT timetable is not in this repo (private data repo, served through
+# functions/api/lrt). Local copies for dev and the deploy-time staging dir:
+trips-*.json
+functions/_lrt/
+lrt-data/
+data/timetable_images/
+data/timetable_verified/
+data/scripts/generate_timetable.py
+data/scripts/_check_trips.py
+data/scripts/_crop_helper.py
+data/scripts/_crop_hq_rows.py
+data/scripts/_ocr_batch.py
+data/scripts/_sync_taipa_dicts.py
+data/scripts/_win_ocr.ps1
+.wrangler/
