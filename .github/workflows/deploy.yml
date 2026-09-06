@@ -28,6 +28,22 @@ jobs:
           # Empty for push events → falls back to the exact pushed sha.
           ref: ${{ inputs.ref || github.sha }}
 
+      # Prepare schedule inputs for the Pages Function bundle. Data workflows
+      # share the source configuration through `secrets: inherit`.
+      - name: Check out schedule inputs
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ secrets.LRT_DATA_REPOSITORY }}
+          ssh-key: ${{ secrets.LRT_DEPLOY_KEY }}
+          path: lrt-data
+          persist-credentials: false
+          sparse-checkout: trips
+
+      - name: Stage the timetable for the Pages Function
+        run: |
+          mkdir -p functions/_lrt
+          cp lrt-data/trips/trips-mon_thu.json lrt-data/trips/trips-friday.json lrt-data/trips/trips-sat_sun.json functions/_lrt/
+
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -35,20 +51,35 @@ jobs:
 
       - run: npm ci
 
+      - name: Typecheck the Pages Function with its deployment inputs
+        run: npm run typecheck:functions
+
       # Gate the deploy on the same checks as CI, so a direct push to master
-      # that fails lint/tests never reaches production.
+      # that fails lint/tests never reaches production. LRT_TRIPS_DIR points the
+      # schema test at the staged timetable, so bad trips fail the deploy too.
       - name: Lint
         run: npm run lint
       - name: Test
         run: npm test
+        env:
+          LRT_TRIPS_DIR: functions/_lrt
 
       - run: npm run build
 
-      - name: Install Wrangler
-        run: npm i -g wrangler
+      - name: Check the LRT data boundary
+        run: npm run check:lrt-boundary
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Validate data including LRT direction consistency
+        run: python data/scripts/validate_output.py all
+        env:
+          LRT_TRIPS_DIR: functions/_lrt
 
       - name: Create Pages project if not exists
-        run: wrangler pages project create mini-map-macau --production-branch=master || true
+        run: npx --no-install wrangler pages project create mini-map-macau --production-branch=master || true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -59,7 +90,10 @@ jobs:
         # Cloudflare files the deploy as a PREVIEW (head.*.pages.dev)
         # instead of production. Pinning the branch makes every run a
         # production deployment regardless of checkout state.
-        run: wrangler pages deploy dist/ --project-name=mini-map-macau --branch=master --commit-dirty=true
+        run: npx --no-install wrangler pages deploy dist/ --project-name=mini-map-macau --branch=master --commit-dirty=true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+
+      - name: Verify production and the Pages data redirect
+        run: node scripts/verify-lrt-api.mjs https://mini-map-macau.app https://mini-map-macau.pages.dev

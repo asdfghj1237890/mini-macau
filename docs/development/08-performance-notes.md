@@ -113,7 +113,7 @@ const z = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 - **Vendor chunk split** in [`vite.config.ts`](../../vite.config.ts)：
   - `vendor-react`
   - `vendor-maplibre`（最大塊，CDN 緩存特別有用）
-- **Trips 按 scheduleType lazy**：`src/data/trips-*.json` 經 `import.meta.glob` 各自成為一個 chunk，先 import 今天的，剩下兩個在主資料完成後背景 prefetch（[`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips`）。
+- **Trips 按 scheduleType 載入**：透過 `GET /api/lrt/<scheduleType>` 先 fetch 今天的時刻表，剩下兩個在主資料完成後背景 prefetch，避免其他日期的資料阻擋初次載入。見 [`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips` 與 [05-data-pipeline.md](05-data-pipeline.md)。
 
 ## 8. 漸進 setState 而非 `Promise.all`
 

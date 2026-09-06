@@ -1,6 +1,6 @@
 /// <reference types="node" />
 import { describe, it, expect } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { z } from 'zod'
 import {
@@ -28,9 +28,17 @@ import {
 // data — it runs in CI alongside the unit tests, so bad data fails the build
 // instead of reaching the browser.
 const dataDir = resolve(__dirname, '..', 'public', 'data')
-// LRT trips are bundled from src/data rather than served under /data/ — see
-// `loadTrips` in hooks/useTransitData.ts.
-const tripsDir = resolve(__dirname, 'data')
+// LRT trips are NOT committed to this repo: they live in a private data repo
+// and reach the app through /api/lrt (see `loadTrips` in
+// hooks/useTransitData.ts). The deploy job checks that repo out and points
+// LRT_TRIPS_DIR at the copy before running the tests, so the schema still
+// gates every deploy; in plain CI, with no copy on disk, the three cases skip.
+// A maintainer with a local git-ignored copy in src/data gets them for free.
+const tripsDir = process.env.LRT_TRIPS_DIR
+  ? resolve(process.env.LRT_TRIPS_DIR)
+  : resolve(__dirname, 'data')
+// An explicitly configured deployment input is mandatory, never a skipped test.
+const skipTrips = (f: string) => !process.env.LRT_TRIPS_DIR && !existsSync(resolve(tripsDir, f))
 const load = (f: string, dir = dataDir): unknown => JSON.parse(readFileSync(resolve(dir, f), 'utf8'))
 
 function expectValid(schema: z.ZodType, file: string, dir = dataDir) {
@@ -48,9 +56,9 @@ function expectValid(schema: z.ZodType, file: string, dir = dataDir) {
 describe('committed data files satisfy their schemas', () => {
   it('lrt-lines.json', () => expectValid(LRTLinesSchema, 'lrt-lines.json'))
   it('stations.json', () => expectValid(StationsSchema, 'stations.json'))
-  it('trips-mon_thu.json', () => expectValid(TripsSchema, 'trips-mon_thu.json', tripsDir))
-  it('trips-friday.json', () => expectValid(TripsSchema, 'trips-friday.json', tripsDir))
-  it('trips-sat_sun.json', () => expectValid(TripsSchema, 'trips-sat_sun.json', tripsDir))
+  it.skipIf(skipTrips('trips-mon_thu.json'))('trips-mon_thu.json', () => expectValid(TripsSchema, 'trips-mon_thu.json', tripsDir))
+  it.skipIf(skipTrips('trips-friday.json'))('trips-friday.json', () => expectValid(TripsSchema, 'trips-friday.json', tripsDir))
+  it.skipIf(skipTrips('trips-sat_sun.json'))('trips-sat_sun.json', () => expectValid(TripsSchema, 'trips-sat_sun.json', tripsDir))
   it('bus-routes.json', () => expectValid(BusRoutesSchema, 'bus-routes.json'))
   it('bus-stops.json', () => expectValid(BusStopsSchema, 'bus-stops.json'))
   it('flights.json', () => expectValid(FlightsSchema, 'flights.json'))

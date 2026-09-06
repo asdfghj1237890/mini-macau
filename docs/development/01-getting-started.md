@@ -17,7 +17,7 @@ Dev server 起在 `http://localhost:5173`。MapView 是 lazy-import 的（[App.t
 
 ## 重要的 dev 設定
 
-- **trips 是 lazy 載的，而且不走 `/data/`**：LRT 時刻表放在 `src/data/trips-*.json`，由 `import.meta.glob` 按 schedule type（mon_thu / friday / sat_sun）打包成各自的匿名 hash chunk。頁面初次載入只 import 今天對應的那個，其餘兩個在主資料完成後才背景 prefetch。見 [`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips`。
+- **LRT 按日期載入**：瀏覽器透過 `GET /api/lrt/<scheduleType>`（mon_thu / friday / sat_sun）取得時刻表。頁面先載入今天的 scheduleType，其餘兩個在主資料完成後背景 prefetch。本機 `npm run dev` 時，[`plugins/lrt-dev-api.ts`](../../plugins/lrt-dev-api.ts) 優先讀取 git-ignored 的 `src/data/trips-<scheduleType>.json`；未設定本機資料時，Vite 的 `/api` proxy 轉發到正式站。來源無法使用時，該類型的 LRT 圖層為空。見 [`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips`。
 
 ## Build
 
@@ -47,7 +47,8 @@ cd data
 uv sync
 uv run python scripts/fetch_flights.py            # 需 AVIATIONSTACK_API_KEY
 uv run python scripts/fetch_ferry_schedules.py    # 直接 scrape 官網
-uv run python scripts/generate_timetable.py       # 純資料、無外部依賴
 ```
+
+LRT 的本機資料與部署輸入設定見 [時刻表](05-data-pipeline.md#時刻表)。
 
 完整流程見 [05-data-pipeline.md](05-data-pipeline.md)。

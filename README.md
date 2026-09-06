@@ -91,9 +91,9 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 
 ## Architecture
 
-Three clean stages: upstream sources get normalized by Python into versioned static JSON, which the browser runtime replays on a simulated clock. One live feed bypasses the pipeline: the DSAT car-park vacancy API, polled only while the clock sits at the present.
+Upstream sources are normalized into JSON, loaded through static assets and schedule-specific API requests, and replayed by the browser on a simulated clock. The DSAT car-park vacancy API provides live updates only while the clock sits at the present.
 
-![Architecture — sources flow through the Python pipeline into committed JSON, which the browser replays on a simulated clock; the DSAT car-park vacancy feed bypasses the pipeline](./docs/architecture.svg)
+![Architecture — sources flow through the data pipeline into JSON assets and APIs, which the browser replays on a simulated clock; the DSAT car-park vacancy feed provides live updates](./docs/architecture.svg)
 
 <sup>Animated SVG (SMIL, no scripts) — generated, see <code>docs/architecture.svg</code>.</sup>
 
@@ -140,7 +140,7 @@ npm run preview
 
 ## Data Pipeline
 
-Transit data is pre-generated and included in `public/data/`.
+Transit geometry and other static datasets are pre-generated in `public/data/`. LRT schedules are loaded through `/api/lrt/<scheduleType>`, with the current schedule loaded first and the remaining schedules prefetched in the background.
 
 <details>
 <summary><strong>Regenerate transit data</strong></summary>
@@ -161,7 +161,7 @@ This will:
 3. Fetch bridge approach geometry for accurate cross-harbour routing
 4. Snap bus routes to roads via OSRM with custom bridge geometry patching
 5. Generate timetables based on published service frequencies
-6. Write the JSON straight to where it is consumed: `public/data/` (served as-is) and `src/data/` (LRT trips, bundled into the app). There is no intermediate `data/output/` copy to sync.
+6. Write the JSON straight to where it is consumed: `public/data/`, served as-is. There is no intermediate `data/output/` copy to sync.
 
 </details>
 
@@ -215,7 +215,7 @@ Automated via GitHub Actions (`.github/workflows/update-ferry-schedules.yml`), w
 ## Data Sources
 
 - **LRT tracks & stations** — [OpenStreetMap](https://www.openstreetmap.org/) (railway=light_rail relations)
-- **LRT timetables** — [MLM 澳門輕軌股份有限公司](https://www.mlm.com.mo/) official per-station timetable publications (Taipa / Seac Pai Van / Hengqin lines). The generated trip files are bundled into the app (`src/data/trips-*.json` → content-hashed chunks) rather than published under `/data/`
+- **LRT timetables** — [MLM 澳門輕軌股份有限公司](https://www.mlm.com.mo/) official per-station timetable publications (Taipa / Seac Pai Van / Hengqin lines), transcribed and checked for timetable-driven playback
 - **Bus routes & stops** — OpenStreetMap + [motransportinfo.com](https://www.motransportinfo.com) curated stop data
 - **Road-snapped routes** — [OSRM](http://project-osrm.org/) with custom bridge approach geometry
 - **Bus timetables** — Based on published DSAT service frequencies
@@ -237,7 +237,7 @@ Not every layer is equally fresh. LRT and buses are **fully simulated** from pub
 
 | Layer | Mode | Source | Refresh cadence | Staleness indicator |
 |-------|------|--------|-----------------|---------------------|
-| **LRT** | Simulated | OSM geometry + MLM published per-station timetable | Manual regen (`uv run python data/main.py`) | None — static JSON |
+| **LRT** | Simulated | OSM geometry + MLM published per-station timetable | Manual updates following official publications | Schedule-specific API; no live vehicle feed |
 | **Bus** | Simulated | OSM geometry + DSAT published service frequencies, dimmed by a daily service-status scrape | Manual regen (routes) · daily (`service-status.yml`) | DSAT stop snapshot timestamp in `data/bus_reference/dsat_stops.json` (current: 2026-09-02 Macau) |
 | **Flights** | Static daily sync | [AviationStack API](https://aviationstack.com/) | Daily at 04:00 Macau time — `update-flights.yml` | `fetchedAtUtc` embedded in `flights.json` |
 | **Ferries** | Static monthly sync | TurboJET + CotaiJet timetable pages (scraped) | 1st of month · `update-ferry-schedules.yml` | `fetchedAtUtc` + `effectiveAs` in `ferry-schedules.json` |
@@ -274,8 +274,7 @@ mini-macau/
 │   ├── engines/
 │   │   └── simulationEngine.ts   # Timetable-driven vehicle + flight position computation
 │   ├── data/
-│   │   ├── hourDensity.ts
-│   │   └── trips-*.json          # LRT timetable — bundled into anonymous hashed chunks, not served under /data/
+│   │   └── hourDensity.ts
 │   ├── hooks/
 │   │   ├── useSimulationClock.ts # RAF-based clock with speed/pause
 │   │   ├── useTransitData.ts     # JSON data loader
@@ -343,10 +342,13 @@ mini-macau/
 │   │   ├── fetch_waste.py        # IAM + DSPA waste & recycling sync
 │   │   ├── fetch_dspa_stats.py   # monthly via update-dspa-stats.yml
 │   │   ├── osrm_route.py
-│   │   ├── patch_bus_bridges.py
-│   │   └── generate_timetable.py
+│   │   └── patch_bus_bridges.py
 │   ├── bus_reference/
 │   └── main.py
+├── functions/
+│   └── api/lrt/[stype].ts    # Pages Function — schedule-specific JSON endpoint
+├── plugins/
+│   └── lrt-dev-api.ts        # Dev-only stand-in for the Function above
 ├── .github/workflows/
 │   ├── deploy.yml                  # Cloudflare Pages CI/CD
 │   ├── service-status.yml          # Upstream service availability check
@@ -423,7 +425,7 @@ The zoom indicator in the HUD used to be a `useState`, so every `map.on('zoom', 
 <summary><strong>Data sources</strong></summary>
 
 - [OpenStreetMap](https://www.openstreetmap.org/) — LRT track geometry, bus routes, and stop locations
-- [MLM 澳門輕軌股份有限公司](https://www.mlm.com.mo/) — Official per-station LRT timetables (used to hand-transcribe `data/scripts/generate_timetable.py` for the Taipa / Seac Pai Van / Hengqin lines)
+- [MLM 澳門輕軌股份有限公司](https://www.mlm.com.mo/) — Official per-station LRT timetables, hand-transcribed for the Taipa / Seac Pai Van / Hengqin lines
 - [MoTransport Info](https://motransportinfo.com/zh/search) — Curated Macau bus stop reference data
 - [AviationStack](https://aviationstack.com/) — MFM flight schedule data (arrivals + departures)
 - [TurboJET](https://www2.turbojet.com.hk/) — Ferry timetable (Hong Kong, HKIA, Shenzhen Airport, Shekou routes)

@@ -19,6 +19,7 @@ otherwise.
 from __future__ import annotations
 
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -28,9 +29,12 @@ from route_offsets import MAX_STOP_TO_ROUTE_M, distance_m2
 # repo/data/scripts/validate_output.py -> repo
 REPO = Path(__file__).resolve().parents[2]
 PUBLIC = REPO / "public"
-# LRT trips live in src/data and are bundled into the app by Vite rather than
-# served under public/data — see `loadTrips` in src/hooks/useTransitData.ts.
-SRC_DATA = REPO / "src" / "data"
+# LRT trips are NOT in this repo: the timetable lives in a private data repo
+# and reaches the app through the Pages Function at /api/lrt (see `loadTrips`
+# in src/hooks/useTransitData.ts). The direction cross-check below uses a copy
+# when one is on disk — a maintainer's git-ignored src/data/, or wherever
+# LRT_TRIPS_DIR points (the deploy job stages one) — and skips otherwise.
+SRC_DATA = Path(os.environ["LRT_TRIPS_DIR"]) if os.environ.get("LRT_TRIPS_DIR") else REPO / "src" / "data"
 
 # Generous Macau-region bounding box. Tight enough to catch null-island (0,0)
 # and grossly wrong coordinates, loose enough to include the cross-harbour
@@ -170,9 +174,14 @@ def v_lrt_lines(data: object) -> list[str]:
 
 
 def load_trips_for_direction_check(errs: list[str], name: str) -> list | None:
-    """Weekday trips (src/data/trips-mon_thu.json) for the direction cross-check;
-    None if unreadable."""
+    """Weekday trips (trips-mon_thu.json from SRC_DATA) for the direction
+    cross-check; None — and no error — when there is no copy on disk, since the
+    trips are not part of this repo; None with an error if a copy is unreadable."""
     path = SRC_DATA / "trips-mon_thu.json"
+    if not path.exists():
+        print(f"note: {name}: no {path.name} on disk (LRT trips are not in this repo) — "
+              "direction cross-check skipped")
+        return None
     try:
         trips = json.loads(path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as e:
@@ -2152,6 +2161,18 @@ DATASETS: dict[str, tuple[Path, object]] = {
 # Convenience aliases for the names the trips loader / workflows use.
 ALIASES = {"trips": ["trips-mon_thu", "trips-friday", "trips-sat_sun"]}
 
+# The LRT trips are not in this repo (see SRC_DATA). `all` covers them only
+# when a copy is on disk or LRT_TRIPS_DIR names one (the deploy job stages one
+# and MUST fail if it is missing); plain CI, with neither, skips them with a
+# note rather than failing on files that are not supposed to be here. Asking
+# for them by name (`trips`, `trips-friday`) still fails loudly — that is a
+# maintainer checking a copy they expect to exist.
+TRIPS_DATASETS = ALIASES["trips"]
+
+
+def trips_on_disk() -> bool:
+    return all(DATASETS[name][0].exists() for name in TRIPS_DATASETS)
+
 
 def validate_one(name: str) -> list[str]:
     path, validator = DATASETS[name]
@@ -2174,6 +2195,10 @@ def main(argv: list[str]) -> int:
     for arg in argv:
         if arg == "all":
             requested = list(DATASETS)
+            if not os.environ.get("LRT_TRIPS_DIR") and not trips_on_disk():
+                print("note: LRT trips are not in this repo and no copy is on disk — "
+                      "trips-* skipped (set LRT_TRIPS_DIR to check one)")
+                requested = [n for n in requested if n not in TRIPS_DATASETS]
             break
         requested.extend(ALIASES.get(arg, [arg]))
 

@@ -24,7 +24,6 @@ data/scripts/
 ├── patch_bus_bridges.py       # 把 OSRM 結果裡的橋段換成 fetch_bridge_geometry 的精確幾何
 ├── patch_service_hours.py     # 套 DSAT 服務時段
 ├── patch_service_hours_by_day.py  # Sun/PH 獨立的服務時段
-├── generate_timetable.py      # 從 MLM 圖片轉錄出來的時刻表 → trips-*.json
 ├── fetch_flights.py           # AviationStack → flights.json
 ├── fetch_ferry_schedules.py   # TurboJET / CotaiJet → ferry-schedules.json
 ├── fetch_road_works.py        # data.gov.mo (DSAT) → road-works.json
@@ -57,16 +56,14 @@ OSM (大橋) ──> fetch_bridge_geometry.py ──> raw/bridges.json ──┤
                               patch_service_hours{,_by_day}.py
                                             │
                                             ▼
-MLM 圖片 ──> 手轉 timetable_verified/*.md ──> generate_timetable.py
-                                            │
-                                            ▼
                            public/data/{lrt-lines,stations,
                                         bus-routes,bus-stops}.json
-                           src/data/trips-*.json
                            （腳本直接寫入使用位置，沒有中繼副本）
 ```
 
 > `data/main.py` 目前只是個 placeholder（[`main.py`](../../data/main.py)），實際工作都是個別腳本獨立跑。
+>
+> LRT 時刻表的 API 載入與部署輸入見下面「時刻表」一節。
 
 ## 腳本執行細節
 
@@ -84,15 +81,17 @@ MLM 圖片 ──> 手轉 timetable_verified/*.md ──> generate_timetable.py
 
 如果你只改了某一條路線，可以用 `_regenerate_specific.py` 跑單條重生成。
 
-### 時刻表 — `generate_timetable.py`
+### 時刻表
 
-LRT 沒有公開 API。MLM 提供的是每站獨立、HH:MM 一行的時刻表 PDF/JPG。流程：
+LRT 時刻表以 MLM 各站公布的 PDF/JPG 為來源，經人工轉錄與校對後整理成模擬引擎使用的格式。
 
-1. 把官方 PDF/JPG 放進 `data/timetable_images/`。
-2. 人工轉錄到 `data/timetable_verified/*.md`（一行一站、HH:MM 列出當日所有發車）。
-3. `generate_timetable.py` 把 `.md` 解析成 per-station `dict[hour, list[minute]]`，再用 time-proximity matching 把不同站的同一班車對起來，產出每筆 `Trip { lineId, direction, scheduleType, entries[] }`。
+每筆資料為 `Trip { lineId, direction, scheduleType, entries[] }`，其中 `entries[]` 記錄各站的到站／離站分鐘數，依 `mon_thu`、`friday`、`sat_sun` 分成三份輸入檔。Runtime 透過 `GET /api/lrt/<scheduleType>` 載入，由 [`functions/api/lrt/[stype].ts`](../../functions/api/lrt/%5Bstype%5D.ts) 回應。Function 檢查允許的 Origin／Referer，回應標示 `Cache-Control: private`。
 
-三種 scheduleType（Mon-Thu / Friday / Sat-Sun）各跑一次，產出 `trips-mon_thu.json` / `trips-friday.json` / `trips-sat_sun.json`。這三檔放 `src/data/`（不是 `public/data/`）：Vite 會把它們打包成匿名 hash chunk，runtime 按需 lazy import，不會以 `/data/*.json` 的形式公開。
+部署工作會依已設定的資料來源準備三份 `trips-*.json`，放入 git-ignored 的 `functions/_lrt/`，完成 schema 與方向一致性驗證後，由 Wrangler 打包進 Function。部署設定見 [deploy.yml](../../.github/workflows/deploy.yml)。
+
+本機 `npm run dev`：`src/data/trips-<scheduleType>.json` 若有一份自己的（git-ignored）副本，[`plugins/lrt-dev-api.ts`](../../plugins/lrt-dev-api.ts) 直接讀那份；沒有的話 Vite 的 `/api` proxy 轉發到正式站；兩者都沒有 LRT 圖層就是空的。
+
+[`dataSchemas.test.ts`](../../src/dataSchemas.test.ts) 從 `LRT_TRIPS_DIR` 或本機 `src/data/` 讀取時刻表。未設定 `LRT_TRIPS_DIR` 且缺少本機檔案時，相關案例會 skip；明確設定該變數後，缺檔必須失敗。Deploy job 會先準備輸入、設定 `LRT_TRIPS_DIR` 再執行測試。`validate_output.py` 的方向交叉檢查也遵循這個規則。
 
 ### 航班 — `fetch_flights.py`
 
@@ -241,7 +240,7 @@ Runtime 由 [`useServiceStatus.ts`](../../src/hooks/useServiceStatus.ts) 讀進�
 - **修一條路線的幾何錯誤**：改 `bus_reference/`（或 `extract_bus_data.py` 的 override）、跑 `_regenerate_specific.py`，它直接改寫 `public/data/bus-routes.json`；用 `git diff` 檢視後跑 `validate_output.py bus-routes bus-stops`。
 - **加新巴士路線**：DSAT 開新線時，先在 `bus_reference/` 加 reference data、跑全套 extract → osrm → patch、最後在 `routeGroups.ts` 把它分到對的 group。
 - **改服務時段**：`patch_service_hours.py` / `patch_service_hours_by_day.py`，在腳本裡硬編碼新的小時數，重跑。`patch_service_hours_by_day.py` 會把週六或週日的「不設服務」寫成對應的 `serviceHoursStartSat/Sun: null` / `serviceHoursEndSat/Sun: null`。
-- **新增 LRT 班次**：MLM 改點時刻表後，更新 `data/timetable_verified/*.md`，跑 `generate_timetable.py` 三種 scheduleType。
+- **更新 LRT 班次**：依最新官方公告更新三種 scheduleType 的部署輸入，通過 schema 與方向一致性驗證後重新部署。
 
 ## 自動化
 
