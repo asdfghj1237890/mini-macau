@@ -205,8 +205,13 @@ export interface PowerLegendRow {
 export function powerLegendRows(
   t: Translations,
   network?: PowerNetwork | null,
+  // The swatches quote the MAP's colours, which differ per theme for the
+  // moving things and the line cores (powerMotionColors / powerLineColorFor);
+  // the facility colours do not.
+  dark: boolean = true,
 ): PowerLegendRow[] {
   const lines = network?.lines ?? []
+  const motion = powerMotionColors(dark)
   const rows: PowerLegendRow[] = []
   // The chain, in FLOW order — the order the wave on the map lights it. Step ①
   // is three rows (import points, the plant, the incinerator) that share one
@@ -227,19 +232,19 @@ export function powerLegendRows(
     // so it is on the map whenever the layer is, network file or not.
     {
       id: 'distribution', label: t.powerLegendDistribution, glyph: 'line',
-      color: POWER_DISTRIBUTION_COLOR, thin: true, stage: powerStage('distribution'),
+      color: motion.mesh, thin: true, stage: powerStage('distribution'),
     },
   )
   // The style rows: what a mark looks like, not which step it is. The wave
   // first, because it is the thing the numbers above are explaining.
-  rows.push({ id: 'pulse', label: t.powerPulse, glyph: 'pulse', color: POWER_PULSE_COLOR, thin: false, stage: 0 })
+  rows.push({ id: 'pulse', label: t.powerPulse, glyph: 'pulse', color: motion.pulse, thin: false, stage: 0 })
   // One row per voltage the file actually carries — a network with no 220 kV
   // corridors must not advertise a mark that is not on screen.
   for (const kv of POWER_VOLTAGES) {
     if (!lines.some(l => l.voltageKv === kv)) continue
     rows.push({
       id: `line-${kv}`, label: t.powerLineVoltage(kv), glyph: 'line',
-      color: POWER_LINE_COLORS[kv], thin: false, stage: 0,
+      color: powerLineColorFor(kv, dark), thin: false, stage: 0,
     })
   }
   // The hollow plate is a statement about certainty, not about type, so the
@@ -554,6 +559,9 @@ export function buildPowerPulseFeatures(
 // visibly feed backwards.
 export function buildPowerLineFeatures(
   network: PowerNetwork | null | undefined,
+  // The colour is baked per feature, so the theme has to be known here; a
+  // theme change rebuilds the style and re-seeds the source (see MapView).
+  dark: boolean = true,
 ): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = []
   for (const line of network?.lines ?? []) {
@@ -572,7 +580,7 @@ export function buildPowerLineFeatures(
         // intended geometry, so it draws exactly like its voltage.
         direct: !!line.direct,
         lengthM: line.lengthM,
-        color: line.fallback ? POWER_LINE_FALLBACK_COLOR : powerLineColor(kv),
+        color: line.fallback ? POWER_LINE_FALLBACK_COLOR : powerLineColorFor(kv, dark),
         width12: powerLineWidth(kv, 0),
         width16: powerLineWidth(kv, 1),
         // Higher voltage draws over lower where the two share a street.
@@ -581,4 +589,53 @@ export function buildPowerLineFeatures(
     })
   }
   return { type: 'FeatureCollection', features }
+}
+
+// ---------------------------------------------------------------------------
+// THEME. The overlay's own colours on the MAP, per theme (the panels are CSS
+// custom properties — see index.css). The dark set is the constants above:
+// white dots, a warm-white pulse, amber cores brighter than the map. On the
+// light basemap (CARTO Positron) white vanishes and the two lower voltages (yellow-400, amber-200)
+// barely hold a line on white, so the light set turns the moving things into
+// browns darker than their cores and deepens the three core colours to amber
+// tones that read on a pale map. The facility colours (POWER_COLORS) stay: the
+// plates, the blocks and the legend quote them.
+// ---------------------------------------------------------------------------
+export interface PowerMotionColors {
+  flow: string // the dots on the lines
+  pulse: string // the wave
+  mesh: string // the distribution core
+  glow: string // the halo under the lines and the mesh
+}
+
+export function powerMotionColors(dark: boolean): PowerMotionColors {
+  return dark
+    ? {
+      flow: POWER_LINE_FLOW_COLOR,
+      pulse: POWER_PULSE_COLOR,
+      mesh: POWER_DISTRIBUTION_COLOR,
+      glow: POWER_LINE_GLOW_COLOR,
+    }
+    : {
+      flow: '#78350f',
+      pulse: '#451a03',
+      mesh: '#b45309',
+      glow: '#fcd34d',
+    }
+}
+
+// Core colour of a line at this voltage on this theme. Dark = POWER_LINE_COLORS
+// (the substation colours, so a corridor and its endpoints read as one
+// system); light = the same three tiers in amber-700 / yellow-600 / yellow-700,
+// still stepping from deep to pale with the voltage, but all dark enough for
+// white. The unrecognised-voltage fallback follows the 66 kV tier, as always.
+const POWER_LINE_COLORS_LIGHT: Record<PowerVoltage, string> = {
+  220: '#b45309',
+  110: '#ca8a04',
+  66: '#a16207',
+}
+
+export function powerLineColorFor(kv: number | null | undefined, dark: boolean): string {
+  if (dark) return powerLineColor(kv)
+  return isPowerVoltage(kv) ? POWER_LINE_COLORS_LIGHT[kv] : POWER_LINE_COLORS_LIGHT[66]
 }

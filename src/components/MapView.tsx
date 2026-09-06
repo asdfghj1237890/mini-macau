@@ -50,12 +50,8 @@ import {
   WATER_INLET_COLOR,
   WATER_INLET_ICON,
   WATER_PIPE_COLORS,
-  WATER_DISTRIBUTION_COLOR,
   WATER_DISTRIBUTION_MAJOR_CLASSES,
   WATER_PIPE_FALLBACK_COLOR,
-  WATER_PIPE_FLOW_COLOR,
-  WATER_PIPE_GLOW_COLOR,
-  WATER_PULSE_COLOR,
   WATER_MESH_PULSE_BUCKETS,
   WATER_STAGES,
   WATER_TRUNK_PULSE_BUCKETS,
@@ -73,20 +69,17 @@ import {
   waterDistributionBucketCount,
   waterIconName,
   waterLabelField,
+  waterMotionColors,
   type WaterPulseCounts,
   type WaterPulseState,
 } from '../water'
 import {
   POWER_COLORS,
-  POWER_DISTRIBUTION_COLOR,
   POWER_DISTRIBUTION_MAJOR_CLASSES,
   POWER_FEATURE_ID_PROPERTY,
   POWER_INLET_COLOR,
   POWER_INLET_ICON,
-  POWER_LINE_FLOW_COLOR,
-  POWER_LINE_GLOW_COLOR,
   POWER_MESH_PULSE_BUCKETS,
-  POWER_PULSE_COLOR,
   POWER_STAGES,
   POWER_TRUNK_PULSE_BUCKETS,
   POWER_TYPE_ORDER,
@@ -99,8 +92,10 @@ import {
   powerDistributionBucketCount,
   powerIconName,
   powerLabelField,
+  powerMotionColors,
 } from '../power'
 import { advancePulse, initialPulseState, type PulseCounts, type PulseState } from '../flowPulse'
+import { toggleTheme as toggleStoredTheme, useTheme } from '../theme'
 import { useI18n } from '../i18n'
 import { ga } from '../analytics/ga'
 
@@ -1005,7 +1000,7 @@ function phaseLayerIds(prefix: string, count: number): string[] {
 // 640 px — so the spec lives in one function and the two can never disagree.
 // Inserted directly above the distribution core and below the trunk glow.
 function addDistributionFlowLayer(
-  m: maplibregl.Map, visible: boolean, fallbackBeforeId?: string,
+  m: maplibregl.Map, visible: boolean, dark: boolean, fallbackBeforeId?: string,
 ): void {
   const beforeId = m.getLayer(WATER_PIPES_GLOW_LAYER_ID)
     ? WATER_PIPES_GLOW_LAYER_ID
@@ -1013,7 +1008,7 @@ function addDistributionFlowLayer(
   addPhaseLayers(m, {
     prefix: WATER_DISTRIBUTION_FLOW_PREFIX,
     source: WATER_DISTRIBUTION_SOURCE_ID,
-    color: WATER_PIPE_FLOW_COLOR,
+    color: waterMotionColors(dark).flow,
     width: WATER_DISTRIBUTION_FLOW_WIDTH,
     // Faint on purpose: at ~5 000 roads dots this thin still read, and anything
     // brighter turns the mesh into the loudest thing on the map.
@@ -1076,7 +1071,7 @@ function addBucketLayers(
 // Slotted where the mesh dots go — above the mesh core, under the trunk glow —
 // so the wave belongs to the streets and the mains still draw over it.
 function addDistributionPulseLayers(
-  m: maplibregl.Map, visible: boolean, fallbackBeforeId?: string,
+  m: maplibregl.Map, visible: boolean, dark: boolean, fallbackBeforeId?: string,
 ): void {
   const beforeId = m.getLayer(WATER_PIPES_GLOW_LAYER_ID)
     ? WATER_PIPES_GLOW_LAYER_ID
@@ -1085,7 +1080,7 @@ function addDistributionPulseLayers(
     prefix: WATER_PULSE_MESH_PREFIX,
     source: WATER_DISTRIBUTION_SOURCE_ID,
     count: WATER_MESH_PULSE_BUCKETS,
-    color: WATER_PULSE_COLOR,
+    color: waterMotionColors(dark).pulse,
     // A shade wider than the mesh core, so a lit street reads as lit rather
     // than as a slightly different blue.
     width: distributionWidth(2.2, 4),
@@ -1477,7 +1472,7 @@ const POWER_ICON_VARIANTS: readonly { type: PowerFacilityType; approximate: bool
 // spec lives in one function and the two can never disagree. Inserted directly
 // above the distribution core and below the HV glow.
 function addPowerDistributionFlowLayer(
-  m: maplibregl.Map, visible: boolean, fallbackBeforeId?: string,
+  m: maplibregl.Map, visible: boolean, dark: boolean, fallbackBeforeId?: string,
 ): void {
   const beforeId = m.getLayer(POWER_LINES_GLOW_LAYER_ID)
     ? POWER_LINES_GLOW_LAYER_ID
@@ -1485,7 +1480,7 @@ function addPowerDistributionFlowLayer(
   addPhaseLayers(m, {
     prefix: POWER_DISTRIBUTION_FLOW_PREFIX,
     source: POWER_DISTRIBUTION_SOURCE_ID,
-    color: POWER_LINE_FLOW_COLOR,
+    color: powerMotionColors(dark).flow,
     width: POWER_DISTRIBUTION_FLOW_WIDTH,
     opacity: POWER_DISTRIBUTION_FLOW_OPACITY,
     steps: POWER_DISTRIBUTION_FLOW_STEPS,
@@ -1495,7 +1490,7 @@ function addPowerDistributionFlowLayer(
 // The mesh half of the POWER pulse — the twin of addDistributionPulseLayers,
 // bucketed by distance from the nearest substation, in the same slot.
 function addPowerDistributionPulseLayers(
-  m: maplibregl.Map, visible: boolean, fallbackBeforeId?: string,
+  m: maplibregl.Map, visible: boolean, dark: boolean, fallbackBeforeId?: string,
 ): void {
   const beforeId = m.getLayer(POWER_LINES_GLOW_LAYER_ID)
     ? POWER_LINES_GLOW_LAYER_ID
@@ -1504,7 +1499,7 @@ function addPowerDistributionPulseLayers(
     prefix: POWER_PULSE_MESH_PREFIX,
     source: POWER_DISTRIBUTION_SOURCE_ID,
     count: POWER_MESH_PULSE_BUCKETS,
-    color: POWER_PULSE_COLOR,
+    color: powerMotionColors(dark).pulse,
     width: distributionWidth(2.2, 4, POWER_DISTRIBUTION_MAJOR_CLASSES),
     blur: POWER_PULSE_MESH_BLUR,
   }, visible, beforeId)
@@ -1707,7 +1702,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const ferry3DRef = useRef<Ferry3DLayer | null>(null)
   const [is3D, setIs3D] = useState(true)
   const [showBuildings, setShowBuildings] = useState(true)
-  const [isDark, setIsDark] = useState(true)
+  // The theme lives in src/theme.ts (persisted, and shared with the CSS custom
+  // properties and the legend); this is just its React view.
+  const isDark = useTheme() === 'dark'
   const [menuOpen, setMenuOpen] = useState(false)
   const zoomStoreRef = useRef<{ value: number; listeners: Set<() => void> }>({
     value: MACAU_ZOOM,
@@ -2017,6 +2014,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
     const addCustomLayers = (m: maplibregl.Map) => {
       const dark = isDarkRef.current
+      // The overlays' own map colours differ per theme (white dots vanish on the light basemap,
+      // Positron); everything below that moves or glows takes them from here.
+      const waterMotion = waterMotionColors(dark)
+      const powerMotion = powerMotionColors(dark)
       const currentLang = langRef.current
       const cur3D = is3DRef.current
       const curBuildings = showBuildingsRef.current
@@ -2150,7 +2151,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         source: WATER_DISTRIBUTION_SOURCE_ID,
         layout: { 'line-cap': 'round', 'line-join': 'round', visibility: roadVisibility },
         paint: {
-          'line-color': WATER_PIPE_GLOW_COLOR,
+          'line-color': waterMotion.glow,
           'line-opacity': 0.12,
           'line-width': distributionWidth(3, 5),
         },
@@ -2160,7 +2161,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         source: WATER_DISTRIBUTION_SOURCE_ID,
         layout: { 'line-cap': 'round', 'line-join': 'round', visibility: roadVisibility },
         paint: {
-          'line-color': WATER_DISTRIBUTION_COLOR,
+          'line-color': waterMotion.mesh,
           'line-opacity': 0.7,
           'line-width': distributionWidth(0.8, 1.6),
         },
@@ -2169,13 +2170,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       // style there is no `water-pipes-glow` to sit under yet — hence the
       // firstSymbolId fallback, which lands it in the same slot.
       if (isDesktopRef.current) {
-        addDistributionFlowLayer(m, waterFocusRef.current, firstSymbolId)
+        addDistributionFlowLayer(m, waterFocusRef.current, dark, firstSymbolId)
       }
       // The mesh half of the pulse, on every viewport: plain (undashed) lines
       // partitioned by bucket cost one extra copy of the mesh, not the dash
       // textures that keep the dots desktop-only. Seeded from the ref like the
       // source above — empty until the lazy fetch lands.
-      addDistributionPulseLayers(m, waterFocusRef.current, firstSymbolId)
+      addDistributionPulseLayers(m, waterFocusRef.current, dark, firstSymbolId)
       waterPulseCountsRef.current.mesh = waterDistributionBucketCount(waterDistributionRef.current)
 
       // The pipe network, between the reservoir fills and the facility blocks:
@@ -2196,7 +2197,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           'line-sort-key': ['get', 'sortKey'],
         },
         paint: {
-          'line-color': WATER_PIPE_GLOW_COLOR,
+          'line-color': waterMotion.glow,
           'line-opacity': WATER_PIPE_GLOW_OPACITY,
           'line-width': WATER_TRUNK_GLOW_WIDTH,
         },
@@ -2220,7 +2221,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         filter: ['all', ['==', ['get', 'kind'], 'treated'], ['!=', ['get', 'fallback'], true]],
         layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['get', 'sortKey'] },
         paint: {
-          'line-color': WATER_PIPE_COLORS.treated,
+          'line-color': waterMotion.treated,
           'line-width': WATER_TRUNK_WIDTH,
         },
       }, firstSymbolId)
@@ -2233,7 +2234,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         prefix: WATER_PIPES_FLOW_PREFIX,
         source: WATER_PIPES_SOURCE_ID,
         filter: ['==', ['get', 'kind'], 'treated'],
-        color: WATER_PIPE_FLOW_COLOR,
+        color: waterMotion.flow,
         width: WATER_TRUNK_FLOW_WIDTH,
         opacity: WATER_PIPES_FLOW_OPACITY,
         steps: WATER_PIPE_FLOW_STEPS,
@@ -2251,7 +2252,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         prefix: WATER_PULSE_TRUNK_PREFIX,
         source: WATER_PULSE_SOURCE_ID,
         count: WATER_TRUNK_PULSE_BUCKETS,
-        color: WATER_PULSE_COLOR,
+        color: waterMotion.pulse,
         width: WATER_PULSE_TRUNK_WIDTH,
         blur: WATER_PULSE_TRUNK_BLUR,
       }, true, firstSymbolId)
@@ -2331,7 +2332,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         source: POWER_DISTRIBUTION_SOURCE_ID,
         layout: { 'line-cap': 'round', 'line-join': 'round', visibility: powerRoadVisibility },
         paint: {
-          'line-color': POWER_LINE_GLOW_COLOR,
+          'line-color': powerMotion.glow,
           'line-opacity': 0.12,
           'line-width': distributionWidth(3, 5, POWER_DISTRIBUTION_MAJOR_CLASSES),
         },
@@ -2341,7 +2342,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         source: POWER_DISTRIBUTION_SOURCE_ID,
         layout: { 'line-cap': 'round', 'line-join': 'round', visibility: powerRoadVisibility },
         paint: {
-          'line-color': POWER_DISTRIBUTION_COLOR,
+          'line-color': powerMotion.mesh,
           'line-opacity': POWER_DISTRIBUTION_OPACITY,
           'line-width': distributionWidth(0.8, 1.6, POWER_DISTRIBUTION_MAJOR_CLASSES),
         },
@@ -2350,10 +2351,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       // there is no `power-lines-glow` to sit under yet — hence the
       // firstSymbolId fallback, which lands it in the same slot.
       if (isDesktopRef.current) {
-        addPowerDistributionFlowLayer(m, powerFocusRef.current, firstSymbolId)
+        addPowerDistributionFlowLayer(m, powerFocusRef.current, dark, firstSymbolId)
       }
       // The mesh half of the pulse, on every viewport (see the water twin).
-      addPowerDistributionPulseLayers(m, powerFocusRef.current, firstSymbolId)
+      addPowerDistributionPulseLayers(m, powerFocusRef.current, dark, firstSymbolId)
       powerPulseCountsRef.current.mesh = powerDistributionBucketCount(powerDistributionRef.current)
 
       // The HV network: a glow, a solid core whose colour and width come from
@@ -2362,7 +2363,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       // a fallback line says so with grey, not with a dash pattern.
       m.addSource(POWER_LINES_SOURCE_ID, {
         type: 'geojson',
-        data: buildPowerLineFeatures(transitRef.current.powerNetwork),
+        data: buildPowerLineFeatures(transitRef.current.powerNetwork, dark),
       })
       m.addLayer({
         id: POWER_LINES_GLOW_LAYER_ID, type: 'line', source: POWER_LINES_SOURCE_ID,
@@ -2372,7 +2373,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           'line-sort-key': ['get', 'sortKey'],
         },
         paint: {
-          'line-color': POWER_LINE_GLOW_COLOR,
+          'line-color': powerMotion.glow,
           'line-opacity': POWER_LINE_GLOW_OPACITY,
           'line-width': POWER_TRUNK_GLOW_WIDTH,
         },
@@ -2394,7 +2395,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       addPhaseLayers(m, {
         prefix: POWER_LINES_FLOW_PREFIX,
         source: POWER_LINES_SOURCE_ID,
-        color: POWER_LINE_FLOW_COLOR,
+        color: powerMotion.flow,
         width: POWER_TRUNK_FLOW_WIDTH,
         opacity: POWER_LINES_FLOW_OPACITY,
         steps: POWER_LINE_FLOW_STEPS,
@@ -2409,7 +2410,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         prefix: POWER_PULSE_TRUNK_PREFIX,
         source: POWER_PULSE_SOURCE_ID,
         count: POWER_TRUNK_PULSE_BUCKETS,
-        color: POWER_PULSE_COLOR,
+        color: powerMotion.pulse,
         width: POWER_PULSE_TRUNK_WIDTH,
         blur: POWER_PULSE_TRUNK_BLUR,
       }, true, firstSymbolId)
@@ -2756,8 +2757,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           'symbol-sort-key': ['get', 'sortKey'],
         },
         paint: {
-          'text-color': '#dbeafe',
-          'text-halo-color': '#0b0b0c',
+          'text-color': dark ? '#dbeafe' : '#0c4a6e',
+          'text-halo-color': dark ? '#0b0b0c' : '#ffffff',
           'text-halo-width': 1.2,
         },
       })
@@ -2890,8 +2891,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           // The hollow plate already says "inferred position"; a slight fade
           // keeps it from competing with the facilities we actually mapped.
           'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
-          'text-color': '#dbeafe',
-          'text-halo-color': '#0b0b0c',
+          'text-color': dark ? '#dbeafe' : '#0c4a6e',
+          'text-halo-color': dark ? '#0b0b0c' : '#ffffff',
           'text-halo-width': 1.2,
         },
       })
@@ -2976,8 +2977,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         },
         paint: {
           'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
-          'text-color': '#fed7aa',
-          'text-halo-color': '#0b0b0c',
+          'text-color': dark ? '#fed7aa' : '#7c2d12',
+          'text-halo-color': dark ? '#0b0b0c' : '#ffffff',
           'text-halo-width': 1.2,
         },
       })
@@ -3452,7 +3453,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       src?.setData?.(data)
     }
     setData(POWER_BUILDINGS_SOURCE_ID, buildPowerBuildingFeatures(transitData.powerFacilities))
-    setData(POWER_LINES_SOURCE_ID, buildPowerLineFeatures(transitData.powerNetwork))
+    setData(POWER_LINES_SOURCE_ID, buildPowerLineFeatures(transitData.powerNetwork, isDarkRef.current))
     setData(
       POWER_MARKERS_SOURCE_ID,
       buildPowerMarkerFeatures(transitData.powerFacilities, transitData.powerNetwork),
@@ -3520,7 +3521,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const map = mapRef.current
     if (!map || !map.getSource(WATER_DISTRIBUTION_SOURCE_ID)) return
     if (isDesktop) {
-      addDistributionFlowLayer(map, waterFocusRef.current)
+      addDistributionFlowLayer(map, waterFocusRef.current, isDarkRef.current)
       // Freshly added layers have phase 0 opaque; keep the animation's idea of
       // "current" in step with that or it would clear the wrong one next tick.
       waterPhaseRef.current.mesh = 0
@@ -3537,7 +3538,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const map = mapRef.current
     if (!map || !map.getSource(POWER_DISTRIBUTION_SOURCE_ID)) return
     if (isDesktop) {
-      addPowerDistributionFlowLayer(map, powerFocusRef.current)
+      addPowerDistributionFlowLayer(map, powerFocusRef.current, isDarkRef.current)
       powerPhaseRef.current.mesh = 0
     } else {
       for (const id of phaseLayerIds(POWER_DISTRIBUTION_FLOW_PREFIX, POWER_MESH_PHASES)) {
@@ -4024,11 +4025,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   }, [is3D])
 
   const toggleTheme = useCallback(() => {
-    setIsDark(prev => {
-      const next = !prev
-      ga.themeChanged(next ? 'dark' : 'light')
-      return next
-    })
+    ga.themeChanged(toggleStoredTheme())
   }, [])
 
   return (
@@ -4047,9 +4044,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           aria-label="menu"
           aria-expanded={menuOpen}
           className="w-9 h-9 flex items-center justify-center
-                     bg-[#0a0a0b] border border-amber-300/25 text-amber-200
-                     hover:bg-amber-300/10 hover:border-amber-300/50
-                     active:scale-95 transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+                     bg-(--mm-panel-2) border border-(--mm-amber)/25 text-(--mm-amber-1)
+                     hover:bg-(--mm-control-hover) hover:border-(--mm-amber)/50
+                     active:scale-95 transition shadow-[0_8px_24px_var(--mm-shadow)]"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2.2" strokeLinecap="round">
@@ -4062,12 +4059,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         {/* Zoom chip — hidden on phone */}
         <div
           className="h-9 px-2.5 flex items-center gap-1.5 max-sm:hidden
-                     bg-[#0a0a0b] border border-white/10 shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+                     bg-(--mm-panel-2) border border-(--mm-fg)/10 shadow-[0_8px_24px_var(--mm-shadow)]"
           aria-label="zoom level"
         >
-          <span className="mm-mono text-[8px] tracking-[0.2em] text-white/40">ZOOM</span>
+          <span className="mm-mono text-[8px] tracking-[0.2em] text-(--mm-text-muted)">ZOOM</span>
           <ZoomText subscribe={subscribeZoom} getSnapshot={getZoomSnapshot} precision={1}
-                    className="mm-mono mm-tabular text-[11px] text-amber-200" />
+                    className="mm-mono mm-tabular text-[11px] text-(--mm-amber-1)" />
         </div>
       </div>
 
@@ -4087,32 +4084,32 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       <div
         style={{ zoom: 1.2, height: 'calc(100dvh / 1.2)' }}
         className={`fixed top-0 left-0 z-40 w-60
-                    bg-[#0b0b0d] border-r border-amber-300/20
-                    shadow-[8px_0_32px_rgba(0,0,0,0.8)]
+                    bg-(--mm-panel) border-r border-(--mm-amber)/20
+                    shadow-[8px_0_32px_var(--mm-shadow)]
                     transition-transform duration-200 ease-out
                     ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* CRT header with scanlines */}
-        <div className="relative border-b border-amber-300/20 px-3 pt-3 pb-2.5
-                        bg-gradient-to-b from-amber-300/[0.04] to-transparent">
+        <div className="relative border-b border-(--mm-amber)/20 px-3 pt-3 pb-2.5
+                        bg-gradient-to-b from-(--mm-amber)/[0.04] to-transparent">
           <div
             className="absolute inset-0 pointer-events-none opacity-30"
             style={{
               backgroundImage:
-                'repeating-linear-gradient(0deg, transparent 0px, transparent 2px, rgba(252,196,65,0.06) 2px, rgba(252,196,65,0.06) 3px)',
+                'repeating-linear-gradient(0deg, transparent 0px, transparent 2px, color-mix(in srgb, var(--mm-amber) 6%, transparent) 2px, color-mix(in srgb, var(--mm-amber) 6%, transparent) 3px)',
             }}
           />
           <div className="relative flex items-center justify-between mb-2">
-            <span className="mm-mono text-[8px] tracking-[0.3em] text-amber-300/70">SYS.MAP v2</span>
-            <span className="flex items-center gap-1 mm-mono text-[8px] tracking-wider text-emerald-300/80">
-              <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />ONLINE
+            <span className="mm-mono text-[8px] tracking-[0.3em] text-(--mm-text-accent)">SYS.MAP v2</span>
+            <span className="flex items-center gap-1 mm-mono text-[8px] tracking-wider text-(--mm-emerald)/80">
+              <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />ONLINE
             </span>
           </div>
           <div className="relative flex items-baseline gap-2">
-            <div className="mm-han text-[20px] font-black tracking-[0.15em] text-amber-200 leading-none">澳門</div>
-            <div className="mm-mono text-[10px] tracking-[0.3em] text-amber-300/60 leading-none">MACAU</div>
+            <div className="mm-han text-[20px] font-black tracking-[0.15em] text-(--mm-amber-1) leading-none">澳門</div>
+            <div className="mm-mono text-[10px] tracking-[0.3em] text-(--mm-text-accent) leading-none">MACAU</div>
           </div>
-          <div className="relative mm-mono text-[9px] tracking-[0.2em] text-white/40 mt-1">
+          <div className="relative mm-mono text-[9px] tracking-[0.2em] text-(--mm-text-muted) mt-1">
             MINI · MAP · LIVE
           </div>
         </div>
@@ -4121,10 +4118,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         <div className="p-2.5 space-y-3 overflow-y-auto" style={{ height: 'calc(100% - 100px)' }}>
           {/* Map settings */}
           <div>
-            <div className="mm-mono text-[8px] tracking-[0.3em] text-white/35 px-1 pb-1.5 border-b border-white/5 flex items-center gap-1.5">
+            <div className="mm-mono text-[8px] tracking-[0.3em] text-(--mm-text-muted) px-1 pb-1.5 border-b border-(--mm-fg)/5 flex items-center gap-1.5">
               <span
                 className="inline-block w-[8px] h-[8px]"
-                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.35) 0 1px, transparent 1px 3px)' }}
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-fg) 35%, transparent) 0 1px, transparent 1px 3px)' }}
               />
               {t.mapSettings.toUpperCase()}
             </div>
@@ -4173,15 +4170,15 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
           {/* Language — Segmented LCD */}
           <div>
-            <div className="mm-mono text-[8px] tracking-[0.3em] text-white/35 px-1 pb-1.5 border-b border-white/5 flex items-center gap-1.5">
+            <div className="mm-mono text-[8px] tracking-[0.3em] text-(--mm-text-muted) px-1 pb-1.5 border-b border-(--mm-fg)/5 flex items-center gap-1.5">
               <span
                 className="inline-block w-[8px] h-[8px]"
-                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.35) 0 1px, transparent 1px 3px)' }}
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-fg) 35%, transparent) 0 1px, transparent 1px 3px)' }}
               />
               {t.language.toUpperCase()} · LANG
             </div>
             <div className="pt-2">
-              <div className="relative flex items-stretch bg-[#050506] border border-white/10">
+              <div className="relative flex items-stretch bg-(--mm-inset) border border-(--mm-fg)/10">
                 {(['zh', 'pt', 'en'] as const).map((l, i) => {
                   const active = lang === l
                   return (
@@ -4189,15 +4186,15 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                       key={l}
                       onClick={() => setLang(l)}
                       className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2 transition
-                                  ${i > 0 ? 'border-l border-white/10' : ''}
+                                  ${i > 0 ? 'border-l border-(--mm-fg)/10' : ''}
                                   ${active
-                                    ? 'bg-amber-300/10 text-amber-200'
-                                    : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'}`}
+                                    ? 'bg-(--mm-amber)/10 text-(--mm-amber-1)'
+                                    : 'text-(--mm-text-muted) hover:text-(--mm-fg)/70 hover:bg-(--mm-fg)/[0.03]'}`}
                     >
                       <span
                         className={`w-1.5 h-1.5 rounded-full transition
-                                    ${active ? 'bg-amber-300 mm-led-pulse' : 'bg-white/15'}`}
-                        style={active ? { boxShadow: '0 0 6px rgba(252,196,65,0.95)' } : undefined}
+                                    ${active ? 'bg-(--mm-amber) mm-led-pulse' : 'bg-(--mm-fg)/15'}`}
+                        style={active ? { boxShadow: '0 0 6px color-mix(in srgb, var(--mm-amber) 95%, transparent)' } : undefined}
                       />
                       <span className="mm-mono text-[13px] font-bold tracking-[0.15em] leading-none">
                         {l.toUpperCase()}
@@ -4207,20 +4204,20 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 })}
               </div>
               <div className="flex items-center justify-between mt-1.5 px-0.5">
-                <span className="mm-mono text-[9px] tracking-wider text-amber-300/60">
+                <span className="mm-mono text-[9px] tracking-wider text-(--mm-text-accent)">
                   ▸ {lang === 'zh' ? t.langNameZh : lang === 'pt' ? t.langNamePt : t.langNameEn}
                 </span>
-                <span className="mm-mono text-[7px] tracking-[0.2em] text-white/30">LANG.SET</span>
+                <span className="mm-mono text-[7px] tracking-[0.2em] text-(--mm-text-subtle)">LANG.SET</span>
               </div>
             </div>
           </div>
 
           {/* Disclaimer */}
           <div className="pt-2">
-            <div className="bg-[#050506] border border-white/8 px-2.5 py-2">
+            <div className="bg-(--mm-inset) border border-(--mm-fg)/8 px-2.5 py-2">
               <div className="flex items-start gap-1.5">
-                <span className="mm-mono text-[9px] tracking-[0.15em] text-amber-300/60 leading-none pt-[1px] shrink-0">⚠</span>
-                <p className="text-[10px] leading-[1.55] text-white/45">
+                <span className="mm-mono text-[9px] tracking-[0.15em] text-(--mm-text-accent) leading-none pt-[1px] shrink-0">⚠</span>
+                <p className="text-[10px] leading-[1.55] text-(--mm-text-muted)">
                   {t.simDisclaimer}
                 </p>
               </div>
@@ -4231,181 +4228,181 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
               nouns (DSAT / MLM / AviationStack / TurboJET / CotaiJet) that
               stay in Latin script across all three languages. */}
           <div className="pt-2">
-            <div className="bg-[#050506] border border-white/8 px-2.5 py-2">
-              <div className="mm-mono text-[8px] tracking-[0.25em] text-amber-300/60 mb-2 flex items-center gap-1.5">
-                <span className="w-1 h-1 bg-amber-300/70 rounded-full shrink-0" />
+            <div className="bg-(--mm-inset) border border-(--mm-fg)/8 px-2.5 py-2">
+              <div className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-accent) mb-2 flex items-center gap-1.5">
+                <span className="w-1 h-1 bg-(--mm-amber)/70 rounded-full shrink-0" />
                 <span>{t.dataSources}</span>
-                <span className="flex-1 h-px bg-gradient-to-r from-amber-300/20 to-transparent" />
+                <span className="flex-1 h-px bg-gradient-to-r from-(--mm-amber)/20 to-transparent" />
               </div>
               <ul className="space-y-[6px]">
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceBusLabel}</span>
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceBusLabel}</span>
                   <a
                     href="https://www.dsat.gov.mo/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 hover:text-amber-200 transition-colors shrink-0"
+                    className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
                   >DSAT</a>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceLrtLabel}</span>
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceLrtLabel}</span>
                   <a
                     href="https://www.mlm.com.mo/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 hover:text-amber-200 transition-colors shrink-0"
+                    className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
                   >MLM</a>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceFlightLabel}</span>
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceFlightLabel}</span>
                   <a
                     href="https://aviationstack.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 hover:text-amber-200 transition-colors shrink-0"
+                    className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
                   >AviationStack</a>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceFerryLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceFerryLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www2.turbojet.com.hk/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >TurboJET</a>
-                    <span className="text-white/25 mx-[3px]">/</span>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
                       href="https://www.cotaiwaterjet.com/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >CotaiJet</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceRoadWorksLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceRoadWorksLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.dsat.gov.mo/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >DSAT</a>
-                    <span className="text-white/25 mx-[3px]">/</span>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
                       href="https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >data.gov.mo</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceSchoolsLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceSchoolsLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.dsedj.gov.mo/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >DSEDJ</a>
-                    <span className="text-white/25 mx-[3px]">/</span>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
                       href="https://www.openstreetmap.org/copyright"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >OSM</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceToiletsLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceToiletsLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.iam.gov.mo/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >IAM</a>
-                    <span className="text-white/25 mx-[3px]">/</span>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
                       href="https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >data.gov.mo</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceCarParksLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceCarParksLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.dsat.gov.mo/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >DSAT</a>
-                    <span className="text-white/25 mx-[3px]">/</span>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
                       href="https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >data.gov.mo</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceWasteLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceWasteLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.iam.gov.mo/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >IAM</a>
-                    <span className="text-white/25 mx-[3px]">/</span>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
                       href="https://www.dspa.gov.mo/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >DSPA</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourceWaterLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceWaterLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.macaowater.com/about-macao-water/water-supply-facilities"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >Macao Water</a>
-                    <span className="text-white/25 mx-[3px]">/</span>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
                       href="https://www.openstreetmap.org/copyright"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >OSM</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-white/50 leading-tight">{t.dataSourcePowerLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-amber-200/80 shrink-0">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourcePowerLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.cem-macau.com/zh/about-cem/company-profile/operation/"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >CEM</a>
-                    <span className="text-white/25 mx-[3px]">/</span>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
                       href="https://www.openstreetmap.org/copyright"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="hover:text-amber-200 transition-colors"
+                      className="hover:text-(--mm-amber-1) transition-colors"
                     >OSM</a>
                   </span>
                 </li>
@@ -4414,18 +4411,18 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           </div>
 
           {/* Status footer */}
-          <div className="border-t border-white/5 pt-2 mt-3 space-y-0.5">
-            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
+          <div className="border-t border-(--mm-fg)/5 pt-2 mt-3 space-y-0.5">
+            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-(--mm-text-muted)">
               <span className="cursor-default select-none">SRC</span>
-              <span className="text-white/55">GTFS · SIM</span>
+              <span className="text-(--mm-text-secondary)">GTFS · SIM</span>
             </div>
-            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
+            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-(--mm-text-muted)">
               <span>ZOOM</span>
               <ZoomText subscribe={subscribeZoom} getSnapshot={getZoomSnapshot} precision={2}
-                        className="mm-tabular text-amber-200/80" />
+                        className="mm-tabular text-(--mm-amber-1)/80" />
             </div>
-            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-white/35">
-              <span>MODE</span><span className="text-emerald-300/70">{is3D ? '3D.LIVE' : '2D.LIVE'}</span>
+            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-(--mm-text-muted)">
+              <span>MODE</span><span className="text-(--mm-emerald)/70">{is3D ? '3D.LIVE' : '2D.LIVE'}</span>
             </div>
           </div>
         </div>
@@ -4464,19 +4461,19 @@ function DrawerRow({ code, label, active, onClick, disabled }: DrawerRowProps) {
       disabled={disabled}
       className={`w-full flex items-center gap-2.5 px-2 py-1.5 text-left transition border
                   ${disabled ? 'opacity-30 cursor-not-allowed border-transparent' :
-                    active ? 'bg-amber-300/[0.06] border-amber-300/15 hover:border-amber-300/30'
-                           : 'border-transparent hover:bg-white/[0.04] hover:border-white/10'}`}
+                    active ? 'bg-(--mm-amber)/[0.06] border-(--mm-amber)/15 hover:border-(--mm-amber)/30'
+                           : 'border-transparent hover:bg-(--mm-fg)/[0.04] hover:border-(--mm-fg)/10'}`}
     >
       <span className={`mm-mono text-[9px] tracking-wider leading-none w-8 h-6 flex items-center justify-center shrink-0 border
                         ${active
-                          ? 'border-amber-300/50 bg-amber-300/10 text-amber-200'
-                          : 'border-white/15 bg-white/[0.02] text-white/55'}`}
-            style={active ? { boxShadow: 'inset 0 0 0 1px rgba(253,224,71,0.15)' } : undefined}>
+                          ? 'border-(--mm-amber)/50 bg-(--mm-amber)/10 text-(--mm-amber-1)'
+                          : 'border-(--mm-fg)/15 bg-(--mm-fg)/[0.02] text-(--mm-text-secondary)'}`}
+            style={active ? { boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--mm-amber-2) 15%, transparent)' } : undefined}>
         {code}
       </span>
-      <span className={`text-[12px] ${active ? 'text-amber-100' : 'text-white/80'}`}>{label}</span>
+      <span className={`text-[12px] ${active ? 'text-(--mm-amber-1)' : 'text-(--mm-fg)/80'}`}>{label}</span>
       <div className="flex-1" />
-      {active && !disabled && <span className="w-1 h-1 rounded-full bg-amber-300 mm-led-pulse shrink-0" />}
+      {active && !disabled && <span className="w-1 h-1 rounded-full bg-(--mm-amber) mm-led-pulse shrink-0" />}
     </button>
   )
 }

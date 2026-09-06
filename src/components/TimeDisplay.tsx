@@ -65,16 +65,16 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
         title={t.clickToSetTime}
         aria-label={t.clickToSetTime}
         className="mm-ui-scale sm:hidden absolute top-2 left-[60px] z-30
-                   h-9 flex items-stretch bg-[#0a0a0b]
-                   border border-amber-300/25 overflow-hidden
-                   hover:border-amber-300/50 active:bg-amber-300/5 transition
-                   shadow-[0_8px_24px_rgba(0,0,0,0.6)]"
+                   h-9 flex items-stretch bg-(--mm-panel-2)
+                   border border-(--mm-amber)/25 overflow-hidden
+                   hover:border-(--mm-amber)/50 active:bg-(--mm-amber)/5 transition
+                   shadow-[0_8px_24px_var(--mm-shadow)]"
       >
-        <div className="flex flex-col justify-center px-2 bg-amber-300/[0.05] border-r border-amber-300/15">
-          <span className="mm-mono mm-tabular text-[7px] leading-none tracking-[0.2em] text-amber-300/60">
+        <div className="flex flex-col justify-center px-2 bg-(--mm-amber)/[0.05] border-r border-(--mm-amber)/15">
+          <span className="mm-mono mm-tabular text-[7px] leading-none tracking-[0.2em] text-(--mm-text-accent)">
             {pad2(mo)}·{pad2(d)}
           </span>
-          <span className="mm-mono text-[7px] leading-none tracking-[0.2em] text-white/40 mt-[2px]">
+          <span className="mm-mono text-[7px] leading-none tracking-[0.2em] text-(--mm-text-muted) mt-[2px]">
             {lang === 'zh'
               ? WEEKDAY_ZH[parts.weekday]
               : lang === 'pt'
@@ -82,14 +82,14 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
                 : WEEKDAY_EN[parts.weekday]}
           </span>
         </div>
-        <div className="flex items-center gap-[2px] px-2 bg-gradient-to-b from-[#131314] to-[#0a0a0b]">
-          <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-200">{h}</span>
-          <span className="mm-mono font-bold text-[14px] leading-none text-amber-300/70 mm-colon-blink relative -top-[1px]">:</span>
-          <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-200">{m}</span>
-          <span className="mm-mono mm-tabular text-[9px] leading-none text-amber-300/50 ml-0.5">:{s}</span>
+        <div className="flex items-center gap-[2px] px-2 bg-gradient-to-b from-(--mm-panel-3) to-(--mm-panel-2)">
+          <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-(--mm-amber-1)">{h}</span>
+          <span className="mm-mono font-bold text-[14px] leading-none text-(--mm-text-accent) mm-colon-blink relative -top-[1px]">:</span>
+          <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-(--mm-amber-1)">{m}</span>
+          <span className="mm-mono mm-tabular text-[9px] leading-none text-(--mm-text-accent) ml-0.5">:{s}</span>
         </div>
-        <div className="flex items-center px-1.5 bg-white/[0.02] border-l border-white/8">
-          <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
+        <div className="flex items-center px-1.5 bg-(--mm-fg)/[0.02] border-l border-(--mm-fg)/8">
+          <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-(--mm-emerald-2) mm-led-pulse' : 'bg-(--mm-fg)/25'}`} />
         </div>
       </button>
 
@@ -100,22 +100,22 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
         title={t.clickToSetTime}
         aria-label={t.clickToSetTime}
         className="mm-ui-scale hidden sm:block absolute top-3 left-1/2 -translate-x-1/2 z-30
-                   text-left bg-[#0a0a0b]/95 backdrop-blur-md
-                   border border-amber-300/25 rounded-sm overflow-hidden
-                   shadow-[0_8px_24px_rgba(0,0,0,0.6)]
-                   hover:border-amber-300/45 transition-colors"
+                   text-left bg-(--mm-panel-2)/95 backdrop-blur-md
+                   border border-(--mm-amber)/25 rounded-sm overflow-hidden
+                   shadow-[0_8px_24px_var(--mm-shadow)]
+                   hover:border-(--mm-amber)/45 transition-colors"
       >
         {/* Top meta strip */}
-        <div className="flex items-center justify-between px-3 py-1 bg-amber-300/[0.06] border-b border-amber-300/15 gap-3">
-          <span className="mm-mono mm-tabular text-[9px] tracking-[0.15em] text-amber-200/80">
+        <div className="flex items-center justify-between px-3 py-1 bg-(--mm-amber)/[0.06] border-b border-(--mm-amber)/15 gap-3">
+          <span className="mm-mono mm-tabular text-[9px] tracking-[0.15em] text-(--mm-amber-1)/80">
             {yr}·{pad2(mo)}·{pad2(d)} · {dowShort}
           </span>
           <span className="flex items-center gap-2 mm-mono text-[9px] tracking-[0.2em]">
             {vehicleCount !== undefined && vehicleCount > 0 && (
-              <span className="mm-tabular text-white/45">{vehicleCount}{vehUnit}</span>
+              <span className="mm-tabular text-(--mm-text-muted)">{vehicleCount}{vehUnit}</span>
             )}
-            <span className={`flex items-center gap-1 ${isLive ? 'text-emerald-300/90' : 'text-white/30'}`}>
-              <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
+            <span className={`flex items-center gap-1 ${isLive ? 'text-(--mm-emerald)/90' : 'text-(--mm-text-subtle)'}`}>
+              <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-(--mm-emerald-2) mm-led-pulse' : 'bg-(--mm-fg)/25'}`} />
               {isLive ? t.live : t.simShort}
             </span>
           </span>
@@ -123,31 +123,31 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
         {/* Split-flap */}
         <div className="flex items-stretch">
           <div className="flex items-center justify-center px-2.5 py-1.5
-                          bg-gradient-to-b from-[#131314] to-[#0a0a0b] border-r border-black/40">
-            <span className="mm-mono mm-tabular font-bold text-[40px] leading-none text-amber-200"
+                          bg-gradient-to-b from-(--mm-panel-3) to-(--mm-panel-2) border-r border-(--mm-seam)">
+            <span className="mm-mono mm-tabular font-bold text-[40px] leading-none text-(--mm-amber-1)"
                   style={{ letterSpacing: '0.02em' }}>{h}</span>
           </div>
-          <div className="flex items-center justify-center px-0.5 bg-[#0a0a0b]">
-            <span className="mm-mono font-bold text-[32px] leading-none text-amber-300/70 mm-colon-blink relative -top-[2px]">:</span>
+          <div className="flex items-center justify-center px-0.5 bg-(--mm-panel-2)">
+            <span className="mm-mono font-bold text-[32px] leading-none text-(--mm-text-accent) mm-colon-blink relative -top-[2px]">:</span>
           </div>
           <div className="flex items-center justify-center px-2.5 py-1.5
-                          bg-gradient-to-b from-[#131314] to-[#0a0a0b] border-l border-black/40 border-r border-white/5">
-            <span className="mm-mono mm-tabular font-bold text-[40px] leading-none text-amber-200"
+                          bg-gradient-to-b from-(--mm-panel-3) to-(--mm-panel-2) border-l border-(--mm-seam) border-r border-(--mm-fg)/5">
+            <span className="mm-mono mm-tabular font-bold text-[40px] leading-none text-(--mm-amber-1)"
                   style={{ letterSpacing: '0.02em' }}>{m}</span>
           </div>
-          <div className="flex-1 flex flex-col justify-between items-start py-1.5 px-2 bg-[#08080a] min-w-[42px]">
-            <span className="mm-mono text-[8px] tracking-[0.2em] text-white/35">{t.sec}</span>
+          <div className="flex-1 flex flex-col justify-between items-start py-1.5 px-2 bg-(--mm-panel-2) min-w-[42px]">
+            <span className="mm-mono text-[8px] tracking-[0.2em] text-(--mm-text-muted)">{t.sec}</span>
             <div className="flex items-baseline gap-1">
-              <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-amber-300/80">{s}</span>
+              <span className="mm-mono mm-tabular font-bold text-[16px] leading-none text-(--mm-amber)/80">{s}</span>
               {clock.speed !== 1 && (
-                <span className="mm-mono mm-tabular font-bold text-[13px] leading-none text-emerald-400/80">{clock.speed}×</span>
+                <span className="mm-mono mm-tabular font-bold text-[13px] leading-none text-(--mm-emerald-2)/80">{clock.speed}×</span>
               )}
             </div>
           </div>
         </div>
         {/* Bottom schedule strip */}
-        <div className="flex items-center justify-center gap-2 px-3 py-[5px] bg-white/[0.02] border-t border-white/8">
-          <span className="mm-mono text-[9px] tracking-[0.18em] text-white/55 uppercase">
+        <div className="flex items-center justify-center gap-2 px-3 py-[5px] bg-(--mm-fg)/[0.02] border-t border-(--mm-fg)/8">
+          <span className="mm-mono text-[9px] tracking-[0.18em] text-(--mm-text-secondary) uppercase">
             {schedLabel} · {sched} {t.timetable}
           </span>
         </div>

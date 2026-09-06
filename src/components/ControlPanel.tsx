@@ -112,7 +112,7 @@ function DensityBand({
 }) {
   return (
     <div
-      className="relative rounded-sm overflow-hidden bg-[#08080a] border border-white/8"
+      className="relative rounded-sm overflow-hidden bg-(--mm-panel-2) border border-(--mm-fg)/8"
       style={{ height: heightPx }}
     >
       {Array.from({ length: bins }).map((_, i) => {
@@ -137,32 +137,32 @@ function DensityBand({
       {showPeaks && (
         <>
           <div
-            className="absolute top-[2px] mm-mono text-[7px] text-amber-200/90 tracking-widest pointer-events-none"
+            className="absolute top-[2px] mm-mono text-[7px] text-(--mm-amber-1)/90 tracking-widest pointer-events-none"
             style={{ left: `${(7.5 / 24) * 100}%`, transform: 'translateX(-50%)' }}
           >
             {amPeakLabel}
           </div>
           <div
-            className="absolute top-[2px] mm-mono text-[7px] text-amber-200/90 tracking-widest pointer-events-none"
+            className="absolute top-[2px] mm-mono text-[7px] text-(--mm-amber-1)/90 tracking-widest pointer-events-none"
             style={{ left: `${(18 / 24) * 100}%`, transform: 'translateX(-50%)' }}
           >
             {pmPeakLabel}
           </div>
         </>
       )}
-      <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50" style={{ left: `${firstFrac * 100}%` }} />
-      <div className="absolute top-0 bottom-0 w-px bg-emerald-400/50" style={{ left: `${lastFrac * 100}%` }} />
+      <div className="absolute top-0 bottom-0 w-px bg-(--mm-emerald-2)/50" style={{ left: `${firstFrac * 100}%` }} />
+      <div className="absolute top-0 bottom-0 w-px bg-(--mm-emerald-2)/50" style={{ left: `${lastFrac * 100}%` }} />
       <div
-        className="absolute top-[-3px] bottom-[-3px] w-[2px] bg-amber-300 shadow-[0_0_10px_rgba(252,196,65,0.9)]"
+        className="absolute top-[-3px] bottom-[-3px] w-[2px] bg-(--mm-amber) shadow-[0_0_10px_color-mix(in_srgb,_var(--mm-amber)_90%,_transparent)]"
         style={{ left: `${nowFrac * 100}%`, transform: 'translateX(-1px)' }}
       />
       <div
-        className={`absolute rounded-full bg-amber-300 border-2 border-[#08080a] shadow-[0_0_12px_rgba(252,196,65,0.9)] ${small ? 'w-2 h-2' : 'w-3 h-3'}`}
+        className={`absolute rounded-full bg-(--mm-amber) border-2 border-(--mm-panel-2) shadow-[0_0_12px_color-mix(in_srgb,_var(--mm-amber)_90%,_transparent)] ${small ? 'w-2 h-2' : 'w-3 h-3'}`}
         style={{ left: `${nowFrac * 100}%`, top: '50%', transform: 'translate(-50%,-50%)' }}
       />
       {hoverFrac != null && (
         <div
-          className="absolute top-0 bottom-0 w-px bg-white/40 pointer-events-none"
+          className="absolute top-0 bottom-0 w-px bg-(--mm-fg)/40 pointer-events-none"
           style={{ left: `${hoverFrac * 100}%` }}
         />
       )}
@@ -255,8 +255,8 @@ export function ControlPanel({ clock }: Props) {
     return (
       <div className="absolute bottom-14 left-3 right-3 z-30 mm-fade
                       pb-[max(0px,env(safe-area-inset-bottom))]">
-        <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
-                        shadow-2xl shadow-black/60 overflow-visible">
+        <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-border) rounded-sm
+                        shadow-2xl shadow-(color:--mm-shadow) overflow-visible">
           {/* Scrubber */}
           <div
             ref={scrubRef}
@@ -274,25 +274,25 @@ export function ControlPanel({ clock }: Props) {
             <DensityBand bins={48} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} amPeakLabel={t.amPeak} pmPeakLabel={t.pmPeak} />
           </div>
           {/* Bottom row */}
-          <div className="flex items-stretch gap-0 px-1 pb-1 pt-0.5 border-t border-white/8">
+          <div className="flex items-stretch gap-0 px-1 pb-1 pt-0.5 border-t border-(--mm-fg)/8">
             <button
               type="button"
               onClick={clock.togglePause}
               aria-label={isPaused ? t.play : t.pause}
-              className="w-11 h-11 flex items-center justify-center text-amber-200
-                         active:bg-white/10 rounded-sm shrink-0"
+              className="w-11 h-11 flex items-center justify-center text-(--mm-amber-1)
+                         active:bg-(--mm-fg)/10 rounded-sm shrink-0"
             >
               {isPaused ? <PlayIcon size={14} /> : <PauseIcon size={14} />}
             </button>
-            <div className="w-px bg-white/8 my-1.5" />
+            <div className="w-px bg-(--mm-fg)/8 my-1.5" />
             <div className="relative">
               <button
                 type="button"
                 onClick={() => setSpeedMenuOpen(o => !o)}
                 aria-haspopup="menu"
                 aria-expanded={speedMenuOpen}
-                  className="h-11 px-3 flex items-center gap-1 text-amber-200
-                           active:bg-white/10 rounded-sm"
+                  className="h-11 px-3 flex items-center gap-1 text-(--mm-amber-1)
+                           active:bg-(--mm-fg)/10 rounded-sm"
               >
                 <span className="mm-mono mm-tabular text-[13px] font-bold">{speed}×</span>
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -303,8 +303,8 @@ export function ControlPanel({ clock }: Props) {
               {speedMenuOpen && (
                 <div
                   role="menu"
-                  className="absolute bottom-full left-0 mb-1 z-50 bg-[#0b0b0c]
-                             border border-white/15 shadow-2xl flex flex-col min-w-[64px]
+                  className="absolute bottom-full left-0 mb-1 z-50 bg-(--mm-panel)
+                             border border-(--mm-fg)/15 shadow-2xl shadow-(color:--mm-shadow) flex flex-col min-w-[64px]
                              overflow-hidden"
                 >
                   {MOBILE_SPEEDS.map(s => (
@@ -315,10 +315,10 @@ export function ControlPanel({ clock }: Props) {
                       aria-checked={s === speed}
                               onClick={() => { clock.setSpeed(s); setSpeedMenuOpen(false) }}
                       className={`h-10 px-3 text-left mm-mono mm-tabular text-[13px]
-                                  active:bg-white/10
+                                  active:bg-(--mm-fg)/10
                                   ${s === speed
-                                    ? 'bg-amber-300/15 text-amber-200'
-                                    : 'text-white/70'}`}
+                                    ? 'bg-(--mm-amber)/15 text-(--mm-amber-1)'
+                                    : 'text-(--mm-fg)/70'}`}
                     >
                       {s}×
                     </button>
@@ -326,20 +326,20 @@ export function ControlPanel({ clock }: Props) {
                 </div>
               )}
             </div>
-            <div className="w-px bg-white/8 my-1.5" />
+            <div className="w-px bg-(--mm-fg)/8 my-1.5" />
             <button
               type="button"
               onClick={clock.syncToNow}
               title={t.resetNorth}
-              className="h-11 px-3 flex items-center gap-1.5 text-white/60
-                         active:bg-white/10 active:text-amber-200 rounded-sm"
+              className="h-11 px-3 flex items-center gap-1.5 text-(--mm-text-secondary)
+                         active:bg-(--mm-fg)/10 active:text-(--mm-amber-1) rounded-sm"
             >
               <ClockIcon size={12} />
               <span className="mm-mono text-[10px] tracking-wider">{t.nowShort}</span>
             </button>
             <div className="flex-1" />
             {hoverLabel && (
-              <div className="h-11 pr-3 flex items-center gap-1.5 text-amber-200 shrink-0">
+              <div className="h-11 pr-3 flex items-center gap-1.5 text-(--mm-amber-1) shrink-0">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
                   <polyline points="6 9 12 15 18 9" />
@@ -360,23 +360,23 @@ export function ControlPanel({ clock }: Props) {
     return (
       <div className="mm-ui-scale absolute bottom-8 left-4 right-4 z-10 mx-auto mm-fade
                       landscape:bottom-6" style={{ maxWidth: 480 }}>
-        <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
-                        shadow-2xl overflow-hidden flex items-center gap-0 px-1 py-1">
+        <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-border) rounded-sm
+                        shadow-2xl shadow-(color:--mm-shadow) overflow-hidden flex items-center gap-0 px-1 py-1">
           <button
             type="button"
             onClick={clock.togglePause}
             aria-label={isPaused ? t.play : t.pause}
-            className="w-7 h-7 flex items-center justify-center text-amber-200
-                       hover:bg-white/5 rounded-sm shrink-0"
+            className="w-7 h-7 flex items-center justify-center text-(--mm-amber-1)
+                       hover:bg-(--mm-fg)/5 rounded-sm shrink-0"
           >
             {isPaused ? <PlayIcon size={11} /> : <PauseIcon size={11} />}
           </button>
-          <span className="mm-mono mm-tabular text-[9px] px-1.5 h-6 rounded-sm text-amber-200
-                           bg-amber-300/15 shrink-0 flex items-center"
-                style={{ boxShadow: 'inset 0 0 0 1px rgba(253,224,71,0.3)' }}>
+          <span className="mm-mono mm-tabular text-[9px] px-1.5 h-6 rounded-sm text-(--mm-amber-1)
+                           bg-(--mm-amber)/15 shrink-0 flex items-center"
+                style={{ boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--mm-amber-2) 30%, transparent)' }}>
             {speed}×
           </span>
-          <div className="w-px h-4 bg-white/10 mx-1.5 shrink-0" />
+          <div className="w-px h-4 bg-(--mm-fg)/10 mx-1.5 shrink-0" />
           <div
             ref={scrubRef}
             className="flex-1 px-0.5 select-none cursor-pointer"
@@ -386,8 +386,8 @@ export function ControlPanel({ clock }: Props) {
           >
             <DensityBand bins={48} heightPx={14} showPeaks={false} nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} small amPeakLabel={t.amPeak} pmPeakLabel={t.pmPeak} />
           </div>
-          <div className={`mm-mono text-[10px] mm-tabular px-2 flex items-center gap-1 shrink-0 ${isLive ? 'text-amber-200/90' : 'text-white/45'}`}>
-            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
+          <div className={`mm-mono text-[10px] mm-tabular px-2 flex items-center gap-1 shrink-0 ${isLive ? 'text-(--mm-amber-1)/90' : 'text-(--mm-text-muted)'}`}>
+            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-(--mm-emerald-2) mm-led-pulse' : 'bg-(--mm-fg)/25'}`} />
             <span>{hoverLabel ?? nowLabel}</span>
           </div>
           <button
@@ -395,8 +395,8 @@ export function ControlPanel({ clock }: Props) {
             onClick={() => setExpanded(true)}
             title={t.expand}
             aria-label={t.expand}
-            className="w-7 h-7 flex items-center justify-center text-white/40
-                       hover:text-amber-200 hover:bg-white/5 rounded-sm shrink-0"
+            className="w-7 h-7 flex items-center justify-center text-(--mm-text-muted)
+                       hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 rounded-sm shrink-0"
           >
             <ExpandIcon />
           </button>
@@ -411,20 +411,20 @@ export function ControlPanel({ clock }: Props) {
   return (
     <div className="mm-ui-scale absolute bottom-8 left-4 right-4 z-10 mx-auto mm-fade
                     landscape:bottom-6" style={{ maxWidth: 720 }}>
-      <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
-                      shadow-2xl overflow-hidden">
+      <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-border) rounded-sm
+                      shadow-2xl shadow-(color:--mm-shadow) overflow-hidden">
         {/* Top row */}
-        <div className="flex items-center gap-0 px-1 py-1 border-b border-white/8">
+        <div className="flex items-center gap-0 px-1 py-1 border-b border-(--mm-fg)/8">
           <button
             type="button"
             onClick={clock.togglePause}
             aria-label={isPaused ? t.play : t.pause}
-            className="w-7 h-7 flex items-center justify-center text-amber-200
-                       hover:bg-white/5 rounded-sm"
+            className="w-7 h-7 flex items-center justify-center text-(--mm-amber-1)
+                       hover:bg-(--mm-fg)/5 rounded-sm"
           >
             {isPaused ? <PlayIcon size={11} /> : <PauseIcon size={11} />}
           </button>
-          <div className="w-px h-4 bg-white/10 mx-1" />
+          <div className="w-px h-4 bg-(--mm-fg)/10 mx-1" />
           {SPEEDS.map(s => {
             const active = s === speed
             return (
@@ -435,27 +435,27 @@ export function ControlPanel({ clock }: Props) {
                 aria-pressed={active}
                   className={`mm-mono mm-tabular text-[10px] px-1.5 h-6 rounded-sm transition
                            ${active
-                             ? 'bg-amber-300/15 text-amber-200'
-                             : 'text-white/40 hover:text-white/80'}`}
-                style={active ? { boxShadow: 'inset 0 0 0 1px rgba(253,224,71,0.3)' } : undefined}
+                             ? 'bg-(--mm-amber)/15 text-(--mm-amber-1)'
+                             : 'text-(--mm-text-muted) hover:text-(--mm-fg)/80'}`}
+                style={active ? { boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--mm-amber-2) 30%, transparent)' } : undefined}
               >
                 {s}×
               </button>
             )
           })}
-          <div className="w-px h-4 bg-white/10 mx-1" />
+          <div className="w-px h-4 bg-(--mm-fg)/10 mx-1" />
           <button
             type="button"
             onClick={clock.syncToNow}
             title={t.resetNorth}
-            className="h-6 px-2 flex items-center gap-1 text-white/55 hover:text-white rounded-sm"
+            className="h-6 px-2 flex items-center gap-1 text-(--mm-text-secondary) hover:text-(--mm-fg) rounded-sm"
           >
             <ClockIcon size={10} />
             <span className="mm-mono text-[9px] tracking-wider">{t.nowShort}</span>
           </button>
           <div className="flex-1" />
-          <div className={`mm-mono mm-tabular text-[9px] pr-2 flex items-center gap-1.5 ${isLive ? 'text-amber-200/80' : 'text-white/40'}`}>
-            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
+          <div className={`mm-mono mm-tabular text-[9px] pr-2 flex items-center gap-1.5 ${isLive ? 'text-(--mm-amber-1)/80' : 'text-(--mm-text-muted)'}`}>
+            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-(--mm-emerald-2) mm-led-pulse' : 'bg-(--mm-fg)/25'}`} />
             <span>{hoverLabel ?? (isLive ? `${nowLabel} · ${t.nowShort}` : `${nowLabel} · ${t.simShort}`)}</span>
           </div>
           <button
@@ -463,8 +463,8 @@ export function ControlPanel({ clock }: Props) {
             onClick={() => setExpanded(false)}
             title={t.collapse}
             aria-label={t.collapse}
-            className="w-7 h-7 flex items-center justify-center text-white/40
-                       hover:text-amber-200 hover:bg-white/5 rounded-sm"
+            className="w-7 h-7 flex items-center justify-center text-(--mm-text-muted)
+                       hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 rounded-sm"
           >
             <CollapseIcon />
           </button>
@@ -480,7 +480,7 @@ export function ControlPanel({ clock }: Props) {
             onClick={handleBandClick}
           >
             {/* hour ticks */}
-            <div className="relative h-3 mb-1">
+            <div className="relative h-6 mb-1">
               {Array.from({ length: 25 }).map((_, h) => {
                 const major = h % 6 === 0
                 return (
@@ -489,9 +489,9 @@ export function ControlPanel({ clock }: Props) {
                     className="absolute top-0 flex flex-col items-center"
                     style={{ left: `${(h / 24) * 100}%`, transform: 'translateX(-50%)' }}
                   >
-                    <div className={`${major ? 'h-3 bg-white/30' : 'h-1.5 bg-white/12'} w-px`} />
+                    <div className={`${major ? 'h-3 bg-(--mm-fg)/30' : 'h-1.5 bg-(--mm-fg)/12'} w-px`} />
                     {major && h < 24 && (
-                      <div className="mm-mono mm-tabular text-[8px] text-white/35 mt-0.5">{pad2(h)}</div>
+                      <div className="mm-mono mm-tabular text-[8px] text-(--mm-text-muted) mt-0.5">{pad2(h)}</div>
                     )}
                   </div>
                 )
@@ -500,13 +500,13 @@ export function ControlPanel({ clock }: Props) {
             <DensityBand bins={96} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} amPeakLabel={t.amPeak} pmPeakLabel={t.pmPeak} />
             <div className="relative h-4 mt-0.5">
               <div
-                className="absolute mm-mono text-[9px] text-emerald-300/70 tracking-widest whitespace-nowrap"
+                className="absolute mm-mono text-[9px] text-(--mm-emerald)/70 tracking-widest whitespace-nowrap"
                 style={{ left: `${sched.firstFrac * 100}%`, transform: 'translateX(-50%)' }}
               >
                 {t.firstBusLabel} {sched.first}
               </div>
               <div
-                className="absolute mm-mono text-[9px] text-emerald-300/70 tracking-widest whitespace-nowrap"
+                className="absolute mm-mono text-[9px] text-(--mm-emerald)/70 tracking-widest whitespace-nowrap"
                 style={{ left: `${sched.lastFrac * 100}%`, transform: 'translateX(-100%)' }}
               >
                 {t.lastBusLabel} {sched.last}

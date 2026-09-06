@@ -317,30 +317,30 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
                     max-sm:top-auto max-sm:bottom-[calc(env(safe-area-inset-bottom,0px)+168px)] max-sm:left-2 max-sm:right-2 max-sm:w-auto
                     landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]"
          style={{ zoom: 1.2 }}>
-      <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
-                      shadow-2xl shadow-black/60 overflow-hidden mm-fade">
+      <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-fg)/10 rounded-sm
+                      shadow-2xl shadow-(color:--mm-shadow) overflow-hidden mm-fade">
         {/* Header signboard */}
-        <div className="flex items-stretch border-b border-amber-300/20">
-          <div className="px-3 py-2 flex items-center gap-2 border-r border-white/10"
+        <div className="flex items-stretch border-b border-(--mm-amber)/20">
+          <div className="px-3 py-2 flex items-center gap-2 border-r border-(--mm-fg)/10"
                style={{ backgroundColor: color + '22' }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-white/50">LINE</div>
-              <div className={`mm-han font-bold text-white leading-tight ${lang === 'zh' ? 'text-[16px]' : 'text-[14px]'}`}>{lineLabel}</div>
+              <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-secondary)">LINE</div>
+              <div className={`mm-han font-bold text-(--mm-fg) leading-tight ${lang === 'zh' ? 'text-[16px]' : 'text-[14px]'}`}>{lineLabel}</div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-amber-300/70 flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-300 mm-led-pulse" />
+            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-accent) flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-(--mm-amber) mm-led-pulse" />
               {t.towards.toUpperCase()} · BOUND FOR
             </div>
-            <div className={`mm-han font-bold text-amber-100 truncate ${lang === 'zh' ? 'text-lg' : 'text-[15px]'}`}>
+            <div className={`mm-han font-bold text-(--mm-amber-1) truncate ${lang === 'zh' ? 'text-lg' : 'text-[15px]'}`}>
               {destName}
             </div>
           </div>
           <button
             onClick={onClose}
-            className="px-3 text-white/40 hover:text-white hover:bg-white/5 border-l border-white/10
+            className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
                        mm-mono text-[16px] transition-colors"
             aria-label="Close"
           >
@@ -349,19 +349,19 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
-          <div className="px-3 py-1.5 border-r border-white/8">
-            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">SPEED</div>
+        <div className="grid grid-cols-2 border-b border-(--mm-fg)/8 bg-(--mm-fg)/[0.02]">
+          <div className="px-3 py-1.5 border-r border-(--mm-fg)/8">
+            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted)">SPEED</div>
             <div className="flex items-baseline gap-1">
-              <span className="mm-mono mm-tabular text-[16px] font-bold text-white/90 leading-tight">{speed}</span>
-              <span className="mm-mono text-[11px] text-white/40">km/h</span>
+              <span className="mm-mono mm-tabular text-[16px] font-bold text-(--mm-fg)/90 leading-tight">{speed}</span>
+              <span className="mm-mono text-[11px] text-(--mm-text-muted)">km/h</span>
             </div>
           </div>
           <div className="px-3 py-1.5">
-            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">NEXT</div>
+            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted)">NEXT</div>
             <div className="flex items-baseline gap-1">
-              <span className="mm-mono mm-tabular text-[17px] font-bold text-amber-200 leading-tight">{nextETA}</span>
-              <span className="mm-mono text-[11px] text-white/40">{nextSub}</span>
+              <span className="mm-mono mm-tabular text-[17px] font-bold text-(--mm-amber-1) leading-tight">{nextETA}</span>
+              <span className="mm-mono text-[11px] text-(--mm-text-muted)">{nextSub}</span>
             </div>
           </div>
         </div>
@@ -370,22 +370,22 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
         {rows.length > 0 && (
           <>
             <div className="grid grid-cols-[16px_1fr_54px_54px] gap-0 px-3 py-1.5
-                            border-b border-white/5 bg-white/[0.015]">
+                            border-b border-(--mm-fg)/5 bg-(--mm-fg)/[0.015]">
               <span />
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">STATION · 車站</span>
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">ARR</span>
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">DEP</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted)">STATION · 車站</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted) text-right">ARR</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted) text-right">DEP</span>
             </div>
             <div ref={scrollRef} className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
               {rows.map((r, i) => {
                 const isFirstRow = i === 0
                 const isLastRow = i === rows.length - 1
-                const railColor = r.status === 'past' ? 'rgba(255,255,255,0.15)' : color + '88'
+                const railColor = r.status === 'past' ? 'color-mix(in srgb, var(--mm-fg) 15%, transparent)' : color + '88'
                 return (
                   <div
                     key={r.key}
                     className={`grid grid-cols-[16px_1fr_54px_54px] items-center px-3 py-1.5
-                                border-b border-white/5 last:border-b-0
+                                border-b border-(--mm-fg)/5 last:border-b-0
                                 ${r.status === 'past' ? 'opacity-35' : ''}`}
                   >
                     {/* Marker */}
@@ -399,40 +399,40 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
                              style={{ backgroundColor: railColor }} />
                       )}
                       {r.status === 'dwelling' ? (
-                        <div className="w-2.5 h-2.5 rounded-full bg-amber-300 relative z-10 mm-led-pulse"
-                             style={{ boxShadow: '0 0 6px rgba(252,196,65,0.8)' }} />
+                        <div className="w-2.5 h-2.5 rounded-full bg-(--mm-amber) relative z-10 mm-led-pulse"
+                             style={{ boxShadow: '0 0 6px color-mix(in srgb, var(--mm-amber) 80%, transparent)' }} />
                       ) : r.status === 'arriving' ? (
-                        <div className="w-2.5 h-2.5 rounded-full border-2 border-amber-300 bg-[#0b0b0c] relative z-10" />
+                        <div className="w-2.5 h-2.5 rounded-full border-2 border-(--mm-amber) bg-(--mm-panel) relative z-10" />
                       ) : r.status === 'past' ? (
-                        <div className="w-1.5 h-1.5 rounded-full bg-white/30 relative z-10" />
+                        <div className="w-1.5 h-1.5 rounded-full bg-(--mm-fg)/30 relative z-10" />
                       ) : (
                         <div className="w-2 h-2 rounded-full border-2 relative z-10"
-                             style={{ borderColor: color, backgroundColor: '#0b0b0c' }} />
+                             style={{ borderColor: color, backgroundColor: 'var(--mm-panel)' }} />
                       )}
                     </div>
                     {/* Station */}
                     <div className="flex flex-col min-w-0">
                       <span className={`mm-han truncate ${lang === 'zh' ? 'text-[14px]' : 'text-[12px]'} ${
-                        r.status === 'dwelling' ? 'text-amber-200 font-bold'
-                          : r.status === 'arriving' ? 'text-white font-medium'
-                          : r.status === 'future' ? (r.isLast ? 'text-white font-bold' : 'text-white/80')
-                          : 'text-white/50'
+                        r.status === 'dwelling' ? 'text-(--mm-amber-1) font-bold'
+                          : r.status === 'arriving' ? 'text-(--mm-fg) font-medium'
+                          : r.status === 'future' ? (r.isLast ? 'text-(--mm-fg) font-bold' : 'text-(--mm-fg)/80')
+                          : 'text-(--mm-text-secondary)'
                       }`}>{r.primary}</span>
                       {r.secondary && (
-                        <span className="mm-mono text-[9px] text-white/30 tracking-wide truncate">{r.secondary}</span>
+                        <span className="mm-mono text-[9px] text-(--mm-text-subtle) tracking-wide truncate">{r.secondary}</span>
                       )}
                     </div>
                     {/* ARR */}
                     <span className={`mm-mono mm-tabular text-[13px] text-right ${
-                      r.status === 'dwelling' ? 'text-amber-200'
-                        : r.status === 'past' ? 'text-white/25 line-through'
-                        : 'text-white/65'
+                      r.status === 'dwelling' ? 'text-(--mm-amber-1)'
+                        : r.status === 'past' ? 'text-(--mm-fg)/25 line-through'
+                        : 'text-(--mm-fg)/65'
                     }`}>{r.arr}</span>
                     {/* DEP */}
                     <span className={`mm-mono mm-tabular text-[13px] text-right ${
-                      r.status === 'dwelling' ? 'text-amber-300'
-                        : r.status === 'past' ? 'text-white/25 line-through'
-                        : 'text-white/50'
+                      r.status === 'dwelling' ? 'text-(--mm-amber)'
+                        : r.status === 'past' ? 'text-(--mm-fg)/25 line-through'
+                        : 'text-(--mm-text-secondary)'
                     }`}>{r.dep}</span>
                   </div>
                 )
@@ -442,10 +442,10 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
         )}
 
         {/* Footer */}
-        <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between">
-          <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 uppercase">{t.schedule}</span>
-          <span className="mm-mono text-[11px] text-emerald-300/80 flex items-center gap-1.5 tracking-wider">
-            <span className="w-1 h-1 rounded-full bg-emerald-400 mm-led-pulse" />ON TIME
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+          <span className="mm-mono text-[10px] tracking-[0.25em] text-(--mm-text-muted) uppercase">{t.schedule}</span>
+          <span className="mm-mono text-[11px] text-(--mm-emerald)/80 flex items-center gap-1.5 tracking-wider">
+            <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />ON TIME
           </span>
         </div>
       </div>

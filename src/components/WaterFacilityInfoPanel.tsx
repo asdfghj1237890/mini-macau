@@ -34,10 +34,10 @@ const OSM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright'
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35 shrink-0 pt-[2px]">
+      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
         {label}
       </span>
-      <span className="text-[10px] text-white/80 text-right mm-han min-w-0">{value}</span>
+      <span className="text-[10px] text-(--mm-fg)/80 text-right mm-han min-w-0">{value}</span>
     </div>
   )
 }
@@ -64,24 +64,24 @@ function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: 
                     max-sm:top-auto max-sm:bottom-[calc(env(safe-area-inset-bottom,0px)+168px)] max-sm:left-2 max-sm:right-2 max-sm:w-auto
                     landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]"
          style={{ zoom: 1.2 }}>
-      <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
-                      shadow-2xl shadow-black/60 overflow-hidden mm-fade">
+      <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-fg)/10 rounded-sm
+                      shadow-2xl shadow-(color:--mm-shadow) overflow-hidden mm-fade">
         {/* Header signboard */}
-        <div className="flex items-stretch border-b border-white/10">
-          <div className="px-3 py-2 flex items-center gap-2 border-r border-white/10"
+        <div className="flex items-stretch border-b border-(--mm-fg)/10">
+          <div className="px-3 py-2 flex items-center gap-2 border-r border-(--mm-fg)/10"
                style={{ backgroundColor: `${color}14` }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">
+              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-secondary)">
                 {'💧'} {t.waterLabel}
               </div>
-              <div className="text-[13px] font-bold text-white leading-tight mm-han whitespace-nowrap
+              <div className="text-[13px] font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap
                               flex items-center gap-1.5">
                 {stage > 0 && (
                   <span
                     className="inline-flex items-center justify-center w-[15px] h-[15px] shrink-0
-                               rounded-full bg-[#0b0b0c] border border-white/70 mm-mono text-[9px]
-                               leading-none text-white"
+                               rounded-full bg-(--mm-panel) border border-(--mm-fg)/70 mm-mono text-[9px]
+                               leading-none text-(--mm-fg)"
                     title={t.waterStage(stage)}
                     aria-label={t.waterStage(stage)}
                   >
@@ -93,18 +93,18 @@ function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: 
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="text-[14px] font-bold text-white truncate mm-han" title={title}>
+            <div className="text-[14px] font-bold text-(--mm-fg) truncate mm-han" title={title}>
               {title}
             </div>
             {subtitle && (
-              <div className="text-[10px] text-white/45 truncate mm-han" title={subtitle}>
+              <div className="text-[10px] text-(--mm-text-muted) truncate mm-han" title={subtitle}>
                 {subtitle}
               </div>
             )}
           </div>
           <button
             onClick={onClose}
-            className="px-3 text-white/40 hover:text-white hover:bg-white/5 border-l border-white/10
+            className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
                        mm-mono text-[13px] transition-colors"
             aria-label={t.cancel}
           >
@@ -115,16 +115,16 @@ function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: 
         {children}
 
         {/* Footer: provenance */}
-        <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between gap-2">
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35 uppercase">
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between gap-2">
+          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {t.waterSource}
           </span>
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-white/45 truncate">
+          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-(--mm-text-muted) truncate">
             <a
               href={MACAO_WATER_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-sky-200 transition-colors"
+              className="hover:text-(--mm-sky-1) transition-colors"
             >
               澳門自來水 (Macao Water)
             </a>
@@ -133,7 +133,7 @@ function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: 
               href={OSM_COPYRIGHT_URL}
               target="_blank"
               rel="noopener noreferrer"
-              className="hover:text-sky-200 transition-colors"
+              className="hover:text-(--mm-sky-1) transition-colors"
             >
               OpenStreetMap
             </a>
@@ -196,7 +196,7 @@ export function WaterFacilityInfoPanel({ facility, facilities, network, onClose 
           header would otherwise imply the concessionaire owns the government's
           raw-water reservoirs too. */}
       <div className={`px-3 pb-2 text-[10px] mm-han leading-[1.4]
-                       ${isDsama ? 'text-amber-200/80' : 'text-white/45'}`}>
+                       ${isDsama ? 'text-(--mm-amber-1)/80' : 'text-(--mm-text-muted)'}`}>
         {waterOperatorLabel(t, facility)}
       </div>
 
@@ -210,7 +210,7 @@ export function WaterFacilityInfoPanel({ facility, facilities, network, onClose 
             {t.waterApproximate}
           </span>
           {anchorName && (
-            <div className="text-[10px] text-white/55 mm-han leading-[1.4]">
+            <div className="text-[10px] text-(--mm-text-secondary) mm-han leading-[1.4]">
               {t.waterCoLocatedWith(anchorName)}
             </div>
           )}
@@ -221,9 +221,9 @@ export function WaterFacilityInfoPanel({ facility, facilities, network, onClose 
           and always next to the reminder that the network is our own schematic
           drawing rather than Macao Water's mains. */}
       {pipes > 0 && (
-        <div className="px-3 py-1.5 border-t border-white/8 text-[10px] text-white/55 mm-han leading-[1.4]">
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-[10px] text-(--mm-text-secondary) mm-han leading-[1.4]">
           {t.waterPipes(pipes)}
-          <span className="text-white/35">{' · '}{t.waterNetworkNote}</span>
+          <span className="text-(--mm-text-muted)">{' · '}{t.waterNetworkNote}</span>
         </div>
       )}
     </Shell>
@@ -266,19 +266,19 @@ export function WaterInletInfoPanel({ node, network, onClose }: InletProps) {
             </span>
           )}
           {note && (
-            <div className="text-[10px] text-amber-200/80 mm-han leading-[1.4]">
+            <div className="text-[10px] text-(--mm-amber-1)/80 mm-han leading-[1.4]">
               {note}
             </div>
           )}
         </div>
       )}
-      <div className="px-3 py-2 text-[11px] text-white/75 mm-han leading-[1.5]">
+      <div className="px-3 py-2 text-[11px] text-(--mm-fg)/75 mm-han leading-[1.5]">
         {t.waterInletNote}
       </div>
       {pipes > 0 && (
-        <div className="px-3 py-1.5 border-t border-white/8 text-[10px] text-white/55 mm-han leading-[1.4]">
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-[10px] text-(--mm-text-secondary) mm-han leading-[1.4]">
           {t.waterPipes(pipes)}
-          <span className="text-white/35">{' · '}{t.waterNetworkNote}</span>
+          <span className="text-(--mm-text-muted)">{' · '}{t.waterNetworkNote}</span>
         </div>
       )}
     </Shell>

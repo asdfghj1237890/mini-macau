@@ -33,31 +33,31 @@ interface Tone {
 
 const TONES: Record<'red' | 'amber' | 'slate', Tone> = {
   red: {
-    borderAccent: 'border-red-400/20',
-    pillBg: 'bg-red-500/[0.08]',
-    accentBar: 'bg-red-400',
-    eyebrow: 'text-red-300/80',
-    titleText: 'text-red-100',
-    statusText: 'text-red-300/80',
-    statusDot: 'bg-red-400',
+    borderAccent: 'border-(--mm-red-2)/20',
+    pillBg: 'bg-(--mm-red-2)/[0.08]',
+    accentBar: 'bg-(--mm-red-2)',
+    eyebrow: 'text-(--mm-red)/80',
+    titleText: 'text-(--mm-red-1)',
+    statusText: 'text-(--mm-red)/80',
+    statusDot: 'bg-(--mm-red-2)',
   },
   amber: {
-    borderAccent: 'border-amber-300/20',
-    pillBg: 'bg-amber-400/[0.08]',
-    accentBar: 'bg-amber-300',
-    eyebrow: 'text-amber-200/80',
-    titleText: 'text-amber-100',
-    statusText: 'text-amber-200/80',
-    statusDot: 'bg-amber-300',
+    borderAccent: 'border-(--mm-amber)/20',
+    pillBg: 'bg-(--mm-amber-2)/[0.08]',
+    accentBar: 'bg-(--mm-amber)',
+    eyebrow: 'text-(--mm-amber-1)/80',
+    titleText: 'text-(--mm-amber-1)',
+    statusText: 'text-(--mm-amber-1)/80',
+    statusDot: 'bg-(--mm-amber)',
   },
   slate: {
-    borderAccent: 'border-slate-300/20',
-    pillBg: 'bg-slate-400/[0.08]',
-    accentBar: 'bg-slate-300',
-    eyebrow: 'text-slate-300/80',
-    titleText: 'text-slate-100',
-    statusText: 'text-slate-300/80',
-    statusDot: 'bg-slate-300',
+    borderAccent: 'border-(--mm-slate)/20',
+    pillBg: 'bg-(--mm-slate-2)/[0.08]',
+    accentBar: 'bg-(--mm-slate)',
+    eyebrow: 'text-(--mm-slate)/80',
+    titleText: 'text-(--mm-slate-1)',
+    statusText: 'text-(--mm-slate)/80',
+    statusDot: 'bg-(--mm-slate)',
   },
 }
 
@@ -72,10 +72,10 @@ const TONE_BY_RESTRICTION: Record<RoadWorkRestriction, keyof typeof TONES> = {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35 shrink-0 pt-[2px]">
+      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
         {label}
       </span>
-      <span className="text-[10px] text-white/80 text-right mm-han min-w-0">{value}</span>
+      <span className="text-[10px] text-(--mm-fg)/80 text-right mm-han min-w-0">{value}</span>
     </div>
   )
 }
@@ -114,17 +114,17 @@ export function RoadWorkInfoPanel({ notice, clock, onClose }: Props) {
                     max-sm:top-auto max-sm:bottom-[calc(env(safe-area-inset-bottom,0px)+168px)] max-sm:left-2 max-sm:right-2 max-sm:w-auto
                     landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]"
          style={{ zoom: 1.2 }}>
-      <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
-                      shadow-2xl shadow-black/60 overflow-hidden mm-fade">
+      <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-fg)/10 rounded-sm
+                      shadow-2xl shadow-(color:--mm-shadow) overflow-hidden mm-fade">
         {/* Header signboard */}
         <div className={`flex items-stretch border-b ${tone.borderAccent}`}>
-          <div className={`px-3 py-2 flex items-center gap-2 border-r border-white/10 ${tone.pillBg}`}>
+          <div className={`px-3 py-2 flex items-center gap-2 border-r border-(--mm-fg)/10 ${tone.pillBg}`}>
             <div className={`w-1 h-7 shrink-0 ${tone.accentBar}`} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">
+              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-secondary)">
                 {'⚠︎'} {t.roadWorkLabel}
               </div>
-              <div className="mm-mono mm-tabular text-[13px] font-bold text-white leading-tight">
+              <div className="mm-mono mm-tabular text-[13px] font-bold text-(--mm-fg) leading-tight">
                 {notice.id}
               </div>
             </div>
@@ -140,7 +140,7 @@ export function RoadWorkInfoPanel({ notice, clock, onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="px-3 text-white/40 hover:text-white hover:bg-white/5 border-l border-white/10
+            className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
                        mm-mono text-[13px] transition-colors"
             aria-label={t.cancel}
           >
@@ -149,9 +149,9 @@ export function RoadWorkInfoPanel({ notice, clock, onClose }: Props) {
         </div>
 
         {/* Status + duration strip */}
-        <div className="grid grid-cols-2 border-b border-white/8 bg-white/[0.02]">
-          <div className="px-3 py-1.5 border-r border-white/8 min-w-0">
-            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35">
+        <div className="grid grid-cols-2 border-b border-(--mm-fg)/8 bg-(--mm-fg)/[0.02]">
+          <div className="px-3 py-1.5 border-r border-(--mm-fg)/8 min-w-0">
+            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted)">
               {statusBadge}
             </div>
             <div className={`mm-mono mm-tabular text-[11px] font-bold ${tone.statusText} leading-tight truncate`}>
@@ -159,10 +159,10 @@ export function RoadWorkInfoPanel({ notice, clock, onClose }: Props) {
             </div>
           </div>
           <div className="px-3 py-1.5 min-w-0">
-            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35">
+            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted)">
               {t.roadWorkDuration}
             </div>
-            <div className="mm-mono text-[11px] font-bold text-white/90 leading-tight truncate">
+            <div className="mm-mono text-[11px] font-bold text-(--mm-fg)/90 leading-tight truncate">
               {t.roadWorkDurationValue(notice.duration.days, notice.duration.hours)}
             </div>
           </div>
@@ -182,25 +182,25 @@ export function RoadWorkInfoPanel({ notice, clock, onClose }: Props) {
 
         {/* Collapsible full notice text */}
         {paragraphs.length > 0 && (
-          <div className="border-t border-white/8">
+          <div className="border-t border-(--mm-fg)/8">
             <button
               type="button"
               onClick={() => setDetailsOpen(o => !o)}
               aria-expanded={detailsOpen}
               className="w-full px-3 py-1.5 flex items-center justify-between
-                         hover:bg-white/[0.03] transition-colors"
+                         hover:bg-(--mm-fg)/[0.03] transition-colors"
             >
-              <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35">
+              <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted)">
                 {t.roadWorkDetails}
               </span>
-              <span className="mm-mono text-[9px] text-white/45">
+              <span className="mm-mono text-[9px] text-(--mm-text-muted)">
                 {detailsOpen ? `${t.collapse} ▾` : `${t.expand} ▸`}
               </span>
             </button>
             {detailsOpen && (
               <div className="px-3 pb-2 max-h-[30vh] overflow-y-auto space-y-1.5">
                 {paragraphs.map((p, i) => (
-                  <p key={i} className="text-[10px] leading-relaxed text-white/70 mm-han">{p}</p>
+                  <p key={i} className="text-[10px] leading-relaxed text-(--mm-fg)/70 mm-han">{p}</p>
                 ))}
               </div>
             )}
@@ -208,16 +208,16 @@ export function RoadWorkInfoPanel({ notice, clock, onClose }: Props) {
         )}
 
         {/* Footer */}
-        <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between gap-2">
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35 uppercase">
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between gap-2">
+          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {t.roadWorkSource}
           </span>
           <a
             href={DATASET_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-white/45
-                       hover:text-amber-200 transition-colors truncate"
+            className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-(--mm-text-muted)
+                       hover:text-(--mm-amber-1) transition-colors truncate"
           >
             交通事務局 (DSAT) · data.gov.mo
           </a>

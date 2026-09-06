@@ -104,18 +104,18 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
                     max-sm:top-auto max-sm:bottom-[calc(env(safe-area-inset-bottom,0px)+168px)] max-sm:left-2 max-sm:right-2 max-sm:w-auto
                     landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]"
          style={{ zoom: 1.2 }}>
-      <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
-                      shadow-2xl shadow-black/60 overflow-hidden mm-fade">
+      <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-fg)/10 rounded-sm
+                      shadow-2xl shadow-(color:--mm-shadow) overflow-hidden mm-fade">
         {/* Header */}
-        <div className="px-3 py-2 border-b border-amber-300/20 flex items-stretch">
+        <div className="px-3 py-2 border-b border-(--mm-amber)/20 flex items-stretch">
           <div className="flex-1 min-w-0">
-            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-amber-300/70 mb-0.5">
+            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-accent) mb-0.5">
               STATION · 車站
             </div>
-            <div className="mm-han text-lg font-bold text-white truncate">
+            <div className="mm-han text-lg font-bold text-(--mm-fg) truncate">
               {stationName}
               {stationSub && (
-                <span className="text-white/50 font-normal text-[16px] ml-1.5">{stationSub}</span>
+                <span className="text-(--mm-text-secondary) font-normal text-[16px] ml-1.5">{stationSub}</span>
               )}
             </div>
             {stationLines.length > 0 && (
@@ -137,7 +137,7 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
           </div>
           <button
             onClick={onClose}
-            className="self-start text-white/40 hover:text-white mm-mono text-[16px] transition-colors"
+            className="self-start text-(--mm-text-muted) hover:text-(--mm-fg) mm-mono text-[16px] transition-colors"
             aria-label="Close"
           >
             ✕
@@ -148,12 +148,12 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
           <>
             {/* Table header */}
             <div className="grid grid-cols-[8px_1fr_46px_42px_44px] gap-0 px-3 py-1.5
-                            border-b border-white/5 bg-white/[0.015]">
+                            border-b border-(--mm-fg)/5 bg-(--mm-fg)/[0.015]">
               <span />
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35">DEST · 方向</span>
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">ETA</span>
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">MIN</span>
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-white/35 text-right">STATUS</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted)">DEST · 方向</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted) text-right">ETA</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted) text-right">MIN</span>
+              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted) text-right">STATUS</span>
             </div>
 
             <div className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
@@ -174,29 +174,29 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
                   : waitMin <= 1 ? '即將到站'
                   : waitMin <= 3 ? '接近中'
                   : '等候中'
-                const statusColor = atStation ? 'text-amber-300 mm-led-pulse'
-                  : waitMin <= 1 ? 'text-amber-300'
-                  : waitMin <= 3 ? 'text-emerald-300/70'
-                  : 'text-white/35'
+                const statusColor = atStation ? 'text-(--mm-amber) mm-led-pulse'
+                  : waitMin <= 1 ? 'text-(--mm-amber)'
+                  : waitMin <= 3 ? 'text-(--mm-emerald)/70'
+                  : 'text-(--mm-text-muted)'
                 return (
                   <div
                     key={`${a.tripId}-${i}`}
                     className="grid grid-cols-[8px_1fr_46px_42px_44px] items-center px-3 py-1.5
-                               border-b border-white/5 last:border-b-0"
+                               border-b border-(--mm-fg)/5 last:border-b-0"
                   >
                     <div className="w-2 h-5 rounded-sm" style={{ backgroundColor: a.lineColor }} />
                     <div className="pl-2 flex items-center gap-1.5 min-w-0">
-                      <span className="mm-han text-[13px] text-white/90 truncate">{destLabel}</span>
+                      <span className="mm-han text-[13px] text-(--mm-fg)/90 truncate">{destLabel}</span>
                     </div>
                     <span className={`mm-mono mm-tabular text-[13px] text-right ${
-                      isFirst ? 'text-amber-200' : 'text-white/70'
+                      isFirst ? 'text-(--mm-amber-1)' : 'text-(--mm-fg)/70'
                     }`}>
                       {minutesToTimeStr(a.arrivalMinutes)}
                     </span>
                     <span className={`mm-mono mm-tabular text-right font-bold ${
                       atStation
-                        ? 'text-amber-200 text-[17px] mm-led-pulse'
-                        : isFirst ? 'text-amber-200 text-[15px]' : 'text-white/60 text-[13px]'
+                        ? 'text-(--mm-amber-1) text-[17px] mm-led-pulse'
+                        : isFirst ? 'text-(--mm-amber-1) text-[15px]' : 'text-(--mm-text-secondary) text-[13px]'
                     }`}>
                       {atStation ? '⬤' : waitMin}
                     </span>
@@ -209,18 +209,18 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
             </div>
           </>
         ) : (
-          <div className="px-3 py-4 text-center mm-mono text-[12px] tracking-wider text-white/35">
+          <div className="px-3 py-4 text-center mm-mono text-[12px] tracking-wider text-(--mm-text-muted)">
             — NO SERVICE —
           </div>
         )}
 
         {/* Footer */}
-        <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between">
-          <span className="mm-mono text-[10px] tracking-[0.25em] text-white/35 uppercase">
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+          <span className="mm-mono text-[10px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {t.nextArrivals} · 下一班
           </span>
-          <span className="mm-mono text-[11px] text-amber-300/80 flex items-center gap-1.5 tracking-wider">
-            <span className="w-1 h-1 rounded-full bg-amber-300 mm-led-pulse" />LIVE
+          <span className="mm-mono text-[11px] text-(--mm-amber)/80 flex items-center gap-1.5 tracking-wider">
+            <span className="w-1 h-1 rounded-full bg-(--mm-amber) mm-led-pulse" />LIVE
           </span>
         </div>
       </div>

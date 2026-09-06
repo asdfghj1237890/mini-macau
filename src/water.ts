@@ -204,9 +204,14 @@ export interface WaterLegendRow {
 export function waterLegendRows(
   t: Translations,
   network?: WaterNetwork | null,
+  // The swatches quote the MAP's colours, which differ per theme for the
+  // moving things, the mesh and the treated core (waterMotionColors); the
+  // facility colours do not.
+  dark: boolean = true,
 ): WaterLegendRow[] {
   const box = { dashed: false, thin: false }
   const pipes = network?.pipes ?? []
+  const motion = waterMotionColors(dark)
   const rows: WaterLegendRow[] = []
   // The chain, one row per stage in FLOW order — the same order the wave on
   // the map lights them. The inlet row only when the file has an inlet node,
@@ -228,16 +233,16 @@ export function waterLegendRows(
     // layer is, network file or not.
     {
       id: 'distribution', label: t.waterLegendDistribution, glyph: 'line',
-      color: WATER_DISTRIBUTION_COLOR, dashed: false, thin: true, stage: waterStage('distribution'),
+      color: motion.mesh, dashed: false, thin: true, stage: waterStage('distribution'),
     },
   )
   // The style rows: what a mark looks like, not which step it is. The wave
   // first, because it is the thing the numbers above are explaining.
-  rows.push({ id: 'pulse', label: t.waterPulse, glyph: 'pulse', color: WATER_PULSE_COLOR, ...box, stage: 0 })
+  rows.push({ id: 'pulse', label: t.waterPulse, glyph: 'pulse', color: motion.pulse, ...box, stage: 0 })
   if (pipes.length) {
     rows.push(
       { id: 'pipe-raw', label: t.waterPipeRaw, glyph: 'line', color: WATER_PIPE_COLORS.raw, dashed: true, thin: false, stage: 0 },
-      { id: 'pipe-treated', label: t.waterPipeTreated, glyph: 'line', color: WATER_PIPE_COLORS.treated, dashed: false, thin: false, stage: 0 },
+      { id: 'pipe-treated', label: t.waterPipeTreated, glyph: 'line', color: motion.treated, dashed: false, thin: false, stage: 0 },
     )
   }
   // Only when the map really is drawing a straight-line stand-in somewhere;
@@ -629,4 +634,41 @@ export function buildWaterPulseFeatures(
     network?.pipes ?? [], bucketM, buckets,
     pipe => ({ kind: pipe.kind, pipeId: pipe.id }),
   )
+}
+
+// ---------------------------------------------------------------------------
+// THEME. The overlay's own colours on the MAP (not the panels, which are CSS
+// custom properties — see index.css). The constants above are the dark set:
+// white dots, a pale-cyan pulse and a desaturated mesh, all brighter than the
+// cores they ride, which is what makes motion visible on CARTO Dark Matter.
+// On the light basemap (CARTO Positron) white and pale cyan vanish, so the light set turns
+// every moving thing into a blue DARKER than its core instead, and deepens the
+// treated core itself, which is too pale to hold a line on white. The facility
+// colours (WATER_COLORS) stay: they are saturated enough on both maps, and the
+// legend, the plates and the blocks all quote them.
+// ---------------------------------------------------------------------------
+export interface WaterMotionColors {
+  flow: string // the dots on the treated mains
+  pulse: string // the wave
+  mesh: string // the distribution core
+  glow: string // the halo under the trunk cores and the mesh
+  treated: string // the treated-water core
+}
+
+export function waterMotionColors(dark: boolean): WaterMotionColors {
+  return dark
+    ? {
+      flow: WATER_PIPE_FLOW_COLOR,
+      pulse: WATER_PULSE_COLOR,
+      mesh: WATER_DISTRIBUTION_COLOR,
+      glow: WATER_PIPE_GLOW_COLOR,
+      treated: WATER_PIPE_COLORS.treated,
+    }
+    : {
+      flow: '#0c4a6e',
+      pulse: '#083344',
+      mesh: '#0284c7',
+      glow: '#7dd3fc',
+      treated: '#0ea5e9',
+    }
 }

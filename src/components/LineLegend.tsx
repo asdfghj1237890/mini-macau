@@ -11,6 +11,7 @@ import {
 } from '../schools'
 import { waterLegendRows, type WaterLegendRow } from '../water'
 import { powerLegendRows, type PowerLegendRow } from '../power'
+import { useTheme } from '../theme'
 import {
   WASTE_LAYER_TYPES,
   countWasteByType,
@@ -174,7 +175,7 @@ function StageBadge({ n, label }: { n: number; label: string }) {
   return (
     <span
       className="relative z-10 inline-flex items-center justify-center w-[12px] h-[12px] shrink-0
-                 rounded-full bg-[#0b0b0c] border border-white/70 mm-mono text-[7px] leading-none text-white"
+                 rounded-full bg-(--mm-panel) border border-(--mm-fg)/70 mm-mono text-[7px] leading-none text-(--mm-fg)"
       title={label}
       aria-label={label}
     >
@@ -207,7 +208,7 @@ function KeyChain<R extends ChainRow>({ rows, glyph, caption, stageLabel }: {
   const chain = rows.filter(row => row.stage > 0)
   const styles = rows.filter(row => row.stage === 0)
   const label = (row: R) => (
-    <span className="text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate text-white/60"
+    <span className="text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate text-(--mm-text-secondary)"
           title={row.label}>
       {row.label}
     </span>
@@ -219,7 +220,7 @@ function KeyChain<R extends ChainRow>({ rows, glyph, caption, stageLabel }: {
             12px badge, and inset by half a row's height at both ends. */}
         {chain.length > 1 && (
           <span aria-hidden="true"
-                className="absolute left-[37.5px] top-[9px] bottom-[9px] w-px bg-white/20" />
+                className="absolute left-[37.5px] top-[9px] bottom-[9px] w-px bg-(--mm-fg)/20" />
         )}
         {chain.map((row, i) => (
           <div key={row.id} className="w-full flex items-center gap-2 py-[2px] pl-8 pr-3">
@@ -238,7 +239,7 @@ function KeyChain<R extends ChainRow>({ rows, glyph, caption, stageLabel }: {
           {label(row)}
         </div>
       ))}
-      <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
+      <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
         {caption}
       </div>
     </div>
@@ -248,9 +249,10 @@ function KeyChain<R extends ChainRow>({ rows, glyph, caption, stageLabel }: {
 // The WATER key. `network` decides which rows appear (see waterLegendRows).
 function WaterKey({ network, caption }: { network: TransitData['waterNetwork']; caption: string }) {
   const { t } = useI18n()
+  const dark = useTheme() === 'dark'
   return (
     <KeyChain
-      rows={waterLegendRows(t, network)}
+      rows={waterLegendRows(t, network, dark)}
       glyph={row => <KeyGlyph row={row} />}
       caption={caption}
       stageLabel={t.waterStage}
@@ -324,9 +326,10 @@ function PowerKeyGlyph({ row }: { row: PowerLegendRow }) {
 // decides which voltage rows appear (see powerLegendRows).
 function PowerKey({ network, caption }: { network: TransitData['powerNetwork']; caption: string }) {
   const { t } = useI18n()
+  const dark = useTheme() === 'dark'
   return (
     <KeyChain
-      rows={powerLegendRows(t, network)}
+      rows={powerLegendRows(t, network, dark)}
       glyph={row => <PowerKeyGlyph row={row} />}
       caption={caption}
       stageLabel={t.powerStage}
@@ -461,7 +464,7 @@ function CityIcon({ size = 16 }: { size?: number }) {
     </svg>
   )
 }
-const CITY_HATCH = 'repeating-linear-gradient(-45deg, rgba(255,255,255,0.30) 0 1px, transparent 1px 3px)'
+const CITY_HATCH = 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-fg) 30%, transparent) 0 1px, transparent 1px 3px)'
 
 const LS_DESKTOP_OPEN = 'mm-layers-desktop-open'
 const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
@@ -683,8 +686,8 @@ export function LineLegend({
     // when only the bottom edge moves.
     return (
       <div className="mm-ui-scale absolute top-3 right-3 z-20 hidden sm:block landscape:hidden
-                      bg-[#0b0b0c]/95 backdrop-blur-md rounded-sm
-                      px-3 py-2 border border-white/10 text-amber-300/80
+                      bg-(--mm-panel)/95 backdrop-blur-md rounded-sm
+                      px-3 py-2 border border-(--mm-border) text-(--mm-amber)/80
                       mm-mono text-[10px] tracking-[0.25em] w-[240px] text-center">
         {t.loading}
       </div>
@@ -743,38 +746,38 @@ export function LineLegend({
   const cityLayerRows = [
     totalRoadWorkCount > 0 ? {
       panel: 'works' as const, label: 'WORKS · 工程', icon: WORKS_ICON_16, on: roadWorksOn,
-      count: String(activeRoadWorksCount), iconOn: 'text-amber-300', countOn: 'text-amber-300/80',
+      count: String(activeRoadWorksCount), iconOn: 'text-(--mm-amber)', countOn: 'text-(--mm-amber)/80',
       toggle: onToggleRoadWorks,
     } : null,
     schoolCount > 0 ? {
       panel: 'schools' as const, label: 'SCHOOLS · 學校', icon: MORTARBOARD_ICON_16, on: schoolsOn,
       count: schoolLevelsAllOn ? String(schoolCount) : `${schoolEnabledCount}/${schoolCount}`,
-      iconOn: 'text-violet-300', countOn: 'text-violet-300/80', toggle: onToggleSchools,
+      iconOn: 'text-(--mm-violet)', countOn: 'text-(--mm-violet)/80', toggle: onToggleSchools,
     } : null,
     toiletCount > 0 ? {
       panel: 'toilets' as const, label: 'WC · 公廁', icon: TOILET_ICON_16, on: toiletsOn,
-      count: String(toiletCount), iconOn: 'text-teal-300', countOn: 'text-teal-300/80',
+      count: String(toiletCount), iconOn: 'text-(--mm-teal)', countOn: 'text-(--mm-teal)/80',
       toggle: onToggleToilets,
     } : null,
     carParkCount > 0 ? {
       panel: 'carparks' as const, label: 'PARKING · 停車場', icon: CAR_PARK_ICON_16, on: carParksOn,
-      count: String(carParkCount), iconOn: 'text-blue-300', countOn: 'text-blue-300/80',
+      count: String(carParkCount), iconOn: 'text-(--mm-blue)', countOn: 'text-(--mm-blue)/80',
       toggle: onToggleCarParks,
     } : null,
     wasteTotal > 0 ? {
       panel: 'waste' as const, label: 'WASTE · 垃圾回收', icon: WASTE_ICON_16, on: wasteOn,
       count: wasteTypesAllOn ? String(wasteTotal) : `${wasteVisibleCount}/${wasteTotal}`,
-      iconOn: 'text-green-300', countOn: 'text-green-300/80',
+      iconOn: 'text-(--mm-green)', countOn: 'text-(--mm-green)/80',
       toggle: onToggleWaste,
     } : null,
     waterCount > 0 ? {
       panel: 'water' as const, label: 'WATER · 供水', icon: WATER_ICON_16, on: waterOn,
-      count: String(waterCount), iconOn: 'text-sky-300', countOn: 'text-sky-300/80',
+      count: String(waterCount), iconOn: 'text-(--mm-sky)', countOn: 'text-(--mm-sky)/80',
       toggle: onToggleWater,
     } : null,
     powerCount > 0 ? {
       panel: 'power' as const, label: 'POWER · 電力', icon: POWER_ICON_16, on: powerOn,
-      count: String(powerCount), iconOn: 'text-amber-300', countOn: 'text-amber-300/80',
+      count: String(powerCount), iconOn: 'text-(--mm-amber)', countOn: 'text-(--mm-amber)/80',
       toggle: onTogglePower,
     } : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null)
@@ -792,59 +795,59 @@ export function LineLegend({
           type="button"
           onClick={() => setDesktopOpen(true)}
           className="mm-ui-scale absolute top-3 right-3 z-20 hidden sm:flex landscape:hidden
-                     bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10
-                     hover:border-amber-300/40 shadow-xl px-3 py-2 items-center gap-3 transition"
+                     bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-border)
+                     hover:border-(--mm-amber)/40 shadow-xl shadow-(color:--mm-shadow) px-3 py-2 items-center gap-3 transition"
         >
-          <span className="mm-mono text-[8px] tracking-[0.28em] text-amber-300/70">▤ LAYERS</span>
-          <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-white/60">
+          <span className="mm-mono text-[8px] tracking-[0.28em] text-(--mm-text-accent)">▤ LAYERS</span>
+          <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-text-secondary)">
             {allLrtLines.slice(0, 3).map(line => (
               <span
                 key={line.id}
                 className="w-1.5 h-[3px]"
-                style={{ backgroundColor: isLrtOn(line.id) ? line.color : '#444' }}
+                style={{ backgroundColor: isLrtOn(line.id) ? line.color : 'color-mix(in srgb, var(--mm-fg) 30%, transparent)' }}
               />
             ))}
-            <span className="text-white/40 ml-0.5">{lrtActive}/{lrtTotal}</span>
+            <span className="text-(--mm-text-muted) ml-0.5">{lrtActive}/{lrtTotal}</span>
           </span>
-          <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-white/60">
-            <span className={`w-1.5 h-1.5 rounded-full ${activeRoutes > 0 ? 'bg-emerald-400' : 'bg-white/20'}`} />
+          <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-text-secondary)">
+            <span className={`w-1.5 h-1.5 rounded-full ${activeRoutes > 0 ? 'bg-(--mm-emerald-2)' : 'bg-(--mm-fg)/20'}`} />
             <span>{activeRoutes}/{totalRoutes}</span>
           </span>
           {totalFlightCount > 0 && flightsOn && (
-            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-sky-300/80">
+            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-sky)/80">
               <span>✈</span><span>{flightCount}</span>
             </span>
           )}
           {totalFerryCount > 0 && ferriesOn && (
-            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-red-300/80">
+            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-red)/80">
               <span>{'\u2693\uFE0E'}</span><span>{ferryCount}</span>
             </span>
           )}
           {totalRoadWorkCount > 0 && roadWorksOn && (
-            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-amber-300/80">
+            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-amber)/80">
               <span>{'\u26A0\uFE0E'}</span><span>{activeRoadWorksCount}</span>
             </span>
           )}
         </button>
       ) : (
         <div className="mm-ui-scale absolute top-3 right-3 z-20 hidden sm:block landscape:hidden
-                        bg-[#0b0b0c]/95 backdrop-blur-md rounded-sm
-                        border border-white/10 overflow-hidden w-[240px] shadow-2xl">
+                        bg-(--mm-panel)/95 backdrop-blur-md rounded-sm
+                        border border-(--mm-border) overflow-hidden w-[240px] shadow-2xl shadow-(color:--mm-shadow)">
           {/* Header */}
-          <div className="px-3 py-1 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-            <span className="mm-mono text-[9px] tracking-[0.28em] text-amber-300/75">▤ LAYERS</span>
+          <div className="px-3 py-1 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+            <span className="mm-mono text-[9px] tracking-[0.28em] text-(--mm-text-accent)">▤ LAYERS</span>
             <div className="flex items-center gap-2">
-              <span className={`flex items-center gap-1 mm-mono text-[9px] tracking-[0.2em] ${isLive ? 'text-emerald-300/80' : 'text-white/30'}`}>
-                <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-emerald-400 mm-led-pulse' : 'bg-white/25'}`} />
+              <span className={`flex items-center gap-1 mm-mono text-[9px] tracking-[0.2em] ${isLive ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-subtle)'}`}>
+                <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-(--mm-emerald-2) mm-led-pulse' : 'bg-(--mm-fg)/25'}`} />
                 {isLive ? t.live : t.simShort}
               </span>
               <button
                 type="button"
                 onClick={() => setDesktopOpen(false)}
                 aria-label="collapse layers panel"
-                className="text-white/55 hover:text-amber-200 hover:bg-white/5 text-[18px] mm-mono
+                className="text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 text-[18px] mm-mono
                            w-6 h-6 flex items-center justify-center leading-none transition
-                           border border-white/10 hover:border-amber-300/40 rounded-sm"
+                           border border-(--mm-border) hover:border-(--mm-amber)/40 rounded-sm"
               >
                 ×
               </button>
@@ -853,7 +856,7 @@ export function LineLegend({
 
           {/* TRANSIT / CITY pages — same segment styling as the BUS mode
               switch below, so the panel reads as one control vocabulary. */}
-          <div role="tablist" className="grid grid-cols-2 border-b border-white/8">
+          <div role="tablist" className="grid grid-cols-2 border-b border-(--mm-fg)/8">
             {LAYERS_TABS.map(tab => (
               <button
                 key={tab}
@@ -863,10 +866,10 @@ export function LineLegend({
                 onClick={() => setLayersTab(tab)}
                 className={`px-1 py-[5px] mm-mono text-[9px] tracking-[0.15em] transition-colors text-center
                            ${layersTab === tab
-                             ? 'bg-amber-300/10 text-amber-200'
-                             : 'text-white/45 hover:text-white hover:bg-white/5'}
-                           ${tab === 'city' ? 'border-l border-white/8' : ''}`}
-                style={layersTab === tab ? { boxShadow: 'inset 0 -2px 0 rgba(252,196,65,0.7)' } : undefined}
+                             ? 'bg-(--mm-amber)/10 text-(--mm-amber-1)'
+                             : 'text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5'}
+                           ${tab === 'city' ? 'border-l border-(--mm-fg)/8' : ''}`}
+                style={layersTab === tab ? { boxShadow: 'inset 0 -2px 0 color-mix(in srgb, var(--mm-amber) 70%, transparent)' } : undefined}
               >
                 {tab === 'transit' ? 'TRANSIT · 交通' : 'CITY · 城市'}
               </button>
@@ -876,8 +879,8 @@ export function LineLegend({
           {layersTab === 'transit' && (<>
           {/* LRT — clickable rows */}
           <div>
-            <div className="px-3 py-1 flex items-center justify-between bg-white/[0.015] border-b border-white/5">
-              <span className="flex items-center gap-1.5 text-white/45">
+            <div className="px-3 py-1 flex items-center justify-between bg-(--mm-fg)/[0.015] border-b border-(--mm-fg)/5">
+              <span className="flex items-center gap-1.5 text-(--mm-text-muted)">
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70">
                   <rect x="4" y="3" width="16" height="14" rx="2" />
@@ -886,12 +889,12 @@ export function LineLegend({
                 </svg>
                 <span
                   className="inline-block w-[8px] h-[8px]"
-                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.35) 0 1px, transparent 1px 3px)' }}
+                  style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                 />
                 <span className="mm-mono text-[8px] tracking-[0.25em]">LRT · 輕軌</span>
               </span>
-              <span className="mm-mono mm-tabular text-[8px] text-white/30">
-                {lrtActive}<span className="text-white/20">/{lrtTotal}</span>
+              <span className="mm-mono mm-tabular text-[8px] text-(--mm-text-subtle)">
+                {lrtActive}<span className="text-(--mm-fg)/20">/{lrtTotal}</span>
               </span>
             </div>
             <div className="py-0.5">
@@ -906,17 +909,17 @@ export function LineLegend({
                     aria-pressed={on}
                     className={`w-full flex items-center gap-2 px-2.5 py-1 border-l-2 transition
                                ${on
-                                 ? 'border-amber-300/60 bg-amber-300/[0.04] hover:bg-amber-300/[0.08]'
-                                 : 'border-transparent hover:bg-white/[0.03] opacity-40'}
+                                 ? 'border-(--mm-amber)/60 bg-(--mm-amber)/[0.04] hover:bg-(--mm-amber)/[0.08]'
+                                 : 'border-transparent hover:bg-(--mm-fg)/[0.03] opacity-40 light:opacity-100'}
                                ${onToggleLrt ? '' : 'cursor-default'}`}
                   >
-                    <div className="w-3 h-[3px] shrink-0" style={{ backgroundColor: on ? line.color : '#555' }} />
+                    <div className="w-3 h-[3px] shrink-0" style={{ backgroundColor: on ? line.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)' }} />
                     <span className={`mm-han text-[11px] flex-1 text-left truncate
-                                      ${on ? 'text-white/90' : 'text-white/40'}`}>
+                                      ${on ? 'text-(--mm-fg)/90' : 'text-(--mm-text-muted)'}`}>
                       {localName(lang, line)}
                     </span>
-                    <span className={`mm-mono text-[8px] tracking-[0.2em] shrink-0
-                                      ${on ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                    <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] shrink-0
+                                      ${on ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                       {on ? 'ON' : 'OFF'}
                     </span>
                   </button>
@@ -927,9 +930,9 @@ export function LineLegend({
 
           {/* BUS section with mode tabs + collapsible groups */}
           {totalRoutes > 0 && visibleRoutes && (
-            <div className="border-t border-white/10">
-              <div className="px-3 py-1 flex items-center justify-between bg-white/[0.015]">
-                <span className="flex items-center gap-1.5 text-white/45">
+            <div className="border-t border-(--mm-fg)/10">
+              <div className="px-3 py-1 flex items-center justify-between bg-(--mm-fg)/[0.015]">
+                <span className="flex items-center gap-1.5 text-(--mm-text-muted)">
                   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70">
                     <path d="M8 6v6" /><path d="M16 6v6" />
@@ -939,36 +942,36 @@ export function LineLegend({
                   </svg>
                   <span
                     className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(110,231,183,0.35) 0 1px, transparent 1px 3px)' }}
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-emerald) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                   />
                   <span className="mm-mono text-[8px] tracking-[0.25em]">BUS · 巴士</span>
                 </span>
-                <span className="mm-mono mm-tabular text-[9px] text-emerald-300/80">
-                  {activeRoutes}<span className="text-white/30">/{totalRoutes}</span>
+                <span className="mm-mono mm-tabular text-[9px] text-(--mm-emerald)/80">
+                  {activeRoutes}<span className="text-(--mm-text-subtle)">/{totalRoutes}</span>
                 </span>
               </div>
-              <div className="grid grid-cols-3 border-y border-white/8">
+              <div className="grid grid-cols-3 border-y border-(--mm-fg)/8">
                 <button
                   onClick={onResetAuto}
                   className={`px-1 py-1 mm-mono text-[9px] tracking-[0.1em] transition-colors text-center
                              ${isAutoMode
-                               ? 'bg-amber-300/10 text-amber-200'
-                               : 'text-white/45 hover:text-white hover:bg-white/5'}`}
-                  style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 rgba(252,196,65,0.7)' } : undefined}
+                               ? 'bg-(--mm-amber)/10 text-(--mm-amber-1)'
+                               : 'text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5'}`}
+                  style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 color-mix(in srgb, var(--mm-amber) 70%, transparent)' } : undefined}
                 >
                   {t.autoByTime}
                 </button>
                 <button
                   onClick={onShowAll}
-                  className="px-1 py-1 mm-mono text-[9px] tracking-[0.15em] text-white/45 hover:text-white
-                             hover:bg-white/5 transition-colors text-center border-l border-white/8"
+                  className="px-1 py-1 mm-mono text-[9px] tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                             hover:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
                 >
                   {t.showAll}
                 </button>
                 <button
                   onClick={onHideAll}
-                  className="px-1 py-1 mm-mono text-[9px] tracking-[0.15em] text-white/45 hover:text-white
-                             hover:bg-white/5 transition-colors text-center border-l border-white/8"
+                  className="px-1 py-1 mm-mono text-[9px] tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                             hover:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
                 >
                   {t.hideAll}
                 </button>
@@ -982,24 +985,24 @@ export function LineLegend({
                   const groupOn = groupActive > 0
                   const collapsed = collapsedGroups.has(groupKey)
                   return (
-                    <div key={groupKey} className="border-t border-white/5">
-                      <div className="w-full flex items-stretch bg-white/[0.015]">
+                    <div key={groupKey} className="border-t border-(--mm-fg)/5">
+                      <div className="w-full flex items-stretch bg-(--mm-fg)/[0.015]">
                         <button
                           type="button"
                           onClick={() => toggleGroupCollapse(groupKey)}
                           className="flex-1 min-w-0 px-2 py-1 flex items-center gap-2
-                                     hover:bg-white/[0.04] transition"
+                                     hover:bg-(--mm-fg)/[0.04] transition"
                         >
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0
-                                            ${groupActive > 0 ? 'bg-amber-300' : 'bg-white/15'}`}
-                                style={groupActive > 0 ? { boxShadow: '0 0 5px rgba(252,196,65,0.8)' } : undefined} />
-                          <span className="mm-mono text-[9px] tracking-[0.2em] text-white/55 uppercase flex-1 text-left">
+                                            ${groupActive > 0 ? 'bg-(--mm-amber)' : 'bg-(--mm-fg)/15'}`}
+                                style={groupActive > 0 ? { boxShadow: '0 0 5px color-mix(in srgb, var(--mm-amber) 80%, transparent)' } : undefined} />
+                          <span className="mm-mono text-[9px] tracking-[0.2em] text-(--mm-text-secondary) uppercase flex-1 text-left">
                             {t[GROUP_LABEL_KEYS[groupKey]]}
                           </span>
-                          <span className="mm-mono mm-tabular text-[9px] text-white/35 w-10 text-right">
+                          <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-muted) w-10 text-right">
                             {groupActive}/{routes.length}
                           </span>
-                          <span className="text-white/30 mm-mono text-[8px] w-3 text-center">
+                          <span className="text-(--mm-text-subtle) mm-mono text-[8px] w-3 text-center">
                             {collapsed ? '▸' : '▾'}
                           </span>
                         </button>
@@ -1009,17 +1012,17 @@ export function LineLegend({
                             onClick={() => onToggleGroup(groupKey)}
                             aria-pressed={groupOn}
                             className={`shrink-0 w-10 mm-mono text-[8px] tracking-[0.2em]
-                                        border-l border-white/8 transition text-center
+                                        border-l border-(--mm-fg)/8 transition text-center
                                         ${groupOn
-                                          ? 'text-emerald-300/80 hover:bg-emerald-300/10'
-                                          : 'text-white/30 hover:text-white/80 hover:bg-white/[0.05]'}`}
+                                          ? 'text-(--mm-emerald)/80 hover:bg-(--mm-emerald)/10'
+                                          : 'text-(--mm-text-subtle) hover:text-(--mm-fg)/80 hover:bg-(--mm-fg)/[0.05]'}`}
                           >
                             {groupOn ? 'ON' : 'OFF'}
                           </button>
                         )}
                       </div>
                       {!collapsed && (
-                        <div className="bg-[#060607]">
+                        <div className="bg-(--mm-inset)">
                           {routes.map(route => {
                             const inactive = inactiveRoutes?.has(route.id) ?? false
                             const on = visibleRoutes.has(route.id)
@@ -1032,13 +1035,13 @@ export function LineLegend({
                                 className={`w-full px-2 py-[3px] flex items-center gap-2 transition-colors
                                            ${inactive
                                              ? 'opacity-30 cursor-not-allowed'
-                                             : on ? 'hover:bg-white/[0.04]' : 'opacity-35 hover:opacity-60'}`}
+                                             : on ? 'hover:bg-(--mm-fg)/[0.04]' : 'opacity-35 hover:opacity-60 light:opacity-100'}`}
                               >
                                 <span
                                   className="mm-mono mm-tabular text-[10px] font-bold text-center shrink-0"
                                   style={{
                                     width: 36,
-                                    color: inactive ? '#444' : on ? route.color : '#555',
+                                    color: inactive ? '#444' : on ? route.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)',
                                     textShadow: !inactive && on ? `0 0 6px ${route.color}66` : 'none',
                                     textDecoration: inactive ? 'line-through' : 'none',
                                   }}
@@ -1046,7 +1049,7 @@ export function LineLegend({
                                   {route.name}
                                 </span>
                                 <span className={`text-[10px] flex-1 text-left truncate mm-han
-                                                  ${inactive ? 'text-white/25' : on ? 'text-white/75' : 'text-white/30'}`}>
+                                                  ${inactive ? 'text-(--mm-fg)/25' : on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                                   {inactive
                                     ? t.noServiceToday
                                     : (lang !== 'en' && route.nameCn ? route.nameCn : '')}
@@ -1070,13 +1073,13 @@ export function LineLegend({
               onClick={onToggleFlights}
               disabled={!onToggleFlights}
               aria-pressed={flightsOn}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
                          ${flightsOn
-                           ? 'bg-sky-400/[0.04] hover:bg-sky-400/[0.08]'
-                           : 'hover:bg-white/[0.03] opacity-50'}
+                           ? 'bg-(--mm-sky-2)/[0.04] hover:bg-(--mm-sky-2)/[0.08]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
                          ${onToggleFlights ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${flightsOn ? 'text-white/45' : 'text-white/40'}`}>
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${flightsOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M22 2L11 13" />
@@ -1085,15 +1088,15 @@ export function LineLegend({
               </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(125,211,252,0.35) 0 1px, transparent 1px 3px)' }}
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-sky) 35%, transparent) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 AIR · 航班
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${flightsOn ? 'text-sky-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono mm-tabular text-[9px] ${flightsOn ? 'text-(--mm-sky)/80' : 'text-(--mm-fg)/25'}`}>
                 {flightCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${flightsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${flightsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {flightsOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1106,13 +1109,13 @@ export function LineLegend({
               onClick={onToggleFerries}
               disabled={!onToggleFerries}
               aria-pressed={ferriesOn}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
                          ${ferriesOn
-                           ? 'bg-red-400/[0.05] hover:bg-red-400/[0.1]'
-                           : 'hover:bg-white/[0.03] opacity-50'}
+                           ? 'bg-(--mm-red-2)/[0.05] hover:bg-(--mm-red-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
                          ${onToggleFerries ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${ferriesOn ? 'text-white/45' : 'text-white/40'}`}>
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${ferriesOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                      strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <circle cx="12" cy="5" r="3" />
@@ -1122,15 +1125,15 @@ export function LineLegend({
               </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-red-2) 35%, transparent) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 SEA · 船運
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${ferriesOn ? 'text-red-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono mm-tabular text-[9px] ${ferriesOn ? 'text-(--mm-red)/80' : 'text-(--mm-fg)/25'}`}>
                 {ferryCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${ferriesOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${ferriesOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {ferriesOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1146,24 +1149,24 @@ export function LineLegend({
               disabled={!onToggleRoadWorks}
               aria-pressed={roadWorksOn}
               title={t.roadWorksActive(activeRoadWorksCount)}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
                          ${roadWorksOn
-                           ? 'bg-amber-400/[0.05] hover:bg-amber-400/[0.1]'
-                           : 'hover:bg-white/[0.03] opacity-50'}
+                           ? 'bg-(--mm-amber-2)/[0.05] hover:bg-(--mm-amber-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
                          ${onToggleRoadWorks ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${roadWorksOn ? 'text-white/45' : 'text-white/40'}`}>{'⚠︎'}</span>
+              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${roadWorksOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>{'⚠︎'}</span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(245,158,11,0.45) 0 1px, transparent 1px 3px)' }}
+                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber-2) 45%, transparent) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 WORKS · 工程
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${roadWorksOn ? 'text-amber-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono mm-tabular text-[9px] ${roadWorksOn ? 'text-(--mm-amber)/80' : 'text-(--mm-fg)/25'}`}>
                 {activeRoadWorksCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${roadWorksOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${roadWorksOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {roadWorksOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1176,30 +1179,30 @@ export function LineLegend({
               chevron — the rows below are the affordance. */}
           {schoolCount > 0 && (
             <>
-              <div className={`flex items-stretch border-t border-white/10 transition
-                              ${schoolsOn ? 'bg-violet-400/[0.05]' : 'opacity-50'}`}>
+              <div className={`flex items-stretch border-t border-(--mm-fg)/10 transition
+                              ${schoolsOn ? 'bg-(--mm-violet-2)/[0.05]' : 'opacity-50 light:opacity-100'}`}>
                 <button
                   type="button"
                   onClick={() => setSchoolsLegendOpen(v => !v)}
                   aria-expanded={schoolsLegendOpen}
                   title={t.schoolsExpandTitle}
                   className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3 pr-1.5
-                             hover:bg-violet-400/[0.1] transition"
+                             hover:bg-(--mm-violet-2)/[0.1] transition"
                 >
                   <span className={`inline-flex items-center justify-center w-[12px] shrink-0
-                                    ${schoolsOn ? 'text-white/45' : 'text-white/40'}`}>
+                                    ${schoolsOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
                     <MortarboardIcon />
                   </span>
                   <span
                     className="inline-block w-[8px] h-[8px] shrink-0"
                     style={{ backgroundImage: SCHOOL_HATCH }}
                   />
-                  <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45
+                  <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted)
                                    flex-1 min-w-0 text-left truncate">
                     SCHOOLS · 學校
                   </span>
                   <span className={`mm-mono mm-tabular text-[9px] shrink-0
-                                    ${schoolsOn ? 'text-violet-300/80' : 'text-white/25'}`}>
+                                    ${schoolsOn ? 'text-(--mm-violet)/80' : 'text-(--mm-fg)/25'}`}>
                     {schoolLevelsAllOn ? schoolCount : `${schoolEnabledCount}/${schoolCount}`}
                   </span>
                 </button>
@@ -1210,16 +1213,16 @@ export function LineLegend({
                   aria-pressed={schoolsOn}
                   title={t.schoolsToggleAllTitle}
                   className={`shrink-0 inline-flex items-center justify-end pl-1.5 pr-3
-                              hover:bg-emerald-300/[0.1] transition
+                              hover:bg-(--mm-emerald)/[0.1] transition
                               ${onToggleSchools ? '' : 'cursor-default'}`}
                 >
-                  <span className={`mm-mono text-[8px] tracking-[0.2em] ${schoolsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                  <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ${schoolsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                     {schoolsOn ? 'ON' : 'OFF'}
                   </span>
                 </button>
               </div>
               {schoolsLegendOpen && (
-                <div className={`pb-1 bg-violet-400/[0.05] ${schoolsOn ? '' : 'opacity-40'}`}>
+                <div className={`pb-1 bg-(--mm-violet-2)/[0.05] ${schoolsOn ? '' : 'opacity-40 light:opacity-100'}`}>
                   {SCHOOL_LEVEL_ORDER.map(level => {
                     const on = isSchoolLevelOn(level)
                     // "Lit" = actually drawn on the map: the level is on AND
@@ -1237,7 +1240,7 @@ export function LineLegend({
                         // ("K–12 (all-through)"), so keep it readable on hover.
                         title={schoolLevelLabel(t, level)}
                         className={`w-full flex items-center gap-2 py-1 pl-8 pr-3
-                                    hover:bg-white/[0.04] transition
+                                    hover:bg-(--mm-fg)/[0.04] transition
                                     ${onToggleSchoolLevel ? '' : 'cursor-default'}`}
                       >
                         <span
@@ -1247,21 +1250,21 @@ export function LineLegend({
                             : { boxShadow: `inset 0 0 0 1px ${color}99` }}
                         />
                         <span className={`text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
-                                          ${on ? 'text-white/75' : 'text-white/30'}`}>
+                                          ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                           {schoolLevelLabel(t, level)}
                         </span>
-                        <span className="mm-mono text-[7px] tracking-[0.18em] text-white/25 shrink-0">
+                        <span className="mm-mono text-[7px] tracking-[0.18em] text-(--mm-fg)/25 shrink-0">
                           {SCHOOL_LEVEL_CAPTIONS[level]}
                         </span>
                         <span
                           className={`mm-mono mm-tabular text-[9px] w-[18px] text-right shrink-0
-                                      ${lit ? '' : 'text-white/25'}`}
+                                      ${lit ? '' : 'text-(--mm-fg)/25'}`}
                           style={lit ? { color } : undefined}
                         >
                           {levelCounts[level] ?? 0}
                         </span>
-                        <span className={`mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
-                                          ${lit ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                        <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+                                          ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                           {on ? 'ON' : 'OFF'}
                         </span>
                       </button>
@@ -1282,26 +1285,26 @@ export function LineLegend({
               disabled={!onToggleToilets}
               aria-pressed={toiletsOn}
               title={t.toiletsCount(toiletCount)}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
                          ${toiletsOn
-                           ? 'bg-teal-400/[0.05] hover:bg-teal-400/[0.1]'
-                           : 'hover:bg-white/[0.03] opacity-50'}
+                           ? 'bg-(--mm-teal-2)/[0.05] hover:bg-(--mm-teal-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
                          ${onToggleToilets ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${toiletsOn ? 'text-white/45' : 'text-white/40'}`}>
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${toiletsOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
                 <ToiletIcon />
               </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: TOILET_HATCH }}
               />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 WC · 公廁
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${toiletsOn ? 'text-teal-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono mm-tabular text-[9px] ${toiletsOn ? 'text-(--mm-teal)/80' : 'text-(--mm-fg)/25'}`}>
                 {toiletCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${toiletsOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${toiletsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {toiletsOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1317,26 +1320,26 @@ export function LineLegend({
               disabled={!onToggleCarParks}
               aria-pressed={carParksOn}
               title={t.carParksCount(carParkCount)}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
                          ${carParksOn
-                           ? 'bg-blue-400/[0.05] hover:bg-blue-400/[0.1]'
-                           : 'hover:bg-white/[0.03] opacity-50'}
+                           ? 'bg-(--mm-blue-2)/[0.05] hover:bg-(--mm-blue-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
                          ${onToggleCarParks ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${carParksOn ? 'text-white/45' : 'text-white/40'}`}>
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${carParksOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
                 <CarParkIcon />
               </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: CAR_PARK_HATCH }}
               />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 PARKING · 停車場
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${carParksOn ? 'text-blue-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono mm-tabular text-[9px] ${carParksOn ? 'text-(--mm-blue)/80' : 'text-(--mm-fg)/25'}`}>
                 {carParkCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${carParksOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${carParksOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {carParksOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1351,30 +1354,30 @@ export function LineLegend({
               split so the count→ON gap stays 12 px like every other row. */}
           {wasteTotal > 0 && (
             <>
-              <div className={`flex items-stretch border-t border-white/10 transition
-                              ${wasteOn ? 'bg-green-400/[0.05]' : 'opacity-50'}`}>
+              <div className={`flex items-stretch border-t border-(--mm-fg)/10 transition
+                              ${wasteOn ? 'bg-(--mm-green-2)/[0.05]' : 'opacity-50 light:opacity-100'}`}>
                 <button
                   type="button"
                   onClick={() => setWasteLegendOpen(v => !v)}
                   aria-expanded={wasteLegendOpen}
                   title={`${t.wasteExpandTitle} · ${t.wasteFocusNote}`}
                   className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3 pr-1.5
-                             hover:bg-green-400/[0.1] transition"
+                             hover:bg-(--mm-green-2)/[0.1] transition"
                 >
                   <span className={`inline-flex items-center justify-center w-[12px] shrink-0
-                                    ${wasteOn ? 'text-white/45' : 'text-white/40'}`}>
+                                    ${wasteOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
                     <WasteIcon />
                   </span>
                   <span
                     className="inline-block w-[8px] h-[8px] shrink-0"
                     style={{ backgroundImage: WASTE_HATCH }}
                   />
-                  <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45
+                  <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted)
                                    flex-1 min-w-0 text-left truncate">
                     WASTE · 垃圾回收
                   </span>
                   <span className={`mm-mono mm-tabular text-[9px] shrink-0
-                                    ${wasteOn ? 'text-green-300/80' : 'text-white/25'}`}>
+                                    ${wasteOn ? 'text-(--mm-green)/80' : 'text-(--mm-fg)/25'}`}>
                     {wasteTypesAllOn ? wasteTotal : `${wasteVisibleCount}/${wasteTotal}`}
                   </span>
                 </button>
@@ -1385,10 +1388,10 @@ export function LineLegend({
                   aria-pressed={wasteOn}
                   title={`${t.wasteCount(wasteVisibleCount)} · ${t.wasteFocusNote}`}
                   className={`shrink-0 inline-flex items-center justify-end pl-1.5 pr-3
-                              hover:bg-emerald-300/[0.1] transition
+                              hover:bg-(--mm-emerald)/[0.1] transition
                               ${onToggleWaste ? '' : 'cursor-default'}`}
                 >
-                  <span className={`mm-mono text-[8px] tracking-[0.2em] ${wasteOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                  <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ${wasteOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                     {wasteOn ? 'ON' : 'OFF'}
                   </span>
                 </button>
@@ -1396,7 +1399,7 @@ export function LineLegend({
               {/* The key, only while the layer is on — it explains marks that
                   are on screen, so it has nothing to say when they are not. */}
               {wasteOn && wasteLegendOpen && (
-                <div className="pb-1 bg-green-400/[0.05]">
+                <div className="pb-1 bg-(--mm-green-2)/[0.05]">
                   {wasteLegendRows(t, wasteCounts, hiddenWasteTypes).map(row => (
                     <button
                       key={row.id}
@@ -1408,7 +1411,7 @@ export function LineLegend({
                       // keep the whole thing readable on hover.
                       title={row.label}
                       className={`w-full flex items-center gap-2 py-1 pl-8 pr-3
-                                  hover:bg-white/[0.04] transition
+                                  hover:bg-(--mm-fg)/[0.04] transition
                                   ${onToggleWasteType ? '' : 'cursor-default'}`}
                     >
                       <span
@@ -1418,26 +1421,26 @@ export function LineLegend({
                           : { boxShadow: `inset 0 0 0 1px ${row.color}99` }}
                       />
                       <span className={`text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
-                                        ${row.on ? 'text-white/75' : 'text-white/30'}`}>
+                                        ${row.on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                         {row.label}
                       </span>
                       <span
                         className={`mm-mono mm-tabular text-[9px] w-[26px] text-right shrink-0
-                                    ${row.on ? '' : 'text-white/25'}`}
+                                    ${row.on ? '' : 'text-(--mm-fg)/25'}`}
                         style={row.on ? { color: row.color } : undefined}
                       >
                         {row.count}
                       </span>
-                      <span className={`mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
-                                        ${row.on ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                      <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+                                        ${row.on ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                         {row.on ? 'ON' : 'OFF'}
                       </span>
                     </button>
                   ))}
-                  <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
+                  <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
                     {t.wasteTypesHint}
                   </div>
-                  <div className="pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-white/30 uppercase">
+                  <div className="pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
                     {t.wasteFocusNote}
                   </div>
                 </div>
@@ -1458,26 +1461,26 @@ export function LineLegend({
               // The hover text carries the disclaimer the map itself cannot:
               // the pipes are our schematic, not Macao Water's real mains.
               title={`${t.waterCount(waterCount)} · ${t.waterNetworkNote}`}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
                          ${waterOn
-                           ? 'bg-sky-400/[0.05] hover:bg-sky-400/[0.1]'
-                           : 'hover:bg-white/[0.03] opacity-50'}
+                           ? 'bg-(--mm-sky-2)/[0.05] hover:bg-(--mm-sky-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
                          ${onToggleWater ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${waterOn ? 'text-white/45' : 'text-white/40'}`}>
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${waterOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
                 <WaterIcon />
               </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: WATER_HATCH }}
               />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 WATER · 供水
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${waterOn ? 'text-sky-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono mm-tabular text-[9px] ${waterOn ? 'text-(--mm-sky)/80' : 'text-(--mm-fg)/25'}`}>
                 {waterCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${waterOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${waterOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {waterOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1501,26 +1504,26 @@ export function LineLegend({
               // The hover text carries the disclaimer the map itself cannot:
               // the HV lines are our schematic, not CEM's cable routes.
               title={`${t.powerCount(powerCount)} · ${t.powerNetworkNote}`}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-white/10
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
                          ${powerOn
-                           ? 'bg-amber-400/[0.05] hover:bg-amber-400/[0.1]'
-                           : 'hover:bg-white/[0.03] opacity-50'}
+                           ? 'bg-(--mm-amber-2)/[0.05] hover:bg-(--mm-amber-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
                          ${onTogglePower ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${powerOn ? 'text-white/45' : 'text-white/40'}`}>
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${powerOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
                 <PowerIcon />
               </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: POWER_HATCH }}
               />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-white/45 flex-1 text-left">
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 POWER · 電力
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${powerOn ? 'text-amber-300/80' : 'text-white/25'}`}>
+              <span className={`mm-mono mm-tabular text-[9px] ${powerOn ? 'text-(--mm-amber)/80' : 'text-(--mm-fg)/25'}`}>
                 {powerCount}
               </span>
-              <span className={`mm-mono text-[8px] tracking-[0.2em] ml-1 ${powerOn ? 'text-emerald-300/80' : 'text-white/25'}`}>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${powerOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {powerOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1548,13 +1551,13 @@ export function LineLegend({
         <button
           onClick={() => togglePanel('lrt')}
           aria-label={t.lrtLines}
-          className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
-                     border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+          className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
+                     border transition shadow-[0_8px_24px_var(--mm-shadow)]
                      ${mobilePanel === 'lrt'
-                       ? 'border-amber-300/60 text-amber-200'
+                       ? 'border-(--mm-amber)/60 text-(--mm-amber-1)'
                        : lrtActive > 0
-                         ? 'border-amber-300/25 text-amber-200/80 hover:border-amber-300/50 active:scale-95'
-                         : 'border-white/10 text-white/40 hover:border-white/25'}`}
+                         ? 'border-(--mm-amber)/25 text-(--mm-amber-1)/80 hover:border-(--mm-amber)/50 active:scale-95'
+                         : 'border-(--mm-fg)/10 text-(--mm-text-muted) hover:border-(--mm-fg)/25'}`}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1569,11 +1572,11 @@ export function LineLegend({
         <button
           onClick={() => togglePanel('bus')}
           aria-label={t.busRoutes}
-          className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
-                     border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+          className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
+                     border transition shadow-[0_8px_24px_var(--mm-shadow)]
                      ${mobilePanel === 'bus'
-                       ? 'border-emerald-300/60 text-emerald-200'
-                       : 'border-emerald-300/25 text-emerald-200/80 hover:border-emerald-300/50 active:scale-95'}`}
+                       ? 'border-(--mm-emerald)/60 text-(--mm-emerald-1)'
+                       : 'border-(--mm-emerald)/25 text-(--mm-emerald-1)/80 hover:border-(--mm-emerald)/50 active:scale-95'}`}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1591,13 +1594,13 @@ export function LineLegend({
           <button
             onClick={() => togglePanel('air')}
             aria-label={t.flights}
-            className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
-                       border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+            className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
+                       border transition shadow-[0_8px_24px_var(--mm-shadow)]
                        ${mobilePanel === 'air'
-                         ? 'border-sky-300/60 text-sky-300'
+                         ? 'border-(--mm-sky)/60 text-(--mm-sky)'
                          : flightsOn
-                           ? 'border-sky-300/25 text-sky-300/80 hover:border-sky-300/50 active:scale-95'
-                           : 'border-white/10 text-white/40 hover:border-white/25'}`}
+                           ? 'border-(--mm-sky)/25 text-(--mm-sky)/80 hover:border-(--mm-sky)/50 active:scale-95'
+                           : 'border-(--mm-fg)/10 text-(--mm-text-muted) hover:border-(--mm-fg)/25'}`}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1611,13 +1614,13 @@ export function LineLegend({
           <button
             onClick={() => togglePanel('sea')}
             aria-label={t.ferries}
-            className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
-                       border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+            className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
+                       border transition shadow-[0_8px_24px_var(--mm-shadow)]
                        ${mobilePanel === 'sea'
-                         ? 'border-red-400/60 text-red-300'
+                         ? 'border-(--mm-red-2)/60 text-(--mm-red)'
                          : ferriesOn
-                           ? 'border-red-400/25 text-red-300/80 hover:border-red-400/50 active:scale-95'
-                           : 'border-white/10 text-white/40 hover:border-white/25'}`}
+                           ? 'border-(--mm-red-2)/25 text-(--mm-red)/80 hover:border-(--mm-red-2)/50 active:scale-95'
+                           : 'border-(--mm-fg)/10 text-(--mm-text-muted) hover:border-(--mm-fg)/25'}`}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                  strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -1633,17 +1636,17 @@ export function LineLegend({
             transit chips above. Lit while any city layer is on. */}
         {cityLayerTotal > 0 && (
           <>
-            <div className="self-center w-[22px] h-px my-[3px] bg-white/[0.18]" aria-hidden="true" />
+            <div className="self-center w-[22px] h-px my-[3px] bg-(--mm-fg)/[0.18]" aria-hidden="true" />
             <button
               onClick={() => togglePanel('city')}
               aria-label={t.cityLayers}
-              className={`w-9 h-9 flex items-center justify-center bg-[#0a0a0b]
-                         border transition shadow-[0_8px_24px_rgba(0,0,0,0.6)]
+              className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
+                         border transition shadow-[0_8px_24px_var(--mm-shadow)]
                          ${mobilePanel === 'city'
-                           ? 'border-white/60 text-white'
+                           ? 'border-(--mm-fg)/60 text-(--mm-fg)'
                            : cityLayerOn > 0
-                             ? 'border-white/25 text-white/80 hover:border-white/50 active:scale-95'
-                             : 'border-white/10 text-white/40 hover:border-white/25'}`}
+                             ? 'border-(--mm-fg)/25 text-(--mm-fg)/80 hover:border-(--mm-fg)/50 active:scale-95'
+                             : 'border-(--mm-fg)/10 text-(--mm-text-muted) hover:border-(--mm-fg)/25'}`}
             >
               <CityIcon />
             </button>
@@ -1665,19 +1668,19 @@ export function LineLegend({
             type="button"
             onClick={() => setMobilePanel(null)}
             aria-label="close"
-            className="absolute inset-0 bg-black/60 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-(--mm-scrim) backdrop-blur-[2px]"
           />
 
           {/* LRT */}
           {mobilePanel === 'lrt' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[320px] max-h-[80dvh] bg-[#0b0b0c]
-                         border border-amber-300/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex flex-col"
+              className="relative w-full max-w-[320px] max-h-[80dvh] bg-(--mm-panel)
+                         border border-(--mm-amber)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)] flex flex-col"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-amber-300/80">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-amber)/80">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                     <rect x="4" y="3" width="16" height="14" rx="2" />
@@ -1686,18 +1689,18 @@ export function LineLegend({
                   </svg>
                   <span
                     className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(252,196,65,0.35) 0 1px, transparent 1px 3px)' }}
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                   />
                   <span className="mm-mono text-[10px] tracking-[0.25em]">LRT · 輕軌</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">{lrtActive}/{lrtTotal}</span>
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">{lrtActive}/{lrtTotal}</span>
                   <button
                     type="button"
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
@@ -1712,16 +1715,16 @@ export function LineLegend({
                       aria-pressed={on}
                       className={`w-full flex items-center gap-2 px-3 py-2 border-l-2 transition
                                  ${on
-                                   ? 'border-amber-300/60 bg-amber-300/[0.04] active:bg-amber-300/[0.08]'
-                                   : 'border-transparent active:bg-white/[0.04] opacity-40'}`}
+                                   ? 'border-(--mm-amber)/60 bg-(--mm-amber)/[0.04] active:bg-(--mm-amber)/[0.08]'
+                                   : 'border-transparent active:bg-(--mm-fg)/[0.04] opacity-40 light:opacity-100'}`}
                     >
-                      <div className="w-3 h-[3px] shrink-0" style={{ backgroundColor: on ? line.color : '#555' }} />
+                      <div className="w-3 h-[3px] shrink-0" style={{ backgroundColor: on ? line.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)' }} />
                       <span className={`mm-han text-[12px] flex-1 text-left truncate
-                                        ${on ? 'text-white/90' : 'text-white/40'}`}>
+                                        ${on ? 'text-(--mm-fg)/90' : 'text-(--mm-text-muted)'}`}>
                         {localName(lang, line)}
                       </span>
-                      <span className={`mm-mono text-[9px] tracking-[0.2em] shrink-0
-                                        ${on ? 'text-emerald-300/80' : 'text-white/25'}`}>
+                      <span className={`mm-layer-state mm-mono text-[9px] tracking-[0.2em] shrink-0
+                                        ${on ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                         {on ? 'ON' : 'OFF'}
                       </span>
                     </button>
@@ -1735,12 +1738,12 @@ export function LineLegend({
           {mobilePanel === 'bus' && visibleRoutes && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[340px] max-h-[80dvh] bg-[#0b0b0c]
-                         border border-emerald-300/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)] flex flex-col"
+              className="relative w-full max-w-[340px] max-h-[80dvh] bg-(--mm-panel)
+                         border border-(--mm-emerald)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)] flex flex-col"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-emerald-300/80">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-emerald)/80">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                     <path d="M8 6v6" /><path d="M16 6v6" />
@@ -1750,45 +1753,45 @@ export function LineLegend({
                   </svg>
                   <span
                     className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(110,231,183,0.35) 0 1px, transparent 1px 3px)' }}
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-emerald) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                   />
                   <span className="mm-mono text-[10px] tracking-[0.25em]">BUS · 巴士</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-emerald-300/80">
-                    {visibleRoutes.size}<span className="text-white/30">/{busRoutes.length}</span>
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-emerald)/80">
+                    {visibleRoutes.size}<span className="text-(--mm-text-subtle)">/{busRoutes.length}</span>
                   </span>
                   <button
                     type="button"
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
-              <div className="grid grid-cols-3 border-b border-white/8 shrink-0">
+              <div className="grid grid-cols-3 border-b border-(--mm-fg)/8 shrink-0">
                 <button
                   onClick={onResetAuto}
                   className={`px-1 py-1.5 mm-mono text-[10px] tracking-[0.1em] transition-colors text-center
                              ${isAutoMode
-                               ? 'bg-emerald-300/10 text-emerald-200'
-                               : 'text-white/45 active:text-white active:bg-white/5'}`}
-                  style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 rgba(110,231,183,0.7)' } : undefined}
+                               ? 'bg-(--mm-emerald)/10 text-(--mm-emerald-1)'
+                               : 'text-(--mm-text-muted) active:text-(--mm-fg) active:bg-(--mm-fg)/5'}`}
+                  style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 color-mix(in srgb, var(--mm-emerald) 70%, transparent)' } : undefined}
                 >
                   {t.autoByTime}
                 </button>
                 <button
                   onClick={onShowAll}
-                  className="px-1 py-1.5 mm-mono text-[10px] tracking-[0.15em] text-white/45 active:text-white
-                             active:bg-white/5 transition-colors text-center border-l border-white/8"
+                  className="px-1 py-1.5 mm-mono text-[10px] tracking-[0.15em] text-(--mm-text-muted) active:text-(--mm-fg)
+                             active:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
                 >
                   {t.showAll}
                 </button>
                 <button
                   onClick={onHideAll}
-                  className="px-1 py-1.5 mm-mono text-[10px] tracking-[0.15em] text-white/45 active:text-white
-                             active:bg-white/5 transition-colors text-center border-l border-white/8"
+                  className="px-1 py-1.5 mm-mono text-[10px] tracking-[0.15em] text-(--mm-text-muted) active:text-(--mm-fg)
+                             active:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
                 >
                   {t.hideAll}
                 </button>
@@ -1802,23 +1805,23 @@ export function LineLegend({
                   const groupOn = groupActive > 0
                   const collapsed = collapsedGroups.has(groupKey)
                   return (
-                    <div key={groupKey} className="border-t border-white/5">
-                      <div className="w-full flex items-stretch bg-white/[0.015]">
+                    <div key={groupKey} className="border-t border-(--mm-fg)/5">
+                      <div className="w-full flex items-stretch bg-(--mm-fg)/[0.015]">
                         <button
                           type="button"
                           onClick={() => toggleGroupCollapse(groupKey)}
                           className="flex-1 min-w-0 px-2 py-1.5 flex items-center gap-2
-                                     active:bg-white/[0.04] transition"
+                                     active:bg-(--mm-fg)/[0.04] transition"
                         >
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0
-                                            ${groupActive > 0 ? 'bg-emerald-300' : 'bg-white/15'}`} />
-                          <span className="mm-mono text-[10px] tracking-[0.2em] text-white/55 uppercase flex-1 text-left">
+                                            ${groupActive > 0 ? 'bg-(--mm-emerald)' : 'bg-(--mm-fg)/15'}`} />
+                          <span className="mm-mono text-[10px] tracking-[0.2em] text-(--mm-text-secondary) uppercase flex-1 text-left">
                             {t[GROUP_LABEL_KEYS[groupKey]]}
                           </span>
-                          <span className="mm-mono mm-tabular text-[10px] text-white/35 w-10 text-right">
+                          <span className="mm-mono mm-tabular text-[10px] text-(--mm-text-muted) w-10 text-right">
                             {groupActive}/{routes.length}
                           </span>
-                          <span className="text-white/30 mm-mono text-[9px] w-3 text-center">
+                          <span className="text-(--mm-text-subtle) mm-mono text-[9px] w-3 text-center">
                             {collapsed ? '▸' : '▾'}
                           </span>
                         </button>
@@ -1828,17 +1831,17 @@ export function LineLegend({
                             onClick={() => onToggleGroup(groupKey)}
                             aria-pressed={groupOn}
                             className={`shrink-0 w-11 mm-mono text-[9px] tracking-[0.2em]
-                                        border-l border-white/8 transition text-center
+                                        border-l border-(--mm-fg)/8 transition text-center
                                         ${groupOn
-                                          ? 'text-emerald-300/80 active:bg-emerald-300/10'
-                                          : 'text-white/30 active:bg-white/[0.05]'}`}
+                                          ? 'text-(--mm-emerald)/80 active:bg-(--mm-emerald)/10'
+                                          : 'text-(--mm-text-subtle) active:bg-(--mm-fg)/[0.05]'}`}
                           >
                             {groupOn ? 'ON' : 'OFF'}
                           </button>
                         )}
                       </div>
                       {!collapsed && (
-                      <div className="bg-[#060607]">
+                      <div className="bg-(--mm-inset)">
                         {routes.map(route => {
                           const inactive = inactiveRoutes?.has(route.id) ?? false
                           const on = visibleRoutes.has(route.id)
@@ -1850,13 +1853,13 @@ export function LineLegend({
                               className={`w-full px-2 py-1 flex items-center gap-2 transition-colors
                                          ${inactive
                                            ? 'opacity-30 cursor-not-allowed'
-                                           : on ? 'active:bg-white/[0.04]' : 'opacity-35'}`}
+                                           : on ? 'active:bg-(--mm-fg)/[0.04]' : 'opacity-35 light:opacity-100'}`}
                             >
                               <span
                                 className="mm-mono mm-tabular text-[11px] font-bold text-center shrink-0"
                                 style={{
                                   width: 36,
-                                  color: inactive ? '#444' : on ? route.color : '#555',
+                                  color: inactive ? '#444' : on ? route.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)',
                                   textShadow: !inactive && on ? `0 0 6px ${route.color}66` : 'none',
                                   textDecoration: inactive ? 'line-through' : 'none',
                                 }}
@@ -1864,7 +1867,7 @@ export function LineLegend({
                                 {route.name}
                               </span>
                               <span className={`text-[11px] flex-1 text-left truncate mm-han
-                                                ${inactive ? 'text-white/25' : on ? 'text-white/75' : 'text-white/30'}`}>
+                                                ${inactive ? 'text-(--mm-fg)/25' : on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                                 {inactive
                                   ? t.noServiceToday
                                   : (lang !== 'en' && route.nameCn ? route.nameCn : '')}
@@ -1885,24 +1888,24 @@ export function LineLegend({
           {mobilePanel === 'air' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-sky-300/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-sky)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-sky-300/80">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-sky)/80">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                        strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
                     <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
                   </svg>
                   <span
                     className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(125,211,252,0.35) 0 1px, transparent 1px 3px)' }}
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-sky) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                   />
                   <span className="mm-mono text-[10px] tracking-[0.25em]">AIR · 航班</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
                     {flightsOn ? flightCount : 0}/{totalFlightCount}
                   </span>
                   <button
@@ -1910,7 +1913,7 @@ export function LineLegend({
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
@@ -1920,16 +1923,16 @@ export function LineLegend({
                 disabled={!onToggleFlights}
                 aria-pressed={flightsOn}
                 className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${flightsOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${flightsOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
                            ${onToggleFlights ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={flightsOn ? 'text-sky-300' : 'text-white/40'}>✈</span>
-                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                  <span className={flightsOn ? 'text-(--mm-sky)' : 'text-(--mm-text-muted)'}>✈</span>
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
                     {flightCount} {t.flights}
                   </span>
                 </span>
-                <span className={`mm-mono text-[10px] tracking-[0.2em] ${flightsOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${flightsOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                   {flightsOn ? 'ON' : 'OFF'}
                 </span>
               </button>
@@ -1940,21 +1943,21 @@ export function LineLegend({
           {mobilePanel === 'sea' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-red-400/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-red-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-red-300/85">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-red)/85">
                   <span className="text-[12px] leading-none">{'\u2693\uFE0E'}</span>
                   <span
                     className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(248,113,113,0.35) 0 1px, transparent 1px 3px)' }}
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-red-2) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                   />
                   <span className="mm-mono text-[10px] tracking-[0.25em]">SEA · 船運</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
                     {ferriesOn ? ferryCount : 0}/{totalFerryCount}
                   </span>
                   <button
@@ -1962,7 +1965,7 @@ export function LineLegend({
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
@@ -1972,16 +1975,16 @@ export function LineLegend({
                 disabled={!onToggleFerries}
                 aria-pressed={ferriesOn}
                 className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${ferriesOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${ferriesOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
                            ${onToggleFerries ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={ferriesOn ? 'text-red-400' : 'text-white/40'}>{'\u2693\uFE0E'}</span>
-                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                  <span className={ferriesOn ? 'text-(--mm-red-2)' : 'text-(--mm-text-muted)'}>{'\u2693\uFE0E'}</span>
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
                     {ferryCount} {t.ferries}
                   </span>
                 </span>
-                <span className={`mm-mono text-[10px] tracking-[0.2em] ${ferriesOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${ferriesOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                   {ferriesOn ? 'ON' : 'OFF'}
                 </span>
               </button>
@@ -1994,12 +1997,12 @@ export function LineLegend({
           {mobilePanel === 'city' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-white/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-fg)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-white/85">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-fg)/85">
                   <CityIcon size={12} />
                   <span
                     className="inline-block w-[8px] h-[8px]"
@@ -2008,7 +2011,7 @@ export function LineLegend({
                   <span className="mm-mono text-[10px] tracking-[0.25em]">CITY · 城市</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
                     {cityLayerOn}/{cityLayerTotal}
                   </span>
                   <button
@@ -2016,34 +2019,34 @@ export function LineLegend({
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
               {cityLayerRows.map((row, i) => (
                 <div
                   key={row.panel}
-                  className={`flex items-stretch ${i > 0 ? 'border-t border-white/[0.06]' : ''} ${row.on ? '' : 'opacity-60'}`}
+                  className={`flex items-stretch ${i > 0 ? 'border-t border-(--mm-fg)/[0.06]' : ''} ${row.on ? '' : 'opacity-60 light:opacity-100'}`}
                 >
                   <button
                     type="button"
                     onClick={() => setMobilePanel(row.panel)}
-                    className="flex-1 min-w-0 px-3 py-3 flex items-center gap-2 text-left active:bg-white/[0.04]"
+                    className="flex-1 min-w-0 px-3 py-3 flex items-center gap-2 text-left active:bg-(--mm-fg)/[0.04]"
                   >
-                    <span className={`inline-flex w-4 justify-center shrink-0 ${row.on ? row.iconOn : 'text-white/40'}`}>
+                    <span className={`inline-flex w-4 justify-center shrink-0 ${row.on ? row.iconOn : 'text-(--mm-text-muted)'}`}>
                       {row.icon}
                     </span>
-                    <span className="mm-mono text-[10px] tracking-[0.2em] text-white/80 truncate">{row.label}</span>
+                    <span className="mm-mono text-[10px] tracking-[0.2em] text-(--mm-fg)/80 truncate">{row.label}</span>
                   </button>
                   <button
                     type="button"
                     onClick={row.toggle}
                     disabled={!row.toggle}
                     aria-pressed={row.on}
-                    className={`shrink-0 pl-3 pr-3 flex items-center gap-3.5 active:bg-white/[0.04] ${row.toggle ? '' : 'cursor-default'}`}
+                    className={`shrink-0 pl-3 pr-3 flex items-center gap-3.5 active:bg-(--mm-fg)/[0.04] ${row.toggle ? '' : 'cursor-default'}`}
                   >
-                    <span className={`mm-mono mm-tabular text-[12px] ${row.on ? row.countOn : 'text-white/35'}`}>{row.count}</span>
-                    <span className={`mm-mono text-[10px] tracking-[0.2em] w-[26px] text-right ${row.on ? 'text-emerald-300' : 'text-white/25'}`}>
+                    <span className={`mm-mono mm-tabular text-[12px] ${row.on ? row.countOn : 'text-(--mm-text-muted)'}`}>{row.count}</span>
+                    <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] w-[26px] text-right ${row.on ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                       {row.on ? 'ON' : 'OFF'}
                     </span>
                   </button>
@@ -2056,21 +2059,21 @@ export function LineLegend({
           {mobilePanel === 'works' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-amber-400/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-amber-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-amber-300/85">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-amber)/85">
                   <span className="text-[12px] leading-none">{'⚠︎'}</span>
                   <span
                     className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, rgba(245,158,11,0.45) 0 1px, transparent 1px 3px)' }}
+                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber-2) 45%, transparent) 0 1px, transparent 1px 3px)' }}
                   />
                   <span className="mm-mono text-[10px] tracking-[0.25em]">WORKS · 工程</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
                     {roadWorksOn ? activeRoadWorksCount : 0}/{totalRoadWorkCount}
                   </span>
                   <button
@@ -2078,7 +2081,7 @@ export function LineLegend({
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
@@ -2088,16 +2091,16 @@ export function LineLegend({
                 disabled={!onToggleRoadWorks}
                 aria-pressed={roadWorksOn}
                 className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${roadWorksOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${roadWorksOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
                            ${onToggleRoadWorks ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={roadWorksOn ? 'text-amber-400' : 'text-white/40'}>{'⚠︎'}</span>
-                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                  <span className={roadWorksOn ? 'text-(--mm-amber-2)' : 'text-(--mm-text-muted)'}>{'⚠︎'}</span>
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
                     {t.roadWorksActive(activeRoadWorksCount)}
                   </span>
                 </span>
-                <span className={`mm-mono text-[10px] tracking-[0.2em] ${roadWorksOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${roadWorksOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                   {roadWorksOn ? 'ON' : 'OFF'}
                 </span>
               </button>
@@ -2108,12 +2111,12 @@ export function LineLegend({
           {mobilePanel === 'schools' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-violet-400/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-violet-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-violet-300/85">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-violet)/85">
                   <MortarboardIcon />
                   <span
                     className="inline-block w-[8px] h-[8px]"
@@ -2126,7 +2129,7 @@ export function LineLegend({
                   onClick={() => setMobilePanel(null)}
                   aria-label="close"
                   className="w-6 h-6 flex items-center justify-center leading-none
-                             border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                             border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                 >×</button>
               </div>
               <button
@@ -2135,24 +2138,24 @@ export function LineLegend({
                 disabled={!onToggleSchools}
                 aria-pressed={schoolsOn}
                 className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${schoolsOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${schoolsOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
                            ${onToggleSchools ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={`inline-flex items-center ${schoolsOn ? 'text-violet-400' : 'text-white/40'}`}>
+                  <span className={`inline-flex items-center ${schoolsOn ? 'text-(--mm-violet-2)' : 'text-(--mm-text-muted)'}`}>
                     <MortarboardIcon />
                   </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
                     {t.schoolsCount(schoolEnabledCount)}
                   </span>
                 </span>
-                <span className={`mm-mono text-[10px] tracking-[0.2em] ${schoolsOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${schoolsOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                   {schoolsOn ? 'ON' : 'OFF'}
                 </span>
               </button>
               {/* Per-level rows — same handlers as the desktop panel, at a
                   44px tap target. No chevron: the modal is always expanded. */}
-              <div className={`pb-1 border-t border-white/10 ${schoolsOn ? '' : 'opacity-40'}`}>
+              <div className={`pb-1 border-t border-(--mm-fg)/10 ${schoolsOn ? '' : 'opacity-40 light:opacity-100'}`}>
                 {SCHOOL_LEVEL_ORDER.map(level => {
                   const on = isSchoolLevelOn(level)
                   const lit = schoolsOn && on
@@ -2165,7 +2168,7 @@ export function LineLegend({
                       disabled={!onToggleSchoolLevel}
                       aria-pressed={on}
                       title={schoolLevelLabel(t, level)}
-                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-white/[0.04] transition
+                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-(--mm-fg)/[0.04] transition
                                   ${onToggleSchoolLevel ? '' : 'cursor-default'}`}
                     >
                       <span
@@ -2175,18 +2178,18 @@ export function LineLegend({
                           : { boxShadow: `inset 0 0 0 1px ${color}99` }}
                       />
                       <span className={`text-[12px] leading-[1.2] flex-1 min-w-0 text-left truncate
-                                        ${on ? 'text-white/75' : 'text-white/30'}`}>
+                                        ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                         {schoolLevelLabel(t, level)}
                       </span>
                       <span
                         className={`mm-mono mm-tabular text-[11px] w-6 text-right shrink-0
-                                    ${lit ? '' : 'text-white/25'}`}
+                                    ${lit ? '' : 'text-(--mm-fg)/25'}`}
                         style={lit ? { color } : undefined}
                       >
                         {levelCounts[level] ?? 0}
                       </span>
-                      <span className={`mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
-                                        ${lit ? 'text-emerald-300' : 'text-white/25'}`}>
+                      <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
+                                        ${lit ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                         {on ? 'ON' : 'OFF'}
                       </span>
                     </button>
@@ -2200,12 +2203,12 @@ export function LineLegend({
           {mobilePanel === 'toilets' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-teal-400/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-teal-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-teal-300/85">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-teal)/85">
                   <ToiletIcon />
                   <span
                     className="inline-block w-[8px] h-[8px]"
@@ -2214,7 +2217,7 @@ export function LineLegend({
                   <span className="mm-mono text-[10px] tracking-[0.25em]">WC · 公廁</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
                     {toiletsOn ? toiletCount : 0}/{toiletCount}
                   </span>
                   <button
@@ -2222,7 +2225,7 @@ export function LineLegend({
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
@@ -2232,18 +2235,18 @@ export function LineLegend({
                 disabled={!onToggleToilets}
                 aria-pressed={toiletsOn}
                 className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${toiletsOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${toiletsOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
                            ${onToggleToilets ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={toiletsOn ? 'text-teal-400' : 'text-white/40'}>
+                  <span className={toiletsOn ? 'text-(--mm-teal-2)' : 'text-(--mm-text-muted)'}>
                     <ToiletIcon />
                   </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
                     {t.toiletsCount(toiletCount)}
                   </span>
                 </span>
-                <span className={`mm-mono text-[10px] tracking-[0.2em] ${toiletsOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${toiletsOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                   {toiletsOn ? 'ON' : 'OFF'}
                 </span>
               </button>
@@ -2254,12 +2257,12 @@ export function LineLegend({
           {mobilePanel === 'carparks' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-blue-400/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-blue-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-blue-300/85">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-blue)/85">
                   <CarParkIcon />
                   <span
                     className="inline-block w-[8px] h-[8px]"
@@ -2268,7 +2271,7 @@ export function LineLegend({
                   <span className="mm-mono text-[10px] tracking-[0.25em]">PARKING · 停車場</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
                     {carParksOn ? carParkCount : 0}/{carParkCount}
                   </span>
                   <button
@@ -2276,7 +2279,7 @@ export function LineLegend({
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
@@ -2286,18 +2289,18 @@ export function LineLegend({
                 disabled={!onToggleCarParks}
                 aria-pressed={carParksOn}
                 className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${carParksOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${carParksOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
                            ${onToggleCarParks ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={carParksOn ? 'text-blue-400' : 'text-white/40'}>
+                  <span className={carParksOn ? 'text-(--mm-blue-2)' : 'text-(--mm-text-muted)'}>
                     <CarParkIcon />
                   </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
                     {t.carParksCount(carParkCount)}
                   </span>
                 </span>
-                <span className={`mm-mono text-[10px] tracking-[0.2em] ${carParksOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${carParksOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                   {carParksOn ? 'ON' : 'OFF'}
                 </span>
               </button>
@@ -2308,12 +2311,12 @@ export function LineLegend({
           {mobilePanel === 'waste' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-green-400/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-green-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-green-300/85">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-green)/85">
                   <WasteIcon />
                   <span
                     className="inline-block w-[8px] h-[8px]"
@@ -2322,7 +2325,7 @@ export function LineLegend({
                   <span className="mm-mono text-[10px] tracking-[0.25em]">WASTE · 垃圾回收</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
                     {wasteOn ? wasteVisibleCount : 0}/{wasteTotal}
                   </span>
                   <button
@@ -2330,7 +2333,7 @@ export function LineLegend({
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
@@ -2340,24 +2343,24 @@ export function LineLegend({
                 disabled={!onToggleWaste}
                 aria-pressed={wasteOn}
                 className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${wasteOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${wasteOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
                            ${onToggleWaste ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={wasteOn ? 'text-green-400' : 'text-white/40'}>
+                  <span className={wasteOn ? 'text-(--mm-green-2)' : 'text-(--mm-text-muted)'}>
                     <WasteIcon />
                   </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
                     {t.wasteCount(wasteVisibleCount)}
                   </span>
                 </span>
-                <span className={`mm-mono text-[10px] tracking-[0.2em] ${wasteOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${wasteOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                   {wasteOn ? 'ON' : 'OFF'}
                 </span>
               </button>
               {/* Per-type rows — same handlers as the desktop key, at a 44px tap
                   target. No collapsing: the modal is always expanded. */}
-              <div className={`pb-1 border-t border-white/10 ${wasteOn ? '' : 'opacity-40'}`}>
+              <div className={`pb-1 border-t border-(--mm-fg)/10 ${wasteOn ? '' : 'opacity-40 light:opacity-100'}`}>
                 {wasteLegendRows(t, wasteCounts, hiddenWasteTypes).map(row => {
                   // "Lit" = actually drawn on the map: the type is on AND the
                   // master switch is on.
@@ -2370,7 +2373,7 @@ export function LineLegend({
                       disabled={!onToggleWasteType}
                       aria-pressed={row.on}
                       title={row.label}
-                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-white/[0.04] transition
+                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-(--mm-fg)/[0.04] transition
                                   ${onToggleWasteType ? '' : 'cursor-default'}`}
                     >
                       <span
@@ -2380,18 +2383,18 @@ export function LineLegend({
                           : { boxShadow: `inset 0 0 0 1px ${row.color}99` }}
                       />
                       <span className={`text-[12px] leading-[1.2] flex-1 min-w-0 text-left truncate
-                                        ${row.on ? 'text-white/75' : 'text-white/30'}`}>
+                                        ${row.on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                         {row.label}
                       </span>
                       <span
                         className={`mm-mono mm-tabular text-[11px] w-8 text-right shrink-0
-                                    ${lit ? '' : 'text-white/25'}`}
+                                    ${lit ? '' : 'text-(--mm-fg)/25'}`}
                         style={lit ? { color: row.color } : undefined}
                       >
                         {row.count}
                       </span>
-                      <span className={`mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
-                                        ${lit ? 'text-emerald-300' : 'text-white/25'}`}>
+                      <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
+                                        ${lit ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                         {row.on ? 'ON' : 'OFF'}
                       </span>
                     </button>
@@ -2400,10 +2403,10 @@ export function LineLegend({
                 {/* The same two captions as the desktop key: what the type rows
                     do, and what switching the layer on does to the rest of the
                     map — the counterpart of the WATER key's disclaimer. */}
-                <div className="px-3 pt-1 mm-mono text-[8px] tracking-[0.18em] text-white/30 uppercase">
+                <div className="px-3 pt-1 mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
                   {t.wasteTypesHint}
                 </div>
-                <div className="px-3 pb-1 mm-mono text-[8px] tracking-[0.18em] text-white/30 uppercase">
+                <div className="px-3 pb-1 mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
                   {t.wasteFocusNote}
                 </div>
               </div>
@@ -2414,12 +2417,12 @@ export function LineLegend({
           {mobilePanel === 'water' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-sky-400/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-sky-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-sky-300/85">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-sky)/85">
                   <WaterIcon />
                   <span
                     className="inline-block w-[8px] h-[8px]"
@@ -2428,7 +2431,7 @@ export function LineLegend({
                   <span className="mm-mono text-[10px] tracking-[0.25em]">WATER · 供水</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
                     {waterOn ? waterCount : 0}/{waterCount}
                   </span>
                   <button
@@ -2436,7 +2439,7 @@ export function LineLegend({
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
@@ -2446,18 +2449,18 @@ export function LineLegend({
                 disabled={!onToggleWater}
                 aria-pressed={waterOn}
                 className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${waterOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${waterOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
                            ${onToggleWater ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={waterOn ? 'text-sky-400' : 'text-white/40'}>
+                  <span className={waterOn ? 'text-(--mm-sky-2)' : 'text-(--mm-text-muted)'}>
                     <WaterIcon />
                   </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
                     {t.waterCount(waterCount)}
                   </span>
                 </span>
-                <span className={`mm-mono text-[10px] tracking-[0.2em] ${waterOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${waterOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                   {waterOn ? 'ON' : 'OFF'}
                 </span>
               </button>
@@ -2465,7 +2468,7 @@ export function LineLegend({
                   layer is on: a touch device has no hover, so this modal is
                   the only place the marks are ever explained. Its caption
                   carries the "schematic" disclaimer. */}
-              <div className="border-t border-white/10 pt-1.5">
+              <div className="border-t border-(--mm-fg)/10 pt-1.5">
                 <WaterKey network={waterNetwork} caption={t.waterNetworkNote} />
               </div>
             </div>
@@ -2475,12 +2478,12 @@ export function LineLegend({
           {mobilePanel === 'power' && (
             <div
               onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-[#0b0b0c]
-                         border border-amber-400/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_rgba(0,0,0,0.8)]"
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-amber-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
             >
-              <div className="px-3 py-2 border-b border-white/10 bg-white/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-amber-300/85">
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-amber)/85">
                   <PowerIcon />
                   <span
                     className="inline-block w-[8px] h-[8px]"
@@ -2489,7 +2492,7 @@ export function LineLegend({
                   <span className="mm-mono text-[10px] tracking-[0.25em]">POWER · 電力</span>
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-white/30">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
                     {powerOn ? powerCount : 0}/{powerCount}
                   </span>
                   <button
@@ -2497,7 +2500,7 @@ export function LineLegend({
                     onClick={() => setMobilePanel(null)}
                     aria-label="close"
                     className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-white/15 text-white/60 active:bg-white/10 mm-mono text-[16px]"
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
                   >×</button>
                 </div>
               </div>
@@ -2507,25 +2510,25 @@ export function LineLegend({
                 disabled={!onTogglePower}
                 aria-pressed={powerOn}
                 className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${powerOn ? 'active:bg-white/[0.04]' : 'active:bg-white/[0.04] opacity-60'}
+                           ${powerOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
                            ${onTogglePower ? '' : 'cursor-default'}`}
               >
                 <span className="flex items-center gap-2">
-                  <span className={powerOn ? 'text-amber-400' : 'text-white/40'}>
+                  <span className={powerOn ? 'text-(--mm-amber-2)' : 'text-(--mm-text-muted)'}>
                     <PowerIcon />
                   </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-white/80">
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
                     {t.powerCount(powerCount)}
                   </span>
                 </span>
-                <span className={`mm-mono text-[10px] tracking-[0.2em] ${powerOn ? 'text-emerald-300' : 'text-white/25'}`}>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${powerOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
                   {powerOn ? 'ON' : 'OFF'}
                 </span>
               </button>
               {/* Shown whether or not the layer is on, like the WATER modal: a
                   touch device has no hover, so this is the only place the marks
                   are ever explained. Its caption carries the disclaimer. */}
-              <div className="border-t border-white/10 pt-1.5">
+              <div className="border-t border-(--mm-fg)/10 pt-1.5">
                 <PowerKey network={powerNetwork} caption={t.powerNetworkNote} />
               </div>
             </div>

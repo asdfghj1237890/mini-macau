@@ -2,6 +2,78 @@
 @import "maplibre-gl/dist/maplibre-gl.css";
 
 @variant landscape (@media (orientation: landscape) and (max-height: 500px));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+/* THEME TOKENS. Every panel, chip and label is painted from these, never from
+   a literal colour (Tailwind: `bg-(--mm-panel)`, `text-(--mm-fg)/60`, …), so
+   switching the `data-theme` attribute on <html> — written by src/theme.ts —
+   re-skins the whole chrome. `--mm-fg` is the INK the opacity modifiers dilute:
+   white on the dark panels, near-black on the light ones, so `text-(--mm-fg)/25`
+   is a faint label in both. The accent family darkens in light mode because
+   amber-200 on a pale panel would fail contrast; the map's own colours are
+   handled in JS (waterMotionColors / powerMotionColors), not here. */
+:root {
+  /* Surfaces and ink. */
+  --mm-bg: #0a0a0a;         /* page */
+  --mm-panel: #0b0b0c;      /* cards */
+  --mm-panel-2: #0a0a0b;    /* buttons, chips, gradient dark end */
+  --mm-control-hover: color-mix(in srgb, var(--mm-amber) 10%, var(--mm-panel-2));
+  --mm-panel-3: #131314;    /* gradient light end */
+  --mm-inset: #050506;      /* sunken wells: the timeline track, the clock face */
+  --mm-fg: #ffffff;
+  --mm-text-secondary: rgba(255, 255, 255, 0.6);
+  --mm-text-muted: rgba(255, 255, 255, 0.45);
+  --mm-text-subtle: rgba(255, 255, 255, 0.35);
+  --mm-text-accent: color-mix(in srgb, var(--mm-amber) 70%, transparent);
+  --mm-border: rgba(255, 255, 255, 0.1);
+  --mm-seam: rgba(0, 0, 0, 0.4);    /* hairlines between segments of one panel */
+  --mm-shadow: rgba(0, 0, 0, 0.6);
+  --mm-scrim: rgba(0, 0, 0, 0.6);   /* modal backdrop */
+  --mm-on-accent: #000000;          /* text on a solid accent chip */
+  /* Hues, three steps each: -1 = the pale text shade (Tailwind 100/200),
+     bare = the 300 text/border shade, -2 = the 400/500 fill shade. Light mode
+     runs them the other way (800 / 700 / 600) so text keeps its contrast. */
+  --mm-amber-1: #fde68a;   --mm-amber: #fcd34d;   --mm-amber-2: #fbbf24;
+  --mm-emerald-1: #a7f3d0; --mm-emerald: #6ee7b7; --mm-emerald-2: #34d399;
+  --mm-sky-1: #bae6fd;     --mm-sky: #7dd3fc;     --mm-sky-2: #38bdf8;
+  --mm-red-1: #fecaca;     --mm-red: #fca5a5;     --mm-red-2: #f87171;
+  --mm-blue-1: #bfdbfe;    --mm-blue: #93c5fd;    --mm-blue-2: #60a5fa;
+  --mm-teal-1: #99f6e4;    --mm-teal: #5eead4;    --mm-teal-2: #2dd4bf;
+  --mm-violet-1: #ddd6fe;  --mm-violet: #c4b5fd;  --mm-violet-2: #a78bfa;
+  --mm-lime-1: #d9f99d;    --mm-lime: #bef264;    --mm-lime-2: #a3e635;
+  --mm-green-1: #bbf7d0;   --mm-green: #86efac;   --mm-green-2: #4ade80;
+  --mm-slate-1: #e2e8f0;   --mm-slate: #cbd5e1;   --mm-slate-2: #94a3b8;
+}
+[data-theme="light"] {
+  /* Warm paper, with a crisp raised surface and a quieter recessed surface.
+     Text uses opaque semantic tones: diluting dark ink as far as the night
+     theme's white labels makes small daytime labels difficult to read. */
+  --mm-bg: #e8ece7;
+  --mm-panel: #f7f7f2;
+  --mm-panel-2: #fdfdf9;
+  --mm-panel-3: #eeefe7;
+  --mm-inset: #e8ebe3;
+  --mm-fg: #222c26;
+  --mm-text-secondary: #4d5951;
+  --mm-text-muted: #606b62;
+  --mm-text-subtle: #636b63;
+  --mm-text-accent: #95501b;
+  --mm-border: #c5cdc3;
+  --mm-seam: rgba(41, 57, 44, 0.16);
+  --mm-shadow: rgba(28, 43, 32, 0.16);
+  --mm-scrim: rgba(26, 38, 30, 0.35);
+  --mm-on-accent: #ffffff;
+  --mm-amber-1: #92400e;   --mm-amber: #b45309;   --mm-amber-2: #d97706;
+  --mm-emerald-1: #065f46; --mm-emerald: #047857; --mm-emerald-2: #059669;
+  --mm-sky-1: #075985;     --mm-sky: #0369a1;     --mm-sky-2: #0284c7;
+  --mm-red-1: #991b1b;     --mm-red: #b91c1c;     --mm-red-2: #dc2626;
+  --mm-blue-1: #1e40af;    --mm-blue: #1d4ed8;    --mm-blue-2: #2563eb;
+  --mm-teal-1: #115e59;    --mm-teal: #0f766e;    --mm-teal-2: #0d9488;
+  --mm-violet-1: #5b21b6;  --mm-violet: #6d28d9;  --mm-violet-2: #7c3aed;
+  --mm-lime-1: #3f6212;    --mm-lime: #4d7c0f;    --mm-lime-2: #65a30d;
+  --mm-green-1: #166534;   --mm-green: #15803d;   --mm-green-2: #16a34a;
+  --mm-slate-1: #1e293b;   --mm-slate: #334155;   --mm-slate-2: #475569;
+}
 
 @font-face {
   font-family: 'DSEG7 Classic';
@@ -13,6 +85,22 @@
 .mm-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 .mm-han  { font-family: 'Noto Sans HK', 'Noto Sans TC', sans-serif; }
 .mm-tabular { font-variant-numeric: tabular-nums; }
+
+/* Small ON/OFF labels stay legible even when a layer is switched off. */
+[data-theme="light"] .mm-layer-state {
+  min-width: 2.25rem;
+  padding: 2px 4px;
+  border: 1px solid color-mix(in srgb, currentColor 22%, transparent);
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  border-radius: 2px;
+  text-align: center;
+  font-weight: 600;
+}
+
+:where(button, a, input, select, [tabindex]):focus-visible {
+  outline: 2px solid var(--mm-amber);
+  outline-offset: 3px;
+}
 
 @keyframes mm-led-pulse { 0%,100% { opacity: 1; } 50% { opacity: .82; } }
 .mm-led-pulse { animation: mm-led-pulse 1.6s ease-in-out infinite; }
@@ -30,17 +118,17 @@ html, body, #root {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #0a0a0a;
-  color: #eaeaea;
+  background: var(--mm-bg);
+  color: color-mix(in srgb, var(--mm-fg) 92%, transparent);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-tap-highlight-color: transparent;
 }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.28); }
+::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--mm-fg) 15%, transparent); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--mm-fg) 28%, transparent); }
 ::-webkit-scrollbar-track { background: transparent; }
-* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.15) transparent; }
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--mm-fg) 15%, transparent) transparent; }
 
 /* Desktop: move MapLibre +/- zoom controls to top-left (below hamburger)
    so the LAYERS panel at top-right doesn't cover them. Also scale overlay UI 1.3x. */
@@ -63,10 +151,10 @@ html, body, #root {
    (dark #0a0a0b body, amber-300/25 border, amber-200-tinted icons). Width is
    pinned to 36px so its left edge aligns with the w-9 hamburger above it. */
 .maplibregl-ctrl-top-right .maplibregl-ctrl-group {
-  background: #0a0a0b;
-  border: 1px solid rgba(252, 196, 65, 0.25);
+  background: var(--mm-panel-2);
+  border: 1px solid color-mix(in srgb, var(--mm-amber) 25%, transparent);
   border-radius: 0;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 8px 24px var(--mm-shadow);
 }
 .maplibregl-ctrl-top-right .maplibregl-ctrl-group button {
   width: 36px;
@@ -75,22 +163,27 @@ html, body, #root {
   transition: background-color 0.15s ease;
 }
 .maplibregl-ctrl-top-right .maplibregl-ctrl-group button + button {
-  border-top: 1px solid rgba(252, 196, 65, 0.15);
+  border-top: 1px solid color-mix(in srgb, var(--mm-amber) 15%, transparent);
 }
 .maplibregl-ctrl-top-right .maplibregl-ctrl-group button:hover {
-  background-color: rgba(252, 196, 65, 0.10);
+  background-color: color-mix(in srgb, var(--mm-amber) 10%, transparent);
 }
 .maplibregl-ctrl-top-right .maplibregl-ctrl-group button:active {
-  background-color: rgba(252, 196, 65, 0.18);
+  background-color: color-mix(in srgb, var(--mm-amber) 18%, transparent);
 }
 .maplibregl-ctrl-top-right .maplibregl-ctrl-group button:focus:not(:focus-visible) {
   box-shadow: none;
 }
 /* Tint the default black SVG icons to amber-200 (#fde68a) so they match
-   the menu button's text-amber-200 icon. Recipe generated via the standard
-   "color → filter" conversion (CodePen/Pjoqqp). */
+   the menu button's amber icon. Recipe generated via the standard
+   "color → filter" conversion (CodePen/Pjoqqp). In light mode the icons
+   stay MapLibre's own black: it matches the near-black ink of the light
+   chrome, and no filter recipe lands reliably on amber-700. */
 .maplibregl-ctrl-top-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
   filter: invert(92%) sepia(16%) saturate(1193%) hue-rotate(321deg) brightness(103%) contrast(96%);
+}
+[data-theme="light"] .maplibregl-ctrl-top-right .maplibregl-ctrl-group button .maplibregl-ctrl-icon {
+  filter: none;
 }
 
 @supports (padding: env(safe-area-inset-bottom)) {

@@ -51,10 +51,10 @@ const OSM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright'
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/35 shrink-0 pt-[2px]">
+      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
         {label}
       </span>
-      <span className="text-[10px] text-white/80 text-right mm-han min-w-0">{value}</span>
+      <span className="text-[10px] text-(--mm-fg)/80 text-right mm-han min-w-0">{value}</span>
     </div>
   )
 }
@@ -87,35 +87,35 @@ function Shell({ color, kindLabel, title, subtitle, footer, onClose, children }:
                     max-sm:top-auto max-sm:bottom-[calc(env(safe-area-inset-bottom,0px)+168px)] max-sm:left-2 max-sm:right-2 max-sm:w-auto
                     landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]"
          style={{ zoom: 1.2 }}>
-      <div className="bg-[#0b0b0c]/95 backdrop-blur-md border border-white/10 rounded-sm
-                      shadow-2xl shadow-black/60 overflow-hidden mm-fade">
+      <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-fg)/10 rounded-sm
+                      shadow-2xl shadow-(color:--mm-shadow) overflow-hidden mm-fade">
         {/* Header signboard — the kicker is the layer, the bold line the kind. */}
-        <div className="flex items-stretch border-b border-white/10">
-          <div className="px-3 py-2 flex items-center gap-2 border-r border-white/10"
+        <div className="flex items-stretch border-b border-(--mm-fg)/10">
+          <div className="px-3 py-2 flex items-center gap-2 border-r border-(--mm-fg)/10"
                style={{ backgroundColor: `${color}14` }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">
+              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-secondary)">
                 {t.wasteLabel}
               </div>
-              <div className="text-[13px] font-bold text-white leading-tight mm-han whitespace-nowrap">
+              <div className="text-[13px] font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap">
                 {kindLabel}
               </div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="text-[14px] font-bold text-white truncate mm-han" title={title}>
+            <div className="text-[14px] font-bold text-(--mm-fg) truncate mm-han" title={title}>
               {title}
             </div>
             {subtitle && (
-              <div className="text-[10px] text-white/45 truncate mm-han" title={subtitle}>
+              <div className="text-[10px] text-(--mm-text-muted) truncate mm-han" title={subtitle}>
                 {subtitle}
               </div>
             )}
           </div>
           <button
             onClick={onClose}
-            className="px-3 text-white/40 hover:text-white hover:bg-white/5 border-l border-white/10
+            className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
                        mm-mono text-[13px] transition-colors"
             aria-label={t.cancel}
           >
@@ -126,11 +126,11 @@ function Shell({ color, kindLabel, title, subtitle, footer, onClose, children }:
         {children}
 
         {/* Footer: provenance */}
-        <div className="px-3 py-1.5 border-t border-white/8 bg-white/[0.02] flex items-center justify-between gap-2">
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-white/35 uppercase">
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between gap-2">
+          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {t.wasteSource}
           </span>
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-white/45 truncate">
+          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-(--mm-text-muted) truncate">
             {footer}
           </span>
         </div>
@@ -174,18 +174,18 @@ export function WasteSiteInfoPanel({ site, sources, onClose }: Props) {
                 href={site.photo}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-emerald-200 transition-colors"
+                className="hover:text-(--mm-emerald-1) transition-colors"
               >
                 {t.wastePhoto}
               </a>
-              <span className="text-white/25 mx-[3px]">·</span>
+              <span className="text-(--mm-fg)/25 mx-[3px]">·</span>
             </>
           )}
           <a
             href={agency === 'iam' ? IAM_URL : DSPA_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-emerald-200 transition-colors"
+            className="hover:text-(--mm-emerald-1) transition-colors"
           >
             {agency === 'iam' ? '市政署 (IAM)' : '環境保護局 (DSPA)'}
           </a>
@@ -194,7 +194,7 @@ export function WasteSiteInfoPanel({ site, sources, onClose }: Props) {
             href={source?.url || (fromIamMap ? WASTE_IAM_MAP_URL : DATA_PORTAL_URL)}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-emerald-200 transition-colors"
+            className="hover:text-(--mm-emerald-1) transition-colors"
           >
             {fromIamMap ? '環境資訊網' : 'data.gov.mo'}
           </a>
@@ -217,7 +217,7 @@ export function WasteSiteInfoPanel({ site, sources, onClose }: Props) {
       {site.closed && (
         <div className="px-3 pb-2 flex flex-wrap gap-1">
           <span className="mm-han text-[9px] leading-none px-1.5 py-[3px] border
-                           border-amber-300/30 bg-amber-300/[0.08] text-amber-200/80">
+                           border-(--mm-amber)/30 bg-(--mm-amber)/[0.08] text-(--mm-amber-1)/80">
             {t.wasteClosed}
           </span>
         </div>
@@ -265,7 +265,7 @@ export function WasteIncineratorInfoPanel(
             href={DSPA_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-lime-200 transition-colors"
+            className="hover:text-(--mm-lime-1) transition-colors"
           >
             環境保護局 (DSPA)
           </a>
@@ -274,7 +274,7 @@ export function WasteIncineratorInfoPanel(
             href={OSM_COPYRIGHT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-lime-200 transition-colors"
+            className="hover:text-(--mm-lime-1) transition-colors"
           >
             OpenStreetMap
           </a>
@@ -286,7 +286,7 @@ export function WasteIncineratorInfoPanel(
       </div>
       {/* What this plant actually is, in one line: the government's incinerator
           at Pac On, whose electricity reaches CEM through 焚化爐變電站. */}
-      <div className="px-3 pb-2 text-[10px] leading-[1.45] text-white/55 mm-han">
+      <div className="px-3 pb-2 text-[10px] leading-[1.45] text-(--mm-text-secondary) mm-han">
         {t.wasteIncineratorNote}
       </div>
 
@@ -305,7 +305,7 @@ export function WasteIncineratorInfoPanel(
         ] : []}
       />
       {facts && (
-        <div className="px-3 pb-2 text-[9px] leading-[1.4] text-white/40 mm-han">
+        <div className="px-3 pb-2 text-[9px] leading-[1.4] text-(--mm-text-muted) mm-han">
           {t.wasteStatsFacts(
             t.wasteStatsPhases(facts.phases.join(' / ')),
             facts.lines,
@@ -343,7 +343,7 @@ export function WasteEcoStationInfoPanel(
           href={station.source?.url || DSPA_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-emerald-200 transition-colors"
+          className="hover:text-(--mm-emerald-1) transition-colors"
         >
           {station.source?.name || '環境保護局 (DSPA)'}
         </a>
@@ -358,7 +358,7 @@ export function WasteEcoStationInfoPanel(
       {station.approximate && (
         <div className="px-3 pb-2 flex flex-wrap gap-1">
           <span className="mm-han text-[9px] leading-none px-1.5 py-[3px] border
-                           border-white/20 bg-white/[0.06] text-white/70">
+                           border-(--mm-fg)/20 bg-(--mm-fg)/[0.06] text-(--mm-fg)/70">
             {t.wasteApproximate}
           </span>
         </div>
@@ -432,7 +432,7 @@ export function WasteFacilityInfoPanel(
             href={facility.source?.url || DSPA_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-emerald-200 transition-colors"
+            className="hover:text-(--mm-emerald-1) transition-colors"
           >
             {facility.source?.name || '環境保護局 (DSPA)'}
           </a>
@@ -443,7 +443,7 @@ export function WasteFacilityInfoPanel(
                 href={`https://www.openstreetmap.org/way/${osmId.replace(/^w/, '')}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-emerald-200 transition-colors"
+                className="hover:text-(--mm-emerald-1) transition-colors"
               >
                 OSM
               </a>
@@ -462,14 +462,14 @@ export function WasteFacilityInfoPanel(
         </div>
       )}
       {note && (
-        <div className="px-3 py-2 text-[10px] leading-[1.45] text-white/60 mm-han">
+        <div className="px-3 py-2 text-[10px] leading-[1.45] text-(--mm-text-secondary) mm-han">
           {note}
         </div>
       )}
       {facility.approximate && (
         <div className="px-3 pb-2 flex flex-wrap gap-1">
           <span className="mm-han text-[9px] leading-none px-1.5 py-[3px] border
-                           border-white/20 bg-white/[0.06] text-white/70">
+                           border-(--mm-fg)/20 bg-(--mm-fg)/[0.06] text-(--mm-fg)/70">
             {t.wasteApproximate}
           </span>
         </div>
@@ -480,8 +480,8 @@ export function WasteFacilityInfoPanel(
           series={series}
           pick={isWwtp ? pickTotalM3 : isLandfill ? pickVolumeM3 : pickReceivedT}
           chips={chips}
-          accentClass={isWwtp ? 'text-violet-200' : 'text-white/80'}
-          barClass={isWwtp ? 'bg-violet-300' : 'bg-white/70'}
+          accentClass={isWwtp ? 'text-(--mm-violet-1)' : 'text-(--mm-fg)/80'}
+          barClass={isWwtp ? 'bg-(--mm-violet)' : 'bg-(--mm-fg)/70'}
         />
       ) : (
         // Say so, rather than leaving a gap that reads as a loading failure.
