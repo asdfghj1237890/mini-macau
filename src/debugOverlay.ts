@@ -9,6 +9,7 @@
 const LS_KEY = 'mini-macau-debug'
 const LOG_KEY = 'mini-macau-debug-log'
 const MAX_LINES = 80
+const MAX_PINNED = 5
 const HEARTBEAT_MS = 3000
 
 let sink: ((line: string) => void) | null = null
@@ -126,14 +127,15 @@ function hookShaderCompiles(write: (line: string) => void): void {
     if (ok) return
     failed++
     stats.shaderFail = failed
+    let lost = false
+    try { lost = this.isContextLost() } catch { /* keep false */ }
+    stats.lost = lost ? 'YES' : 'no'
     if (failed > 3) return
     let type = '?'
     let log: string | null = null
-    let lost = false
     try {
       type = this.getShaderParameter(shader, this.SHADER_TYPE) === this.FRAGMENT_SHADER ? 'fragment' : 'vertex'
       log = this.getShaderInfoLog(shader)
-      lost = this.isContextLost()
     } catch { /* keep what we have */ }
     write(`SHADER FAIL ${type} · contextLost ${lost} · log ${JSON.stringify(log)} · ${describeShader(sources.get(shader) ?? '')}`)
   }
@@ -158,14 +160,22 @@ export function installDebugOverlay(): void {
     } as typeof proto.getContext
   }
 
-  const box = document.createElement('pre')
+  // The panel: a scrolling log on top and, pinned under it, the few lines
+  // that decide a diagnosis (a failed shader, a lost context) — so a photo of
+  // the panel's bottom edge always carries them, however long the log gets.
+  const box = document.createElement('div')
   box.id = 'mm-debug'
   box.style.cssText = [
-    'position:fixed', 'left:0', 'right:0', 'bottom:0', 'max-height:45vh', 'overflow:auto',
-    'margin:0', 'padding:8px 10px', 'background:rgba(0,0,0,.88)', 'color:#fecaca',
+    'position:fixed', 'left:0', 'right:0', 'bottom:0', 'max-height:45vh',
+    'display:flex', 'flex-direction:column', 'background:rgba(0,0,0,.88)', 'color:#fecaca',
     'font:11px/1.35 ui-monospace,Menlo,Consolas,monospace', 'z-index:2147483647',
-    'white-space:pre-wrap', 'word-break:break-word',
   ].join(';')
+  const logEl = document.createElement('pre')
+  logEl.style.cssText = 'margin:0;padding:8px 10px;overflow:auto;flex:1 1 auto;min-height:0;white-space:pre-wrap;word-break:break-word'
+  const pinEl = document.createElement('pre')
+  pinEl.style.cssText = 'margin:0;padding:6px 10px;flex:0 0 auto;white-space:pre-wrap;word-break:break-word;background:rgba(127,29,29,.6);color:#fee2e2;border-top:1px solid rgba(254,202,202,.4)'
+  pinEl.hidden = true
+  box.append(logEl, pinEl)
 
   // A page the OS kills (memory) leaves no error behind, but the log it wrote
   // before dying is still in localStorage: show the previous load's tail
@@ -173,17 +183,25 @@ export function installDebugOverlay(): void {
   const previous: string[] = []
   try {
     const raw = localStorage.getItem(LOG_KEY)
-    const arr: unknown = raw ? JSON.parse(raw) : null
-    if (Array.isArray(arr)) {
-      const tail = arr.filter((l): l is string => typeof l === 'string').slice(-30)
-      if (tail.length) previous.push('--- previous page load ---', ...tail, '--- this page load ---')
+    const parsed: unknown = raw ? JSON.parse(raw) : null
+    const saved = Array.isArray(parsed) ? { lines: parsed, pinned: [] } : (parsed as { lines?: unknown; pinned?: unknown } | null)
+    const strings = (v: unknown) => (Array.isArray(v) ? v.filter((l): l is string => typeof l === 'string') : [])
+    const tail = strings(saved?.lines).slice(-30)
+    const pins = strings(saved?.pinned)
+    if (tail.length || pins.length) {
+      previous.push('--- previous page load ---', ...pins.map(p => `PINNED ${p}`), ...tail, '--- this page load ---')
     }
   } catch { /* unreadable or absent: nothing to show */ }
   const lines: string[] = []
+  const pinned: string[] = []
   const stamp = () => new Date().toISOString().slice(11, 23)
   const flush = () => {
-    box.textContent = [...previous, ...lines].join('\n')
-    try { localStorage.setItem(LOG_KEY, JSON.stringify(lines)) } catch { /* private mode or quota */ }
+    const nearBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 40
+    logEl.textContent = [...previous, ...lines].join('\n')
+    if (nearBottom) logEl.scrollTop = logEl.scrollHeight
+    pinEl.hidden = pinned.length === 0
+    pinEl.textContent = pinned.join('\n')
+    try { localStorage.setItem(LOG_KEY, JSON.stringify({ lines, pinned })) } catch { /* private mode or quota */ }
   }
   // A line repeated back to back (an exception thrown every frame) collapses
   // into one line with a count, so a flood cannot evict the history above it.
@@ -198,6 +216,9 @@ export function installDebugOverlay(): void {
       repeats = 0
       lines.push(`${stamp()} ${line}`)
       if (lines.length > MAX_LINES) lines.shift()
+      if (pinned.length < MAX_PINNED && /SHADER FAIL|webglcontextlost|GPUInitializationError|Program failed to link/.test(line)) {
+        pinned.push(`${stamp()} ${line}`)
+      }
     }
     flush()
   }
