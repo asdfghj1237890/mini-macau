@@ -2341,6 +2341,17 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         debugLog('[map] ?layers=none: no app sources or layers added')
         return
       }
+      // Mount schedules this twice: from 'load' here, and from the
+      // 'style.load' the [isDark] effect's setStyle({diff: false}) fires right
+      // after construction. On a desktop one of the two is swallowed; on an
+      // iPhone both arrive for the same style, and the second run's first
+      // addSource threw "Source already exists" from inside MapLibre's event
+      // dispatch. The ref is reset before a theme swap, so a genuine restyle
+      // still rebuilds everything.
+      if (layersAddedRef.current) {
+        debugLog('[map] layers already added for this style; skipped')
+        return
+      }
       const dark = isDarkRef.current
       // The overlays' own map colours differ per theme (white dots vanish on the light basemap,
       // Positron); everything below that moves or glows takes them from here.
