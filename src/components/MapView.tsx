@@ -127,7 +127,10 @@ import { debugEnabled, debugLog, debugStat } from '../debugOverlay'
 // overlay in debugOverlay.ts shows how far it got): `?maxdpr=2` caps the
 // render pixel ratio, `?no3d=1` starts flat with buildings off, `?nosim=1`
 // never runs the simulation tick (no vehicle positions, no per-tick
-// setData). Read once; all are absent on a normal load.
+// setData), `?layers=none` adds none of our sources and layers at all (the
+// basemap, the data loading and the React UI still run; every setData site
+// is optional-chained, so missing sources are simply skipped). Read once;
+// all are absent on a normal load.
 const debugSwitches = (() => {
   try {
     const q = new URLSearchParams(window.location.search)
@@ -136,9 +139,10 @@ const debugSwitches = (() => {
       maxDpr: maxDpr > 0 ? maxDpr : null,
       no3d: q.get('no3d') === '1',
       nosim: q.get('nosim') === '1',
+      noLayers: q.get('layers') === 'none',
     }
   } catch {
-    return { maxDpr: null, no3d: false, nosim: false }
+    return { maxDpr: null, no3d: false, nosim: false, noLayers: false }
   }
 })()
 
@@ -2284,6 +2288,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
 
     const addCustomLayers = (m: maplibregl.Map) => {
+      if (debugSwitches.noLayers) {
+        debugLog('[map] ?layers=none: no app sources or layers added')
+        return
+      }
       const dark = isDarkRef.current
       // The overlays' own map colours differ per theme (white dots vanish on the light basemap,
       // Positron); everything below that moves or glows takes them from here.
