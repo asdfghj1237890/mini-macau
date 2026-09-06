@@ -78,8 +78,72 @@ function webglReport(): string {
       renderer = '?'
     }
   }
-  const maxTex = gl2 ? String(gl2.getParameter(gl2.MAX_TEXTURE_SIZE)) : '?'
-  return `webgl2 ${gl2 ? 'yes' : 'NO'} · webgl1 ${gl1 ? 'yes' : 'no'} · renderer ${renderer} · maxTex ${maxTex}`
+  let limits = ''
+  if (gl2) {
+    try {
+      limits = ` · maxTex ${gl2.getParameter(gl2.MAX_TEXTURE_SIZE)} · varyings ${gl2.getParameter(gl2.MAX_VARYING_VECTORS)}` +
+        ` · fragUniforms ${gl2.getParameter(gl2.MAX_FRAGMENT_UNIFORM_VECTORS)} · vertUniforms ${gl2.getParameter(gl2.MAX_VERTEX_UNIFORM_VECTORS)}`
+    } catch { limits = '' }
+  }
+  return `webgl2 ${gl2 ? 'yes' : 'NO'} · webgl1 ${gl1 ? 'yes' : 'no'} · renderer ${renderer}${limits}`
+}
+
+// What a shader is, from its source: MapLibre's shaders carry no name, but
+// their #defines (the pragma permutation), uniforms and inputs identify them.
+function describeShader(src: string): string {
+  const names = (re: RegExp) => {
+    const out: string[] = []
+    for (const m of src.matchAll(re)) if (!out.includes(m[1])) out.push(m[1])
+    return out
+  }
+  const defines = names(/#define\s+(\w+)/g).filter(d => !/^(highp|mediump|lowp)$/.test(d)).slice(0, 12)
+  const uniforms = names(/uniform\s+(?:\w+\s+)?\w+\s+(\w+)/g).slice(0, 10)
+  const inputs = names(/^\s*in\s+(?:\w+\s+)?\w+\s+(\w+)\s*;/gm).slice(0, 8)
+  return `defines[${defines.join(',')}] uniforms[${uniforms.join(',')}] in[${inputs.join(',')}] len ${src.length}`
+}
+
+// Every shader MapLibre compiles goes through here; a failure is reported with
+// what it was and whether the context was already lost (a null info log is
+// what WebKit answers on a lost context). Only the first few failures are
+// written out; the rest count in the heartbeat.
+function hookShaderCompiles(write: (line: string) => void): void {
+  const proto = WebGL2RenderingContext.prototype
+  const sources = new WeakMap<WebGLShader, string>()
+  const origSource = proto.shaderSource
+  proto.shaderSource = function (this: WebGL2RenderingContext, shader: WebGLShader, source: string) {
+    sources.set(shader, source)
+    return origSource.call(this, shader, source)
+  }
+  const origCompile = proto.compileShader
+  let compiled = 0
+  let failed = 0
+  proto.compileShader = function (this: WebGL2RenderingContext, shader: WebGLShader) {
+    origCompile.call(this, shader)
+    compiled++
+    stats.shaders = compiled
+    let ok = true
+    try { ok = this.getShaderParameter(shader, this.COMPILE_STATUS) === true } catch { ok = false }
+    if (ok) return
+    failed++
+    stats.shaderFail = failed
+    if (failed > 3) return
+    let type = '?'
+    let log: string | null = null
+    let lost = false
+    try {
+      type = this.getShaderParameter(shader, this.SHADER_TYPE) === this.FRAGMENT_SHADER ? 'fragment' : 'vertex'
+      log = this.getShaderInfoLog(shader)
+      lost = this.isContextLost()
+    } catch { /* keep what we have */ }
+    write(`SHADER FAIL ${type} · contextLost ${lost} · log ${JSON.stringify(log)} · ${describeShader(sources.get(shader) ?? '')}`)
+  }
+  const origLink = proto.linkProgram
+  let programs = 0
+  proto.linkProgram = function (this: WebGL2RenderingContext, program: WebGLProgram) {
+    origLink.call(this, program)
+    programs++
+    stats.programs = programs
+  }
 }
 
 export function installDebugOverlay(): void {
@@ -121,9 +185,20 @@ export function installDebugOverlay(): void {
     box.textContent = [...previous, ...lines].join('\n')
     try { localStorage.setItem(LOG_KEY, JSON.stringify(lines)) } catch { /* private mode or quota */ }
   }
+  // A line repeated back to back (an exception thrown every frame) collapses
+  // into one line with a count, so a flood cannot evict the history above it.
+  let lastText = ''
+  let repeats = 0
   const write = (line: string) => {
-    lines.push(`${stamp()} ${line}`)
-    if (lines.length > MAX_LINES) lines.shift()
+    if (line === lastText && lines.length) {
+      repeats++
+      lines[lines.length - 1] = `${stamp()} ${line} ×${repeats + 1}`
+    } else {
+      lastText = line
+      repeats = 0
+      lines.push(`${stamp()} ${line}`)
+      if (lines.length > MAX_LINES) lines.shift()
+    }
     flush()
   }
   // The heartbeat overwrites the previous heartbeat instead of appending, so
@@ -132,6 +207,9 @@ export function installDebugOverlay(): void {
     const last = lines.length - 1
     if (last >= 0 && lines[last].includes(' alive ')) lines[last] = `${stamp()} ${line}`
     else lines.push(`${stamp()} ${line}`)
+    // A heartbeat is never collapsed into, and ends any run of repeats.
+    lastText = ''
+    repeats = 0
     flush()
   }
   const mount = () => {
@@ -140,6 +218,7 @@ export function installDebugOverlay(): void {
     else document.addEventListener('DOMContentLoaded', () => document.body.appendChild(box), { once: true })
   }
   sink = write
+  try { hookShaderCompiles(write) } catch (e) { write(`shader hook failed ${describe(e)}`) }
 
   const nav = navigator as Navigator & { deviceMemory?: number }
   write(`UA ${navigator.userAgent}`)
