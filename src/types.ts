@@ -870,8 +870,17 @@ export interface VehiclePosition {
 }
 
 export interface SimulationClock {
-  currentTime: Date
+  // The sim time for per-frame consumers (the engine, the animations): fresh
+  // every RAF, never a render trigger.
   timeRef: React.RefObject<Date>
+  // The sim time for RENDERING, as an external store: the tick notifies at
+  // ~10 Hz and only subscribers re-render. Read it through `useClockTime`
+  // (every tick — the clock face, the scrubber) or `useClockMinute` (once per
+  // simulated minute — everything that decides by the time). There is
+  // deliberately no `currentTime` state: that made the App that owns the
+  // clock, and its whole tree, re-render ten times a second.
+  subscribeTime: (listener: () => void) => () => void
+  getTimeMs: () => number
   speed: number
   paused: boolean
   // True when the sim is locked to real wall time (not paused, 1× speed, and

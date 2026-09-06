@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo, useSyncExternalStore } from 'react'
 import type { SimulationClock } from '../types'
 import { ga } from '../analytics/ga'
 
@@ -30,6 +30,13 @@ function computeLive(simMs: number, paused: boolean, speed: number): boolean {
   return !paused && speed === 1 && Math.abs(simMs - Date.now()) < 3000
 }
 
+// The sim time is NOT React state. It is published through a small external
+// store (`subscribeTime` / `getTimeMs`) that the ~10 Hz tick notifies, and
+// only the components that render the time subscribe to it — through
+// `useClockTime` (every tick) or `useClockMinute` (once per simulated
+// minute). Before this the tick set a `currentTime` state on the hook, so the
+// App that owns the clock — and its whole tree, the layer panel included —
+// re-rendered ten times a second for a seconds digit.
 export function useSimulationClock(): SimulationClock {
   // Lazy initializer (called once) keeps the impure Date.now() out of the
   // render phase while still typing the refs as plain numbers.
@@ -38,9 +45,20 @@ export function useSimulationClock(): SimulationClock {
   const baseSimRef = useRef(initialNow)
   const [speed, setSpeedState] = useState(1)
   const [paused, setPaused] = useState(false)
-  const [displayTime, setDisplayTime] = useState(() => new Date())
   const [isLive, setIsLive] = useState(() => computeLive(initialNow, false, 1))
   const timeRef = useRef(new Date())
+  const listenersRef = useRef(new Set<() => void>())
+
+  // Tell every subscribed component the time moved. Called at most every
+  // UI_UPDATE_INTERVAL from the tick, and once from each jump.
+  const notify = useCallback(() => {
+    for (const listener of listenersRef.current) listener()
+  }, [])
+  const subscribeTime = useCallback((listener: () => void) => {
+    listenersRef.current.add(listener)
+    return () => { listenersRef.current.delete(listener) }
+  }, [])
+  const getTimeMs = useCallback(() => timeRef.current.getTime(), [])
 
   // Snapshot current sim into baseSim and peg baseWall to Date.now().
   // Callers MUST do this before mutating speed/paused so the perceived sim
@@ -64,8 +82,8 @@ export function useSimulationClock(): SimulationClock {
   }, [])
 
   // RAF keeps timeRef fresh for per-frame consumers (sim engine, animations).
-  // When the tab is visible this also drives setDisplayTime; when the tab is
-  // backgrounded RAF pauses entirely, so the interval below takes over.
+  // When the tab is visible this also notifies the time subscribers; when the
+  // tab is backgrounded RAF pauses entirely, so the interval below takes over.
   useEffect(() => {
     let raf: number
     let lastUIUpdate = performance.now()
@@ -76,7 +94,9 @@ export function useSimulationClock(): SimulationClock {
       const t = new Date(simMs)
       timeRef.current = t
       if (now - lastUIUpdate >= UI_UPDATE_INTERVAL) {
-        setDisplayTime(t)
+        notify()
+        // Same value → React bails out, so this costs a render only when
+        // the badge actually flips.
         setIsLive(computeLive(simMs, pausedRef.current, speedRef.current))
         lastUIUpdate = now
       }
@@ -84,14 +104,14 @@ export function useSimulationClock(): SimulationClock {
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [])
+  }, [notify])
 
-  // Independent fallback so `displayTime` doesn't freeze when RAF throttles
-  // (backgrounded tab, occluded window). setInterval keeps firing (throttled
-  // to ~1Hz in hidden tabs, but that's enough to keep the "即時" badge and
-  // visible HH:mm accurate). Also fires a fresh compute on visibilitychange
-  // so the very first paint after foregrounding is already current, without
-  // waiting for the next interval tick.
+  // Independent fallback so the displayed time doesn't freeze when RAF
+  // throttles (backgrounded tab, occluded window). setInterval keeps firing
+  // (throttled to ~1Hz in hidden tabs, but that's enough to keep the "即時"
+  // badge and visible HH:mm accurate). Also fires a fresh compute on
+  // visibilitychange so the very first paint after foregrounding is already
+  // current, without waiting for the next interval tick.
   useEffect(() => {
     const pump = () => {
       const simMs = pausedRef.current
@@ -99,17 +119,19 @@ export function useSimulationClock(): SimulationClock {
         : baseSimRef.current + (Date.now() - baseWallRef.current) * speedRef.current
       const t = new Date(simMs)
       timeRef.current = t
-      setDisplayTime(t)
+      notify()
       setIsLive(computeLive(simMs, pausedRef.current, speedRef.current))
     }
-    const iv = setInterval(pump, UI_UPDATE_INTERVAL)
+    // While the tab is visible the RAF tick is already notifying at this
+    // rate; a second notifier would double every subscriber's renders.
+    const iv = setInterval(() => { if (document.visibilityState !== 'visible') pump() }, UI_UPDATE_INTERVAL)
     const onVis = () => { if (document.visibilityState === 'visible') pump() }
     document.addEventListener('visibilitychange', onVis)
     return () => {
       clearInterval(iv)
       document.removeEventListener('visibilitychange', onVis)
     }
-  }, [])
+  }, [notify])
 
   const setSpeed = useCallback((s: number) => {
     rebase()
@@ -133,19 +155,48 @@ export function useSimulationClock(): SimulationClock {
     baseSimRef.current = now
     baseWallRef.current = now
     timeRef.current = new Date(now)
-    setDisplayTime(new Date(now))
+    notify()
     setSpeedState(1)
     setPaused(false)
-  }, [])
+  }, [notify])
 
   const setTime = useCallback((date: Date) => {
     const prev = timeRef.current.getTime()
     baseSimRef.current = date.getTime()
     baseWallRef.current = Date.now()
     timeRef.current = date
-    setDisplayTime(date)
+    notify()
     ga.timeJumped((date.getTime() - prev) / 3_600_000)
-  }, [])
+  }, [notify])
 
-  return { currentTime: displayTime, timeRef, speed, paused, isLive, setSpeed, togglePause, syncToNow, setTime }
+  return useMemo(() => ({
+    timeRef, subscribeTime, getTimeMs, speed, paused, isLive, setSpeed, togglePause, syncToNow, setTime,
+  }), [subscribeTime, getTimeMs, speed, paused, isLive, setSpeed, togglePause, syncToNow, setTime])
+}
+
+// The start of the simulated minute an instant falls in. Minute boundaries
+// are the same in UTC and Macau time (a whole-hour offset), so flooring the
+// epoch is enough.
+export function clockMinuteMs(ms: number): number {
+  return Math.floor(ms / 60_000) * 60_000
+}
+
+// The simulated time, re-rendering the caller on every tick (~10 Hz). For
+// the components that SHOW the time — the clock face, the scrubber.
+export function useClockTime(clock: SimulationClock): Date {
+  const ms = useSyncExternalStore(clock.subscribeTime, clock.getTimeMs, clock.getTimeMs)
+  return useMemo(() => new Date(ms), [ms])
+}
+
+// The simulated time at minute resolution, re-rendering the caller only when
+// the simulated minute changes — once a second at 60×, once a minute at 1×.
+// For everything that DECIDES by the time: which routes are in service, which
+// day's flights, which timetable, a panel's ETA.
+export function useClockMinute(clock: SimulationClock): Date {
+  const minuteMs = useSyncExternalStore(
+    clock.subscribeTime,
+    () => clockMinuteMs(clock.getTimeMs()),
+    () => clockMinuteMs(clock.getTimeMs()),
+  )
+  return useMemo(() => new Date(minuteMs), [minuteMs])
 }

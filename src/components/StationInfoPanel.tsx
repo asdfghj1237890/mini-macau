@@ -1,4 +1,5 @@
 import type { Station, TransitData, SimulationClock, ScheduleType } from '../types'
+import { useClockMinute } from '../hooks/useSimulationClock'
 import { useI18n, localName } from '../i18n'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauMinutesOfDay } from '../macauTime'
@@ -82,12 +83,15 @@ function minutesToTimeStr(minutes: number): string {
 
 export function StationInfoPanel({ station, transitData, clock, onClose }: Props) {
   const { lang, t } = useI18n()
+  // Arrivals are minute-resolution, so the panel re-renders once a minute.
+  // (Hooks before the early return.)
+  const now = useClockMinute(clock)
 
   if (!station) return null
 
-  const nowMinutes = macauMinutesOfDay(clock.currentTime)
+  const nowMinutes = macauMinutesOfDay(now)
 
-  const scheduleType = getScheduleType(clock.currentTime)
+  const scheduleType = getScheduleType(now)
   const arrivals = getNextArrivals(station.id, transitData, nowMinutes, scheduleType)
 
   const stationName = localName(lang, station)

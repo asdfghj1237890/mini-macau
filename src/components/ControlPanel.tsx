@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { SimulationClock } from '../types'
+import { useClockMinute } from '../hooks/useSimulationClock'
 import { useI18n } from '../i18n'
 import { getScheduleDensity } from '../data/hourDensity'
 import { macauParts, macauWeekday, macauWallToInstant } from '../macauTime'
@@ -186,7 +187,10 @@ export function ControlPanel({ clock }: Props) {
     localStorage.setItem('mm_tl_expanded', expanded ? '1' : '0')
   }, [expanded])
 
-  const now = clock.currentTime
+  // The scrubber's cursor and label are minute-resolution (HH:MM on a
+  // one-day rail), so this panel re-renders once per simulated minute — not
+  // on every tick; the rail's density bars are far too many for that.
+  const now = useClockMinute(clock)
   const nowParts = macauParts(now)
   const nowFrac = (nowParts.hours * 60 + nowParts.minutes) / (24 * 60)
   const nowLabel = `${pad2(nowParts.hours)}:${pad2(nowParts.minutes)}`
@@ -202,8 +206,9 @@ export function ControlPanel({ clock }: Props) {
     const totalMin = Math.floor(f * 24 * 60)
     // The timeline rail spans one Macau day; rebuild the instant from the
     // selected day's Macau midnight + scrubbed minutes so the scrub means the
-    // same wall-clock time for every viewer.
-    const p = macauParts(clock.currentTime)
+    // same wall-clock time for every viewer. The ref is the exact sim time at
+    // the moment of the scrub, not the last rendered tick.
+    const p = macauParts(clock.timeRef.current)
     const d = macauWallToInstant(p.year, p.month, p.day, Math.floor(totalMin / 60), totalMin % 60)
     clock.setTime(d)
   }, [clock])

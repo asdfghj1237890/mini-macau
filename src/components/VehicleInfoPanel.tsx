@@ -1,4 +1,5 @@
 import type { VehiclePosition, TransitData, SimulationClock, Trip, BusStop } from '../types'
+import { useClockMinute } from '../hooks/useSimulationClock'
 import { useI18n, localName } from '../i18n'
 import { useMemo, useRef, useEffect } from 'react'
 import length from '@turf/length'
@@ -110,9 +111,11 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     return new Map(transitData.busStops.map(s => [s.id, s]))
   }, [transitData.busStops])
 
-  const nowMinutesForETA = macauMinutesOfDay(clock.currentTime)
+  // ETAs are minute-resolution: subscribe at the minute, not the tick.
+  const now = useClockMinute(clock)
+  const nowMinutesForETA = macauMinutesOfDay(now)
 
-  const isSunBucket = macauWeekday(clock.currentTime) === 0
+  const isSunBucket = macauWeekday(now) === 0
 
   const busCtx = useMemo(() => {
     if (!vehicle || vehicle.type !== 'bus') return null
@@ -144,7 +147,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     : route
       ? route.name
       : vehicle.lineId
-  const nowMinutes = macauMinutesOfDay(clock.currentTime)
+  const nowMinutes = macauMinutesOfDay(now)
 
   // Build unified rows
   const rows: RowData[] = []

@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import type { SimulationClock } from '../types'
+import { useClockTime } from '../hooks/useSimulationClock'
 import { useI18n } from '../i18n'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauParts } from '../macauTime'
@@ -28,7 +29,9 @@ export function TimeDisplay({ clock, vehicleCount }: Props) {
   const [open, setOpen] = useState(false)
   const phoneRef = useRef<HTMLButtonElement>(null)
   const deskRef = useRef<HTMLButtonElement>(null)
-  const time = clock.currentTime
+  // This component is the one place the seconds are shown, so it is the one
+  // place that re-renders on every clock tick.
+  const time = useClockTime(clock)
   const parts = macauParts(time)
 
   const yr = parts.year

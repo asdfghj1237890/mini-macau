@@ -373,6 +373,15 @@ mini-macau/
 Simulating 300–400 moving vehicles at 20 Hz while MapLibre re-draws 3D extrusions every frame puts real pressure on the main thread. A few optimizations worth calling out:
 
 <details>
+<summary><strong>The clock is an external store, not App state</strong></summary>
+
+The simulation clock ticks ~10 times a second. It used to publish the time as React state on the hook that `App` owns, so every tick re-rendered `App` and its whole tree — the layer panel with its hundreds of rows included — to move a seconds digit. In the dev build that was 30–40 ms of React work ten times a second.
+
+Now `useSimulationClock` publishes the time through a tiny store (`subscribeTime` / `getTimeMs`) and components pick their own resolution with `useSyncExternalStore`: `useClockTime` re-renders on every tick and is used only by the clock face and the scrubber; `useClockMinute` snapshots the simulated minute, so `App` and the info panels — which decide by service windows, the day's flights and minute-level ETAs — re-render once per simulated minute (once a second at 60×). Per-frame consumers (the engine, the 3D layers) never rendered off the clock at all; they read `timeRef`. See [`useSimulationClock.ts`](src/hooks/useSimulationClock.ts).
+
+</details>
+
+<details>
 <summary><strong>Polyline progress lookup — <code>cumKm</code> + binary search</strong></summary>
 
 The simulation asks the same question once per vehicle per tick: *given a route and a progress ∈ [0, 1], where on the polyline is the vehicle, and which way is it facing?*

@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { RoadWorkNotice, RoadWorkRestriction, SimulationClock } from '../types'
+import { useClockMinute } from '../hooks/useSimulationClock'
 import { useI18n } from '../i18n'
 import { macauYmd } from '../macauTime'
 import {
@@ -84,8 +85,10 @@ export function RoadWorkInfoPanel({ notice, clock, onClose }: Props) {
   const { lang, t } = useI18n()
   const [detailsOpen, setDetailsOpen] = useState(false)
 
-  const ymd = macauYmd(clock.currentTime)
-  const status = roadWorkStatus(notice, ymd, roadWorksHorizon(clock.currentTime))
+  // A notice's status changes at midnight; the minute is plenty.
+  const now = useClockMinute(clock)
+  const ymd = macauYmd(now)
+  const status = roadWorkStatus(notice, ymd, roadWorksHorizon(now))
   const tone = TONES[TONE_BY_RESTRICTION[notice.restriction]]
 
   const location = pickText(notice.location, lang)

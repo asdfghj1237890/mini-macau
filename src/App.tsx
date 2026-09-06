@@ -3,7 +3,7 @@ import { ControlPanel } from './components/ControlPanel'
 import { LineLegend } from './components/LineLegend'
 import { TimeDisplay } from './components/TimeDisplay'
 import { MapSplash } from './components/MapSplash'
-import { useSimulationClock } from './hooks/useSimulationClock'
+import { useSimulationClock, useClockMinute } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
 import { getBusServiceBucket, getBusServiceWindow, getScheduleType } from './engines/simulationEngine'
@@ -139,9 +139,9 @@ const LS_POWER_KEY = 'mini-macau-power-on'
 const LS_GRANDPRIX_KEY = 'mini-macau-grandprix-on'
 
 // Stable empty array for the "schools off" case. filteredTransitData is
-// rebuilt on every clock tick (dateAwareFlights depends on currentTime), and
-// MapView pushes the school layer on ARRAY IDENTITY change — a fresh `[]`
-// literal here would make it call setData ~10×/s while the layer is hidden.
+// rebuilt every simulated minute (dateAwareFlights depends on the clock),
+// and MapView pushes the school layer on ARRAY IDENTITY change — a fresh `[]`
+// literal here would make it call setData each time while the layer is hidden.
 const NO_SCHOOLS: School[] = []
 const NO_ROAD_WORKS: RoadWorkNotice[] = []
 // Same reasoning for the toilet markers, which MapView also pushes on array
@@ -181,7 +181,14 @@ export default function App() {
   // ensureScheduleTypeLoaded is idempotent, so repeat calls are no-ops once
   // the type is loaded or in-flight. We derive the type from the simulated
   // clock each render but only fire the effect when it actually changes.
-  const currentScheduleType = getScheduleType(clock.currentTime)
+  //
+  // Everything App decides by the time is minute-resolution (service windows,
+  // the day's flights, the timetable, the road-works day), so App subscribes
+  // to the clock at the MINUTE: one re-render per simulated minute instead of
+  // ten a second. The clock face and the scrubber subscribe to the tick on
+  // their own (useClockTime).
+  const simTime = useClockMinute(clock)
+  const currentScheduleType = getScheduleType(simTime)
   useEffect(() => {
     ensureScheduleTypeLoaded(currentScheduleType)
   }, [currentScheduleType, ensureScheduleTypeLoaded])
@@ -346,8 +353,8 @@ export default function App() {
   }, [schoolLevelsOn])
   useEffect(() => { localStorage.setItem(LS_LRT_KEY, JSON.stringify([...lrtOn])) }, [lrtOn])
 
-  const currentHour = macauHours(clock.currentTime)
-  const currentMinute = macauMinutes(clock.currentTime)
+  const currentHour = macauHours(simTime)
+  const currentMinute = macauMinutes(simTime)
 
   const inactiveRoutes = serviceStatus.inactive
 
@@ -368,7 +375,7 @@ export default function App() {
     if (isAutoMode) {
       setVisibleRoutes(new Set(
         transitData.busRoutes
-          .filter(r => !inactiveRoutes.has(r.id) && isRouteInService(r, clock.currentTime))
+          .filter(r => !inactiveRoutes.has(r.id) && isRouteInService(r, simTime))
           .map(r => r.id)
       ))
     }
@@ -394,8 +401,8 @@ export default function App() {
   // records; outside the window falls back to the latest day in the
   // window with the same weekday. See useTransitData.getFlightsForDate.
   const dateAwareFlights = useMemo(
-    () => transitData.getFlightsForDate(clock.currentTime),
-    [transitData, clock.currentTime]
+    () => transitData.getFlightsForDate(simTime),
+    [transitData, simTime]
   )
 
   // Memoized separately from filteredTransitData (which is rebuilt on every
@@ -498,9 +505,8 @@ export default function App() {
   const carParkVacancy = useCarParkVacancy(carParksOn && clock.isLive)
 
   // Notices in force on the simulated Macau calendar day. Keyed on the day
-  // string, NOT on clock.currentTime — the clock re-renders at ~10 Hz and the
-  // count only changes at midnight.
-  const simYmd = macauYmd(clock.currentTime)
+  // string, NOT on the minute — the count only changes at midnight.
+  const simYmd = macauYmd(simTime)
   const activeRoadWorksCount = useMemo(
     () => countActiveRoadWorks(transitData.roadWorks, simYmd),
     [transitData.roadWorks, simYmd]
@@ -557,7 +563,7 @@ export default function App() {
     if (groupRoutes.length === 0) return
     const autoSet = new Set(
       transitData.busRoutes
-        .filter(r => !inactiveRoutes.has(r.id) && isRouteInService(r, clock.currentTime))
+        .filter(r => !inactiveRoutes.has(r.id) && isRouteInService(r, simTime))
         .map(r => r.id)
     )
     const anyOn = groupRoutes.some(r => visibleRoutes.has(r.id))
@@ -568,7 +574,7 @@ export default function App() {
       // Only add routes currently in service so re-enabling matches
       // what the auto-by-time view was showing (e.g. 30/31, not 31/31).
       for (const r of groupRoutes) {
-        if (isRouteInService(r, clock.currentTime)) next.add(r.id)
+        if (isRouteInService(r, simTime)) next.add(r.id)
       }
     }
     setVisibleRoutes(next)
@@ -584,7 +590,7 @@ export default function App() {
       setIsAutoMode(false)
     }
     ga.layerToggled(`bus_group_${groupKey}`, !anyOn)
-  }, [transitData.busRoutes, inactiveRoutes, clock, visibleRoutes])
+  }, [transitData.busRoutes, inactiveRoutes, simTime, visibleRoutes])
 
   const onResetAuto = useCallback(() => {
     clearSavedRoutes()
