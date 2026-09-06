@@ -103,7 +103,7 @@ Upstream sources are normalized into JSON, loaded through static assets and sche
 | Layer | Technology |
 |-------|-----------|
 | Frontend | React 19, TypeScript 6, Vite 8 |
-| 3D Map | MapLibre GL JS, custom WebGL fill-extrusion layers |
+| 3D Map | MapLibre GL JS 6 (WebGL 2 required), custom fill-extrusion layers |
 | Geo utilities | Turf.js (nearest-point-on-line) + custom precomputed-polyline cache |
 | Styling | Tailwind CSS v4 |
 | Fonts | Orbitron, JetBrains Mono, Noto Sans HK (Google Fonts) |
@@ -138,6 +138,22 @@ The app will be available at `http://localhost:5173`.
 npm run build
 npm run preview
 ```
+
+### Diagnosing a device
+
+Phones have no console, so the app carries its own. Append `?debug=1` to any URL (or set localStorage `mini-macau-debug` to `1`) and a panel pins to the bottom of the page ([`src/debugOverlay.ts`](src/debugOverlay.ts)): the browser's capabilities (WebGL 1/2 and renderer, GL limits, a module-worker probe), every error and unhandled rejection, MapLibre `error` events with their source and tile, a heartbeat every 3 s (`alive`, canvas size, shaders and programs compiled, map renders, tile reloads with the four busiest sources named), and a pinned strip for the lines that decide a diagnosis — a failed shader with its info log and whether the context was lost. The previous page load's tail is kept in localStorage and replayed on the next load, so a page the OS killed still leaves a trace.
+
+Switches for narrowing a failure down without a redeploy:
+
+| URL | What it does |
+|-----|--------------|
+| `?debug=1&layers=none` | Basemap only: none of the app's sources or layers |
+| `?debug=1&nosim=1` | Never runs the simulation tick |
+| `?debug=1&no3d=1` | Starts flat, buildings off |
+| `?debug=1&maxdpr=2` | Caps the render pixel ratio |
+| `?debug=1&nowebgl2=1` | Pretends the device has no WebGL 2: the map area shows the failure message instead of the whole app unmounting |
+
+[`public/gltest.html`](public/gltest.html) is a page with no app code at all: MapLibre 5.23 or 6.7 straight from a CDN (`?v=5|6`), the same CARTO basemap and camera, and a synthetic fill-extrusion + circle `setData` load (`&veh=150&hz=30&circles=300`; `&veh=0&circles=0` for the basemap alone; `&theme=light`, `&dpr=2`, `&buildings=1`, `&overscale=off`). It separates "MapLibre on this device" from "our app". Both pages are `noindex`.
 
 ## Data Pipeline
 
@@ -286,9 +302,11 @@ mini-macau/
 │   │   ├── LRT3DLayer.ts         # 3D LRT model (fill-extrusion)
 │   │   ├── Flight3DLayer.ts      # 3D airplane model (fill-extrusion)
 │   │   ├── Ferry3DLayer.ts       # 3D jetfoil model (fill-extrusion, 8 layers)
-│   │   └── VehicleLayer.ts       # 2D vehicle circles + labels
+│   │   ├── RaceCar3DLayer.ts     # 3D open-wheel car for the Grand Prix layer (fill-extrusion, moved by diff)
+│   │   └── VehicleLayer.ts       # 2D vehicle circles + labels (VEHICLE_SOURCE_MAXZOOM shared by the vehicle sources)
 │   ├── App.tsx                   # Root layout + state management
 │   ├── main.tsx                  # React entry point with I18nProvider
+│   ├── debugOverlay.ts           # ?debug=1 on-screen diagnostics (capabilities, errors, heartbeat, pinned lines)
 │   ├── routeGroups.ts            # Bus route grouping logic
 │   ├── roadWorks.ts              # Road-works notice helpers (status, colours)
 │   ├── schools.ts                # School overlay helpers (level colours, footprint features)
@@ -296,11 +314,21 @@ mini-macau/
 │   ├── carParks.ts               # Car-park overlay helpers + live-vacancy XML parsing
 │   ├── waste.ts                  # Waste & recycling overlay helpers (colours, text pickers, visible-site filtering)
 │   ├── dspaStats.ts              # DSPA monthly-stats chart model (axis rounding, series lookup)
+│   ├── water.ts                  # Water overlay helpers (supply-chain stages, labels, pulse buckets)
+│   ├── power.ts                  # Power overlay helpers (stages, voltages, grid features)
+│   ├── flowPulse.ts              # Shared pulse engine for the water / power flows
+│   ├── grandPrix.ts              # Guia Circuit: track & corner features, speed profile, car pose, wake
+│   ├── focusMode.ts              # WATER / POWER / WASTE / GRAND PRIX focus-mode snapshots
+│   ├── theme.ts                  # dark / light theme store (data-theme on <html>)
+│   ├── timeControls.ts           # Pure rule for when the clock's keyboard shortcuts are suppressed (focus modes)
+│   ├── macauTime.ts              # All wall-clock math (Macau, UTC+8)
+│   ├── dataSchemas.ts            # zod schemas for public/data/*.json (mirrors validate_output.py)
 │   ├── i18n.tsx                  # Internationalization (EN / 繁中 / PT)
 │   ├── types.ts                  # TypeScript interfaces
 │   └── index.css                 # Tailwind + MapLibre control overrides
 ├── public/
-│   ├── _headers                  # X-Robots-Tag: noindex for /data/*
+│   ├── _headers                  # X-Robots-Tag: noindex for /data/* and /gltest.html
+│   ├── gltest.html               # Standalone MapLibre 5/6 device test page (no app code)
 │   ├── data/                     # served as-is under /data/
 │   │   ├── lrt-lines.json
 │   │   ├── stations.json
@@ -370,7 +398,7 @@ mini-macau/
 
 ## Performance Notes
 
-Simulating 300–400 moving vehicles at 20 Hz while MapLibre re-draws 3D extrusions every frame puts real pressure on the main thread. A few optimizations worth calling out:
+Simulating 300–400 moving vehicles at 30 Hz while MapLibre re-draws 3D extrusions every frame puts real pressure on the main thread. A few optimizations worth calling out:
 
 <details>
 <summary><strong>The clock is an external store, not App state</strong></summary>
@@ -414,6 +442,19 @@ Consolidating into a single `bus-routes` source (one tile index, one round-trip 
 Moving 300+ buses as 3D fill-extrusion polygons is heavy (each bus is 8 quads × lat/lng math). Moving them as 2D circles is almost free (just a `setData` on a Point FeatureCollection).
 
 The animate loop computes positions every 33 ms, but what a GPU actually pays for is every `setData`: each one re-tiles all of that source's in-view tiles in the worker and re-uploads their buffers. So the uploads — the 3D vehicle sources and the 2D marker source alike — run on one cadence: 33 ms on desktop, 100 ms on phones, and 160 ms whenever the map is actively moving (`movestart` / `moveend` set a `mapBusy` flag). The 2D marker source used to be written every animation frame, 60 re-tilings a second of a source that only changes at the sim tick; on an iPhone X that was 450 tile reloads a second and a lost WebGL context.
+
+</details>
+
+<details>
+<summary><strong>Fewer tiles per <code>setData</code></strong></summary>
+
+Once the cadence was fixed, that iPhone X still re-tiled ~450 tiles a second at zoom 16, and the `?debug=1` heartbeat — which names the busiest sources — showed why: a pitched phone view holds ~20 z16 tiles per GeoJSON source, and every `setData` reloads all of them, so the cost is *tiles × sources × cadence*. Three changes attack the tile count rather than the cadence:
+
+- **Vehicle sources are tiled to z15** (`VEHICLE_SOURCE_MAXZOOM` in [`VehicleLayer.ts`](src/layers/VehicleLayer.ts)): a zoom-16 view is a handful of z15 tiles instead of ~20 z16 ones, 4× fewer again per level above, at a coordinate quantisation of ~0.14 m — half a pixel at zoom 18.
+- **The Grand Prix car, wake and speed label move by diff.** They are written whole once when they appear and then updated with `GeoJSONSource.updateData`, which reloads only the tiles the changed feature touches (one or two) instead of every tile in view. Stable feature ids make that possible: the car's twelve boxes are ids 0–11.
+- **MapLibre 6's `zoomLevelsToOverscale` is switched off** (`undefined`, the v5 behaviour). Its default of 4 slices a vector source's z14 tiles into sub-tiles down to z18 instead of scaling the one parent tile; at zoom 16 / pitch 45 that was 44 tile loads instead of 8 and 2.3× the live GPU buffers for the same view.
+
+Measured on the same phone at the same view: 457 → 110 tile reloads a second, 60 fps, no shader failures. See [`MapView.tsx`](src/components/MapView.tsx) (`HEAVY_TICK_MS_PHONE`, `writeGrandPrixWake`, `zoomLevelsToOverscale`) and [`RaceCar3DLayer.ts`](src/layers/RaceCar3DLayer.ts) (`setPose`).
 
 </details>
 

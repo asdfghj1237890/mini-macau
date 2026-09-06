@@ -8,7 +8,7 @@
 
 | # | 主題 | 適合在什麼時候讀 |
 |---|------|-----------------|
-| [01](01-getting-started.md) | Getting started | 第一次 clone repo、跑 dev server、build production |
+| [01](01-getting-started.md) | Getting started | 第一次 clone repo、跑 dev server、build production、在手機上診斷（`?debug=1`、`gltest.html`） |
 | [02](02-architecture.md) | Architecture overview | 想理解 Source → Pipeline → Static JSON → Runtime 的整體 data flow |
 | [03](03-simulation-engine.md) | Simulation engine | 要碰 [`simulationEngine.ts`](../../src/engines/simulationEngine.ts)、改 ETA / schedule / 車輛位置算法 |
 | [04](04-3d-layers.md) | 3D layers（Bus / LRT / Flight / Ferry）與城市資料層 | 要動 fill-extrusion 幾何、車身造型、自訂車輛 layer，或學校/道路工程/公廁/停車場/垃圾回收這些非車輛 overlay |
@@ -29,5 +29,5 @@
 ## 關於文件本身
 
 - 程式碼路徑都用 markdown link，可直接點到 source。
-- 大型優化（cumKm、單一 source、tier throttle、`useSyncExternalStore`）有自己的專屬章節（08），同時也會在相關主題中 cross-link 過去。
+- 大型優化（cumKm、單一 source、上傳節奏與每次 `setData` 重切幾片 tile、`useSyncExternalStore`）有自己的專屬章節（08），同時也會在相關主題中 cross-link 過去。
 - 文件以中文為主、保留程式識別字、檔案名與 commit 訊息為英文。

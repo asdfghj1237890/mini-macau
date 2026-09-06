@@ -61,25 +61,29 @@ vs 舊寫法 `setPaintProperty('bus-route-${id}', 'line-opacity', x)`。
 
 > Source: 邏輯散在 [`MapView.tsx`](../../src/components/MapView.tsx)（搜 `setFeatureState`、`bus-routes`）。Cross-link [04-3d-layers.md](04-3d-layers.md)。
 
-## 3. Two-tier animation throttle
+## 3. 上傳節奏：GPU 付的是每一次 `setData`，不是每一次位置計算
 
-**問題**：把 300+ 台巴士當 3D fill-extrusion polygon 畫很重（每台車 5 個矩形 × 4 個角的 lat/lng 數學）。當 2D circle 畫近乎免費（只是個 Point FeatureCollection 的 `setData`）。
+**問題**：把 300+ 台巴士當 3D fill-extrusion polygon 畫很重（每台車 5 個矩形 × 4 個角的 lat/lng 數學）。但真正貴的不是算位置，而是 GeoJSON source 的每一次 `setData`：worker 會把該 source 畫面內的每一片 tile 重切一次，main thread 再把 buffer 全部重新上傳。2D 標記 source 曾經每個 RAF frame 寫一次——每秒 60 次重切一個每 33 ms 才變一次的 source——在 iPhone X 上是每秒 450 次 tile 重載，最後 WebGL context 直接 lost。
 
-**Fix**：把它們拆成兩個節流頻率：
+**Fix**：位置照 30 Hz 算，但所有上傳共用一個節奏：
 
 ```
-SIM_TICK_MS         = 33   // ~30 Hz：模擬 + 2D circle 永遠用這個
-HEAVY_TICK_MS_BUSY  = 160  // map 在動的時候，3D rebuild 改用這個
+SIM_TICK_MS          = 33   // 30 Hz：位置計算；桌機的上傳也用這個
+HEAVY_TICK_MS_PHONE  = 100  // 手機（viewport < 640 px）：3D 車輛、2D 標記、大賽車三個 source 的上傳節奏
+HEAVY_TICK_MS_BUSY   = 160  // 地圖移動中（movestart / moveend 設 mapBusyRef）：所有上傳退到這個
 ```
 
-`mapBusyRef` 由 MapLibre 的 `movestart` / `moveend` 控制。pinch zoom 中：
+pinch zoom 中上傳退到約 6 Hz，把 main thread 讓給 MapLibre 的 zoom 渲染；zoom 結束立刻回到原節奏。航班的 3D 模型也在這個節奏上傳，2D 的航班點在同一次上傳裡合併進去，所以兩者不會分離。
 
-- 2D circle 仍 30 Hz 更新 → 視覺上車輛還是流暢移動
-- 3D polygon rebuild 退到 6 Hz → 把 main thread 讓給 MapLibre 的 zoom 渲染
+**再往下一層：每次 `setData` 重切幾片 tile。** 節奏修好後 iPhone X 仍是每秒 450 次，`?debug=1` 面板把最忙的 source 列出來才看見原因：pitch 45 的 zoom 16 畫面裡每個 source 約有 20 片 z16 tile，成本是「tile 數 × source 數 × 節奏」。於是：
 
-zoom 結束 → 3D 立刻回到 30 Hz。
+- 2D 標記與巴士／輕軌／渡輪的 3D source 只切到 z15（[`VehicleLayer.ts`](../../src/layers/VehicleLayer.ts) 的 `VEHICLE_SOURCE_MAXZOOM`）：zoom 16 的畫面變成約 5 片，每再放大一級再少 4 倍；座標量化約 0.14 m，zoom 18 時半個像素。
+- 大賽車的車（12 個方塊，id 0–11）、尾跡（id `wake`）、時速標籤（id `label`）出現時整包寫一次，之後用 `GeoJSONSource.updateData` 差異更新：MapLibre 只重載被舊／新幾何碰到的一兩片 tile（`shouldReloadTile` / `affectedBounds`）。
+- MapLibre 6 的 `zoomLevelsToOverscale` 預設 4，會把向量 source 超過 maxzoom 的 z14 tile 切成子 tile 一路到 z18；同一畫面量到 44 次 tile 載入對 8 次、存活的 GPU buffer 2.3 倍。`MapView` 傳 `undefined`（官方的關閉值，即 v5 行為）。
 
-> Source: [`MapView.tsx`](../../src/components/MapView.tsx) 的 `mapBusyRef` + `SIM_TICK_MS` / `HEAVY_TICK_MS_BUSY`（行 810、872 附近）。
+同一台 iPhone X、同一個畫面：每秒 457 → 110 次 tile 重載，60 fps，shader 不再失敗。
+
+> Source: [`MapView.tsx`](../../src/components/MapView.tsx) 的 `mapBusyRef`、`SIM_TICK_MS` / `HEAVY_TICK_MS_PHONE` / `HEAVY_TICK_MS_BUSY`、`writeGrandPrixWake` / `writeGrandPrixCarLabel`、`zoomLevelsToOverscale`；[`RaceCar3DLayer.ts`](../../src/layers/RaceCar3DLayer.ts) 的 `setPose`。量測工具見 [01-getting-started.md](01-getting-started.md) 的「在裝置上診斷」。
 
 ## 4. Decouple zoom HUD from React re-renders
 

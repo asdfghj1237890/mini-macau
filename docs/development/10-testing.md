@@ -128,6 +128,10 @@ jobs:
 
 跟 deploy 解耦，因為 deploy 只在 master push，但 test 想在 PR 也跑。
 
+## 裝置實測（沒有自動化）
+
+有些問題只在特定裝置出現——例如 iPhone X／iOS 16 在 MapLibre 6 升級後 WebGL context lost——CI 與桌機都抓不到。流程見 [01-getting-started.md](01-getting-started.md) 的「在裝置上診斷」：先用 `public/gltest.html` 確認 MapLibre 本身在該裝置能跑，再用 `?debug=1` 的面板讀 app 的錯誤、shader 編譯與各 source 的 tile 重載數，最後用 `&layers=none`／`&nosim=1`／`&no3d=1`／`&maxdpr=2` 逐步縮小。
+
 ## 將來最值得補測試的東西
 
 依優先序：

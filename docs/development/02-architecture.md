@@ -85,12 +85,13 @@ App.tsx
 ├─ useSimulationClock      ─ 模擬時鐘（offset-based wall clock）
 ├─ useTransitData          ─ 漸進載入 6 份核心 JSON
 ├─ useServiceStatus        ─ 從 service-status.json 拿當天停駛清單
-└─ MapView.tsx             ─ 包 maplibre-gl
+└─ MapView.tsx             ─ 包 maplibre-gl 6（需要 WebGL 2；沒有的裝置在地圖區顯示訊息，app 不會整個卸載）
    ├─ simulationEngine     ─ 純函數：(transitData, time) → VehiclePosition[]
    ├─ Bus3DLayer           ─ fill-extrusion 巴士車身（5 種 polygon）
    ├─ LRT3DLayer           ─ fill-extrusion 雙節列車
    ├─ Flight3DLayer        ─ fill-extrusion 機身/機翼/尾翼
    ├─ Ferry3DLayer         ─ fill-extrusion 噴射船（8 種 polygon）
+   ├─ RaceCar3DLayer       ─ fill-extrusion 大賽車（12 個方塊，差異更新）
    └─ VehicleLayer         ─ 2D circle layer（zoom out 時 fallback）
 ```
 
@@ -128,10 +129,12 @@ src/
 │   ├── LRT3DLayer.ts
 │   ├── Flight3DLayer.ts
 │   ├── Ferry3DLayer.ts
-│   └── VehicleLayer.ts      # 2D circle fallback
+│   ├── RaceCar3DLayer.ts    # 大賽車的車（差異更新）
+│   └── VehicleLayer.ts      # 2D circle fallback；VEHICLE_SOURCE_MAXZOOM
 ├── analytics/
 │   └── ga.ts                # GA4 event taxonomy
 ├── routeGroups.ts           # 巴士路線分組規則
+├── debugOverlay.ts          # ?debug=1 螢幕診斷面板（手機沒有 console）；見 01-getting-started
 ├── i18n.tsx                 # EN / zh-Hant / pt
 └── types.ts                 # shared TypeScript interfaces
 ```

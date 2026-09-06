@@ -7,7 +7,7 @@
 - bundle 不多一個 GL 框架（vendor-maplibre 已經是 1 MB）
 - 完全沿用 maplibre 的相機、光照、render order
 - camera underneath / 上方建築遮擋 maplibre 自然處理
-- 代價：每台車要重算多個 polygon、每 frame `setData()` 一個大 FeatureCollection（見 [08-performance-notes.md](08-performance-notes.md) 的 throttle 章節）
+- 代價：每台車要重算多個 polygon，而且每一次 `setData()` 都會讓 worker 重切該 source 畫面內的所有 tile——所以上傳有節奏（桌機 33 ms、手機 100 ms、地圖移動中 160 ms），車輛 source 也只切到 z15（見 [08-performance-notes.md](08-performance-notes.md) 第 3 節）
 
 ## 共同模式
 
@@ -16,7 +16,7 @@
 ```ts
 class XLayer {
   attach(map): void              // 一次性 addSource + 多個 addLayer
-  setData(vehicles): void        // 重建 feature collection、map.setData
+  setVehicles(vehicles): void    // 重建 feature collection、source.setData；已經是空的就不再重送空集合
   detach(map): void
 }
 ```
@@ -47,7 +47,7 @@ class XLayer {
 
 7 layer：fuselage、wing、tail、engine、vtail、window、nose。
 
-**為什麼有 tracked + 普通 兩套**：被 user 點 follow 的航班需要 `setData` 的觸發頻率高（每 RAF 一次），其他航班則跟 sim tick 走（30 Hz）。把 tracked 拉到自己的 source `flight-3d-tracked-source`，就只 redraw 那一台，省掉重建整個 FeatureCollection 的成本。所以 layer ID 有 `FLIGHT_3D_*` 跟 `FLIGHT_3D_TRACKED_*` 兩組。
+**為什麼有 tracked + 普通 兩套**：被 user 點 follow 的航班需要 `setData` 的觸發頻率高（每 RAF 一次），其他航班則跟上傳節奏走（桌機 33 ms、手機 100 ms、地圖移動中 160 ms）。把 tracked 拉到自己的 source `flight-3d-tracked-source`，就只 redraw 那一台，省掉重建整個 FeatureCollection 的成本。所以 layer ID 有 `FLIGHT_3D_*` 跟 `FLIGHT_3D_TRACKED_*` 兩組。
 
 Window 用 `windowDots()` 算法分布：根據機身長度沿著 fuselage 長軸排列小點，模擬機窗。
 
@@ -55,11 +55,15 @@ Window 用 `windowDots()` 算法分布：根據機身長度沿著 fuselage 長�
 
 8 layer：hull、hull_red（船腹紅帶）、white_band（TurboJET 白帶）、cabin、window、upper、wheelhouse、roof。船型是基於 jetfoil 的剖面分層 extrude。bearing 從 `interpolatePath` 拿，arrival 會把 bearing 加 180° 因為走的是反方向。
 
+## [`RaceCar3DLayer.ts`](../../src/layers/RaceCar3DLayer.ts) — 大賽車的車（12 個方塊，差異更新）
+
+GRAND PRIX 焦點模式的單一賽車：body、nose、兩個 sidepod、airbox、cockpit、前後翼、四個輪子共 12 個 fill-extrusion 方塊，顏色／底高／高度都是 feature property，整台車一個 source。位置由 [`grandPrix.ts`](../../src/grandPrix.ts) 的 `grandPrixCarState` 依模擬時鐘與速度曲線算出，`grandPrixCarScale` 隨 zoom 放大。跟其他車輛層不同的是 `setPose()`：車出現時整包 `setData` 一次，之後每個 feature 用固定 id（0–11）走 `updateData` 差異更新，MapLibre 只重載車碰到的一兩片 tile；尾跡（`grandprix-wake`，`lineMetrics` + `line-gradient`）與時速標籤（`grandprix-car-label`）在 `MapView` 裡用同樣的模式。
+
 ## [`VehicleLayer.ts`](../../src/layers/VehicleLayer.ts) — 2D circle fallback
 
 縮太遠看不到 3D 細節時、或 zoom 低於 `MIN_ZOOM` 時，由 2D circle layer 接手。每台車一個 circle + 一個 text label（route ID）。
 
-`addVehicleLayers(map, lang)` 一次性註冊，`updateVehicleData(map, vehicles)` 每 sim tick 餵新的 FeatureCollection。`updateVehicleLabelLang(map, lang)` 切語言時更新 label 的 `text-field` 表達式。
+`addVehicleLayers(map, lang)` 一次性註冊，`updateVehicleData(map, vehicles)` 在上傳節奏（桌機 33 ms、手機 100 ms、地圖移動中 160 ms）餵新的 FeatureCollection——不是每個 RAF frame。source 的 `maxzoom` 是 `VEHICLE_SOURCE_MAXZOOM`（15），巴士／輕軌／渡輪的 3D source 也共用這個值。`updateVehicleLabelLang(map, lang)` 切語言時更新 label 的 `text-field` 表達式。
 
 ## 城市資料層（非車輛）── 學校 / 道路工程 / 公廁 / 停車場 / 供水 / 垃圾回收
 
