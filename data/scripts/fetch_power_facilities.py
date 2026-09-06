@@ -317,16 +317,19 @@ INLET_NODES = [
 
 # The 220 kV backbone, hand-written from CEM's interconnection description
 # (three corridors, 8 × 220 kV circuits, the three landing substations, and the
-# power station at the south end). 蓮花 → 路環發電廠 passes the plant's own
-# 路環B變電站 (OSM w321628440), which sits ~90 m inside the plant compound, so
-# the routed line reaches it as part of reaching the plant.
+# power station at the south end). EDGE DIRECTION IS THE DIRECTION OF SUPPLY:
+# the runtime's dots, arrows and the stage pulse all walk `from` → `to`, so the
+# plant is written as a SOURCE feeding 蓮花 — it generates (9 % of 2025's
+# energy), it does not consume — and the import points feed their landing
+# substations. 路環發電廠 → 蓮花 passes the plant's own 路環B變電站 (OSM
+# w321628440), ~90 m inside the compound, so the routed line leaves through it.
 BACKBONE_220 = [
     ("inlet-canal-dos-patos", "sub-canal-dos-patos"),
     ("inlet-lotus", "sub-lotus"),
     ("inlet-pac-on", "sub-pac-on"),
     ("sub-canal-dos-patos", "sub-pac-on"),
     ("sub-pac-on", "sub-lotus"),
-    ("sub-lotus", "plant-coloane"),
+    ("plant-coloane", "sub-lotus"),
 ]
 # The incineration plant sells its power to CEM through 焚化爐變電站, 40 m away.
 GENERATOR_LINKS = [("incinerator", "sub-cirs", 66)]

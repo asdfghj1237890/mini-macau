@@ -329,6 +329,10 @@ const translations = {
     powerVoltage: 'VOLTAGE',
     powerVoltageValue: (kv: number) => `${kv} kV`,
     powerApproximate: 'Approximate location',
+    // The bright wave on the map and the numbered chain in the legend: the
+    // stages light in this order, import point to street.
+    powerPulse: 'Pulse: supply sequence ① → ⑤',
+    powerStage: (n: number) => `Stage ${n}`,
     powerCoLocatedWith: (name: string) => `Sited at ${name}`,
     powerBuildings: (n: number) => `${n} footprint${n === 1 ? '' : 's'}`,
     powerFootprints: 'FOOTPRINTS',
@@ -664,6 +668,8 @@ const translations = {
     powerVoltage: '電壓',
     powerVoltageValue: (kv: number) => `${kv} kV`,
     powerApproximate: '約略位置',
+    powerPulse: '脈衝：供電順序 ① → ⑤',
+    powerStage: (n: number) => `第 ${n} 階段`,
     powerCoLocatedWith: (name: string) => `位於${name}`,
     powerBuildings: (n: number) => `${n} 個範圍`,
     powerFootprints: '建築範圍',
@@ -987,6 +993,8 @@ const translations = {
     powerVoltage: 'TENSÃO',
     powerVoltageValue: (kv: number) => `${kv} kV`,
     powerApproximate: 'Localização aproximada',
+    powerPulse: 'Impulso: sequência de alimentação ① → ⑤',
+    powerStage: (n: number) => `Fase ${n}`,
     powerCoLocatedWith: (name: string) => `Junto a ${name}`,
     powerBuildings: (n: number) => `${n} implantaç${n === 1 ? 'ão' : 'ões'}`,
     powerFootprints: 'IMPLANTAÇÕES',
@@ -1307,6 +1315,8 @@ export interface Translations {
   powerVoltage: string
   powerVoltageValue: (kv: number) => string
   powerApproximate: string
+  powerPulse: string
+  powerStage: (n: number) => string
   powerCoLocatedWith: (name: string) => string
   powerBuildings: (n: number) => string
   powerFootprints: string

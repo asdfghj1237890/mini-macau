@@ -11,6 +11,7 @@ import {
   powerOperator,
   powerOperatorLabel,
   powerPlantUnits,
+  powerStage,
   powerTypeLabel,
 } from '../power'
 
@@ -35,9 +36,13 @@ function Row({ label, value }: { label: string; value: string }) {
 // signboard header (colour bar + POWER kicker + kind + name + close) and the
 // same provenance footer. Only the middle differs, so the facility panel and
 // the inlet panel can never drift apart visually.
-function Shell({ color, kindLabel, title, subtitle, onClose, children }: {
+function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: {
   color: string
   kindLabel: string
+  // Step number in the supply chain (POWER_STAGES) — the same badge the map
+  // draws on this marker's plate and the legend draws on its row, so the
+  // panel names the step the reader just clicked. 0 = no badge.
+  stage: number
   title: string
   subtitle: string
   onClose: () => void
@@ -60,7 +65,19 @@ function Shell({ color, kindLabel, title, subtitle, onClose, children }: {
               <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-white/50">
                 {'⚡'} {t.powerLabel}
               </div>
-              <div className="text-[13px] font-bold text-white leading-tight mm-han whitespace-nowrap">
+              <div className="text-[13px] font-bold text-white leading-tight mm-han whitespace-nowrap
+                              flex items-center gap-1.5">
+                {stage > 0 && (
+                  <span
+                    className="inline-flex items-center justify-center w-[15px] h-[15px] shrink-0
+                               rounded-full bg-[#0b0b0c] border border-white/70 mm-mono text-[9px]
+                               leading-none text-white"
+                    title={t.powerStage(stage)}
+                    aria-label={t.powerStage(stage)}
+                  >
+                    {stage}
+                  </span>
+                )}
                 {kindLabel}
               </div>
             </div>
@@ -166,6 +183,7 @@ export function PowerFacilityInfoPanel({ facility, facilities, network, onClose 
     <Shell
       color={color}
       kindLabel={powerTypeLabel(t, facility.type)}
+      stage={powerStage(facility.type)}
       title={title}
       subtitle={subtitle}
       onClose={onClose}
@@ -260,6 +278,7 @@ export function PowerInletInfoPanel({ node, network, onClose }: InletProps) {
     <Shell
       color={POWER_INLET_COLOR}
       kindLabel={t.powerTypeInlet}
+      stage={powerStage(node.kind)}
       title={title}
       subtitle={subtitle}
       onClose={onClose}

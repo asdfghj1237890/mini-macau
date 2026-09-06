@@ -16,6 +16,10 @@
 // streets by OSRM. Every surface that draws it says so (`powerNetworkNote`).
 //
 // The overlay is time-independent: nothing here takes a clock.
+import {
+  PULSE_BUCKET_M, arrivalDistances, buildPulseFeatures, distanceBucket,
+} from './flowPulse'
+import type { PulseBuild } from './flowPulse'
 import type { Lang, Translations } from './i18n'
 import type {
   PowerDistributionRoad,
@@ -45,6 +49,42 @@ export const POWER_COLORS: Record<PowerFacilityType, string> = {
 export const POWER_TYPE_ORDER: readonly PowerFacilityType[] = [
   'plant', 'incinerator', 'sub220', 'sub110', 'sub66',
 ] as const
+
+// ---------------------------------------------------------------------------
+// STAGES. The grid as one numbered story — where the power comes from, then
+// the substation tiers in descending voltage, then the street mesh — so the
+// legend, the badge on every marker and the info panel all say "step ③" and
+// mean the same thing. Step ① is SOURCE and covers three kinds at once: the
+// Guangdong import points (91 % of the energy), the Coloane power station and
+// the incinerator — one chapter, several doors. `inlet` is a network node and
+// `distribution` the mesh: neither is a facility, but both are chapters.
+// ---------------------------------------------------------------------------
+export type PowerStageKind = 'source' | 'sub220' | 'sub110' | 'sub66' | 'distribution'
+
+export const POWER_STAGES: readonly PowerStageKind[] = [
+  'source', 'sub220', 'sub110', 'sub66', 'distribution',
+] as const
+
+// The facility types and node kinds that share step ①.
+export const POWER_SOURCE_KINDS: readonly string[] = ['inlet', 'plant', 'incinerator'] as const
+
+// 1-based stage number of a facility type or network-node kind, or 0 for a
+// kind the chain does not know — a future node type gets no badge rather than
+// a wrong one, and callers filter on `> 0`.
+export function powerStage(kind: string): number {
+  const stageKind = POWER_SOURCE_KINDS.includes(kind) ? 'source' : kind
+  const i = (POWER_STAGES as readonly string[]).indexOf(stageKind)
+  return i < 0 ? 0 : i + 1
+}
+
+// Name of the registered badge image for a stage — the small numbered disc at
+// the corner of a marker plate. Kept next to powerIconName for the same
+// reason: MapView's addImage loop and the symbol layer's `icon-image` must
+// spell it identically.
+export const POWER_BADGE_ICON_PREFIX = 'power-badge'
+export function powerBadgeIconName(stage: number): string {
+  return `${POWER_BADGE_ICON_PREFIX}-${stage}`
+}
 
 // The feature property MapView promotes to the GeoJSON feature id
 // (`promoteId`). Every building of a facility carries the same value, so ONE
@@ -142,9 +182,9 @@ export function powerLabelField(lang: Lang): string {
 // ---------------------------------------------------------------------------
 
 // How a key row draws its swatch. `square` is a facility block, `bolt` /
-// `boltHollow` the two marker plates, `line` a corridor sample and `inlet` the
-// arrow disc.
-export type PowerLegendGlyph = 'square' | 'bolt' | 'boltHollow' | 'line' | 'inlet'
+// `boltHollow` the two marker plates, `line` a corridor sample, `inlet` the
+// arrow disc and `pulse` the bright wave that walks the grid.
+export type PowerLegendGlyph = 'square' | 'bolt' | 'boltHollow' | 'line' | 'inlet' | 'pulse'
 
 export interface PowerLegendRow {
   id: string
@@ -155,43 +195,59 @@ export interface PowerLegendRow {
   // than a trunk corridor, and its swatch says so — otherwise it would be
   // indistinguishable from the 66 kV row above it.
   thin: boolean
+  // Stage number (1–5, see POWER_STAGES) for the rows that ARE the chain, in
+  // the order power travels it; 0 for the style rows (voltage samples, the
+  // hollow plate, the wave) that explain a mark without being a step. The
+  // legend draws the numbered rows as a linked chain and the rest as a key.
+  stage: number
 }
 
 export function powerLegendRows(
   t: Translations,
   network?: PowerNetwork | null,
 ): PowerLegendRow[] {
-  const rows: PowerLegendRow[] = [
-    { id: 'plant', label: t.powerTypePlant, glyph: 'square', color: POWER_COLORS.plant, thin: false },
-    { id: 'incinerator', label: t.powerTypeIncinerator, glyph: 'square', color: POWER_COLORS.incinerator, thin: false },
-    { id: 'sub220', label: t.powerTypeSub220, glyph: 'bolt', color: POWER_COLORS.sub220, thin: false },
-    { id: 'sub110', label: t.powerTypeSub110, glyph: 'bolt', color: POWER_COLORS.sub110, thin: false },
-    { id: 'sub66', label: t.powerTypeSub66, glyph: 'bolt', color: POWER_COLORS.sub66, thin: false },
-    // The hollow plate is a statement about certainty, not about type, so the
-    // row uses the commonest approximate tier's colour and says what it means.
-    { id: 'approximate', label: t.powerApproximate, glyph: 'boltHollow', color: POWER_COLORS.sub66, thin: false },
-  ]
+  const lines = network?.lines ?? []
+  const rows: PowerLegendRow[] = []
+  // The chain, in FLOW order — the order the wave on the map lights it. Step ①
+  // is three rows (import points, the plant, the incinerator) that share one
+  // number; the inlet row only when the file has import nodes.
+  if (network?.nodes?.some(n => n.kind === 'inlet')) {
+    rows.push({
+      id: 'inlet', label: t.powerTypeInlet, glyph: 'inlet', color: POWER_INLET_COLOR,
+      thin: false, stage: powerStage('inlet'),
+    })
+  }
+  rows.push(
+    { id: 'plant', label: t.powerTypePlant, glyph: 'square', color: POWER_COLORS.plant, thin: false, stage: powerStage('plant') },
+    { id: 'incinerator', label: t.powerTypeIncinerator, glyph: 'square', color: POWER_COLORS.incinerator, thin: false, stage: powerStage('incinerator') },
+    { id: 'sub220', label: t.powerTypeSub220, glyph: 'bolt', color: POWER_COLORS.sub220, thin: false, stage: powerStage('sub220') },
+    { id: 'sub110', label: t.powerTypeSub110, glyph: 'bolt', color: POWER_COLORS.sub110, thin: false, stage: powerStage('sub110') },
+    { id: 'sub66', label: t.powerTypeSub66, glyph: 'bolt', color: POWER_COLORS.sub66, thin: false, stage: powerStage('sub66') },
+    // Unconditional: the distribution network is Macau's own streets restyled,
+    // so it is on the map whenever the layer is, network file or not.
+    {
+      id: 'distribution', label: t.powerLegendDistribution, glyph: 'line',
+      color: POWER_DISTRIBUTION_COLOR, thin: true, stage: powerStage('distribution'),
+    },
+  )
+  // The style rows: what a mark looks like, not which step it is. The wave
+  // first, because it is the thing the numbers above are explaining.
+  rows.push({ id: 'pulse', label: t.powerPulse, glyph: 'pulse', color: POWER_PULSE_COLOR, thin: false, stage: 0 })
   // One row per voltage the file actually carries — a network with no 220 kV
   // corridors must not advertise a mark that is not on screen.
-  const lines = network?.lines ?? []
   for (const kv of POWER_VOLTAGES) {
     if (!lines.some(l => l.voltageKv === kv)) continue
     rows.push({
       id: `line-${kv}`, label: t.powerLineVoltage(kv), glyph: 'line',
-      color: POWER_LINE_COLORS[kv], thin: false,
+      color: POWER_LINE_COLORS[kv], thin: false, stage: 0,
     })
   }
-  // Unconditional: the distribution network is Macau's own streets restyled, so
-  // it is on the map whenever the layer is, network file or not.
+  // The hollow plate is a statement about certainty, not about type, so the
+  // row uses the commonest approximate tier's colour and says what it means.
   rows.push({
-    id: 'distribution', label: t.powerLegendDistribution, glyph: 'line',
-    color: POWER_DISTRIBUTION_COLOR, thin: true,
+    id: 'approximate', label: t.powerApproximate, glyph: 'boltHollow',
+    color: POWER_COLORS.sub66, thin: false, stage: 0,
   })
-  if (network?.nodes?.some(n => n.kind === 'inlet')) {
-    rows.push({
-      id: 'inlet', label: t.powerTypeInlet, glyph: 'inlet', color: POWER_INLET_COLOR, thin: false,
-    })
-  }
   return rows
 }
 
@@ -344,6 +400,10 @@ export function buildPowerMarkerFeatures(
         type: facility.type,
         approximate: facility.approximate,
         icon: powerIconName(facility.type, facility.approximate),
+        // The step number at the plate's corner (see POWER_STAGES). `badge`
+        // is the image name so the symbol layer stays a plain ['get'].
+        stage: powerStage(facility.type),
+        badge: powerBadgeIconName(powerStage(facility.type)),
       },
     })
   }
@@ -357,16 +417,21 @@ export function buildPowerMarkerFeatures(
   for (const node of network?.nodes ?? []) {
     const coords = node.coordinates
     if (!coords || coords.length < 2) continue
+    const stage = powerStage(node.kind)
     features.push({
       type: 'Feature',
       geometry: { type: 'Point', coordinates: [coords[0], coords[1]] },
       properties: {
         facilityId: node.id,
         type: node.kind,
-        // A node is a point we chose deliberately, not an inferred stand-in for
-        // a facility we could not locate — so it never draws hollow.
-        approximate: false,
+        // A landing point the pipeline could only estimate is flagged in the
+        // data (the 北安 corridor); the symbol layer fades it a little and the
+        // panel says so. The other inlets are chosen points and draw solid.
+        approximate: node.approximate === true,
         icon: POWER_INLET_ICON,
+        // 0 for a kind the chain does not know; the badge layer filters it out.
+        stage,
+        badge: powerBadgeIconName(stage),
         label_zh: pickPowerText(node.name, 'zh'),
         label_en: pickPowerText(node.name, 'en'),
         label_pt: pickPowerText(node.name, 'pt'),
@@ -383,13 +448,17 @@ export const POWER_DISTRIBUTION_MAJOR_CLASSES: readonly string[] = [
   'motorway', 'trunk', 'primary',
 ] as const
 
-// One LineString per road, carrying only its class. Same contract (and same
-// reasoning) as buildWaterDistributionFeatures: per-road features are what let
-// MapLibre cull, query and width-ramp each street individually, and the source
-// is written once rather than per frame. Roads with fewer than two points are
-// skipped.
+// One LineString per road, carrying its class and its pulse bucket (the road's
+// distance from the nearest substation in PULSE_BUCKET_M steps — null where
+// the outward walk never reached it, so it never lights). Same contract (and
+// same reasoning) as buildWaterDistributionFeatures: per-road features are
+// what let MapLibre cull, query and width-ramp each street individually, and
+// the source is written once rather than per frame. Roads with fewer than two
+// points are skipped.
 export function buildPowerDistributionFeatures(
   roads: PowerDistributionRoad[] | null | undefined,
+  bucketM: number = PULSE_BUCKET_M,
+  buckets: number = POWER_MESH_PULSE_BUCKETS,
 ): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = []
   for (const road of roads ?? []) {
@@ -398,10 +467,77 @@ export function buildPowerDistributionFeatures(
     features.push({
       type: 'Feature',
       geometry: { type: 'LineString', coordinates: coords },
-      properties: { class: road.class },
+      properties: {
+        class: road.class,
+        bucket: distanceBucket(road.dist, bucketM, buckets),
+      },
     })
   }
   return { type: 'FeatureCollection', features }
+}
+
+// How many mesh buckets the loaded roads actually fill — the wave walks this
+// far and no further (see PulseBuild.buckets for the trunk twin).
+export function powerDistributionBucketCount(
+  roads: PowerDistributionRoad[] | null | undefined,
+  bucketM: number = PULSE_BUCKET_M,
+  buckets: number = POWER_MESH_PULSE_BUCKETS,
+): number {
+  let max = -1
+  for (const road of roads ?? []) {
+    const b = distanceBucket(road.dist, bucketM, buckets)
+    if (b !== null && b > max) max = b
+  }
+  return max + 1
+}
+
+// ---------------------------------------------------------------------------
+// THE PULSE — the bright wave that walks the grid in order: out of the import
+// points, the plant and the incinerator (the roots: nothing flows into them),
+// along the 220 kV backbone to the landing substations, down the 110 kV and
+// 66 kV ties, and then outward through the street mesh. The machinery lives
+// in src/flowPulse.ts, shared with WATER; this is POWER's tuning and names.
+// ---------------------------------------------------------------------------
+
+// Layer budgets. Both groups are built ONCE per style with this many layers,
+// before any data has arrived, so the counts are fixed caps rather than
+// data-derived: a chunk past the last bucket is clamped into it. 50 × 400 m
+// covers a 20 km chain (the 北通道 backbone alone is 8.7 km before it fans
+// out); 15 × 400 m a 6 km walk from the nearest substation, beyond the mesh's
+// 5.6 km maximum.
+export const POWER_TRUNK_PULSE_BUCKETS = 50
+export const POWER_MESH_PULSE_BUCKETS = 15
+// Warm white: brighter than every amber it passes over, so a lit chunk reads
+// as the cable itself lighting up rather than a new line on top.
+export const POWER_PULSE_COLOR = '#fff3c4'
+
+// Metres along the network from the nearest root to every node. The network's
+// own nodes (the import points) count even with no line attached.
+export function powerArrivalDistances(
+  network: PowerNetwork | null | undefined,
+): Map<string, number> {
+  return arrivalDistances(network?.lines ?? [], (network?.nodes ?? []).map(n => n.id))
+}
+
+// Every line cut into one-bucket chunks (see buildPulseFeatures), each tagged
+// with its voltage, its line id and the voltage's core widths — so the lit
+// chunk can be drawn a multiple of the corridor it rides, the way the glow and
+// the dots are. Vertex order is preserved, `from` end first, like
+// buildPowerLineFeatures.
+export function buildPowerPulseFeatures(
+  network: PowerNetwork | null | undefined,
+  bucketM: number = PULSE_BUCKET_M,
+  buckets: number = POWER_TRUNK_PULSE_BUCKETS,
+): PulseBuild {
+  return buildPulseFeatures(
+    network?.lines ?? [], bucketM, buckets,
+    line => ({
+      voltageKv: line.voltageKv,
+      lineId: line.id,
+      width12: powerLineWidth(line.voltageKv, 0),
+      width16: powerLineWidth(line.voltageKv, 1),
+    }),
+  )
 }
 
 // One LineString per HV line. `sortKey` puts the higher voltage on top where

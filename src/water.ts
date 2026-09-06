@@ -18,6 +18,12 @@
 // The overlay is time-independent: nothing here takes a clock.
 import { focusSnapshotKey, loadFocusSnapshot, saveFocusSnapshot } from './focusMode'
 import type { LayerVisibilityState } from './focusMode'
+import {
+  PULSE_BUCKET_M, PULSE_REST_STEPS, PULSE_STEP_TICKS, PULSE_TAIL,
+  advancePulse, arrivalDistances, buildPulseFeatures, distanceBucket,
+  edgeLengthM, initialPulseState,
+} from './flowPulse'
+import type { PulseBuild, PulseCounts, PulsePhase, PulseState, PulseWrite } from './flowPulse'
 import type { Lang, Translations } from './i18n'
 import type {
   WaterFacility,
@@ -25,7 +31,6 @@ import type {
   WaterDistributionRoad,
   WaterNetwork,
   WaterOperator,
-  WaterPipe,
   WaterPipeKind,
   WaterText,
 } from './types'
@@ -568,31 +573,30 @@ export function buildWaterPipeFeatures(
 }
 
 // ---------------------------------------------------------------------------
-// THE PULSE. A bright wave that walks the whole chain in order — out of the
-// inlets (and the catchment reservoirs, which have no upstream), along the raw
-// mains into the plants, on through the treated mains to the tanks, and then
-// outward through the street mesh — so the SEQUENCE is visible, not just the
-// direction. The per-pipe dash and dot flows show which way each pipe runs;
-// only a wave that starts somewhere and arrives somewhere shows what comes
-// before what.
-//
-// It is drawn with the same no-relayout trick as the flows: every pipe is cut
-// into chunks by distance from the wave's start, each chunk tagged with a
-// bucket number, and MapView adds ONE line layer per bucket (filtered on it)
-// whose only per-tick change is `line-opacity`. `advanceWaterPulse` is the
-// state machine that says which buckets are lit how brightly on a given tick.
-//
-// Distances are metres ALONG the network. Arrival at a node is the shortest
-// path from any root (multi-source Dijkstra over the pipe graph), so a plant
-// fed two ways lights when the first water reaches it, and everything
-// downstream continues from there.
+// THE PULSE — the bright wave that walks the chain in order: out of the inlets
+// (and the catchment reservoirs, which have no upstream), along the raw mains
+// into the plants, on through the treated mains to the tanks, and then outward
+// through the street mesh. The machinery — distance buckets from the roots,
+// the chunk builder, the per-tick state machine — is generic and lives in
+// src/flowPulse.ts, shared with POWER; what stays here is WATER's names for
+// it, so every caller and the tests keep reading the module they always did.
+// See flowPulse.ts for the design notes.
 // ---------------------------------------------------------------------------
+export { haversineM } from './flowPulse'
+export const WATER_PULSE_BUCKET_M = PULSE_BUCKET_M
+export const WATER_PULSE_TAIL = PULSE_TAIL
+export const WATER_PULSE_STEP_TICKS = PULSE_STEP_TICKS
+export const WATER_PULSE_REST_STEPS = PULSE_REST_STEPS
+export const waterPipeLengthM = edgeLengthM
+export const waterDistanceBucket = distanceBucket
+export const initialWaterPulseState = initialPulseState
+export const advanceWaterPulse = advancePulse
+export type WaterPulseBuild = PulseBuild
+export type WaterPulsePhase = PulsePhase
+export type WaterPulseState = PulseState
+export type WaterPulseCounts = PulseCounts
+export type WaterPulseWrite = PulseWrite
 
-// Bucket length. 400 m per step at two ticks a step (WATER_PULSE_STEP_TICKS)
-// walks the ~13 km from the Ilha Verde inlet to the Taipa tanks in about 4.5 s
-// — slow enough to follow with the eye at city zoom, fast enough that the
-// whole story fits one cycle.
-export const WATER_PULSE_BUCKET_M = 400
 // Layer budgets. Both groups are built ONCE per style with this many layers,
 // before any data has arrived, so the counts are fixed caps rather than
 // data-derived: a chunk past the last bucket is clamped into it. 40 × 400 m
@@ -600,215 +604,29 @@ export const WATER_PULSE_BUCKET_M = 400
 // treated-water source, beyond the mesh's 7.7 km maximum.
 export const WATER_TRUNK_PULSE_BUCKETS = 40
 export const WATER_MESH_PULSE_BUCKETS = 20
-// The head and the fading tail behind it, as opacities: bucket `head` gets
-// tail[0], `head-1` tail[1], … and the bucket behind the tail is written to 0.
-export const WATER_PULSE_TAIL: readonly number[] = [1, 0.55, 0.25]
-// Ticks per step (a tick is MapView's FLOW_TICK_MS), and the rest at the end
-// of a cycle in steps, so the story has a beat of silence before it repeats.
-export const WATER_PULSE_STEP_TICKS = 2
-export const WATER_PULSE_REST_STEPS = 10
 // Pale cyan-white: brighter than every base colour it passes over, so a lit
 // chunk reads as the pipe itself lighting up rather than a new line on top.
 export const WATER_PULSE_COLOR = '#e0fbff'
 
-const EARTH_RADIUS_M = 6371008.8
-
-// Great-circle distance in metres between two [lng, lat] points.
-export function haversineM(a: readonly number[], b: readonly number[]): number {
-  const toRad = Math.PI / 180
-  const dLat = (b[1] - a[1]) * toRad
-  const dLng = (b[0] - a[0]) * toRad
-  const s = Math.sin(dLat / 2) ** 2
-    + Math.cos(a[1] * toRad) * Math.cos(b[1] * toRad) * Math.sin(dLng / 2) ** 2
-  return 2 * EARTH_RADIUS_M * Math.asin(Math.min(1, Math.sqrt(s)))
-}
-
-// Length of a pipe along its own vertices — the distance the wave walks. The
-// file's `lengthM` is the same number rounded; recomputing keeps the chunk
-// boundaries and the node arrivals in exactly one unit.
-export function waterPipeLengthM(pipe: WaterPipe): number {
-  const c = pipe.coordinates
-  let m = 0
-  for (let i = 1; i < c.length; i++) m += haversineM(c[i - 1], c[i])
-  return m
-}
-
-// Metres along the network from the nearest ROOT to every node. A root is a
-// node nothing flows into: the inlets, and a catchment reservoir that has no
-// pipe feeding it. Roots sit at 0 and light first. A node with no route from
-// any root (only possible inside a cycle) is absent from the map, and the
-// pulse builder treats it as its own start.
+// Metres along the network from the nearest root to every node — the inlets
+// and any reservoir no pipe feeds. The network's own nodes count even with no
+// pipe attached.
 export function waterArrivalDistances(
   network: WaterNetwork | null | undefined,
 ): Map<string, number> {
-  const pipes = (network?.pipes ?? []).filter(p => (p.coordinates?.length ?? 0) >= 2)
-  const ids = new Set<string>()
-  const inbound = new Set<string>()
-  for (const p of pipes) { ids.add(p.from); ids.add(p.to); inbound.add(p.to) }
-  for (const n of network?.nodes ?? []) ids.add(n.id)
-  const dist = new Map<string, number>()
-  for (const id of ids) if (!inbound.has(id)) dist.set(id, 0)
-  // Dijkstra with a linear scan: two dozen nodes, so a heap would be noise.
-  const settled = new Set<string>()
-  for (;;) {
-    let best: string | null = null
-    let bestD = Infinity
-    for (const [id, d] of dist) {
-      if (!settled.has(id) && d < bestD) { best = id; bestD = d }
-    }
-    if (best === null) break
-    settled.add(best)
-    for (const p of pipes) {
-      if (p.from !== best) continue
-      const nd = bestD + waterPipeLengthM(p)
-      const cur = dist.get(p.to)
-      if (cur === undefined || nd < cur) dist.set(p.to, nd)
-    }
-  }
-  return dist
+  return arrivalDistances(network?.pipes ?? [], (network?.nodes ?? []).map(n => n.id))
 }
 
-// Bucket index of a distance, clamped into the layer budget; null where the
-// distance is unknown (a mesh road the outward walk never reached), so the
-// filter matches nothing and the road simply never lights.
-export function waterDistanceBucket(
-  distM: number | null | undefined, bucketM: number, buckets: number,
-): number | null {
-  if (distM === null || distM === undefined || !Number.isFinite(distM) || distM < 0) return null
-  return Math.min(Math.floor(distM / bucketM), buckets - 1)
-}
-
-export interface WaterPulseBuild {
-  features: GeoJSON.FeatureCollection
-  // How many buckets the network actually fills (≤ the layer budget) — the
-  // animation walks this far and no further, so a short network does not
-  // spend half its cycle sweeping empty layers.
-  buckets: number
-}
-
-// Every pipe cut into chunks of one bucket each. Chunk boundaries fall exactly
-// at bucket-length distances from the wave's start (arrival at `from` plus the
-// distance along the pipe), interpolated onto the segment they land in, so
-// consecutive chunks share their boundary vertex and the lit wave has no gaps.
-// Vertex order is preserved, `from` end first, like buildWaterPipeFeatures.
+// Every pipe cut into one-bucket chunks (see buildPulseFeatures), each tagged
+// with the pipe's kind and id next to its bucket. Vertex order is preserved,
+// `from` end first, like buildWaterPipeFeatures.
 export function buildWaterPulseFeatures(
   network: WaterNetwork | null | undefined,
   bucketM: number = WATER_PULSE_BUCKET_M,
   buckets: number = WATER_TRUNK_PULSE_BUCKETS,
 ): WaterPulseBuild {
-  const features: GeoJSON.Feature[] = []
-  const arrival = waterArrivalDistances(network)
-  let maxBucket = -1
-  const emit = (coords: number[][], bucket: number, pipe: WaterPipe) => {
-    // A chunk with no extent (a boundary landing exactly on a vertex) would
-    // draw as a round-cap dot, so it is dropped rather than emitted.
-    if (coords.length < 2) return
-    if (coords.every(c => c[0] === coords[0][0] && c[1] === coords[0][1])) return
-    const b = Math.min(bucket, buckets - 1)
-    if (b > maxBucket) maxBucket = b
-    features.push({
-      type: 'Feature',
-      geometry: { type: 'LineString', coordinates: coords },
-      properties: { bucket: b, kind: pipe.kind, pipeId: pipe.id },
-    })
-  }
-  for (const pipe of network?.pipes ?? []) {
-    const c = pipe.coordinates
-    if (!c || c.length < 2) continue
-    const d0 = arrival.get(pipe.from) ?? 0
-    let bucket = Math.floor(d0 / bucketM)
-    let s = 0 // metres along the pipe at the start of the current segment
-    let chunk: number[][] = [[c[0][0], c[0][1]]]
-    for (let i = 1; i < c.length; i++) {
-      const a = c[i - 1]
-      const b = c[i]
-      const seg = haversineM(a, b)
-      // Walk every bucket boundary that falls strictly inside this segment.
-      for (;;) {
-        const boundary = (bucket + 1) * bucketM - d0 // pipe metres where the next bucket starts
-        if (!(seg > 0) || boundary >= s + seg) break
-        const t = Math.max(0, (boundary - s) / seg)
-        const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
-        chunk.push(p)
-        emit(chunk, bucket, pipe)
-        chunk = [p]
-        bucket++
-      }
-      chunk.push([b[0], b[1]])
-      s += seg
-    }
-    emit(chunk, bucket, pipe)
-  }
-  return { features: { type: 'FeatureCollection', features }, buckets: maxBucket + 1 }
-}
-
-export type WaterPulsePhase = 'trunk' | 'mesh' | 'rest'
-
-export interface WaterPulseState {
-  phase: WaterPulsePhase
-  // Bucket index of the wave's head; in `rest`, the number of steps rested.
-  head: number
-  tick: number
-}
-
-export interface WaterPulseCounts {
-  trunk: number
-  mesh: number
-}
-
-export interface WaterPulseWrite {
-  group: 'trunk' | 'mesh'
-  index: number
-  opacity: number
-}
-
-// Fresh layers are all at opacity 0, and the first step lights bucket 0.
-export function initialWaterPulseState(): WaterPulseState {
-  return { phase: 'trunk', head: -1, tick: 0 }
-}
-
-// One tick of the wave. Returns the next state and the opacity writes that
-// take the layers from the previous tick's picture to this one — at most
-// tail.length + 1 of them, and none at all on the ticks between steps.
-//
-// A phase walks its head from bucket 0 to `count - 1 + tail.length`, so the
-// tail fades out past the last bucket instead of being cut off; a phase with
-// nothing to light (no network yet; the mesh not loaded, or absent on a phone)
-// is skipped in the same step. Rest counts steps and then hands back to the
-// trunk. Pure: the caller keeps the state and applies the writes.
-export function advanceWaterPulse(
-  state: WaterPulseState,
-  counts: WaterPulseCounts,
-  stepTicks: number = WATER_PULSE_STEP_TICKS,
-  restSteps: number = WATER_PULSE_REST_STEPS,
-  tail: readonly number[] = WATER_PULSE_TAIL,
-): { next: WaterPulseState; writes: WaterPulseWrite[] } {
-  const tick = state.tick + 1
-  if (tick % stepTicks !== 0) return { next: { ...state, tick }, writes: [] }
-  let phase = state.phase
-  let head = state.head + 1
-  // Hop past empty or finished phases. Three phases, so three hops is enough
-  // to land somewhere that either lights or rests.
-  for (let hop = 0; hop < 3; hop++) {
-    if (phase === 'rest') {
-      if (head < restSteps) break
-      phase = 'trunk'
-      head = 0
-      continue
-    }
-    const count = phase === 'trunk' ? counts.trunk : counts.mesh
-    if (count > 0 && head < count + tail.length) break
-    phase = phase === 'trunk' ? 'mesh' : 'rest'
-    head = 0
-  }
-  const writes: WaterPulseWrite[] = []
-  if (phase !== 'rest') {
-    const count = phase === 'trunk' ? counts.trunk : counts.mesh
-    for (let o = 0; o <= tail.length; o++) {
-      const index = head - o
-      if (index < 0 || index >= count) continue
-      writes.push({ group: phase, index, opacity: o < tail.length ? tail[o] : 0 })
-    }
-  }
-  return { next: { phase, head, tick }, writes }
+  return buildPulseFeatures(
+    network?.pipes ?? [], bucketM, buckets,
+    pipe => ({ kind: pipe.kind, pipeId: pipe.id }),
+  )
 }

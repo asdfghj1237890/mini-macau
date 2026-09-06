@@ -85,14 +85,22 @@ import {
   POWER_INLET_ICON,
   POWER_LINE_FLOW_COLOR,
   POWER_LINE_GLOW_COLOR,
+  POWER_MESH_PULSE_BUCKETS,
+  POWER_PULSE_COLOR,
+  POWER_STAGES,
+  POWER_TRUNK_PULSE_BUCKETS,
   POWER_TYPE_ORDER,
   buildPowerBuildingFeatures,
   buildPowerDistributionFeatures,
   buildPowerLineFeatures,
   buildPowerMarkerFeatures,
+  buildPowerPulseFeatures,
+  powerBadgeIconName,
+  powerDistributionBucketCount,
   powerIconName,
   powerLabelField,
 } from '../power'
+import { advancePulse, initialPulseState, type PulseCounts, type PulseState } from '../flowPulse'
 import { useI18n } from '../i18n'
 import { ga } from '../analytics/ga'
 
@@ -1209,7 +1217,7 @@ function drawWaterInletIcon(): ImageData | null {
 // the vertices run", which is the way the water flows. White over a dark
 // outline, so it reads on the pale treated core and the dark raw dashes alike.
 // Same 40 px / pixelRatio 2 budget and null-on-no-context contract as above.
-function drawWaterArrowIcon(): ImageData | null {
+function drawArrowIcon(): ImageData | null {
   const size = WATER_ICON_PX
   const canvas = document.createElement('canvas')
   canvas.width = size
@@ -1246,7 +1254,7 @@ function drawWaterArrowIcon(): ImageData | null {
 // 28 px at pixelRatio 2 — 14 CSS px, a third of the plate — one image per
 // stage in WATER_STAGES, registered up front like the plates.
 const WATER_BADGE_PX = 28
-function drawWaterBadgeIcon(stage: number): ImageData | null {
+function drawBadgeIcon(stage: number): ImageData | null {
   const size = WATER_BADGE_PX
   const canvas = document.createElement('canvas')
   canvas.width = size
@@ -1315,6 +1323,27 @@ const POWER_LINES_LAYER_ID = 'power-lines'
 const POWER_LINES_FLOW_PREFIX = 'power-lines-flow'
 const POWER_LINE_GLOW_OPACITY = 0.26
 const POWER_LINES_FLOW_OPACITY = 0.95
+// THE PULSE for the grid — see WATER_PULSE_SOURCE_ID above and the block of
+// that name in src/flowPulse.ts. Same construction: the lines cut into
+// distance buckets on a source of their own, the mesh bucketed on its `dist`,
+// one dark layer per bucket, and `line-opacity` the only thing that moves.
+const POWER_PULSE_SOURCE_ID = 'power-pulse'
+const POWER_PULSE_TRUNK_PREFIX = 'power-pulse-trunk'
+const POWER_PULSE_MESH_PREFIX = 'power-pulse-mesh'
+// A lit chunk is ~1.5× the corridor it rides — the chunks carry their
+// voltage's own width12/width16 — so a lit 220 kV backbone stays fatter than
+// a lit 66 kV tie, the way the glow and the dots do.
+const POWER_PULSE_TRUNK_WIDTH: maplibregl.ExpressionSpecification = [
+  'interpolate', ['linear'], ['zoom'],
+  12, ['*', ['get', 'width12'], 1.5], 16, ['*', ['get', 'width16'], 1.4],
+]
+const POWER_PULSE_TRUNK_BLUR = 2
+const POWER_PULSE_MESH_BLUR = 1
+// The static half of the story: chevrons riding every HV line in the
+// direction of supply, and a numbered stage badge on every plate.
+const POWER_ARROWS_LAYER_ID = 'power-lines-arrows'
+const POWER_ARROW_ICON = 'power-arrow'
+const POWER_BADGES_LAYER_ID = 'power-badges'
 
 // Width by VOLTAGE. Baked per feature by buildPowerLineFeatures (`width12` /
 // `width16`, from the POWER_LINE_WIDTHS table) rather than expressed as a
@@ -1385,6 +1414,7 @@ const WATER_FOCUS_SHOWN_LAYERS: readonly string[] = [
 const POWER_FOCUS_SHOWN_LAYERS: readonly string[] = [
   POWER_DISTRIBUTION_GLOW_LAYER_ID, POWER_DISTRIBUTION_LAYER_ID,
   ...phaseLayerIds(POWER_DISTRIBUTION_FLOW_PREFIX, POWER_MESH_PHASES),
+  ...phaseLayerIds(POWER_PULSE_MESH_PREFIX, POWER_MESH_PULSE_BUCKETS),
 ]
 
 // WATER and POWER are mutually exclusive focus modes, so this takes both flags
@@ -1459,6 +1489,24 @@ function addPowerDistributionFlowLayer(
     width: POWER_DISTRIBUTION_FLOW_WIDTH,
     opacity: POWER_DISTRIBUTION_FLOW_OPACITY,
     steps: POWER_DISTRIBUTION_FLOW_STEPS,
+  }, visible, beforeId)
+}
+
+// The mesh half of the POWER pulse — the twin of addDistributionPulseLayers,
+// bucketed by distance from the nearest substation, in the same slot.
+function addPowerDistributionPulseLayers(
+  m: maplibregl.Map, visible: boolean, fallbackBeforeId?: string,
+): void {
+  const beforeId = m.getLayer(POWER_LINES_GLOW_LAYER_ID)
+    ? POWER_LINES_GLOW_LAYER_ID
+    : fallbackBeforeId
+  addBucketLayers(m, {
+    prefix: POWER_PULSE_MESH_PREFIX,
+    source: POWER_DISTRIBUTION_SOURCE_ID,
+    count: POWER_MESH_PULSE_BUCKETS,
+    color: POWER_PULSE_COLOR,
+    width: distributionWidth(2.2, 4, POWER_DISTRIBUTION_MAJOR_CLASSES),
+    blur: POWER_PULSE_MESH_BLUR,
   }, visible, beforeId)
 }
 
@@ -1781,6 +1829,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const waterDistributionRef = useRef<WaterDistributionRoad[] | null>(waterDistributionRoads)
   waterDistributionRef.current = waterDistributionRoads
   const powerPhaseRef = useRef({ trunk: 0, mesh: 0, tick: 0 })
+  // The grid's pulse, on the same terms as the water one above.
+  const powerPulseRef = useRef<PulseState>(initialPulseState())
+  const powerPulseCountsRef = useRef<PulseCounts>({ trunk: 0, mesh: 0 })
   const powerDistributionRef = useRef<PowerDistributionRoad[] | null>(powerDistributionRoads)
   powerDistributionRef.current = powerDistributionRoads
 
@@ -2210,7 +2261,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       // goes even for a reader who never catches anything moving. Not on the
       // mesh: five thousand streets of chevrons would be noise.
       if (!m.hasImage(WATER_ARROW_ICON)) {
-        const arrowImg = drawWaterArrowIcon()
+        const arrowImg = drawArrowIcon()
         if (arrowImg) m.addImage(WATER_ARROW_ICON, arrowImg, { pixelRatio: 2 })
       }
       m.addLayer({
@@ -2301,6 +2352,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       if (isDesktopRef.current) {
         addPowerDistributionFlowLayer(m, powerFocusRef.current, firstSymbolId)
       }
+      // The mesh half of the pulse, on every viewport (see the water twin).
+      addPowerDistributionPulseLayers(m, powerFocusRef.current, firstSymbolId)
+      powerPulseCountsRef.current.mesh = powerDistributionBucketCount(powerDistributionRef.current)
 
       // The HV network: a glow, a solid core whose colour and width come from
       // the feature's own voltage, and the travelling dots above it. Only three
@@ -2345,6 +2399,43 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         opacity: POWER_LINES_FLOW_OPACITY,
         steps: POWER_LINE_FLOW_STEPS,
       }, true, firstSymbolId)
+      // THE PULSE, trunk half: the lines cut into distance buckets on a source
+      // of their own, one dark layer per bucket, lit in sequence by the
+      // interval below — exactly as the water trunk above.
+      const powerPulse = buildPowerPulseFeatures(transitRef.current.powerNetwork)
+      powerPulseCountsRef.current.trunk = powerPulse.buckets
+      m.addSource(POWER_PULSE_SOURCE_ID, { type: 'geojson', data: powerPulse.features })
+      addBucketLayers(m, {
+        prefix: POWER_PULSE_TRUNK_PREFIX,
+        source: POWER_PULSE_SOURCE_ID,
+        count: POWER_TRUNK_PULSE_BUCKETS,
+        color: POWER_PULSE_COLOR,
+        width: POWER_PULSE_TRUNK_WIDTH,
+        blur: POWER_PULSE_TRUNK_BLUR,
+      }, true, firstSymbolId)
+      // Direction chevrons riding every HV line, `from` → `to` — the direction
+      // of supply the pipeline writes the edges in (an import point or a
+      // generator at the `from` end).
+      if (!m.hasImage(POWER_ARROW_ICON)) {
+        const arrowImg = drawArrowIcon()
+        if (arrowImg) m.addImage(POWER_ARROW_ICON, arrowImg, { pixelRatio: 2 })
+      }
+      m.addLayer({
+        id: POWER_ARROWS_LAYER_ID, type: 'symbol', source: POWER_LINES_SOURCE_ID,
+        minzoom: 12,
+        layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 110,
+          'icon-image': POWER_ARROW_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.55, 16, 0.85],
+          'icon-rotation-alignment': 'map',
+          'icon-pitch-alignment': 'map',
+          'icon-keep-upright': false,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: { 'icon-opacity': 0.9 },
+      }, firstSymbolId)
 
       m.addSource(POWER_BUILDINGS_SOURCE_ID, {
         type: 'geojson',
@@ -2812,7 +2903,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       for (let stage = 1; stage <= WATER_STAGES.length; stage++) {
         const name = waterBadgeIconName(stage)
         if (m.hasImage(name)) continue
-        const img = drawWaterBadgeIcon(stage)
+        const img = drawBadgeIcon(stage)
         if (img) m.addImage(name, img, { pixelRatio: 2 })
       }
       m.addLayer({
@@ -2890,6 +2981,28 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           'text-halo-width': 1.2,
         },
       })
+      // The stage badges, on the same terms as the water ones: a second symbol
+      // layer on the markers source, parked on the plate's top-right corner.
+      for (let stage = 1; stage <= POWER_STAGES.length; stage++) {
+        const name = powerBadgeIconName(stage)
+        if (m.hasImage(name)) continue
+        const img = drawBadgeIcon(stage)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      m.addLayer({
+        id: POWER_BADGES_LAYER_ID, type: 'symbol', source: POWER_MARKERS_SOURCE_ID,
+        filter: ['>', ['get', 'stage'], 0],
+        layout: {
+          'icon-image': ['get', 'badge'],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+          'icon-offset': [10, -10],
+        },
+        paint: {
+          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
+        },
+      })
 
       addVehicleLayers(m, currentLang)
 
@@ -2931,6 +3044,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       waterPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
       waterPulseRef.current = initialWaterPulseState()
       powerPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
+      powerPulseRef.current = initialPulseState()
       // A style swap re-adds every layer visible; re-assert focus mode.
       applyFocusVisibility(m, waterFocusRef.current, powerFocusRef.current, wasteFocusRef.current)
     }
@@ -3343,6 +3457,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       POWER_MARKERS_SOURCE_ID,
       buildPowerMarkerFeatures(transitData.powerFacilities, transitData.powerNetwork),
     )
+    // The pulse chunks are cut from the same network, and the wave is told how
+    // far the grid reaches so it never sweeps empty buckets.
+    const pulse = buildPowerPulseFeatures(transitData.powerNetwork)
+    setData(POWER_PULSE_SOURCE_ID, pulse.features)
+    powerPulseCountsRef.current.trunk = pulse.buckets
   }, [transitData.powerFacilities, transitData.powerNetwork])
 
   // The distribution roads land once, from their own lazy fetch, so this fires
@@ -3360,6 +3479,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const src = map?.getSource(POWER_DISTRIBUTION_SOURCE_ID) as unknown as
       { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
     src?.setData?.(buildPowerDistributionFeatures(powerDistributionRoads))
+    powerPulseCountsRef.current.mesh = powerDistributionBucketCount(powerDistributionRoads)
   }, [powerDistributionRoads])
 
   // Selected water facility: the marker ring is a filter swap (toilet rule) and
@@ -3496,6 +3616,16 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             POWER_DISTRIBUTION_FLOW_OPACITY,
           )
           st.mesh = nextMesh
+        }
+        // The grid's pulse: the same pure step and the same handful of
+        // opacity writes as the water one.
+        const pulse = advancePulse(powerPulseRef.current, powerPulseCountsRef.current)
+        powerPulseRef.current = pulse.next
+        for (const w of pulse.writes) {
+          const id = phaseLayerId(
+            w.group === 'trunk' ? POWER_PULSE_TRUNK_PREFIX : POWER_PULSE_MESH_PREFIX, w.index,
+          )
+          if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', w.opacity)
         }
       }
     }, FLOW_TICK_MS)

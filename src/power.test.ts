@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import {
+  POWER_BADGE_ICON_PREFIX,
   POWER_COLORS,
   POWER_DISTRIBUTION_COLOR,
   POWER_DISTRIBUTION_MAJOR_CLASSES,
@@ -10,16 +11,25 @@ import {
   POWER_LINE_COLORS,
   POWER_LINE_FALLBACK_COLOR,
   POWER_LINE_WIDTHS,
+  POWER_MESH_PULSE_BUCKETS,
+  POWER_PULSE_COLOR,
+  POWER_SOURCE_KINDS,
+  POWER_STAGES,
+  POWER_TRUNK_PULSE_BUCKETS,
   POWER_TYPE_ORDER,
   POWER_VOLTAGES,
   buildPowerBuildingFeatures,
   buildPowerDistributionFeatures,
   buildPowerLineFeatures,
   buildPowerMarkerFeatures,
+  buildPowerPulseFeatures,
   countPowerFootprints,
   isPowerVoltage,
   pickPowerText,
   powerAnchorFacility,
+  powerArrivalDistances,
+  powerBadgeIconName,
+  powerDistributionBucketCount,
   powerIconName,
   powerLabelField,
   powerLegendRows,
@@ -29,14 +39,18 @@ import {
   powerOperator,
   powerOperatorLabel,
   powerPlantUnits,
+  powerStage,
   powerTypeLabel,
 } from './power'
+import { PULSE_BUCKET_M, haversineM } from './flowPulse'
 import type { Translations } from './i18n'
 import type {
   PowerBuilding,
   PowerFacility,
+  PowerFacilityType,
   PowerLine,
   PowerNetwork,
+  PowerNetworkNode,
 } from './types'
 
 const RING: [number, number][][] = [[
@@ -76,14 +90,19 @@ function line(over: Partial<PowerLine> = {}): PowerLine {
   }
 }
 
+function node(over: Partial<PowerNetworkNode> = {}): PowerNetworkNode {
+  return {
+    id: 'inlet-lotus',
+    kind: 'inlet',
+    name: { zh: '廣東電網輸入（蓮花）', en: 'Guangdong grid import (Lotus)', pt: '' },
+    coordinates: [113.56, 22.14],
+    ...over,
+  }
+}
+
 function network(over: Partial<PowerNetwork> = {}): PowerNetwork {
   return {
-    nodes: [{
-      id: 'inlet-lotus',
-      kind: 'inlet',
-      name: { zh: '廣東電網輸入（蓮花）', en: 'Guangdong grid import (Lotus)', pt: '' },
-      coordinates: [113.56, 22.14],
-    }],
+    nodes: [node()],
     lines: [line()],
     ...over,
   }
@@ -113,6 +132,35 @@ describe('the colour and width tables', () => {
     for (const kv of POWER_VOLTAGES) {
       expect(POWER_LINE_WIDTHS[kv][1]).toBeGreaterThan(POWER_LINE_WIDTHS[kv][0])
     }
+  })
+})
+
+describe('POWER_STAGES / POWER_SOURCE_KINDS / powerStage', () => {
+  it('numbers the chain 1..5 in flow order, ending with distribution', () => {
+    expect([...POWER_STAGES]).toEqual(['source', 'sub220', 'sub110', 'sub66', 'distribution'])
+  })
+
+  it('maps every source kind — inlet, plant, incinerator — to the shared stage 1', () => {
+    expect([...POWER_SOURCE_KINDS]).toEqual(['inlet', 'plant', 'incinerator'])
+    expect(POWER_SOURCE_KINDS.map(k => powerStage(k))).toEqual([1, 1, 1])
+  })
+
+  it('steps the substation tiers 2..4 and the mesh 5', () => {
+    expect(powerStage('sub220')).toBe(2)
+    expect(powerStage('sub110')).toBe(3)
+    expect(powerStage('sub66')).toBe(4)
+    expect(powerStage('distribution')).toBe(5)
+  })
+
+  it('is 0 for a kind the chain does not know', () => {
+    expect(powerStage('bogus')).toBe(0)
+  })
+})
+
+describe('powerBadgeIconName', () => {
+  it('names the badge image after the stage number', () => {
+    expect(powerBadgeIconName(1)).toBe('power-badge-1')
+    expect(powerBadgeIconName(5)).toBe(`${POWER_BADGE_ICON_PREFIX}-5`)
   })
 })
 
@@ -296,44 +344,55 @@ describe('powerLegendRows', () => {
     powerTypeInlet: '廣東電網輸入',
     powerApproximate: '約略位置',
     powerLegendDistribution: '配電網（示意，沿全澳道路）',
+    powerPulse: '脈衝：輸電順序 ① → ⑤',
     powerLineVoltage: (kv: number) => `${kv} kV 線路`,
   } as Translations
 
-  it('always names the five types, the hollow plate and the distribution mesh', () => {
-    const ids = powerLegendRows(t, null).map(r => r.id)
-    expect(ids).toEqual([
-      'plant', 'incinerator', 'sub220', 'sub110', 'sub66', 'approximate', 'distribution',
-    ])
+  // The chain in flow order, stage-0 style rows excluded — reused below so the
+  // expected id list only has to spell out what differs per scenario.
+  const CHAIN_IDS = ['plant', 'incinerator', 'sub220', 'sub110', 'sub66', 'distribution']
+
+  it('(no network) lists the chain, then pulse, then approximate — no inlet, no line rows', () => {
+    const rows = powerLegendRows(t, null)
+    expect(rows.map(r => r.id)).toEqual([...CHAIN_IDS, 'pulse', 'approximate'])
+    // plant/incinerator share stage 1; sub220/110/66 step 2/3/4; distribution is
+    // 5; the style rows (pulse, approximate) are stage 0.
+    expect(rows.map(r => r.stage)).toEqual([1, 1, 2, 3, 4, 5, 0, 0])
+    expect(rows.find(r => r.id === 'distribution'))
+      .toMatchObject({ glyph: 'line', thin: true, color: POWER_DISTRIBUTION_COLOR, stage: 5 })
+    expect(rows.find(r => r.id === 'pulse'))
+      .toMatchObject({ glyph: 'pulse', color: POWER_PULSE_COLOR, thin: false, stage: 0 })
+    expect(rows.find(r => r.id === 'approximate'))
+      .toMatchObject({ glyph: 'boltHollow', stage: 0 })
   })
 
-  it('draws the distribution row thin and in its own colour', () => {
-    const row = powerLegendRows(t, null).find(r => r.id === 'distribution')!
-    expect(row.glyph).toBe('line')
-    expect(row.thin).toBe(true)
-    expect(row.color).toBe(POWER_DISTRIBUTION_COLOR)
-  })
-
-  it('adds a row ONLY for voltages the network actually carries, high to low', () => {
+  it('(inlet + all three voltages) lists inlet first, then the chain, pulse, the three line rows high to low, approximate last', () => {
     const net = network({
-      lines: [line({ voltageKv: 66 }), line({ id: 'x', voltageKv: 220 })],
+      lines: [line({ id: 'a', voltageKv: 220 }), line({ id: 'b', voltageKv: 110 }), line({ id: 'c', voltageKv: 66 })],
     })
+    const rows = powerLegendRows(t, net)
+    expect(rows.map(r => r.id)).toEqual([
+      'inlet', ...CHAIN_IDS, 'pulse', 'line-220', 'line-110', 'line-66', 'approximate',
+    ])
+    expect(rows.map(r => r.stage)).toEqual([1, 1, 1, 2, 3, 4, 5, 0, 0, 0, 0, 0])
+    expect(rows[0]).toMatchObject({ glyph: 'inlet', color: POWER_INLET_COLOR, stage: 1 })
+    expect(rows.find(r => r.id === 'line-220')).toMatchObject({ label: '220 kV 線路', stage: 0 })
+  })
+
+  it('(66 kV only) omits the line-220 / line-110 rows', () => {
+    const net = network({ lines: [line({ voltageKv: 66 })] })
     const ids = powerLegendRows(t, net).map(r => r.id)
-    expect(ids).toContain('line-220')
     expect(ids).toContain('line-66')
+    expect(ids).not.toContain('line-220')
     expect(ids).not.toContain('line-110')
-    expect(ids.indexOf('line-220')).toBeLessThan(ids.indexOf('line-66'))
-    expect(powerLegendRows(t, net).find(r => r.id === 'line-220')!.label).toBe('220 kV 線路')
+    // Still slots in between the pulse row and 'approximate'.
+    expect(ids.slice(-2)).toEqual(['line-66', 'approximate'])
   })
 
   it('adds the inlet row only when the network really has import nodes', () => {
     expect(powerLegendRows(t, network()).map(r => r.id)).toContain('inlet')
     expect(powerLegendRows(t, network({ nodes: [] })).map(r => r.id)).not.toContain('inlet')
     expect(powerLegendRows(t, null).map(r => r.id)).not.toContain('inlet')
-    expect(powerLegendRows(t, network()).find(r => r.id === 'inlet')!.color).toBe(POWER_INLET_COLOR)
-  })
-
-  it('marks the approximate row with the hollow glyph', () => {
-    expect(powerLegendRows(t, null).find(r => r.id === 'approximate')!.glyph).toBe('boltHollow')
   })
 })
 
@@ -398,6 +457,31 @@ describe('buildPowerMarkerFeatures', () => {
       nodes: [{ id: 'n', kind: 'inlet', name: { zh: '', pt: '', en: '' }, coordinates: [] as unknown as [number, number] }],
     })).features).toHaveLength(1)
   })
+
+  it('tags every facility marker with its flow stage and badge image', () => {
+    const types = [...POWER_TYPE_ORDER] as PowerFacilityType[]
+    const fc = buildPowerMarkerFeatures(types.map((type, i) => facility({ id: `f${i}`, type })))
+    expect(fc.features.map(f => f.properties?.stage)).toEqual(types.map(type => powerStage(type)))
+    expect(fc.features.map(f => f.properties?.badge))
+      .toEqual(types.map(type => powerBadgeIconName(powerStage(type))))
+    // Pinned against POWER_STAGES directly: plant/incinerator share stage 1,
+    // then sub220/sub110/sub66 step 2/3/4.
+    expect(fc.features.map(f => f.properties?.stage)).toEqual([1, 1, 2, 3, 4])
+  })
+
+  it('gives the inlet node stage 1 and the matching badge image', () => {
+    const fc = buildPowerMarkerFeatures([], network())
+    expect(fc.features[0].properties).toMatchObject({ stage: 1, badge: 'power-badge-1' })
+  })
+
+  it('flags a node whose landing point is only estimated, and leaves an ordinary one exact', () => {
+    const approxNet = network({
+      nodes: [node({ id: 'inlet-north', approximate: true })],
+    })
+    expect(buildPowerMarkerFeatures([], approxNet).features[0].properties).toMatchObject({ approximate: true })
+    // The default fixture node carries no `approximate` field at all — still false.
+    expect(buildPowerMarkerFeatures([], network()).features[0].properties).toMatchObject({ approximate: false })
+  })
 })
 
 describe('buildPowerLineFeatures', () => {
@@ -446,11 +530,30 @@ describe('buildPowerLineFeatures', () => {
 describe('buildPowerDistributionFeatures', () => {
   const road = { class: 'primary', coordinates: [[113.54, 22.19], [113.545, 22.192]] as [number, number][] }
 
-  it('emits one LineString per road, carrying only its class', () => {
+  it('emits one LineString per road, carrying its class and pulse bucket', () => {
     const fc = buildPowerDistributionFeatures([road])
     expect(fc.features).toHaveLength(1)
-    expect(fc.features[0].properties).toEqual({ class: 'primary' })
+    // No `dist` on the road, so it is never reached: no bucket lights.
+    expect(fc.features[0].properties).toEqual({ class: 'primary', bucket: null })
     expect(fc.features[0].geometry).toEqual({ type: 'LineString', coordinates: road.coordinates })
+  })
+
+  it('buckets a road by its distance from the nearest substation', () => {
+    const fc = buildPowerDistributionFeatures([
+      { ...road, dist: 850 },
+      { ...road, dist: null },
+      { ...road, dist: 100_000 }, // far beyond the default budget
+    ], 400)
+    // 850 / 400 → 2; null never lights; the huge distance clamps into the
+    // last bucket of the DEFAULT budget (POWER_MESH_PULSE_BUCKETS = 15 → 14).
+    expect(fc.features.map(f => f.properties?.bucket)).toEqual([2, null, 14])
+  })
+
+  it('defaults to the mesh bucket length and budget when none are given', () => {
+    const roads = [{ ...road, dist: 850 }]
+    expect(buildPowerDistributionFeatures(roads)).toEqual(
+      buildPowerDistributionFeatures(roads, PULSE_BUCKET_M, POWER_MESH_PULSE_BUCKETS),
+    )
   })
 
   it('skips a road with fewer than two points, and tolerates null', () => {
@@ -463,5 +566,126 @@ describe('buildPowerDistributionFeatures', () => {
 
   it('names the classes drawn as wide feeders', () => {
     expect([...POWER_DISTRIBUTION_MAJOR_CLASSES]).toEqual(['motorway', 'trunk', 'primary'])
+  })
+})
+
+describe('powerDistributionBucketCount', () => {
+  const road = { class: 'primary', coordinates: [[113.54, 22.19], [113.545, 22.192]] as [number, number][] }
+
+  it('is the highest bucket actually filled, plus one', () => {
+    const roads = [
+      { ...road, dist: 100 },  // bucket 0
+      { ...road, dist: 850 }, // bucket 2
+      { ...road, dist: null }, // never reached, no bucket
+    ]
+    expect(powerDistributionBucketCount(roads, 400, 15)).toBe(3)
+  })
+
+  it('is 0 for no roads, and tolerates a missing file', () => {
+    expect(powerDistributionBucketCount([])).toBe(0)
+    expect(powerDistributionBucketCount(null)).toBe(0)
+    expect(powerDistributionBucketCount(undefined)).toBe(0)
+  })
+})
+
+describe('powerArrivalDistances', () => {
+  const A: [number, number] = [113.5000, 22.2000]
+  const B: [number, number] = [113.5000, 22.2090]
+  const C: [number, number] = [113.5000, 22.2099]
+
+  it('starts an inlet node at 0 and accumulates the line length downstream', () => {
+    const net: PowerNetwork = {
+      nodes: [node({ id: 'inlet-x', coordinates: A })],
+      lines: [line({ id: 'l1', from: 'inlet-x', to: 'sub-y', coordinates: [A, B] })],
+    }
+    const dist = powerArrivalDistances(net)
+    expect(dist.get('inlet-x')).toBe(0)
+    expect(dist.get('sub-y')).toBeCloseTo(haversineM(A, B), 6)
+  })
+
+  it('walks a chain, node by node', () => {
+    const net: PowerNetwork = {
+      nodes: [],
+      lines: [
+        line({ id: 'ab', from: 'a', to: 'b', coordinates: [A, B] }),
+        line({ id: 'bc', from: 'b', to: 'c', coordinates: [B, C] }),
+      ],
+    }
+    const dist = powerArrivalDistances(net)
+    const ab = haversineM(A, B)
+    const bc = haversineM(B, C)
+    expect(dist.get('a')).toBe(0)
+    expect(dist.get('b')).toBeCloseTo(ab, 6)
+    expect(dist.get('c')).toBeCloseTo(ab + bc, 6)
+  })
+
+  it('counts an inlet node with no line at all as its own root', () => {
+    const net: PowerNetwork = { nodes: [node({ id: 'inlet-lone', coordinates: A })], lines: [] }
+    expect(powerArrivalDistances(net).get('inlet-lone')).toBe(0)
+  })
+
+  it('tolerates a missing network', () => {
+    expect(powerArrivalDistances(null).size).toBe(0)
+    expect(powerArrivalDistances(undefined).size).toBe(0)
+  })
+})
+
+describe('buildPowerPulseFeatures', () => {
+  // A straight ~1000 m run, pure-latitude so the length is easy to reason
+  // about (and cross-check with haversineM).
+  const P0: [number, number] = [113.5000, 22.2000]
+  const P1: [number, number] = [113.5000, 22.2090]
+
+  it('cuts a ~1000 m 220 kV line into 3 contiguous bucket-length chunks', () => {
+    const net: PowerNetwork = {
+      nodes: [],
+      lines: [line({ id: 'l1', from: 'inlet-x', to: 'sub-y', voltageKv: 220, coordinates: [P0, P1] })],
+    }
+    const build = buildPowerPulseFeatures(net, 400, POWER_TRUNK_PULSE_BUCKETS)
+    const feats = build.features.features
+    expect(feats).toHaveLength(3)
+    expect(feats.map(f => f.properties?.bucket)).toEqual([0, 1, 2])
+    expect(build.buckets).toBe(3)
+    for (const f of feats) {
+      expect(f.properties).toMatchObject({
+        voltageKv: 220,
+        lineId: 'l1',
+        width12: powerLineWidth(220, 0),
+        width16: powerLineWidth(220, 1),
+      })
+    }
+
+    // Consecutive chunks share their boundary vertex, so the lit wave has no
+    // gaps as it crosses from one bucket's layer to the next.
+    const c0 = (feats[0].geometry as GeoJSON.LineString).coordinates
+    const c1 = (feats[1].geometry as GeoJSON.LineString).coordinates
+    const c2 = (feats[2].geometry as GeoJSON.LineString).coordinates
+    expect(c0[c0.length - 1]).toEqual(c1[0])
+    expect(c1[c1.length - 1]).toEqual(c2[0])
+  })
+
+  it('uses the trunk bucket length and budget when none are given', () => {
+    const net: PowerNetwork = {
+      nodes: [],
+      lines: [line({ id: 'l1', from: 'a', to: 'b', coordinates: [P0, P1] })],
+    }
+    expect(buildPowerPulseFeatures(net)).toEqual(
+      buildPowerPulseFeatures(net, PULSE_BUCKET_M, POWER_TRUNK_PULSE_BUCKETS),
+    )
+  })
+
+  it('is empty for an empty or missing network', () => {
+    const empty = { features: { type: 'FeatureCollection', features: [] }, buckets: 0 }
+    expect(buildPowerPulseFeatures({ nodes: [], lines: [] })).toEqual(empty)
+    expect(buildPowerPulseFeatures(null)).toEqual(empty)
+    expect(buildPowerPulseFeatures(undefined)).toEqual(empty)
+  })
+})
+
+describe('power pulse tuning constants', () => {
+  it('keeps the budget MapView is built against', () => {
+    expect(POWER_TRUNK_PULSE_BUCKETS).toBe(50)
+    expect(POWER_MESH_PULSE_BUCKETS).toBe(15)
+    expect(POWER_PULSE_COLOR).toBe('#fff3c4')
   })
 })
