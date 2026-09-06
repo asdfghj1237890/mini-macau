@@ -4294,9 +4294,18 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     // the MapLibre worker the way a full 60 Hz would.
     const SIM_TICK_MS = 33
     const HEAVY_TICK_MS_BUSY = 160
+    // Every setData on a GeoJSON source re-tiles all of its in-view tiles in
+    // the worker and re-uploads their buffers, so the upload cadence — the 3D
+    // vehicle sources and the 2D marker source — is what a phone's GPU
+    // actually pays for. Phones upload at 10 Hz (an iPhone X on iOS 16 was
+    // taking 450 tile reloads a second at 60 Hz and losing its WebGL
+    // context); desktops keep the sim tick. Positions and the GRAND PRIX car
+    // still compute at SIM_TICK_MS everywhere.
+    const HEAVY_TICK_MS_PHONE = 100
     let lastCountReport = 0
     let lastSimTick = 0
     let lastHeavyTick = 0
+    let lastMarkerTick = 0
     let lastFlightTick = 0
     // Local smooth time for flight computation: the clock hook advances
     // timeRef in its own RAF loop which can fire after this animate loop
@@ -4322,7 +4331,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       if (map && !td.loading && layersAddedRef.current) {
         const nowTick = performance.now()
         const shouldTick = nowTick - lastSimTick >= SIM_TICK_MS && !debugSwitches.nosim
-        const heavyInterval = mapBusyRef.current ? HEAVY_TICK_MS_BUSY : SIM_TICK_MS
+        const heavyInterval = mapBusyRef.current
+          ? HEAVY_TICK_MS_BUSY
+          : isDesktopRef.current ? SIM_TICK_MS : HEAVY_TICK_MS_PHONE
         const shouldHeavy = nowTick - lastHeavyTick >= heavyInterval
         if (shouldTick) {
           lastSimTick = nowTick
@@ -4382,23 +4393,29 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           flight3DRef.current.setTrackedVehicle(trackedFlight)
         }
 
-        // Merge per-RAF flight positions into the 2D marker source so the
-        // dot tracks the 3D model at the same rate. Non-flight vehicles
-        // keep their shouldTick-rate positions (bus/LRT/ferry move slowly
-        // enough that 30 Hz is imperceptible).
-        const freshFlights = flightVehiclesRef.current
-        if (freshFlights.length > 0) {
-          const flightIds = new Set<string>()
-          for (const f of freshFlights) flightIds.add(f.id)
-          const base = vehiclesRef.current
-          const merged: VehiclePosition[] = []
-          for (let i = 0; i < base.length; i++) {
-            if (!flightIds.has(base[i].id)) merged.push(base[i])
+        // The 2D marker source, on the same upload cadence as the 3D layers
+        // (it used to be written every RAF frame — 60 re-tilings a second of
+        // a source that only changes at the sim tick). Flight dots merge in
+        // the per-RAF flight positions so they sit on the 3D model, which is
+        // itself uploaded on this cadence, and bus/LRT/ferry move slowly
+        // enough that the cadence is imperceptible.
+        const shouldMarkers = nowTick - lastMarkerTick >= heavyInterval && !debugSwitches.nosim
+        if (shouldMarkers) {
+          lastMarkerTick = nowTick
+          const freshFlights = flightVehiclesRef.current
+          if (freshFlights.length > 0) {
+            const flightIds = new Set<string>()
+            for (const f of freshFlights) flightIds.add(f.id)
+            const base = vehiclesRef.current
+            const merged: VehiclePosition[] = []
+            for (let i = 0; i < base.length; i++) {
+              if (!flightIds.has(base[i].id)) merged.push(base[i])
+            }
+            for (const f of freshFlights) merged.push(f)
+            updateVehicleData(map, merged)
+          } else {
+            updateVehicleData(map, vehiclesRef.current)
           }
-          for (const f of freshFlights) merged.push(f)
-          updateVehicleData(map, merged)
-        } else {
-          updateVehicleData(map, vehiclesRef.current)
         }
 
         const now = performance.now()

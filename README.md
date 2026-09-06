@@ -413,7 +413,7 @@ Consolidating into a single `bus-routes` source (one tile index, one round-trip 
 
 Moving 300+ buses as 3D fill-extrusion polygons is heavy (each bus is 8 quads × lat/lng math). Moving them as 2D circles is almost free (just a `setData` on a Point FeatureCollection).
 
-The animate loop splits them: simulation + 2D circle updates run every 50 ms unconditionally, while 3D polygon rebuilds throttle to 160 ms whenever the map is actively moving (`movestart` / `moveend` set a `mapBusy` flag). During zoom gestures the 2D layer keeps vehicles visibly moving at full cadence while the expensive 3D rebuild backs off, leaving MapLibre's own render pipeline more time to finish zoom frames.
+The animate loop computes positions every 33 ms, but what a GPU actually pays for is every `setData`: each one re-tiles all of that source's in-view tiles in the worker and re-uploads their buffers. So the uploads — the 3D vehicle sources and the 2D marker source alike — run on one cadence: 33 ms on desktop, 100 ms on phones, and 160 ms whenever the map is actively moving (`movestart` / `moveend` set a `mapBusy` flag). The 2D marker source used to be written every animation frame, 60 re-tilings a second of a source that only changes at the sim tick; on an iPhone X that was 450 tile reloads a second and a lost WebGL context.
 
 </details>
 
