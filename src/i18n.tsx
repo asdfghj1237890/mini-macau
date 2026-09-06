@@ -103,6 +103,8 @@ const translations = {
     waterCount: (n: number) => `${n} facilities`,
     power: 'Electricity',
     powerCount: (n: number) => `${n} facilities`,
+    grandPrix: 'Grand Prix circuit',
+    grandPrixCount: (n: number) => `${n} named corners`,
     waste: 'Waste & recycling',
     wasteCount: (n: number) => `${n} collection points`,
     noServiceToday: 'No service today',
@@ -341,6 +343,38 @@ const translations = {
     powerCommissioned: 'IN SERVICE',
     powerCapacityMw: (mw: number) => `${mw} MW`,
     powerSource: 'SOURCE',
+    // ---- GRAND PRIX overlay (the Guia Circuit) ----
+    grandPrixLabel: 'GRAND PRIX',
+    grandPrixCircuit: 'Circuit',
+    grandPrixTrack: 'Racing line, in race direction',
+    grandPrixPitLane: 'Pit lane',
+    grandPrixWake: 'Wake: the 600 m behind the car, fading',
+    grandPrixCar: 'The car: laps on the simulation clock, braking for the corners',
+    // The lap time is a secondary source (Wikipedia); the panel says so.
+    grandPrixCarAtRecord: (time: string) => `The car: laps in the record time (${time}), braking for the corners`,
+    // Shown wherever the corners are drawn or listed: the NAMES are the
+    // organiser's, the POSITIONS are ours (it publishes no coordinates).
+    grandPrixNote: 'Corner positions schematic',
+    grandPrixCornerOrder: (n: number) => `No. ${n} in race order`,
+    grandPrixKindStartFinish: 'Start / finish line',
+    grandPrixKindBend: 'Corner',
+    grandPrixKindSection: 'Section of track',
+    grandPrixLength: 'LAP LENGTH',
+    grandPrixLengthValue: (officialKm: number, measuredKm: number) =>
+      `${officialKm} km official · ${measuredKm.toFixed(2)} km as drawn`,
+    grandPrixMinWidth: 'MIN. WIDTH',
+    grandPrixDirection: 'DIRECTION',
+    grandPrixClockwise: 'Clockwise',
+    grandPrixLapRecord: 'LAP RECORD',
+    grandPrixLapRecordValue: (time: string, driver: string, year: number) => `${time} · ${driver}, ${year}`,
+    grandPrixSecondarySource: 'Wikipedia figure, not from the organiser',
+    grandPrixAtKm: (km: number) => `${km.toFixed(2)} km into the lap`,
+    grandPrixSpanKm: (fromKm: number, toKm: number) => `km ${fromKm.toFixed(2)} – ${toKm.toFixed(2)} of the lap`,
+    grandPrixApproximate: 'Schematic position',
+    grandPrixApproximateNote: 'The organiser publishes no coordinates: this point was placed on the OpenStreetMap track by the rule below.',
+    grandPrixRule: 'PLACEMENT RULE',
+    grandPrixCorners: 'CORNERS',
+    grandPrixSource: 'SOURCE',
     // ---- WASTE overlay (IAM + DSPA) ----
     wasteLabel: 'WASTE',
     wasteTypeRefuseRoom: 'Refuse room',
@@ -475,6 +509,8 @@ const translations = {
     waterCount: (n: number) => `${n} 項供水設施`,
     power: '電力設施',
     powerCount: (n: number) => `${n} 項電力設施`,
+    grandPrix: '大賽車跑道',
+    grandPrixCount: (n: number) => `${n} 個官方彎道`,
     waste: '垃圾回收',
     wasteCount: (n: number) => `${n} 個回收／收集點`,
     noServiceToday: '本日無服務',
@@ -678,6 +714,34 @@ const translations = {
     powerCommissioned: '投產年份',
     powerCapacityMw: (mw: number) => `${mw} MW`,
     powerSource: '來源',
+    grandPrixLabel: '大賽車',
+    grandPrixCircuit: '賽道',
+    grandPrixTrack: '賽道線（依比賽方向）',
+    grandPrixPitLane: '維修道',
+    grandPrixWake: '尾流：賽車後方 600 m 漸隱',
+    grandPrixCar: '賽車：依模擬時鐘繞圈，彎道減速',
+    grandPrixCarAtRecord: (time: string) => `賽車：以最快圈速（${time}）繞圈，彎道減速`,
+    grandPrixNote: '彎道位置為示意',
+    grandPrixCornerOrder: (n: number) => `比賽順序第 ${n}`,
+    grandPrixKindStartFinish: '起點／終點線',
+    grandPrixKindBend: '彎道',
+    grandPrixKindSection: '路段',
+    grandPrixLength: '圈長',
+    grandPrixLengthValue: (officialKm: number, measuredKm: number) =>
+      `官方 ${officialKm} km · 圖上 ${measuredKm.toFixed(2)} km`,
+    grandPrixMinWidth: '最窄寬度',
+    grandPrixDirection: '方向',
+    grandPrixClockwise: '順時針',
+    grandPrixLapRecord: '最快圈速',
+    grandPrixLapRecordValue: (time: string, driver: string, year: number) => `${time} · ${driver}，${year} 年`,
+    grandPrixSecondarySource: '數字取自維基百科，非主辦單位',
+    grandPrixAtKm: (km: number) => `距起點 ${km.toFixed(2)} km`,
+    grandPrixSpanKm: (fromKm: number, toKm: number) => `距起點 ${fromKm.toFixed(2)} – ${toKm.toFixed(2)} km`,
+    grandPrixApproximate: '位置為示意',
+    grandPrixApproximateNote: '主辦單位未公布彎道座標：此點依下列規則置於 OpenStreetMap 的賽道線上。',
+    grandPrixRule: '定位規則',
+    grandPrixCorners: '彎道',
+    grandPrixSource: '來源',
     wasteLabel: '垃圾回收',
     wasteTypeRefuseRoom: '垃圾房',
     wasteTypeCompactor: '壓縮式垃圾收集點',
@@ -799,6 +863,8 @@ const translations = {
     waterCount: (n: number) => `${n} instalações`,
     power: 'Electricidade',
     powerCount: (n: number) => `${n} instalações`,
+    grandPrix: 'Circuito do Grande Prémio',
+    grandPrixCount: (n: number) => `${n} curvas oficiais`,
     waste: 'Resíduos e reciclagem',
     wasteCount: (n: number) => `${n} pontos de recolha`,
     noServiceToday: 'Sem serviço hoje',
@@ -1003,6 +1069,34 @@ const translations = {
     powerCommissioned: 'EM SERVIÇO',
     powerCapacityMw: (mw: number) => `${mw} MW`,
     powerSource: 'FONTE',
+    grandPrixLabel: 'GRANDE PRÉMIO',
+    grandPrixCircuit: 'Circuito',
+    grandPrixTrack: 'Traçado, no sentido da corrida',
+    grandPrixPitLane: 'Via das boxes',
+    grandPrixWake: 'Rasto: os 600 m atrás do carro, a desvanecer',
+    grandPrixCar: 'O carro: dá voltas ao ritmo do relógio da simulação, travando nas curvas',
+    grandPrixCarAtRecord: (time: string) => `O carro: uma volta no tempo do recorde (${time}), travando nas curvas`,
+    grandPrixNote: 'Posição das curvas esquemática',
+    grandPrixCornerOrder: (n: number) => `N.º ${n} na ordem da corrida`,
+    grandPrixKindStartFinish: 'Linha de partida / chegada',
+    grandPrixKindBend: 'Curva',
+    grandPrixKindSection: 'Troço',
+    grandPrixLength: 'EXTENSÃO',
+    grandPrixLengthValue: (officialKm: number, measuredKm: number) =>
+      `${officialKm} km oficial · ${measuredKm.toFixed(2)} km desenhado`,
+    grandPrixMinWidth: 'LARGURA MÍN.',
+    grandPrixDirection: 'SENTIDO',
+    grandPrixClockwise: 'Sentido horário',
+    grandPrixLapRecord: 'RECORDE',
+    grandPrixLapRecordValue: (time: string, driver: string, year: number) => `${time} · ${driver}, ${year}`,
+    grandPrixSecondarySource: 'Valor da Wikipédia, não do organizador',
+    grandPrixAtKm: (km: number) => `${km.toFixed(2)} km após a partida`,
+    grandPrixSpanKm: (fromKm: number, toKm: number) => `km ${fromKm.toFixed(2)} – ${toKm.toFixed(2)} da volta`,
+    grandPrixApproximate: 'Posição esquemática',
+    grandPrixApproximateNote: 'O organizador não publica coordenadas: este ponto foi colocado no traçado do OpenStreetMap pela regra abaixo.',
+    grandPrixRule: 'REGRA DE POSIÇÃO',
+    grandPrixCorners: 'CURVAS',
+    grandPrixSource: 'FONTE',
     wasteLabel: 'RESÍDUOS',
     wasteTypeRefuseRoom: 'Depósito de lixo',
     wasteTypeCompactor: 'Ponto de recolha compactada',
@@ -1126,6 +1220,8 @@ export interface Translations {
   waterCount: (n: number) => string
   power: string
   powerCount: (n: number) => string
+  grandPrix: string
+  grandPrixCount: (n: number) => string
   waste: string
   wasteCount: (n: number) => string
   noServiceToday: string
@@ -1325,6 +1421,33 @@ export interface Translations {
   powerCommissioned: string
   powerCapacityMw: (mw: number) => string
   powerSource: string
+  grandPrixLabel: string
+  grandPrixCircuit: string
+  grandPrixTrack: string
+  grandPrixPitLane: string
+  grandPrixWake: string
+  grandPrixCar: string
+  grandPrixCarAtRecord: (time: string) => string
+  grandPrixNote: string
+  grandPrixCornerOrder: (n: number) => string
+  grandPrixKindStartFinish: string
+  grandPrixKindBend: string
+  grandPrixKindSection: string
+  grandPrixLength: string
+  grandPrixLengthValue: (officialKm: number, measuredKm: number) => string
+  grandPrixMinWidth: string
+  grandPrixDirection: string
+  grandPrixClockwise: string
+  grandPrixLapRecord: string
+  grandPrixLapRecordValue: (time: string, driver: string, year: number) => string
+  grandPrixSecondarySource: string
+  grandPrixAtKm: (km: number) => string
+  grandPrixSpanKm: (fromKm: number, toKm: number) => string
+  grandPrixApproximate: string
+  grandPrixApproximateNote: string
+  grandPrixRule: string
+  grandPrixCorners: string
+  grandPrixSource: string
   wasteLabel: string
   wasteTypeRefuseRoom: string
   wasteTypeCompactor: string

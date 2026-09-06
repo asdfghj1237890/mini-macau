@@ -6,23 +6,23 @@
 // starts and wins on restore even if the user poked other switches meanwhile,
 // so the two states can never drift apart.
 //
-// All three overlays (WATER, POWER, WASTE) behave identically, so the capture /
-// apply / persist half lives here exactly once and each overlay only supplies
-// its own storage key. App owns the React setters and passes them in, which is
-// what makes this testable without a DOM. (src/water.ts re-exports these under
-// its historical names.)
+// All four overlays (WATER, POWER, WASTE, GRAND PRIX) behave identically, so
+// the capture / apply / persist half lives here exactly once and each overlay
+// only supplies its own storage key. App owns the React setters and passes
+// them in, which is what makes this testable without a DOM. (src/water.ts
+// re-exports these under its historical names.)
 //
-// The three are MUTUALLY EXCLUSIVE: turning one on turns whichever other one is
+// The four are MUTUALLY EXCLUSIVE: turning one on turns whichever other one is
 // on off and hands its snapshot over — see `activeFocusPeer` and
 // `focusHandoffSnapshot`.
 
 // Which focus layer a snapshot belongs to. Each gets its own storage key, so
 // no two can ever read each other's history.
-export type FocusLayer = 'water' | 'power' | 'waste'
+export type FocusLayer = 'water' | 'power' | 'waste' | 'grandprix'
 
-// All three, in the order they appear in the CITY legend. Exported so a caller
+// All four, in the order they appear in the CITY legend. Exported so a caller
 // can ask "which OTHER focus layer is on?" without hard-coding the list.
-export const FOCUS_LAYERS: readonly FocusLayer[] = ['water', 'power', 'waste'] as const
+export const FOCUS_LAYERS: readonly FocusLayer[] = ['water', 'power', 'waste', 'grandprix'] as const
 
 // Everything the focus mode has to put back. Bus visibility is TWO facts, not
 // one: `busAuto` records that the user was in auto-by-time mode, so restoring
@@ -115,9 +115,10 @@ export interface FocusPeer {
   snapshot: LayerVisibilityState | null
 }
 
-// Which OTHER focus layer is currently on. The three are mutually exclusive, so
-// there is at most one — and if storage was ever corrupted into claiming two,
-// the FIRST in FOCUS_LAYERS order wins rather than the caller having to guess.
+// Which OTHER focus layer is currently on. The focus layers are mutually
+// exclusive, so there is at most one — and if storage was ever corrupted into
+// claiming two, the FIRST in FOCUS_LAYERS order wins rather than the caller
+// having to guess.
 // Null means the ordinary case: no focus mode was running.
 export function activeFocusPeer(peers: readonly FocusPeer[]): FocusPeer | null {
   for (const layer of FOCUS_LAYERS) {
@@ -127,7 +128,7 @@ export function activeFocusPeer(peers: readonly FocusPeer[]): FocusPeer | null {
   return null
 }
 
-// The three focus layers are mutually exclusive, so turning one on while another
+// The focus layers are mutually exclusive, so turning one on while another
 // is already focused means: end that focus (restoring its snapshot), then
 // snapshot the restored map and hide it again. Composing those two literally
 // would push the restore through React state and read it back on the next

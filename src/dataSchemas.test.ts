@@ -21,6 +21,7 @@ import {
   WaterDistributionFileSchema,
   PowerFacilitiesFileSchema,
   PowerDistributionFileSchema,
+  GrandPrixFileSchema,
 } from './dataSchemas'
 
 // Parse the actual JSON the app ships and assert it satisfies the runtime
@@ -74,6 +75,7 @@ describe('committed data files satisfy their schemas', () => {
   it('water-distribution.json', () => expectValid(WaterDistributionFileSchema, 'water-distribution.json'))
   it('power-facilities.json', () => expectValid(PowerFacilitiesFileSchema, 'power-facilities.json'))
   it('power-distribution.json', () => expectValid(PowerDistributionFileSchema, 'power-distribution.json'))
+  it('grand-prix.json', () => expectValid(GrandPrixFileSchema, 'grand-prix.json'))
 })
 
 // water-distribution.json is loaded lazily and best-effort, so its schema is

@@ -50,7 +50,7 @@ import { useCarParkVacancy } from './hooks/useCarParkVacancy'
 import { useWaterDistribution } from './hooks/useWaterDistribution'
 import { usePowerDistribution } from './hooks/usePowerDistribution'
 import { ignoreClockShortcut } from './timeControls'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode } from './types'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -82,6 +82,13 @@ const PowerFacilityInfoPanel = lazy(() => import('./components/PowerFacilityInfo
 // Same module as the facility panel, so this resolves the same chunk rather
 // than adding a second network request.
 const PowerInletInfoPanel = lazy(() => import('./components/PowerFacilityInfoPanel').then(m => ({ default: m.PowerInletInfoPanel })))
+const GrandPrixCircuitInfoPanel = lazy(() => import('./components/GrandPrixInfoPanel').then(m => ({ default: m.GrandPrixCircuitInfoPanel })))
+// Same module as the circuit panel, so this resolves the same chunk.
+const GrandPrixCornerInfoPanel = lazy(() => import('./components/GrandPrixInfoPanel').then(m => ({ default: m.GrandPrixCornerInfoPanel })))
+
+// What the GRAND PRIX panel is showing: the circuit itself (a click on the
+// racing line) or one of its named corners (a click on a badge).
+type GrandPrixSelection = { kind: 'circuit' } | { kind: 'corner'; corner: GrandPrixCorner }
 
 const LS_KEY = 'mini-macau-visible-routes'
 
@@ -129,6 +136,7 @@ const LS_CARPARKS_KEY = 'mini-macau-carparks-on'
 const LS_WASTE_KEY = 'mini-macau-waste-on'
 const LS_WATER_KEY = 'mini-macau-water-on'
 const LS_POWER_KEY = 'mini-macau-power-on'
+const LS_GRANDPRIX_KEY = 'mini-macau-grandprix-on'
 
 // Stable empty array for the "schools off" case. filteredTransitData is
 // rebuilt on every clock tick (dateAwareFlights depends on currentTime), and
@@ -203,6 +211,7 @@ export default function App() {
   // Its own slot rather than a widened `selectedPowerFacility`, because an
   // inlet is not a CEM facility and gets a different panel.
   const [selectedPowerNode, setSelectedPowerNode] = useState<PowerNetworkNode | null>(null)
+  const [selectedGrandPrix, setSelectedGrandPrix] = useState<GrandPrixSelection | null>(null)
   const [trackedVehicleId, setTrackedVehicleId] = useState<string | null>(null)
   const [vehicleCount, setVehicleCount] = useState(0)
   const [showTimeBar, setShowTimeBar] = useState(() => localStorage.getItem(LS_TIMEBAR_KEY) !== '0')
@@ -241,6 +250,11 @@ export default function App() {
   // `=== '1'`, and its own snapshot slot seeded from its own storage key.
   const [powerOn, setPowerOn] = useState(() => localStorage.getItem(LS_POWER_KEY) === '1')
   const powerFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('power'))
+  // The Guia Circuit is the FOURTH focus mode, on exactly the terms of the
+  // three above: opt-in, its own key, its own snapshot slot, and mutually
+  // exclusive with them.
+  const [grandPrixOn, setGrandPrixOn] = useState(() => localStorage.getItem(LS_GRANDPRIX_KEY) === '1')
+  const grandPrixFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('grandprix'))
   // Which of the five teaching stages are drawn. Independent of `schoolsOn`,
   // which is the master switch for the whole layer.
   const [schoolLevelsOn, setSchoolLevelsOn] = useState<SchoolLevelSet>(loadSchoolLevelsOn)
@@ -299,6 +313,7 @@ export default function App() {
   useEffect(() => { saveHiddenWasteTypes(wasteHiddenTypes) }, [wasteHiddenTypes])
   useEffect(() => { localStorage.setItem(LS_WATER_KEY, waterOn ? '1' : '0') }, [waterOn])
   useEffect(() => { localStorage.setItem(LS_POWER_KEY, powerOn ? '1' : '0') }, [powerOn])
+  useEffect(() => { localStorage.setItem(LS_GRANDPRIX_KEY, grandPrixOn ? '1' : '0') }, [grandPrixOn])
   useEffect(() => { saveSchoolLevelsOn(schoolLevelsOn) }, [schoolLevelsOn])
   // Hiding the layer must also close its panel — the marker it describes is
   // gone from the map.
@@ -323,6 +338,7 @@ export default function App() {
     setSelectedPowerFacility(null)
     setSelectedPowerNode(null)
   }, [powerOn])
+  useEffect(() => { if (!grandPrixOn) setSelectedGrandPrix(null) }, [grandPrixOn])
   // Same rule one level down: switching off a teaching stage removes those
   // blocks, so a panel describing one of them has to close too.
   useEffect(() => {
@@ -458,7 +474,10 @@ export default function App() {
     powerFacilities: powerOn ? transitData.powerFacilities : NO_POWER_FACILITIES,
     // Same rule for the HV lines and the Guangdong import markers.
     powerNetwork: powerOn ? transitData.powerNetwork : null,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, toiletsOn, carParksOn, visibleWaste, waterOn, powerOn])
+    // And for the circuit: null empties the track, the corners, the pulse and
+    // takes the car off.
+    grandPrix: grandPrixOn ? transitData.grandPrix : null,
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, toiletsOn, carParksOn, visibleWaste, waterOn, powerOn, grandPrixOn])
 
   // Macau's streets, for the thin distribution pipes. Fetched the first time
   // WATER goes on and kept for the session — the hook ignores later toggles, so
@@ -757,6 +776,41 @@ export default function App() {
     setTrackedVehicleId(null)
   }, [])
 
+  // The circuit's corners and the racing line. GRAND PRIX is a focus mode, so
+  // nothing else is on the map while it is on — the other panels are cleared
+  // all the same, for the one-panel rule every handler above keeps.
+  const onGrandPrixCornerClick = useCallback((corner: GrandPrixCorner | null) => {
+    setSelectedGrandPrix(corner ? { kind: 'corner', corner } : null)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
+    setSelectedToilet(null)
+    setSelectedCarPark(null)
+    setSelectedWasteSite(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
+    setSelectedPowerFacility(null)
+    setSelectedPowerNode(null)
+    setTrackedVehicleId(null)
+  }, [])
+
+  const onGrandPrixCircuitClick = useCallback(() => {
+    setSelectedGrandPrix({ kind: 'circuit' })
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
+    setSelectedToilet(null)
+    setSelectedCarPark(null)
+    setSelectedWasteSite(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
+    setSelectedPowerFacility(null)
+    setSelectedPowerNode(null)
+    setTrackedVehicleId(null)
+  }, [])
+
   const clearSelection = useCallback(() => {
     setSelectedVehicle(null)
     setSelectedStation(null)
@@ -769,6 +823,7 @@ export default function App() {
     setSelectedWaterNode(null)
     setSelectedPowerFacility(null)
     setSelectedPowerNode(null)
+    setSelectedGrandPrix(null)
     setTrackedVehicleId(null)
   }, [])
 
@@ -870,11 +925,18 @@ export default function App() {
     const refFor = (l: FocusLayer) =>
       l === 'water' ? waterFocusSnapshotRef
         : l === 'power' ? powerFocusSnapshotRef
-          : wasteFocusSnapshotRef
+          : l === 'waste' ? wasteFocusSnapshotRef
+            : grandPrixFocusSnapshotRef
     const setOnFor = (l: FocusLayer) =>
-      l === 'water' ? setWaterOn : l === 'power' ? setPowerOn : setWasteOn
+      l === 'water' ? setWaterOn
+        : l === 'power' ? setPowerOn
+          : l === 'waste' ? setWasteOn
+            : setGrandPrixOn
     const isOn = (l: FocusLayer) =>
-      l === 'water' ? waterOn : l === 'power' ? powerOn : wasteOn
+      l === 'water' ? waterOn
+        : l === 'power' ? powerOn
+          : l === 'waste' ? wasteOn
+            : grandPrixOn
     const selfRef = refFor(layer)
     ga.layerToggled(layer, on)
     if (on) {
@@ -899,11 +961,12 @@ export default function App() {
       saveFocusSnapshot(layer, null)
     }
     setOnFor(layer)(on)
-  }, [liveLayerState, waterOn, powerOn, wasteOn, layerApply])
+  }, [liveLayerState, waterOn, powerOn, wasteOn, grandPrixOn, layerApply])
 
   const toggleWater = useCallback(() => setFocus('water', !waterOn), [setFocus, waterOn])
   const togglePower = useCallback(() => setFocus('power', !powerOn), [setFocus, powerOn])
   const toggleWaste = useCallback(() => setFocus('waste', !wasteOn), [setFocus, wasteOn])
+  const toggleGrandPrix = useCallback(() => setFocus('grandprix', !grandPrixOn), [setFocus, grandPrixOn])
   const toggleSchoolLevel = useCallback((level: SchoolLevel) => {
     setSchoolLevelsOn(prev => {
       const next = new Set(prev)
@@ -918,9 +981,12 @@ export default function App() {
     return !v
   }), [])
 
-  // Either focus mode takes the clock UI off the screen, so both lock the
-  // keyboard shortcut and both hide the time controls below.
-  const focusOn = waterOn || powerOn || wasteOn
+  // The utility focus modes take the clock UI off the screen (nothing on them
+  // has a time dimension), so they lock the keyboard shortcut and hide the
+  // time controls below. GRAND PRIX is the exception: the car laps on the
+  // simulation clock, and the speed buttons are how a two-minute lap becomes
+  // watchable — so that mode keeps the clock.
+  const clockHidden = waterOn || powerOn || wasteOn
 
   const { togglePause } = clock
   useEffect(() => {
@@ -929,7 +995,7 @@ export default function App() {
         e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
       // Locked during a focus mode, exactly like the buttons — otherwise the
       // one control that ISN'T dimmed would still pause the clock.
-      if (ignoreClockShortcut(focusOn, isTextEntry)) return
+      if (ignoreClockShortcut(clockHidden, isTextEntry)) return
       if (e.code === 'Space') {
         e.preventDefault()
         togglePause()
@@ -937,7 +1003,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [togglePause, focusOn])
+  }, [togglePause, clockHidden])
 
   return (
     <div className="relative w-full h-full">
@@ -965,6 +1031,9 @@ export default function App() {
             onPowerNodeClick={onPowerNodeClick}
             powerFocus={powerOn}
             powerDistributionRoads={powerDistribution?.roads ?? null}
+            onGrandPrixCornerClick={onGrandPrixCornerClick}
+            onGrandPrixCircuitClick={onGrandPrixCircuitClick}
+            grandPrixFocus={grandPrixOn}
             carParkVacancy={carParkVacancy.vacancy}
             onClearSelection={clearSelection}
             trackedVehicleId={trackedVehicleId}
@@ -977,6 +1046,7 @@ export default function App() {
             selectedWaterNodeId={selectedWaterNode?.id ?? null}
             selectedPowerFacilityId={selectedPowerFacility?.id ?? null}
             selectedPowerNodeId={selectedPowerNode?.id ?? null}
+            selectedGrandPrixCornerId={selectedGrandPrix?.kind === 'corner' ? selectedGrandPrix.corner.id : null}
             onVehicleCount={onVehicleCount}
             showTimeBar={showTimeBar}
             onToggleTimeBar={toggleTimeBar}
@@ -994,7 +1064,7 @@ export default function App() {
           component and keeps ticking, and the bar's expanded/collapsed choice
           is persisted (`mm_tl_expanded`), so both come back exactly as they
           were when the focus mode goes off. */}
-      {showTimeBar && !focusOn && (
+      {showTimeBar && !clockHidden && (
         <TimeDisplay clock={clock} vehicleCount={vehicleCount} />
       )}
       <LineLegend
@@ -1021,6 +1091,7 @@ export default function App() {
         wasteTypeCounts={wasteTypeCounts}
         waterOn={waterOn}
         powerOn={powerOn}
+        grandPrixOn={grandPrixOn}
         clock={clock}
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
@@ -1034,6 +1105,7 @@ export default function App() {
         onToggleWasteType={toggleWasteType}
         onToggleWater={toggleWater}
         onTogglePower={togglePower}
+        onToggleGrandPrix={toggleGrandPrix}
         onToggleRoute={onToggleRoute}
         onToggleAll={onToggleAll}
         onShowAll={onShowAll}
@@ -1041,7 +1113,7 @@ export default function App() {
         onToggleGroup={onToggleGroup}
         onResetAuto={onResetAuto}
       />
-      {!focusOn && <ControlPanel clock={clock} />}
+      {!clockHidden && <ControlPanel clock={clock} />}
       <Suspense>
         {selectedVehicle && selectedVehicle.type === 'flight' && (
           <FlightInfoPanel
@@ -1162,6 +1234,21 @@ export default function App() {
           <PowerInletInfoPanel
             node={selectedPowerNode}
             network={transitData.powerNetwork}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedGrandPrix?.kind === 'circuit' && transitData.grandPrix && (
+          <GrandPrixCircuitInfoPanel
+            circuit={transitData.grandPrix}
+            sources={transitData.grandPrixSources}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedGrandPrix?.kind === 'corner' && transitData.grandPrix && (
+          <GrandPrixCornerInfoPanel
+            corner={selectedGrandPrix.corner}
+            circuit={transitData.grandPrix}
+            sources={transitData.grandPrixSources}
             onClose={clearSelection}
           />
         )}

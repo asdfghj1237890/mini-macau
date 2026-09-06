@@ -689,6 +689,75 @@ export const PowerDistributionFileSchema = z.object({
   ),
 })
 
+// grand-prix.json — the Guia Circuit. Strict where the map reads (a CLOSED
+// track in race order, the corners in order with every language named),
+// lenient on the provenance block. Mirrors `v_grand_prix` in
+// data/scripts/validate_output.py.
+const grandPrixText = z.object({ zh: z.string(), pt: z.string(), en: z.string() })
+const grandPrixLine = z.object({
+  type: z.literal('LineString'),
+  coordinates: z.array(lngLat).min(2),
+})
+export const GrandPrixFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  sources: z.array(
+    z.object({
+      name: z.string(),
+      url: z.string(),
+      role: z.string(),
+      secondary: z.boolean().optional(),
+      upstreamUpdatedAt: z.string().nullable().optional(),
+    }),
+  ),
+  circuit: z.object({
+    id: z.string(),
+    name: grandPrixText,
+    lengthKm: z.number().positive(),
+    minWidthM: z.number().positive(),
+    direction: z.string(),
+    lapRecord: z.object({
+      time: z.string(),
+      seconds: z.number().positive(),
+      driver: z.string(),
+      year: z.number().int(),
+      car: z.string().nullable(),
+      source: z.string(),
+    }).nullable(),
+    osm: z.object({
+      relationId: z.number().int(),
+      mainWays: z.number().int(),
+      pitLaneWays: z.number().int(),
+    }),
+    measuredLengthKm: z.number().positive(),
+    // The car, the pulse and the arrows all walk this line from its first
+    // vertex, so it has to come back to where it started.
+    track: grandPrixLine.refine(
+      line => {
+        const c = line.coordinates
+        const a = c[0]
+        const b = c[c.length - 1]
+        return a[0] === b[0] && a[1] === b[1]
+      },
+      { message: 'track must be a closed loop (first point == last point)' },
+    ),
+    pitLane: grandPrixLine.nullable(),
+    corners: z.array(
+      z.object({
+        id: z.string(),
+        order: z.number().int().positive(),
+        kind: z.enum(['start_finish', 'bend', 'section']),
+        name: grandPrixText,
+        lng: z.number(),
+        lat: z.number(),
+        distKm: z.number().min(0),
+        approximate: z.boolean(),
+        rule: z.string().min(1),
+        spanKm: z.tuple([z.number(), z.number()]).nullable(),
+      }),
+    ).min(1),
+  }),
+})
+
 // Validate `raw` against `schema`. On mismatch: throw in dev (so tests and the
 // dev server surface contract drift immediately) and console.error in prod (so
 // the live site logs the problem but still renders best-effort). Returns the

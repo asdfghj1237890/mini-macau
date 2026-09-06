@@ -384,6 +384,8 @@ describe('computeBusCycleSec', () => {
       waterNetwork: null,
       powerFacilities: [],
       powerNetwork: null,
+      grandPrix: null,
+      grandPrixSources: [],
       loading: false,
     }
 
@@ -419,6 +421,8 @@ describe('computeBusCycleSec', () => {
       waterNetwork: null,
       powerFacilities: [],
       powerNetwork: null,
+      grandPrix: null,
+      grandPrixSources: [],
       loading: false,
     }
 

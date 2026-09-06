@@ -29,6 +29,7 @@
 //   node scripts/inspect.mjs car-parks              # car-parks.json summary (by zone, height-limit histogram, no-limit ids)
 //   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt, treatment facilities incl. wwtp buildings + statsKey, eco stations)
 //   node scripts/inspect.mjs dspa-stats              # dspa-stats.json summary (DSPA monthly stats: incinerator/hazardous/landfill/4x wwtp series, latest values, incinerator facts)
+//   node scripts/inspect.mjs grand-prix             # grand-prix.json summary (Guia Circuit: official vs measured length, corner table with rules, pit lane, sources)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync, statSync } from 'node:fs'
@@ -574,6 +575,46 @@ function cmdDspaStats() {
   }
 }
 
+// grand-prix.json: the Guia Circuit racing line stitched out of OSM relation
+// 8877949, plus the pit lane and the nine officially named locations. The
+// corner coordinates are ours (the organiser publishes none), so this prints
+// the rule behind each one next to it — see fetch_grand_prix.py.
+function cmdGrandPrix() {
+  const data = load('public/data/grand-prix.json')
+  const bytes = statSync(join(ROOT, 'public/data/grand-prix.json')).size
+  const c = data.circuit
+  const track = c.track.coordinates
+  const pit = c.pitLane?.coordinates ?? null
+  const off = ((c.measuredLengthKm - c.lengthKm) / c.lengthKm) * 100
+
+  console.log(`${c.name.zh} / ${c.name.en} / ${c.name.pt}   [${c.id}]`)
+  console.log(`fetchedAtUtc: ${data.fetchedAtUtc}   file size: ${(bytes / 1024).toFixed(1)} KiB`)
+  console.log(`official ${c.lengthKm} km, min width ${c.minWidthM} m, ${c.direction}`)
+  console.log(`measured ${c.measuredLengthKm} km from OSM (${off >= 0 ? '+' : ''}${off.toFixed(1)} % vs official)`)
+  console.log(`track: ${track.length} points, ${track[0][0] === track[track.length - 1][0] && track[0][1] === track[track.length - 1][1] ? 'closed' : 'NOT CLOSED'}`)
+  console.log(`pit lane: ${pit ? `${pit.length} points, entry ${pit[0].join(',')} -> exit ${pit[pit.length - 1].join(',')}` : 'null'}`)
+  console.log(`OSM relation ${c.osm.relationId}: ${c.osm.mainWays} main ways + ${c.osm.pitLaneWays} pit-lane ways`)
+  if (c.lapRecord) {
+    const r = c.lapRecord
+    console.log(`lap record: ${r.time} (${r.seconds}s) — ${r.driver}, ${r.car ?? '—'}, ${r.year} [${r.source}]`)
+  }
+
+  console.log(`\ncorners (${c.corners.length}, race order — every one approximate):`)
+  for (const k of c.corners) {
+    const span = k.spanKm ? `${k.spanKm[0].toFixed(3)}–${k.spanKm[1].toFixed(3)}` : '—'
+    console.log(`${String(k.order).padStart(2)}  ${k.id.padEnd(18)} ${k.kind.padEnd(12)} ${k.distKm.toFixed(3).padStart(6)} km  span ${span.padStart(13)}  ${k.lng.toFixed(6)},${k.lat.toFixed(6)}`)
+    console.log(`    ${k.name.zh} · ${k.name.pt} · ${k.name.en}`)
+    console.log(`    rule: ${k.rule}`)
+  }
+
+  console.log(`\nsources (${data.sources.length}):`)
+  for (const s of data.sources) {
+    const stamp = s.upstreamUpdatedAt ? `  upstream ${s.upstreamUpdatedAt}` : ''
+    console.log(`  ${s.role.padEnd(10)} ${s.secondary ? '(secondary)' : '           '} ${s.name}`)
+    console.log(`             ${s.url}${stamp}`)
+  }
+}
+
 function fail(msg) {
   console.error(`error: ${msg}`)
   process.exit(1)
@@ -601,7 +642,8 @@ switch (cmd) {
   case 'car-parks': cmdCarParks(); break
   case 'waste': cmdWaste(); break
   case 'dspa-stats': cmdDspaStats(); break
+  case 'grand-prix': cmdGrandPrix(); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks | waste | dspa-stats')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)
 }

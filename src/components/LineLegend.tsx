@@ -11,6 +11,7 @@ import {
 } from '../schools'
 import { waterLegendRows, type WaterLegendRow } from '../water'
 import { powerLegendRows, type PowerLegendRow } from '../power'
+import { grandPrixLegendRows, type GrandPrixLegendRow } from '../grandPrix'
 import { useTheme } from '../theme'
 import {
   WASTE_LAYER_TYPES,
@@ -70,6 +71,21 @@ function PowerIcon() {
     <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
          strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M9.3 1.6L4.9 8.4h2.6l-1 6 4.6-7h-2.6z" />
+    </svg>
+  )
+}
+
+// Rose hatch for the GRAND PRIX row — the racing line's colour (#f43f5e).
+const GRAND_PRIX_HATCH = 'repeating-linear-gradient(-45deg, rgba(244,63,94,0.45) 0 1px, transparent 1px 3px)'
+
+// 12px chequered flag for the GRAND PRIX row, stroked like its siblings.
+function GrandPrixIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3.5 14.5V2.5" />
+      <path d="M3.5 3h9l-1.5 3 1.5 3h-9" />
+      <path d="M6.5 3v6M9.5 3v6" strokeWidth="1.1" opacity="0.65" />
     </svg>
   )
 }
@@ -337,6 +353,76 @@ function PowerKey({ network, caption }: { network: TransitData['powerNetwork']; 
   )
 }
 
+// The swatch for one GRAND PRIX key row. Same 12px box as the other keys.
+function GrandPrixKeyGlyph({ row }: { row: GrandPrixLegendRow }) {
+  const box = 'inline-flex items-center justify-center w-[12px] h-[12px] shrink-0'
+  if (row.glyph === 'flag') {
+    return <span className={box} style={{ color: row.color }}><GrandPrixIcon /></span>
+  }
+  if (row.glyph === 'corner') {
+    return (
+      <span className={box}>
+        <span className="inline-block w-[7px] h-[7px] rounded-full" style={{ backgroundColor: row.color }} />
+      </span>
+    )
+  }
+  if (row.glyph === 'wake') {
+    // The wake: bright at the car's end, fading behind it.
+    return (
+      <span className="inline-flex items-center w-[16px] h-[12px] shrink-0">
+        <span
+          className="inline-block w-[16px] h-[3px] rounded-full"
+          style={{
+            backgroundImage: `linear-gradient(90deg, transparent, ${row.color})`,
+            boxShadow: `0 0 4px ${row.color}`,
+          }}
+        />
+      </span>
+    )
+  }
+  if (row.glyph === 'track') {
+    return (
+      <span className="inline-flex items-center w-[16px] h-[12px] shrink-0">
+        <span className="inline-block w-[16px] h-[3px] rounded-full" style={{ backgroundColor: row.color }} />
+      </span>
+    )
+  }
+  if (row.glyph === 'pit') {
+    // Dashed, as the pit lane is drawn.
+    return (
+      <span className="inline-flex items-center w-[16px] h-[12px] shrink-0">
+        <span className="inline-block w-[16px] h-0" style={{ borderTop: `2px dashed ${row.color}` }} />
+      </span>
+    )
+  }
+  // The car: a tiny top-down single-seater in the body colour.
+  return (
+    <span className="inline-flex items-center w-[16px] h-[12px] shrink-0" style={{ color: row.color }}>
+      <svg width="16" height="10" viewBox="0 0 16 10" aria-hidden="true">
+        <rect x="0.5" y="2" width="2.5" height="6" rx="0.6" fill="currentColor" />
+        <rect x="3" y="4" width="10" height="2" fill="currentColor" />
+        <rect x="6" y="1.5" width="3" height="7" rx="0.6" fill="currentColor" opacity="0.75" />
+        <rect x="12.5" y="2.8" width="3" height="4.4" rx="0.6" fill="currentColor" />
+      </svg>
+    </span>
+  )
+}
+
+// The GRAND PRIX key: the corners as the chain (numbered as the map numbers
+// them, in race order), then the line, the pit lane, the pulse and the car.
+function GrandPrixKey({ circuit, caption }: { circuit: TransitData['grandPrix']; caption: string }) {
+  const { t, lang } = useI18n()
+  const dark = useTheme() === 'dark'
+  return (
+    <KeyChain
+      rows={grandPrixLegendRows(t, lang, circuit, dark)}
+      glyph={row => <GrandPrixKeyGlyph row={row} />}
+      caption={caption}
+      stageLabel={t.grandPrixCornerOrder}
+    />
+  )
+}
+
 // 12px "P" plate for the car-park row: a rounded-square outline with the
 // parking P, in the same stroked style as the sibling row glyphs.
 function CarParkIcon() {
@@ -452,6 +538,14 @@ const POWER_ICON_16 = (
     <path d="M9.3 1.6L4.9 8.4h2.6l-1 6 4.6-7h-2.6z" />
   </svg>
 )
+const GRAND_PRIX_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M3.5 14.5V2.5" />
+    <path d="M3.5 3h9l-1.5 3 1.5 3h-9" />
+    <path d="M6.5 3v6M9.5 3v6" strokeWidth="1.1" opacity="0.65" />
+  </svg>
+)
 // Building glyph for the CITY chip (16px) and the modal header (12px).
 function CityIcon({ size = 16 }: { size?: number }) {
   return (
@@ -522,6 +616,8 @@ interface Props {
   // with WATER: turning this on takes water off (and vice versa), so at most
   // one of the two rows can read ON.
   powerOn?: boolean
+  // The Guia Circuit — the FOURTH focus mode, exclusive with the three above.
+  grandPrixOn?: boolean
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
@@ -535,6 +631,7 @@ interface Props {
   onToggleWasteType?: (type: WasteLayerType) => void
   onToggleWater?: () => void
   onTogglePower?: () => void
+  onToggleGrandPrix?: () => void
   onToggleRoute?: (routeId: string) => void
   onToggleAll?: () => void
   onShowAll?: () => void
@@ -543,7 +640,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'city' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | 'city' | null
 
 export function LineLegend({
   transitData,
@@ -566,6 +663,7 @@ export function LineLegend({
   wasteTypeCounts,
   waterOn = false,
   powerOn = false,
+  grandPrixOn = false,
   clock,
   onToggleLrt,
   onToggleFlights,
@@ -579,6 +677,7 @@ export function LineLegend({
   onToggleWasteType,
   onToggleWater,
   onTogglePower,
+  onToggleGrandPrix,
   onToggleRoute,
   onShowAll,
   onHideAll,
@@ -739,6 +838,10 @@ export function LineLegend({
   // pipeline run regenerates it.
   const powerCount = allTransitData?.powerFacilities.length ?? transitData.powerFacilities.length
   const powerNetwork = allTransitData?.powerNetwork ?? transitData.powerNetwork
+  // The circuit, from the UNFILTERED data like the two above (App nulls the
+  // filtered copy while the layer is off, and the row must still count).
+  const grandPrix = allTransitData?.grandPrix ?? transitData.grandPrix
+  const grandPrixCount = grandPrix?.corners.length ?? 0
 
   // Mobile CITY modal — the city overlays in one list, the counterpart of the
   // desktop panel's CITY page. A row's name opens that layer's own modal; its
@@ -779,6 +882,12 @@ export function LineLegend({
       panel: 'power' as const, label: 'POWER · 電力', icon: POWER_ICON_16, on: powerOn,
       count: String(powerCount), iconOn: 'text-(--mm-amber)', countOn: 'text-(--mm-amber)/80',
       toggle: onTogglePower,
+    } : null,
+    grandPrixCount > 0 ? {
+      // "GP" like the "WC" row: the full name would wrap the row in light mode.
+      panel: 'grandprix' as const, label: 'GP · 大賽車', icon: GRAND_PRIX_ICON_16, on: grandPrixOn,
+      count: String(grandPrixCount), iconOn: 'text-(--mm-red)', countOn: 'text-(--mm-red)/80',
+      toggle: onToggleGrandPrix,
     } : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null)
   const cityLayerTotal = cityLayerRows.length
@@ -1530,6 +1639,45 @@ export function LineLegend({
           )}
           {powerCount > 0 && powerOn && (
             <PowerKey network={powerNetwork} caption={t.powerNetworkNote} />
+          )}
+          {/* GRAND PRIX — the Guia Circuit, the fourth focus mode. Same
+              exclusivity: switching it on takes whichever utility is on off,
+              restores what that one was hiding, then hides it all again. */}
+          {grandPrixCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleGrandPrix}
+              disabled={!onToggleGrandPrix}
+              aria-pressed={grandPrixOn}
+              // The hover text carries the disclaimer the map cannot: the
+              // corner positions are ours, the names the organiser's.
+              title={`${t.grandPrixCount(grandPrixCount)} · ${t.grandPrixNote}`}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
+                         ${grandPrixOn
+                           ? 'bg-(--mm-red-2)/[0.05] hover:bg-(--mm-red-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
+                         ${onToggleGrandPrix ? '' : 'cursor-default'}`}
+            >
+              <span className="inline-flex items-center justify-center w-[12px] shrink-0 text-(--mm-text-muted)">
+                <GrandPrixIcon />
+              </span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: GRAND_PRIX_HATCH }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
+                GP · 大賽車
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${grandPrixOn ? 'text-(--mm-red)/80' : 'text-(--mm-fg)/25'}`}>
+                {grandPrixCount}
+              </span>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${grandPrixOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {grandPrixOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
+          {grandPrixCount > 0 && grandPrixOn && (
+            <GrandPrixKey circuit={grandPrix} caption={t.grandPrixNote} />
           )}
           </>)}
         </div>
@@ -2530,6 +2678,65 @@ export function LineLegend({
                   are ever explained. Its caption carries the disclaimer. */}
               <div className="border-t border-(--mm-fg)/10 pt-1.5">
                 <PowerKey network={powerNetwork} caption={t.powerNetworkNote} />
+              </div>
+            </div>
+          )}
+
+          {/* GRAND PRIX */}
+          {mobilePanel === 'grandprix' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-red-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
+            >
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-red)/85">
+                  <GrandPrixIcon />
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: GRAND_PRIX_HATCH }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">GP · 大賽車</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
+                    {grandPrixOn ? grandPrixCount : 0}/{grandPrixCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleGrandPrix}
+                disabled={!onToggleGrandPrix}
+                aria-pressed={grandPrixOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${grandPrixOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
+                           ${onToggleGrandPrix ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={grandPrixOn ? 'text-(--mm-red-2)' : 'text-(--mm-text-muted)'}>
+                    <GrandPrixIcon />
+                  </span>
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
+                    {t.grandPrixCount(grandPrixCount)}
+                  </span>
+                </span>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${grandPrixOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
+                  {grandPrixOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+              {/* Shown whether or not the layer is on, like the other modals:
+                  the only place a touch device ever sees the key. */}
+              <div className="border-t border-(--mm-fg)/10 pt-1.5">
+                <GrandPrixKey circuit={grandPrix} caption={t.grandPrixNote} />
               </div>
             </div>
           )}

@@ -2133,6 +2133,214 @@ def v_dspa_stats(data: object) -> list[str]:
     return errs
 
 
+# The Guia Circuit. Everything here is either a fact the organiser publishes
+# (the 6.2 km lap, the 7 m minimum width, the nine names) or geometry stitched
+# out of OSM by fetch_grand_prix.py; the corner coordinates are ours, so every
+# one of them has to declare itself approximate and say how it was derived.
+GP_CORNERS = (
+    "start-finish", "mandarin-oriental", "lisboa", "maternity", "solitude-esses",
+    "melco-hairpin", "fishermens", "reservoir", "r-bend",
+)
+GP_KINDS = {"start_finish", "bend", "section"}
+GP_LANGS = ("zh", "en", "pt")
+GP_SOURCE_ROLES = {"geometry", "names", "facts", "lapRecord", "landmarks"}
+GP_MIN_TRACK_POINTS = 200
+# Tight box around the circuit itself, not the whole SAR: a lap that wanders
+# out of the Macau peninsula is a stitching bug, not a coordinate typo.
+GP_LNG_MIN, GP_LNG_MAX = 113.52, 113.60
+GP_LAT_MIN, GP_LAT_MAX = 22.10, 22.23
+# The stitched loop is measured, the 6.2 km is the organiser's rounded figure;
+# they will never match exactly. This is the same gate fetch_grand_prix.py
+# refuses to write past.
+GP_LENGTH_TOLERANCE = 0.05
+
+
+def check_gp_linestring(errs: list[str], ctx: str, geom: object, *, closed: bool,
+                        min_points: int) -> list | None:
+    if not require_fields(errs, ctx, geom, ("type", "coordinates")):
+        return None
+    if geom["type"] != "LineString":
+        errs.append(f"{ctx}: type must be 'LineString', got {geom['type']!r}")
+    coords = geom["coordinates"]
+    if not isinstance(coords, list) or len(coords) < min_points:
+        errs.append(f"{ctx}: expected at least {min_points} coordinates, "
+                    f"got {len(coords) if isinstance(coords, list) else '?'}")
+        return None
+    bad = 0
+    for i, c in enumerate(coords):
+        if not (isinstance(c, list) and len(c) == 2
+                and all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in c)):
+            bad += 1
+            continue
+        lng, lat = c
+        if not (GP_LNG_MIN <= lng <= GP_LNG_MAX and GP_LAT_MIN <= lat <= GP_LAT_MAX):
+            bad += 1
+            if bad <= 3:
+                errs.append(f"{ctx}[{i}]: {c} is outside the circuit box")
+    if bad > 3:
+        errs.append(f"{ctx}: {bad} coordinate(s) malformed or outside the circuit box")
+    if closed and coords[0] != coords[-1]:
+        errs.append(f"{ctx}: the racing line must be closed (first point == last point)")
+    return coords
+
+
+def check_gp_corner(errs: list[str], ctx: str, c: object, order: int, expect_id: str) -> float | None:
+    if not require_fields(errs, ctx, c, ("id", "order", "kind", "name", "lng", "lat",
+                                         "distKm", "approximate", "rule", "spanKm")):
+        return None
+    if c["id"] != expect_id:
+        errs.append(f"{ctx}: expected id '{expect_id}' in race order, got {c['id']!r}")
+    if c["order"] != order:
+        errs.append(f"{ctx}: order must be {order}, got {c['order']!r}")
+    if c["kind"] not in GP_KINDS:
+        errs.append(f"{ctx}: kind {c['kind']!r} invalid")
+
+    name = c["name"]
+    if require_fields(errs, f"{ctx}.name", name, GP_LANGS):
+        for lang in GP_LANGS:
+            if not (isinstance(name[lang], str) and name[lang].strip()):
+                errs.append(f"{ctx}.name.{lang}: must be a non-empty string")
+    check_coords(errs, ctx, [c["lng"], c["lat"]])
+    if not (GP_LNG_MIN <= c["lng"] <= GP_LNG_MAX and GP_LAT_MIN <= c["lat"] <= GP_LAT_MAX):
+        errs.append(f"{ctx}: [{c['lng']}, {c['lat']}] is outside the circuit box")
+
+    # Ours, not the organiser's — say so, and say how.
+    if c["approximate"] is not True:
+        errs.append(f"{ctx}: approximate must be true — these coordinates are derived, "
+                    "not published")
+    if not (isinstance(c["rule"], str) and c["rule"].strip()):
+        errs.append(f"{ctx}: rule must be a non-empty string saying how the point was derived")
+
+    dist = c["distKm"]
+    if not (isinstance(dist, (int, float)) and not isinstance(dist, bool) and dist >= 0):
+        errs.append(f"{ctx}: distKm must be a number >= 0")
+        dist = None
+    elif order == 1 and dist != 0:
+        errs.append(f"{ctx}: the start/finish is the origin of the lap, so distKm must be 0")
+
+    span = c["spanKm"]
+    if c["kind"] == "section":
+        if not (isinstance(span, list) and len(span) == 2
+                and all(isinstance(v, (int, float)) and not isinstance(v, bool) for v in span)):
+            errs.append(f"{ctx}: a section must carry spanKm as [fromKm, toKm]")
+        elif not span[0] <= span[1]:
+            errs.append(f"{ctx}: spanKm {span} is not ordered")
+        elif dist is not None and not span[0] <= dist <= span[1]:
+            errs.append(f"{ctx}: distKm {dist} is outside its own spanKm {span}")
+    elif span is not None:
+        errs.append(f"{ctx}: only a section carries spanKm, got {span!r}")
+    return dist
+
+
+def v_grand_prix(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(errs, "grand-prix", data, ("fetchedAtUtc", "sources", "circuit")):
+        return errs
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("grand-prix: fetchedAtUtc must be a string")
+
+    if require_nonempty_list(errs, "grand-prix.sources", data["sources"]):
+        roles = set()
+        for i, s in enumerate(data["sources"]):
+            sctx = f"grand-prix.sources[{i}]"
+            if not require_fields(errs, sctx, s, ("name", "url", "role", "secondary",
+                                                  "upstreamUpdatedAt")):
+                continue
+            for key in ("name", "url"):
+                if not (isinstance(s[key], str) and s[key].strip()):
+                    errs.append(f"{sctx}: {key} must be a non-empty string")
+            if s["role"] not in GP_SOURCE_ROLES:
+                errs.append(f"{sctx}: role {s['role']!r} invalid")
+            else:
+                roles.add(s["role"])
+            if not isinstance(s["secondary"], bool):
+                errs.append(f"{sctx}: secondary must be a boolean")
+            if s["upstreamUpdatedAt"] is not None and not isinstance(s["upstreamUpdatedAt"], str):
+                errs.append(f"{sctx}: upstreamUpdatedAt must be a string or null")
+        for role in ("geometry", "names", "facts"):
+            if role not in roles:
+                errs.append(f"grand-prix.sources: no source with role '{role}'")
+
+    c = data["circuit"]
+    if not require_fields(errs, "grand-prix.circuit", c,
+                          ("id", "name", "lengthKm", "minWidthM", "direction", "lapRecord",
+                           "osm", "measuredLengthKm", "track", "pitLane", "corners")):
+        return errs
+
+    if c["id"] != "guia":
+        errs.append(f"grand-prix.circuit: id must be 'guia', got {c['id']!r}")
+    if require_fields(errs, "grand-prix.circuit.name", c["name"], GP_LANGS):
+        for lang in GP_LANGS:
+            if not (isinstance(c["name"][lang], str) and c["name"][lang].strip()):
+                errs.append(f"grand-prix.circuit.name.{lang}: must be a non-empty string")
+    if c["direction"] not in ("clockwise", "anticlockwise"):
+        errs.append(f"grand-prix.circuit: direction {c['direction']!r} invalid")
+    for key in ("lengthKm", "minWidthM", "measuredLengthKm"):
+        if not (isinstance(c[key], (int, float)) and not isinstance(c[key], bool) and c[key] > 0):
+            errs.append(f"grand-prix.circuit.{key} must be a number > 0")
+
+    if require_fields(errs, "grand-prix.circuit.osm", c["osm"],
+                      ("relationId", "mainWays", "pitLaneWays")):
+        for key in ("relationId", "mainWays", "pitLaneWays"):
+            if not (isinstance(c["osm"][key], int) and not isinstance(c["osm"][key], bool)
+                    and c["osm"][key] > 0):
+                errs.append(f"grand-prix.circuit.osm.{key} must be an int > 0")
+
+    rec = c["lapRecord"]
+    if rec is not None and require_fields(errs, "grand-prix.circuit.lapRecord", rec,
+                                          ("time", "seconds", "driver", "year", "car", "source")):
+        for key in ("time", "driver", "source"):
+            if not (isinstance(rec[key], str) and rec[key].strip()):
+                errs.append(f"grand-prix.circuit.lapRecord.{key} must be a non-empty string")
+        if not (isinstance(rec["seconds"], (int, float)) and not isinstance(rec["seconds"], bool)
+                and rec["seconds"] > 0):
+            errs.append("grand-prix.circuit.lapRecord.seconds must be a number > 0")
+        if not (isinstance(rec["year"], int) and not isinstance(rec["year"], bool)
+                and 1954 <= rec["year"] <= 2100):
+            errs.append("grand-prix.circuit.lapRecord.year must be a plausible year")
+        if rec["car"] is not None and not isinstance(rec["car"], str):
+            errs.append("grand-prix.circuit.lapRecord.car must be a string or null")
+
+    check_gp_linestring(errs, "grand-prix.circuit.track", c["track"],
+                        closed=True, min_points=GP_MIN_TRACK_POINTS)
+    if c["pitLane"] is not None:
+        check_gp_linestring(errs, "grand-prix.circuit.pitLane", c["pitLane"],
+                            closed=False, min_points=2)
+
+    # The stitched loop against the organiser's own figure. fetch_grand_prix.py
+    # refuses to write past this; re-checking it here catches a hand-edit too.
+    if all(isinstance(c[k], (int, float)) and not isinstance(c[k], bool) and c[k] > 0
+           for k in ("lengthKm", "measuredLengthKm")):
+        off = abs(c["measuredLengthKm"] - c["lengthKm"]) / c["lengthKm"]
+        if off > GP_LENGTH_TOLERANCE:
+            errs.append(
+                f"grand-prix.circuit: measuredLengthKm {c['measuredLengthKm']} is "
+                f"{off * 100:.1f} % off the official lengthKm {c['lengthKm']} "
+                f"(limit {GP_LENGTH_TOLERANCE * 100:.0f} %)"
+            )
+
+    corners = c["corners"]
+    if not isinstance(corners, list) or len(corners) != len(GP_CORNERS):
+        errs.append(f"grand-prix.circuit.corners: expected exactly {len(GP_CORNERS)} corners, "
+                    f"got {len(corners) if isinstance(corners, list) else '?'}")
+        return errs
+    prev = None
+    for i, corner in enumerate(corners):
+        dist = check_gp_corner(errs, f"grand-prix.circuit.corners[{i}]", corner,
+                               i + 1, GP_CORNERS[i])
+        if dist is None:
+            prev = None
+            continue
+        if prev is not None and dist <= prev:
+            errs.append(f"grand-prix.circuit.corners[{i}]: distKm {dist} does not increase "
+                        f"on the previous corner ({prev}) — the corners must be in race order")
+        if isinstance(c.get("measuredLengthKm"), (int, float)) and dist > c["measuredLengthKm"]:
+            errs.append(f"grand-prix.circuit.corners[{i}]: distKm {dist} is past the end of "
+                        f"the lap ({c['measuredLengthKm']} km)")
+        prev = dist
+    return errs
+
+
 # name -> (absolute path, validator)
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
@@ -2156,6 +2364,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "car-parks": (PUBLIC / "data/car-parks.json", v_car_parks),
     "waste": (PUBLIC / "data/waste.json", v_waste),
     "dspa-stats": (PUBLIC / "data/dspa-stats.json", v_dspa_stats),
+    "grand-prix": (PUBLIC / "data/grand-prix.json", v_grand_prix),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.

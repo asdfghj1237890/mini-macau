@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, GrandPrixFile, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -21,6 +21,7 @@ import {
   DspaStatsFileSchema,
   WaterFacilitiesFileSchema,
   PowerFacilitiesFileSchema,
+  GrandPrixFileSchema,
 } from '../dataSchemas'
 
 const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
@@ -408,6 +409,8 @@ export function useTransitData(): UseTransitDataResult {
     waterNetwork: null,
     powerFacilities: [],
     powerNetwork: null,
+    grandPrix: null,
+    grandPrixSources: [],
     loading: true,
   })
   // Multi-day timetable lives in its own state slot rather than on
@@ -578,6 +581,16 @@ export function useTransitData(): UseTransitDataResult {
       .then(file => {
         commit('powerFacilities', file.facilities)
         commit('powerNetwork', file.network ?? null)
+      })
+      .catch(() => {})
+
+    // The Guia Circuit — one small static file (a 6 km line and nine corners),
+    // loaded at startup like the utilities above and just as non-critical: a
+    // missing file leaves the GRAND PRIX row out of the legend and nothing else.
+    loadJson<GrandPrixFile>('/data/grand-prix.json', GrandPrixFileSchema, 'grand-prix.json')
+      .then(file => {
+        commit('grandPrix', file.circuit)
+        commit('grandPrixSources', file.sources ?? [])
       })
       .catch(() => {})
 

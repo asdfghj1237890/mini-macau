@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 import maplibregl from 'maplibre-gl'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -95,6 +95,22 @@ import {
   powerMotionColors,
 } from '../power'
 import { advancePulse, initialPulseState, type PulseCounts, type PulseState } from '../flowPulse'
+import {
+  GRAND_PRIX_BADGE_ICON_PREFIX,
+  GRAND_PRIX_FEATURE_ID_PROPERTY,
+  GRAND_PRIX_FLAG_ICON,
+  GRAND_PRIX_WAKE_BUCKETS,
+  buildGrandPrixCornerFeatures,
+  buildGrandPrixTrackFeatures,
+  buildGrandPrixWakeFeatures,
+  grandPrixCarState,
+  grandPrixLabelField,
+  grandPrixMotionColors,
+  grandPrixWakeBucket,
+  grandPrixWakeWrites,
+  type GrandPrixCarState,
+} from '../grandPrix'
+import { RaceCar3DLayer } from '../layers/RaceCar3DLayer'
 import { toggleTheme as toggleStoredTheme, useTheme } from '../theme'
 import { useI18n } from '../i18n'
 import { ga } from '../analytics/ga'
@@ -1274,6 +1290,42 @@ function drawBadgeIcon(stage: number): ImageData | null {
   return ctx.getImageData(0, 0, size, size)
 }
 
+// The GRAND PRIX start/finish badge: the same disc as the numbered ones, with
+// a 4×4 chequer in place of the number.
+function drawChequeredFlagIcon(): ImageData | null {
+  const size = WATER_BADGE_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const c = size / 2
+  ctx.beginPath()
+  ctx.arc(c, c, c - 2, 0, Math.PI * 2)
+  ctx.fillStyle = '#0b0b0c'
+  ctx.fill()
+  ctx.lineWidth = 2
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+  // The chequer, clipped to the disc's interior.
+  ctx.save()
+  ctx.beginPath()
+  ctx.arc(c, c, c - 3.5, 0, Math.PI * 2)
+  ctx.clip()
+  const cells = 4
+  const cell = (size - 6) / cells
+  for (let row = 0; row < cells; row++) {
+    for (let col = 0; col < cells; col++) {
+      ctx.fillStyle = (row + col) % 2 === 0 ? '#ffffff' : '#0b0b0c'
+      ctx.fillRect(3 + col * cell, 3 + row * cell, cell + 0.5, cell + 0.5)
+    }
+  }
+  ctx.restore()
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
 // One PRE-BUILT dash phase per entry, each shifted a little further along the
 // line than the last, so showing them in order walks the pattern from a pipe's
 // `from` end to its `to` end (see buildDashFlowSteps, and the vertex-order note
@@ -1370,6 +1422,67 @@ const POWER_DISTRIBUTION_FLOW_PREFIX = 'power-distribution-flow'
 const POWER_DISTRIBUTION_FLOW_OPACITY = 0.5
 const POWER_DISTRIBUTION_FLOW_WIDTH: maplibregl.ExpressionSpecification =
   ['interpolate', ['linear'], ['zoom'], 12, 0.5, 16, 1]
+
+// ---- GRAND PRIX overlay ----------------------------------------------------
+// The Guia Circuit: the racing line as a glow + a solid core with direction
+// chevrons, the pit lane as a thin static dash, a numbered badge and a name per
+// corner, THE WAKE (the lap cut into 200 m buckets on a source of its own,
+// the chunk the car is in and the two behind it lit — see
+// buildGrandPrixWakeFeatures), the car (src/layers/RaceCar3DLayer.ts) and its
+// live speed beside it. Every source is data-driven from
+// `transitData.grandPrix`, which App nulls while the layer is off, so nothing
+// here needs a visibility sweep.
+const GRAND_PRIX_TRACK_SOURCE_ID = 'grandprix-track'
+const GRAND_PRIX_TRACK_GLOW_LAYER_ID = 'grandprix-track-glow'
+const GRAND_PRIX_TRACK_LAYER_ID = 'grandprix-track'
+const GRAND_PRIX_PIT_LAYER_ID = 'grandprix-pit'
+const GRAND_PRIX_ARROWS_LAYER_ID = 'grandprix-track-arrows'
+const GRAND_PRIX_ARROW_ICON = 'grandprix-arrow'
+const GRAND_PRIX_WAKE_SOURCE_ID = 'grandprix-wake'
+const GRAND_PRIX_WAKE_PREFIX = 'grandprix-wake'
+const GRAND_PRIX_CORNERS_SOURCE_ID = 'grandprix-corners'
+const GRAND_PRIX_CORNER_SELECTED_LAYER_ID = 'grandprix-corner-selected'
+const GRAND_PRIX_CORNER_LAYER_ID = 'grandprix-corner'
+const GRAND_PRIX_CAR_LABEL_SOURCE_ID = 'grandprix-car-label'
+const GRAND_PRIX_CAR_LABEL_LAYER_ID = 'grandprix-car-label'
+// Badge images are registered up front for this many corners, independent of
+// the file (which lands asynchronously), so a corner never asks for an image
+// that is not there. The official list has nine.
+const GRAND_PRIX_BADGE_COUNT = 12
+const GRAND_PRIX_TRACK_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 3, 16, 7]
+const GRAND_PRIX_TRACK_GLOW_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 8, 16, 18]
+const GRAND_PRIX_PIT_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 1.2, 16, 3]
+const GRAND_PRIX_WAKE_WIDTH: maplibregl.ExpressionSpecification =
+  ['interpolate', ['linear'], ['zoom'], 12, 4.5, 16, 10]
+const GRAND_PRIX_WAKE_BLUR = 2
+
+// The live speed readout beside the car — one point whose text is rewritten
+// with every pose while the layer is on, and emptied once when it goes off.
+function writeGrandPrixCarLabel(
+  map: maplibregl.Map, state: GrandPrixCarState | null, emptyRef: { current: boolean },
+): void {
+  const src = map.getSource(GRAND_PRIX_CAR_LABEL_SOURCE_ID) as unknown as
+    { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+  if (!src?.setData) return
+  if (!state) {
+    if (emptyRef.current) return
+    src.setData({ type: 'FeatureCollection', features: [] })
+    emptyRef.current = true
+    return
+  }
+  src.setData({
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      geometry: { type: 'Point', coordinates: [state.pose.lng, state.pose.lat] },
+      properties: { label: `${Math.round(state.speedMs * 3.6)} km/h` },
+    }],
+  })
+  emptyRef.current = false
+}
 const POWER_DISTRIBUTION_OPACITY = 0.7
 
 // Same phase-layer budget and the same rhythm as the water groups (see the
@@ -1416,9 +1529,9 @@ const POWER_FOCUS_SHOWN_LAYERS: readonly string[] = [
 // and is the single place layout visibility is decided: the city hides for
 // either, and each overlay's own street mesh shows only for its own.
 function applyFocusVisibility(
-  m: maplibregl.Map, water: boolean, power: boolean, waste: boolean,
+  m: maplibregl.Map, water: boolean, power: boolean, waste: boolean, grandPrix: boolean,
 ): void {
-  const focus = water || power || waste
+  const focus = water || power || waste || grandPrix
   for (const id of FOCUS_HIDDEN_LAYERS) {
     if (!m.getLayer(id)) continue
     m.setLayoutProperty(id, 'visibility', focus ? 'none' : 'visible')
@@ -1668,6 +1781,14 @@ interface Props {
   // Macau's streets, drawn as the thin distribution feeders. Null until the
   // lazy fetch lands (see usePowerDistribution).
   powerDistributionRoads?: PowerDistributionRoad[] | null
+  // GRAND PRIX is the fourth focus mode, on the contract of the three flags
+  // above. Its own layers are data-driven (App nulls `transitData.grandPrix`
+  // while it is off), so the flag only feeds the "hide the city" half and
+  // the car's per-tick update.
+  grandPrixFocus?: boolean
+  onGrandPrixCornerClick?: (corner: GrandPrixCorner | null) => void
+  // A click on the racing line itself opens the circuit's own panel.
+  onGrandPrixCircuitClick?: (circuit: GrandPrixCircuit) => void
   // Live vacancy keyed by car-park id, from useCarParkVacancy. A new Map
   // identity (≈ every 30 s while polling) is what re-labels the markers.
   carParkVacancy?: Map<string, CarParkVacancy> | null
@@ -1682,12 +1803,13 @@ interface Props {
   selectedWaterNodeId?: string | null
   selectedPowerFacilityId?: string | null
   selectedPowerNodeId?: string | null
+  selectedGrandPrixCornerId?: string | null
   onVehicleCount?: (count: number) => void
   showTimeBar?: boolean
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
@@ -1787,6 +1909,13 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // its focus flag only ever feeds applyFocusVisibility's "hide the city" half.
   const wasteFocusRef = useRef(wasteFocus)
   wasteFocusRef.current = wasteFocus
+  // GRAND PRIX: the focus flag (read by the RAF tick for the car and by
+  // addCustomLayers after a style swap) and the selected corner's id (the
+  // ring filter is re-applied on a fresh style).
+  const grandPrixFocusRef = useRef(grandPrixFocus)
+  grandPrixFocusRef.current = grandPrixFocus
+  const selectedGrandPrixCornerIdRef = useRef<string | null>(selectedGrandPrixCornerId ?? null)
+  selectedGrandPrixCornerIdRef.current = selectedGrandPrixCornerId ?? null
   // Seeds all three waste sources after a style swap, the same way transitRef
   // does for every other overlay.
   const wasteExtras = wasteExtrasProp ?? NO_WASTE_EXTRAS
@@ -1831,6 +1960,16 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const powerPulseCountsRef = useRef<PulseCounts>({ trunk: 0, mesh: 0 })
   const powerDistributionRef = useRef<PowerDistributionRoad[] | null>(powerDistributionRoads)
   powerDistributionRef.current = powerDistributionRoads
+  // The circuit's wake: how many chunks the lap fills, which chunk is lit as
+  // the head (−1: none — fresh layers are dark, and a style swap rebuilds them
+  // dark), and the car's distance into the lap as the RAF tick last wrote it
+  // (the 70 ms interval reads it to move the wake). And the car itself,
+  // attached with the other 3D layers, plus whether its speed label is empty.
+  const grandPrixWakeCountRef = useRef(0)
+  const grandPrixWakeHeadRef = useRef(-1)
+  const grandPrixCarDistanceRef = useRef<number | null>(null)
+  const raceCarRef = useRef<RaceCar3DLayer | null>(null)
+  const grandPrixCarLabelEmptyRef = useRef(true)
 
   // Highlight = one feature-state per school id. `promoteId` makes every
   // building of a school share that id, so this single pair of calls repaints
@@ -3005,6 +3144,136 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         },
       })
 
+      // GRAND PRIX. The racing line under the basemap's symbols like the
+      // utilities' corridors; the corner badges and names over everything,
+      // because a corner is the thing a reader looks for. All seeded from
+      // transitRef so a theme swap redraws whatever the layer currently holds.
+      const gpMotion = grandPrixMotionColors(dark)
+      m.addSource(GRAND_PRIX_TRACK_SOURCE_ID, {
+        type: 'geojson',
+        data: buildGrandPrixTrackFeatures(transitRef.current.grandPrix),
+      })
+      m.addLayer({
+        id: GRAND_PRIX_TRACK_GLOW_LAYER_ID, type: 'line', source: GRAND_PRIX_TRACK_SOURCE_ID,
+        filter: ['==', ['get', 'kind'], 'track'],
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-color': gpMotion.glow,
+          'line-opacity': 0.28,
+          'line-width': GRAND_PRIX_TRACK_GLOW_WIDTH,
+        },
+      }, firstSymbolId)
+      m.addLayer({
+        id: GRAND_PRIX_TRACK_LAYER_ID, type: 'line', source: GRAND_PRIX_TRACK_SOURCE_ID,
+        filter: ['==', ['get', 'kind'], 'track'],
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: { 'line-color': gpMotion.track, 'line-width': GRAND_PRIX_TRACK_WIDTH },
+      }, firstSymbolId)
+      // The pit lane: a STATIC dash, never animated (see the dasharray rule on
+      // the water pipes).
+      m.addLayer({
+        id: GRAND_PRIX_PIT_LAYER_ID, type: 'line', source: GRAND_PRIX_TRACK_SOURCE_ID,
+        filter: ['==', ['get', 'kind'], 'pit'],
+        layout: { 'line-cap': 'butt', 'line-join': 'round' },
+        paint: {
+          'line-color': gpMotion.pit,
+          'line-opacity': 0.9,
+          'line-width': GRAND_PRIX_PIT_WIDTH,
+          'line-dasharray': [2, 1.5],
+        },
+      }, firstSymbolId)
+      // THE WAKE: the lap in 200 m buckets, the car's chunk and the two behind
+      // it lit by the interval below — the utilities' bucket layers, driven
+      // by the car instead of by a wave of their own.
+      const gpWake = buildGrandPrixWakeFeatures(transitRef.current.grandPrix)
+      grandPrixWakeCountRef.current = gpWake.buckets
+      grandPrixWakeHeadRef.current = -1
+      m.addSource(GRAND_PRIX_WAKE_SOURCE_ID, { type: 'geojson', data: gpWake.features })
+      addBucketLayers(m, {
+        prefix: GRAND_PRIX_WAKE_PREFIX,
+        source: GRAND_PRIX_WAKE_SOURCE_ID,
+        count: GRAND_PRIX_WAKE_BUCKETS,
+        color: gpMotion.pulse,
+        width: GRAND_PRIX_WAKE_WIDTH,
+        blur: GRAND_PRIX_WAKE_BLUR,
+      }, true, firstSymbolId)
+      // Direction chevrons along the racing line: race direction is the
+      // file's vertex order, as `from` → `to` is for the utilities.
+      if (!m.hasImage(GRAND_PRIX_ARROW_ICON)) {
+        const arrowImg = drawArrowIcon()
+        if (arrowImg) m.addImage(GRAND_PRIX_ARROW_ICON, arrowImg, { pixelRatio: 2 })
+      }
+      m.addLayer({
+        id: GRAND_PRIX_ARROWS_LAYER_ID, type: 'symbol', source: GRAND_PRIX_TRACK_SOURCE_ID,
+        filter: ['==', ['get', 'kind'], 'track'],
+        minzoom: 12,
+        layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 90,
+          'icon-image': GRAND_PRIX_ARROW_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.55, 16, 0.9],
+          'icon-rotation-alignment': 'map',
+          'icon-pitch-alignment': 'map',
+          'icon-keep-upright': false,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: { 'icon-opacity': 0.9 },
+      }, firstSymbolId)
+      // The corners: a numbered badge each (the utilities' stage disc), the
+      // chequered flag at start/finish, and the name in the UI language under
+      // it. The images go in for a fixed count rather than for the corners the
+      // file has, because the file may not have landed yet.
+      for (let n = 1; n <= GRAND_PRIX_BADGE_COUNT; n++) {
+        const name = `${GRAND_PRIX_BADGE_ICON_PREFIX}${n}`
+        if (m.hasImage(name)) continue
+        const img = drawBadgeIcon(n)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      if (!m.hasImage(GRAND_PRIX_FLAG_ICON)) {
+        const flagImg = drawChequeredFlagIcon()
+        if (flagImg) m.addImage(GRAND_PRIX_FLAG_ICON, flagImg, { pixelRatio: 2 })
+      }
+      m.addSource(GRAND_PRIX_CORNERS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildGrandPrixCornerFeatures(transitRef.current.grandPrix),
+      })
+      m.addLayer({
+        id: GRAND_PRIX_CORNER_SELECTED_LAYER_ID, type: 'circle', source: GRAND_PRIX_CORNERS_SOURCE_ID,
+        filter: ['==', ['get', GRAND_PRIX_FEATURE_ID_PROPERTY], selectedGrandPrixCornerIdRef.current ?? ''],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      })
+      m.addLayer({
+        id: GRAND_PRIX_CORNER_LAYER_ID, type: 'symbol', source: GRAND_PRIX_CORNERS_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          // Nine badges on a 6 km loop never crowd, and a dropped corner would
+          // be a hole in the sequence, so they always draw.
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.7, 15, 1.1],
+          // Swapped, not rebuilt, on a language change: see the [lang] effect.
+          'text-field': ['get', grandPrixLabelField(currentLang)],
+          'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+          'text-size': ['step', ['zoom'], 0, 12, 10, 15, 11],
+          'text-offset': [0, 1.0],
+          'text-anchor': 'top',
+          'text-optional': true,
+        },
+        paint: {
+          'text-color': gpMotion.label,
+          'text-halo-color': gpMotion.halo,
+          'text-halo-width': 1.2,
+        },
+      })
+
       addVehicleLayers(m, currentLang)
 
       const bus3DLayer = new Bus3DLayer()
@@ -3022,6 +3291,38 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       const ferry3DLayer = new Ferry3DLayer()
       ferry3DLayer.attach(m)
       ferry3DRef.current = ferry3DLayer
+
+      // The GRAND PRIX car, in the theme's colours (a style swap rebuilds it
+      // here with the new ones, like every layer above).
+      const raceCar = new RaceCar3DLayer({
+        body: gpMotion.car, accent: gpMotion.carAccent, wheel: '#0a0a0a', cockpit: '#1a1e2a',
+      })
+      raceCar.attach(m)
+      raceCarRef.current = raceCar
+      // Its speed, beside it: the same type and halo as the corner names, on a
+      // point the RAF tick rewrites with the pose.
+      m.addSource(GRAND_PRIX_CAR_LABEL_SOURCE_ID, {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: [] },
+      })
+      m.addLayer({
+        id: GRAND_PRIX_CAR_LABEL_LAYER_ID, type: 'symbol', source: GRAND_PRIX_CAR_LABEL_SOURCE_ID,
+        layout: {
+          'text-field': ['get', 'label'],
+          'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+          'text-size': ['interpolate', ['linear'], ['zoom'], 12, 11, 16, 13],
+          'text-anchor': 'left',
+          'text-offset': [1.0, 0],
+          'text-allow-overlap': true,
+          'text-ignore-placement': true,
+        },
+        paint: {
+          'text-color': gpMotion.label,
+          'text-halo-color': gpMotion.halo,
+          'text-halo-width': 1.4,
+        },
+      })
+      grandPrixCarLabelEmptyRef.current = true
 
       layersAddedRef.current = true
       serviceStatusRef.current = new Map()
@@ -3047,7 +3348,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       powerPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
       powerPulseRef.current = initialPulseState()
       // A style swap re-adds every layer visible; re-assert focus mode.
-      applyFocusVisibility(m, waterFocusRef.current, powerFocusRef.current, wasteFocusRef.current)
+      applyFocusVisibility(
+        m, waterFocusRef.current, powerFocusRef.current, wasteFocusRef.current, grandPrixFocusRef.current,
+      )
     }
 
     addCustomLayersRef.current = addCustomLayers
@@ -3212,6 +3515,26 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
       }
 
+      // GRAND PRIX: a corner badge opens that corner's panel, the racing line
+      // the circuit's. The corner handler is registered first and marks the
+      // event, so a badge sitting on the line wins over the line under it.
+      m.on('click', GRAND_PRIX_CORNER_LAYER_ID, (e) => {
+        const fid = e.features?.[0]?.properties?.[GRAND_PRIX_FEATURE_ID_PROPERTY]
+        const corner = transitRef.current.grandPrix?.corners.find(c => c.id === fid)
+        if (corner) { onGrandPrixCornerClick?.(corner); e.preventDefault() }
+      })
+      for (const layerId of [GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID]) {
+        m.on('click', layerId, (e) => {
+          if (e.defaultPrevented) return
+          const circuit = transitRef.current.grandPrix
+          if (circuit) { onGrandPrixCircuitClick?.(circuit); e.preventDefault() }
+        })
+      }
+      for (const layerId of [GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID]) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+      }
+
       m.on('click', 'vehicles-circle', (e) => {
         const feature = e.features?.[0]
         if (feature) {
@@ -3243,7 +3566,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
 
       m.on('click', (e) => {
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, ...model3DLayers],
+          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -3318,6 +3641,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
     if (map.getLayer(POWER_ICON_LAYER_ID)) {
       map.setLayoutProperty(POWER_ICON_LAYER_ID, 'text-field', ['get', powerLabelField(lang)])
+    }
+    if (map.getLayer(GRAND_PRIX_CORNER_LAYER_ID)) {
+      map.setLayoutProperty(GRAND_PRIX_CORNER_LAYER_ID, 'text-field', ['get', grandPrixLabelField(lang)])
     }
     updateVehicleLabelLang(map, lang)
   }, [lang])
@@ -3465,6 +3791,47 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     powerPulseCountsRef.current.trunk = pulse.buckets
   }, [transitData.powerFacilities, transitData.powerNetwork])
 
+  // The circuit: three sources from the one object, and the pulse told how
+  // many buckets the lap fills. App nulls `grandPrix` while the layer is off,
+  // which empties every one of them and takes the car off with them.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    const setData = (sourceId: string, data: GeoJSON.FeatureCollection) => {
+      const src = map.getSource(sourceId) as unknown as
+        { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+      src?.setData?.(data)
+    }
+    setData(GRAND_PRIX_TRACK_SOURCE_ID, buildGrandPrixTrackFeatures(transitData.grandPrix))
+    setData(GRAND_PRIX_CORNERS_SOURCE_ID, buildGrandPrixCornerFeatures(transitData.grandPrix))
+    // The wake's chunks are cut from the new line. Whatever was lit belongs to
+    // the old one (the layers keep their opacity across a setData), so it goes
+    // dark first — with the OLD count, which is what those indices meant.
+    for (const w of grandPrixWakeWrites(grandPrixWakeHeadRef.current, -1, grandPrixWakeCountRef.current)) {
+      const id = phaseLayerId(GRAND_PRIX_WAKE_PREFIX, w.index)
+      if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', w.opacity)
+    }
+    grandPrixWakeHeadRef.current = -1
+    const wake = buildGrandPrixWakeFeatures(transitData.grandPrix)
+    setData(GRAND_PRIX_WAKE_SOURCE_ID, wake.features)
+    grandPrixWakeCountRef.current = wake.buckets
+    if (!transitData.grandPrix) {
+      raceCarRef.current?.setPose(null)
+      grandPrixCarDistanceRef.current = null
+      writeGrandPrixCarLabel(map, null, grandPrixCarLabelEmptyRef)
+    }
+  }, [transitData.grandPrix])
+
+  // Selected corner ring — a filter swap, same as the utilities' markers.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map?.getLayer(GRAND_PRIX_CORNER_SELECTED_LAYER_ID)) return
+    map.setFilter(
+      GRAND_PRIX_CORNER_SELECTED_LAYER_ID,
+      ['==', ['get', GRAND_PRIX_FEATURE_ID_PROPERTY], selectedGrandPrixCornerId ?? ''],
+    )
+  }, [selectedGrandPrixCornerId])
+
   // The distribution roads land once, from their own lazy fetch, so this fires
   // at most twice per session (null → loaded) and never from the RAF tick.
   useEffect(() => {
@@ -3558,7 +3925,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // pipe, from its `from` end to its `to` end; for a road, away from the source
   // feeding it.
   useEffect(() => {
-    if (!waterFocus && !powerFocus) return
+    if (!waterFocus && !powerFocus && !grandPrixFocus) return
     const timer = window.setInterval(() => {
       const map = mapRef.current
       if (!map) return
@@ -3629,9 +3996,26 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', w.opacity)
         }
       }
+      // The circuit's wake: the chunk the car is in (from the distance the RAF
+      // tick last wrote) and the two behind it. Writes happen only when the
+      // car crosses into the next chunk — every few seconds at 1× — which is
+      // why they live here and not in the RAF tick. Exclusive with the two
+      // above like they are with each other.
+      if (grandPrixFocus) {
+        const distance = grandPrixCarDistanceRef.current
+        const count = grandPrixWakeCountRef.current
+        const head = distance === null ? -1 : grandPrixWakeBucket(distance, count)
+        if (head !== grandPrixWakeHeadRef.current) {
+          for (const w of grandPrixWakeWrites(grandPrixWakeHeadRef.current, head, count)) {
+            const id = phaseLayerId(GRAND_PRIX_WAKE_PREFIX, w.index)
+            if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', w.opacity)
+          }
+          grandPrixWakeHeadRef.current = head
+        }
+      }
     }, FLOW_TICK_MS)
     return () => window.clearInterval(timer)
-  }, [waterFocus, powerFocus])
+  }, [waterFocus, powerFocus, grandPrixFocus])
 
   // Focus mode. App has already emptied every other layer's data; this hides
   // the two things that are drawn from `allTransitData` and so would otherwise
@@ -3639,8 +4023,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // one overlay's street mesh.
   useEffect(() => {
     const map = mapRef.current
-    if (map) applyFocusVisibility(map, waterFocus, powerFocus, wasteFocus)
-  }, [waterFocus, powerFocus, wasteFocus])
+    if (map) applyFocusVisibility(map, waterFocus, powerFocus, wasteFocus, grandPrixFocus)
+  }, [waterFocus, powerFocus, wasteFocus, grandPrixFocus])
 
   useEffect(() => {
     const map = mapRef.current
@@ -3783,6 +4167,20 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
             bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
             lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
             ferry3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'ferry'))
+          }
+          // The GRAND PRIX car: a dozen boxes at the sim tick while the layer
+          // is on, placed on the lap by the same clock the buses read, and
+          // sized for the current zoom. `td` is the filtered data, so it is
+          // null the moment the layer goes off.
+          if (grandPrixFocusRef.current && td.grandPrix) {
+            const state = grandPrixCarState(td.grandPrix, timeRef.current.getTime(), map.getZoom())
+            raceCarRef.current?.setPose(state?.pose ?? null)
+            grandPrixCarDistanceRef.current = state?.distanceM ?? null
+            writeGrandPrixCarLabel(map, state, grandPrixCarLabelEmptyRef)
+          } else {
+            raceCarRef.current?.setPose(null)
+            grandPrixCarDistanceRef.current = null
+            writeGrandPrixCarLabel(map, null, grandPrixCarLabelEmptyRef)
           }
         }
 

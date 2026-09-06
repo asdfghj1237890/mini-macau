@@ -737,6 +737,78 @@ export interface PowerDistributionFile {
   roads: PowerDistributionRoad[]
 }
 
+// ---- Macau Grand Prix circuit (grand-prix.json) ----------------------------
+
+export interface GrandPrixText {
+  zh: string
+  pt: string
+  en: string
+}
+
+// What a corner entry is: the start/finish line, a point corner, or a named
+// SECTION of track (Solitude Esses, Reservoir) that spans a stretch rather
+// than a single apex.
+export type GrandPrixCornerKind = 'start_finish' | 'bend' | 'section'
+
+// One officially named point of the circuit, in race order. The NAMES are the
+// Grand Prix Committee's own, in all three languages; the POSITION is ours —
+// the committee publishes no coordinates, so `rule` records how the point was
+// derived from the track geometry and `approximate` is always true.
+export interface GrandPrixCorner {
+  id: string
+  order: number // 1 = start/finish, then race order
+  kind: GrandPrixCornerKind
+  name: GrandPrixText
+  lng: number
+  lat: number
+  distKm: number // along the lap from start/finish
+  approximate: boolean
+  rule: string
+  // For a section: its extent along the lap [fromKm, toKm]; null for a point.
+  spanKm: [number, number] | null
+}
+
+// The lap record the car on the map runs at. A SECONDARY source (Wikipedia),
+// which the panel and the legend say.
+export interface GrandPrixLapRecord {
+  time: string // as printed, e.g. "2:06.257"
+  seconds: number
+  driver: string
+  year: number
+  car: string | null
+  source: string
+}
+
+export interface GrandPrixSource {
+  name: string
+  url: string
+  role: string // geometry | names | facts | lapRecord | landmarks
+  secondary?: boolean
+  upstreamUpdatedAt?: string | null
+}
+
+export interface GrandPrixCircuit {
+  id: string
+  name: GrandPrixText
+  lengthKm: number // the official figure
+  minWidthM: number
+  direction: string // 'clockwise'
+  lapRecord: GrandPrixLapRecord | null
+  osm: { relationId: number; mainWays: number; pitLaneWays: number }
+  measuredLengthKm: number // the stitched OSM loop, for the cross-check
+  // Closed (first point == last point), starting at start/finish, in race
+  // direction — the order the arrows, the pulse and the car all follow.
+  track: { type: 'LineString'; coordinates: [number, number][] }
+  pitLane: { type: 'LineString'; coordinates: [number, number][] } | null
+  corners: GrandPrixCorner[]
+}
+
+export interface GrandPrixFile {
+  fetchedAtUtc: string
+  sources: GrandPrixSource[]
+  circuit: GrandPrixCircuit
+}
+
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
@@ -773,6 +845,12 @@ export interface TransitData {
   // The schematic HV network, or null when power-facilities.json has no
   // `network` block or the POWER layer is off.
   powerNetwork: PowerNetwork | null
+  // The Guia Circuit, or null until grand-prix.json lands or while the GRAND
+  // PRIX layer is off (App nulls it the way it nulls powerNetwork).
+  grandPrix: GrandPrixCircuit | null
+  // Provenance for the circuit panel: OSM for the line, the Grand Prix
+  // Committee for the names, Wikipedia for the lap record. Never filtered.
+  grandPrixSources: GrandPrixSource[]
   loading: boolean
 }
 

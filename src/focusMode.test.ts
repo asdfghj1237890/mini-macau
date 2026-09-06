@@ -66,11 +66,12 @@ describe('focusSnapshotKey', () => {
     expect(focusSnapshotKey('water')).toBe('mini-macau-water-focus-snapshot')
     expect(focusSnapshotKey('power')).toBe('mini-macau-power-focus-snapshot')
     expect(focusSnapshotKey('waste')).toBe('mini-macau-waste-focus-snapshot')
+    expect(focusSnapshotKey('grandprix')).toBe('mini-macau-grandprix-focus-snapshot')
     expect(new Set(FOCUS_LAYERS.map(focusSnapshotKey)).size).toBe(FOCUS_LAYERS.length)
   })
 
-  it('knows all three focus layers', () => {
-    expect([...FOCUS_LAYERS]).toEqual(['water', 'power', 'waste'])
+  it('knows all four focus layers, in legend order', () => {
+    expect([...FOCUS_LAYERS]).toEqual(['water', 'power', 'waste', 'grandprix'])
   })
 })
 
@@ -96,15 +97,17 @@ describe('activeFocusPeer — the three focus layers are mutually exclusive', ()
     expect(activeFocusPeer([])).toBeNull()
   })
 
-  it('names the one that is on, whichever of the three it is', () => {
+  it('names the one that is on, whichever of the four it is', () => {
     expect(activeFocusPeer([peer('water', false), peer('power', true)])?.layer).toBe('power')
     expect(activeFocusPeer([peer('power', false), peer('waste', true)])?.layer).toBe('waste')
     expect(activeFocusPeer([peer('waste', false), peer('water', true)])?.layer).toBe('water')
+    expect(activeFocusPeer([peer('water', false), peer('grandprix', true)])?.layer).toBe('grandprix')
   })
 
   it('resolves a corrupted "two are on" state in FOCUS_LAYERS order rather than guessing', () => {
     expect(activeFocusPeer([peer('waste', true), peer('water', true)])?.layer).toBe('water')
     expect(activeFocusPeer([peer('waste', true), peer('power', true)])?.layer).toBe('power')
+    expect(activeFocusPeer([peer('grandprix', true), peer('waste', true)])?.layer).toBe('waste')
   })
 
   it('carries the snapshot the incoming layer must inherit', () => {
