@@ -1533,12 +1533,17 @@ export function LineLegend({
       )}
 
       {/* Mobile: 4-icon stack — LRT / BUS / AIR / SEA, below MapLibre +/- zoom
-          controls. Uses top-[8rem] (visual ~154px) so it sits just under the
-          MapLibre nav control (bottom ~141px visual) without overlap, and
-          still leaves enough room above the bottom timeline for popovers on
-          short viewports. */}
-      <div className="mm-mode-stack mm-ui-scale absolute top-[8rem] right-[0.5rem] z-10 flex flex-col gap-1.5
-                      sm:hidden">
+          controls. POSITIONED BY AN UNZOOMED WRAPPER: engines disagree on
+          whether CSS `zoom` also scales an absolutely positioned element's own
+          top/right (Chromium yes, iOS 16 WebKit — the last iOS an iPhone X
+          gets — no), so a zoomed `top-[8rem]` used to land at 154px on Chrome
+          and 128px on that Safari, straight over the compass button. The
+          wrapper's offsets are plain px everywhere and only the stack inside
+          is scaled — the same split index.css makes for the MapLibre control.
+          154px sits just under that control (bottom ~141px) and still leaves
+          room above the bottom timeline for popovers on short viewports. */}
+      <div className="absolute top-[154px] right-[0.5rem] z-10 sm:hidden">
+      <div className="mm-mode-stack mm-ui-scale flex flex-col gap-1.5">
         {/* LRT chip */}
         <button
           onClick={() => togglePanel('lrt')}
@@ -1644,6 +1649,7 @@ export function LineLegend({
             </button>
           </>
         )}
+      </div>
       </div>
 
       {/* Mobile centered modal for LRT/BUS/AIR/SEA. Rendered OUTSIDE the
