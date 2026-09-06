@@ -2,10 +2,12 @@
 import assert from 'node:assert/strict'
 import { setTimeout } from 'node:timers/promises'
 
-const bases = process.argv.slice(2)
+const allowEdgeChallenge = process.argv.includes('--allow-edge-challenge')
+const bases = process.argv.slice(2).filter(arg => arg !== '--allow-edge-challenge')
 if (!bases.length) throw new Error('Usage: node scripts/verify-lrt-api.mjs <base-url> [base-url...]')
 const production = 'https://mini-map-macau.app'
 const preview = 'https://review.mini-map-macau.pages.dev'
+class EdgeChallengeError extends Error {}
 async function verify(base) {
   const host = new URL(base).hostname
   const redirected = /^(?:[a-z0-9-]+\.)?mini-map-macau\.pages\.dev$/.test(host)
@@ -17,6 +19,10 @@ async function verify(base) {
       cacheControl: res.headers.get('Cache-Control'),
       mitigation: res.headers.get('cf-mitigated'), ray: res.headers.get('cf-ray'),
     })
+    if (res.status === 403 && res.headers.get('cf-mitigated') === 'challenge') {
+      await res.body?.cancel()
+      throw new EdgeChallengeError(context)
+    }
     assert.equal(res.status, status, context)
     if (status !== 200) assert.equal(res.headers.get('Cache-Control'), 'no-store', context)
     return res
@@ -49,17 +55,27 @@ async function verify(base) {
   console.log(`${base}: LRT API checks passed${redirected ? ' (redirect only)' : ''}.`)
 }
 
+let verified = 0
 for (const base of bases) {
   // Deployment aliases can take a moment to reach every edge. Retry briefly,
   // but still fail the deployment if the actual protection checks do not pass.
   for (let attempt = 1; attempt <= 4; attempt++) {
     try {
       await verify(base)
+      verified++
       break
     } catch (error) {
+      if (allowEdgeChallenge && error instanceof EdgeChallengeError) {
+        // Explicit opt-in for hosted runners: do not weaken the site's bot
+        // policy just to run a probe. Local Worker checks still run in CI;
+        // report the missing live coverage, and require another live endpoint.
+        console.warn(`::warning title=Cloudflare challenge blocked live verification::${error.message}`)
+        break
+      }
       if (attempt === 4) throw error
       console.warn(`${base}: verification attempt ${attempt} failed: ${error.message}`)
       await setTimeout(10000)
     }
   }
 }
+assert.ok(verified > 0, 'No live endpoint could be verified; all were challenged')
