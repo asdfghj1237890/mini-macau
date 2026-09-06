@@ -78,6 +78,13 @@ jobs:
         env:
           LRT_TRIPS_DIR: functions/_lrt
 
+      - name: Verify the bundled Pages Function locally
+        run: |
+          npx --no-install wrangler pages dev dist --ip 127.0.0.1 --port 8788 > "$RUNNER_TEMP/lrt-pages-dev.log" 2>&1 &
+          pages_pid=$!
+          trap 'kill "$pages_pid" 2>/dev/null || true' EXIT
+          node scripts/verify-lrt-api.mjs http://127.0.0.1:8788
+
       - name: Create Pages project if not exists
         run: npx --no-install wrangler pages project create mini-map-macau --production-branch=master || true
         env:
@@ -96,4 +103,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Verify production and the Pages data redirect
-        run: node scripts/verify-lrt-api.mjs https://mini-map-macau.app https://mini-map-macau.pages.dev
+        # Hosted runners may receive a Cloudflare browser challenge before the
+        # production Function runs. Report it explicitly; other failures still
+        # fail the job, and at least one live endpoint must be fully verified.
+        run: node scripts/verify-lrt-api.mjs --allow-edge-challenge https://mini-map-macau.app https://mini-map-macau.pages.dev
