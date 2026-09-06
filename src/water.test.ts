@@ -40,6 +40,7 @@ import {
   waterDistanceBucket,
   waterDistributionBucketCount,
   waterIconName,
+  waterInletMapLabel,
   waterLabelField,
   waterLegendRows,
   waterOperator,
@@ -909,6 +910,22 @@ describe('buildWaterMarkerFeatures with a network', () => {
       label_en: 'Raw water from Zhuhai',
       label_pt: 'Água bruta de Zhuhai',
     })
+  })
+
+  it('breaks an inlet map label before its bracketed detail (waterInletMapLabel)', () => {
+    expect(waterInletMapLabel('珠海原水輸入（橫琴）')).toBe('珠海原水輸入\n（橫琴）')
+    expect(waterInletMapLabel('Raw water from Zhuhai (via Hengqin)')).toBe('Raw water from Zhuhai\n(via Hengqin)')
+    expect(waterInletMapLabel('珠海原水輸入')).toBe('珠海原水輸入')
+    const net = network({
+      nodes: [{
+        id: 'inlet-lotus', kind: 'inlet',
+        name: { zh: '珠海原水輸入（橫琴）', en: 'Raw water from Zhuhai (via Hengqin)', pt: '' },
+        coordinates: [113.5529, 22.1402],
+      }],
+    })
+    const inlet = buildWaterMarkerFeatures([], net).features[0].properties!
+    expect(inlet.label_zh).toBe('珠海原水輸入\n（橫琴）')
+    expect(inlet.label_pt).toBe('Raw water from Zhuhai\n(via Hengqin)')
   })
 
   it('flags a node whose position is not published, and leaves an ordinary one exact', () => {

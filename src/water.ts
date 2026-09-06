@@ -482,13 +482,22 @@ export function buildWaterMarkerFeatures(
         // 0 for a kind the chain does not know; the badge layer filters it out.
         stage,
         badge: waterBadgeIconName(stage),
-        label_zh: pickWaterText(node.name, 'zh'),
-        label_en: pickWaterText(node.name, 'en'),
-        label_pt: pickWaterText(node.name, 'pt'),
+        label_zh: waterInletMapLabel(pickWaterText(node.name, 'zh')),
+        label_en: waterInletMapLabel(pickWaterText(node.name, 'en')),
+        label_pt: waterInletMapLabel(pickWaterText(node.name, 'pt')),
       },
     })
   }
   return { type: 'FeatureCollection', features }
+}
+
+// The MAP label of an inlet breaks before its bracketed detail, so
+// "珠海原水輸入（橫琴）" stacks as two short lines under the marker instead of
+// one long line across the bridge. Only the map label: the panel title keeps
+// the name as published. A name with no bracket is returned untouched. Twin of
+// powerInletMapLabel.
+export function waterInletMapLabel(name: string): string {
+  return name.replace(/\s*([（(])/, '\n$1')
 }
 
 // The road classes drawn as WIDE distribution pipes; everything else gets the

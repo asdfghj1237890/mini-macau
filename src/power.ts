@@ -437,13 +437,21 @@ export function buildPowerMarkerFeatures(
         // 0 for a kind the chain does not know; the badge layer filters it out.
         stage,
         badge: powerBadgeIconName(stage),
-        label_zh: pickPowerText(node.name, 'zh'),
-        label_en: pickPowerText(node.name, 'en'),
-        label_pt: pickPowerText(node.name, 'pt'),
+        label_zh: powerInletMapLabel(pickPowerText(node.name, 'zh')),
+        label_en: powerInletMapLabel(pickPowerText(node.name, 'en')),
+        label_pt: powerInletMapLabel(pickPowerText(node.name, 'pt')),
       },
     })
   }
   return { type: 'FeatureCollection', features }
+}
+
+// The MAP label of an import point breaks before its bracketed detail, so
+// "廣東電網輸入（蓮花）" stacks as two short lines under the marker instead of
+// one long line across the corridor. Only the map label: the panel title keeps
+// the name as published. A name with no bracket is returned untouched.
+export function powerInletMapLabel(name: string): string {
+  return name.replace(/\s*([（(])/, '\n$1')
 }
 
 // The road classes drawn as WIDE distribution feeders; everything else gets the

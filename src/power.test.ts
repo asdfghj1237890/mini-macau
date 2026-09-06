@@ -31,6 +31,7 @@ import {
   powerBadgeIconName,
   powerDistributionBucketCount,
   powerIconName,
+  powerInletMapLabel,
   powerLabelField,
   powerLegendRows,
   powerLineColor,
@@ -444,10 +445,17 @@ describe('buildPowerMarkerFeatures', () => {
     expect(inlet[POWER_FEATURE_ID_PROPERTY]).toBe('inlet-lotus')
     expect(inlet.icon).toBe(POWER_INLET_ICON)
     expect(inlet.approximate).toBe(false)
-    expect(inlet.label_zh).toBe('廣東電網輸入（蓮花）')
-    expect(inlet.label_en).toBe('Guangdong grid import (Lotus)')
+    // The map label breaks before the bracketed detail (powerInletMapLabel).
+    expect(inlet.label_zh).toBe('廣東電網輸入\n（蓮花）')
+    expect(inlet.label_en).toBe('Guangdong grid import\n(Lotus)')
     // pt is empty upstream, so it falls back to the English form.
-    expect(inlet.label_pt).toBe('Guangdong grid import (Lotus)')
+    expect(inlet.label_pt).toBe('Guangdong grid import\n(Lotus)')
+  })
+
+  it('powerInletMapLabel breaks before a bracket and leaves plain names alone', () => {
+    expect(powerInletMapLabel('廣東電網輸入（鴨涌河）')).toBe('廣東電網輸入\n（鴨涌河）')
+    expect(powerInletMapLabel('Guangdong grid infeed (Canal dos Patos)')).toBe('Guangdong grid infeed\n(Canal dos Patos)')
+    expect(powerInletMapLabel('廣東電網輸入')).toBe('廣東電網輸入')
   })
 
   it('skips a record with no usable coordinate pair', () => {
