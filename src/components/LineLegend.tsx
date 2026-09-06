@@ -13,6 +13,7 @@ import { waterLegendRows, type WaterLegendRow } from '../water'
 import { powerLegendRows, type PowerLegendRow } from '../power'
 import { grandPrixLegendRows, type GrandPrixLegendRow } from '../grandPrix'
 import { useTheme } from '../theme'
+import { BusIcon, LrtIcon } from './TransitIcons'
 import {
   WASTE_LAYER_TYPES,
   countWasteByType,
@@ -990,12 +991,7 @@ export function LineLegend({
           <div>
             <div className="px-3 py-1 flex items-center justify-between bg-(--mm-fg)/[0.015] border-b border-(--mm-fg)/5">
               <span className="flex items-center gap-1.5 text-(--mm-text-muted)">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70">
-                  <rect x="4" y="3" width="16" height="14" rx="2" />
-                  <path d="M4 11h16" /><path d="M12 3v8" />
-                  <path d="M8 21l2-4h4l2 4" />
-                </svg>
+                <LrtIcon size={12} className="shrink-0 opacity-70" />
                 <span
                   className="inline-block w-[8px] h-[8px]"
                   style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber) 35%, transparent) 0 1px, transparent 1px 3px)' }}
@@ -1042,13 +1038,7 @@ export function LineLegend({
             <div className="border-t border-(--mm-fg)/10">
               <div className="px-3 py-1 flex items-center justify-between bg-(--mm-fg)/[0.015]">
                 <span className="flex items-center gap-1.5 text-(--mm-text-muted)">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 opacity-70">
-                    <path d="M8 6v6" /><path d="M16 6v6" />
-                    <path d="M2 12h20" />
-                    <rect x="2" y="4" width="20" height="14" rx="3" />
-                    <circle cx="7" cy="20" r="1" /><circle cx="17" cy="20" r="1" />
-                  </svg>
+                  <BusIcon size={12} className="shrink-0 opacity-70" />
                   <span
                     className="inline-block w-[8px] h-[8px]"
                     style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-emerald) 35%, transparent) 0 1px, transparent 1px 3px)' }}
@@ -1707,13 +1697,7 @@ export function LineLegend({
                          ? 'border-(--mm-amber)/25 text-(--mm-amber-1)/80 hover:border-(--mm-amber)/50 active:scale-95'
                          : 'border-(--mm-fg)/10 text-(--mm-text-muted) hover:border-(--mm-fg)/25'}`}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <rect x="4" y="3" width="16" height="14" rx="2" />
-            <path d="M4 11h16" />
-            <path d="M12 3v8" />
-            <path d="M8 21l2-4h4l2 4" />
-          </svg>
+          <LrtIcon />
         </button>
 
         {/* BUS chip */}
@@ -1726,15 +1710,7 @@ export function LineLegend({
                        ? 'border-(--mm-emerald)/60 text-(--mm-emerald-1)'
                        : 'border-(--mm-emerald)/25 text-(--mm-emerald-1)/80 hover:border-(--mm-emerald)/50 active:scale-95'}`}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-               strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <path d="M8 6v6" />
-            <path d="M16 6v6" />
-            <path d="M2 12h20" />
-            <rect x="2" y="4" width="20" height="14" rx="3" />
-            <circle cx="7" cy="20" r="1" />
-            <circle cx="17" cy="20" r="1" />
-          </svg>
+          <BusIcon />
         </button>
 
         {/* AIR chip */}
@@ -1829,12 +1805,7 @@ export function LineLegend({
             >
               <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-(--mm-amber)/80">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                    <rect x="4" y="3" width="16" height="14" rx="2" />
-                    <path d="M4 11h16" /><path d="M12 3v8" />
-                    <path d="M8 21l2-4h4l2 4" />
-                  </svg>
+                  <LrtIcon size={14} className="shrink-0" />
                   <span
                     className="inline-block w-[8px] h-[8px]"
                     style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber) 35%, transparent) 0 1px, transparent 1px 3px)' }}
@@ -1892,13 +1863,7 @@ export function LineLegend({
             >
               <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
                 <span className="flex items-center gap-1.5 text-(--mm-emerald)/80">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                    <path d="M8 6v6" /><path d="M16 6v6" />
-                    <path d="M2 12h20" />
-                    <rect x="2" y="4" width="20" height="14" rx="3" />
-                    <circle cx="7" cy="20" r="1" /><circle cx="17" cy="20" r="1" />
-                  </svg>
+                  <BusIcon size={14} className="shrink-0" />
                   <span
                     className="inline-block w-[8px] h-[8px]"
                     style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-emerald) 35%, transparent) 0 1px, transparent 1px 3px)' }}
