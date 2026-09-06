@@ -30,7 +30,6 @@ import type {
   GrandPrixCornerKind,
   GrandPrixText,
 } from './types'
-import { buildPulseFeatures, type PulseBuild } from './flowPulse'
 import { interpolateOnLineSmooth } from './engines/simulationEngine'
 
 // The property the corner marker layer carries its id in, for the click
@@ -194,62 +193,82 @@ export function buildGrandPrixCornerFeatures(circuit: GrandPrixCircuit | null): 
 // ---- The wake ----------------------------------------------------------------
 //
 // The utilities' pulse is a wave that walks the network on its own clock.
-// Here the same bucket layers are lit BEHIND THE CAR instead: the 200 m chunk
-// the car is in glows, the two before it fade, the one before that goes dark.
-// A free-running wave would lap in seconds and make the car look parked by
-// comparison; a wake reads as the car's own speed — long and bright down the
-// straight, creeping through the hairpin.
+// Here the light is the car's own: the stretch of track it has just covered —
+// the last GRAND_PRIX_WAKE_LENGTH_M behind it — drawn as ONE line whose
+// gradient runs from transparent at the tail to full at the car. It is cut
+// afresh from the track every tick, so the bright end is always exactly the
+// car. (A free-running wave would lap in seconds and make the car look
+// parked; a chunk-quantised tail would light a whole chunk ahead of it.)
+export const GRAND_PRIX_WAKE_LENGTH_M = 600
 
-// The lap cut into 200 m chunks from start/finish — finer than the utility
-// networks' 400 m because there is only one line and a coarser chunk would
-// swallow a whole corner. 6.2 km is 31 chunks; the budget leaves room for a
-// longer circuit without a layer-count change.
-export const GRAND_PRIX_WAKE_BUCKET_M = 200
-export const GRAND_PRIX_WAKE_BUCKETS = 40
-// Opacity of the chunk the car is in, then the ones behind it.
-export const GRAND_PRIX_WAKE_TAIL: readonly number[] = [1, 0.55, 0.25]
+// First vertex whose distance along the loop is strictly past `s`.
+function indexAfterMetres(cumM: Float64Array, s: number): number {
+  let lo = 0
+  let hi = cumM.length - 1
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1
+    if (cumM[mid] <= s) lo = mid + 1
+    else hi = mid
+  }
+  return lo
+}
 
-// The track as the flow engine's one edge: `start` has nothing flowing into
-// it, so it is the root the chunks count from, and they follow the vertex
-// order — race direction, by the file's contract.
-export function buildGrandPrixWakeFeatures(circuit: GrandPrixCircuit | null): PulseBuild {
-  if (!circuit) return { features: { type: 'FeatureCollection', features: [] }, buckets: 0 }
-  return buildPulseFeatures(
-    [{ id: 'lap', from: 'start', to: 'finish', coordinates: circuit.track.coordinates }],
-    GRAND_PRIX_WAKE_BUCKET_M,
-    GRAND_PRIX_WAKE_BUCKETS,
+// The stretch of the closed loop from `fromM` to `toM` metres along it (both
+// wrapping; toM − fromM at most one lap), as coordinates in travel order: the
+// interpolated start, every vertex strictly inside, the interpolated end. The
+// loop is closed (last vertex == first), so a stretch across start/finish is
+// one continuous list.
+export function sliceGrandPrixLoop(
+  coords: readonly (readonly number[])[],
+  cumM: Float64Array,
+  totalM: number,
+  fromM: number,
+  toM: number,
+): [number, number][] {
+  const n = coords.length
+  if (n < 2 || !(totalM > 0)) return []
+  const length = Math.min(totalM, Math.max(0, toM - fromM))
+  if (length <= 0) return []
+  const wrap = (m: number) => ((m % totalM) + totalM) % totalM
+  const start = wrap(fromM)
+  const out: [number, number][] = [pointAtMetres(coords, cumM, totalM, start)]
+  // Walk the vertices after `start`, in loop order, wrapping past the closing
+  // vertex (index n−1, the same place as index 0) to index 1.
+  let j = indexAfterMetres(cumM, start)
+  for (let guard = 0; guard < n; guard++) {
+    if (j > n - 1) j = 1
+    const d = wrap(cumM[j] - start)
+    if (d >= length) break
+    if (d > 0) out.push([coords[j][0], coords[j][1]])
+    j++
+  }
+  out.push(pointAtMetres(coords, cumM, totalM, start + length))
+  return out
+}
+
+// The wake as a source's worth of GeoJSON: one LineString ending at the car,
+// or nothing (layer off, file not landed, degenerate track).
+export function grandPrixWakeFeatures(
+  circuit: GrandPrixCircuit | null, distanceM: number | null,
+): GeoJSON.FeatureCollection {
+  const empty: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+  if (!circuit || distanceM === null || !Number.isFinite(distanceM)) return empty
+  const profile = grandPrixSpeedProfile(circuit)
+  if (!profile) return empty
+  // Never the whole loop: a tail that meets its own head reads as a ring.
+  const length = Math.min(GRAND_PRIX_WAKE_LENGTH_M, profile.totalM * 0.9)
+  const coords = sliceGrandPrixLoop(
+    circuit.track.coordinates, profile.cumM, profile.totalM, distanceM - length, distanceM,
   )
-}
-
-// Which chunk the car is in, from its distance into the lap; −1 when there
-// are no chunks (no file yet).
-export function grandPrixWakeBucket(distanceM: number, count: number): number {
-  if (!(count > 0) || !Number.isFinite(distanceM)) return -1
-  return Math.min(count - 1, Math.max(0, Math.floor(distanceM / GRAND_PRIX_WAKE_BUCKET_M)))
-}
-
-export interface GrandPrixWakeWrite {
-  index: number
-  opacity: number
-}
-
-// The opacity writes that move the wake from one head chunk to another: the
-// old head and its tail go dark, the new head and its tail light up (a chunk
-// in both lists takes the new value). Nothing to write while the head stays
-// put, which is most ticks — the car needs seconds to cross a chunk.
-export function grandPrixWakeWrites(
-  prevHead: number, head: number, count: number, tail: readonly number[] = GRAND_PRIX_WAKE_TAIL,
-): GrandPrixWakeWrite[] {
-  if (!(count > 0) || prevHead === head) return []
-  const wrap = (i: number) => ((i % count) + count) % count
-  const writes = new Map<number, number>()
-  if (prevHead >= 0) {
-    for (let o = 0; o < tail.length; o++) writes.set(wrap(prevHead - o), 0)
+  if (coords.length < 2) return empty
+  return {
+    type: 'FeatureCollection',
+    features: [{
+      type: 'Feature',
+      geometry: { type: 'LineString', coordinates: coords },
+      properties: { kind: 'wake' },
+    }],
   }
-  if (head >= 0) {
-    for (let o = 0; o < tail.length; o++) writes.set(wrap(head - o), tail[o])
-  }
-  return [...writes.entries()].map(([index, opacity]) => ({ index, opacity }))
 }
 
 // ---- The car -----------------------------------------------------------------

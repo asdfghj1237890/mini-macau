@@ -58,8 +58,17 @@ METHOD — how one lap is recovered from the relation
   5. The lap is oriented from the official diagram's race direction: from
      Start/Finish the cars run south-west along Avenida da Amizade, so the
      Mandarin Oriental and Lisboa corners must both come before the
-     Estrada de Cacilhas section. The lap is reversed if they do not, then
-     rotated to start at Start/Finish.
+     Estrada de Cacilhas section. The lap is reversed if they do not.
+  6. The stitching leaves SEAMS behind: where the lap crosses between the two
+     carriageways of one road, the two OSM centrelines sit a few metres apart,
+     so the line steps sideways — a short segment between two opposite, near-
+     square turns. It draws like a break in the line, and a curvature-based
+     speed model reads it as a hairpin. `dekink_loop` replaces each seam with
+     one straight chord spanning DEKINK_BLEND_M either side, so the lap changes
+     lane instead; real corners are protected by an explicit turn threshold and
+     the count is published as `circuit.osm.seamsSmoothed`. Only then is the
+     lap rotated to start at Start/Finish and measured, so `measuredLengthKm`
+     and every corner's `distKm` describe the smoothed line.
 
   The nine `corners` carry OUR coordinates, never the organiser's: the site
   publishes none. Each one records `approximate: true` and the `rule` that
@@ -170,6 +179,27 @@ RESERVOIR_NEAR_M = 60.0
 # Pescadores stretch, so Fishermen's skips the same distance around it.
 MATERNITY_SKIP_M = 150.0
 HAIRPIN_SKIP_M = 150.0
+
+# De-kink. Where the lap crosses between the two carriageways of one road the
+# two OSM centrelines sit a few metres apart, so the stitched line steps
+# sideways instead of easing across: a short segment between two opposite,
+# near-square turns. See dekink_loop.
+# The sideways step itself is never longer than this...
+DEKINK_MAX_JOG_M = 25.0
+# ...and both of its ends turn at least this much, in opposite directions.
+DEKINK_MIN_TURN_DEG = 35.0
+# The lane change is spread over this much track either side of the step.
+DEKINK_BLEND_M = 40.0
+# A vertex turning this much is a real corner and is never blended away. The
+# Melco hairpin region turns 50-73° at single vertices and the seams' own ends
+# 51-90°; outside those, the sharpest single-vertex turn on the lap is 21°.
+DEKINK_KEEP_TURN_DEG = 20.0
+# The chord stops this far short of such a corner...
+DEKINK_KEEP_MARGIN_M = 1.0
+# ...and the seam is left alone if that leaves less room than this.
+DEKINK_MIN_BLEND_M = 2.0
+# One seam is smoothed per pass; the lap has two. A cap, not a target.
+DEKINK_MAX_PASSES = 32
 
 # Bus stop 水塘北角/勞工事務局 R Bend / DSAL — the only element in OSM that
 # carries one of the official corner names.
@@ -677,6 +707,133 @@ def replay(ordered):
 
 
 # ----------------------------------------------------------------------------
+# de-kink: the seams the stitching leaves behind
+# ----------------------------------------------------------------------------
+def signed_turn(body, i: int) -> float:
+    """Heading change at vertex `i` of a closed ring (no repeated last point),
+    in degrees, positive to the right. Per vertex and NOT over a window, unlike
+    turning_angles: a seam's two turns cancel out over any window wide enough
+    to hold both, which is exactly what has to be seen here."""
+    n = len(body)
+    delta = bearing(body[i], body[(i + 1) % n]) - bearing(body[(i - 1) % n], body[i])
+    return (delta + 180.0) % 360.0 - 180.0
+
+
+def _blend_end(body, anchor: int, step: int, budget: float):
+    """The chord endpoint `budget` metres from body[anchor], walking with the
+    lap (step +1) or against it (step -1).
+
+    The walk stops short of any vertex that turns DEKINK_KEEP_TURN_DEG or more:
+    a real corner must never be swallowed by a blend window. Returns
+    (index of the last vertex kept on this side, the endpoint, metres used,
+    index whose name applies to the segment the endpoint lies on) — or None
+    when a corner leaves no usable room, in which case the seam is left alone.
+    """
+    n = len(body)
+    reach, walked, j = budget, 0.0, anchor
+    while walked < budget:
+        k = (j + step) % n
+        walked += dist_m(body[j], body[k])
+        j = k
+        if abs(signed_turn(body, j)) >= DEKINK_KEEP_TURN_DEG:
+            reach = min(budget, walked - DEKINK_KEEP_MARGIN_M)
+            break
+    if reach < DEKINK_MIN_BLEND_M:
+        return None
+    walked, j = 0.0, anchor
+    while True:
+        k = (j + step) % n
+        seg = dist_m(body[j], body[k])
+        if seg <= 0.0 or walked + seg >= reach:
+            t = (reach - walked) / seg if seg > 0.0 else 0.0
+            pt = (body[j][0] + (body[k][0] - body[j][0]) * t,
+                  body[j][1] + (body[k][1] - body[j][1]) * t)
+            # A vertex carries the name of the way it arrives on, so the
+            # segment the endpoint sits on is named by its later end.
+            return k, pt, reach, (j if step < 0 else k)
+        walked += seg
+        j = k
+
+
+def dekink_loop(coords, names, max_jog_m: float = DEKINK_MAX_JOG_M,
+                min_turn_deg: float = DEKINK_MIN_TURN_DEG,
+                blend_m: float = DEKINK_BLEND_M):
+    """Smooth the stitching seams of the closed lap into gentle lane changes.
+
+    Where the lap crosses between the two carriageways of one road, the two OSM
+    centrelines sit a few metres apart, so the stitched line steps SIDEWAYS: a
+    segment of at most `max_jog_m` whose two ends both turn at least
+    `min_turn_deg` in OPPOSITE directions. That is a drawing artefact, not a
+    corner — it renders as a break in the line, and a curvature-based speed
+    model reads it as a hairpin and brakes to walking pace mid-straight.
+
+    Each seam is replaced by ONE straight chord between the points `blend_m`
+    metres before and after it, so the lap changes lane over ~2 * blend_m
+    instead of jumping sideways in a single step. Real corners are protected:
+    if a blend window would reach a vertex turning DEKINK_KEEP_TURN_DEG or
+    more, the chord stops just short of it (and the seam is skipped outright if
+    that leaves no room). The loop is treated as a ring, so the seam at the
+    join is smoothed like any other; it comes back closed (first == last), the
+    same way round, one name per vertex.
+
+    Returns (coords, names, seams); each seam records where the jog was, how
+    long it was, its two turns and the blend window actually spent on it.
+    """
+    body, nm = list(coords[:-1]), list(names[:-1])
+    seams: list[dict] = []
+    skipped: set[tuple] = set()
+    for _ in range(DEKINK_MAX_PASSES):
+        n = len(body)
+        turns = [signed_turn(body, i) for i in range(n)]
+        jog = None
+        for i in range(n):
+            k = (i + 1) % n
+            seg = dist_m(body[i], body[k])
+            a, b = turns[i], turns[k]
+            if (0.0 < seg <= max_jog_m and abs(a) >= min_turn_deg
+                    and abs(b) >= min_turn_deg and (a > 0.0) != (b > 0.0)
+                    and (body[i], body[k]) not in skipped):
+                jog = (i, k, seg, a, b)
+                break
+        if jog is None:
+            break
+        i, k, seg, a, b = jog
+        back = _blend_end(body, i, -1, blend_m)
+        fwd = _blend_end(body, k, 1, blend_m)
+        if back is None or fwd is None:
+            skipped.add((body[i], body[k]))
+            continue
+        back_keep, p, back_m, p_name = back
+        fwd_keep, q, fwd_m, q_name = fwd
+        # Everything from the far side of the seam round to the near side
+        # survives untouched; only the window between the two is replaced.
+        arc = [fwd_keep]
+        while arc[-1] != back_keep:
+            arc.append((arc[-1] + 1) % n)
+        if len(arc) < 4:
+            # The windows met round the back of the ring: not a seam on a lap.
+            skipped.add((body[i], body[k]))
+            continue
+        was = body[i]
+        new_body = [body[m] for m in arc]
+        new_nm = [nm[m] for m in arc]
+        # ...then the chord itself, unless an endpoint landed on a kept vertex.
+        if dist_m(p, new_body[-1]) > 0.05:
+            new_body.append(p)
+            new_nm.append(nm[p_name])
+        if dist_m(q, new_body[-1]) > 0.05 and dist_m(q, new_body[0]) > 0.05:
+            new_body.append(q)
+            new_nm.append(nm[q_name])
+        seams.append({"lng": was[0], "lat": was[1], "jogM": seg,
+                      "turnIn": a, "turnOut": b, "backM": back_m, "fwdM": fwd_m,
+                      "chordStart": p})
+        body, nm = new_body, new_nm
+    else:
+        raise RuntimeError("de-kink did not settle: check DEKINK_* against the lap")
+    return body + [body[0]], nm + [nm[0]], seams
+
+
+# ----------------------------------------------------------------------------
 # pit lane
 # ----------------------------------------------------------------------------
 def chain_pit_lane(ways, ids) -> list[tuple[float, float]]:
@@ -1056,6 +1213,11 @@ def run() -> int:
     print(f"  race direction: {'reversed' if flipped else 'kept'} the stitched order; "
           f"{with_m:.0f} m with / {against_m:.0f} m against the OSM oneway tags")
 
+    # Before the lap is rotated or measured: distKm, measuredLengthKm and every
+    # corner have to be computed on the smoothed line, not the stitched one.
+    raw_km = line_length_m(coords) / 1000.0
+    coords, names, seams = dekink_loop(coords, names)
+
     pit_mid = point_at_m(pit, cumulative_m(pit), line_length_m(pit) / 2.0)
     sf_index, sf_d = nearest_to_point(coords, pit_mid)
     coords, names = rotate(coords, names, sf_index)
@@ -1063,6 +1225,16 @@ def run() -> int:
     direction = "clockwise" if signed_area(coords) < 0 else "anticlockwise"
     print(f"  start/finish is {sf_d:.0f} m from the pit-lane midpoint; "
           f"the lap runs {direction}")
+    # Reported here rather than inside dekink_loop: only now is there a
+    # start/finish to measure "distance into the lap" from.
+    print(f"  {len(seams)} carriageway seam(s) smoothed "
+          f"({raw_km:.3f} km stitched -> {cum[-1] / 1000:.3f} km):")
+    for s in seams:
+        i_s, d_s = nearest_to_point(coords, s["chordStart"])
+        at = cum[i_s] + s["backM"] if d_s <= 1.0 else cum[i_s]
+        print(f"    {at / 1000:.3f} km: {s['jogM']:.1f} m jog between turns of "
+              f"{s['turnIn']:+.0f}° and {s['turnOut']:+.0f}°, blended over "
+              f"{s['backM']:.0f} m + {s['fwdM']:.0f} m at {s['lng']:.6f},{s['lat']:.6f}")
     pit = orient_pit(pit, coords)
 
     corners = build_corners(coords, cum, names, landmarks)
@@ -1077,7 +1249,7 @@ def run() -> int:
             "direction": direction,
             "lapRecord": LAP_RECORD,
             "osm": {"relationId": RELATION_ID, "mainWays": len(main_ids),
-                    "pitLaneWays": len(pit_ids)},
+                    "pitLaneWays": len(pit_ids), "seamsSmoothed": len(seams)},
             "measuredLengthKm": round(cum[-1] / 1000.0, 3),
             "track": {"type": "LineString", "coordinates": round_coords(coords)},
             "pitLane": {"type": "LineString", "coordinates": round_coords(pit)},

@@ -2285,6 +2285,12 @@ def v_grand_prix(data: object) -> list[str]:
             if not (isinstance(c["osm"][key], int) and not isinstance(c["osm"][key], bool)
                     and c["osm"][key] > 0):
                 errs.append(f"grand-prix.circuit.osm.{key} must be an int > 0")
+        # Optional: how many carriageway seams the de-kink pass smoothed. Zero
+        # is a legitimate answer, so this one is only bounded below.
+        seams = c["osm"].get("seamsSmoothed")
+        if seams is not None and not (isinstance(seams, int) and not isinstance(seams, bool)
+                                      and seams >= 0):
+            errs.append("grand-prix.circuit.osm.seamsSmoothed must be an int >= 0")
 
     rec = c["lapRecord"]
     if rec is not None and require_fields(errs, "grand-prix.circuit.lapRecord", rec,

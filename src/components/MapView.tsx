@@ -107,15 +107,12 @@ import {
   GRAND_PRIX_BADGE_ICON_PREFIX,
   GRAND_PRIX_FEATURE_ID_PROPERTY,
   GRAND_PRIX_FLAG_ICON,
-  GRAND_PRIX_WAKE_BUCKETS,
   buildGrandPrixCornerFeatures,
   buildGrandPrixTrackFeatures,
-  buildGrandPrixWakeFeatures,
   grandPrixCarState,
   grandPrixLabelField,
   grandPrixMotionColors,
-  grandPrixWakeBucket,
-  grandPrixWakeWrites,
+  grandPrixWakeFeatures,
   type GrandPrixCarState,
 } from '../grandPrix'
 import { RaceCar3DLayer } from '../layers/RaceCar3DLayer'
@@ -1434,12 +1431,11 @@ const POWER_DISTRIBUTION_FLOW_WIDTH: maplibregl.ExpressionSpecification =
 // ---- GRAND PRIX overlay ----------------------------------------------------
 // The Guia Circuit: the racing line as a glow + a solid core with direction
 // chevrons, the pit lane as a thin static dash, a numbered badge and a name per
-// corner, THE WAKE (the lap cut into 200 m buckets on a source of its own,
-// the chunk the car is in and the two behind it lit — see
-// buildGrandPrixWakeFeatures), the car (src/layers/RaceCar3DLayer.ts) and its
-// live speed beside it. Every source is data-driven from
-// `transitData.grandPrix`, which App nulls while the layer is off, so nothing
-// here needs a visibility sweep.
+// corner, THE WAKE (the 600 m of track behind the car as one gradient line,
+// cut afresh with every pose — see grandPrixWakeFeatures), the car
+// (src/layers/RaceCar3DLayer.ts) and its live speed beside it. Every source is
+// data-driven from `transitData.grandPrix`, which App nulls while the layer is
+// off, so nothing here needs a visibility sweep.
 const GRAND_PRIX_TRACK_SOURCE_ID = 'grandprix-track'
 const GRAND_PRIX_TRACK_GLOW_LAYER_ID = 'grandprix-track-glow'
 const GRAND_PRIX_TRACK_LAYER_ID = 'grandprix-track'
@@ -1447,7 +1443,7 @@ const GRAND_PRIX_PIT_LAYER_ID = 'grandprix-pit'
 const GRAND_PRIX_ARROWS_LAYER_ID = 'grandprix-track-arrows'
 const GRAND_PRIX_ARROW_ICON = 'grandprix-arrow'
 const GRAND_PRIX_WAKE_SOURCE_ID = 'grandprix-wake'
-const GRAND_PRIX_WAKE_PREFIX = 'grandprix-wake'
+const GRAND_PRIX_WAKE_LAYER_ID = 'grandprix-wake'
 const GRAND_PRIX_CORNERS_SOURCE_ID = 'grandprix-corners'
 const GRAND_PRIX_CORNER_SELECTED_LAYER_ID = 'grandprix-corner-selected'
 const GRAND_PRIX_CORNER_LAYER_ID = 'grandprix-corner'
@@ -1466,6 +1462,46 @@ const GRAND_PRIX_PIT_WIDTH: maplibregl.ExpressionSpecification =
 const GRAND_PRIX_WAKE_WIDTH: maplibregl.ExpressionSpecification =
   ['interpolate', ['linear'], ['zoom'], 12, 4.5, 16, 10]
 const GRAND_PRIX_WAKE_BLUR = 2
+
+// A hex colour with an alpha, for the wake's gradient stops.
+function hexWithAlpha(hex: string, alpha: number): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
+// The wake's gradient along its own length: nothing at the tail, full at the
+// car, most of the fade in the last third so the tail reads as a comet.
+function grandPrixWakeGradient(color: string): maplibregl.ExpressionSpecification {
+  return [
+    'interpolate', ['linear'], ['line-progress'],
+    0, hexWithAlpha(color, 0),
+    0.4, hexWithAlpha(color, 0.25),
+    0.8, hexWithAlpha(color, 0.7),
+    1, color,
+  ]
+}
+
+// The wake source: one line per tick while the layer is on, emptied once
+// when it goes off.
+function writeGrandPrixWake(
+  map: maplibregl.Map, circuit: GrandPrixCircuit | null, state: GrandPrixCarState | null,
+  emptyRef: { current: boolean },
+): void {
+  const src = map.getSource(GRAND_PRIX_WAKE_SOURCE_ID) as unknown as
+    { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+  if (!src?.setData) return
+  const fc = grandPrixWakeFeatures(circuit, state?.distanceM ?? null)
+  if (fc.features.length === 0) {
+    if (emptyRef.current) return
+    src.setData(fc)
+    emptyRef.current = true
+    return
+  }
+  src.setData(fc)
+  emptyRef.current = false
+}
 
 // The live speed readout beside the car — one point whose text is rewritten
 // with every pose while the layer is on, and emptied once when it goes off.
@@ -1968,16 +2004,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const powerPulseCountsRef = useRef<PulseCounts>({ trunk: 0, mesh: 0 })
   const powerDistributionRef = useRef<PowerDistributionRoad[] | null>(powerDistributionRoads)
   powerDistributionRef.current = powerDistributionRoads
-  // The circuit's wake: how many chunks the lap fills, which chunk is lit as
-  // the head (−1: none — fresh layers are dark, and a style swap rebuilds them
-  // dark), and the car's distance into the lap as the RAF tick last wrote it
-  // (the 70 ms interval reads it to move the wake). And the car itself,
-  // attached with the other 3D layers, plus whether its speed label is empty.
-  const grandPrixWakeCountRef = useRef(0)
-  const grandPrixWakeHeadRef = useRef(-1)
-  const grandPrixCarDistanceRef = useRef<number | null>(null)
+  // The car itself, attached with the other 3D layers, and whether its two
+  // per-tick sources (the speed label and the wake) are currently empty — so
+  // switching the layer off sends one empty setData each, not one per tick.
   const raceCarRef = useRef<RaceCar3DLayer | null>(null)
   const grandPrixCarLabelEmptyRef = useRef(true)
+  const grandPrixWakeEmptyRef = useRef(true)
 
   // Highlight = one feature-state per school id. `promoteId` makes every
   // building of a school share that id, so this single pair of calls repaints
@@ -3200,21 +3232,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           'line-dasharray': [2, 1.5],
         },
       }, firstSymbolId)
-      // THE WAKE: the lap in 200 m buckets, the car's chunk and the two behind
-      // it lit by the interval below — the utilities' bucket layers, driven
-      // by the car instead of by a wave of their own.
-      const gpWake = buildGrandPrixWakeFeatures(transitRef.current.grandPrix)
-      grandPrixWakeCountRef.current = gpWake.buckets
-      grandPrixWakeHeadRef.current = -1
-      m.addSource(GRAND_PRIX_WAKE_SOURCE_ID, { type: 'geojson', data: gpWake.features })
-      addBucketLayers(m, {
-        prefix: GRAND_PRIX_WAKE_PREFIX,
-        source: GRAND_PRIX_WAKE_SOURCE_ID,
-        count: GRAND_PRIX_WAKE_BUCKETS,
-        color: gpMotion.pulse,
-        width: GRAND_PRIX_WAKE_WIDTH,
-        blur: GRAND_PRIX_WAKE_BLUR,
-      }, true, firstSymbolId)
+      // THE WAKE: one line, rewritten with every pose by the RAF tick (see
+      // writeGrandPrixWake), fading along its own length — `lineMetrics` is
+      // what gives `line-progress` something to measure.
+      m.addSource(GRAND_PRIX_WAKE_SOURCE_ID, {
+        type: 'geojson',
+        lineMetrics: true,
+        data: { type: 'FeatureCollection', features: [] },
+      })
+      grandPrixWakeEmptyRef.current = true
+      m.addLayer({
+        id: GRAND_PRIX_WAKE_LAYER_ID, type: 'line', source: GRAND_PRIX_WAKE_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round' },
+        paint: {
+          'line-gradient': grandPrixWakeGradient(gpMotion.pulse),
+          'line-width': GRAND_PRIX_WAKE_WIDTH,
+          'line-blur': GRAND_PRIX_WAKE_BLUR,
+        },
+      }, firstSymbolId)
       // Direction chevrons along the racing line: race direction is the
       // file's vertex order, as `from` → `to` is for the utilities.
       if (!m.hasImage(GRAND_PRIX_ARROW_ICON)) {
@@ -3822,21 +3857,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     }
     setData(GRAND_PRIX_TRACK_SOURCE_ID, buildGrandPrixTrackFeatures(transitData.grandPrix))
     setData(GRAND_PRIX_CORNERS_SOURCE_ID, buildGrandPrixCornerFeatures(transitData.grandPrix))
-    // The wake's chunks are cut from the new line. Whatever was lit belongs to
-    // the old one (the layers keep their opacity across a setData), so it goes
-    // dark first — with the OLD count, which is what those indices meant.
-    for (const w of grandPrixWakeWrites(grandPrixWakeHeadRef.current, -1, grandPrixWakeCountRef.current)) {
-      const id = phaseLayerId(GRAND_PRIX_WAKE_PREFIX, w.index)
-      if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', w.opacity)
-    }
-    grandPrixWakeHeadRef.current = -1
-    const wake = buildGrandPrixWakeFeatures(transitData.grandPrix)
-    setData(GRAND_PRIX_WAKE_SOURCE_ID, wake.features)
-    grandPrixWakeCountRef.current = wake.buckets
+    // The car, its label and its wake are written per tick by the RAF loop
+    // while the layer is on; off, they leave with the rest.
     if (!transitData.grandPrix) {
       raceCarRef.current?.setPose(null)
-      grandPrixCarDistanceRef.current = null
       writeGrandPrixCarLabel(map, null, grandPrixCarLabelEmptyRef)
+      writeGrandPrixWake(map, null, null, grandPrixWakeEmptyRef)
     }
   }, [transitData.grandPrix])
 
@@ -3943,7 +3969,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // pipe, from its `from` end to its `to` end; for a road, away from the source
   // feeding it.
   useEffect(() => {
-    if (!waterFocus && !powerFocus && !grandPrixFocus) return
+    if (!waterFocus && !powerFocus) return
     const timer = window.setInterval(() => {
       const map = mapRef.current
       if (!map) return
@@ -4014,26 +4040,11 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', w.opacity)
         }
       }
-      // The circuit's wake: the chunk the car is in (from the distance the RAF
-      // tick last wrote) and the two behind it. Writes happen only when the
-      // car crosses into the next chunk — every few seconds at 1× — which is
-      // why they live here and not in the RAF tick. Exclusive with the two
-      // above like they are with each other.
-      if (grandPrixFocus) {
-        const distance = grandPrixCarDistanceRef.current
-        const count = grandPrixWakeCountRef.current
-        const head = distance === null ? -1 : grandPrixWakeBucket(distance, count)
-        if (head !== grandPrixWakeHeadRef.current) {
-          for (const w of grandPrixWakeWrites(grandPrixWakeHeadRef.current, head, count)) {
-            const id = phaseLayerId(GRAND_PRIX_WAKE_PREFIX, w.index)
-            if (map.getLayer(id)) map.setPaintProperty(id, 'line-opacity', w.opacity)
-          }
-          grandPrixWakeHeadRef.current = head
-        }
-      }
+      // (The GRAND PRIX wake is not a phase animation: it is a line the RAF
+      // tick rewrites with the car, so it needs nothing from this interval.)
     }, FLOW_TICK_MS)
     return () => window.clearInterval(timer)
-  }, [waterFocus, powerFocus, grandPrixFocus])
+  }, [waterFocus, powerFocus])
 
   // Focus mode. App has already emptied every other layer's data; this hides
   // the two things that are drawn from `allTransitData` and so would otherwise
@@ -4193,12 +4204,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           if (grandPrixFocusRef.current && td.grandPrix) {
             const state = grandPrixCarState(td.grandPrix, timeRef.current.getTime(), map.getZoom())
             raceCarRef.current?.setPose(state?.pose ?? null)
-            grandPrixCarDistanceRef.current = state?.distanceM ?? null
             writeGrandPrixCarLabel(map, state, grandPrixCarLabelEmptyRef)
+            writeGrandPrixWake(map, td.grandPrix, state, grandPrixWakeEmptyRef)
           } else {
             raceCarRef.current?.setPose(null)
-            grandPrixCarDistanceRef.current = null
             writeGrandPrixCarLabel(map, null, grandPrixCarLabelEmptyRef)
+            writeGrandPrixWake(map, null, null, grandPrixWakeEmptyRef)
           }
         }
 

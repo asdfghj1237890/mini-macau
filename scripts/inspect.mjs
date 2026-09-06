@@ -29,7 +29,7 @@
 //   node scripts/inspect.mjs car-parks              # car-parks.json summary (by zone, height-limit histogram, no-limit ids)
 //   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt, treatment facilities incl. wwtp buildings + statsKey, eco stations)
 //   node scripts/inspect.mjs dspa-stats              # dspa-stats.json summary (DSPA monthly stats: incinerator/hazardous/landfill/4x wwtp series, latest values, incinerator facts)
-//   node scripts/inspect.mjs grand-prix             # grand-prix.json summary (Guia Circuit: official vs measured length, corner table with rules, pit lane, sources)
+//   node scripts/inspect.mjs grand-prix [--kinks]   # grand-prix.json summary (Guia Circuit: official vs measured length, corner table with rules, pit lane, sources); --kinks lists the stitched line's sideways jogs (seams between OSM ways)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync, statSync } from 'node:fs'
@@ -579,7 +579,7 @@ function cmdDspaStats() {
 // 8877949, plus the pit lane and the nine officially named locations. The
 // corner coordinates are ours (the organiser publishes none), so this prints
 // the rule behind each one next to it — see fetch_grand_prix.py.
-function cmdGrandPrix() {
+function cmdGrandPrix(kinks = false) {
   const data = load('public/data/grand-prix.json')
   const bytes = statSync(join(ROOT, 'public/data/grand-prix.json')).size
   const c = data.circuit
@@ -613,6 +613,51 @@ function cmdGrandPrix() {
     console.log(`  ${s.role.padEnd(10)} ${s.secondary ? '(secondary)' : '           '} ${s.name}`)
     console.log(`             ${s.url}${stamp}`)
   }
+
+  if (kinks) cmdGrandPrixKinks(track, c.corners)
+}
+
+// The stitched line's seams: places where two OSM ways met with a sideways
+// offset, so the line jogs — a short segment (< maxSegM) between two sharp
+// turns of opposite sign — and draws like a break at street zoom. Lists every
+// such jog with its distance into the lap and the nearest corner.
+function cmdGrandPrixKinks(track, corners, minTurnDeg = 35, maxSegM = 25) {
+  const kLat = 111320
+  const kLng = 111320 * Math.cos((22.2 * Math.PI) / 180)
+  const seg = (a, b) => Math.hypot((b[0] - a[0]) * kLng, (b[1] - a[1]) * kLat)
+  const heading = (a, b) => (Math.atan2((b[0] - a[0]) * kLng, (b[1] - a[1]) * kLat) * 180) / Math.PI
+  const turnAt = i => {
+    let t = heading(track[i], track[i + 1]) - heading(track[i - 1], track[i])
+    while (t > 180) t -= 360
+    while (t < -180) t += 360
+    return t
+  }
+  const cum = [0]
+  for (let i = 1; i < track.length; i++) cum.push(cum[i - 1] + seg(track[i - 1], track[i]))
+  const jogs = []
+  for (let i = 1; i < track.length - 2; i++) {
+    const a = turnAt(i)
+    const b = turnAt(i + 1)
+    const len = seg(track[i], track[i + 1])
+    if (Math.abs(a) >= minTurnDeg && Math.abs(b) >= minTurnDeg && Math.sign(a) !== Math.sign(b) && len <= maxSegM) {
+      jogs.push({ i, len, a, b, km: cum[i] / 1000 })
+    }
+  }
+  console.log(`\njogs (short segment ≤ ${maxSegM} m between opposite turns ≥ ${minTurnDeg}°): ${jogs.length}`)
+  for (const j of jogs) {
+    const near = corners
+      .map(k => ({ k, d: Math.abs(k.distKm - j.km) }))
+      .sort((x, y) => x.d - y.d)[0]
+    const p = track[j.i]
+    console.log(`  vertex ${String(j.i).padStart(3)}  ${j.km.toFixed(3)} km  jog ${j.len.toFixed(1).padStart(5)} m  turns ${j.a.toFixed(0).padStart(4)}° / ${j.b.toFixed(0).padStart(4)}°  at ${p[0].toFixed(6)},${p[1].toFixed(6)}  (${near.k.id} ${near.d >= 0 ? '' : ''}${(j.km - near.k.distKm) >= 0 ? '+' : ''}${(j.km - near.k.distKm).toFixed(3)} km)`)
+  }
+  // Every sharp turn, for context: the corners themselves are the big ones.
+  const sharp = []
+  for (let i = 1; i < track.length - 1; i++) {
+    const t = turnAt(i)
+    if (Math.abs(t) >= 60) sharp.push(`${i}@${(cum[i] / 1000).toFixed(3)}km ${t.toFixed(0)}°`)
+  }
+  console.log(`turns ≥ 60° (${sharp.length}): ${sharp.join('  ')}`)
 }
 
 function fail(msg) {
@@ -642,7 +687,7 @@ switch (cmd) {
   case 'car-parks': cmdCarParks(); break
   case 'waste': cmdWaste(); break
   case 'dspa-stats': cmdDspaStats(); break
-  case 'grand-prix': cmdGrandPrix(); break
+  case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   default:
     console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)

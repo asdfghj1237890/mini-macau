@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-09-06T12:46:52.411202+00:00",
+  "fetchedAtUtc": "2026-09-06T16:37:07.529023+00:00",
   "sources": [
     {
       "name": "OpenStreetMap — relation 8877949 Circuito da Guia",
@@ -79,9 +79,10 @@
     "osm": {
       "relationId": 8877949,
       "mainWays": 67,
-      "pitLaneWays": 5
+      "pitLaneWays": 5,
+      "seamsSmoothed": 2
     },
-    "measuredLengthKm": 6.114,
+    "measuredLengthKm": 6.102,
     "track": {
       "type": "LineString",
       "coordinates": [
@@ -270,12 +271,12 @@
           22.191699
         ],
         [
-          113.550151,
-          22.191249
+          113.55051,
+          22.191386
         ],
         [
-          113.550125,
-          22.191307
+          113.549766,
+          22.191171
         ],
         [
           113.549417,
@@ -1414,56 +1415,12 @@
           22.204716
         ],
         [
-          113.56043,
-          22.204701
+          113.560416,
+          22.204707
         ],
         [
-          113.560467,
-          22.204682
-        ],
-        [
-          113.560502,
-          22.204661
-        ],
-        [
-          113.560535,
-          22.204638
-        ],
-        [
-          113.560565,
-          22.204612
-        ],
-        [
-          113.560594,
-          22.204584
-        ],
-        [
-          113.56062,
-          22.204555
-        ],
-        [
-          113.560644,
-          22.204523
-        ],
-        [
-          113.560664,
-          22.20449
-        ],
-        [
-          113.560682,
-          22.204455
-        ],
-        [
-          113.560762,
-          22.204437
-        ],
-        [
-          113.560779,
-          22.204384
-        ],
-        [
-          113.560792,
-          22.204344
+          113.560873,
+          22.20409
         ],
         [
           113.56214,
@@ -1732,7 +1689,7 @@
         },
         "lng": 113.545496,
         "lat": 22.189783,
-        "distKm": 1.896,
+        "distKm": 1.89,
         "approximate": true,
         "rule": "Track vertex nearest OSM way/1313391925 (葡京酒店 Hotel Lisboa), 15 m away; 35 m from the sharpest vertex (36°) at the south-west end of the Avenida da Amizade section.",
         "spanKm": null
@@ -1748,7 +1705,7 @@
         },
         "lng": 113.548669,
         "lat": 22.195597,
-        "distKm": 2.715,
+        "distKm": 2.708,
         "approximate": true,
         "rule": "Sharpest vertex (53° over a 25 m window) between 150 m past Lisboa and the start of Estrada de Cacilhas. No OSM feature is named Maternidade/產房; the nearest hospital is way/240933855 (仁伯爵綜合醫院 Centro Hospitalar Conde de São Januário) 8 m away, so the angle rule stands.",
         "spanKm": null
@@ -1764,12 +1721,12 @@
         },
         "lng": 113.552783,
         "lat": 22.19735,
-        "distKm": 3.295,
+        "distKm": 3.288,
         "approximate": true,
         "rule": "The stretch carried by the OSM way(s) named「Estrada de Cacilhas」(海邊馬路(劏狗環)); the point is its midpoint by distance.",
         "spanKm": [
-          2.722,
-          3.869
+          2.715,
+          3.862
         ]
       },
       {
@@ -1783,7 +1740,7 @@
         },
         "lng": 113.55426,
         "lat": 22.203973,
-        "distKm": 4.624,
+        "distKm": 4.617,
         "approximate": true,
         "rule": "Sharpest vertex of the whole lap (158° over a 25 m window), on「漁翁街 Rua dos Pescadores」.",
         "spanKm": null
@@ -1797,11 +1754,11 @@
           "pt": "Curva dos Pescadores",
           "en": "Fishermen's Bend"
         },
-        "lng": 113.560393,
-        "lat": 22.204716,
-        "distKm": 5.27,
+        "lng": 113.560416,
+        "lat": 22.204707,
+        "distKm": 5.266,
         "approximate": true,
-        "rule": "Sharpest vertex (27° over a 25 m window) within the「Rua dos Pescadores」stretch plus 60 m either side, skipping 150 m around the Melco Hairpin at the start of it. OSM node/2165427895, the only element in the map carrying an official corner name (bus stop「水塘北角/勞工事務局 R Bend / DSAL」), stands 51 m from here — the organiser's diagram draws its「R」Bend some 600 m further on, so the stop is evidence for this corner, not for that one.",
+        "rule": "Sharpest vertex (44° over a 25 m window) within the「Rua dos Pescadores」stretch plus 60 m either side, skipping 150 m around the Melco Hairpin at the start of it. OSM node/2165427895, the only element in the map carrying an official corner name (bus stop「水塘北角/勞工事務局 R Bend / DSAL」), stands 53 m from here — the organiser's diagram draws its「R」Bend some 600 m further on, so the stop is evidence for this corner, not for that one.",
         "spanKm": null
       },
       {
@@ -1813,14 +1770,14 @@
           "pt": "Reservatório",
           "en": "Reservoir"
         },
-        "lng": 113.561428,
-        "lat": 22.202367,
-        "distKm": 5.56,
+        "lng": 113.561437,
+        "lat": 22.202339,
+        "distKm": 5.551,
         "approximate": true,
         "rule": "The stretch running within 60 m of OSM relation/10266785 (水塘 Reservatório), between Fishermen's Bend and the \"R\" Bend; the point is its midpoint by distance.",
         "spanKm": [
-          5.27,
-          5.85
+          5.266,
+          5.836
         ]
       },
       {
@@ -1834,7 +1791,7 @@
         },
         "lng": 113.562097,
         "lat": 22.199799,
-        "distKm": 5.856,
+        "distKm": 5.843,
         "approximate": true,
         "rule": "Sharpest vertex (56° over a 60 m window) of the 「Avenida da Amizade」run between Fishermen's Bend and Start/Finish — the turn onto the final straight, where the organiser's diagram draws it. OSM node/2165427895 is named R Bend but sits by Fishermen's Bend instead (see that corner's rule), so it is not used here.",
         "spanKm": null

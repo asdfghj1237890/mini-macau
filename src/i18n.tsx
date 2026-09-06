@@ -349,9 +349,11 @@ const translations = {
     grandPrixTrack: 'Racing line, in race direction',
     grandPrixPitLane: 'Pit lane',
     grandPrixWake: 'Wake: the 600 m behind the car, fading',
-    grandPrixCar: 'The car: laps on the simulation clock, braking for the corners',
+    // Legend rows are one line (~190 px at 10 px); the panel carries the
+    // long form, so these stay short in all three languages.
+    grandPrixCar: 'Car: laps on the clock, braking for corners',
     // The lap time is a secondary source (Wikipedia); the panel says so.
-    grandPrixCarAtRecord: (time: string) => `The car: laps in the record time (${time}), braking for the corners`,
+    grandPrixCarAtRecord: (time: string) => `Car: ${time} a lap, braking for corners`,
     // Shown wherever the corners are drawn or listed: the NAMES are the
     // organiser's, the POSITIONS are ours (it publishes no coordinates).
     grandPrixNote: 'Corner positions schematic',
@@ -720,7 +722,7 @@ const translations = {
     grandPrixPitLane: '維修道',
     grandPrixWake: '尾流：賽車後方 600 m 漸隱',
     grandPrixCar: '賽車：依模擬時鐘繞圈，彎道減速',
-    grandPrixCarAtRecord: (time: string) => `賽車：以最快圈速（${time}）繞圈，彎道減速`,
+    grandPrixCarAtRecord: (time: string) => `賽車：一圈 ${time}，彎道減速`,
     grandPrixNote: '彎道位置為示意',
     grandPrixCornerOrder: (n: number) => `比賽順序第 ${n}`,
     grandPrixKindStartFinish: '起點／終點線',
@@ -1074,8 +1076,8 @@ const translations = {
     grandPrixTrack: 'Traçado, no sentido da corrida',
     grandPrixPitLane: 'Via das boxes',
     grandPrixWake: 'Rasto: os 600 m atrás do carro, a desvanecer',
-    grandPrixCar: 'O carro: dá voltas ao ritmo do relógio da simulação, travando nas curvas',
-    grandPrixCarAtRecord: (time: string) => `O carro: uma volta no tempo do recorde (${time}), travando nas curvas`,
+    grandPrixCar: 'Carro: volta ao relógio, trava nas curvas',
+    grandPrixCarAtRecord: (time: string) => `Carro: volta ${time}, trava nas curvas`,
     grandPrixNote: 'Posição das curvas esquemática',
     grandPrixCornerOrder: (n: number) => `N.º ${n} na ordem da corrida`,
     grandPrixKindStartFinish: 'Linha de partida / chegada',

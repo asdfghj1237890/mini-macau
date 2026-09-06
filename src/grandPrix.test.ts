@@ -8,14 +8,12 @@ import {
   GRAND_PRIX_FALLBACK_LAP_SECONDS,
   GRAND_PRIX_FEATURE_ID_PROPERTY,
   GRAND_PRIX_FLAG_ICON,
-  GRAND_PRIX_WAKE_BUCKET_M,
-  GRAND_PRIX_WAKE_TAIL,
+  GRAND_PRIX_WAKE_LENGTH_M,
   buildGrandPrixCornerFeatures,
   buildGrandPrixTrackFeatures,
-  buildGrandPrixWakeFeatures,
   grandPrixCarState,
-  grandPrixWakeBucket,
-  grandPrixWakeWrites,
+  grandPrixWakeFeatures,
+  sliceGrandPrixLoop,
   grandPrixBadgeIconName,
   grandPrixCarPose,
   grandPrixCarScale,
@@ -101,6 +99,7 @@ const t = {
   grandPrixWake: 'Wake',
   grandPrixCar: 'The car',
   grandPrixCarAtRecord: (time: string) => `The car at ${time}`,
+  // (the real strings are measured against the legend's width in the browser)
   grandPrixKindStartFinish: 'Start / finish line',
   grandPrixKindBend: 'Corner',
   grandPrixKindSection: 'Section of track',
@@ -181,68 +180,69 @@ describe('buildGrandPrixCornerFeatures', () => {
   })
 })
 
-describe('buildGrandPrixWakeFeatures', () => {
-  it('cuts the lap into 200 m buckets from start/finish, in vertex order', () => {
-    const wake = buildGrandPrixWakeFeatures(circuit())
-    // 1 km lap → buckets 0..4.
-    expect(wake.buckets).toBe(Math.ceil(1000 / GRAND_PRIX_WAKE_BUCKET_M))
-    const buckets = wake.features.features.map(f => f.properties?.bucket as number)
-    expect(buckets[0]).toBe(0)
-    expect(Math.max(...buckets)).toBe(4)
-    // Monotonic: the chunks follow the lap the way the car drives it.
-    for (let i = 1; i < buckets.length; i++) expect(buckets[i]).toBeGreaterThanOrEqual(buckets[i - 1])
-  })
-
-  it('is empty with zero buckets for null', () => {
-    const wake = buildGrandPrixWakeFeatures(null)
-    expect(wake.buckets).toBe(0)
-    expect(wake.features.features).toEqual([])
-  })
-})
+// Metres along a coordinate list.
+function pathLength(coords: readonly (readonly number[])[]): number {
+  let m = 0
+  for (let i = 1; i < coords.length; i++) m += haversineM(coords[i - 1], coords[i])
+  return m
+}
 
 describe('the wake behind the car', () => {
-  it('grandPrixWakeBucket is the chunk the car is in, clamped, −1 without chunks', () => {
-    expect(grandPrixWakeBucket(0, 5)).toBe(0)
-    expect(grandPrixWakeBucket(199, 5)).toBe(0)
-    expect(grandPrixWakeBucket(200, 5)).toBe(1)
-    expect(grandPrixWakeBucket(999, 5)).toBe(4)
-    expect(grandPrixWakeBucket(5000, 5)).toBe(4)
-    expect(grandPrixWakeBucket(100, 0)).toBe(-1)
-    expect(grandPrixWakeBucket(Number.NaN, 5)).toBe(-1)
+  it('sliceGrandPrixLoop returns the stretch in travel order, vertices included', () => {
+    const p = buildGrandPrixSpeedProfile(SQUARE_DENSE, 40)!
+    // 100 m → 300 m: up the first side, round the first corner (vertex 10),
+    // onto the second. Vertices are 25 m apart, so 100 m is vertex 4 and
+    // 300 m is vertex 12.
+    const a = sliceGrandPrixLoop(SQUARE_DENSE, p.cumM, p.totalM, 100, 300)
+    expect(haversineM(a[0], SQUARE_DENSE[4])).toBeLessThan(2)
+    expect(haversineM(a[a.length - 1], SQUARE_DENSE[12])).toBeLessThan(2)
+    expect(a.some(c => haversineM(c, SQUARE_DENSE[10]) < 1)).toBe(true)
+    expect(Math.abs(pathLength(a) - 200)).toBeLessThan(3)
+    // Travel order: each point is further along than the last.
+    for (let i = 1; i < a.length; i++) {
+      expect(haversineM(a[i], SQUARE_DENSE[4])).toBeGreaterThan(haversineM(a[i - 1], SQUARE_DENSE[4]) - 1)
+    }
   })
 
-  it('writes nothing while the head stays put', () => {
-    expect(grandPrixWakeWrites(3, 3, 31)).toEqual([])
-    expect(grandPrixWakeWrites(-1, -1, 31)).toEqual([])
-    expect(grandPrixWakeWrites(-1, 2, 0)).toEqual([])
+  it('crosses start/finish as one continuous list', () => {
+    const p = buildGrandPrixSpeedProfile(SQUARE_DENSE, 40)!
+    const b = sliceGrandPrixLoop(SQUARE_DENSE, p.cumM, p.totalM, p.totalM - 50, p.totalM + 50)
+    // Ends 50 m into the lap (vertex 2), passes the start line on the way.
+    expect(haversineM(b[b.length - 1], SQUARE_DENSE[2])).toBeLessThan(2)
+    expect(b.some(c => haversineM(c, SQUARE_DENSE[0]) < 1)).toBe(true)
+    expect(Math.abs(pathLength(b) - 100)).toBeLessThan(3)
+    // The same stretch asked for with wrapped numbers is the same stretch.
+    const b2 = sliceGrandPrixLoop(SQUARE_DENSE, p.cumM, p.totalM, -50, 50)
+    expect(b2).toEqual(b)
   })
 
-  it('lights the head and its tail from dark, at the tail opacities', () => {
-    const writes = grandPrixWakeWrites(-1, 5, 31)
-    expect(writes).toEqual([
-      { index: 5, opacity: GRAND_PRIX_WAKE_TAIL[0] },
-      { index: 4, opacity: GRAND_PRIX_WAKE_TAIL[1] },
-      { index: 3, opacity: GRAND_PRIX_WAKE_TAIL[2] },
-    ])
+  it('is empty for a zero or negative stretch and a degenerate loop', () => {
+    const p = buildGrandPrixSpeedProfile(SQUARE_DENSE, 40)!
+    expect(sliceGrandPrixLoop(SQUARE_DENSE, p.cumM, p.totalM, 300, 300)).toEqual([])
+    expect(sliceGrandPrixLoop(SQUARE_DENSE, p.cumM, p.totalM, 300, 200)).toEqual([])
+    expect(sliceGrandPrixLoop([SQUARE[0]], new Float64Array([0]), 0, 0, 100)).toEqual([])
   })
 
-  it('moving one chunk on: the chunk leaving the tail goes dark, the rest shift', () => {
-    const writes = new Map(grandPrixWakeWrites(5, 6, 31).map(w => [w.index, w.opacity]))
-    expect(writes.get(6)).toBe(1)
-    expect(writes.get(5)).toBe(GRAND_PRIX_WAKE_TAIL[1])
-    expect(writes.get(4)).toBe(GRAND_PRIX_WAKE_TAIL[2])
-    expect(writes.get(3)).toBe(0)
-    expect(writes.size).toBe(4)
+  it('grandPrixWakeFeatures is one line, GRAND_PRIX_WAKE_LENGTH_M long, ending at the car', () => {
+    const c = circuit({ track: { type: 'LineString', coordinates: SQUARE_DENSE } })
+    const state = grandPrixCarState(c, 10_000, 16.5)!
+    const fc = grandPrixWakeFeatures(c, state.distanceM)
+    expect(fc.features).toHaveLength(1)
+    const line = (fc.features[0].geometry as GeoJSON.LineString).coordinates
+    // The bright end is the car (the smoothed pose can sit a metre or two off
+    // the raw line at a corner).
+    expect(haversineM(line[line.length - 1], [state.pose.lng, state.pose.lat])).toBeLessThan(5)
+    expect(Math.abs(pathLength(line) - GRAND_PRIX_WAKE_LENGTH_M)).toBeLessThan(4)
+    // Ten seconds in the car is well under 600 m round, so the tail wraps
+    // through start/finish — and is still one feature.
+    expect(state.distanceM).toBeLessThan(GRAND_PRIX_WAKE_LENGTH_M)
+    expect(line.some(p => haversineM(p, SQUARE[0]) < 1)).toBe(true)
   })
 
-  it('wraps at the lap boundary and darkens a jumped-over tail', () => {
-    const wrap = new Map(grandPrixWakeWrites(30, 0, 31).map(w => [w.index, w.opacity]))
-    expect(wrap.get(0)).toBe(1)
-    expect(wrap.get(30)).toBe(GRAND_PRIX_WAKE_TAIL[1])
-    expect(wrap.get(29)).toBe(GRAND_PRIX_WAKE_TAIL[2])
-    expect(wrap.get(28)).toBe(0)
-    // Off (head −1): everything lit goes dark.
-    expect(grandPrixWakeWrites(10, -1, 31).map(w => w.opacity)).toEqual([0, 0, 0])
+  it('draws nothing without a circuit or a distance', () => {
+    expect(grandPrixWakeFeatures(null, 100).features).toEqual([])
+    expect(grandPrixWakeFeatures(circuit(), null).features).toEqual([])
+    expect(grandPrixWakeFeatures(circuit(), Number.NaN).features).toEqual([])
   })
 })
 
