@@ -9,6 +9,8 @@ import {
   GRAND_PRIX_FEATURE_ID_PROPERTY,
   GRAND_PRIX_FLAG_ICON,
   GRAND_PRIX_WAKE_LENGTH_M,
+  GRAND_PRIX_FOCUS_MIN_ZOOM,
+  grandPrixBounds,
   buildGrandPrixCornerFeatures,
   buildGrandPrixTrackFeatures,
   grandPrixCarState,
@@ -243,6 +245,23 @@ describe('the wake behind the car', () => {
     expect(grandPrixWakeFeatures(null, 100).features).toEqual([])
     expect(grandPrixWakeFeatures(circuit(), null).features).toEqual([])
     expect(grandPrixWakeFeatures(circuit(), Number.NaN).features).toEqual([])
+  })
+})
+
+describe('focusing the map', () => {
+  it('grandPrixBounds covers the track and the pit lane, and is null without a circuit', () => {
+    const c = circuit({ pitLane: { type: 'LineString', coordinates: [[113.549, 22.199], [113.5495, 22.1995]] } })
+    const b = grandPrixBounds(c)!
+    expect(b[0][0]).toBeCloseTo(113.549, 9) // the pit lane sticks out west…
+    expect(b[0][1]).toBeCloseTo(22.199, 9) // …and a little south of the square
+    expect(b[1][0]).toBeCloseTo(SQUARE[2][0], 9)
+    expect(b[1][1]).toBeCloseTo(SQUARE[1][1], 9)
+    expect(grandPrixBounds(null)).toBeNull()
+    expect(grandPrixBounds(circuit({ track: { type: 'LineString', coordinates: [] }, pitLane: null }))).toBeNull()
+  })
+
+  it('keeps the zoom floor where street names still read', () => {
+    expect(GRAND_PRIX_FOCUS_MIN_ZOOM).toBe(14.4)
   })
 })
 

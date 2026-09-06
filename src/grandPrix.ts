@@ -585,6 +585,34 @@ export function grandPrixCarPose(
   return grandPrixCarState(circuit, simMs, zoom)?.pose ?? null
 }
 
+// ---- Focusing the map --------------------------------------------------------
+//
+// Switching the layer on flies the map to the circuit: nothing else is left on
+// the map, so the view had better be where the one thing is. The bounds cover
+// the track and the pit lane; the zoom floor keeps the circuit at street
+// scale even where a wide viewport could fit it at city scale.
+export const GRAND_PRIX_FOCUS_MIN_ZOOM = 14.4
+
+export function grandPrixBounds(
+  circuit: GrandPrixCircuit | null,
+): [[number, number], [number, number]] | null {
+  if (!circuit) return null
+  const coords = [...circuit.track.coordinates, ...(circuit.pitLane?.coordinates ?? [])]
+  let minLng = Infinity
+  let minLat = Infinity
+  let maxLng = -Infinity
+  let maxLat = -Infinity
+  for (const [lng, lat] of coords) {
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) continue
+    if (lng < minLng) minLng = lng
+    if (lng > maxLng) maxLng = lng
+    if (lat < minLat) minLat = lat
+    if (lat > maxLat) maxLat = lat
+  }
+  if (!Number.isFinite(minLng) || !Number.isFinite(minLat)) return null
+  return [[minLng, minLat], [maxLng, maxLat]]
+}
+
 // ---- The legend ---------------------------------------------------------------
 
 export type GrandPrixLegendGlyph = 'flag' | 'corner' | 'track' | 'pit' | 'wake' | 'car'

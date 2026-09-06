@@ -107,8 +107,10 @@ import {
   GRAND_PRIX_BADGE_ICON_PREFIX,
   GRAND_PRIX_FEATURE_ID_PROPERTY,
   GRAND_PRIX_FLAG_ICON,
+  GRAND_PRIX_FOCUS_MIN_ZOOM,
   buildGrandPrixCornerFeatures,
   buildGrandPrixTrackFeatures,
+  grandPrixBounds,
   grandPrixCarState,
   grandPrixLabelField,
   grandPrixMotionColors,
@@ -1483,6 +1485,29 @@ function grandPrixWakeGradient(color: string): maplibregl.ExpressionSpecificatio
   ]
 }
 
+// Fly to the circuit when the layer goes on: the camera that fits its bounds
+// inside the free part of the viewport (the legend panel on the right, the
+// time bar below), never below the zoom floor — on a phone the fitted zoom
+// would be city scale, so the floor wins and the circuit's centre stays put.
+function flyToGrandPrix(map: maplibregl.Map, circuit: GrandPrixCircuit, desktop: boolean): void {
+  const bounds = grandPrixBounds(circuit)
+  if (!bounds) return
+  const padding = desktop
+    ? { top: 90, bottom: 110, left: 60, right: 260 }
+    : { top: 120, bottom: 200, left: 24, right: 70 }
+  let camera: { center?: maplibregl.LngLatLike; zoom?: number } | undefined
+  try {
+    camera = map.cameraForBounds(bounds, { padding, bearing: map.getBearing() })
+  } catch {
+    camera = undefined
+  }
+  const center: maplibregl.LngLatLike = camera?.center ?? [
+    (bounds[0][0] + bounds[1][0]) / 2, (bounds[0][1] + bounds[1][1]) / 2,
+  ]
+  const zoom = Math.max(GRAND_PRIX_FOCUS_MIN_ZOOM, camera?.zoom ?? GRAND_PRIX_FOCUS_MIN_ZOOM)
+  map.easeTo({ center, zoom, duration: 900, essential: true })
+}
+
 // The wake source: one line per tick while the layer is on, emptied once
 // when it goes off.
 function writeGrandPrixWake(
@@ -2010,6 +2035,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const raceCarRef = useRef<RaceCar3DLayer | null>(null)
   const grandPrixCarLabelEmptyRef = useRef(true)
   const grandPrixWakeEmptyRef = useRef(true)
+  // Whether the map has already flown to the circuit for the CURRENT switch-on
+  // (reset when the layer goes off), so a data refresh or a style swap while it
+  // is on does not yank the view back.
+  const grandPrixFlownRef = useRef(false)
 
   // Highlight = one feature-state per school id. `promoteId` makes every
   // building of a school share that id, so this single pair of calls repaints
@@ -3380,6 +3409,14 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       layersAddedRef.current = true
       serviceStatusRef.current = new Map()
       lastServiceMinuteRef.current = ''
+      // A reload with GRAND PRIX already on: the fly-to effect ran before the
+      // style was up and left the flight to this point. Once per switch-on
+      // (the ref), so a theme swap — which comes through here too — stays put.
+      const gpCircuit = transitRef.current.grandPrix
+      if (grandPrixFocusRef.current && gpCircuit && !grandPrixFlownRef.current) {
+        grandPrixFlownRef.current = true
+        flyToGrandPrix(m, gpCircuit, isDesktopRef.current)
+      }
       // Force the next tick to repopulate the (now empty) road-works source.
       roadWorksRenderRef.current = { notices: null, day: -1 }
       // A style swap drops feature state along with the sources, so the
@@ -3865,6 +3902,26 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       writeGrandPrixWake(map, null, null, grandPrixWakeEmptyRef)
     }
   }, [transitData.grandPrix])
+
+  // Switching GRAND PRIX on flies to the circuit — once per switch-on, and
+  // only when both the map and the file are there (a reload with the layer
+  // already on flies when the file lands; a theme swap does not fly again).
+  useEffect(() => {
+    if (!grandPrixFocus) {
+      grandPrixFlownRef.current = false
+      return
+    }
+    const map = mapRef.current
+    const circuit = transitData.grandPrix
+    if (!map || !circuit || grandPrixFlownRef.current) return
+    // Until the style is up (a reload with the layer already on) the flight
+    // is addCustomLayers' job: the container is still being sized here and
+    // the resize that follows would cut the ease short. Not `map.once('load')`
+    // — the mount-time setStyle can swallow that event (see the map effect).
+    if (!layersAddedRef.current) return
+    grandPrixFlownRef.current = true
+    flyToGrandPrix(map, circuit, isDesktopRef.current)
+  }, [grandPrixFocus, transitData.grandPrix])
 
   // Selected corner ring — a filter swap, same as the utilities' markers.
   useEffect(() => {
