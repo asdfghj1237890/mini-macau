@@ -913,7 +913,8 @@ describe('buildWaterMarkerFeatures with a network', () => {
   })
 
   it('breaks an inlet map label before its bracketed detail (waterInletMapLabel)', () => {
-    expect(waterInletMapLabel('珠海原水輸入（橫琴）')).toBe('珠海原水輸入\n（橫琴）')
+    // Brackets come out ASCII: the glyph server has no "（" (see power twin).
+    expect(waterInletMapLabel('珠海原水輸入（橫琴）')).toBe('珠海原水輸入\n(橫琴)')
     expect(waterInletMapLabel('Raw water from Zhuhai (via Hengqin)')).toBe('Raw water from Zhuhai\n(via Hengqin)')
     expect(waterInletMapLabel('珠海原水輸入')).toBe('珠海原水輸入')
     const net = network({
@@ -924,7 +925,7 @@ describe('buildWaterMarkerFeatures with a network', () => {
       }],
     })
     const inlet = buildWaterMarkerFeatures([], net).features[0].properties!
-    expect(inlet.label_zh).toBe('珠海原水輸入\n（橫琴）')
+    expect(inlet.label_zh).toBe('珠海原水輸入\n(橫琴)')
     expect(inlet.label_pt).toBe('Raw water from Zhuhai\n(via Hengqin)')
   })
 

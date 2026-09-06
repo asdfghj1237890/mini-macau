@@ -448,10 +448,14 @@ export function buildPowerMarkerFeatures(
 
 // The MAP label of an import point breaks before its bracketed detail, so
 // "廣東電網輸入（蓮花）" stacks as two short lines under the marker instead of
-// one long line across the corridor. Only the map label: the panel title keeps
-// the name as published. A name with no bracket is returned untouched.
+// one long line across the corridor. The brackets become ASCII on the way:
+// the basemap's glyph server (CARTO, Montserrat / Open Sans / Noto Sans
+// stack) has no image for the fullwidth "（" (U+FF08) — it rendered as a blank
+// gap, verified 2026-09-06 — while "(" and ")" draw fine. Only the map label:
+// the panel title keeps the name as published. A name with no bracket is
+// returned untouched.
 export function powerInletMapLabel(name: string): string {
-  return name.replace(/\s*([（(])/, '\n$1')
+  return name.replace(/（/g, '(').replace(/）/g, ')').replace(/\s*\(/, '\n(')
 }
 
 // The road classes drawn as WIDE distribution feeders; everything else gets the

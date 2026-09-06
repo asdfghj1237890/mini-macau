@@ -493,11 +493,12 @@ export function buildWaterMarkerFeatures(
 
 // The MAP label of an inlet breaks before its bracketed detail, so
 // "珠海原水輸入（橫琴）" stacks as two short lines under the marker instead of
-// one long line across the bridge. Only the map label: the panel title keeps
-// the name as published. A name with no bracket is returned untouched. Twin of
-// powerInletMapLabel.
+// one long line across the bridge. The brackets become ASCII on the way: the
+// basemap's glyph server has no image for the fullwidth "（" (see
+// powerInletMapLabel, this function's twin). Only the map label: the panel
+// title keeps the name as published. A name with no bracket is untouched.
 export function waterInletMapLabel(name: string): string {
-  return name.replace(/\s*([（(])/, '\n$1')
+  return name.replace(/（/g, '(').replace(/）/g, ')').replace(/\s*\(/, '\n(')
 }
 
 // The road classes drawn as WIDE distribution pipes; everything else gets the

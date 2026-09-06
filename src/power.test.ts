@@ -445,15 +445,17 @@ describe('buildPowerMarkerFeatures', () => {
     expect(inlet[POWER_FEATURE_ID_PROPERTY]).toBe('inlet-lotus')
     expect(inlet.icon).toBe(POWER_INLET_ICON)
     expect(inlet.approximate).toBe(false)
-    // The map label breaks before the bracketed detail (powerInletMapLabel).
-    expect(inlet.label_zh).toBe('廣東電網輸入\n（蓮花）')
+    // The map label breaks before the bracketed detail, with the brackets
+    // made ASCII because the glyph server lacks "（" (powerInletMapLabel).
+    expect(inlet.label_zh).toBe('廣東電網輸入\n(蓮花)')
     expect(inlet.label_en).toBe('Guangdong grid import\n(Lotus)')
     // pt is empty upstream, so it falls back to the English form.
     expect(inlet.label_pt).toBe('Guangdong grid import\n(Lotus)')
   })
 
-  it('powerInletMapLabel breaks before a bracket and leaves plain names alone', () => {
-    expect(powerInletMapLabel('廣東電網輸入（鴨涌河）')).toBe('廣東電網輸入\n（鴨涌河）')
+  it('powerInletMapLabel breaks before a bracket, makes it ASCII, and leaves plain names alone', () => {
+    expect(powerInletMapLabel('廣東電網輸入（鴨涌河）')).toBe('廣東電網輸入\n(鴨涌河)')
+    expect(powerInletMapLabel('廣東電網輸入（海洋花園 → 北安）')).toBe('廣東電網輸入\n(海洋花園 → 北安)')
     expect(powerInletMapLabel('Guangdong grid infeed (Canal dos Patos)')).toBe('Guangdong grid infeed\n(Canal dos Patos)')
     expect(powerInletMapLabel('廣東電網輸入')).toBe('廣東電網輸入')
   })
