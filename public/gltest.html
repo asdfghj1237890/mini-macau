@@ -19,6 +19,8 @@
     &circles=300                2D circle points, setData at 20 Hz
     &buildings=1                OpenFreeMap building extrusions from zoom 14
     &veh=0&circles=0            basemap only
+    &overscale=off              v5 behaviour: no tile slicing below the source maxzoom
+                                (v6 default is 4 levels; a number sets it)
 
   The panel at the bottom logs capabilities, every error, a heartbeat with
   tile / frame / setData counts, and the previous load's tail (persisted in
@@ -52,12 +54,16 @@
     hz: Number(q.get('hz')) || 30,
     circles: q.get('circles') === null ? 300 : Number(q.get('circles')),
     buildings: q.get('buildings') === '1',
+    // MapLibre 6 slices vector tiles below the source's maxzoom by default
+    // (zoomLevelsToOverscale 4); v5 had it off. 'off' restores v5, a number
+    // sets it, absent keeps v6's default.
+    overscale: q.get('overscale') === 'off' ? 'off' : (q.get('overscale') === null ? null : Number(q.get('overscale'))),
   };
   window.__cfg = cfg;
   document.getElementById('tag').textContent =
     'maplibre ' + cfg.v + ' · ' + cfg.theme + ' · z' + cfg.zoom + ' p' + cfg.pitch +
     (cfg.dpr ? ' dpr≤' + cfg.dpr : '') + ' · veh ' + cfg.veh + '@' + cfg.hz + 'Hz · circles ' + cfg.circles +
-    (cfg.buildings ? ' · buildings' : '');
+    (cfg.buildings ? ' · buildings' : '') + (cfg.overscale !== null ? ' · overscale ' + cfg.overscale : '');
 
   var box = document.getElementById('log');
   var previous = [];
@@ -209,6 +215,8 @@
       attributionControl: false,
     };
     if (cfg.dpr) opts.pixelRatio = Math.min(devicePixelRatio, cfg.dpr);
+    if (cfg.overscale === 'off') opts.zoomLevelsToOverscale = undefined;
+    else if (typeof cfg.overscale === 'number' && !Number.isNaN(cfg.overscale)) opts.zoomLevelsToOverscale = cfg.overscale;
     const map = new maplibregl.Map(opts);
     window.__map = map;
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');

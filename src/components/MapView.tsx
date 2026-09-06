@@ -2166,6 +2166,15 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         pitch: is3D ? 45 : 0,
         bearing: -17,
         attributionControl: false,
+        // MapLibre 6 defaults zoomLevelsToOverscale to 4: past a vector
+        // source's maxzoom (14 for the CARTO basemap and the OpenFreeMap
+        // buildings) it slices the parent tile into sub-tiles down to
+        // maxZoom − 4 instead of drawing the one z14 tile scaled up. Measured
+        // at zoom 16 / pitch 45 that is 44 tile loads instead of 8 and 2.3×
+        // the live GPU buffers and vertex arrays for the same view — enough to
+        // push an iPhone X on iOS 16 into a lost WebGL context. `undefined`
+        // is the documented "off" and restores the v5 behaviour.
+        zoomLevelsToOverscale: undefined,
         ...(debugSwitches.maxDpr
           ? { pixelRatio: Math.min(window.devicePixelRatio, debugSwitches.maxDpr) }
           : {}),
