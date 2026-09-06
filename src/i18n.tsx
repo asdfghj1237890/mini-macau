@@ -105,6 +105,7 @@ const translations = {
     powerCount: (n: number) => `${n} facilities`,
     grandPrix: 'Grand Prix circuit',
     grandPrixCount: (n: number) => `${n} named corners`,
+    mapInitFailed: 'The map could not start on this device — it needs WebGL 2.',
     waste: 'Waste & recycling',
     wasteCount: (n: number) => `${n} collection points`,
     noServiceToday: 'No service today',
@@ -513,6 +514,7 @@ const translations = {
     powerCount: (n: number) => `${n} 項電力設施`,
     grandPrix: '大賽車跑道',
     grandPrixCount: (n: number) => `${n} 個官方彎道`,
+    mapInitFailed: '此裝置無法啟動地圖：需要 WebGL 2。',
     waste: '垃圾回收',
     wasteCount: (n: number) => `${n} 個回收／收集點`,
     noServiceToday: '本日無服務',
@@ -867,6 +869,7 @@ const translations = {
     powerCount: (n: number) => `${n} instalações`,
     grandPrix: 'Circuito do Grande Prémio',
     grandPrixCount: (n: number) => `${n} curvas oficiais`,
+    mapInitFailed: 'O mapa não conseguiu iniciar neste dispositivo — precisa de WebGL 2.',
     waste: 'Resíduos e reciclagem',
     wasteCount: (n: number) => `${n} pontos de recolha`,
     noServiceToday: 'Sem serviço hoje',
@@ -1224,6 +1227,7 @@ export interface Translations {
   powerCount: (n: number) => string
   grandPrix: string
   grandPrixCount: (n: number) => string
+  mapInitFailed: string
   waste: string
   wasteCount: (n: number) => string
   noServiceToday: string

@@ -1897,6 +1897,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // properties and the legend); this is just its React view.
   const isDark = useTheme() === 'dark'
   const [menuOpen, setMenuOpen] = useState(false)
+  // Set when `new maplibregl.Map` throws (no WebGL 2): the map area shows a
+  // message instead of the whole app unmounting.
+  const [mapFailure, setMapFailure] = useState<string | null>(null)
   const zoomStoreRef = useRef<{ value: number; listeners: Set<() => void> }>({
     value: MACAU_ZOOM,
     listeners: new Set(),
@@ -2126,14 +2129,35 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   useEffect(() => {
     if (!containerRef.current) return
 
-    const map = new maplibregl.Map({
-      container: containerRef.current,
-      style: isDarkRef.current ? STYLES.dark : STYLES.light,
-      center: MACAU_CENTER,
-      zoom: MACAU_ZOOM,
-      pitch: is3D ? 45 : 0,
-      bearing: -17,
-      attributionControl: false,
+    // MapLibre 6 needs WebGL2 and throws (GPUInitializationError) where the
+    // device has none. A throw here would unmount the whole app; instead the
+    // map area says what happened and the rest of the page stays usable.
+    let map: maplibregl.Map
+    try {
+      map = new maplibregl.Map({
+        container: containerRef.current,
+        style: isDarkRef.current ? STYLES.dark : STYLES.light,
+        center: MACAU_CENTER,
+        zoom: MACAU_ZOOM,
+        pitch: is3D ? 45 : 0,
+        bearing: -17,
+        attributionControl: false,
+      })
+    } catch (err) {
+      console.error('[map] MapLibre could not start', err)
+      setMapFailure(err instanceof Error ? `${err.name}: ${err.message}` : String(err))
+      return
+    }
+    // Worker, tile and style failures are silent on a phone; name them (with
+    // the source and tile they came from) so the debug overlay can show them.
+    map.on('error', e => {
+      const detail = e as { error?: unknown; sourceId?: string; tile?: { tileID?: { key?: string } } }
+      const err = detail.error
+      console.error(
+        '[map]', err instanceof Error ? `${err.name}: ${err.message}` : String(err),
+        detail.sourceId ? `source=${detail.sourceId}` : '',
+        detail.tile?.tileID?.key ? `tile=${detail.tile.tileID.key}` : '',
+      )
     })
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
@@ -4515,6 +4539,14 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   return (
     <>
       <div ref={containerRef} className="w-full h-full" />
+      {mapFailure && (
+        <div className="absolute inset-0 z-20 flex items-center justify-center p-6 bg-(--mm-bg)">
+          <div className="max-w-sm rounded-xl border border-(--mm-red)/40 bg-(--mm-panel) px-4 py-3 text-sm text-(--mm-fg) shadow-lg shadow-(color:--mm-shadow)">
+            <p>{t.mapInitFailed}</p>
+            <p className="mt-2 font-mono text-[11px] text-(--mm-fg)/60 break-all">{mapFailure}</p>
+          </div>
+        </div>
+      )}
       {/* Hamburger + zoom (desktop top-left; phone top-1 next to TimeDisplay,
           horizontally aligned with MapLibre +/- zoom controls on the right) */}
       <div className="mm-ui-scale absolute z-10 flex items-center gap-1.5
