@@ -1,6 +1,14 @@
 import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
-import maplibregl from 'maplibre-gl'
+// v6 ships ESM only: the namespace import replaces the v5 default export,
+// and a bundler has to hand MapLibre its worker URL once — `?worker&url`
+// routes the file through Vite's worker pipeline so the production chunk is
+// self-contained (plain `?url` would drop the worker's sibling import and
+// no tiles would load).
+import * as maplibregl from 'maplibre-gl'
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
+
+maplibregl.setWorkerUrl(maplibreWorkerUrl)
 import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
@@ -3054,7 +3062,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
           'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
-          'icon-offset': [10, -10],
+          // Since v6 the offset no longer scales with `icon-size`, so it
+          // follows the same zoom ramp by hand to stay on the plate's corner.
+          'icon-offset': [
+            'interpolate', ['linear'], ['zoom'],
+            11, ['literal', [5.5, -5.5]], 15, ['literal', [10, -10]],
+          ],
         },
         paint: {
           'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
@@ -3137,7 +3150,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
           'icon-allow-overlap': true,
           'icon-ignore-placement': true,
           'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
-          'icon-offset': [10, -10],
+          // Since v6 the offset no longer scales with `icon-size`, so it
+          // follows the same zoom ramp by hand to stay on the plate's corner.
+          'icon-offset': [
+            'interpolate', ['linear'], ['zoom'],
+            11, ['literal', [5.5, -5.5]], 15, ['literal', [10, -10]],
+          ],
         },
         paint: {
           'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],

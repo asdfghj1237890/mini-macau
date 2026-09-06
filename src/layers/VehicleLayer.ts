@@ -1,4 +1,4 @@
-import type { Map as MapLibreMap, GeoJSONSource } from 'maplibre-gl'
+import type { Map as MapLibreMap, GeoJSONSource, ExpressionSpecification } from 'maplibre-gl'
 import type { VehiclePosition } from '../types'
 import type { Lang } from '../i18n'
 
@@ -131,7 +131,7 @@ export function updateVehicleData(map: MapLibreMap, vehicles: VehiclePosition[])
 }
 
 export function updateVehicleLabelLang(map: MapLibreMap, lang: Lang) {
-  const field = ['get', lang === 'zh' ? 'labelZh' : 'labelEn']
+  const field: ExpressionSpecification = ['get', lang === 'zh' ? 'labelZh' : 'labelEn']
   if (map.getLayer(LABEL_LAYER_ID)) {
     map.setLayoutProperty(LABEL_LAYER_ID, 'text-field', field)
   }
