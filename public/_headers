@@ -1,2 +1,5 @@
 /data/*
   X-Robots-Tag: noindex, nofollow
+
+/gltest.html
+  X-Robots-Tag: noindex, nofollow

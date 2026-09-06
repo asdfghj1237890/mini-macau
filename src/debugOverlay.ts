@@ -3,16 +3,49 @@
 // is only ever diagnosed from what that device says — so `?debug=1` (or
 // localStorage `mini-macau-debug` = '1') pins a panel to the bottom of the
 // page that lists what the browser can do and every error as it happens.
-// Off by default; without the switch this installs nothing.
+// Off by default; without the switch this installs nothing and the exported
+// `debugLog` / `debugStat` are no-ops.
 
 const LS_KEY = 'mini-macau-debug'
 const LOG_KEY = 'mini-macau-debug-log'
 const MAX_LINES = 80
+const HEARTBEAT_MS = 3000
+
+let sink: ((line: string) => void) | null = null
+const stats: Record<string, string | number> = {}
+
+// True once the overlay is installed — callers can skip work whose only
+// purpose is feeding it.
+export function debugEnabled(): boolean {
+  return sink !== null
+}
+
+// A milestone line ("[map] first frame"); dropped when the overlay is off.
+export function debugLog(line: string): void {
+  sink?.(line)
+}
+
+// A live figure the heartbeat line repeats every few seconds (tile count,
+// pixel ratio), so a page that dies without an error still says how far it
+// got and when.
+export function debugStat(key: string, value: string | number): void {
+  stats[key] = value
+}
 
 function enabled(): boolean {
   try {
     if (new URLSearchParams(window.location.search).get('debug') === '1') return true
     return localStorage.getItem(LS_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+// `?debug=1&nowebgl2=1` pretends the device has no WebGL 2, so the map's
+// failure path can be seen on a machine that does have it.
+function simulateNoWebgl2(): boolean {
+  try {
+    return new URLSearchParams(window.location.search).get('nowebgl2') === '1'
   } catch {
     return false
   }
@@ -45,17 +78,8 @@ function webglReport(): string {
       renderer = '?'
     }
   }
-  return `webgl2 ${gl2 ? 'yes' : 'NO'} · webgl1 ${gl1 ? 'yes' : 'no'} · renderer ${renderer}`
-}
-
-// `?debug=1&nowebgl2=1` pretends the device has no WebGL 2, so the map's
-// failure path can be seen on a machine that does have it.
-function simulateNoWebgl2(): boolean {
-  try {
-    return new URLSearchParams(window.location.search).get('nowebgl2') === '1'
-  } catch {
-    return false
-  }
+  const maxTex = gl2 ? String(gl2.getParameter(gl2.MAX_TEXTURE_SIZE)) : '?'
+  return `webgl2 ${gl2 ? 'yes' : 'NO'} · webgl1 ${gl1 ? 'yes' : 'no'} · renderer ${renderer} · maxTex ${maxTex}`
 }
 
 export function installDebugOverlay(): void {
@@ -78,6 +102,7 @@ export function installDebugOverlay(): void {
     'font:11px/1.35 ui-monospace,Menlo,Consolas,monospace', 'z-index:2147483647',
     'white-space:pre-wrap', 'word-break:break-word',
   ].join(';')
+
   // A page the OS kills (memory) leaves no error behind, but the log it wrote
   // before dying is still in localStorage: show the previous load's tail
   // above this one. Only this load's lines are persisted, so it never nests.
@@ -91,17 +116,30 @@ export function installDebugOverlay(): void {
     }
   } catch { /* unreadable or absent: nothing to show */ }
   const lines: string[] = []
-  const write = (line: string) => {
-    lines.push(`${new Date().toISOString().slice(11, 23)} ${line}`)
-    if (lines.length > MAX_LINES) lines.shift()
+  const stamp = () => new Date().toISOString().slice(11, 23)
+  const flush = () => {
     box.textContent = [...previous, ...lines].join('\n')
     try { localStorage.setItem(LOG_KEY, JSON.stringify(lines)) } catch { /* private mode or quota */ }
+  }
+  const write = (line: string) => {
+    lines.push(`${stamp()} ${line}`)
+    if (lines.length > MAX_LINES) lines.shift()
+    flush()
+  }
+  // The heartbeat overwrites the previous heartbeat instead of appending, so
+  // it never pushes the real events out of the buffer.
+  const heartbeat = (line: string) => {
+    const last = lines.length - 1
+    if (last >= 0 && lines[last].includes(' alive ')) lines[last] = `${stamp()} ${line}`
+    else lines.push(`${stamp()} ${line}`)
+    flush()
   }
   const mount = () => {
     if (box.isConnected) return
     if (document.body) document.body.appendChild(box)
     else document.addEventListener('DOMContentLoaded', () => document.body.appendChild(box), { once: true })
   }
+  sink = write
 
   const nav = navigator as Navigator & { deviceMemory?: number }
   write(`UA ${navigator.userAgent}`)
@@ -134,5 +172,14 @@ export function installDebugOverlay(): void {
     write(`warn ${args.map(describe).join(' ')}`)
     origWarn(...args)
   }
+  // A load that ends in a crash has no pagehide; one the user navigated away
+  // from does — the difference tells a kill from a plain exit.
+  document.addEventListener('visibilitychange', () => write(`visibility ${document.visibilityState}`))
+  window.addEventListener('pagehide', () => write('pagehide'))
+  const started = performance.now()
+  window.setInterval(() => {
+    const extra = Object.entries(stats).map(([k, v]) => `${k} ${v}`).join(' · ')
+    heartbeat(`alive ${Math.round((performance.now() - started) / 1000)}s${extra ? ` · ${extra}` : ''}`)
+  }, HEARTBEAT_MS)
   mount()
 }

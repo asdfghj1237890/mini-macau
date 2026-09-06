@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>MapLibre device test</title>
+<!--
+  A standalone MapLibre test page for a device the app dies on, with no app
+  code involved: it loads MapLibre 5 or 6 straight from a CDN, the same CARTO
+  basemap and camera the app uses, and a synthetic vehicle load that mirrors
+  the app's per-tick setData. Everything is a URL switch, so the phone can
+  bisect without a redeploy:
+
+    /gltest.html?v=6            MapLibre 6.7 (default)      ?v=5  MapLibre 5.23
+    &theme=dark|light           CARTO dark-matter / positron (default dark)
+    &zoom=13&pitch=45&dpr=2     camera; dpr caps the render pixel ratio
+    &veh=150&hz=30              3-box fill-extrusion vehicles, setData at hz
+    &circles=300                2D circle points, setData at 20 Hz
+    &buildings=1                OpenFreeMap building extrusions from zoom 14
+    &veh=0&circles=0            basemap only
+
+  The panel at the bottom logs capabilities, every error, a heartbeat with
+  tile / frame / setData counts, and the previous load's tail (persisted in
+  localStorage), so a page the OS kills still leaves a trace.
+-->
+<style>
+  html, body { margin: 0; height: 100%; background: #111; color: #eee; font: 13px system-ui, sans-serif; }
+  #map { position: absolute; inset: 0; }
+  #log { position: fixed; left: 0; right: 0; bottom: 0; max-height: 45vh; overflow: auto; margin: 0;
+         padding: 8px 10px; background: rgba(0,0,0,.88); color: #fecaca; z-index: 9999;
+         font: 11px/1.35 ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; word-break: break-word; }
+  #tag { position: fixed; top: 8px; left: 8px; z-index: 9999; padding: 4px 8px; background: rgba(0,0,0,.7);
+         border-radius: 6px; font: 12px ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="tag"></div>
+<pre id="log"></pre>
+<script>
+(function () {
+  var LOG_KEY = 'mini-macau-gltest-log';
+  var q = new URLSearchParams(location.search);
+  var cfg = {
+    v: q.get('v') === '5' ? 5 : 6,
+    theme: q.get('theme') === 'light' ? 'light' : 'dark',
+    zoom: Number(q.get('zoom')) || 13,
+    pitch: q.get('pitch') === null ? 45 : Number(q.get('pitch')),
+    dpr: Number(q.get('dpr')) || 0,
+    veh: q.get('veh') === null ? 150 : Number(q.get('veh')),
+    hz: Number(q.get('hz')) || 30,
+    circles: q.get('circles') === null ? 300 : Number(q.get('circles')),
+    buildings: q.get('buildings') === '1',
+  };
+  window.__cfg = cfg;
+  document.getElementById('tag').textContent =
+    'maplibre ' + cfg.v + ' · ' + cfg.theme + ' · z' + cfg.zoom + ' p' + cfg.pitch +
+    (cfg.dpr ? ' dpr≤' + cfg.dpr : '') + ' · veh ' + cfg.veh + '@' + cfg.hz + 'Hz · circles ' + cfg.circles +
+    (cfg.buildings ? ' · buildings' : '');
+
+  var box = document.getElementById('log');
+  var previous = [];
+  try {
+    var arr = JSON.parse(localStorage.getItem(LOG_KEY) || 'null');
+    if (Array.isArray(arr) && arr.length) {
+      previous = ['--- previous page load ---'].concat(arr.slice(-30), ['--- this page load ---']);
+    }
+  } catch (e) {}
+  var lines = [];
+  function stamp() { return new Date().toISOString().slice(11, 23); }
+  function flush() {
+    box.textContent = previous.concat(lines).join('\n');
+    try { localStorage.setItem(LOG_KEY, JSON.stringify(lines)); } catch (e) {}
+  }
+  function write(line) {
+    lines.push(stamp() + ' ' + line);
+    if (lines.length > 80) lines.shift();
+    flush();
+  }
+  function heartbeat(line) {
+    var last = lines.length - 1;
+    if (last >= 0 && lines[last].indexOf(' alive ') >= 0) lines[last] = stamp() + ' ' + line;
+    else lines.push(stamp() + ' ' + line);
+    flush();
+  }
+  function describe(v) {
+    if (v instanceof Error) return v.name + ': ' + v.message;
+    if (typeof v === 'string') return v;
+    try { return JSON.stringify(v).slice(0, 300); } catch (e) { return String(v); }
+  }
+  window.__log = write;
+
+  write('UA ' + navigator.userAgent);
+  write('viewport ' + innerWidth + '×' + innerHeight + ' dpr ' + devicePixelRatio);
+  write('config ' + JSON.stringify(cfg));
+  try {
+    var gl2 = document.createElement('canvas').getContext('webgl2');
+    var r = 'none';
+    if (gl2) {
+      var ext = gl2.getExtension('WEBGL_debug_renderer_info');
+      r = String(ext ? gl2.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl2.getParameter(gl2.RENDERER));
+      r += ' · maxTex ' + gl2.getParameter(gl2.MAX_TEXTURE_SIZE);
+    }
+    write('webgl2 ' + (gl2 ? 'yes' : 'NO') + ' · ' + r);
+  } catch (e) { write('webgl probe threw ' + describe(e)); }
+
+  window.addEventListener('error', function (e) {
+    write('error ' + e.message + ' @ ' + String(e.filename || '').split('/').pop() + ':' + e.lineno);
+  });
+  window.addEventListener('unhandledrejection', function (e) { write('unhandled ' + describe(e.reason)); });
+  var origError = console.error.bind(console);
+  console.error = function () { write('console.error ' + Array.prototype.map.call(arguments, describe).join(' ')); origError.apply(console, arguments); };
+  var origWarn = console.warn.bind(console);
+  console.warn = function () { write('warn ' + Array.prototype.map.call(arguments, describe).join(' ')); origWarn.apply(console, arguments); };
+  document.addEventListener('visibilitychange', function () { write('visibility ' + document.visibilityState); });
+  window.addEventListener('pagehide', function () { write('pagehide'); });
+
+  var stats = { tiles: 0, frames: 0, setData: 0 };
+  window.__stats = stats;
+  var started = performance.now();
+  setInterval(function () {
+    heartbeat('alive ' + Math.round((performance.now() - started) / 1000) + 's · tiles ' + stats.tiles +
+      ' · frames ' + stats.frames + ' · setData ' + stats.setData);
+  }, 3000);
+})();
+</script>
+<script type="module">
+  const cfg = window.__cfg;
+  const log = window.__log;
+  const stats = window.__stats;
+  const VERSIONS = { 5: '5.23.0', 6: '6.7.0' };
+  const base = 'https://cdn.jsdelivr.net/npm/maplibre-gl@' + VERSIONS[cfg.v] + '/dist/';
+  const css = document.createElement('link');
+  css.rel = 'stylesheet';
+  css.href = base + 'maplibre-gl.css';
+  document.head.appendChild(css);
+
+  async function loadLibrary() {
+    if (cfg.v === 6) {
+      return await import(base + 'maplibre-gl.mjs');
+    }
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = base + 'maplibre-gl.js';
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('script load failed ' + s.src));
+      document.head.appendChild(s);
+    });
+    return window.maplibregl;
+  }
+
+  const CENTER = [113.55920888434439, 22.160440018223373];
+  const STYLES = {
+    dark: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
+    light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+  };
+  const M_PER_DEG_LAT = 111320;
+  const M_PER_DEG_LON = 111320 * Math.cos(CENTER[1] * Math.PI / 180);
+
+  // A 3-box vehicle (body, cabin, roof) like the app's fill-extrusion cars.
+  function box(cx, cy, w, l, bearing, base, height) {
+    const s = Math.sin(bearing), c = Math.cos(bearing);
+    const pts = [[-w / 2, -l / 2], [w / 2, -l / 2], [w / 2, l / 2], [-w / 2, l / 2], [-w / 2, -l / 2]];
+    return {
+      type: 'Feature',
+      properties: { base, height, color: '#f59e0b' },
+      geometry: { type: 'Polygon', coordinates: [pts.map(([x, y]) => [
+        cx + (x * c - y * s) / M_PER_DEG_LON, cy + (x * s + y * c) / M_PER_DEG_LAT,
+      ])] },
+    };
+  }
+  function vehicles(t) {
+    const features = [];
+    for (let i = 0; i < cfg.veh; i++) {
+      const r = 900 + (i % 5) * 250;
+      const a = (i / cfg.veh) * Math.PI * 2 + t * 0.00004 * (1 + (i % 3) * 0.2);
+      const cx = CENTER[0] + (r * Math.cos(a)) / M_PER_DEG_LON;
+      const cy = CENTER[1] + (r * Math.sin(a)) / M_PER_DEG_LAT;
+      const bearing = a + Math.PI / 2;
+      features.push(box(cx, cy, 2.6, 12, bearing, 0, 2.2));
+      features.push(box(cx, cy, 2.4, 9, bearing, 2.2, 3.4));
+      features.push(box(cx, cy, 2.0, 4, bearing, 3.4, 3.8));
+    }
+    return { type: 'FeatureCollection', features };
+  }
+  function circles(t) {
+    const features = [];
+    for (let i = 0; i < cfg.circles; i++) {
+      const r = 400 + (i % 7) * 300;
+      const a = (i / cfg.circles) * Math.PI * 2 - t * 0.00003;
+      features.push({ type: 'Feature', properties: {}, geometry: { type: 'Point', coordinates: [
+        CENTER[0] + (r * Math.cos(a)) / M_PER_DEG_LON, CENTER[1] + (r * Math.sin(a)) / M_PER_DEG_LAT,
+      ] } });
+    }
+    return { type: 'FeatureCollection', features };
+  }
+
+  try {
+    const maplibregl = await loadLibrary();
+    log('library loaded ' + (maplibregl.getVersion ? maplibregl.getVersion() : cfg.v));
+    const opts = {
+      container: 'map',
+      style: STYLES[cfg.theme],
+      center: CENTER,
+      zoom: cfg.zoom,
+      pitch: cfg.pitch,
+      bearing: -17,
+      attributionControl: false,
+    };
+    if (cfg.dpr) opts.pixelRatio = Math.min(devicePixelRatio, cfg.dpr);
+    const map = new maplibregl.Map(opts);
+    window.__map = map;
+    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
+    map.on('error', e => log('[map] ' + describeErr(e)));
+    map.on('sourcedata', e => { if (e.tile) stats.tiles++; });
+    map.on('render', () => { stats.frames++; });
+    map.once('render', () => log('[map] first frame'));
+    map.once('idle', () => log('[map] idle'));
+    const canvas = map.getCanvas();
+    canvas.addEventListener('webglcontextlost', () => log('[map] WEBGL CONTEXT LOST'));
+    canvas.addEventListener('webglcontextrestored', () => log('[map] webgl context restored'));
+    log('[map] canvas ' + canvas.width + '×' + canvas.height + ' pixelRatio ' + (map.getPixelRatio ? map.getPixelRatio() : '?'));
+
+    map.on('load', () => {
+      log('[map] style loaded');
+      if (cfg.buildings) {
+        map.addSource('buildings', { type: 'vector', url: 'https://tiles.openfreemap.org/planet' });
+        map.addLayer({
+          id: 'buildings', source: 'buildings', 'source-layer': 'building', type: 'fill-extrusion', minzoom: 14,
+          paint: {
+            'fill-extrusion-color': cfg.theme === 'dark' ? '#2a2d33' : '#d8d8dc',
+            'fill-extrusion-height': ['interpolate', ['linear'], ['zoom'], 14, 0, 15.5, ['coalesce', ['get', 'render_height'], 0]],
+            'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
+            'fill-extrusion-opacity': 0.85,
+          },
+        });
+      }
+      if (cfg.veh > 0) {
+        map.addSource('veh', { type: 'geojson', data: vehicles(0) });
+        map.addLayer({
+          id: 'veh', source: 'veh', type: 'fill-extrusion',
+          paint: {
+            'fill-extrusion-color': ['get', 'color'],
+            'fill-extrusion-base': ['get', 'base'],
+            'fill-extrusion-height': ['get', 'height'],
+            'fill-extrusion-opacity': 0.95,
+          },
+        });
+        setInterval(() => {
+          const src = map.getSource('veh');
+          if (src) { src.setData(vehicles(performance.now())); stats.setData++; }
+        }, Math.round(1000 / cfg.hz));
+      }
+      if (cfg.circles > 0) {
+        map.addSource('circles', { type: 'geojson', data: circles(0) });
+        map.addLayer({
+          id: 'circles', source: 'circles', type: 'circle',
+          paint: { 'circle-radius': 4, 'circle-color': '#38bdf8', 'circle-stroke-color': '#0f172a', 'circle-stroke-width': 1 },
+        });
+        setInterval(() => {
+          const src = map.getSource('circles');
+          if (src) { src.setData(circles(performance.now())); stats.setData++; }
+        }, 50);
+      }
+    });
+  } catch (err) {
+    log('FAILED ' + (err && err.name ? err.name + ': ' + err.message : String(err)));
+  }
+
+  function describeErr(e) {
+    const err = e && e.error;
+    const head = err instanceof Error ? err.name + ': ' + err.message : String(err);
+    return head + (e && e.sourceId ? ' source=' + e.sourceId : '');
+  }
+</script>
+</body>
+</html>

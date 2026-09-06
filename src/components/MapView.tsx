@@ -121,6 +121,26 @@ import { RaceCar3DLayer } from '../layers/RaceCar3DLayer'
 import { toggleTheme as toggleStoredTheme, useTheme } from '../theme'
 import { useI18n } from '../i18n'
 import { ga } from '../analytics/ga'
+import { debugEnabled, debugLog, debugStat } from '../debugOverlay'
+
+// URL switches for narrowing down a device the map dies on (the `?debug=1`
+// overlay in debugOverlay.ts shows how far it got): `?maxdpr=2` caps the
+// render pixel ratio, `?no3d=1` starts flat with buildings off, `?nosim=1`
+// never runs the simulation tick (no vehicle positions, no per-tick
+// setData). Read once; all are absent on a normal load.
+const debugSwitches = (() => {
+  try {
+    const q = new URLSearchParams(window.location.search)
+    const maxDpr = Number(q.get('maxdpr'))
+    return {
+      maxDpr: maxDpr > 0 ? maxDpr : null,
+      no3d: q.get('no3d') === '1',
+      nosim: q.get('nosim') === '1',
+    }
+  } catch {
+    return { maxDpr: null, no3d: false, nosim: false }
+  }
+})()
 
 declare global {
   interface Window {
@@ -1891,8 +1911,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const lrt3DRef = useRef<LRT3DLayer | null>(null)
   const flight3DRef = useRef<Flight3DLayer | null>(null)
   const ferry3DRef = useRef<Ferry3DLayer | null>(null)
-  const [is3D, setIs3D] = useState(true)
-  const [showBuildings, setShowBuildings] = useState(true)
+  const [is3D, setIs3D] = useState(!debugSwitches.no3d)
+  const [showBuildings, setShowBuildings] = useState(!debugSwitches.no3d)
   // The theme lives in src/theme.ts (persisted, and shared with the CSS custom
   // properties and the legend); this is just its React view.
   const isDark = useTheme() === 'dark'
@@ -2142,6 +2162,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         pitch: is3D ? 45 : 0,
         bearing: -17,
         attributionControl: false,
+        ...(debugSwitches.maxDpr
+          ? { pixelRatio: Math.min(window.devicePixelRatio, debugSwitches.maxDpr) }
+          : {}),
       })
     } catch (err) {
       console.error('[map] MapLibre could not start', err)
@@ -2159,6 +2182,22 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         detail.tile?.tileID?.key ? `tile=${detail.tile.tileID.key}` : '',
       )
     })
+    // Milestones and a tile counter for the ?debug=1 overlay, so a page that
+    // dies without an error still says how far the map got before it did.
+    if (debugEnabled()) {
+      map.once('load', () => debugLog('[map] style loaded'))
+      map.once('render', () => debugLog('[map] first frame'))
+      map.once('idle', () => debugLog('[map] idle'))
+      let tiles = 0
+      map.on('sourcedata', e => {
+        if ((e as { tile?: unknown }).tile) debugStat('tiles', ++tiles)
+      })
+      const canvas = map.getCanvas()
+      canvas.addEventListener('webglcontextlost', () => console.error('[map] webglcontextlost'))
+      canvas.addEventListener('webglcontextrestored', () => debugLog('[map] webglcontextrestored'))
+      debugStat('dpr', map.getPixelRatio())
+      debugStat('canvas', `${canvas.width}×${canvas.height}`)
+    }
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
     map.addControl(new maplibregl.NavigationControl(), 'top-right')
@@ -4265,7 +4304,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       const td = transitRef.current
       if (map && !td.loading && layersAddedRef.current) {
         const nowTick = performance.now()
-        const shouldTick = nowTick - lastSimTick >= SIM_TICK_MS
+        const shouldTick = nowTick - lastSimTick >= SIM_TICK_MS && !debugSwitches.nosim
         const heavyInterval = mapBusyRef.current ? HEAVY_TICK_MS_BUSY : SIM_TICK_MS
         const shouldHeavy = nowTick - lastHeavyTick >= heavyInterval
         if (shouldTick) {
