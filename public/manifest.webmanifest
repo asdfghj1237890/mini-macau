@@ -1,0 +1,19 @@
+{
+  "id": "/",
+  "name": "Mini Map Macau",
+  "short_name": "Mini Macau",
+  "description": "澳門公共交通 3D 即時模擬地圖 · Macau's LRT, buses, ferries and flights replayed on a live 3D map",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "lang": "zh-Hant",
+  "categories": ["travel", "navigation"],
+  "icons": [
+    { "src": "/pwa/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/pwa/maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/pwa/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

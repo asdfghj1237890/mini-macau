@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from 'react'
 import { ga } from './analytics/ga'
+import type { InstallHintKey } from './pwaInstall'
 
 export type Lang = 'en' | 'zh' | 'pt'
 
@@ -35,6 +36,60 @@ function readSavedLang(): Lang {
     if (raw === 'zh' || raw === 'pt' || raw === 'en') return raw
   } catch { /* ignore — private mode, storage disabled */ }
   return 'zh'
+}
+
+// The add-to-home-screen card's one sentence per browser (see
+// `pwaInstall.ts` for how the key is chosen). Menu item names follow each
+// browser's own UI wording.
+const INSTALL_HINTS_EN: Record<InstallHintKey, string> = {
+  'ios-safari': 'In Safari, tap Share, then Add to Home Screen to open Mini Map Macau like an app.',
+  'ios-chrome': 'In Chrome, tap Share, then Add to Home Screen to open Mini Map Macau like an app.',
+  'ios-edge': 'In Edge, tap Share, then Add to Home Screen to open Mini Map Macau like an app.',
+  'android-install': 'Tap Install to add Mini Map Macau to your home screen and open it like an app.',
+  'android-chrome-menu': 'In Chrome, open the menu, then choose Install app or Add to Home screen.',
+  'android-edge': 'In Edge for Android, open the menu, then choose Install app or Add to Home screen.',
+  'android-firefox': 'In Firefox, open the menu, then choose Install or Add to Home screen.',
+  'android-opera': 'In Opera, open the menu, then choose Install app or Add to Home screen.',
+  'android-samsung': 'In Samsung Internet, open the menu, then choose Add page to → Home screen or Install app.',
+  'android-huawei': 'In Huawei Browser, open the menu, then choose Add to Home screen or Install app.',
+  'android-xiaomi': 'In Mi Browser, open the menu, then choose Add to Home screen or Install app.',
+  'android-oppo': 'In OPPO / HeyTap Browser, open the menu, then choose Add to Home screen or Install app.',
+  'android-vivo': 'In vivo Browser, open the menu, then choose Add to Home screen or Install app.',
+  'android-honor': 'In HONOR Browser, open the menu, then choose Add to Home screen or Install app.',
+}
+
+const INSTALL_HINTS_ZH: Record<InstallHintKey, string> = {
+  'ios-safari': '在 Safari 按分享按鈕，再選擇「加入主畫面」，即可像 App 一樣開啟 Mini Map Macau。',
+  'ios-chrome': '在 Chrome 按分享按鈕，再選擇「加入主畫面」，即可像 App 一樣開啟 Mini Map Macau。',
+  'ios-edge': '在 Edge 按分享按鈕，再選擇「加入主畫面」，即可像 App 一樣開啟 Mini Map Macau。',
+  'android-install': '按「安裝」把 Mini Map Macau 加入主畫面，之後可像 App 一樣開啟。',
+  'android-chrome-menu': '在 Chrome 開啟選單，再選擇「安裝應用程式」或「加入主畫面」。',
+  'android-edge': '在 Android 版 Edge 開啟選單，再選擇「安裝應用程式」或「加入主畫面」。',
+  'android-firefox': '在 Firefox 開啟選單，再選擇「安裝」或「加入主畫面」。',
+  'android-opera': '在 Opera 開啟選單，再選擇「安裝應用程式」或「加入主畫面」。',
+  'android-samsung': '在 Samsung Internet 開啟選單，再選擇「新增頁面至」→「主畫面」或「安裝應用程式」。',
+  'android-huawei': '在華為瀏覽器開啟選單，再選擇「加入主畫面」或「安裝應用程式」。',
+  'android-xiaomi': '在小米瀏覽器開啟選單，再選擇「加入主畫面」或「安裝應用程式」。',
+  'android-oppo': '在 OPPO／HeyTap 瀏覽器開啟選單，再選擇「加入主畫面」或「安裝應用程式」。',
+  'android-vivo': '在 vivo 瀏覽器開啟選單，再選擇「加入主畫面」或「安裝應用程式」。',
+  'android-honor': '在 HONOR 瀏覽器開啟選單，再選擇「加入主畫面」或「安裝應用程式」。',
+}
+
+const INSTALL_HINTS_PT: Record<InstallHintKey, string> = {
+  'ios-safari': 'No Safari, toque em Partilhar e depois em Adicionar ao ecrã principal para abrir o Mini Map Macau como uma app.',
+  'ios-chrome': 'No Chrome, toque em Partilhar e depois em Adicionar ao ecrã principal para abrir o Mini Map Macau como uma app.',
+  'ios-edge': 'No Edge, toque em Partilhar e depois em Adicionar ao ecrã principal para abrir o Mini Map Macau como uma app.',
+  'android-install': 'Toque em Instalar para adicionar o Mini Map Macau ao ecrã principal e abri-lo como uma app.',
+  'android-chrome-menu': 'No Chrome, abra o menu e escolha Instalar aplicação ou Adicionar ao ecrã principal.',
+  'android-edge': 'No Edge para Android, abra o menu e escolha Instalar aplicação ou Adicionar ao ecrã principal.',
+  'android-firefox': 'No Firefox, abra o menu e escolha Instalar ou Adicionar ao ecrã principal.',
+  'android-opera': 'No Opera, abra o menu e escolha Instalar aplicação ou Adicionar ao ecrã principal.',
+  'android-samsung': 'No Samsung Internet, abra o menu e escolha Adicionar página a → Ecrã principal ou Instalar aplicação.',
+  'android-huawei': 'No Huawei Browser, abra o menu e escolha Adicionar ao ecrã principal ou Instalar aplicação.',
+  'android-xiaomi': 'No Mi Browser, abra o menu e escolha Adicionar ao ecrã principal ou Instalar aplicação.',
+  'android-oppo': 'No OPPO ou HeyTap Browser, abra o menu e escolha Adicionar ao ecrã principal ou Instalar aplicação.',
+  'android-vivo': 'No vivo Browser, abra o menu e escolha Adicionar ao ecrã principal ou Instalar aplicação.',
+  'android-honor': 'No HONOR Browser, abra o menu e escolha Adicionar ao ecrã principal ou Instalar aplicação.',
 }
 
 const translations = {
@@ -454,6 +509,13 @@ const translations = {
     wasteSourceDspa: 'Environmental Protection Bureau (DSPA)',
     // ---- VehicleInfoPanel ----
     terminalStop: 'End',
+    // ---- Add to Home Screen ----
+    installAppTitle: 'Add to Home Screen',
+    installAppMenu: 'Install app',
+    installAppHint: (key: InstallHintKey) => INSTALL_HINTS_EN[key],
+    installAppNow: 'Install',
+    installAppLater: 'Later',
+    installAppDismiss: 'Got it',
   },
   zh: {
     lrtLines: '輕軌路線',
@@ -815,6 +877,12 @@ const translations = {
     wasteSourceIam: '市政署 (IAM)',
     wasteSourceDspa: '環境保護局 (DSPA)',
     terminalStop: '終站',
+    installAppTitle: '加入主畫面',
+    installAppMenu: '安裝 App',
+    installAppHint: (key: InstallHintKey) => INSTALL_HINTS_ZH[key],
+    installAppNow: '安裝',
+    installAppLater: '稍後',
+    installAppDismiss: '知道了',
   },
   pt: {
     lrtLines: 'Linhas MLM',
@@ -1177,6 +1245,12 @@ const translations = {
     wasteSourceIam: 'Instituto para os Assuntos Municipais (IAM)',
     wasteSourceDspa: 'Direcção dos Serviços de Protecção Ambiental (DSPA)',
     terminalStop: 'Terminal',
+    installAppTitle: 'Adicionar ao ecrã principal',
+    installAppMenu: 'Instalar app',
+    installAppHint: (key: InstallHintKey) => INSTALL_HINTS_PT[key],
+    installAppNow: 'Instalar',
+    installAppLater: 'Mais tarde',
+    installAppDismiss: 'Entendido',
   },
 }
 
@@ -1528,6 +1602,12 @@ export interface Translations {
   wasteSourceIam: string
   wasteSourceDspa: string
   terminalStop: string
+  installAppTitle: string
+  installAppMenu: string
+  installAppHint: (key: InstallHintKey) => string
+  installAppNow: string
+  installAppLater: string
+  installAppDismiss: string
 }
 
 interface I18nContextValue {

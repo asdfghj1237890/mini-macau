@@ -84,7 +84,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 - **Dark/Light mode** — Two map styles (CARTO Dark Matter / Positron)
 - **Trilingual UI** — English / 繁體中文 / Português — flight destinations, station names, and all labels switch with the language
 - **Cyberpunk-styled menu** — Hamburger menu with Orbitron-font title and gradient branding
-- **Responsive mobile UI** — Hamburger menu for map controls, a chip stack for LRT / Bus / Air / Sea plus one CITY chip that opens a list of the four city layers (each keeps its own modal), optimized touch layout with safe-area support
+- **Responsive mobile UI** — Hamburger menu for map controls, a chip stack for LRT / Bus / Air / Sea plus one CITY chip that opens a list of the four city layers (each keeps its own modal), optimized touch layout with safe-area support, and Add to Home Screen (a web app manifest plus an install card that names the Share / menu route for iOS and Android browsers)
 - **Lazy loading** — Code-split panels (VehicleInfoPanel, StationInfoPanel, FlightInfoPanel, RoadWorkInfoPanel, SchoolInfoPanel, ToiletInfoPanel, CarParkInfoPanel, WasteSiteInfoPanel, WasteIncineratorInfoPanel, WasteEcoStationInfoPanel, WasteFacilityInfoPanel) for fast initial load
 - **Automated flight data** — GitHub Actions workflow syncs MFM flight schedules from the [AviationStack](https://aviationstack.com/) API daily
 

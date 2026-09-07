@@ -16,3 +16,16 @@ createRoot(document.getElementById('root')!).render(
     </I18nProvider>
   </StrictMode>,
 )
+
+// A registered worker with a fetch handler is what makes Chromium fire
+// `beforeinstallprompt` — the one-tap INSTALL in the add-to-home-screen
+// card. `public/sw.js` caches nothing (the note there says why). Production
+// only: a worker registered against the dev server would outlive its
+// restarts.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {
+      // Without a worker the card still explains the manual route.
+    })
+  })
+}

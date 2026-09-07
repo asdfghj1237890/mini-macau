@@ -122,6 +122,8 @@ import { RaceCar3DLayer } from '../layers/RaceCar3DLayer'
 import { toggleTheme as toggleStoredTheme, useTheme } from '../theme'
 import { useI18n } from '../i18n'
 import { ga } from '../analytics/ga'
+import { usePwaInstall } from '../hooks/usePwaInstall'
+import { beginInstallTracking, detectInstallPlatform, requestInstall, showInstallGuide } from '../pwaInstall'
 import { debugEnabled, debugLog, debugStat } from '../debugOverlay'
 
 // URL switches for narrowing down a device the map dies on (the `?debug=1`
@@ -1959,6 +1961,28 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   }, [])
   const getZoomSnapshot = useCallback(() => zoomStoreRef.current.value, [])
   const { lang, t, setLang } = useI18n()
+
+  // The drawer's APP row: the browser's own install dialog where Chromium
+  // offers one, the add-to-home-screen card elsewhere, nothing once the page
+  // runs installed. Tracking is reference-counted, so starting it here as
+  // well as in the card is harmless.
+  const { installEvent: installPromptEvent, installed: appInstalled } = usePwaInstall()
+  const [installPlatform] = useState(() => detectInstallPlatform(navigator))
+  useEffect(() => beginInstallTracking(), [])
+  const canOfferInstall = !appInstalled && (installPromptEvent !== null || installPlatform !== undefined)
+  const offerInstall = () => {
+    setMenuOpen(false)
+    if (installPromptEvent) {
+      const platform = installPlatform ?? 'desktop'
+      void requestInstall().then(
+        outcome => ga.pwaInstallPrompt(outcome === 'accepted' ? 'accepted' : 'dismissed', platform, 'drawer'),
+        () => ga.pwaInstallPrompt('error', platform, 'drawer'),
+      )
+    } else if (installPlatform) {
+      ga.pwaInstallPrompt('shown', installPlatform, 'drawer')
+      showInstallGuide()
+    }
+  }
   const isDarkRef = useRef(isDark)
   const langRef = useRef(lang)
   const is3DRef = useRef(is3D)
@@ -4807,6 +4831,14 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
                 active={false}
                 onClick={() => { ga.infoPanelOpened(); window.miniMacauInfo?.open(); setMenuOpen(false) }}
               />
+              {canOfferInstall && (
+                <DrawerRow
+                  code="APP"
+                  label={t.installAppMenu}
+                  active={false}
+                  onClick={offerInstall}
+                />
+              )}
             </div>
           </div>
 

@@ -3,6 +3,7 @@ import { ControlPanel } from './components/ControlPanel'
 import { LineLegend } from './components/LineLegend'
 import { TimeDisplay } from './components/TimeDisplay'
 import { MapSplash } from './components/MapSplash'
+import { PwaInstallPrompt } from './components/PwaInstallPrompt'
 import { useSimulationClock, useClockMinute } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
 import { useServiceStatus } from './hooks/useServiceStatus'
@@ -1120,6 +1121,7 @@ export default function App() {
         onResetAuto={onResetAuto}
       />
       {!clockHidden && <ControlPanel clock={clock} />}
+      <PwaInstallPrompt />
       <Suspense>
         {selectedVehicle && selectedVehicle.type === 'flight' && (
           <FlightInfoPanel

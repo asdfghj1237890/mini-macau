@@ -268,4 +268,16 @@ export const ga = {
   vehicleTracked(type: string, id: string): void {
     track('vehicle_tracked', { vehicle_type: type, vehicle_id: id })
   },
+  /**
+   * The add-to-home-screen card and the drawer's APP row. `shown` is the
+   * card appearing on its own; `accepted` / `dismissed` are the browser's
+   * own install dialog; `later` / `acknowledged` are the card's buttons.
+   */
+  pwaInstallPrompt(
+    outcome: 'shown' | 'accepted' | 'dismissed' | 'later' | 'acknowledged' | 'error',
+    platform: string,
+    source: 'card' | 'drawer' = 'card',
+  ): void {
+    track('pwa_install_prompt', { outcome, platform, source })
+  },
 }
