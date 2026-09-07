@@ -318,7 +318,10 @@ const translations = {
     // The three points where the Guangdong grid lands — nodes of our schematic
     // network, not CEM stations.
     powerTypeInlet: 'Grid import point',
-    powerInletNote: 'Imported from the Guangdong grid: about 91% of the electricity Macau used in 2025.',
+    powerInletNote: (share: { pct: number; year: number } | null) =>
+      share
+        ? `Imported from the Guangdong grid: about ${share.pct}% of the electricity Macau used in ${share.year}.`
+        : 'Imported from the Guangdong grid.',
     // Shown wherever the HV network is drawn or described: it is OUR diagram,
     // not CEM's cable routes, which are underground and not public.
     powerNetworkNote: 'Schematic grid',
@@ -698,7 +701,10 @@ const translations = {
     powerTypeSub110: '110 kV 變電站',
     powerTypeSub66: '66 kV 變電站',
     powerTypeInlet: '廣東電網輸入',
-    powerInletNote: '廣東電網輸入 · 2025 年約 91% 用電來自輸入。',
+    powerInletNote: (share: { pct: number; year: number } | null) =>
+      share
+        ? `廣東電網輸入 · ${share.year} 年約 ${share.pct}% 用電來自輸入。`
+        : '廣東電網輸入。',
     powerNetworkNote: '電網為示意',
     powerLines: (n: number) => `連接 ${n} 條線路`,
     powerLineVoltage: (kv: number) => `${kv} kV 線路`,
@@ -1054,7 +1060,10 @@ const translations = {
     powerTypeSub110: 'Subestação de 110 kV',
     powerTypeSub66: 'Subestação de 66 kV',
     powerTypeInlet: 'Ponto de importação da rede',
-    powerInletNote: 'Importação da rede de Guangdong: cerca de 91% da electricidade usada em Macau em 2025.',
+    powerInletNote: (share: { pct: number; year: number } | null) =>
+      share
+        ? `Importação da rede de Guangdong: cerca de ${share.pct}% da electricidade usada em Macau em ${share.year}.`
+        : 'Importação da rede de Guangdong.',
     powerNetworkNote: 'Rede eléctrica esquemática',
     powerLines: (n: number) => `${n} linha${n === 1 ? '' : 's'} ligada${n === 1 ? '' : 's'}`,
     powerLineVoltage: (kv: number) => `Linha de ${kv} kV`,
@@ -1407,7 +1416,7 @@ export interface Translations {
   powerTypeSub110: string
   powerTypeSub66: string
   powerTypeInlet: string
-  powerInletNote: string
+  powerInletNote: (share: { pct: number; year: number } | null) => string
   powerNetworkNote: string
   powerLines: (n: number) => string
   powerLineVoltage: (kv: number) => string

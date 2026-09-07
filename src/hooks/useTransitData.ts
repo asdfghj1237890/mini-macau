@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, GrandPrixFile, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -156,12 +156,13 @@ interface WaterFacilitiesFile {
 }
 
 // power-facilities.json — CEM's generation and HV substations, same envelope
-// pattern again: only `facilities` and the optional `network` reach TransitData,
-// `sources` stays provenance metadata (the panel and the sidebar carry static
-// labels).
+// pattern again: `facilities`, `facts` and the optional `network` reach
+// TransitData, `sources` stays provenance metadata (the panel and the sidebar
+// carry static labels).
 interface PowerFacilitiesFile {
   fetchedAtUtc: string
   sources: Record<string, string>
+  facts: PowerFacts
   facilities: PowerFacility[]
   // Optional like the water file's: a file with no HV edge list simply draws no
   // lines rather than failing validation.
@@ -409,6 +410,7 @@ export function useTransitData(): UseTransitDataResult {
     waterNetwork: null,
     powerFacilities: [],
     powerNetwork: null,
+    powerFacts: null,
     grandPrix: null,
     grandPrixSources: [],
     loading: true,
@@ -581,6 +583,7 @@ export function useTransitData(): UseTransitDataResult {
       .then(file => {
         commit('powerFacilities', file.facilities)
         commit('powerNetwork', file.network ?? null)
+        commit('powerFacts', file.facts)
       })
       .catch(() => {})
 

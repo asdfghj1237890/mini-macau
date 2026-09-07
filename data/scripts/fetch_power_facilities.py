@@ -2,29 +2,38 @@
 transmission assets, plus a SCHEMATIC 220/110/66 kV grid drawn along the roads.
 
 Sources
-  * The LIST is CEM's「營運」page
-    https://www.cem-macau.com/zh/about-cem/company-profile/operation/
-    — the 輸電及接駁網絡圖 legend and the three voltage-level tables name the
-    substations; the prose carries the 2025 figures (6,259.7 GWh consumed,
-    9 % generated locally / 91 % imported from Guangdong, 「29 座高壓變電站、
-    8 座高壓開關站」, 1,088 km of HV cable) and the interconnection history
-    (1984 first 110 kV link; the 2008 / 2012 / 2022 corridors commissioned
-    with 鴨涌河, 蓮花 and 北安變電站). Nothing is traced from the page's
-    diagram, which is copyrighted and not georeferenced: only the facts.
+  * The LIST and the FIGURES are CEM's「營運」page, read live by cem_operation.py
+    https://www.cem-macau.com/zh/about-cem/company-profile/operation/ (and /en/)
+    — the 輸電及接駁網絡圖's voltage layers name the substations; the prose
+    carries the year's figures (GWh consumed, generated locally and imported
+    from Guangdong with their percentages, 「29 座高壓變電站、8 座高壓開關站」,
+    1,088 km of HV cable) and the interconnection history (1984 first 110 kV
+    link; the 2008 / 2012 / 2022 corridors commissioned with 鴨涌河, 蓮花 and
+    北安變電站). Nothing is traced from the page's diagram, which is copyrighted
+    and not georeferenced: only the names and the facts. The English names in
+    SUBSTATIONS are the English page's, in title case with SS / SWS&SS spelt out.
   * The GEOMETRY is OpenStreetMap via Overpass, plus the OpenFreeMap basemap
     tiles the map itself draws (see osm_footprints.py for why we re-cut OSM
     outlines against the basemap's own building parts).
 
 COUNTING. CEM's headline is「29 座高壓變電站、8 座高壓開關站」, but the page never
 says which asset falls in which bucket — several sites are a 開關站及變電站, i.e.
-both. What the page DOES enumerate is names: its three voltage tables list 33
-distinct substation names (澳北 A and 澳北 B are separate rows there, and OSM
+both. What the page DOES enumerate is names: its voltage layers list 33
+distinct substation names (澳北 A and 澳北 B are separate markers there, and OSM
 maps them as one site, so they collapse into one facility here) and the
 interconnection prose adds 北安變電站. That is the list SUBSTATIONS below
 carries — 33 facilities — and the file records CEM's own 29/8 headline in
 `facts` rather than trying to reverse-engineer their split. `level` is the
 HIGHEST voltage a site carries, so 澳北 (110/66) is a `sub110` and 路氹
 (110/66) is a `sub110`, not a `sub66`.
+
+CHECKING. SUBSTATIONS is still hand-written — a new station needs an OSM match
+and a place in the schematic grid, which no script can guess — but every run
+compares it with the page in both languages (check_against_cem): a name that
+appeared, disappeared or changed level, or a corridor year that moved, fails
+the run before anything is written. The figures (`facts` and the Coloane
+plant's unit prose) are NOT hand-written: they are read from the page each run,
+so the scheduled refresh picks up CEM's next annual update by itself.
 
 MATCHING. Each CEM name is matched to an OSM `power=substation` area by its
 Chinese base name — the OSM `name` tag's first whitespace-separated token,
@@ -46,12 +55,13 @@ an OSRM driving route so a line follows the streets instead of cutting through
 blocks. The UI has to say the grid is schematic (「電網為示意」); treating it as
 CEM's real cable routes would be wrong.
 
-Run manually when the CEM page or OSM changes (not scheduled, like
-fetch_water_facilities.py):
+Scheduled twice a year by .github/workflows/update-power-facilities.yml (CEM
+posts the previous year's figures on this page during the year), and run by hand
+when OSM or the page changes:
     cd data && uv run python scripts/fetch_power_facilities.py
-Needs network (overpass-api.de + tiles.openfreemap.org + router.project-osrm.org).
-Overpass and OSRM answers are cached in the OS temp dir, so a re-run right
-after a failed one is cheap.
+Needs network (cem-macau.com + overpass-api.de + tiles.openfreemap.org +
+router.project-osrm.org). The CEM pages, Overpass and OSRM answers are cached in
+the OS temp dir, so a re-run right after a failed one is cheap.
 """
 
 import hashlib
@@ -65,6 +75,17 @@ from pathlib import Path
 
 from shapely.geometry import LineString, Polygon
 
+from cem_operation import (
+    OPERATION_URL,
+    CemFacts,
+    CemPageError,
+    cem_en_style,
+    facts_json,
+    norm_en_name,
+    norm_zh_name,
+    read_cem,
+    voltage_levels,
+)
 from osm_footprints import (
     MACAU_BBOX,
     TilePartIndex,
@@ -84,7 +105,8 @@ from osrm_route import get_road_geometry, path_enters_hengqin
 ROOT = Path(__file__).parent.parent.parent
 OUTPUT_PATH = ROOT / "public" / "data" / "power-facilities.json"
 
-OPERATION_PAGE = "https://www.cem-macau.com/zh/about-cem/company-profile/operation/"
+OPERATION_PAGE = OPERATION_URL.format(lang="zh")
+OPERATION_PAGE_EN = OPERATION_URL.format(lang="en")
 OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright"
 SOURCE_NAME = "澳電 (CEM) – 營運 · OpenStreetMap"
 SCHEMATIC_NOTE = (
@@ -113,25 +135,11 @@ EXPECTED_COUNT = SUBSTATION_COUNT + 2  # + the power station + the incinerator
 MIN_WITH_BUILDINGS = 20
 MAX_APPROXIMATE = 8
 
-# 2025 figures, straight off the CEM page. Shipped so the UI can say where the
-# power comes from without hard-coding numbers in three languages of frontend.
-FACTS = {
-    "year": 2025,
-    "consumptionGwh": 6259.7,
-    "localGenerationGwh": 582.9,
-    "importedGwh": 5676.8,
-    "localSharePct": 9,
-    "importedSharePct": 91,
-    # CEM's own headline, kept verbatim next to our 33-name list — see the
-    # COUNTING note in the module docstring.
-    "cemHvSubstations": 29,
-    "cemHvSwitchingStations": 8,
-    "hvCableKm": 1088,
-    "interconnectionCorridors": 3,
-    "interconnectionCapacityMw": 1700,
-    "interconnection220kvCircuits": 8,
-    "interconnection110kvBackupCircuits": 4,
-}
+# The figures — the file's `facts` block and the Coloane plant's unit prose —
+# are read from CEM's page at run time (cem_operation.py), so the UI can say
+# where the power comes from without a number hard-coded anywhere in the repo.
+# CEM's own 29/8 headline is kept verbatim next to our 33-name list — see the
+# COUNTING note in the module docstring.
 
 # ----------------------------------------------------------------------------
 # Generation.
@@ -140,17 +148,8 @@ PLANTS = [
     dict(
         id="plant-coloane", type="plant", operator="cem", osm=["w192095882"],
         zh="路環發電廠", en="Coloane Power Station", pt="Central Térmica de Coloane",
-        details={
-            "capacityMw": 407.8,
-            "unitsZh": "A 廠 271.4 MW 低速柴油機組（1978–1996 年投產，2025 年佔本地發電量 6%）；"
-                       "B 廠 136.4 MW 複式循環燃氣渦輪機組（2002–2003 年投產，佔 94%）",
-            "unitsEn": "Station A: 271.4 MW low-speed diesel (commissioned 1978–1996, 6% of "
-                       "2025 local output); Station B: 136.4 MW combined-cycle gas turbine "
-                       "(2002–2003, 94%)",
-            "unitsPt": "Central A: 271,4 MW a diesel de baixa velocidade (1978–1996, 6% da "
-                       "produção local em 2025); Central B: 136,4 MW de ciclo combinado a gás "
-                       "(2002–2003, 94%)",
-        },
+        # Worded from the page's figures at run time — coloane_details().
+        details=None,
     ),
     dict(
         id="incinerator", type="incinerator", operator="dspa", osm=["w530851414"],
@@ -160,12 +159,38 @@ PLANTS = [
     ),
 ]
 
+
+def coloane_details(c: CemFacts) -> dict:
+    """The Coloane plant's `details`: the two stations' capacity, technology,
+    commissioning years and their share of CEM's own generation in the year the
+    page reports. Technology and wording are ours; every number is the page's."""
+    a0, a1 = c.station_a_years
+    b0, b1 = c.station_b_years
+    a_mw, b_mw = f"{c.station_a_mw:g}", f"{c.station_b_mw:g}"
+    a_pct, b_pct = c.station_a_share_pct, c.station_b_share_pct
+    return {
+        "capacityMw": round(c.station_a_mw + c.station_b_mw, 1),
+        "unitsZh": (f"A 廠 {a_mw} MW 低速柴油機組（{a0}–{a1} 年投產，{c.year} 年佔本地發電量 {a_pct}%）；"
+                    f"B 廠 {b_mw} MW 複式循環燃氣渦輪機組（{b0}–{b1} 年投產，佔 {b_pct}%）"),
+        "unitsEn": (f"Station A: {a_mw} MW low-speed diesel (commissioned {a0}–{a1}, {a_pct}% of "
+                    f"{c.year} local output); Station B: {b_mw} MW combined-cycle gas turbine "
+                    f"({b0}–{b1}, {b_pct}%)"),
+        "unitsPt": (f"Central A: {a_mw.replace('.', ',')} MW a diesel de baixa velocidade "
+                    f"({a0}–{a1}, {a_pct}% da produção local em {c.year}); Central B: "
+                    f"{b_mw.replace('.', ',')} MW de ciclo combinado a gás ({b0}–{b1}, {b_pct}%)"),
+    }
+
 # ----------------------------------------------------------------------------
-# The substations (CEM's page), highest voltage first.
+# The substations (CEM's page), highest voltage first. Checked against the live
+# page every run (check_against_cem), in both languages.
 #
 #   kv       = the highest voltage the site carries -> `type` via LEVEL_TYPE
+#   zh / en  = CEM's own names: the Chinese page's, and the English page's in
+#              title case with its SS / SWS&SS abbreviations spelt out
 #   osm_name = the Chinese base name to match in OSM, when it differs from `zh`
 #   anchor   = "landmark:<slug>" for the five CEM sites OSM does not map
+#   listed   = False for a station the page names only in its prose, not on
+#              the voltage layers of the network map
 # ----------------------------------------------------------------------------
 SUBSTATIONS = [
     # --- 220 kV: the three Guangdong interconnection landing substations -----
@@ -174,7 +199,7 @@ SUBSTATIONS = [
     dict(id="sub-lotus", kv=220, zh="蓮花變電站",
          en="Lotus Substation", commissioned=2012),
     dict(id="sub-pac-on", kv=220, zh="北安變電站",
-         en="Pac On Substation", commissioned=2022),
+         en="Pac On Substation", commissioned=2022, listed=False),
     # --- 110 kV --------------------------------------------------------------
     # CEM lists 澳北 A 變電站 and 澳北 B 變電站 as two rows (A also carries 66 kV);
     # OSM maps the site once, as 澳北變電站 w713089729 tagged 110000;66000. One
@@ -182,7 +207,7 @@ SUBSTATIONS = [
     dict(id="sub-macau-norte", kv=110, zh="澳北變電站", osm_name="澳北",
          en="Macau Norte Substation", units="A + B"),
     dict(id="sub-jardins-do-oceano", kv=110, zh="海洋花園變電站",
-         en="Jardins do Oceano Substation"),
+         en="Ocean Garden Substation"),
     dict(id="sub-nova-taipa", kv=110, zh="新氹仔變電站", en="Nova Taipa Substation"),
     dict(id="sub-cotai", kv=110, zh="路氹變電站", en="Cotai Substation"),
     dict(id="sub-galaxy", kv=110, zh="銀河開關站及變電站",
@@ -192,15 +217,16 @@ SUBSTATIONS = [
     dict(id="sub-studio-city", kv=110, zh="新濠影匯開關站及變電站",
          en="Studio City Switching Station and Substation"),
     dict(id="sub-hzmb", kv=110, zh="大橋變電站",
-         en="HZMB Landing Point Substation"),
+         en="Bridge Landing Port Substation"),
     dict(id="sub-hospital", kv=110, zh="山頂醫院變電站",
-         en="Hospital Conde de São Januário Substation"),
+         en="Hospital Conde S. Januário Substation"),
     dict(id="sub-wynn", kv=110, zh="永利開關站及變電站",
-         en="Wynn Switching Station and Substation"),
+         en="Wynn Cotai Switching Station and Substation"),
     dict(id="sub-lrt-depot", kv=110, zh="車廠變電站",
-         en="LRT Depot Substation"),
+         en="Depot Substation"),
+    # CEM's Chinese page calls it a 開關站, the English page an SS.
     dict(id="sub-grand-lisboa-palace", kv=110, zh="上葡京開關站",
-         en="Grand Lisboa Palace Switching Station",
+         en="Lisboa Palace Substation",
          anchor="landmark:grand-lisboa-palace"),
     dict(id="sub-theme-park", kv=110, zh="樂園變電站", en="Theme Park Substation"),
     dict(id="sub-university", kv=110, zh="澳門大學變電站",
@@ -218,7 +244,7 @@ SUBSTATIONS = [
     dict(id="sub-porto-exterior", kv=66, zh="外港變電站",
          en="Porto Exterior Substation", anchor="landmark:porto-exterior"),
     dict(id="sub-taipa", kv=66, zh="氹仔變電站", en="Taipa Substation"),
-    dict(id="sub-cirs", kv=66, zh="焚化爐變電站", en="Incineration Plant Substation"),
+    dict(id="sub-cirs", kv=66, zh="焚化爐變電站", en="CIRS Incineration Plant Substation"),
     dict(id="sub-venetian", kv=66, zh="威尼斯人變電站", en="Venetian Substation",
          anchor="landmark:venetian"),
     dict(id="sub-city-of-dreams", kv=66, zh="新濠天地開關站及變電站",
@@ -228,8 +254,8 @@ SUBSTATIONS = [
     dict(id="sub-sheraton", kv=66, zh="喜來登開關站及變電站",
          en="Sheraton Switching Station and Substation", anchor="landmark:londoner"),
     dict(id="sub-coloane", kv=66, zh="路環變電站", en="Coloane Substation"),
-    dict(id="sub-ka-ho", kv=66, zh="九澳變電站", en="Ká Hó Substation"),
-    dict(id="sub-concordia", kv=66, zh="聯生變電站", en="Concórdia Substation"),
+    dict(id="sub-ka-ho", kv=66, zh="九澳變電站", en="Kao-Hou Substation"),
+    dict(id="sub-concordia", kv=66, zh="聯生變電站", en="Concordia Substation"),
 ]
 
 # Where a marker-only substation is hung. Resolved by NAME (not by a hard-coded
@@ -652,9 +678,80 @@ def finalize(rec: dict, kind: str) -> dict:
 
 
 # ----------------------------------------------------------------------------
+# CEM's page vs SUBSTATIONS
+# ----------------------------------------------------------------------------
+def check_against_cem(zh_levels: dict[str, int], en_levels: dict[str, int],
+                      zh_prose: str, en_prose: str, cem: CemFacts) -> list[str]:
+    """Every name on the page's voltage layers must be in SUBSTATIONS at the same
+    highest level — in Chinese AND in English — and nothing in SUBSTATIONS may
+    have left the page; the prose-only station must still be in the prose, and
+    the corridor years must still be the ones the 220 kV stations and the inlet
+    nodes carry. Any difference is a hand edit (a new station needs an OSM match
+    and a place in the schematic grid), so the caller refuses to write."""
+    problems: list[str] = []
+    listed = [f for f in SUBSTATIONS if f.get("listed", True)]
+    for lang, levels, norm, style in (
+        ("zh", zh_levels, norm_zh_name, lambda f: f["zh"]),
+        ("en", en_levels, norm_en_name, lambda f: cem_en_style(f["en"])),
+    ):
+        ours = {norm(style(f)): f for f in listed}
+        page: dict[str, int] = {}  # 澳北 A / 澳北 B collapse onto one key
+        for name, kv in levels.items():
+            key = norm(name)
+            page[key] = max(kv, page.get(key, 0))
+        for key in sorted(page.keys() - ours.keys()):
+            problems.append(f"CEM's {lang} page lists {key!r} ({page[key]} kV), "
+                            "which SUBSTATIONS lacks")
+        for key in sorted(ours.keys() - page.keys()):
+            problems.append(f"{ours[key]['id']} ({key!r}) is no longer on CEM's {lang} page")
+        for key in sorted(ours.keys() & page.keys()):
+            if ours[key]["kv"] != page[key]:
+                problems.append(f"{ours[key]['id']}: {ours[key]['kv']} kV in SUBSTATIONS, "
+                                f"{page[key]} kV on CEM's {lang} page")
+    for f in SUBSTATIONS:
+        if f.get("listed", True):
+            continue
+        if f["zh"] not in zh_prose:
+            problems.append(f"{f['id']}: {f['zh']} is not in the zh page's prose")
+        if f["en"] not in en_prose:
+            problems.append(f"{f['id']}: {f['en']!r} is not in the en page's prose")
+    landing = tuple(sorted(f["commissioned"] for f in SUBSTATIONS if f["kv"] == 220))
+    if landing != cem.corridor_years:
+        problems.append(f"the 220 kV landing stations were commissioned {landing}, "
+                        f"CEM's corridors {cem.corridor_years}")
+    inlets = tuple(sorted(n["since"] for n in INLET_NODES))
+    if inlets != cem.corridor_years:
+        problems.append(f"INLET_NODES carry {inlets}, CEM's corridors {cem.corridor_years}")
+    return problems
+
+
+# ----------------------------------------------------------------------------
 # main
 # ----------------------------------------------------------------------------
 def run() -> int:
+    # --- CEM's page: the figures, and is SUBSTATIONS still its list? ----------
+    print("Reading CEM's operation page (zh + en)...")
+    try:
+        cem, zh_page, en_page = read_cem()
+        problems = check_against_cem(
+            voltage_levels(zh_page), voltage_levels(en_page),
+            "\n".join(zh_page.prose), "\n".join(en_page.prose), cem,
+        )
+    except CemPageError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        print("refusing to write", file=sys.stderr)
+        return 1
+    if problems:
+        for p in problems:
+            print(f"ERROR: {p}", file=sys.stderr)
+        print("SUBSTATIONS no longer matches CEM's page — update the table (and the "
+              "schematic grid) by hand, then re-run; refusing to write", file=sys.stderr)
+        return 1
+    print(f"  {cem.year}: {cem.consumption_gwh:,.1f} GWh used, {cem.local_share_pct}% "
+          f"generated locally / {cem.imported_share_pct}% imported; "
+          f"{cem.hv_substations} HV substations + {cem.hv_switching_stations} switching "
+          f"stations; all {len(SUBSTATIONS)} names match the page in zh and en")
+
     # --- match the CEM table against OSM -------------------------------------
     elements = fetch_substations()
     by_base: dict[str, list[dict]] = {}
@@ -812,7 +909,7 @@ def run() -> int:
             "source": "cem" if p["operator"] == "cem" else "dspa",
             "osm": list(p["osm"]),
             "buildings": buildings,
-            "details": p["details"],
+            "details": coloane_details(cem) if p["id"] == "plant-coloane" else p["details"],
         })
 
     for f in SUBSTATIONS:
@@ -920,11 +1017,13 @@ def run() -> int:
         "sources": {
             "name": SOURCE_NAME,
             "operation": OPERATION_PAGE,
+            "operationEn": OPERATION_PAGE_EN,
             "osm": OSM_COPYRIGHT,
             "network": SCHEMATIC_NOTE,
             "incinerator": INCINERATOR_NOTE,
         },
-        "facts": FACTS,
+        # Read from the page this run — see cem_operation.py.
+        "facts": facts_json(cem),
         # Which OSM element each `landmark:<slug>` anchor resolved to, so a
         # reader can see where an approximate marker was hung.
         "anchors": {f"landmark:{slug}": rec for slug, rec in sorted(anchors.items())},

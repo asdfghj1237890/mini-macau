@@ -30,7 +30,8 @@ data/scripts/
 ├── fetch_schools.py           # manual; DSEDJ list + OSM footprints → schools.json
 ├── fetch_water_facilities.py  # manual; 澳門自來水的 22 個設施 + OSM → water-facilities.json
 ├── fetch_water_distribution.py # manual; 澳門境內道路，流向由清水設施定 → water-distribution.json
-├── fetch_power_facilities.py  # manual; 澳電的 33 座變電站 + 兩座電廠 + OSM → power-facilities.json
+├── fetch_power_facilities.py  # 半年一次; 澳電的 33 座變電站 + 兩座電廠 + OSM → power-facilities.json
+├── cem_operation.py           # 讀澳電「營運」頁（中、英）：當年數字 + 變電站名單，給上面那支核對用
 ├── fetch_power_distribution.py # manual; 同一份道路底稿，流向由變電站定 → power-distribution.json
 ├── road_network.py            # 上面兩支 *_distribution 共用：道路底稿 + 多源 Dijkstra 流向場
 ├── osm_footprints.py          # 學校／供水／供電共用：Overpass 存取 + basemap tile 足跡重切
@@ -176,9 +177,11 @@ cd data && uv run python scripts/fetch_water_facilities.py
 
 ### 電力 — `fetch_power_facilities.py` / `fetch_power_distribution.py`
 
-**清單是澳電的，幾何是 OSM 的，電網是我們畫的。** 名單與數字來自澳電「[營運](https://www.cem-macau.com/zh/about-cem/company-profile/operation/)」頁：頁上的「輸電及接駁網絡圖」圖例與 66／110／220 kV 三張表列出變電站名稱，散文則給了 2025 年的數字（用電量 6,259.7 GWh、本地發電 582.9 GWh 佔 9%、由廣東輸入 5,676.8 GWh 佔 91%、「29 座高壓變電站、8 座高壓開關站」、1,088 公里高壓電纜）與粵澳聯網沿革（1984 年首條 110 kV 線路；2008／2012／2022 年三條通道分別隨鴨涌河、蓮花、北安變電站投運，現為 8 回 220 kV 主供加 4 回 110 kV 備用，對澳輸電能力 1,700 MW）。那頁的網絡圖**有版權而且沒有地理座標**，一點都不描它——只取事實，座標一律來自 OpenStreetMap。
+**清單是澳電的，幾何是 OSM 的，電網是我們畫的。** 名單與數字來自澳電「[營運](https://www.cem-macau.com/zh/about-cem/company-profile/operation/)」頁（中、英文版都讀）：頁上的「輸電及接駁網絡圖」是一張圖加四個電壓圖層（66 kV、110 kV 125 MVA、110 kV 200 MVA、220 kV），每個圖層的標記各寫一個變電站名；散文則給了當年的數字（2026-09 讀到的是 2025 年：用電量 6,259.7 GWh、本地發電 582.9 GWh 佔 9%、由廣東輸入 5,676.8 GWh 佔 91%、「29 座高壓變電站、8 座高壓開關站」、1,088 公里高壓電纜）與粵澳聯網沿革（1984 年首條 110 kV 線路；2008／2012／2022 年三條通道分別隨鴨涌河、蓮花、北安變電站投運，現為 8 回 220 kV 主供加 4 回 110 kV 備用，對澳輸電能力 1,700 MW）。那頁的網絡圖**有版權而且沒有地理座標**，一點都不描它——只取名字與事實，座標一律來自 OpenStreetMap。
 
-**為什麼是 33 座而不是 29 座。** 澳電的標題數字是「29 座高壓變電站、8 座高壓開關站」，但頁上從沒說哪一座算哪一邊——好幾座名字就叫「開關站及變電站」，兩邊都算。頁上**真正列得出來的是名字**：三張電壓表合計 33 個不重複的變電站名（澳北 A 與澳北 B 在表上是兩列，OSM 只有一個 `澳北變電站` w713089729，所以在這裡併成一筆設施），加上散文裡的北安變電站。腳本的 `SUBSTATIONS` 表就是這 33 筆，檔案裡的 `facts` 則原樣保留澳電自己的 29／8 標題數字，不去逆推它的分類。`type` 取**最高**電壓（澳北是 110/66，算 `sub110`；路氹是 110/66，也算 `sub110`），`voltageKv` 必須跟 `type` 對得起來。
+**數字不寫死，名單寫死但每次核對。** [`cem_operation.py`](../../data/scripts/cem_operation.py) 每次執行都把兩個語言版本的頁面抓下來（暫存一天）：`facts` 區塊與路環發電廠的機組說明（A／B 廠容量、投產年份範圍、當年發電佔比）全部由頁面的固定句式用 regex 讀出，並以英文頁交叉核對（用電量、變電站標題數字不一致即失敗），所以澳電貼出下一年數字時，排程重跑就會自動更新；而 `SUBSTATIONS` 表仍是手寫的——新增一座站要對 OSM 足跡、要在示意電網裡找位置，腳本猜不來——但 `check_against_cem()` 會把表與頁面四個電壓圖層的名字（中文、英文各比一次，英文名採用澳電英文頁的寫法，把 SS／SWS&SS 拼回 Substation／Switching Station and Substation；澳北 A／B 這種同址分機組的標記合併比對）及最高電壓等級逐一比對，只出現在散文裡的北安變電站另外查散文，三條通道的年份也要跟 220 kV 站的 `commissioned` 與輸入點的 `since` 一致。任何一項不符就直接退出、**不寫檔**，排程 job 因而失敗，等人手補表。頁面若改版到句式對不上，同樣是 `CemPageError` 失敗，不會帶錯數字上線。
+
+**為什麼是 33 座而不是 29 座。** 澳電的標題數字是「29 座高壓變電站、8 座高壓開關站」，但頁上從沒說哪一座算哪一邊——好幾座名字就叫「開關站及變電站」，兩邊都算。頁上**真正列得出來的是名字**：四個電壓圖層合計 33 個不重複的變電站名（澳北 A 與澳北 B 在圖上是兩個標記，OSM 只有一個 `澳北變電站` w713089729，所以在這裡併成一筆設施），加上散文裡的北安變電站。腳本的 `SUBSTATIONS` 表就是這 33 筆，檔案裡的 `facts` 則原樣保留澳電自己的 29／8 標題數字，不去逆推它的分類。`type` 取**最高**電壓（澳北是 110/66，算 `sub110`；路氹是 110/66，也算 `sub110`），`voltageKv` 必須跟 `type` 對得起來。
 
 **名稱比對。** 每個澳電名字用「中文主名」去對 OSM 的 `power=substation` 面：取 OSM `name` 的第一個空白分隔 token，去掉尾綴的括號註記，再去掉 `變電站`／`開關站及變電站`／`開關站` 後綴，然後**比相等，絕不比包含**——`焚化爐` 不可以命中 `新焚化爐變電站`（那是另一座 110 kV 站）、`氹仔` 不可以命中 `新氹仔`、`路氹` 不可以命中 `路氹醫院變電站`。兩筆跟 OSM 寫法不同的（澳電寫「青州」、OSM 寫「青洲」；澳北 A/B）在表上寫死 `osm_name`。同名兩條 way 時（大橋變電站被畫了兩次，其中一條沒標 `voltage`）取有標 `voltage` 的、再取面積大的。
 
@@ -191,7 +194,10 @@ cd data && uv run python scripts/fetch_water_facilities.py
 ```bash
 cd data && uv run python scripts/fetch_power_facilities.py
 cd data && uv run python scripts/fetch_power_distribution.py   # 要先有 power-facilities.json
+cd data && uv run python scripts/cem_operation.py              # 只印頁面讀到的數字與名單，查腳本為何拒寫時用
 ```
+
+前者由 `update-power-facilities.yml` 每年 3 月 1 日與 9 月 1 日各跑一次（澳電大約每年更新一次前一年的數字），過 `validate_output.py power-facilities` 後由 `commit-data` action 提交、觸發部署；`fetch_power_distribution.py` 不排程——它的種子是變電站位置，而變電站**集合**在排程裡不可能變（變了會直接失敗），足跡挪幾公尺也不會改變道路的流向。
 
 產出 `public/data/power-facilities.json`（183 KiB，預算 400 KiB）與 `public/data/power-distribution.json`（622 KiB，預算 700 KiB）。前者跑完要過 `validate_output.py power-facilities`（守門條件：剛好 35 筆設施＝33 座變電站＋發電廠＋焚化中心、`id` 不重複、`type`／`operator`／`source` 都在列舉內、`voltageKv` 與 `type` 一致（發電側必須是 `null`）、座標在澳門範圍內、`approximate` 與 `anchor`／`osm` 互相自洽（近似的不得引 OSM id、精確的至少要引一個）、近似最多 8 筆、至少 20 筆有 `buildings`、發電廠的 `details` 有 `capacityMw` 與三語機組說明、`facts` 的兩個百分比加起來是 100；`network` 則是剛好 3 個 inlet 節點與 37 條線、`id` 不重複、`from`／`to` 都對得到設施或節點且不自環、`voltageKv` 在 220/110/66 內、`direct` 與 `fallback` 不會同時為真、`direct` 的剛好 2 個座標、其餘至少 2 個、**每一筆設施與節點都至少落在一條線上**、`fallback` 最多 3 條）。後者跟 `water-distribution` 共用同一個 validator（`v_distribution`）。
 

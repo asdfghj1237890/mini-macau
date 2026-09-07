@@ -1240,6 +1240,7 @@ export default function App() {
           <PowerInletInfoPanel
             node={selectedPowerNode}
             network={transitData.powerNetwork}
+            facts={transitData.powerFacts}
             onClose={clearSelection}
           />
         )}

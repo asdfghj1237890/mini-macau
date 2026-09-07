@@ -1,8 +1,9 @@
 {
-  "fetchedAtUtc": "2026-09-06T03:46:41.639511+00:00",
+  "fetchedAtUtc": "2026-09-07T07:34:42.987975+00:00",
   "sources": {
     "name": "澳電 (CEM) – 營運 · OpenStreetMap",
     "operation": "https://www.cem-macau.com/zh/about-cem/company-profile/operation/",
+    "operationEn": "https://www.cem-macau.com/en/about-cem/company-profile/operation/",
     "osm": "https://www.openstreetmap.org/copyright",
     "network": "The 220/110/66 kV network in `network` is a schematic drawn by this script (edge list + OSRM road geometry), not CEM's cable routes: Macau's HV grid is underground and not mapped.",
     "incinerator": "澳門垃圾焚化中心 is the government's incineration plant (DSPA/IAM), not a CEM asset; it sells its power to CEM through 焚化爐變電站."
@@ -14,6 +15,7 @@
     "importedGwh": 5676.8,
     "localSharePct": 9,
     "importedSharePct": 91,
+    "peakDemandMw": 1126.2,
     "cemHvSubstations": 29,
     "cemHvSwitchingStations": 8,
     "hvCableKm": 1088,
@@ -3823,7 +3825,7 @@
       "voltageKv": 110,
       "name": {
         "zh": "海洋花園變電站",
-        "en": "Jardins do Oceano Substation",
+        "en": "Ocean Garden Substation",
         "pt": "Subestação Jardins do Oceano"
       },
       "coordinates": [
@@ -4135,7 +4137,7 @@
       "voltageKv": 110,
       "name": {
         "zh": "大橋變電站",
-        "en": "HZMB Landing Point Substation",
+        "en": "Bridge Landing Port Substation",
         "pt": "Subestação do Ponto de Aterragem da Ponte Hong Kong-Zhuhai-Macau"
       },
       "coordinates": [
@@ -4190,7 +4192,7 @@
       "voltageKv": 110,
       "name": {
         "zh": "山頂醫院變電站",
-        "en": "Hospital Conde de São Januário Substation",
+        "en": "Hospital Conde S. Januário Substation",
         "pt": "Subestação Hospital Conde de São Januário"
       },
       "coordinates": [
@@ -4280,7 +4282,7 @@
       "voltageKv": 110,
       "name": {
         "zh": "永利開關站及變電站",
-        "en": "Wynn Switching Station and Substation",
+        "en": "Wynn Cotai Switching Station and Substation",
         "pt": "Subestação Wynn"
       },
       "coordinates": [
@@ -4335,7 +4337,7 @@
       "voltageKv": 110,
       "name": {
         "zh": "車廠變電站",
-        "en": "LRT Depot Substation",
+        "en": "Depot Substation",
         "pt": "Subestação Parque de Materiais e Oficina do Metro Ligeiro"
       },
       "coordinates": [
@@ -4456,7 +4458,7 @@
       "voltageKv": 110,
       "name": {
         "zh": "上葡京開關站",
-        "en": "Grand Lisboa Palace Switching Station",
+        "en": "Lisboa Palace Substation",
         "pt": ""
       },
       "coordinates": [
@@ -5216,7 +5218,7 @@
       "voltageKv": 66,
       "name": {
         "zh": "焚化爐變電站",
-        "en": "Incineration Plant Substation",
+        "en": "CIRS Incineration Plant Substation",
         "pt": "CIRS Subestação"
       },
       "coordinates": [
@@ -5447,7 +5449,7 @@
       "voltageKv": 66,
       "name": {
         "zh": "九澳變電站",
-        "en": "Ká Hó Substation",
+        "en": "Kao-Hou Substation",
         "pt": "Subestação Ká Hó"
       },
       "coordinates": [
@@ -5502,7 +5504,7 @@
       "voltageKv": 66,
       "name": {
         "zh": "聯生變電站",
-        "en": "Concórdia Substation",
+        "en": "Concordia Substation",
         "pt": "Subestação Concórdia"
       },
       "coordinates": [

@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useI18n } from '../i18n'
-import type { PowerFacility, PowerNetwork, PowerNetworkNode } from '../types'
+import type { PowerFacility, PowerFacts, PowerNetwork, PowerNetworkNode } from '../types'
 import {
   POWER_COLORS,
   POWER_INLET_COLOR,
@@ -261,14 +261,17 @@ export function PowerFacilityInfoPanel({ facility, facilities, network, onClose 
 interface InletProps {
   node: PowerNetworkNode
   network: PowerNetwork | null
+  facts: PowerFacts | null
   onClose: () => void
 }
 
 // A Guangdong import point. Not a CEM facility but the point three of the
-// 220 kV corridors start from, so it gets a panel of its own: the name, what it
-// is, and the single fact that makes it worth a marker — 91 % of the
-// electricity Macau used in 2025 came in through points like this one.
-export function PowerInletInfoPanel({ node, network, onClose }: InletProps) {
+// 220 kV corridors start from, so it gets a panel of its own: the name, what
+// it is, and the single fact that makes it worth a marker — the share of
+// Macau's electricity that came in through points like this one, read from
+// power-facilities.json's `facts` block (see `powerInletNote` in i18n) rather
+// than a hard-coded figure.
+export function PowerInletInfoPanel({ node, network, facts, onClose }: InletProps) {
   const { lang, t } = useI18n()
   const title = pickPowerText(node.name, lang)
   const subtitle = otherScript(node.name, lang, title)
@@ -284,7 +287,7 @@ export function PowerInletInfoPanel({ node, network, onClose }: InletProps) {
       onClose={onClose}
     >
       <div className="px-3 py-2 text-[11px] text-(--mm-fg)/75 mm-han leading-[1.5]">
-        {t.powerInletNote}
+        {t.powerInletNote(facts ? { pct: facts.importedSharePct, year: facts.year } : null)}
       </div>
       {node.approximate && (
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-[10px] text-(--mm-text-secondary) mm-han leading-[1.4]">

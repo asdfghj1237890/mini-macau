@@ -1,0 +1,91 @@
+name: Update Power Facilities
+
+on:
+  schedule:
+    # Twice a year: 1 March and 1 September at 19:30 UTC = 03:30 Macau (UTC+8)
+    # on the 2nd. CEM's 營運 page changes about once a year, when the previous
+    # year's generation / import figures are posted, and its substation list
+    # moves slower still, so two checks a year pick up a new year's figures
+    # within months without leaning on CEM, Overpass or the OSRM demo server.
+    # `workflow_dispatch` covers anything urgent. The off-the-hour minute plus
+    # the in-job random delay below jitter the fetch window like the other data
+    # jobs; the combined window lands somewhere in 03:30–04:20 Macau.
+    - cron: '30 19 1 3,9 *'
+  workflow_dispatch: # allow manual trigger from GitHub UI
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      # Consumed by the deploy job below.
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          version: latest
+
+      - name: Random pre-fetch delay (jitter)
+        # Skipped on workflow_dispatch so manual triggers run immediately.
+        # 0–3000s = 0–50 minutes of jitter on top of the cron minute.
+        if: github.event_name == 'schedule'
+        run: |
+          delay=$((RANDOM % 3000))
+          echo "Sleeping ${delay}s before fetching..."
+          sleep "$delay"
+
+      - name: Read CEM's operation page, match OSM footprints, draw the schematic grid (with retry)
+        working-directory: data
+        # fetch_power_facilities.py reads CEM's 營運 page (zh + en) for the year's
+        # figures and checks its hand-written substation table against the page
+        # in both languages. A name that appeared, disappeared or changed level
+        # makes it exit non-zero WITHOUT writing, so this job fails: that is a
+        # hand edit (an OSM match and a place in the schematic grid), not
+        # something a retry fixes. The retry below is for Overpass 429s and OSRM
+        # hiccups, which the script's own in-process backoff and caches usually
+        # absorb on their own. power-distribution.json is deliberately not
+        # regenerated here: it is seeded from the substations' positions, the
+        # substation SET cannot change in this job (the check fails the run
+        # instead), and a footprint shift of a few metres does not turn a road.
+        run: |
+          attempt=1
+          max_attempts=2
+          until uv run python scripts/fetch_power_facilities.py; do
+            if [ $attempt -ge $max_attempts ]; then
+              echo "::error::fetch_power_facilities.py failed after $attempt attempts"
+              exit 1
+            fi
+            echo "::warning::fetch_power_facilities.py attempt $attempt failed — retrying in 60s"
+            sleep 60
+            attempt=$((attempt + 1))
+          done
+
+      - name: Validate output before commit
+        working-directory: data
+        # Hard gate: a malformed file fails the run here, before the commit
+        # step, so broken data can never auto-deploy to production.
+        run: uv run python scripts/validate_output.py power-facilities
+
+      - name: Commit and push if changed
+        id: commit
+        uses: ./.github/actions/commit-data
+        with:
+          file: public/data/power-facilities.json
+          message: 'chore: update CEM power facilities and figures'
+
+  # Pushes made with the default GITHUB_TOKEN don't fire `on: push` workflows
+  # (anti-recursion), so the data commit above would never reach the live site
+  # on its own. Invoke the deploy workflow explicitly when we committed.
+  deploy:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    permissions:
+      contents: read
+      deployments: write
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: master
+    secrets: inherit

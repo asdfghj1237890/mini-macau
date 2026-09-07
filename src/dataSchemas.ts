@@ -606,9 +606,33 @@ const powerNetwork = z.object({
   ),
 })
 
+// The published facts CEM reports roughly twice a year — the info panel reads
+// these instead of a hard-coded percentage/year. Mirrors the `facts` block in
+// `v_power_facilities` in data/scripts/validate_output.py: six keys are
+// required, the rest are optional extra detail. `facts` itself is REQUIRED on
+// the file, same as the Python validator.
+const powerFacts = z.object({
+  year: z.number().int().positive(),
+  consumptionGwh: z.number().positive(),
+  localGenerationGwh: z.number().optional(),
+  importedGwh: z.number().optional(),
+  localSharePct: z.number().int().min(0).max(100),
+  importedSharePct: z.number().int().min(0).max(100),
+  cemHvSubstations: z.number().int().positive(),
+  cemHvSwitchingStations: z.number().optional(),
+  hvCableKm: z.number().int().positive(),
+  interconnectionCorridors: z.number().optional(),
+  interconnectionCapacityMw: z.number().optional(),
+  interconnection220kvCircuits: z.number().optional(),
+  interconnection110kvBackupCircuits: z.number().optional(),
+}).refine(f => f.localSharePct + f.importedSharePct === 100, {
+  message: 'power-facilities.facts: localSharePct and importedSharePct must sum to 100',
+})
+
 export const PowerFacilitiesFileSchema = z.object({
   fetchedAtUtc: z.string(),
   sources: z.record(z.string(), z.string()),
+  facts: powerFacts,
   facilities: z.array(
     z.object({
       id: z.string(),

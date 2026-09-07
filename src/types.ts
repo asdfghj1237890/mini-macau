@@ -706,6 +706,27 @@ export interface PowerNetwork {
   lines: PowerLine[]
 }
 
+// CEM's published consumption and import-share figures, refreshed roughly
+// twice a year — the info panel reads these instead of a hard-coded
+// percentage/year (see `powerInletNote` in i18n). The six keys
+// `validate_output.py` requires are typed `number`; the rest add detail CEM
+// does not always publish, so they are optional.
+export interface PowerFacts {
+  year: number
+  consumptionGwh: number
+  localSharePct: number
+  importedSharePct: number
+  cemHvSubstations: number
+  hvCableKm: number
+  localGenerationGwh?: number
+  importedGwh?: number
+  cemHvSwitchingStations?: number
+  interconnectionCorridors?: number
+  interconnectionCapacityMw?: number
+  interconnection220kvCircuits?: number
+  interconnection110kvBackupCircuits?: number
+}
+
 // One road of the schematic DISTRIBUTION network: Macau's own streets, from
 // power-distribution.json, drawn as thin feeders under the HV corridors. Same
 // contract and same reasoning as WaterDistributionRoad, oriented outward from
@@ -845,6 +866,9 @@ export interface TransitData {
   // The schematic HV network, or null when power-facilities.json has no
   // `network` block or the POWER layer is off.
   powerNetwork: PowerNetwork | null
+  // CEM's published consumption/import-share figures, or null until
+  // power-facilities.json lands (or if it ever fails to load).
+  powerFacts: PowerFacts | null
   // The Guia Circuit, or null until grand-prix.json lands or while the GRAND
   // PRIX layer is off (App nulls it the way it nulls powerNetwork).
   grandPrix: GrandPrixCircuit | null

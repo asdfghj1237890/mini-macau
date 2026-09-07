@@ -253,6 +253,12 @@ describe('PowerFacilitiesFileSchema', () => {
   const base = {
     fetchedAtUtc: '2026-09-04T00:00:00Z',
     sources: { name: '澳電 (CEM)' },
+    facts: {
+      year: 2025, consumptionGwh: 6259.7, localGenerationGwh: 582.9, importedGwh: 5676.8,
+      localSharePct: 9, importedSharePct: 91, cemHvSubstations: 29, cemHvSwitchingStations: 8,
+      hvCableKm: 1088, interconnectionCorridors: 3, interconnectionCapacityMw: 1700,
+      interconnection220kvCircuits: 8, interconnection110kvBackupCircuits: 4,
+    },
     facilities: [{
       id: 'sub-lotus',
       type: 'sub220',
@@ -289,6 +295,17 @@ describe('PowerFacilitiesFileSchema', () => {
 
   it('accepts a well-formed network', () => {
     expect(PowerFacilitiesFileSchema.safeParse({ ...base, network: net }).success).toBe(true)
+  })
+
+  it('rejects a file with no facts block', () => {
+    const { facts: _drop, ...noFacts } = base
+    expect(PowerFacilitiesFileSchema.safeParse(noFacts).success).toBe(false)
+  })
+
+  it('rejects facts whose share percentages do not sum to 100', () => {
+    expect(PowerFacilitiesFileSchema.safeParse({
+      ...base, facts: { ...base.facts, importedSharePct: 80 },
+    }).success).toBe(false)
   })
 
   it('defaults a missing operator to cem, and accepts the incinerator’s dspa', () => {
