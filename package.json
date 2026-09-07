@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "typecheck:functions": "tsc -p tsconfig.functions.json",
     "check:lrt-boundary": "node scripts/check-lrt-boundary.mjs",
+    "icons:pwa": "node scripts/build-pwa-icons.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",

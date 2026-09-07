@@ -1,0 +1,15 @@
+Redesign the attached Ruins of St. Paul's / 大三巴牌坊 app icon as a MUCH simpler Material Design inspired FILLED SYMBOL. Use the attachment ONLY for the recognisable facade geometry; completely replace its illustrated rendering. The user explicitly wants a more minimal Material style after several increasingly simplified cartoon versions.
+
+A clean professional app brand mark made from broad, crisp geometric filled shapes and dark negative-space cutouts. Flat vector-like raster artwork. Exactly three flat colours: warm ivory #efe1c5 for the monument, restrained muted stone #b6a78c only for a few cornice/base bands, and dark charcoal-teal #1c2729 for the background and all openings. NO outline strokes around shapes. NO brown cartoon outlines. NO thin interior lines. NO gradients, shadows, bevels, texture, paper grain, weathering, highlights, 3D modelling or line drawing. Everything must be flat colour. Simple consistent geometry with very subtly softened corners and strong balanced visual weight. Legible as a solid symbol at 24-48 px.
+
+Retain only the architectural essentials of this specific Macau landmark:
+- a symmetrical five-level silhouette: TWO wide rectangular bottom floors, TWO clearly separate progressively narrower upper tiers, ONE triangular stone pediment at the top with a modest small stone cross. Do not merge the two upper tiers.
+- the distinctive CONCAVE curling Baroque shoulder profile, both left and right on the upper tiers, not domes or semicircular bumps. Preserve the exterior S-curves; REMOVE the little drawn spiral circles inside them.
+- a few restrained slender triangular finials, at most three pairs, integrated into the silhouette.
+- three bold rectangular doorway cutouts at the bottom, the central one a little larger; three simple arched window cutouts on the next level; one small central arch cutout in each of the two upper tiers.
+- only a FEW broad vertical pilaster divisions and one simple horizontal band between tiers to suggest the classical architecture. Columns have NO drawn capitals, collars, rings, pedestal boxes, paired contour lines or shading. Most facade wall areas are unbroken calm ivory.
+- one simple two-step plinth underneath, no stone joints.
+
+REMOVE ALL PEOPLE AND STATUES, niches containing human silhouettes, relief decorations, carved panels, leaves, cracks, masonry joints, pediment emblem, borders and every nonessential stroke. Cutouts are dark empty shapes. Do not add any text, letters, mascot face, illustration scene, extra buildings, logo frame, rounded-square tile or mockup. No bright gold roof.
+
+Keep the same centered frontal pose, existing overall bounding box and empty margins, with the complete cross and plinth visible and unclipped. Preserve the historical landmark identity through the five tiers and concave shoulders; do not use a generic chapel or church pictogram. Square opaque canvas, exact uniform full-bleed dark #1c2729 background to all edges and corners. Return ONE finished minimal Material-style app icon artwork.
