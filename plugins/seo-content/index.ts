@@ -47,7 +47,10 @@ export function seoContentPlugin(): Plugin {
     configResolved(config) {
       root = config.root
     },
-    transformIndexHtml(html) {
+    transformIndexHtml(html, ctx) {
+      // Only the map's index.html carries the placeholder; the other HTML
+      // entry (thank-you.html) passes through untouched.
+      if (!/(^|[\\/])index\.html$/.test(ctx.filename)) return html
       if (!html.includes(SEO_PLACEHOLDER)) {
         throw new Error(`[seo-content] placeholder ${SEO_PLACEHOLDER} not found in index.html`)
       }

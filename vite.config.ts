@@ -22,6 +22,10 @@ export default defineConfig({
   },
   build: {
     rolldownOptions: {
+      // Two pages: the map, and the /thank-you landing page, whose script
+      // (src/thankYou.ts) shares src/analytics/ga.ts with the map so both
+      // count dwell the same way.
+      input: { main: 'index.html', 'thank-you': 'thank-you.html' },
       output: {
         codeSplitting: {
           groups: [

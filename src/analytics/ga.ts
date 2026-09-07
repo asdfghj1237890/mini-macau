@@ -266,6 +266,13 @@ export const ga = {
   timeJumped(deltaHours: number): void {
     track('time_jumped', { delta_hours: Math.round(deltaHours * 10) / 10 })
   },
+  // The /thank-you landing page (src/thankYou.ts).
+  thankYouStarClicked(lang: string): void {
+    track('star_github_clicked', { lang })
+  },
+  thankYouBackClicked(lang: string): void {
+    track('back_to_map_clicked', { lang })
+  },
   /**
    * The add-to-home-screen card and the drawer's APP row. `shown` is the
    * card appearing on its own; `accepted` / `dismissed` are the browser's
