@@ -42,6 +42,13 @@ function enabled(): boolean {
   }
 }
 
+// The switch itself (URL or localStorage), for code that follows it without
+// the overlay being installed — the thank-you page has no overlay, and the
+// analytics module stamps GA4 events with `debug_mode` from it.
+export function debugSwitchOn(): boolean {
+  return enabled()
+}
+
 // `?debug=1&nowebgl2=1` pretends the device has no WebGL 2, so the map's
 // failure path can be seen on a machine that does have it.
 function simulateNoWebgl2(): boolean {

@@ -29,6 +29,8 @@
  * try/catch because analytics must never break the app.
  */
 
+import { debugSwitchOn } from '../debugOverlay'
+
 declare global {
   interface Window {
     gtag?: (...args: unknown[]) => void
@@ -52,7 +54,10 @@ export function track(eventName: string, params?: EventParams): void {
     if (typeof window === 'undefined') return
     const gtag = window.gtag
     if (typeof gtag !== 'function') return
-    gtag('event', eventName, params ?? {})
+    // `?debug=1` (or localStorage `mini-macau-debug` = 1) stamps every event
+    // with `debug_mode`, which is what makes the session show up in GA4's
+    // DebugView. The events still count in the normal reports.
+    gtag('event', eventName, debugSwitchOn() ? { ...params, debug_mode: true } : params ?? {})
   } catch { /* swallow */ }
 }
 
