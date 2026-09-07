@@ -197,7 +197,7 @@ function cmdSchools() {
 }
 
 function cmdWaterFacilities() {
-  const { fetchedAtUtc, anchors = {}, facilities, network } = load('public/data/water-facilities.json')
+  const { fetchedAtUtc, facts = {}, anchors = {}, facilities, network } = load('public/data/water-facilities.json')
 
   const byType = {}
   // macao_water = one of the 22 numbered facilities; dsama = a government
@@ -219,6 +219,16 @@ function cmdWaterFacilities() {
   console.log('by type:', byType)
   console.log('by operator:', byOperator)
   console.log(`exact: ${exact.length}   approximate: ${approximate.length}   buildings: ${totalBuildings}   water polygons: ${totalWater}`)
+  // Macao Water's own figures (統計數據 latest year + 供澳原水), read by macao_water.py.
+  const s = facts.statistics
+  const r = facts.rawWater
+  if (s && r) {
+    console.log(`${s.year} (Macao Water): design capacity ${s.designCapacityM3PerDay.toLocaleString('en')} m³/day, ` +
+      `${(s.rawWaterImportedM3 / 1e6).toFixed(1)} M m³ raw water imported, ${(s.annualSupplyM3 / 1e6).toFixed(1)} M m³ supplied, ` +
+      `${s.mainsKm} km mains; counts plants ${s.plants} / reservoirs ${s.reservoirs} / tanks ${s.tanks} / ` +
+      `raw pumping ${s.rawWaterPumpingStations} / treated pumping ${s.treatedWaterPumpingStations}; ` +
+      `over ${r.xijiangShareMinPct}% of raw water from the Xijiang`)
+  }
 
   // Resolve an anchor to something a human recognises: another facility's
   // Chinese name, or the OSM element a `district:` anchor landed on.

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -143,11 +143,13 @@ interface WasteFile {
 }
 
 // water-facilities.json — Macao Water's 22 supply facilities, same envelope
-// pattern again: only `facilities` reaches TransitData, `sources` stays
-// provenance metadata (the panel and sidebar carry static labels).
+// pattern again: `facilities`, `facts` and the optional `network` reach
+// TransitData, `sources` stays provenance metadata (the panel and sidebar
+// carry static labels).
 interface WaterFacilitiesFile {
   fetchedAtUtc: string
   sources: Record<string, string>
+  facts: WaterFacts
   facilities: WaterFacility[]
   // The schematic pipe network was added after the facility list shipped, so
   // it is optional here and in the zod schema: an older file simply draws no
@@ -408,6 +410,7 @@ export function useTransitData(): UseTransitDataResult {
     dspaStats: null,
     waterFacilities: [],
     waterNetwork: null,
+    waterFacts: null,
     powerFacilities: [],
     powerNetwork: null,
     powerFacts: null,
@@ -573,6 +576,7 @@ export function useTransitData(): UseTransitDataResult {
       .then(file => {
         commit('waterFacilities', file.facilities)
         commit('waterNetwork', file.network ?? null)
+        commit('waterFacts', file.facts)
       })
       .catch(() => {})
 

@@ -277,9 +277,14 @@ const translations = {
     waterTypeRawPumping: 'Raw water pumping station',
     waterTypePumping: 'Pumping station',
     // The Zhuhai raw-water inlet — a node of our schematic network, not one of
-    // the 22 facilities Macao Water lists.
+    // the 22 facilities Macao Water lists. The share and import figure come
+    // from Macao Water's 供澳原水 and 統計數據 pages via `facts`, not a
+    // hard-coded percentage (see WaterFacts in types.ts).
     waterTypeInlet: 'Raw water inlet',
-    waterInletNote: 'About 96% of the raw water Macau uses comes from the Xijiang, delivered through Zhuhai.',
+    waterInletNote: (facts: { minPct: number; year: number; importedM3: number } | null) =>
+      facts
+        ? `Over ${facts.minPct}% of Macau's raw water comes from the Xijiang's Modaomen waterway, delivered through Zhuhai; ${(facts.importedM3 / 1e6).toFixed(1)} million m³ were imported in ${facts.year}.`
+        : 'Most of the raw water Macau uses comes from the Xijiang, delivered through Zhuhai.',
     // Shown wherever the pipes are: they are our own drawing, snapped to roads,
     // not Macao Water's real mains.
     waterNetworkNote: 'Schematic pipe network',
@@ -676,7 +681,10 @@ const translations = {
     waterTypeRawPumping: '原水泵站',
     waterTypePumping: '泵站',
     waterTypeInlet: '原水輸入',
-    waterInletNote: '澳門約 96% 的原水取自西江，經珠海輸澳。',
+    waterInletNote: (facts: { minPct: number; year: number; importedM3: number } | null) =>
+      facts
+        ? `澳門逾 ${facts.minPct}% 的原水來自西江磨刀門水道，經珠海輸澳；${facts.year} 年輸入原水 ${(facts.importedM3 / 1e8).toFixed(2)} 億立方米。`
+        : '澳門的原水主要取自西江，經珠海輸澳。',
     waterNetworkNote: '管網為示意',
     waterPipes: (n: number) => `連接 ${n} 條管線`,
     waterPipeRaw: '原水管',
@@ -1035,7 +1043,10 @@ const translations = {
     waterTypeRawPumping: 'Bombagem de água bruta',
     waterTypePumping: 'Estação de bombagem',
     waterTypeInlet: 'Entrada de água bruta',
-    waterInletNote: 'Cerca de 96% da água bruta usada em Macau vem do rio Xijiang, através de Zhuhai.',
+    waterInletNote: (facts: { minPct: number; year: number; importedM3: number } | null) =>
+      facts
+        ? `Mais de ${facts.minPct}% da água bruta de Macau vem do canal de Modaomen do rio Xijiang, através de Zhuhai; em ${facts.year} foram importados ${(facts.importedM3 / 1e6).toFixed(1)} milhões de m³.`
+        : 'A maior parte da água bruta usada em Macau vem do rio Xijiang, através de Zhuhai.',
     waterNetworkNote: 'Rede de condutas esquemática',
     waterPipes: (n: number) => `${n} conduta${n === 1 ? '' : 's'} ligada${n === 1 ? '' : 's'}`,
     waterPipeRaw: 'Conduta de água bruta',
@@ -1391,7 +1402,7 @@ export interface Translations {
   waterTypeRawPumping: string
   waterTypePumping: string
   waterTypeInlet: string
-  waterInletNote: string
+  waterInletNote: (facts: { minPct: number; year: number; importedM3: number } | null) => string
   waterNetworkNote: string
   waterPipes: (n: number) => string
   waterPipeRaw: string

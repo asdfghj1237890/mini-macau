@@ -152,6 +152,25 @@ describe('WaterFacilitiesFileSchema — the optional pipe network', () => {
   const base = {
     fetchedAtUtc: '2026-09-04T00:00:00Z',
     sources: { name: '澳門自來水 (Macao Water)' },
+    facts: {
+      statistics: {
+        year: 2025, previousYear: 2024,
+        designCapacityM3PerDay: 520000, peakDailySupplyM3: 311500,
+        annualSupplyM3: 101809000, rawWaterImportedM3: 102566000, annualConsumptionM3: 93514000,
+        mainsKm: 821,
+        plants: 4, reservoirs: 3, tanks: 5, rawWaterPumpingStations: 6, treatedWaterPumpingStations: 7,
+        perCapitaLitresPerDay: 371.9, householdPerCapitaLitresPerDay: 151.1, leakagePct: 8.25,
+      },
+      rawWater: {
+        xijiangShareMinPct: 90,
+        zhuhaiPipelines: [
+          { diameterM: 1.0, count: 2, capacityM3PerDay: 220000 },
+          { diameterM: 1.6, count: 1, capacityM3PerDay: 240000 },
+        ],
+        lapaReservoirM3: 2400000, lapaReservoirYear: 1960,
+        zhuyinReservoirM3: 43300000, zhuyinRegulatingM3: 40110000, zhuyinMacauShareM3: 16050000, zhuyinReservoirYear: 2011,
+      },
+    },
     facilities: [{
       id: 'wtp-ilha-verde',
       no: 1,
@@ -185,6 +204,19 @@ describe('WaterFacilitiesFileSchema — the optional pipe network', () => {
 
   it('accepts a file with no network at all (the shape that shipped first)', () => {
     expect(WaterFacilitiesFileSchema.safeParse(base).success).toBe(true)
+  })
+
+  it('rejects a file with no facts block', () => {
+    const { facts: _drop, ...noFacts } = base
+    expect(WaterFacilitiesFileSchema.safeParse(noFacts).success).toBe(false)
+  })
+
+  it('rejects a xijiangShareMinPct outside 0..100', () => {
+    const bad = {
+      ...base,
+      facts: { ...base.facts, rawWater: { ...base.facts.rawWater, xijiangShareMinPct: 101 } },
+    }
+    expect(WaterFacilitiesFileSchema.safeParse(bad).success).toBe(false)
   })
 
   it('accepts the government reservoir: no Macao Water number, dsama operator', () => {

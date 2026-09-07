@@ -32,23 +32,20 @@ Pages are cached for a day in the OS temp dir, like the Overpass answers.
 
 from __future__ import annotations
 
-import hashlib
 import re
 import sys
 import tempfile
-import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
 from bs4 import BeautifulSoup
 
-from osm_footprints import http_get
+from osm_footprints import cached_get
 
 OPERATION_URL = "https://www.cem-macau.com/{lang}/about-cem/company-profile/operation/"
 
 CACHE_DIR = Path(tempfile.gettempdir()) / "mini-macau-cem-cache"
-CACHE_TTL_S = 24 * 3600
 
 # A layer label that names a voltage level: "66千伏 (65兆伏安)", "110kV (125MVA)".
 _LEVEL_LABEL = re.compile(r"^(\d{2,3})\s*(?:千伏|kV)\b", re.IGNORECASE)
@@ -102,19 +99,10 @@ def _squash(text: str) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
-def _cached_get(url: str) -> str:
-    CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    path = CACHE_DIR / (hashlib.sha1(url.encode()).hexdigest() + ".html")
-    if path.exists() and time.time() - path.stat().st_mtime < CACHE_TTL_S:
-        return path.read_text(encoding="utf-8")
-    html = http_get(url).content.decode("utf-8", errors="replace")
-    path.write_text(html, encoding="utf-8")
-    return html
-
-
 def fetch_operation_page(lang: str) -> OperationPage:
     url = OPERATION_URL.format(lang=lang)
-    return parse_operation_page(_cached_get(url), lang, url)
+    html = cached_get(url, CACHE_DIR).decode("utf-8", errors="replace")
+    return parse_operation_page(html, lang, url)
 
 
 def parse_operation_page(html: str, lang: str, url: str = "") -> OperationPage:

@@ -1223,6 +1223,7 @@ export default function App() {
           <WaterInletInfoPanel
             node={selectedWaterNode}
             network={transitData.waterNetwork}
+            facts={transitData.waterFacts}
             onClose={clearSelection}
           />
         )}

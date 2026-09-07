@@ -554,6 +554,53 @@ export interface WaterNetwork {
   pipes: WaterPipe[]
 }
 
+// Macao Water's published supply and consumption figures, refreshed roughly
+// twice a year. `plants`/`reservoirs`/`tanks`/pumping-station counts are the
+// operator's own tally, separate from (and not required to match) the
+// `facilities` array's footprint count.
+export interface WaterStatistics {
+  year: number
+  designCapacityM3PerDay: number
+  annualSupplyM3: number
+  rawWaterImportedM3: number
+  plants: number
+  previousYear?: number
+  peakDailySupplyM3?: number
+  annualConsumptionM3?: number
+  mainsKm?: number
+  reservoirs?: number
+  tanks?: number
+  rawWaterPumpingStations?: number
+  treatedWaterPumpingStations?: number
+  perCapitaLitresPerDay?: number
+  householdPerCapitaLitresPerDay?: number
+  leakagePct?: number
+}
+
+// How much of Macau's raw water comes from the Xijiang via Zhuhai, and the
+// pipelines/reservoirs that move it — the detail behind the single share
+// figure the inlet panel shows.
+export interface WaterRawWaterFacts {
+  xijiangShareMinPct: number
+  zhuhaiPipelines?: { diameterM: number; count: number; capacityM3PerDay: number }[]
+  lapaReservoirM3?: number
+  lapaReservoirYear?: number
+  zhuyinReservoirM3?: number
+  zhuyinRegulatingM3?: number
+  zhuyinMacauShareM3?: number
+  zhuyinReservoirYear?: number
+}
+
+// Macao Water's published statistics and raw-water sourcing, refreshed
+// roughly twice a year — the info panel reads these instead of a hard-coded
+// percentage/year (see `waterInletNote` in i18n). The five keys
+// `validate_output.py` requires are typed `number`; the rest add detail
+// Macao Water does not always publish, so they are optional.
+export interface WaterFacts {
+  statistics: WaterStatistics
+  rawWater: WaterRawWaterFacts
+}
+
 // One road of the schematic DISTRIBUTION network: Macau's own streets, from
 // water-distribution.json, drawn as thin pipes under the trunk mains. Our own
 // OSM extract rather than the basemap's `transportation` layer, because the
@@ -862,6 +909,9 @@ export interface TransitData {
   // The schematic pipe network, or null when water-facilities.json predates it
   // (the `network` block is optional) or the WATER layer is off.
   waterNetwork: WaterNetwork | null
+  // Macao Water's published supply statistics and raw-water sourcing, or null
+  // until water-facilities.json lands (or if it ever fails to load).
+  waterFacts: WaterFacts | null
   powerFacilities: PowerFacility[]
   // The schematic HV network, or null when power-facilities.json has no
   // `network` block or the POWER layer is off.

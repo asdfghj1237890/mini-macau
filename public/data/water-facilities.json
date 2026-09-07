@@ -1,10 +1,55 @@
 {
-  "fetchedAtUtc": "2026-09-05T15:59:55.795094+00:00",
+  "fetchedAtUtc": "2026-09-07T08:21:05.873481+00:00",
   "sources": {
     "name": "澳門自來水 (Macao Water) – 供水設施 · OpenStreetMap",
     "facilities": "https://www.macaowater.com/about-macao-water/water-supply-facilities",
+    "waterSources": "https://www.macaowater.com/about-macao-water/water-sources",
+    "statistics": "https://www.macaowater.com/about-macao-water/water-supply-statistics",
+    "schematic": "https://www.macaowater.com/sites/default/files/Facilities.jpg",
     "osm": "https://www.openstreetmap.org/copyright",
     "hacSa": "OpenStreetMap; government reservoir (DSAMA), not a Macao Water facility"
+  },
+  "facts": {
+    "statistics": {
+      "year": 2025,
+      "previousYear": 2024,
+      "designCapacityM3PerDay": 520000,
+      "peakDailySupplyM3": 311500,
+      "annualSupplyM3": 101809000,
+      "rawWaterImportedM3": 102566000,
+      "annualConsumptionM3": 93514000,
+      "mainsKm": 821,
+      "plants": 4,
+      "reservoirs": 3,
+      "tanks": 5,
+      "rawWaterPumpingStations": 6,
+      "treatedWaterPumpingStations": 7,
+      "perCapitaLitresPerDay": 371.9,
+      "householdPerCapitaLitresPerDay": 151.1,
+      "co2KgPerM3": 0.115,
+      "leakagePct": 8.25
+    },
+    "rawWater": {
+      "xijiangShareMinPct": 90,
+      "zhuhaiPipelines": [
+        {
+          "diameterM": 1.0,
+          "count": 2,
+          "capacityM3PerDay": 220000
+        },
+        {
+          "diameterM": 1.6,
+          "count": 1,
+          "capacityM3PerDay": 240000
+        }
+      ],
+      "lapaReservoirM3": 2400000,
+      "lapaReservoirYear": 1960,
+      "zhuyinReservoirM3": 43300000,
+      "zhuyinRegulatingM3": 40110000,
+      "zhuyinMacauShareM3": 16050000,
+      "zhuyinReservoirYear": 2011
+    }
   },
   "anchors": {
     "district:jai-alai": {

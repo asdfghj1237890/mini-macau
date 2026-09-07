@@ -66,7 +66,7 @@
 | data.gov.mo | DSAT 停車場資料（車位詳情 + 即時空位） | `fetch_car_parks.py`（API gateway，APPCODE header，含重試） |
 | data.gov.mo + IAM 自家頁面 + OSM Overpass | IAM 垃圾房 / 壓縮式垃圾收集點 / 垃圾站 + IAM 環境資訊網（玻璃樽／衣物回收點，非 data.gov.mo）+ DSPA 智能回收機 / 三色資源回收點 / 電腦及通訊設備回收點 / 光管回收點 / 電池回收點（八個 dataset + 1 個 IAM 自家 JSON），另加手放的環保加Fun站 10 個、特殊和危險廢物處理站、兩個堆填區的 OSM 輪廓，以及五座污水處理廠（OSM 足跡，比照水／電廠房切圖磚，機場廠除外沒有 buildings 的以 statsKey 帶月度數字）；焚化中心本身的座標/建築借 `power-facilities.json` 現成的 | `fetch_waste.py`（IAM 四個走 ZIP／API gateway／自家 JSON，DSPA 六個走 API gateway，OSM 兩個 way 走 Overpass，APPCODE header 都含重試） |
 | data.gov.mo（4 個 dataset）+ DSPA GIS 頁面（3 個，無 dataset id） | 垃圾焚化中心／特殊和危險廢物處理站／建築廢料堆填區／四座污水處理廠（機場廠沒有公開數字）的月度統計：收/處理量、發電量、回收金屬、堆埋體積、處理水量 | `fetch_dspa_stats.py`（API gateway，APPCODE header，含重試；每條 series 各自 best-effort，單一端點失敗只讓那個 series 存 null，不中止整個 run） |
-| 澳門自來水 + OSM Overpass | 22 個供水設施（＋黑沙水庫）清單與建築足跡／水體、示意管網 | `fetch_water_facilities.py`（手動執行，清單寫死在腳本裡） |
+| 澳門自來水 + OSM Overpass | 22 個供水設施（＋黑沙水庫）清單與建築足跡／水體、示意管網、當年供水統計與原水數字 | `fetch_water_facilities.py`（半年一次，`update-water-facilities.yml`；清單寫死在腳本裡，但每次執行由 `macao_water.py` 讀澳門自來水的 API 核對四座水廠名稱與示意圖 hash，數字也是每次從網站讀） |
 | 澳電 (CEM) + OSM Overpass | 33 座高壓變電站、路環發電廠、垃圾焚化中心的清單與建築足跡、示意電網 | `fetch_power_facilities.py`（半年一次，`update-power-facilities.yml`；清單寫死在腳本裡，但每次執行由 `cem_operation.py` 讀澳電中、英文頁核對名單，數字也是每次從頁面讀） |
 | OSM Overpass | 澳門境內可行車道路（給供水／供電配水層當底稿，裁到 SAR 邊界） | `fetch_water_distribution.py`／`fetch_power_distribution.py`（手動執行，共用 `road_network.py`） |
 
@@ -155,7 +155,8 @@ data/
 │   ├── fetch_service_status.py      # daily via service-status.yml
 │   ├── fetch_road_works.py          # daily via update-road-works.yml
 │   ├── fetch_schools.py             # manual; DSEDJ list + OSM footprints → schools.json
-│   ├── fetch_water_facilities.py    # manual; Macao Water 的 22 個設施 + OSM → water-facilities.json
+│   ├── fetch_water_facilities.py    # 半年一次; Macao Water 的 22 個設施 + OSM → water-facilities.json
+│   ├── macao_water.py               # 讀澳門自來水網站 API：當年統計、原水數字、四座水廠三語名稱（給上面那支核對）
 │   ├── fetch_water_distribution.py  # manual; 澳門境內道路（裁到 SAR 邊界）→ water-distribution.json
 │   ├── fetch_power_facilities.py    # 半年一次; CEM 的 33 座變電站 + 發電廠 + OSM → power-facilities.json
 │   ├── cem_operation.py             # 讀澳電「營運」頁：當年數字 + 中英文變電站名單（給上面那支核對）

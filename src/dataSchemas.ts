@@ -486,9 +486,53 @@ const waterNetwork = z.object({
   ),
 })
 
+// Macao Water's published supply statistics and raw-water sourcing, refreshed
+// roughly twice a year — the info panel reads these instead of a hard-coded
+// percentage/year. Mirrors the `facts` block in `v_water_facilities` in
+// data/scripts/validate_output.py: five keys are required, the rest are
+// optional extra detail. `facts` itself is REQUIRED on the file, same as the
+// power file's.
+const waterFacts = z.object({
+  statistics: z.object({
+    year: z.number().int().positive(),
+    designCapacityM3PerDay: z.number().positive(),
+    annualSupplyM3: z.number().positive(),
+    rawWaterImportedM3: z.number().positive(),
+    plants: z.number().int().positive(),
+    previousYear: z.number().optional(),
+    peakDailySupplyM3: z.number().optional(),
+    annualConsumptionM3: z.number().optional(),
+    mainsKm: z.number().optional(),
+    reservoirs: z.number().optional(),
+    tanks: z.number().optional(),
+    rawWaterPumpingStations: z.number().optional(),
+    treatedWaterPumpingStations: z.number().optional(),
+    perCapitaLitresPerDay: z.number().optional(),
+    householdPerCapitaLitresPerDay: z.number().optional(),
+    leakagePct: z.number().optional(),
+  }),
+  rawWater: z.object({
+    xijiangShareMinPct: z.number().int().min(0).max(100),
+    zhuhaiPipelines: z.array(
+      z.object({
+        diameterM: z.number(),
+        count: z.number(),
+        capacityM3PerDay: z.number(),
+      }),
+    ).optional(),
+    lapaReservoirM3: z.number().optional(),
+    lapaReservoirYear: z.number().optional(),
+    zhuyinReservoirM3: z.number().optional(),
+    zhuyinRegulatingM3: z.number().optional(),
+    zhuyinMacauShareM3: z.number().optional(),
+    zhuyinReservoirYear: z.number().optional(),
+  }),
+})
+
 export const WaterFacilitiesFileSchema = z.object({
   fetchedAtUtc: z.string(),
   sources: z.record(z.string(), z.string()),
+  facts: waterFacts,
   facilities: z.array(
     z.object({
       id: z.string(),

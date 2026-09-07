@@ -11,6 +11,11 @@ Sources
     so nothing here is traced from it: only the facts (which facilities exist,
     their numbers and their names) are used, and every coordinate comes from
     OpenStreetMap.
+  * The FIGURES are Macao Water's「供澳原水」and「統計數據」pages, read live by
+    macao_water.py: the share of raw water from the Xijiang, the Zhuhai
+    pipelines and reservoirs, and the latest year's supply statistics
+    (design capacity, raw water imported, volumes, facility counts, per-capita
+    use, leakage). They go into the file's `facts` block.
   * The GEOMETRY is OpenStreetMap via Overpass, plus the OpenFreeMap basemap
     tiles the map itself draws (see osm_footprints.py for why we re-cut OSM
     outlines against the basemap's own building parts).
@@ -19,7 +24,19 @@ The 22 facilities are encoded in FACILITIES below because there is no machine
 -readable list upstream — the page is prose + a picture. Each entry carries the
 OSM element(s) it is grounded on; those ids are re-queried on every run rather
 than trusted, and the OSM `name:pt` / `name:en` tags win over the table when
-they are at least as specific.
+they are at least as specific. The table's `en` / `pt` names are Macao Water's
+own (its English and Portuguese pages), so the check below can compare them.
+
+CHECKING. Every run reads Macao Water's site (macao_water.py) and compares
+(check_against_macao_water): the four treatment plants the 供水設施 page names,
+in all three languages, must be the four in FACILITIES; the 統計數據 table must
+count as many treatment plants as FACILITIES has; and Facilities.jpg — the only
+place the 22-facility list exists — must still hash to SCHEMATIC_SHA256, the
+picture the table was transcribed from. Any difference exits without writing:
+the list lives in a picture no script can read, so a change is a hand edit
+(re-check the list, then update the hash). The figures are not hand-written —
+they are read from the pages each run, so the scheduled refresh picks up Macao
+Water's next annual statistics by itself.
 
 Only 11 of the 22 exist in OSM (the 4 plants, the 3 reservoirs, 3 of the 4
 elevated tanks, and the Seac Pai Van raw-water pump house). The other 11 are
@@ -42,12 +59,14 @@ skip the routing and are drawn straight (`direct`), because OSRM answers a 70 m
 walk across a plant yard with a 1.2 km drive round the block. The UI has to say
 the network is schematic; treating it as the real main network would be wrong.
 
-Run manually when the facility list or OSM changes (not scheduled, like
-fetch_schools.py):
+Scheduled twice a year by .github/workflows/update-water-facilities.yml (Macao
+Water posts the previous year's statistics during the year), and run by hand
+when the facility list or OSM changes:
     cd data && uv run python scripts/fetch_water_facilities.py
-Needs network (overpass-api.de + tiles.openfreemap.org + router.project-osrm.org);
-~3 Overpass calls and one OSRM call per pipe. Both are cached in the OS temp dir
-(osm_footprints.OVERPASS_CACHE_DIR / OSRM_CACHE_DIR), so a re-run right after a
+Needs network (macaowater.com + overpass-api.de + tiles.openfreemap.org +
+router.project-osrm.org); ~3 Overpass calls and one OSRM call per pipe. All of
+it is cached in the OS temp dir (macao_water.CACHE_DIR,
+osm_footprints.OVERPASS_CACHE_DIR, OSRM_CACHE_DIR), so a re-run right after a
 failed one is cheap.
 """
 
@@ -63,6 +82,15 @@ from pathlib import Path
 from shapely.geometry import Point, Polygon
 from shapely.ops import unary_union
 
+from macao_water import (
+    FACILITIES_PAGE,
+    STATISTICS_PAGE,
+    WATER_SOURCES_PAGE,
+    MacaoWater,
+    MacaoWaterPageError,
+    facts_json,
+    read_macao_water,
+)
 from osm_footprints import (
     MACAU_BBOX,
     TilePartIndex,
@@ -84,7 +112,6 @@ from osrm_route import get_road_geometry, path_enters_hengqin
 ROOT = Path(__file__).parent.parent.parent
 OUTPUT_PATH = ROOT / "public" / "data" / "water-facilities.json"
 
-FACILITIES_PAGE = "https://www.macaowater.com/about-macao-water/water-supply-facilities"
 OSM_COPYRIGHT = "https://www.openstreetmap.org/copyright"
 SOURCE_NAME = "澳門自來水 (Macao Water) – 供水設施 · OpenStreetMap"
 HAC_SA_NOTE = "OpenStreetMap; government reservoir (DSAMA), not a Macao Water facility"
@@ -125,6 +152,12 @@ EXPECTED_COUNT = 23
 MIN_WITH_BUILDINGS = 8
 MIN_WITH_WATER = 4
 
+# SHA-256 of Macao Water's Facilities.jpg as it was when FACILITIES was
+# transcribed from it (checked 2026-09-07). The 22-facility list exists only in
+# that picture, so a different picture fails the run: look at the new one, fix
+# FACILITIES (and PIPES) if the list changed, then record the new hash here.
+SCHEMATIC_SHA256 = "de7ea1de4ceb408cc2ed9936ae1937a67cd998bc057aeb5d8ad25a04c5a3d9b2"
+
 # ----------------------------------------------------------------------------
 # The list (Macao Water) + its OSM grounding.
 #
@@ -141,12 +174,14 @@ FACILITIES = [
     dict(id="wtp-main-reservoir", no=2, type="plant", geom="compound", osm=["w404669393"],
          zh="大水塘水廠", en="Main Storage Reservoir Water Treatment Plant",
          pt="Estação de Tratamento de Água do Reservatório do Porto Exterior"),
+    # Macao Water's Portuguese page writes「da Coloane」/「da Seac Pai Van」;
+    # kept as written so check_against_macao_water can compare the names.
     dict(id="wtp-coloane", no=3, type="plant", geom="compound", osm=["w404669394"],
          zh="路環水廠", en="Coloane Water Treatment Plant",
-         pt="Estação de Tratamento de Água de Coloane"),
+         pt="Estação de Tratamento de Água da Coloane"),
     dict(id="wtp-seac-pai-van", no=4, type="plant", geom="compound", osm=["w518481453"],
          zh="石排灣水廠", en="Seac Pai Van Water Treatment Plant",
-         pt="Estação de Tratamento de Água de Seac Pai Van"),
+         pt="Estação de Tratamento de Água da Seac Pai Van"),
     dict(id="res-main", no=5, type="reservoir", geom="water", osm=["r10266785"],
          zh="大水塘", en="Main Storage Reservoir",
          pt="Reservatório do Porto Exterior"),
@@ -689,9 +724,67 @@ def finalize(rec: dict, kind: str) -> dict:
 
 
 # ----------------------------------------------------------------------------
+# Macao Water's site vs FACILITIES
+# ----------------------------------------------------------------------------
+def check_against_macao_water(mw: MacaoWater) -> list[str]:
+    """The four treatment plants the 供水設施 page names, in all three languages,
+    must be the four in FACILITIES; the 統計數據 table must count as many plants
+    as FACILITIES has; and the schematic the 22-facility list was transcribed
+    from must be the same picture. Any difference is a hand edit — the list
+    lives in a picture no script can read — so the caller refuses to write."""
+    problems: list[str] = []
+    plants = [f for f in FACILITIES if f["type"] == "plant"]
+    for lang in ("zh", "en", "pt"):
+        ours, page = sorted(f[lang] for f in plants), sorted(mw.plants[lang])
+        if ours != page:
+            problems.append(f"{lang} treatment plants differ — page {page} vs FACILITIES {ours}")
+    counted = mw.statistics.latest["plants"]
+    if counted != len(plants):
+        problems.append(f"Macao Water counts {counted} treatment plants for {mw.statistics.year}, "
+                        f"FACILITIES has {len(plants)}")
+    if mw.schematic_sha256 != SCHEMATIC_SHA256:
+        problems.append(
+            f"the 供水設施 schematic changed (sha256 {mw.schematic_sha256[:12]}…, recorded "
+            f"{SCHEMATIC_SHA256[:12]}…): compare {mw.schematic_url} with FACILITIES, fix the "
+            "list if it changed, then update SCHEMATIC_SHA256"
+        )
+    return problems
+
+
+# ----------------------------------------------------------------------------
 # main
 # ----------------------------------------------------------------------------
 def run() -> int:
+    # --- Macao Water's site: the figures, and is FACILITIES still its list? ---
+    print("Reading Macao Water's site (供水設施 zh/en/pt, 供澳原水, 統計數據)...")
+    try:
+        mw = read_macao_water()
+    except MacaoWaterPageError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        print("refusing to write", file=sys.stderr)
+        return 1
+    problems = check_against_macao_water(mw)
+    if problems:
+        for p in problems:
+            print(f"ERROR: {p}", file=sys.stderr)
+        print("FACILITIES no longer matches Macao Water's site — update the table (and PIPES) "
+              "by hand, then re-run; refusing to write", file=sys.stderr)
+        return 1
+    s = mw.statistics
+    ours = {t: sum(1 for f in FACILITIES if f["type"] == t and f.get("operator", "macao_water") == "macao_water")
+            for t in TYPES}
+    print(f"  {s.year}: design capacity {s.latest['designCapacityM3PerDay']:,} m³/day, "
+          f"{s.latest['rawWaterImportedM3'] / 1e6:.1f} million m³ of raw water imported, "
+          f"{s.latest['annualSupplyM3'] / 1e6:.1f} million m³ supplied; over "
+          f"{mw.raw_water.xijiang_share_min_pct}% from the Xijiang; the four plants match")
+    # Macao Water's own counts use a different granularity from the 22-item
+    # schematic (e.g. 5 tanks vs the schematic's 4), so these are informative
+    # only — the plants are the gate above.
+    print(f"  Macao Water counts reservoirs {s.latest['reservoirs']} / tanks {s.latest['tanks']} / "
+          f"raw pumping {s.latest['rawWaterPumpingStations']} / treated pumping "
+          f"{s.latest['treatedWaterPumpingStations']}; the schematic's list has "
+          f"{ours['reservoir']} / {ours['tank']} / {ours['raw_pumping']} / {ours['pumping']}")
+
     elements = fetch_listed_elements()
     anchors = fetch_district_anchors()
 
@@ -933,12 +1026,17 @@ def run() -> int:
         "sources": {
             "name": SOURCE_NAME,
             "facilities": FACILITIES_PAGE,
+            "waterSources": WATER_SOURCES_PAGE,
+            "statistics": STATISTICS_PAGE,
+            "schematic": mw.schematic_url,
             "osm": OSM_COPYRIGHT,
             # 黑沙水庫 is not on Macao Water's page at all; it is on the map
             # because it feeds the Coloane plant, and the UI must not imply
             # Macao Water runs it.
             "hacSa": HAC_SA_NOTE,
         },
+        # Read from Macao Water's pages this run — see macao_water.py.
+        "facts": facts_json(mw),
         # Which OSM element each `district:<slug>` anchor resolved to, so a
         # reader can see where an approximate marker was hung.
         "anchors": {f"district:{slug}": rec for slug, rec in sorted(anchors.items())},

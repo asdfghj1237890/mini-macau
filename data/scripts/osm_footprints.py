@@ -88,6 +88,20 @@ def http_get(url: str, attempts: int = 6, **kw) -> requests.Response:
     raise RuntimeError(f"GET {url} failed: {last}")
 
 
+def cached_get(url: str, cache_dir: Path, ttl_s: int = 24 * 3600) -> bytes:
+    """http_get, with the body kept in `cache_dir` for `ttl_s` seconds, keyed by
+    URL. The operator-page readers (cem_operation.py, macao_water.py) use it so
+    a run restarted after a failure, or a second run the same day, does not
+    fetch the operator's site again."""
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    path = cache_dir / hashlib.sha1(url.encode()).hexdigest()
+    if path.exists() and time.time() - path.stat().st_mtime < ttl_s:
+        return path.read_bytes()
+    body = http_get(url).content
+    path.write_bytes(body)
+    return body
+
+
 # Overpass answers are cached in the OS temp dir for a day, keyed by the query
 # text: a run that dies half-way (this machine's network drops; overpass-api.de
 # 429s back-to-back calls) can be restarted without repeating finished calls.

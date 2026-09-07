@@ -28,7 +28,8 @@ data/scripts/
 ├── fetch_ferry_schedules.py   # TurboJET / CotaiJet → ferry-schedules.json
 ├── fetch_road_works.py        # data.gov.mo (DSAT) → road-works.json
 ├── fetch_schools.py           # manual; DSEDJ list + OSM footprints → schools.json
-├── fetch_water_facilities.py  # manual; 澳門自來水的 22 個設施 + OSM → water-facilities.json
+├── fetch_water_facilities.py  # 半年一次; 澳門自來水的 22 個設施 + OSM → water-facilities.json
+├── macao_water.py             # 讀澳門自來水網站 API（供水設施 zh/en/pt、供澳原水、統計數據），給上面那支核對與取數字
 ├── fetch_water_distribution.py # manual; 澳門境內道路，流向由清水設施定 → water-distribution.json
 ├── fetch_power_facilities.py  # 半年一次; 澳電的 33 座變電站 + 兩座電廠 + OSM → power-facilities.json
 ├── cem_operation.py           # 讀澳電「營運」頁（中、英）：當年數字 + 變電站名單，給上面那支核對用
@@ -153,10 +154,17 @@ cd data && uv run python scripts/fetch_schools.py
 
 輸出還帶一段 `network`：`nodes`（兩個非設施節點：珠海原水輸入 `inlet-zhuhai`，放在鴨涌河澳門這岸、青洲水廠北邊約 190 m 的陸地上，在 OSM 澳門邊界 relation `1867188` 內、緊鄰鴨涌馬路好讓 OSRM 有路可貼；以及第四條珠澳原水管的 `inlet-lotus`——有紀錄的是 2019-10-17 通水、新增「從氹仔方向進入澳門」的管路、經橫琴供應石排灣水廠，但實際過河位置沒有公開，所以座標借用 POWER 圖層的蓮花大橋澳門端海濱圓形地那一點，標 `approximate: true` 並帶三語 `note` 說明「位置為示意」，面板會顯示）與 `pipes`（26 條）。**那份 edge list 是我們自己編的**——澳門自來水沒有公開管線走向，`fetch_water_facilities.py` 的 `PIPES` 就是照設施清單推出來的合理管路（原水從珠海與三個水塘進廠、清水經泵站送到高位水池），設施本身即是隱含節點，用 id 互相引用。**只有幾何是真的**：每條管線是兩端 marker 之間的一次 OSRM `route/v1/driving`（`overview=full&geometries=geojson`），所以管線沿著街道走、過海走橋，像 Cities: Skylines 的管線，而不是穿樓的直線。沿用 [`osrm_route.py`](../../data/scripts/osrm_route.py) 的 Hengqin 排除區與重試；路不通就退化成直線並標 `fallback: true`（超過 3 條就當 OSRM 掛了，整個 run 中止）。OSRM 會把端點吸到最近的道路上（水塘的 marker 在水面中央，離路可以幾百公尺），所以輸出會把兩端 marker 的原座標補回頭尾——管線一定起訖於設施本身。**同址短接則根本不問 OSRM**：兩端直線距離 < 150 m，或是直線 < 600 m 而 OSRM 走出超過 3 倍的路（廠區裡 70 m 的一步，OSRM 會叫車繞 1.2 km），就直接畫成兩點的直線段並標 `direct: true`——那是刻意的短接，所以 `fallback` 仍是 `false`（`fallback` 只代表 OSRM 失敗）。目前 26 條裡 14 條是 `direct`、12 條是實走路網的幹管，實走管線最大繞行倍率 3.58×（路環水廠→石排灣泵站，跨山的幹管刻意保留沿路）。`lengthM` 是沿著**輸出的**折線量的（含補回去的頭尾），不是 OSRM 自己的 `distance`。OSRM 回應跟 Overpass 一樣快取在 OS temp dir（`OSRM_CACHE_DIR`，7 天），重跑不會再打一次。
 
-跟 `fetch_schools.py` 一樣**純手動跑**、沒有排程 workflow：
+#### 數字每次從網站讀，清單寫死但每次核對
+
+macaowater.com 是 Angular 單頁應用，頁面本身是空殼，內容由前端呼叫 JSON API 載入，所以 [`macao_water.py`](../../data/scripts/macao_water.py) 直接讀那三支 API（暫存一天）：`website-api/page/cms/operations/waterSupplyFacilities`（供水設施，`lang=zh_TW|en_US|pt_PT`）、`…/waterSources`（供澳原水）與 `website-api/page/icis/operations/wateSupplyStatistics/`（統計數據；端點名稱少一個 r 是上游原樣）。輸出因此多了 `facts` 區塊：`statistics` 是「澳門自來水主要統計數字」表最新一年那欄（日設計供水能力、最高日供水量、年供水量、輸入原水量、年用水量、管網長度、水廠／水庫／蓄水池／原水泵站／處理水泵站數目、人均與家居人均日用水量、碳排放、漏損率；千立方米一律換成立方米），`rawWater` 是供澳原水頁的固定句式讀出的數字（「超過九成」原水來自西江磨刀門水道、兩條 1 m 加一條 1.6 m 的珠海原水管及其日供量、竹仙洞與竹銀水庫的庫容與年份）。統計表的 API 只回傳 `a`／`b`（前一年／最新一年）兩個**沒有標籤的位置陣列**，`STAT_ROWS` 記錄的是頁面上的列序，靠 `data1`／`data2` 兩條年度圖表序列（年供水量、年用水量，百萬立方米）把年份與其中兩列釘住；列數、年份、兩條序列對不上任何一項都是 `MacaoWaterPageError`，腳本拒寫。原水頁的中文是數字來源，英文頁只交叉核對比例與水庫庫容（英文頁兩條 1 m 管的日供量寫 190,000，中文頁寫 22 萬，2026-09 檢查時即已不一致，所以管線數字不比）。
+
+`FACILITIES` 表仍是手寫的——那 22 個設施只存在於示意圖 `Facilities.jpg` 裡，沒有腳本讀得出來——但 `check_against_macao_water()` 每次都核對：供水設施頁列出的四座水廠名稱（中、英、葡各比一次；表裡的 en／pt 就是澳門自來水自己的寫法，葡文頁寫「da Coloane」「da Seac Pai Van」）、統計表的水廠數目要等於表裡的水廠數，以及 `Facilities.jpg` 的 SHA-256 要等於腳本記錄的 `SCHEMATIC_SHA256`（抄表時那張圖）。任何一項不符就退出、**不寫檔**，排程 job 因而失敗；圖變了就去看新圖、需要時改 `FACILITIES` 與 `PIPES`，再更新 hash。統計表其他設施數目跟示意圖的粒度不同（例如蓄水池 5 對示意圖的 4、原水泵站 6 對 4），只印出來供對照，不當守門條件。
+
+由 `update-water-facilities.yml` 每年 3 月 1 日與 9 月 1 日各跑一次（在電力 job 之後 20 分鐘），過 `validate_output.py water-facilities` 後由 `commit-data` action 提交並觸發部署；`fetch_water_distribution.py` 不排程，理由同電力那支。手動：
 
 ```bash
 cd data && uv run python scripts/fetch_water_facilities.py
+cd data && uv run python scripts/macao_water.py       # 只印網站讀到的數字與名單，查腳本為何拒寫時用
 ```
 
 產出 `public/data/water-facilities.json`，跑完要過 `validate_output.py water-facilities`（守門條件：剛好 23 筆、其中 `operator` 為 `macao_water` 的剛好 22 筆且 `no` 是不重複的 1–22、`dsama` 的剛好 1 筆且 `no` 為 `null`、`id` 不重複、`type` 與 `operator` 都在列舉內、座標在澳門範圍內、至少 8 個有 `buildings`、4 個有 `water`；`network` 則是剛好 23 條管線、`id` 不重複、`from`／`to` 都能對到設施 id 或節點 id、`kind` 是 `raw`／`treated`、`lengthM` 是 ≥ 0 的整數、`direct` 與 `fallback` 都是布林值且不會同時為真、`direct` 的剛好 2 個座標、其餘至少 2 個且都在澳門範圍內、`fallback` 最多 3 條）。只打 3 次 Overpass、每條非 `direct` 管線 1 次 OSRM，兩邊的快取讓重跑幾乎免費。`node scripts/inspect.mjs water-facilities` 會把設施摘要（含 operator 分組）跟管網（依 `kind` 分組、direct／routed 數、總公里數、fallback 數、最長的一條、每條的繞行倍率）一起印出來。

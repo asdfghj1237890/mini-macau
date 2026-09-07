@@ -1032,7 +1032,8 @@ def v_water_network(errs: list[str], network: object, facility_ids: set[str]) ->
 def v_water_facilities(data: object) -> list[str]:
     errs: list[str] = []
     if not require_fields(
-        errs, "water-facilities", data, ("fetchedAtUtc", "sources", "facilities", "network")
+        errs, "water-facilities", data,
+        ("fetchedAtUtc", "sources", "facts", "facilities", "network"),
     ):
         return errs
 
@@ -1044,6 +1045,38 @@ def v_water_facilities(data: object) -> list[str]:
         for key in ("name", "facilities", "osm"):
             if not isinstance(sources[key], str):
                 errs.append(f"water-facilities.sources: '{key}' must be a string")
+
+    # Macao Water's figures, read from its 統計數據 and 供澳原水 pages by
+    # macao_water.py. Shape and sanity only — the numbers are upstream's. The
+    # frontend's WaterFacilitiesFileSchema mirrors this block.
+    facts = data["facts"]
+    if require_fields(errs, "water-facilities.facts", facts, ("statistics", "rawWater")):
+        stats = facts["statistics"]
+        if require_fields(errs, "water-facilities.facts.statistics", stats,
+                          ("year", "designCapacityM3PerDay", "annualSupplyM3",
+                           "rawWaterImportedM3", "plants")):
+            for key in ("year", "plants"):
+                if not (isinstance(stats[key], int) and not isinstance(stats[key], bool)
+                        and stats[key] > 0):
+                    errs.append(f"water-facilities.facts.statistics.{key} must be an int > 0")
+            for key in ("designCapacityM3PerDay", "annualSupplyM3", "rawWaterImportedM3"):
+                if not (isinstance(stats[key], (int, float)) and not isinstance(stats[key], bool)
+                        and stats[key] > 0):
+                    errs.append(f"water-facilities.facts.statistics.{key} must be a number > 0")
+            # The plant count is the one facility count Macao Water and the
+            # 22-item schematic agree on, so it is checked against the file's
+            # own plants; the other counts use a different granularity.
+            plants_in_file = sum(1 for f in data["facilities"]
+                                 if isinstance(f, dict) and f.get("type") == "plant") \
+                if isinstance(data["facilities"], list) else None
+            if plants_in_file is not None and stats.get("plants") != plants_in_file:
+                errs.append(f"water-facilities.facts.statistics.plants is {stats.get('plants')} "
+                            f"but the file has {plants_in_file} plants")
+        raw = facts["rawWater"]
+        if require_fields(errs, "water-facilities.facts.rawWater", raw, ("xijiangShareMinPct",)):
+            pct = raw["xijiangShareMinPct"]
+            if not (isinstance(pct, int) and not isinstance(pct, bool) and 0 <= pct <= 100):
+                errs.append("water-facilities.facts.rawWater.xijiangShareMinPct must be an int in 0..100")
 
     # `anchors` is optional metadata (which OSM element a `district:` anchor
     # resolved to); validate it when present rather than requiring it.

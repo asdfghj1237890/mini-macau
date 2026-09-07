@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { useI18n } from '../i18n'
-import type { WaterFacility, WaterNetwork, WaterNetworkNode } from '../types'
+import type { WaterFacility, WaterFacts, WaterNetwork, WaterNetworkNode } from '../types'
 import {
   WATER_COLORS,
   WATER_INLET_COLOR,
@@ -233,15 +233,18 @@ export function WaterFacilityInfoPanel({ facility, facilities, network, onClose 
 interface InletProps {
   node: WaterNetworkNode
   network: WaterNetwork | null
+  facts: WaterFacts | null
   onClose: () => void
 }
 
 // A raw-water inlet. Not one of Macao Water's 22 facilities but a point the
 // raw-water pipes start from, so it gets a panel of its own: the name, what it
-// is, the single fact that makes it worth a marker — and, for an inlet whose
-// real crossing is not published, the pipeline's own note saying the position
-// is schematic, shown before anything else a reader might take literally.
-export function WaterInletInfoPanel({ node, network, onClose }: InletProps) {
+// is, the single fact that makes it worth a marker — read from
+// water-facilities.json's `facts` block (see `waterInletNote` in i18n) rather
+// than a hard-coded figure — and, for an inlet whose real crossing is not
+// published, the pipeline's own note saying the position is schematic, shown
+// before anything else a reader might take literally.
+export function WaterInletInfoPanel({ node, network, facts, onClose }: InletProps) {
   const { lang, t } = useI18n()
   const title = pickWaterText(node.name, lang)
   const subtitle = otherScript(node.name, lang, title)
@@ -273,7 +276,7 @@ export function WaterInletInfoPanel({ node, network, onClose }: InletProps) {
         </div>
       )}
       <div className="px-3 py-2 text-[11px] text-(--mm-fg)/75 mm-han leading-[1.5]">
-        {t.waterInletNote}
+        {t.waterInletNote(facts ? { minPct: facts.rawWater.xijiangShareMinPct, year: facts.statistics.year, importedM3: facts.statistics.rawWaterImportedM3 } : null)}
       </div>
       {pipes > 0 && (
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-[10px] text-(--mm-text-secondary) mm-han leading-[1.4]">
