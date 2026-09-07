@@ -22,7 +22,7 @@
  *   • `dwell_heartbeat` every 10 minutes of active dwell (so extremely
  *     long sessions remain distinguishable from medium ones)
  *   • `dwell_idle_start` / `dwell_idle_end` when input stops/resumes
- *   • `tab_backgrounded` / `tab_foregrounded` on visibility change
+ *   • `tab_visibility_changed` (`hidden` true / false) on visibility change
  *   • `session_end` on pagehide with the final totals
  *
  * All tracking is best-effort — every gtag call is wrapped in a
@@ -143,7 +143,8 @@ export function startEngagementTracker(): () => void {
     const hidden = document.visibilityState === 'hidden'
     if (hidden === s.hidden) return
     s.hidden = hidden
-    track(hidden ? 'tab_backgrounded' : 'tab_foregrounded', {
+    track('tab_visibility_changed', {
+      hidden,
       dwell_sec: Math.round(s.activeDwellMs / 1000),
     })
     if (!hidden) {
@@ -242,7 +243,7 @@ export const ga = {
     track('language_changed', { lang_from: from, lang_to: to, source })
   },
   simPauseToggled(paused: boolean): void {
-    track(paused ? 'sim_paused' : 'sim_resumed')
+    track('sim_pause_toggled', { paused })
   },
   simSpeedChanged(speed: number): void {
     track('sim_speed_changed', { speed })
@@ -264,9 +265,6 @@ export const ga = {
   },
   timeJumped(deltaHours: number): void {
     track('time_jumped', { delta_hours: Math.round(deltaHours * 10) / 10 })
-  },
-  vehicleTracked(type: string, id: string): void {
-    track('vehicle_tracked', { vehicle_type: type, vehicle_id: id })
   },
   /**
    * The add-to-home-screen card and the drawer's APP row. `shown` is the
