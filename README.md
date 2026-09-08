@@ -141,7 +141,7 @@ npm run preview
 
 ### Diagnosing a device
 
-Phones have no console, so the app carries its own. Append `?debug=1` to any URL (or set localStorage `mini-macau-debug` to `1`) and a panel pins to the bottom of the page ([`src/debugOverlay.ts`](src/debugOverlay.ts)): the browser's capabilities (WebGL 1/2 and renderer, GL limits, a module-worker probe), every error and unhandled rejection, MapLibre `error` events with their source and tile, a heartbeat every 3 s (`alive`, canvas size, shaders and programs compiled, map renders, tile reloads with the four busiest sources named), and a pinned strip for the lines that decide a diagnosis — a failed shader with its info log and whether the context was lost. The previous page load's tail is kept in localStorage and replayed on the next load, so a page the OS killed still leaves a trace.
+Phones have no console, so the app carries its own. Append `?debug=1` to any URL (or set localStorage `mini-macau-debug` to `1`) and a panel pins to the bottom of the page ([`src/debugOverlay.ts`](src/debugOverlay.ts)): the browser's capabilities (the existing map WebGL 2 context and renderer, GL limits, a module-worker probe), every error and unhandled rejection, MapLibre `error` events with their source and tile, a heartbeat every 3 s (`alive`, canvas size, shaders and programs compiled, map renders, tile reloads with the four busiest sources named), and a pinned strip for the lines that decide a diagnosis — a failed shader with its info log and whether the context was lost. The previous page load's tail is kept in localStorage and replayed on the next load, so a page the OS killed still leaves a trace.
 
 Switches for narrowing a failure down without a redeploy:
 
@@ -151,7 +151,10 @@ Switches for narrowing a failure down without a redeploy:
 | `?debug=1&nosim=1` | Never runs the simulation tick |
 | `?debug=1&no3d=1` | Starts flat, buildings off |
 | `?debug=1&maxdpr=2` | Caps the render pixel ratio |
-| `?debug=1&nowebgl2=1` | Pretends the device has no WebGL 2: the map area shows the failure message instead of the whole app unmounting |
+| `?debug=1&nowebgl2=1` | Pretends the device has no WebGL 2: switches to the raster compatibility map |
+| `?map=2d` | Opens the compatibility map directly, using raster tiles and Canvas2D overlays |
+
+On context loss or shader failure the app rebuilds the map once, retaining its camera. Repeated failure switches to a 2D compatibility map with routes, moving vehicle points, city markers and the existing time/layer controls. It does not require WebGL; 3D buildings and animated network flows are unavailable. Debugging observes the map's existing context without creating probe contexts, and reports null shader query results separately from false compile status. See [recovery behavior and investigation](docs/development/11-webgl-recovery.md).
 
 [`public/gltest.html`](public/gltest.html) is a page with no app code at all: MapLibre 5.23 or 6.7 straight from a CDN (`?v=5|6`), the same CARTO basemap and camera, and a synthetic fill-extrusion + circle `setData` load (`&veh=150&hz=30&circles=300`; `&veh=0&circles=0` for the basemap alone; `&theme=light`, `&dpr=2`, `&buildings=1`, `&overscale=off`). It separates "MapLibre on this device" from "our app". Both pages are `noindex`.
 
@@ -456,7 +459,7 @@ Once the cadence was fixed, that iPhone X still re-tiled ~450 tiles a second at 
 - **The Grand Prix car, wake and speed label move by diff.** They are written whole once when they appear and then updated with `GeoJSONSource.updateData`, which reloads only the tiles the changed feature touches (one or two) instead of every tile in view. Stable feature ids make that possible: the car's twelve boxes are ids 0–11.
 - **MapLibre 6's `zoomLevelsToOverscale` is switched off** (`undefined`, the v5 behaviour). Its default of 4 slices a vector source's z14 tiles into sub-tiles down to z18 instead of scaling the one parent tile; at zoom 16 / pitch 45 that was 44 tile loads instead of 8 and 2.3× the live GPU buffers for the same view.
 
-Measured on the same phone at the same view: 457 → 110 tile reloads a second, 60 fps, no shader failures. See [`MapView.tsx`](src/components/MapView.tsx) (`HEAVY_TICK_MS_PHONE`, `writeGrandPrixWake`, `zoomLevelsToOverscale`) and [`RaceCar3DLayer.ts`](src/layers/RaceCar3DLayer.ts) (`setPose`).
+Measured on the same phone at the same view: 457 → 110 tile reloads a second, 60 fps, no shader failures in that run. Later device tests still lost context on pure basemaps at DPR 1; these load reductions are not a demonstrated fix for persistent context loss (see the recovery investigation above). See [`MapView.tsx`](src/components/MapView.tsx) (`HEAVY_TICK_MS_PHONE`, `writeGrandPrixWake`, `zoomLevelsToOverscale`) and [`RaceCar3DLayer.ts`](src/layers/RaceCar3DLayer.ts) (`setPose`).
 
 </details>
 

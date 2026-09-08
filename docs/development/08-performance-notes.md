@@ -81,7 +81,7 @@ pinch zoom 中上傳退到約 6 Hz，把 main thread 讓給 MapLibre 的 zoom �
 - 大賽車的車（12 個方塊，id 0–11）、尾跡（id `wake`）、時速標籤（id `label`）出現時整包寫一次，之後用 `GeoJSONSource.updateData` 差異更新：MapLibre 只重載被舊／新幾何碰到的一兩片 tile（`shouldReloadTile` / `affectedBounds`）。
 - MapLibre 6 的 `zoomLevelsToOverscale` 預設 4，會把向量 source 超過 maxzoom 的 z14 tile 切成子 tile 一路到 z18；同一畫面量到 44 次 tile 載入對 8 次、存活的 GPU buffer 2.3 倍。`MapView` 傳 `undefined`（官方的關閉值，即 v5 行為）。
 
-同一台 iPhone X、同一個畫面：每秒 457 → 110 次 tile 重載，60 fps，shader 不再失敗。
+先前單次 iPhone X 測試記錄為每秒 457 → 110 次 tile 重載、60 fps，當次沒有 shader 失敗；這不是持續穩定的保證。2026-09-08 同一裝置連 v5／v6 純底圖、DPR 1 都會 context lost，故不再把上述負載調整當成此故障的修正。失敗復原與 2D 備援見 [11-webgl-recovery.md](11-webgl-recovery.md)。
 
 > Source: [`MapView.tsx`](../../src/components/MapView.tsx) 的 `mapBusyRef`、`SIM_TICK_MS` / `HEAVY_TICK_MS_PHONE` / `HEAVY_TICK_MS_BUSY`、`writeGrandPrixWake` / `writeGrandPrixCarLabel`、`zoomLevelsToOverscale`；[`RaceCar3DLayer.ts`](../../src/layers/RaceCar3DLayer.ts) 的 `setPose`。量測工具見 [01-getting-started.md](01-getting-started.md) 的「在裝置上診斷」。
 

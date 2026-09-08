@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
+import { lazy, Suspense, useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 // v6 ships ESM only: the namespace import replaces the v5 default export,
 // and a bundler has to hand MapLibre its worker URL once — `?worker&url`
 // routes the file through Vite's worker pipeline so the production chunk is
@@ -124,7 +124,10 @@ import { useI18n } from '../i18n'
 import { ga } from '../analytics/ga'
 import { usePwaInstall } from '../hooks/usePwaInstall'
 import { beginInstallTracking, detectInstallPlatform, requestInstall, showInstallGuide } from '../pwaInstall'
-import { debugEnabled, debugLog, debugStat } from '../debugOverlay'
+import { attachMapDebug, debugEnabled, debugLog, debugStat } from '../debugOverlay'
+import { createMapRecovery, isShaderRenderError } from '../mapRecovery'
+
+const RasterMapFallback = lazy(() => import('./RasterMapFallback'))
 
 // URL switches for narrowing down a device the map dies on (the `?debug=1`
 // overlay in debugOverlay.ts shows how far it got): `?maxdpr=2` caps the
@@ -1850,7 +1853,7 @@ const STYLES = {
   light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
 }
 
-interface Props {
+export interface MapViewProps {
   clock: SimulationClock
   transitData: TransitData
   allTransitData: TransitData
@@ -1928,9 +1931,11 @@ interface Props {
   onToggleTimeBar?: () => void
 }
 
-export function MapView({ clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar }: Props) {
+export function MapView(props: MapViewProps) {
+  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
+  const mapThemeRef = useRef<boolean | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
   // Per-RAF flight snapshot. Used as the fallback source for the tracked
   // plane's live position when we still need one outside the dedicated
@@ -1947,9 +1952,16 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   // properties and the legend); this is just its React view.
   const isDark = useTheme() === 'dark'
   const [menuOpen, setMenuOpen] = useState(false)
-  // Set when `new maplibregl.Map` throws (no WebGL 2): the map area shows a
-  // message instead of the whole app unmounting.
-  const [mapFailure, setMapFailure] = useState<string | null>(null)
+  // Initialisation or repeated render failures leave the UI usable, with a retry.
+  const [mapFailure, setMapFailure] = useState<string | null>(() =>
+    new URLSearchParams(window.location.search).get('map') === '2d' ? '2D map requested' : null,
+  )
+  const [mapGeneration, setMapGeneration] = useState(0)
+  const recoveryUsedRef = useRef(false)
+  const recoveryCameraRef = useRef<{
+    center: [number, number]; zoom: number; pitch: number; bearing: number
+  } | null>(null)
+  const mapUnavailableRef = useRef(false)
   const zoomStoreRef = useRef<{ value: number; listeners: Set<() => void> }>({
     value: MACAU_ZOOM,
     listeners: new Set(),
@@ -2199,7 +2211,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
   const { timeRef } = clock
 
   useEffect(() => {
-    if (!containerRef.current) return
+    if (!containerRef.current || mapFailure) return
+    mapUnavailableRef.current = false
 
     // MapLibre 6 needs WebGL2 and throws (GPUInitializationError) where the
     // device has none. A throw here would unmount the whole app; instead the
@@ -2209,22 +2222,22 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       map = new maplibregl.Map({
         container: containerRef.current,
         style: isDarkRef.current ? STYLES.dark : STYLES.light,
-        center: MACAU_CENTER,
-        zoom: MACAU_ZOOM,
-        pitch: is3D ? 45 : 0,
-        bearing: -17,
+        center: recoveryCameraRef.current?.center ?? MACAU_CENTER,
+        zoom: recoveryCameraRef.current?.zoom ?? MACAU_ZOOM,
+        pitch: recoveryCameraRef.current?.pitch ?? (is3D ? 45 : 0),
+        bearing: recoveryCameraRef.current?.bearing ?? -17,
         attributionControl: false,
         // MapLibre 6 defaults zoomLevelsToOverscale to 4: past a vector
         // source's maxzoom (14 for the CARTO basemap and the OpenFreeMap
         // buildings) it slices the parent tile into sub-tiles down to
         // maxZoom − 4 instead of drawing the one z14 tile scaled up. Measured
         // at zoom 16 / pitch 45 that is 44 tile loads instead of 8 and 2.3×
-        // the live GPU buffers and vertex arrays for the same view — enough to
-        // push an iPhone X on iOS 16 into a lost WebGL context. `undefined`
+        // the live GPU buffers and vertex arrays for the same view. This lowers
+        // resource use; it does not prevent device-level context loss. `undefined`
         // is the documented "off" and restores the v5 behaviour.
         zoomLevelsToOverscale: undefined,
-        ...(debugSwitches.maxDpr
-          ? { pixelRatio: Math.min(window.devicePixelRatio, debugSwitches.maxDpr) }
+        ...(debugSwitches.maxDpr || recoveryUsedRef.current
+          ? { pixelRatio: Math.min(window.devicePixelRatio, debugSwitches.maxDpr ?? Infinity, recoveryUsedRef.current ? 2 : Infinity) }
           : {}),
       })
     } catch (err) {
@@ -2232,11 +2245,38 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       setMapFailure(err instanceof Error ? `${err.name}: ${err.message}` : String(err))
       return
     }
+    const recovery = createMapRecovery({
+      canRetry: () => !recoveryUsedRef.current,
+      suspend: () => {
+        mapUnavailableRef.current = true
+        const center = map.getCenter()
+        recoveryCameraRef.current = {
+          center: [center.lng, center.lat], zoom: map.getZoom(),
+          pitch: map.getPitch(), bearing: map.getBearing(),
+        }
+        // Effects and the simulation must not write to a lost/removed map.
+        if (mapRef.current === map) mapRef.current = null
+      },
+      retry: () => {
+        recoveryUsedRef.current = true
+        debugLog('[map] rebuilding after GPU failure; pixel ratio capped at 2')
+        setMapGeneration(n => n + 1)
+      },
+      fail: reason => setMapFailure(reason),
+    })
+    mapThemeRef.current = isDarkRef.current
+    const onContextLost = () => recovery.report('WebGL context lost')
+    const onRenderError = (event: ErrorEvent) => {
+      if (isShaderRenderError(event.message)) recovery.report(event.message)
+    }
+    map.on('webglcontextlost', onContextLost)
+    window.addEventListener('error', onRenderError)
     // Worker, tile and style failures are silent on a phone; name them (with
     // the source and tile they came from) so the debug overlay can show them.
     map.on('error', e => {
       const detail = e as { error?: unknown; sourceId?: string; tile?: { tileID?: { key?: string } } }
       const err = detail.error
+      if (err instanceof Error && isShaderRenderError(err.message)) recovery.report(err.message)
       console.error(
         '[map]', err instanceof Error ? `${err.name}: ${err.message}` : String(err),
         detail.sourceId ? `source=${detail.sourceId}` : '',
@@ -2245,6 +2285,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     })
     // Milestones and a tile counter for the ?debug=1 overlay, so a page that
     // dies without an error still says how far the map got before it did.
+    let stopMapDebug = () => {}
     if (debugEnabled()) {
       map.once('load', () => debugLog('[map] style loaded'))
       map.once('render', () => debugLog('[map] first frame'))
@@ -2270,8 +2311,10 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         if (++frames % 30 === 0) debugStat('frames', frames)
       })
       const canvas = map.getCanvas()
-      canvas.addEventListener('webglcontextlost', () => console.error('[map] webglcontextlost'))
-      canvas.addEventListener('webglcontextrestored', () => debugLog('[map] webglcontextrestored'))
+      const gl = canvas.getContext('webgl2')
+      if (gl) stopMapDebug = attachMapDebug(gl)
+      map.on('webglcontextlost', () => console.error('[map] webglcontextlost'))
+      map.on('webglcontextrestored', () => debugLog('[map] webglcontextrestored'))
       debugStat('dpr', map.getPixelRatio())
       debugStat('canvas', `${canvas.width}×${canvas.height}`)
     }
@@ -2365,13 +2408,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
         debugLog('[map] ?layers=none: no app sources or layers added')
         return
       }
-      // Mount schedules this twice: from 'load' here, and from the
-      // 'style.load' the [isDark] effect's setStyle({diff: false}) fires right
-      // after construction. On a desktop one of the two is swallowed; on an
-      // iPhone both arrive for the same style, and the second run's first
-      // addSource threw "Source already exists" from inside MapLibre's event
-      // dispatch. The ref is reset before a theme swap, so a genuine restyle
-      // still rebuilds everything.
+      // A theme change during initial loading can deliver both 'load' and
+      // 'style.load'. Add sources only once, resetting the guard on restyle.
       if (layersAddedRef.current) {
         debugLog('[map] layers already added for this style; skipped')
         return
@@ -3817,14 +3855,8 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       })
     }
 
-    // addCustomLayers needs the style loaded (addLayer would throw otherwise),
-    // so it stays gated on 'load'. Click handlers use delegated listeners
-    // (layer-id is a queryRenderedFeatures filter, not an addLayer precondition),
-    // so they can — and MUST — be attached synchronously up front: otherwise
-    // a setStyle({diff:false}) that races the initial load (see the [isDark]
-    // effect below, which runs on mount) can swallow the 'load' event and
-    // the click callback never fires. That was the "vehicles aren't clickable"
-    // regression — no delegated click listeners ever registered on the map.
+    // Layers need a loaded style; delegated click listeners do not. Register
+    // listeners up front so a theme change during loading cannot swallow them.
     attachClickHandlers(map)
     map.on('load', () => {
       addCustomLayers(map)
@@ -3834,6 +3866,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     serviceStatusRef.current = new Map()
     lastServiceMinuteRef.current = ''
     return () => {
+      recovery.dispose()
+      map.off('webglcontextlost', onContextLost)
+      window.removeEventListener('error', onRenderError)
       layersAddedRef.current = false
       bus3DRef.current = null
       lrt3DRef.current = null
@@ -3844,7 +3879,9 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
       canvasEl.removeEventListener('auxclick', onCanvasAuxClick)
       window.removeEventListener('mousemove', onWindowMiddleMove)
       window.removeEventListener('mouseup', onWindowMiddleUp)
+      stopMapDebug()
       map.remove()
+      mapRef.current = null
     }
     // Initialize the map once, when transit data first loads (these array
     // lengths flip 0 → N). It deliberately must NOT re-run when callbacks,
@@ -3855,11 +3892,12 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     // stable useCallback refs, and only is3D's initial value is needed at
     // construction, so capturing them once here is correct.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [allTransitData.lrtLines.length, allTransitData.stations.length, allTransitData.busRoutes.length])
+  }, [allTransitData.lrtLines.length, allTransitData.stations.length, allTransitData.busRoutes.length, mapGeneration, mapFailure])
 
   useEffect(() => {
     const map = mapRef.current
-    if (!map) return
+    if (!map || mapThemeRef.current === isDark) return
+    mapThemeRef.current = isDark
     layersAddedRef.current = false
     bus3DRef.current = null
     lrt3DRef.current = null
@@ -4403,7 +4441,7 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     const animate = () => {
       const map = mapRef.current
       const td = transitRef.current
-      if (map && !td.loading && layersAddedRef.current) {
+      if (map && !mapUnavailableRef.current && !td.loading && layersAddedRef.current) {
         const nowTick = performance.now()
         const shouldTick = nowTick - lastSimTick >= SIM_TICK_MS && !debugSwitches.nosim
         const heavyInterval = mapBusyRef.current
@@ -4686,17 +4724,24 @@ export function MapView({ clock, transitData, allTransitData, onVehicleClick, on
     ga.themeChanged(toggleStoredTheme())
   }, [])
 
+  if (mapFailure) {
+    return <Suspense fallback={<div className="p-4 text-(--mm-fg)">{t.mapInitFailed}</div>}>
+      <RasterMapFallback
+        {...props}
+        initialCamera={recoveryCameraRef.current}
+        onRetry={camera => {
+          recoveryCameraRef.current = { ...camera, pitch: is3D ? 45 : 0, bearing: 0 }
+          recoveryUsedRef.current = true
+          setMapFailure(null)
+          setMapGeneration(n => n + 1)
+        }}
+      />
+    </Suspense>
+  }
+
   return (
     <>
       <div ref={containerRef} className="w-full h-full" />
-      {mapFailure && (
-        <div className="absolute inset-0 z-20 flex items-center justify-center p-6 bg-(--mm-bg)">
-          <div className="max-w-sm rounded-xl border border-(--mm-red)/40 bg-(--mm-panel) px-4 py-3 text-sm text-(--mm-fg) shadow-lg shadow-(color:--mm-shadow)">
-            <p>{t.mapInitFailed}</p>
-            <p className="mt-2 font-mono text-[11px] text-(--mm-fg)/60 break-all">{mapFailure}</p>
-          </div>
-        </div>
-      )}
       {/* Hamburger + zoom (desktop top-left; phone top-1 next to TimeDisplay,
           horizontally aligned with MapLibre +/- zoom controls on the right) */}
       <div className="mm-ui-scale absolute z-10 flex items-center gap-1.5

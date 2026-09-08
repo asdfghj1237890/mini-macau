@@ -1,0 +1,7 @@
+.mm-raster-map { background: var(--mm-bg); }
+.mm-raster-map .leaflet-control-zoom { margin-top: 8px; }
+.mm-raster-map .leaflet-bar a {
+  background: var(--mm-panel);
+  color: var(--mm-fg);
+  border-color: var(--mm-seam);
+}

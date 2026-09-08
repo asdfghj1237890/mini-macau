@@ -85,7 +85,7 @@ App.tsx
 ├─ useSimulationClock      ─ 模擬時鐘（offset-based wall clock）
 ├─ useTransitData          ─ 漸進載入 6 份核心 JSON
 ├─ useServiceStatus        ─ 從 service-status.json 拿當天停駛清單
-└─ MapView.tsx             ─ 包 maplibre-gl 6（需要 WebGL 2；沒有的裝置在地圖區顯示訊息，app 不會整個卸載）
+└─ MapView.tsx             ─ 包 maplibre-gl 6；GPU 失敗重建一次，仍失敗則 lazy-load Leaflet 2D 相容地圖（見 11-webgl-recovery）
    ├─ simulationEngine     ─ 純函數：(transitData, time) → VehiclePosition[]
    ├─ Bus3DLayer           ─ fill-extrusion 巴士車身（5 種 polygon）
    ├─ LRT3DLayer           ─ fill-extrusion 雙節列車

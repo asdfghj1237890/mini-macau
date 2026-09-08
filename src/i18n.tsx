@@ -160,7 +160,10 @@ const translations = {
     powerCount: (n: number) => `${n} facilities`,
     grandPrix: 'Grand Prix circuit',
     grandPrixCount: (n: number) => `${n} named corners`,
-    mapInitFailed: 'The map could not start on this device — it needs WebGL 2.',
+    mapInitFailed: 'The map could not be displayed on this device.',
+    mapRetry: 'Reload map',
+    mapFallbackTitle: '2D compatibility map',
+    mapFallbackNote: 'Graphics rendering failed. Showing routes and locations without 3D buildings or animated network flows.',
     waste: 'Waste & recycling',
     wasteCount: (n: number) => `${n} collection points`,
     noServiceToday: 'No service today',
@@ -584,7 +587,10 @@ const translations = {
     powerCount: (n: number) => `${n} 項電力設施`,
     grandPrix: '大賽車跑道',
     grandPrixCount: (n: number) => `${n} 個官方彎道`,
-    mapInitFailed: '此裝置無法啟動地圖：需要 WebGL 2。',
+    mapInitFailed: '此裝置目前無法顯示地圖。',
+    mapRetry: '重新載入地圖',
+    mapFallbackTitle: '2D 相容地圖',
+    mapFallbackNote: '圖形渲染失敗，改用平面路線與位置標記；不顯示 3D 建築與管網流動動畫。',
     waste: '垃圾回收',
     wasteCount: (n: number) => `${n} 個回收／收集點`,
     noServiceToday: '本日無服務',
@@ -951,7 +957,10 @@ const translations = {
     powerCount: (n: number) => `${n} instalações`,
     grandPrix: 'Circuito do Grande Prémio',
     grandPrixCount: (n: number) => `${n} curvas oficiais`,
-    mapInitFailed: 'O mapa não conseguiu iniciar neste dispositivo — precisa de WebGL 2.',
+    mapInitFailed: 'Não foi possível apresentar o mapa neste dispositivo.',
+    mapRetry: 'Recarregar mapa',
+    mapFallbackTitle: 'Mapa 2D de compatibilidade',
+    mapFallbackNote: 'Falha na renderização gráfica. A mostrar percursos e localizações, sem edifícios 3D nem fluxos de rede animados.',
     waste: 'Resíduos e reciclagem',
     wasteCount: (n: number) => `${n} pontos de recolha`,
     noServiceToday: 'Sem serviço hoje',
@@ -1322,6 +1331,9 @@ export interface Translations {
   grandPrix: string
   grandPrixCount: (n: number) => string
   mapInitFailed: string
+  mapRetry: string
+  mapFallbackTitle: string
+  mapFallbackNote: string
   waste: string
   wasteCount: (n: number) => string
   noServiceToday: string
