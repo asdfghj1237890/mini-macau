@@ -22,7 +22,10 @@
  *   • `dwell_heartbeat` every 10 minutes of active dwell (so extremely
  *     long sessions remain distinguishable from medium ones)
  *   • `dwell_idle_start` / `dwell_idle_end` when input stops/resumes
- *   • `tab_visibility_changed` (`hidden` true / false) on visibility change
+ *   • `tab_visibility_changed` (`hidden` true / false) once the tab has
+ *     stayed hidden or visible for VISIBILITY_SETTLE_MS — a flip that
+ *     reverts sooner (app switching, a screenshot, a notification) is
+ *     not reported at all
  *   • `session_end` on pagehide with the final totals
  *
  * All tracking is best-effort — every gtag call is wrapped in a
@@ -89,6 +92,12 @@ const HEARTBEAT_MS = 600_000 // 10 min
 // within ~1s of the true crossing time.
 const TICK_MS = 1_000
 
+// How long a hidden / visible state has to hold before it is reported.
+// Unthrottled, the visibility pair was the biggest event by a mile
+// (27k + 26k a week, most of them flips within a second or two of each
+// other with no dwell in between) and said nothing about behaviour.
+const VISIBILITY_SETTLE_MS = 5_000
+
 // Activity events that count as "user is here". Passive + capture so
 // they don't interfere with app handlers and don't force React to
 // re-render on every mousemove.
@@ -109,7 +118,12 @@ interface TrackerState {
   nextMilestoneIdx: number
   nextHeartbeatMs: number
   idle: boolean
+  /** What the document says right now; drives the dwell counter. */
   hidden: boolean
+  /** The last state sent as `tab_visibility_changed`. */
+  reportedHidden: boolean
+  /** Pending settle timer for a visibility change, if any. */
+  visibilityTimer: number | null
 }
 
 /**
@@ -131,6 +145,8 @@ export function startEngagementTracker(): () => void {
     nextHeartbeatMs: HEARTBEAT_MS,
     idle: false,
     hidden: document.visibilityState === 'hidden',
+    reportedHidden: document.visibilityState === 'hidden',
+    visibilityTimer: null,
   }
 
   const onActivity = (): void => {
@@ -148,10 +164,6 @@ export function startEngagementTracker(): () => void {
     const hidden = document.visibilityState === 'hidden'
     if (hidden === s.hidden) return
     s.hidden = hidden
-    track('tab_visibility_changed', {
-      hidden,
-      dwell_sec: Math.round(s.activeDwellMs / 1000),
-    })
     if (!hidden) {
       // Returning to the tab counts as activity. Reset the activity
       // timestamp so the first tick after returning doesn't immediately
@@ -160,6 +172,17 @@ export function startEngagementTracker(): () => void {
       s.lastActivityAt = now
       s.lastTickAt = now
     }
+    // Report the state only once it has held for VISIBILITY_SETTLE_MS. A
+    // flip back before then cancels the pending report, so a quick blink
+    // sends nothing, and a state equal to the last one reported is skipped.
+    const dwellSec = Math.round(s.activeDwellMs / 1000)
+    if (s.visibilityTimer !== null) window.clearTimeout(s.visibilityTimer)
+    s.visibilityTimer = window.setTimeout(() => {
+      s.visibilityTimer = null
+      if (s.hidden === s.reportedHidden) return
+      s.reportedHidden = s.hidden
+      track('tab_visibility_changed', { hidden: s.hidden, dwell_sec: dwellSec })
+    }, VISIBILITY_SETTLE_MS)
   }
 
   const tick = (): void => {
@@ -215,6 +238,12 @@ export function startEngagementTracker(): () => void {
   // auto-switches to sendBeacon during unload so the last event still
   // lands on Google's side even though the page is dying.
   const onPageHide = (): void => {
+    // The page is going away; session_end is the last word, not a
+    // visibility report that would fire into a dead page.
+    if (s.visibilityTimer !== null) {
+      window.clearTimeout(s.visibilityTimer)
+      s.visibilityTimer = null
+    }
     track('session_end', {
       dwell_sec: Math.round(s.activeDwellMs / 1000),
       milestones_hit: s.nextMilestoneIdx,
@@ -224,6 +253,7 @@ export function startEngagementTracker(): () => void {
 
   return () => {
     window.clearInterval(tickId)
+    if (s.visibilityTimer !== null) window.clearTimeout(s.visibilityTimer)
     for (const ev of ACTIVITY_EVENTS) {
       window.removeEventListener(ev, onActivity, { capture: true })
     }
