@@ -169,6 +169,7 @@ const translations = {
     parishes: 'Parishes',
     parishesCount: (n: number) => `${n} areas`,
     parishesTitle: 'Seven parishes and the Cotai reclamation zone',
+    parishesTransitNote: 'Hides the LRT lines and bus routes while on',
     toilets: 'Public toilets',
     toiletsCount: (n: number) => `${n} toilets`,
     cityLayers: 'City layers',
@@ -657,6 +658,7 @@ const translations = {
     parishes: '堂區',
     parishesCount: (n: number) => `${n} 個區`,
     parishesTitle: '七個堂區及路氹填海區',
+    parishesTransitNote: '開啟時隱藏輕軌與巴士路線',
     toilets: '公廁',
     toiletsCount: (n: number) => `${n} 間公廁`,
     cityLayers: '城市資料',
@@ -1090,6 +1092,7 @@ const translations = {
     parishes: 'Freguesias',
     parishesCount: (n: number) => `${n} áreas`,
     parishesTitle: 'Sete freguesias e a zona de aterros do Cotai',
+    parishesTransitNote: 'Oculta as linhas do metro ligeiro e dos autocarros enquanto activo',
     toilets: 'Sanitários públicos',
     toiletsCount: (n: number) => `${n} sanitários`,
     cityLayers: 'Camadas urbanas',
@@ -1523,6 +1526,7 @@ export interface Translations {
   parishes: string
   parishesCount: (n: number) => string
   parishesTitle: string
+  parishesTransitNote: string
   toilets: string
   toiletsCount: (n: number) => string
   cityLayers: string

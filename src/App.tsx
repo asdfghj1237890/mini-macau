@@ -27,6 +27,12 @@ import {
   type PublicHousingTypeSet,
 } from './publicHousing'
 import {
+  captureTransitForParishes,
+  loadParishTransitSnapshot,
+  saveParishTransitSnapshot,
+  type ParishTransitSnapshot,
+} from './parishes'
+import {
   FOCUS_LAYERS,
   activeFocusPeer,
   applyFocusMode,
@@ -269,6 +275,22 @@ export default function App() {
   // off until asked for (`=== '1'`). Unlike housing it is NOT a focus mode —
   // it is context, meant to be read under every other layer.
   const [parishesOn, setParishesOn] = useState(() => localStorage.getItem(LS_PARISHES_KEY) === '1')
+  // What PARISHES took away when it came on — the LRT lines and bus routes to
+  // put back when it goes off (see toggleParishes). Seeded from localStorage so
+  // a reload with the tint up can still restore them.
+  const parishesTransitRef = useRef<ParishTransitSnapshot | null>(loadParishTransitSnapshot())
+  const parishesOnRef = useRef(parishesOn)
+  parishesOnRef.current = parishesOn
+  // The reverse half of the PARISHES ↔ transit exclusion: a user switching an
+  // LRT line or bus route ON while the tint is up has chosen transit, so the
+  // tint goes and its stash is dropped rather than replayed over that choice.
+  const leaveParishesForTransit = useCallback(() => {
+    if (!parishesOnRef.current) return
+    parishesTransitRef.current = null
+    saveParishTransitSnapshot(null)
+    ga.layerToggled('parishes', false)
+    setParishesOn(false)
+  }, [])
   // Toilets are opt-in for the same reason as schools — 197 pins over the
   // peninsula are noise until someone actually wants them, so `=== '1'`.
   const [toiletsOn, setToiletsOn] = useState(() => localStorage.getItem(LS_TOILETS_KEY) === '1')
@@ -599,6 +621,7 @@ export default function App() {
 
   const onToggleRoute = useCallback((routeId: string) => {
     if (inactiveRoutes.has(routeId)) return
+    if (!visibleRoutes.has(routeId)) leaveParishesForTransit()
     setVisibleRoutes(prev => {
       const next = new Set(prev)
       if (next.has(routeId)) next.delete(routeId)
@@ -607,10 +630,11 @@ export default function App() {
       return next
     })
     setIsAutoMode(false)
-  }, [inactiveRoutes])
+  }, [inactiveRoutes, visibleRoutes, leaveParishesForTransit])
 
   const onToggleAll = useCallback(() => {
     const eligible = transitData.busRoutes.filter(r => !inactiveRoutes.has(r.id))
+    if (visibleRoutes.size !== eligible.length) leaveParishesForTransit()
     setVisibleRoutes(prev => {
       const next = prev.size === eligible.length
         ? new Set<string>()
@@ -619,16 +643,17 @@ export default function App() {
       return next
     })
     setIsAutoMode(false)
-  }, [transitData.busRoutes, inactiveRoutes])
+  }, [transitData.busRoutes, inactiveRoutes, visibleRoutes, leaveParishesForTransit])
 
   const onShowAll = useCallback(() => {
+    leaveParishesForTransit()
     const next = new Set(
       transitData.busRoutes.filter(r => !inactiveRoutes.has(r.id)).map(r => r.id)
     )
     saveRoutes(next)
     setVisibleRoutes(next)
     setIsAutoMode(false)
-  }, [transitData.busRoutes, inactiveRoutes])
+  }, [transitData.busRoutes, inactiveRoutes, leaveParishesForTransit])
 
   const onHideAll = useCallback(() => {
     const next = new Set<string>()
@@ -648,6 +673,7 @@ export default function App() {
         .map(r => r.id)
     )
     const anyOn = groupRoutes.some(r => visibleRoutes.has(r.id))
+    if (!anyOn) leaveParishesForTransit()
     const next = new Set(visibleRoutes)
     if (anyOn) {
       for (const r of groupRoutes) next.delete(r.id)
@@ -671,12 +697,13 @@ export default function App() {
       setIsAutoMode(false)
     }
     ga.layerToggled(`bus_group_${groupKey}`, !anyOn)
-  }, [transitData.busRoutes, inactiveRoutes, simTime, visibleRoutes])
+  }, [transitData.busRoutes, inactiveRoutes, simTime, visibleRoutes, leaveParishesForTransit])
 
   const onResetAuto = useCallback(() => {
+    leaveParishesForTransit()
     clearSavedRoutes()
     setIsAutoMode(true)
-  }, [])
+  }, [leaveParishesForTransit])
 
   const onVehicleClick = useCallback((vehicle: VehiclePosition | null) => {
     setSelectedVehicle(vehicle)
@@ -981,6 +1008,7 @@ export default function App() {
   }, [])
 
   const toggleLrt = useCallback((id: string) => {
+    if (!lrtOn.has(id)) leaveParishesForTransit()
     setLrtOn(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -988,7 +1016,7 @@ export default function App() {
       ga.layerToggled(`lrt_${id}`, next.has(id))
       return next
     })
-  }, [])
+  }, [lrtOn, leaveParishesForTransit])
 
   const toggleFlights = useCallback(() => setFlightsOn(v => {
     ga.layerToggled('flights', !v)
@@ -1004,12 +1032,6 @@ export default function App() {
   }), [])
   const toggleSchools = useCallback(() => setSchoolsOn(v => {
     ga.layerToggled('schools', !v)
-    return !v
-  }), [])
-  // Not a focus mode: the tint is context, so this is a plain toggle like the
-  // schools above rather than a `setFocus` call.
-  const toggleParishes = useCallback(() => setParishesOn(v => {
-    ga.layerToggled('parishes', !v)
     return !v
   }), [])
   const toggleToilets = useCallback(() => setToiletsOn(v => {
@@ -1071,6 +1093,33 @@ export default function App() {
     carParks: carParksOn,
     parishes: parishesOn,
   }), [lrtOn, isAutoMode, visibleRoutes, flightsOn, ferriesOn, roadWorksOn, schoolsOn, publicHousingOn, toiletsOn, carParksOn, parishesOn])
+
+  // PARISHES is not a focus mode — the tint stacks with every city overlay —
+  // but it is exclusive with the transit lines: the boundaries are read
+  // against the city, not under the LRT and bus routes. Switching it on stashes
+  // those and clears them through the same setters the focus modes use;
+  // switching it off puts the stash back. The other direction (a line switched
+  // on while the tint is up) is leaveParishesForTransit, above.
+  const toggleParishes = useCallback(() => {
+    const on = !parishesOn
+    ga.layerToggled('parishes', on)
+    if (on) {
+      const snapshot = captureTransitForParishes(lrtOn, isAutoMode, visibleRoutes)
+      parishesTransitRef.current = snapshot
+      saveParishTransitSnapshot(snapshot)
+      layerApply.setLrt([])
+      layerApply.setBus([], false)
+    } else {
+      const snapshot = parishesTransitRef.current
+      parishesTransitRef.current = null
+      saveParishTransitSnapshot(null)
+      if (snapshot) {
+        layerApply.setLrt(snapshot.lrt)
+        layerApply.setBus(snapshot.busAuto ? [] : snapshot.busRoutes, snapshot.busAuto)
+      }
+    }
+    setParishesOn(on)
+  }, [parishesOn, lrtOn, isAutoMode, visibleRoutes, layerApply])
 
   // HOUSING, WATER, POWER and WASTE are focus modes: switching one on snapshots
   // every other layer and clears them, switching it off puts that exact snapshot
@@ -1224,6 +1273,7 @@ export default function App() {
             onGrandPrixCornerClick={onGrandPrixCornerClick}
             onGrandPrixCircuitClick={onGrandPrixCircuitClick}
             grandPrixFocus={grandPrixOn}
+            transitHidden={parishesOn}
             carParkVacancy={carParkVacancy.vacancy}
             onClearSelection={clearSelection}
             trackedVehicleId={trackedVehicleId}

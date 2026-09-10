@@ -1,13 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   PARISH_COLORS,
   PARISH_FEATURE_ID_PROPERTY,
   PARISH_ORDER,
   buildParishFeatures,
   buildParishLabelFeatures,
+  captureTransitForParishes,
+  loadParishTransitSnapshot,
   parishColor,
   parishDensity,
   parishName,
+  saveParishTransitSnapshot,
 } from './parishes'
 import type { Parish } from './types'
 
@@ -94,5 +97,48 @@ describe('buildParishFeatures', () => {
     const fc = buildParishLabelFeatures([parish(), parish({ id: 'c', slug: 'cotai', kind: 'reclamation', coordinates: [113.57, 22.15] })])
     expect(fc.features.map(f => (f.geometry as GeoJSON.Point).coordinates)).toEqual([[113.55, 22.2], [113.57, 22.15]])
     expect(fc.features[1].properties?.color).toBe(PARISH_COLORS.cotai)
+  })
+})
+
+// vitest runs in node, which has no Web Storage: stub the methods the module
+// uses over a Map (the same approach as publicHousing.test.ts).
+function fakeStorage() {
+  const store = new Map<string, string>()
+  return {
+    getItem: (key: string) => store.get(key) ?? null,
+    setItem: (key: string, value: string) => { store.set(key, String(value)) },
+    removeItem: (key: string) => { store.delete(key) },
+    clear: () => { store.clear() },
+  }
+}
+
+describe('the PARISHES transit stash', () => {
+  beforeEach(() => { vi.stubGlobal('localStorage', fakeStorage()) })
+  afterEach(() => { vi.unstubAllGlobals() })
+
+  it('captures the LRT lines and bus routes, dropping the routes in auto mode', () => {
+    expect(captureTransitForParishes(new Set(['lrt-taipa']), false, new Set(['26A', '25'])))
+      .toEqual({ lrt: ['lrt-taipa'], busAuto: false, busRoutes: ['26A', '25'] })
+    expect(captureTransitForParishes(['lrt-taipa'], true, ['26A']))
+      .toEqual({ lrt: ['lrt-taipa'], busAuto: true, busRoutes: [] })
+  })
+
+  it('round-trips through storage and clears with null', () => {
+    const snapshot = captureTransitForParishes(['lrt-taipa'], false, ['26A'])
+    saveParishTransitSnapshot(snapshot)
+    expect(loadParishTransitSnapshot()).toEqual(snapshot)
+    saveParishTransitSnapshot(null)
+    expect(loadParishTransitSnapshot()).toBeNull()
+    expect(localStorage.getItem('mini-macau-parishes-transit-snapshot')).toBeNull()
+  })
+
+  it('reads nothing from a missing, corrupt or mis-shaped entry', () => {
+    expect(loadParishTransitSnapshot()).toBeNull()
+    localStorage.setItem('mini-macau-parishes-transit-snapshot', '{not json')
+    expect(loadParishTransitSnapshot()).toBeNull()
+    localStorage.setItem('mini-macau-parishes-transit-snapshot', '{"lrt":"lrt-taipa","busAuto":false,"busRoutes":[]}')
+    expect(loadParishTransitSnapshot()).toBeNull()
+    localStorage.setItem('mini-macau-parishes-transit-snapshot', '{"lrt":[],"busAuto":"yes","busRoutes":[]}')
+    expect(loadParishTransitSnapshot()).toBeNull()
   })
 })

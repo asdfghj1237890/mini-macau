@@ -1439,7 +1439,7 @@ export function LineLegend({
               below it (glyph / swatch / label / count / state). It leads the
               page because it is the context the other rows are read against:
               a wash under everything, not another set of marks on top. */}
-          {parishCount > 0 && (
+          {parishCount > 0 && (<>
             <button
               type="button"
               onClick={onToggleParishes}
@@ -1470,7 +1470,14 @@ export function LineLegend({
                 {parishesOn ? 'ON' : 'OFF'}
               </span>
             </button>
-          )}
+            {/* What the switch does to the rest of the map: the tint is read
+                against the city, so the LRT lines and bus routes step aside
+                while it is on (App's toggleParishes). Same caption styling as
+                the housing focus note. */}
+            <div className="pl-8 pr-3 pb-1 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+              {t.parishesTransitNote}
+            </div>
+          </>)}
 
           {/* ROAD WORKS — toggleable */}
           {totalRoadWorkCount > 0 && (
@@ -2991,6 +2998,8 @@ export function LineLegend({
               </button>
               <div className="px-3 pb-3 text-[10px] leading-[1.4] text-(--mm-text-subtle) mm-han">
                 {t.parishesTitle}
+                <br />
+                {t.parishesTransitNote}
               </div>
             </div>
           )}

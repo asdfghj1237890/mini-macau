@@ -909,6 +909,39 @@ const PUBLIC_HOUSING_SELECTED_COLOR = '#ffffff'
 // (MultiPolygon vs Point) — see src/parishes.ts.
 const PARISHES_SOURCE_ID = 'parish-areas'
 const PARISHES_LABEL_SOURCE_ID = 'parish-labels'
+// The basemap names the parishes itself (OpenFreeMap's `place` layer holds
+// them as suburbs, in its fixed 「中文 Português」 form). While the PARISHES
+// layer is on that would put two labels on every area, so those suburb
+// features are filtered out of the basemap layer for the duration and the
+// original filter is put back when the layer goes off. Only names that read
+// as a parish or the reclamation zone are dropped — other suburb-class names
+// (neighbourhoods, villages) stay.
+const BASEMAP_SUBURB_LABELS_LAYER_ID = 'place_suburbs'
+const PARISH_BASEMAP_NAME_MARKERS = ['堂區', '填海區'] as const
+
+// Hide or restore the basemap's parish names. `saved` remembers the layer's
+// own filter the first time it is overridden on a given style, so the
+// restore is exact; a style swap resets it (addCustomLayers clears the ref).
+function applyParishBasemapLabels(
+  m: maplibregl.Map,
+  parishesOn: boolean,
+  saved: { current: maplibregl.FilterSpecification | null | undefined },
+): void {
+  if (!m.getLayer(BASEMAP_SUBURB_LABELS_LAYER_ID)) return
+  if (parishesOn) {
+    if (saved.current === undefined) saved.current = m.getFilter(BASEMAP_SUBURB_LABELS_LAYER_ID) ?? null
+    // Expression form of the layer's own `class == suburb` test (the two
+    // filter syntaxes cannot be mixed) plus the name exclusions.
+    m.setFilter(BASEMAP_SUBURB_LABELS_LAYER_ID, [
+      'all',
+      ['==', ['get', 'class'], 'suburb'],
+      ...PARISH_BASEMAP_NAME_MARKERS.map(marker => ['!', ['in', marker, ['coalesce', ['get', 'name'], '']]]),
+    ] as unknown as maplibregl.FilterSpecification)
+  } else if (saved.current !== undefined) {
+    m.setFilter(BASEMAP_SUBURB_LABELS_LAYER_ID, saved.current)
+    saved.current = undefined
+  }
+}
 const PARISHES_FILL_LAYER_ID = 'parish-areas-fill'
 const PARISHES_LINE_LAYER_ID = 'parish-areas-outline'
 const PARISHES_LABEL_LAYER_ID = 'parish-areas-label'
@@ -1694,8 +1727,11 @@ const POWER_FOCUS_SHOWN_LAYERS: readonly string[] = [
 // either, and each overlay's own street mesh shows only for its own.
 function applyFocusVisibility(
   m: maplibregl.Map, water: boolean, power: boolean, waste: boolean, grandPrix: boolean,
+  transitHidden = false,
 ): void {
-  const focus = water || power || waste || grandPrix
+  // `transitHidden` (PARISHES) hides the same network a focus mode does but
+  // shows no mesh of its own, so it only joins the first decision.
+  const focus = water || power || waste || grandPrix || transitHidden
   for (const id of FOCUS_HIDDEN_LAYERS) {
     if (!m.getLayer(id)) continue
     m.setLayoutProperty(id, 'visibility', focus ? 'none' : 'visible')
@@ -1957,6 +1993,11 @@ export interface MapViewProps {
   // while it is off), so the flag only feeds the "hide the city" half and
   // the car's per-tick update.
   grandPrixFocus?: boolean
+  // PARISHES is exclusive with the transit lines: while it is on, App has
+  // already emptied the LRT/bus arrays, and this hides the network that
+  // survives an empty array (bus polylines, station pins) exactly as a focus
+  // mode does — without being one.
+  transitHidden?: boolean
   onGrandPrixCornerClick?: (corner: GrandPrixCorner | null) => void
   // A click on the racing line itself opens the circuit's own panel.
   onGrandPrixCircuitClick?: (circuit: GrandPrixCircuit) => void
@@ -1983,7 +2024,7 @@ export interface MapViewProps {
 }
 
 export function MapView(props: MapViewProps) {
-  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
+  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, transitHidden = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapThemeRef = useRef<boolean | null>(null)
@@ -2132,6 +2173,11 @@ export function MapView(props: MapViewProps) {
   // ring filter is re-applied on a fresh style).
   const grandPrixFocusRef = useRef(grandPrixFocus)
   grandPrixFocusRef.current = grandPrixFocus
+  const transitHiddenRef = useRef(transitHidden)
+  transitHiddenRef.current = transitHidden
+  // The basemap suburb-label filter as it was before PARISHES overrode it
+  // (undefined = not overridden on this style). See applyParishBasemapLabels.
+  const savedSuburbFilterRef = useRef<maplibregl.FilterSpecification | null | undefined>(undefined)
   const selectedGrandPrixCornerIdRef = useRef<string | null>(selectedGrandPrixCornerId ?? null)
   selectedGrandPrixCornerIdRef.current = selectedGrandPrixCornerId ?? null
   // Seeds all three waste sources after a style swap, the same way transitRef
@@ -2599,6 +2645,11 @@ export function MapView(props: MapViewProps) {
         data: buildParishLabelFeatures(transitRef.current.parishes),
         promoteId: PARISH_FEATURE_ID_PROPERTY,
       })
+      // A fresh style carries the basemap's own parish names again: hide them
+      // now if the layer is on (the ref is reset because the old filter
+      // belonged to the previous style object).
+      savedSuburbFilterRef.current = undefined
+      applyParishBasemapLabels(m, transitRef.current.parishes.length > 0, savedSuburbFilterRef)
       m.addLayer({
         id: PARISHES_FILL_LAYER_ID, type: 'fill', source: PARISHES_SOURCE_ID,
         paint: {
@@ -3852,6 +3903,7 @@ export function MapView(props: MapViewProps) {
       // A style swap re-adds every layer visible; re-assert focus mode.
       applyFocusVisibility(
         m, waterFocusRef.current, powerFocusRef.current, wasteFocusRef.current, grandPrixFocusRef.current,
+        transitHiddenRef.current,
       )
     }
 
@@ -4259,6 +4311,7 @@ export function MapView(props: MapViewProps) {
       ?.setData?.(buildParishFeatures(transitData.parishes))
     ;(map.getSource(PARISHES_LABEL_SOURCE_ID) as unknown as SetData)
       ?.setData?.(buildParishLabelFeatures(transitData.parishes))
+    applyParishBasemapLabels(map, transitData.parishes.length > 0, savedSuburbFilterRef)
   }, [transitData.parishes])
 
   useEffect(() => {
@@ -4609,8 +4662,8 @@ export function MapView(props: MapViewProps) {
   // one overlay's street mesh.
   useEffect(() => {
     const map = mapRef.current
-    if (map) applyFocusVisibility(map, waterFocus, powerFocus, wasteFocus, grandPrixFocus)
-  }, [waterFocus, powerFocus, wasteFocus, grandPrixFocus])
+    if (map) applyFocusVisibility(map, waterFocus, powerFocus, wasteFocus, grandPrixFocus, transitHidden)
+  }, [waterFocus, powerFocus, wasteFocus, grandPrixFocus, transitHidden])
 
   useEffect(() => {
     const map = mapRef.current

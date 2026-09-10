@@ -32,9 +32,9 @@ export const PARISH_COLORS: Record<ParishSlug, string> = {
 
 // Fill and outline strengths. The fill is a tint (the user asked for a light
 // wash), the outline carries the boundary; labels are the symbol layer's.
-export const PARISH_FILL_OPACITY = 0.16
-export const PARISH_LINE_OPACITY = 0.65
-export const PARISH_LINE_WIDTH_PX = 1.2
+export const PARISH_FILL_OPACITY = 0.3
+export const PARISH_LINE_OPACITY = 0.85
+export const PARISH_LINE_WIDTH_PX = 2.2
 
 // Labels show at overview zooms and step out once the map is close enough for
 // buildings to matter — a parish name across a street block is noise.
@@ -67,6 +67,61 @@ export function parishDensity(parish: Parish): number | null {
   if (parish.densityPerKm2 != null) return Math.round(parish.densityPerKm2)
   if (parish.population == null || parish.areaKm2 == null || parish.areaKm2 <= 0) return null
   return Math.round(parish.population / parish.areaKm2)
+}
+
+// ---------------------------------------------------------------------------
+// PARISHES ↔ transit. The tint is read against the city, not under the LRT
+// lines and bus routes, so switching it on takes the transit lines away and
+// switching it off gives back exactly what it took. This is that stash: kept
+// in its own localStorage key so a reload with the tint up can still restore,
+// and dropped (not replayed) when the user switches a line back on themselves.
+// ---------------------------------------------------------------------------
+
+export interface ParishTransitSnapshot {
+  lrt: string[] // LRT line ids that were on
+  busAuto: boolean // auto-by-time bus mode was active
+  busRoutes: string[] // explicitly visible bus route ids; empty when busAuto
+}
+
+const LS_PARISH_TRANSIT_KEY = 'mini-macau-parishes-transit-snapshot'
+
+// The transit state to stash. Arrays are copied and the route list is dropped
+// in auto mode (it is derived from the clock), the same rule the focus-mode
+// snapshot follows.
+export function captureTransitForParishes(
+  lrt: Iterable<string>,
+  busAuto: boolean,
+  busRoutes: Iterable<string>,
+): ParishTransitSnapshot {
+  return { lrt: [...lrt], busAuto: !!busAuto, busRoutes: busAuto ? [] : [...busRoutes] }
+}
+
+// Anything unreadable or of the wrong shape reads as "nothing stashed".
+export function loadParishTransitSnapshot(): ParishTransitSnapshot | null {
+  try {
+    const raw = localStorage.getItem(LS_PARISH_TRANSIT_KEY)
+    if (!raw) return null
+    const o: unknown = JSON.parse(raw)
+    if (!o || typeof o !== 'object') return null
+    const { lrt, busAuto, busRoutes } = o as Record<string, unknown>
+    const ids = (v: unknown): string[] | null =>
+      Array.isArray(v) && v.every(x => typeof x === 'string') ? [...(v as string[])] : null
+    const lrtIds = ids(lrt)
+    const routeIds = ids(busRoutes)
+    if (!lrtIds || !routeIds || typeof busAuto !== 'boolean') return null
+    return { lrt: lrtIds, busAuto, busRoutes: busAuto ? [] : routeIds }
+  } catch {
+    return null
+  }
+}
+
+// Persist the stash, or clear it with null. Storage can throw (private mode,
+// quota); losing the stash is never worth breaking the toggle.
+export function saveParishTransitSnapshot(snapshot: ParishTransitSnapshot | null): void {
+  try {
+    if (snapshot) localStorage.setItem(LS_PARISH_TRANSIT_KEY, JSON.stringify(snapshot))
+    else localStorage.removeItem(LS_PARISH_TRANSIT_KEY)
+  } catch { /* ignore */ }
 }
 
 // One MultiPolygon feature per area for the fill and outline layers. `color`
