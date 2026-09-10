@@ -12,6 +12,13 @@ import { macauYmd } from '../macauTime'
 import { useClockMinute } from '../hooks/useSimulationClock'
 import { grandPrixCarState } from '../grandPrix'
 import { publicHousingColor } from '../publicHousing'
+import {
+  PARISH_FILL_OPACITY,
+  PARISH_LINE_OPACITY,
+  PARISH_LINE_WIDTH_PX,
+  parishColor,
+  parishName,
+} from '../parishes'
 import { schoolColor } from '../schools'
 
 type Props = MapViewProps & {
@@ -131,6 +138,28 @@ export default function RasterMapFallback(props: Props) {
       L.polyline(coords.map(latLng), { color, weight, opacity: 0.7 }).addTo(group)
     const name = (value: { zh: string; en?: string; pt?: string }) =>
       (lang === 'zh' ? value.zh : lang === 'pt' ? value.pt : value.en) || value.pt || value.zh
+    // The parish tint goes in FIRST, so every route, marker and label added
+    // below paints over it — the 2D twin of the WebGL map, where the fill is
+    // anchored under the basemap's roads. Leaflet takes the whole MultiPolygon
+    // (outer ring first, any holes after) in one call per area.
+    for (const parish of data.parishes) {
+      const rings = parish.geometry.map(polygon => polygon.map(ring => ring.map(latLng)))
+      if (!rings.length) continue
+      const color = parishColor(parish.slug)
+      const caption = document.createElement('span')
+      caption.textContent = parishName(parish, lang)
+      L.polygon(rings, {
+        color,
+        weight: PARISH_LINE_WIDTH_PX,
+        opacity: PARISH_LINE_OPACITY,
+        fillColor: color,
+        fillOpacity: PARISH_FILL_OPACITY,
+        bubblingMouseEvents: false,
+      })
+        .bindTooltip(caption)
+        .addTo(group)
+        .on('click', () => live.current.onParishClick?.(parish))
+    }
     for (const route of [...data.busRoutes, ...data.lrtLines]) line(route.geometry.geometry.coordinates, route.color)
     const stationIds = new Set(data.lrtLines.flatMap(l => l.stations))
     for (const station of data.stations) if (stationIds.has(station.id)) {

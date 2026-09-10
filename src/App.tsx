@@ -59,7 +59,7 @@ import { useCarParkVacancy } from './hooks/useCarParkVacancy'
 import { useWaterDistribution } from './hooks/useWaterDistribution'
 import { usePowerDistribution } from './hooks/usePowerDistribution'
 import { ignoreClockShortcut } from './timeControls'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Toilet, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -76,6 +76,7 @@ const FerryInfoPanel = lazy(() => import('./components/FerryInfoPanel').then(m =
 const RoadWorkInfoPanel = lazy(() => import('./components/RoadWorkInfoPanel').then(m => ({ default: m.RoadWorkInfoPanel })))
 const SchoolInfoPanel = lazy(() => import('./components/SchoolInfoPanel').then(m => ({ default: m.SchoolInfoPanel })))
 const PublicHousingInfoPanel = lazy(() => import('./components/PublicHousingInfoPanel').then(m => ({ default: m.PublicHousingInfoPanel })))
+const ParishInfoPanel = lazy(() => import('./components/ParishInfoPanel').then(m => ({ default: m.ParishInfoPanel })))
 const ToiletInfoPanel = lazy(() => import('./components/ToiletInfoPanel').then(m => ({ default: m.ToiletInfoPanel })))
 const CarParkInfoPanel = lazy(() => import('./components/CarParkInfoPanel').then(m => ({ default: m.CarParkInfoPanel })))
 const WasteSiteInfoPanel = lazy(() => import('./components/WasteSiteInfoPanel').then(m => ({ default: m.WasteSiteInfoPanel })))
@@ -142,6 +143,7 @@ const LS_FERRIES_KEY = 'mini-macau-ferries-on'
 const LS_ROADWORKS_KEY = 'mini-macau-roadworks-on'
 const LS_SCHOOLS_KEY = 'mini-macau-schools-on'
 const LS_PUBLIC_HOUSING_KEY = 'mini-macau-public-housing-on'
+const LS_PARISHES_KEY = 'mini-macau-parishes-on'
 const LS_TOILETS_KEY = 'mini-macau-toilets-on'
 const LS_CARPARKS_KEY = 'mini-macau-carparks-on'
 const LS_WASTE_KEY = 'mini-macau-waste-on'
@@ -158,6 +160,9 @@ const NO_SCHOOLS: School[] = []
 // array identity: a fresh `[]` every simulated minute would re-tile the source
 // while the layer is hidden.
 const NO_PUBLIC_HOUSING: PublicHousingEstate[] = []
+// And for the parish areas, whose tint and label sources MapView also pushes on
+// array identity.
+const NO_PARISHES: Parish[] = []
 const NO_ROAD_WORKS: RoadWorkNotice[] = []
 // Same reasoning for the toilet markers, which MapView also pushes on array
 // identity (the data is time-independent, so it never goes through the tick).
@@ -222,6 +227,9 @@ export default function App() {
   const [selectedPublicHousing, setSelectedPublicHousing] = useState<
     { estate: PublicHousingEstate; buildingName: string | null } | null
   >(null)
+  // The clicked parish (or the Cotai reclamation zone). One area per click, so
+  // unlike the schools and estates there is no sub-feature to name.
+  const [selectedParish, setSelectedParish] = useState<Parish | null>(null)
   const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null)
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null)
   // Either kind of waste mark — a collection point or the incineration plant.
@@ -257,6 +265,10 @@ export default function App() {
   // which catchment — and their colour families were picked not to collide).
   // Its own snapshot slot, seeded from its own storage key like the others.
   const housingFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('housing'))
+  // The parish tint is opt-in too: it washes the whole territory, so it stays
+  // off until asked for (`=== '1'`). Unlike housing it is NOT a focus mode —
+  // it is context, meant to be read under every other layer.
+  const [parishesOn, setParishesOn] = useState(() => localStorage.getItem(LS_PARISHES_KEY) === '1')
   // Toilets are opt-in for the same reason as schools — 197 pins over the
   // peninsula are noise until someone actually wants them, so `=== '1'`.
   const [toiletsOn, setToiletsOn] = useState(() => localStorage.getItem(LS_TOILETS_KEY) === '1')
@@ -347,6 +359,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_ROADWORKS_KEY, roadWorksOn ? '1' : '0') }, [roadWorksOn])
   useEffect(() => { localStorage.setItem(LS_SCHOOLS_KEY, schoolsOn ? '1' : '0') }, [schoolsOn])
   useEffect(() => { localStorage.setItem(LS_PUBLIC_HOUSING_KEY, publicHousingOn ? '1' : '0') }, [publicHousingOn])
+  useEffect(() => { localStorage.setItem(LS_PARISHES_KEY, parishesOn ? '1' : '0') }, [parishesOn])
   useEffect(() => { localStorage.setItem(LS_TOILETS_KEY, toiletsOn ? '1' : '0') }, [toiletsOn])
   useEffect(() => { localStorage.setItem(LS_CARPARKS_KEY, carParksOn ? '1' : '0') }, [carParksOn])
   useEffect(() => { localStorage.setItem(LS_WASTE_KEY, wasteOn ? '1' : '0') }, [wasteOn])
@@ -361,6 +374,7 @@ export default function App() {
   useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])
   useEffect(() => { if (!schoolsOn) setSelectedSchool(null) }, [schoolsOn])
   useEffect(() => { if (!publicHousingOn) setSelectedPublicHousing(null) }, [publicHousingOn])
+  useEffect(() => { if (!parishesOn) setSelectedParish(null) }, [parishesOn])
   useEffect(() => { if (!toiletsOn) setSelectedToilet(null) }, [toiletsOn])
   useEffect(() => { if (!carParksOn) setSelectedCarPark(null) }, [carParksOn])
   useEffect(() => { if (!wasteOn) setSelectedWasteSite(null) }, [wasteOn])
@@ -478,6 +492,14 @@ export default function App() {
     [transitData.publicHousing]
   )
 
+  // The parish areas on the same contract, minus the per-sub-type set: the
+  // layer has one switch and no per-area toggles, so the array identity only
+  // moves when the master switch or the data does.
+  const visibleParishes = useMemo(
+    () => (parishesOn ? transitData.parishes : NO_PARISHES),
+    [transitData.parishes, parishesOn]
+  )
+
   // Same reasoning as `visibleSchools`: MapView pushes the waste markers on
   // ARRAY IDENTITY, so this must only change when the master switch, the hidden
   // set or the data itself does — not on every clock tick.
@@ -529,6 +551,7 @@ export default function App() {
     roadWorks: roadWorksOn ? transitData.roadWorks : NO_ROAD_WORKS,
     schools: visibleSchools,
     publicHousing: visiblePublicHousing,
+    parishes: visibleParishes,
     toilets: toiletsOn ? transitData.toilets : NO_TOILETS,
     carParks: carParksOn ? transitData.carParks : NO_CAR_PARKS,
     waste: visibleWaste,
@@ -542,7 +565,7 @@ export default function App() {
     // And for the circuit: null empties the track, the corners, the pulse and
     // takes the car off.
     grandPrix: grandPrixOn ? transitData.grandPrix : null,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, visiblePublicHousing, toiletsOn, carParksOn, visibleWaste, waterOn, powerOn, grandPrixOn])
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, visiblePublicHousing, visibleParishes, toiletsOn, carParksOn, visibleWaste, waterOn, powerOn, grandPrixOn])
 
   // Macau's streets, for the thin distribution pipes. Fetched the first time
   // WATER goes on and kept for the session — the hook ignores later toggles, so
@@ -661,6 +684,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -682,6 +706,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -701,6 +726,7 @@ export default function App() {
     setSelectedStation(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -717,6 +743,7 @@ export default function App() {
     setSelectedVehicle(null)
     setSelectedStation(null)
     setSelectedRoadWork(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -734,6 +761,7 @@ export default function App() {
     setSelectedStation(null)
     setSelectedRoadWork(null)
     setSelectedSchool(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -752,6 +780,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -769,6 +798,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -786,6 +816,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWaterFacility(null)
@@ -805,6 +836,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -823,6 +855,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -841,6 +874,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -859,6 +893,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -877,6 +912,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -894,6 +930,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -904,12 +941,34 @@ export default function App() {
     setTrackedVehicleId(null)
   }, [])
 
+  // Parish areas follow the same one-panel-at-a-time rule. MapView only calls
+  // this when nothing else is under the cursor, so a school block or a marker
+  // standing inside a parish still opens its own panel.
+  const onParishClick = useCallback((parish: Parish) => {
+    setSelectedParish(parish)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
+    setSelectedPublicHousing(null)
+    setSelectedToilet(null)
+    setSelectedCarPark(null)
+    setSelectedWasteSite(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
+    setSelectedPowerFacility(null)
+    setSelectedPowerNode(null)
+    setSelectedGrandPrix(null)
+    setTrackedVehicleId(null)
+  }, [])
+
   const clearSelection = useCallback(() => {
     setSelectedVehicle(null)
     setSelectedStation(null)
     setSelectedRoadWork(null)
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
+    setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
@@ -945,6 +1004,12 @@ export default function App() {
   }), [])
   const toggleSchools = useCallback(() => setSchoolsOn(v => {
     ga.layerToggled('schools', !v)
+    return !v
+  }), [])
+  // Not a focus mode: the tint is context, so this is a plain toggle like the
+  // schools above rather than a `setFocus` call.
+  const toggleParishes = useCallback(() => setParishesOn(v => {
+    ga.layerToggled('parishes', !v)
     return !v
   }), [])
   const toggleToilets = useCallback(() => setToiletsOn(v => {
@@ -987,6 +1052,7 @@ export default function App() {
     setPublicHousing: setPublicHousingOn,
     setToilets: setToiletsOn,
     setCarParks: setCarParksOn,
+    setParishes: setParishesOn,
   }), [])
 
   // Everything a focus mode has to remember, as it stands right now. Read only
@@ -1003,7 +1069,8 @@ export default function App() {
     publicHousing: publicHousingOn,
     toilets: toiletsOn,
     carParks: carParksOn,
-  }), [lrtOn, isAutoMode, visibleRoutes, flightsOn, ferriesOn, roadWorksOn, schoolsOn, publicHousingOn, toiletsOn, carParksOn])
+    parishes: parishesOn,
+  }), [lrtOn, isAutoMode, visibleRoutes, flightsOn, ferriesOn, roadWorksOn, schoolsOn, publicHousingOn, toiletsOn, carParksOn, parishesOn])
 
   // HOUSING, WATER, POWER and WASTE are focus modes: switching one on snapshots
   // every other layer and clears them, switching it off puts that exact snapshot
@@ -1140,6 +1207,7 @@ export default function App() {
             onRoadWorkClick={onRoadWorkClick}
             onSchoolClick={onSchoolClick}
             onPublicHousingClick={onPublicHousingClick}
+            onParishClick={onParishClick}
             onToiletClick={onToiletClick}
             onCarParkClick={onCarParkClick}
             onWasteSiteClick={onWasteSiteClick}
@@ -1162,6 +1230,7 @@ export default function App() {
             selectedRoadWorkId={selectedRoadWork?.id ?? null}
             selectedSchoolId={selectedSchool?.school.id ?? null}
             selectedPublicHousingId={selectedPublicHousing?.estate.id ?? null}
+            selectedParishId={selectedParish?.id ?? null}
             selectedToiletId={selectedToilet?.id ?? null}
             selectedCarParkId={selectedCarPark?.id ?? null}
             selectedWasteSiteId={wasteSelectionId(selectedWasteSite)}
@@ -1208,6 +1277,7 @@ export default function App() {
         schoolLevelsOn={schoolLevelsOn}
         schoolLevelCounts={schoolLevelCounts}
         publicHousingOn={publicHousingOn}
+        parishesOn={parishesOn}
         publicHousingTypesOn={publicHousingTypesOn}
         publicHousingTypeCounts={publicHousingTypeCounts}
         toiletsOn={toiletsOn}
@@ -1226,6 +1296,7 @@ export default function App() {
         onToggleSchools={toggleSchools}
         onToggleSchoolLevel={toggleSchoolLevel}
         onTogglePublicHousing={togglePublicHousing}
+        onToggleParishes={toggleParishes}
         onTogglePublicHousingType={togglePublicHousingType}
         onToggleToilets={toggleToilets}
         onToggleCarParks={toggleCarParks}
@@ -1285,6 +1356,12 @@ export default function App() {
           <SchoolInfoPanel
             school={selectedSchool.school}
             buildingName={selectedSchool.buildingName}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedParish && (
+          <ParishInfoPanel
+            parish={selectedParish}
             onClose={clearSelection}
           />
         )}

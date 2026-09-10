@@ -45,6 +45,7 @@ export interface LayerVisibilityState {
   publicHousing: boolean // ditto: the per-type set is left alone
   toilets: boolean
   carParks: boolean
+  parishes: boolean // the parish tint is context, but it is still a layer: focus hides it
 }
 
 // The setters the focus mode drives. `setBus` takes both facts at once because
@@ -60,6 +61,7 @@ export interface LayerVisibilityApply {
   setPublicHousing: (on: boolean) => void
   setToilets: (on: boolean) => void
   setCarParks: (on: boolean) => void
+  setParishes: (on: boolean) => void
 }
 
 // Which layers a focus mode leaves ALONE — neither hidden on the way in nor
@@ -112,6 +114,7 @@ export function captureLayerSnapshot(state: LayerVisibilityState): LayerVisibili
     publicHousing: !!state.publicHousing,
     toilets: !!state.toilets,
     carParks: !!state.carParks,
+    parishes: !!state.parishes,
   }
 }
 
@@ -129,6 +132,7 @@ export function applyFocusMode(apply: LayerVisibilityApply, layer?: FocusLayer):
   if (!keep.has('publicHousing')) apply.setPublicHousing(false)
   if (!keep.has('toilets')) apply.setToilets(false)
   if (!keep.has('carParks')) apply.setCarParks(false)
+  if (!keep.has('parishes')) apply.setParishes(false)
 }
 
 // Put the snapshot back, exactly — except for the layers the focus mode never
@@ -150,6 +154,7 @@ export function applyLayerSnapshot(
   if (!keep.has('publicHousing')) apply.setPublicHousing(snapshot.publicHousing)
   if (!keep.has('toilets')) apply.setToilets(snapshot.toilets)
   if (!keep.has('carParks')) apply.setCarParks(snapshot.carParks)
+  if (!keep.has('parishes')) apply.setParishes(snapshot.parishes)
 }
 
 // The handoff case. When focus passes from one layer to another (WATER on →
@@ -173,6 +178,7 @@ export function applyKeptOnHandoff(
   if (keep.has('schools')) apply.setSchools(snapshot.schools)
   if (keep.has('toilets')) apply.setToilets(snapshot.toilets)
   if (keep.has('carParks')) apply.setCarParks(snapshot.carParks)
+  if (keep.has('parishes')) apply.setParishes(snapshot.parishes)
 }
 
 // One focus layer's state as seen from another: is it on, and what would it
@@ -238,6 +244,7 @@ export function loadFocusSnapshot(layer: FocusLayer): LayerVisibilityState | nul
       publicHousing: o.publicHousing === true,
       toilets: o.toilets === true,
       carParks: o.carParks === true,
+      parishes: o.parishes === true,
     })
   } catch {
     return null

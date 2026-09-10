@@ -26,6 +26,7 @@
 //   node scripts/inspect.mjs water-distribution     # water-distribution.json summary (Macau-only road network: by class, km, bbox, file size)
 //   node scripts/inspect.mjs power-facilities       # power-facilities.json summary (by type/voltage, exact vs approximate + anchors, footprints, schematic grid)
 //   node scripts/inspect.mjs power-distribution     # power-distribution.json summary (Macau-only road network: by class, km, bbox, file size)
+//   node scripts/inspect.mjs parishes               # parishes.json summary (the 7 parishes + Cotai: names, island/kind, published land area vs drawn OSM area, population + density, polygon/ring/point counts, unsourced figures)
 //   node scripts/inspect.mjs toilets                # toilets.json summary (accessible/family/closed counts, closed list)
 //   node scripts/inspect.mjs car-parks              # car-parks.json summary (by zone, height-limit histogram, no-limit ids)
 //   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt, treatment facilities incl. wwtp buildings + statsKey, eco stations)
@@ -537,6 +538,89 @@ function cmdDistribution(rel) {
   console.log('start-distance histogram (km buckets):', hist)
 }
 
+// Shoelace area of one MultiPolygon, in km2. The rings are lng/lat degrees, so
+// each is projected equirectangularly about its own mean latitude first — over
+// an area a few km across that is well under the rounding in the figures we
+// print it next to. rings[0] is the outer ring, the rest are holes.
+function multiPolygonKm2(geometry) {
+  let km2 = 0
+  for (const polygon of geometry) {
+    for (let r = 0; r < polygon.length; r++) {
+      const ring = polygon[r]
+      const lat0 = ring.reduce((s, [, lat]) => s + lat, 0) / ring.length
+      const mx = 111.32 * Math.cos((lat0 * Math.PI) / 180)
+      let shoelace = 0
+      for (let i = 0; i < ring.length - 1; i++) {
+        const [ax, ay] = ring[i]
+        const [bx, by] = ring[i + 1]
+        shoelace += ax * mx * (by * 110.54) - bx * mx * (ay * 110.54)
+      }
+      km2 += (r === 0 ? 1 : -1) * Math.abs(shoelace / 2)
+    }
+  }
+  return km2
+}
+
+function cmdParishes() {
+  const { fetchedAtUtc, sources, parishes } = load('public/data/parishes.json')
+
+  console.log(`fetchedAtUtc: ${fetchedAtUtc}`)
+  console.log('sources:', sources)
+  const kinds = {}
+  for (const p of parishes) kinds[p.kind] = (kinds[p.kind] || 0) + 1
+  console.log(`areas: ${parishes.length}  ${JSON.stringify(kinds)}`)
+
+  // Two areas per row are worth comparing: `areaKm2` is the government's
+  // published *land* area, `osm km2` is the polygon we actually draw. The OSM
+  // administrative boundary reaches into water and reclamation, so it is the
+  // larger of the two — a difference here is expected, not a defect.
+  console.log(
+    `\n${'slug'.padEnd(14)} ${'zh'.padEnd(7)} ${'pt'.padEnd(24)} ${'en'.padEnd(32)} ` +
+      `${'island'.padEnd(8)} ${'kind'.padEnd(11)} ${'km2'.padStart(7)} ${'osm km2'.padStart(8)} ` +
+      `${'population'.padStart(11)} ${'dens/km2'.padStart(9)} ${'poly'.padStart(4)} ${'ring'.padStart(4)} ${'pts'.padStart(5)}`,
+  )
+  let totalPop = 0
+  let totalArea = 0
+  let totalOsm = 0
+  let totalPts = 0
+  const missing = []
+  for (const p of parishes) {
+    const polys = p.geometry.length
+    const rings = p.geometry.reduce((n, poly) => n + poly.length, 0)
+    const pts = p.geometry.reduce((n, poly) => n + poly.reduce((m, ring) => m + ring.length, 0), 0)
+    const osmKm2 = multiPolygonKm2(p.geometry)
+    const dens = p.densityPerKm2 != null ? Math.round(p.densityPerKm2) : (p.population !== null && p.areaKm2 !== null ? Math.round(p.population / p.areaKm2) : null)
+    if (p.population === null) missing.push(`${p.slug}: population`)
+    if (p.areaKm2 === null) missing.push(`${p.slug}: areaKm2`)
+    totalPop += p.population ?? 0
+    totalArea += p.areaKm2 ?? 0
+    totalOsm += osmKm2
+    totalPts += pts
+    console.log(
+      `${p.slug.padEnd(14)} ${p.name.zh.padEnd(7)} ${p.name.pt.padEnd(24)} ${p.name.en.padEnd(32)} ` +
+        `${p.island.padEnd(8)} ${p.kind.padEnd(11)} ${(p.areaKm2 === null ? '—' : p.areaKm2.toFixed(2)).padStart(7)} ` +
+        `${osmKm2.toFixed(2).padStart(8)} ` +
+        `${(p.population === null ? '—' : `${p.population} (${p.populationYear})`).padStart(11)} ` +
+        `${(dens === null ? '—' : String(dens)).padStart(9)} ` +
+        `${String(polys).padStart(4)} ${String(rings).padStart(4)} ${String(pts).padStart(5)}`,
+    )
+  }
+  console.log(
+    `${'TOTAL'.padEnd(14)} ${''.padEnd(7)} ${''.padEnd(24)} ${''.padEnd(32)} ${''.padEnd(8)} ${''.padEnd(11)} ` +
+      `${totalArea.toFixed(2).padStart(7)} ${totalOsm.toFixed(2).padStart(8)} ${String(totalPop).padStart(11)} ` +
+      `${(totalArea > 0 ? String(Math.round(totalPop / totalArea)) : '—').padStart(9)} ` +
+      `${''.padStart(4)} ${''.padStart(4)} ${String(totalPts).padStart(5)}`,
+  )
+
+  console.log(`\nlabel anchors (must be inside the area) and osm refs:`)
+  for (const p of parishes) {
+    console.log(`  ${p.slug.padEnd(14)} ${p.coordinates.map((n) => n.toFixed(6)).join(', ')}   ${p.osm.join(' ')}`)
+  }
+
+  console.log(`\nfigures not published / not sourced: ${missing.length}`)
+  for (const m of missing) console.log(`  ${m}`)
+}
+
 function cmdToilets() {
   const { updatedAt, toilets } = load('public/data/toilets.json')
   const accessible = toilets.filter((t) => t.accessible).length
@@ -772,12 +856,13 @@ switch (cmd) {
   case 'water-distribution': cmdDistribution('public/data/water-distribution.json'); break
   case 'power-facilities': cmdPowerFacilities(); break
   case 'power-distribution': cmdDistribution('public/data/power-distribution.json'); break
+  case 'parishes': cmdParishes(); break
   case 'toilets': cmdToilets(); break
   case 'car-parks': cmdCarParks(); break
   case 'waste': cmdWaste(); break
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks | waste | dspa-stats | grand-prix')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)
 }

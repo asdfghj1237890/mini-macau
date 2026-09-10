@@ -14,6 +14,7 @@ import {
   RoadWorksFileSchema,
   SchoolsFileSchema,
   PublicHousingFileSchema,
+  ParishesFileSchema,
   ToiletsFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
@@ -69,6 +70,7 @@ describe('committed data files satisfy their schemas', () => {
   it('road-works.json', () => expectValid(RoadWorksFileSchema, 'road-works.json'))
   it('schools.json', () => expectValid(SchoolsFileSchema, 'schools.json'))
   it('public-housing.json', () => expectValid(PublicHousingFileSchema, 'public-housing.json'))
+  it('parishes.json', () => expectValid(ParishesFileSchema, 'parishes.json'))
   it('toilets.json', () => expectValid(ToiletsFileSchema, 'toilets.json'))
   it('car-parks.json', () => expectValid(CarParksFileSchema, 'car-parks.json'))
   it('waste.json', () => expectValid(WasteFileSchema, 'waste.json'))

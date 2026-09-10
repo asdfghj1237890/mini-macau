@@ -164,7 +164,11 @@ const translations = {
     publicHousingExpandTitle: 'Show or hide housing types',
     publicHousingToggleAllTitle: 'Toggle the whole layer',
     publicHousingRampHint: 'Shade = decade first occupied',
+    cityFocusOneAtATime: 'one at a time',
     publicHousingFocusNote: 'Focus mode — every layer but the schools is hidden while this is on',
+    parishes: 'Parishes',
+    parishesCount: (n: number) => `${n} areas`,
+    parishesTitle: 'Seven parishes and the Cotai reclamation zone',
     toilets: 'Public toilets',
     toiletsCount: (n: number) => `${n} toilets`,
     cityLayers: 'City layers',
@@ -206,6 +210,7 @@ const translations = {
     dataSourceRoadWorksLabel: 'Road works',
     dataSourceSchoolsLabel: 'Schools',
     dataSourcePublicHousingLabel: 'Public housing',
+    dataSourceParishesLabel: 'Parishes',
     dataSourceToiletsLabel: 'Public toilets',
     dataSourceCarParksLabel: 'Car parks',
     dataSourceWaterLabel: 'Water supply',
@@ -337,6 +342,21 @@ const translations = {
     publicHousingBuildingsCount: (n: number) => `${n} building${n === 1 ? '' : 's'}`,
     publicHousingPartialNote: 'Only part of this estate is public housing',
     publicHousingSource: 'SOURCE',
+    // ---- ParishInfoPanel ----
+    parishLabel: 'PARISH',
+    parishKind: 'KIND',
+    parishKindParish: 'Civil parish',
+    parishKindReclamation: 'Reclamation zone',
+    parishIsland: 'ISLAND',
+    parishIslandMacau: 'Macau Peninsula',
+    parishIslandTaipa: 'Taipa',
+    parishIslandColoane: 'Coloane',
+    parishIslandCotai: 'Cotai',
+    parishArea: 'AREA',
+    parishPopulation: 'POPULATION',
+    parishCensusYear: (n: number) => `${n} census`,
+    parishDensity: 'DENSITY',
+    parishSource: 'SOURCE',
     // ---- ToiletInfoPanel ----
     toiletLabel: 'TOILET',
     toiletAccessible: 'Barrier-free',
@@ -632,7 +652,11 @@ const translations = {
     publicHousingExpandTitle: '展開／收合房屋類型',
     publicHousingToggleAllTitle: '開關整層',
     publicHousingRampHint: '深淺＝首次入伙年代',
+    cityFocusOneAtATime: '一次只開一個',
     publicHousingFocusNote: '專注模式 — 開啟時除學校外其他圖層會隱藏',
+    parishes: '堂區',
+    parishesCount: (n: number) => `${n} 個區`,
+    parishesTitle: '七個堂區及路氹填海區',
     toilets: '公廁',
     toiletsCount: (n: number) => `${n} 間公廁`,
     cityLayers: '城市資料',
@@ -672,6 +696,7 @@ const translations = {
     dataSourceRoadWorksLabel: '工程改道',
     dataSourceSchoolsLabel: '學校',
     dataSourcePublicHousingLabel: '公共房屋',
+    dataSourceParishesLabel: '堂區',
     dataSourceToiletsLabel: '公廁',
     dataSourceCarParksLabel: '停車場',
     dataSourceWaterLabel: '供水設施',
@@ -794,6 +819,23 @@ const translations = {
     publicHousingBuildingsCount: (n: number) => `${n} 棟建築`,
     publicHousingPartialNote: '僅部分單位屬公共房屋',
     publicHousingSource: '來源',
+    parishLabel: '堂區',
+    parishKind: '類型',
+    // 民政堂區, not bare 堂區: the panel's signboard already says 堂區, and the
+    // civil parish is what this means (the ecclesiastical parish is a different
+    // thing that shares the word). Mirrors the English "Civil parish".
+    parishKindParish: '民政堂區',
+    parishKindReclamation: '填海區',
+    parishIsland: '所在',
+    parishIslandMacau: '澳門半島',
+    parishIslandTaipa: '氹仔',
+    parishIslandColoane: '路環',
+    parishIslandCotai: '路氹城',
+    parishArea: '面積',
+    parishPopulation: '人口',
+    parishCensusYear: (n: number) => `${n} 年人口普查`,
+    parishDensity: '人口密度',
+    parishSource: '來源',
     toiletLabel: '公廁',
     toiletAccessible: '無障礙',
     toiletFamily: '親子廁所',
@@ -1043,7 +1085,11 @@ const translations = {
     publicHousingExpandTitle: 'Mostrar ou ocultar tipos de habitação',
     publicHousingToggleAllTitle: 'Ligar ou desligar a camada',
     publicHousingRampHint: 'Tom = década da primeira ocupação',
+    cityFocusOneAtATime: 'um de cada vez',
     publicHousingFocusNote: 'Modo de foco — todas as camadas ficam ocultas, exceto as escolas',
+    parishes: 'Freguesias',
+    parishesCount: (n: number) => `${n} áreas`,
+    parishesTitle: 'Sete freguesias e a zona de aterros do Cotai',
     toilets: 'Sanitários públicos',
     toiletsCount: (n: number) => `${n} sanitários`,
     cityLayers: 'Camadas urbanas',
@@ -1083,6 +1129,7 @@ const translations = {
     dataSourceRoadWorksLabel: 'Obras na via',
     dataSourceSchoolsLabel: 'Escolas',
     dataSourcePublicHousingLabel: 'Habitação pública',
+    dataSourceParishesLabel: 'Freguesias',
     dataSourceToiletsLabel: 'Sanitários',
     dataSourceCarParksLabel: 'Estacionamentos',
     dataSourceWaterLabel: 'Abastecimento de água',
@@ -1206,6 +1253,20 @@ const translations = {
     publicHousingBuildingsCount: (n: number) => `${n} edifício${n === 1 ? '' : 's'}`,
     publicHousingPartialNote: 'Apenas parte deste conjunto é habitação pública',
     publicHousingSource: 'FONTE',
+    parishLabel: 'FREGUESIA',
+    parishKind: 'TIPO',
+    parishKindParish: 'Freguesia',
+    parishKindReclamation: 'Zona de aterros',
+    parishIsland: 'ILHA',
+    parishIslandMacau: 'Península de Macau',
+    parishIslandTaipa: 'Taipa',
+    parishIslandColoane: 'Coloane',
+    parishIslandCotai: 'Cotai',
+    parishArea: 'ÁREA',
+    parishPopulation: 'POPULAÇÃO',
+    parishCensusYear: (n: number) => `Censos de ${n}`,
+    parishDensity: 'DENSIDADE',
+    parishSource: 'FONTE',
     toiletLabel: 'SANITÁRIO',
     toiletAccessible: 'Sem barreiras',
     toiletFamily: 'Compartimento familiar',
@@ -1457,7 +1518,11 @@ export interface Translations {
   publicHousingExpandTitle: string
   publicHousingToggleAllTitle: string
   publicHousingRampHint: string
+  cityFocusOneAtATime: string
   publicHousingFocusNote: string
+  parishes: string
+  parishesCount: (n: number) => string
+  parishesTitle: string
   toilets: string
   toiletsCount: (n: number) => string
   cityLayers: string
@@ -1497,6 +1562,7 @@ export interface Translations {
   dataSourceRoadWorksLabel: string
   dataSourceSchoolsLabel: string
   dataSourcePublicHousingLabel: string
+  dataSourceParishesLabel: string
   dataSourceToiletsLabel: string
   dataSourceCarParksLabel: string
   dataSourceWaterLabel: string
@@ -1615,6 +1681,21 @@ export interface Translations {
   publicHousingBuildingsCount: (n: number) => string
   publicHousingPartialNote: string
   publicHousingSource: string
+  // ---- ParishInfoPanel ----
+  parishLabel: string
+  parishKind: string
+  parishKindParish: string
+  parishKindReclamation: string
+  parishIsland: string
+  parishIslandMacau: string
+  parishIslandTaipa: string
+  parishIslandColoane: string
+  parishIslandCotai: string
+  parishArea: string
+  parishPopulation: string
+  parishCensusYear: (n: number) => string
+  parishDensity: string
+  parishSource: string
   toiletLabel: string
   toiletAccessible: string
   toiletFamily: string

@@ -29,6 +29,7 @@ function state(over: Partial<LayerVisibilityState> = {}): LayerVisibilityState {
     publicHousing: false,
     toilets: false,
     carParks: false,
+    parishes: false,
     ...over,
   }
 }
@@ -47,6 +48,7 @@ function recorder() {
     setPublicHousing: on => { calls.publicHousing = on },
     setToilets: on => { calls.toilets = on },
     setCarParks: on => { calls.carParks = on },
+    setParishes: on => { calls.parishes = on },
   }
   return { apply, calls }
 }
@@ -174,6 +176,7 @@ describe('applyFocusMode', () => {
       publicHousing: false,
       toilets: false,
       carParks: false,
+      parishes: false,
     })
   })
 })
@@ -190,6 +193,7 @@ describe('applyFocusMode — HOUSING keeps the schools', () => {
       roadWorks: false,
       toilets: false,
       carParks: false,
+      parishes: false,
     })
     // Neither setter was called at all — the user's schools stay exactly as
     // they are, and the layer does not switch itself off on the way in.
@@ -323,6 +327,7 @@ describe('load / saveFocusSnapshot', () => {
     expect(loadFocusSnapshot('power')).toEqual({
       lrt: ['a'], busAuto: false, busRoutes: [], flights: false, ferries: false,
       roadWorks: false, schools: false, publicHousing: false, toilets: false, carParks: false,
+      parishes: false,
     })
   })
 

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -16,6 +16,7 @@ import {
   RoadWorksFileSchema,
   SchoolsFileSchema,
   PublicHousingFileSchema,
+  ParishesFileSchema,
   ToiletsFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
@@ -117,6 +118,13 @@ interface PublicHousingFile {
   sources: Record<string, string>
   types: PublicHousingType[]
   estates: PublicHousingEstate[]
+}
+
+// parishes.json: the same envelope; only `parishes` reaches TransitData.
+interface ParishesFile {
+  fetchedAtUtc: string
+  sources: Record<string, string>
+  parishes: Parish[]
 }
 
 // toilets.json is the same envelope pattern again: only `toilets` reaches
@@ -412,6 +420,7 @@ export function useTransitData(): UseTransitDataResult {
     roadWorks: [],
     schools: [],
     publicHousing: [],
+    parishes: [],
     toilets: [],
     carParks: [],
     waste: [],
@@ -553,6 +562,11 @@ export function useTransitData(): UseTransitDataResult {
     // map.
     loadJson<PublicHousingFile>('/data/public-housing.json', PublicHousingFileSchema, 'public-housing.json')
       .then(file => commit('publicHousing', file.estates))
+      .catch(() => {})
+
+    // Parish boundaries — static context, loaded the same non-critical way.
+    loadJson<ParishesFile>('/data/parishes.json', ParishesFileSchema, 'parishes.json')
+      .then(file => commit('parishes', file.parishes))
       .catch(() => {})
 
     // Public toilets — another independent, non-critical overlay (and one

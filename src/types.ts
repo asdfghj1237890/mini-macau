@@ -266,6 +266,38 @@ export interface PublicHousingEstate {
   sources: string[] // the pages this record was built from
 }
 
+// ---- Parishes (堂區) ----------------------------------------------------------
+// Macau's seven civil parishes (freguesias) plus the Cotai reclamation zone,
+// which the government's maps show as an eighth area although it belongs to
+// no parish. From public/data/parishes.json: OSM administrative boundaries,
+// with the 2021 census figures where DSEC publishes them per parish.
+export type ParishSlug =
+  | 'fatima' | 'santo-antonio' | 'sao-lazaro' | 'se' | 'sao-lourenco'
+  | 'carmo' | 'sao-francisco' | 'cotai'
+export type ParishKind = 'parish' | 'reclamation'
+export type ParishIsland = 'macau' | 'taipa' | 'coloane' | 'cotai'
+
+export interface Parish {
+  id: string // "osm:r9506156"
+  slug: ParishSlug
+  name: { zh: string; pt: string; en: string }
+  kind: ParishKind
+  island: ParishIsland
+  areaKm2: number | null
+  population: number | null // census count; null when not published for the area
+  populationYear: number | null // the census year the count comes from
+  // Residents per km² as the pipeline computes it, because the census and the
+  // land-area tables do not always share a denominator (Coloane's count
+  // includes Cotai, whose area is listed separately); null when unknown.
+  densityPerKm2?: number | null
+  // One-sentence caveat on the figures (zh/pt/en), shown under them.
+  note?: { zh: string; pt: string; en: string } | null
+  coordinates: [number, number] // label anchor, always inside the area
+  geometry: [number, number][][][] // GeoJSON MultiPolygon coordinates [polygon][ring][lng, lat]
+  osm: string[]
+  sources: string[]
+}
+
 // Trilingual free text as published by IAM. Unlike the DSAT road-works feed
 // (zh/pt only) this dataset carries a real English form for every field, so
 // `pickToiletText` in toilets.ts hands `en` the English string instead of
@@ -960,6 +992,7 @@ export interface TransitData {
   roadWorks: RoadWorkNotice[]
   schools: School[]
   publicHousing: PublicHousingEstate[]
+  parishes: Parish[]
   toilets: Toilet[]
   carParks: CarPark[]
   // Refuse rooms, compacting bins and the four recycling-point kinds. The

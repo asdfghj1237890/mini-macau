@@ -1071,6 +1071,7 @@ const FULL: LayerVisibilityState = {
   publicHousing: false,
   toilets: true,
   carParks: false,
+  parishes: false,
 }
 
 function recorder() {
@@ -1085,6 +1086,7 @@ function recorder() {
     setPublicHousing: on => calls.push(['publicHousing', on]),
     setToilets: on => calls.push(['toilets', on]),
     setCarParks: on => calls.push(['carParks', on]),
+    setParishes: on => calls.push(['parishes', on]),
   }
   return { calls, apply }
 }
@@ -1119,6 +1121,7 @@ describe('applyWaterFocus', () => {
       ['publicHousing', false],
       ['toilets', false],
       ['carParks', false],
+      ['parishes', false],
     ])
   })
 })
@@ -1137,6 +1140,7 @@ describe('applyLayerSnapshot', () => {
       ['publicHousing', false],
       ['toilets', true],
       ['carParks', false],
+      ['parishes', false],
     ])
   })
 
@@ -1162,6 +1166,7 @@ describe('applyLayerSnapshot', () => {
       publicHousing: false,
       toilets: true,
       carParks: false,
+      parishes: false,
     })
   })
 })
@@ -1215,6 +1220,7 @@ describe('loadWaterFocusSnapshot / saveWaterFocusSnapshot', () => {
       publicHousing: false,
       toilets: false,
       carParks: false,
+      parishes: false,
     })
   })
 

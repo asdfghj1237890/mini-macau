@@ -9,7 +9,7 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -26,6 +26,15 @@ import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay, macauYmd, ma
 import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks'
 import { SCHOOL_FEATURE_ID_PROPERTY, buildSchoolFeatures } from '../schools'
 import { PUBLIC_HOUSING_FEATURE_ID_PROPERTY, buildPublicHousingFeatures } from '../publicHousing'
+import {
+  PARISH_FEATURE_ID_PROPERTY,
+  PARISH_FILL_OPACITY,
+  PARISH_LABEL_MAX_ZOOM,
+  PARISH_LINE_OPACITY,
+  PARISH_LINE_WIDTH_PX,
+  buildParishFeatures,
+  buildParishLabelFeatures,
+} from '../parishes'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import {
@@ -892,6 +901,26 @@ const PUBLIC_HOUSING_LAYER_ID = 'public-housing-buildings'
 // Colour of the selected estate's blocks. Every building of an estate shares
 // the promoted feature id, so the `selected` feature-state repaints them all.
 const PUBLIC_HOUSING_SELECTED_COLOR = '#ffffff'
+
+// ---- Parishes overlay -----------------------------------------------------
+// The one CITY layer that is CONTEXT rather than data: a faint wash + thin
+// outline + name per civil parish (and the Cotai reclamation zone). Two
+// sources because the areas and their label anchors are different geometries
+// (MultiPolygon vs Point) — see src/parishes.ts.
+const PARISHES_SOURCE_ID = 'parish-areas'
+const PARISHES_LABEL_SOURCE_ID = 'parish-labels'
+const PARISHES_FILL_LAYER_ID = 'parish-areas-fill'
+const PARISHES_LINE_LAYER_ID = 'parish-areas-outline'
+const PARISHES_LABEL_LAYER_ID = 'parish-areas-label'
+// The outline of the selected area, in px. The tint is left alone — thickening
+// the boundary reads as "this one" without turning the wash into a highlight.
+const PARISH_SELECTED_LINE_WIDTH_PX = 3
+// All three names ride on every label feature, so switching language is one
+// setLayoutProperty instead of rebuilding the source — the same contract as
+// `stations-label`'s `labelField`.
+function parishLabelField(lang: 'en' | 'zh' | 'pt'): string {
+  return lang === 'zh' ? 'name_zh' : lang === 'pt' ? 'name_pt' : 'name_en'
+}
 
 // ---- Macao Water supply facilities overlay -------------------------------
 // Three layers off one dataset: a translucent fill for the reservoir surfaces,
@@ -1880,6 +1909,10 @@ export interface MapViewProps {
   // `buildingName` is the clicked footprint's IH block name where the pipeline
   // matched one, else its OSM name — the block is what the panel can highlight.
   onPublicHousingClick?: (estate: PublicHousingEstate, buildingName: string | null) => void
+  // Fires only when nothing else clickable is under the cursor — the parish
+  // tint is the bottom-most target, so a school block inside a parish opens the
+  // school (see the click handler).
+  onParishClick?: (parish: Parish) => void
   onToiletClick?: (toilet: Toilet | null) => void
   onCarParkClick?: (carPark: CarPark | null) => void
   onWasteSiteClick?: (selection: WasteSelection | null) => void
@@ -1935,6 +1968,7 @@ export interface MapViewProps {
   selectedRoadWorkId?: string | null
   selectedSchoolId?: string | null
   selectedPublicHousingId?: string | null
+  selectedParishId?: string | null
   selectedToiletId?: string | null
   selectedCarParkId?: string | null
   selectedWasteSiteId?: string | null
@@ -1949,7 +1983,7 @@ export interface MapViewProps {
 }
 
 export function MapView(props: MapViewProps) {
-  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
+  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapThemeRef = useRef<boolean | null>(null)
@@ -2043,6 +2077,11 @@ export function MapView(props: MapViewProps) {
   const selectedPublicHousingIdRef = useRef<string | null>(selectedPublicHousingId ?? null)
   selectedPublicHousingIdRef.current = selectedPublicHousingId ?? null
   const publicHousingStateIdRef = useRef<string | null>(null)
+  // Same pair again for the parish tint: setStyle drops the source and its
+  // feature state, so addCustomLayers re-applies the highlight from here.
+  const selectedParishIdRef = useRef<string | null>(selectedParishId ?? null)
+  selectedParishIdRef.current = selectedParishId ?? null
+  const parishStateIdRef = useRef<string | null>(null)
   // Same style-swap contract as the road works: the toilet highlight is a
   // filter on the marker source, so addCustomLayers needs the current id.
   const selectedToiletIdRef = useRef<string | null>(selectedToiletId ?? null)
@@ -2177,6 +2216,20 @@ export function MapView(props: MapViewProps) {
     }
     if (next) m.setFeatureState({ source: PUBLIC_HOUSING_SOURCE_ID, id: next }, { selected: true })
     publicHousingStateIdRef.current = next
+  }, [])
+
+  // Same contract for the parish areas, except that the state is read by the
+  // OUTLINE layer's line-width (the tint stays put), so one pair of calls
+  // thickens exactly one boundary.
+  const applyParishSelection = useCallback((m: maplibregl.Map) => {
+    if (!m.getSource(PARISHES_SOURCE_ID)) return
+    const next = selectedParishIdRef.current
+    const prev = parishStateIdRef.current
+    if (prev && prev !== next) {
+      m.setFeatureState({ source: PARISHES_SOURCE_ID, id: prev }, { selected: false })
+    }
+    if (next) m.setFeatureState({ source: PARISHES_SOURCE_ID, id: next }, { selected: true })
+    parishStateIdRef.current = next
   }, [])
 
   // Same contract for the water blocks: every footprint of a facility shares
@@ -2462,6 +2515,9 @@ export function MapView(props: MapViewProps) {
       // Hoisted out of the try below so the schools layer can reuse it as its
       // beforeId even if the building tiles fail to load.
       let firstSymbolId: string | undefined
+      // The anchor for the parish TINT, which has to sit under everything the
+      // map draws on the ground. See the comment where it is computed.
+      let parishAnchorId: string | undefined
 
       try {
         // Anchor the extrusions below the labels but ABOVE the basemap's own
@@ -2486,6 +2542,24 @@ export function MapView(props: MapViewProps) {
           }
         }
 
+        // Anchor for the parish tint. Unlike every other overlay this one is
+        // CONTEXT: it must read as the ground the city is drawn on, so roads,
+        // building fills, our own extrusions and every marker have to paint
+        // over it. The earliest sensible anchor is the basemap's first
+        // TRANSPORTATION layer (OpenMapTiles' road casings — `source-layer`
+        // rather than the id, since Positron and Dark Matter name their road
+        // layers differently), which leaves only background, landcover and
+        // water below the wash. Falling back to the first `building` fill and
+        // finally to firstSymbolId keeps the layer working (just higher up) on
+        // a style that names nothing we recognise.
+        for (const l of styleLayers) {
+          if ('source-layer' in l && l['source-layer'] === 'transportation') { parishAnchorId = l.id; break }
+        }
+        if (!parishAnchorId) {
+          const buildingFill = styleLayers.find(l => l.type === 'fill' && /^building/.test(l.id))
+          parishAnchorId = buildingFill?.id ?? firstSymbolId
+        }
+
         m.addSource(BUILDINGS_SOURCE_ID, { type: 'vector', url: BUILDINGS_TILEJSON })
         m.addLayer({
           id: BUILDINGS_LAYER_ID,
@@ -2506,6 +2580,77 @@ export function MapView(props: MapViewProps) {
           },
         }, firstSymbolId)
       } catch { /* building tiles may fail */ }
+
+      // Parishes. The only CITY layer that is context rather than data, so it
+      // goes in FIRST and lowest: the tint at `parishAnchorId` (under the
+      // roads, see above), the outline and the name at `firstSymbolId` like
+      // every other overlay. Same seeding rule as the schools below — from
+      // transitRef, not a closure, so a theme swap long after parishes.json
+      // landed still redraws it.
+      m.addSource(PARISHES_SOURCE_ID, {
+        type: 'geojson',
+        data: buildParishFeatures(transitRef.current.parishes),
+        // One MultiPolygon per area carries the parish id, so a single
+        // setFeatureState thickens the whole boundary (applyParishSelection).
+        promoteId: PARISH_FEATURE_ID_PROPERTY,
+      })
+      m.addSource(PARISHES_LABEL_SOURCE_ID, {
+        type: 'geojson',
+        data: buildParishLabelFeatures(transitRef.current.parishes),
+        promoteId: PARISH_FEATURE_ID_PROPERTY,
+      })
+      m.addLayer({
+        id: PARISHES_FILL_LAYER_ID, type: 'fill', source: PARISHES_SOURCE_ID,
+        paint: {
+          'fill-color': ['get', 'color'],
+          'fill-opacity': PARISH_FILL_OPACITY,
+        },
+      }, parishAnchorId)
+      m.addLayer({
+        id: PARISHES_LINE_LAYER_ID, type: 'line', source: PARISHES_SOURCE_ID,
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-color': ['get', 'color'],
+          'line-opacity': PARISH_LINE_OPACITY,
+          // The selection reads on the boundary, not the wash: a thicker line
+          // says "this one" without turning a context tint into a highlight.
+          'line-width': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            PARISH_SELECTED_LINE_WIDTH_PX,
+            PARISH_LINE_WIDTH_PX,
+          ],
+        },
+      }, firstSymbolId)
+      m.addLayer({
+        id: PARISHES_LABEL_LAYER_ID, type: 'symbol', source: PARISHES_LABEL_SOURCE_ID,
+        // A parish name written across a street block is noise, so the label
+        // steps out once the map is close enough for buildings to matter.
+        maxzoom: PARISH_LABEL_MAX_ZOOM,
+        layout: {
+          'text-field': ['get', parishLabelField(currentLang)],
+          'text-size': 12,
+          'text-letter-spacing': 0.12,
+          'text-allow-overlap': false,
+          'text-padding': 6,
+        },
+        paint: {
+          // The area's own tint at full strength — the wash is the same hue at
+          // PARISH_FILL_OPACITY, so the name reads as that area's label. The
+          // halo is what makes a pastel legible, hence the theme branch.
+          'text-color': ['get', 'color'],
+          'text-halo-color': dark ? '#000000' : '#ffffff',
+          'text-halo-width': 1.4,
+        },
+      })
+      // NO beforeId, unlike the tint and the outline. MapLibre places symbols
+      // from the TOP symbol layer down, so the lowest one loses every
+      // collision — anchored at firstSymbolId this label was suppressed
+      // outright by the basemap's own `place_suburbs` names (which ARE the
+      // parish names, in the basemap's language). Appending puts it above every
+      // basemap label and below everything addCustomLayers adds after this
+      // point, including `stations-label`: our coloured, language-switched name
+      // replaces the basemap's grey one, and a station name still beats it.
 
       // Schools. Inserted at the same anchor as `3d-buildings` and right
       // after it, so the coloured campus blocks sit directly on top of the
@@ -3688,6 +3833,8 @@ export function MapView(props: MapViewProps) {
       applySchoolSelection(m)
       publicHousingStateIdRef.current = null
       applyPublicHousingSelection(m)
+      parishStateIdRef.current = null
+      applyParishSelection(m)
       // Ditto for the water and electricity blocks, whose highlight is the
       // same feature-state.
       waterStateIdRef.current = null
@@ -3945,9 +4092,34 @@ export function MapView(props: MapViewProps) {
         m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
       }
 
+      // Every layer that owns a click EXCEPT the parish tint, which is context
+      // and deliberately the bottom-most target.
+      const clickTargetLayers = ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, PUBLIC_HOUSING_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers]
+
+      // Parishes. The one handler registered AFTER the vehicles rather than
+      // before them: the tint spans the whole city, so it must never take a
+      // click away from anything drawn on top of it. Two guards, because the
+      // two mechanisms cover different layers — `defaultPrevented` catches the
+      // handlers that claim their click (schools, housing, vehicles, markers),
+      // and the query catches the ones that do not (stations-circle).
+      m.on('click', PARISHES_FILL_LAYER_ID, (e) => {
+        if (e.defaultPrevented) return
+        if (m.queryRenderedFeatures(e.point, { layers: clickTargetLayers }).length > 0) return
+        const feature = e.features?.[0]
+        if (!feature) return
+        const pid = feature.properties?.[PARISH_FEATURE_ID_PROPERTY]
+        // Current list (transitRef), not a closed-over snapshot — parishes.json
+        // lands after this handler is attached.
+        const parish = transitRef.current.parishes.find(p => p.id === pid)
+        if (parish) { onParishClick?.(parish); e.preventDefault() }
+      })
+
       m.on('click', (e) => {
+        // The parish fill IS in this list: a click on the tint opens the parish
+        // panel just above, so treating it as blank ground would clear the
+        // selection that handler had only just made.
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, PUBLIC_HOUSING_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers],
+          layers: [...clickTargetLayers, PARISHES_FILL_LAYER_ID],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -4026,6 +4198,9 @@ export function MapView(props: MapViewProps) {
     if (map.getLayer(GRAND_PRIX_CORNER_LAYER_ID)) {
       map.setLayoutProperty(GRAND_PRIX_CORNER_LAYER_ID, 'text-field', ['get', grandPrixLabelField(lang)])
     }
+    if (map.getLayer(PARISHES_LABEL_LAYER_ID)) {
+      map.setLayoutProperty(PARISHES_LABEL_LAYER_ID, 'text-field', ['get', parishLabelField(lang)])
+    }
     updateVehicleLabelLang(map, lang)
   }, [lang])
 
@@ -4072,6 +4247,24 @@ export function MapView(props: MapViewProps) {
     const map = mapRef.current
     if (map) applyPublicHousingSelection(map)
   }, [selectedPublicHousingId, applyPublicHousingSelection])
+
+  // Parish areas + their label anchors, on the same contract: two sources off
+  // one array, pushed on identity change (parishes.json arriving, or the
+  // legend toggle swapping in []), never from the RAF tick.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    type SetData = { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    ;(map.getSource(PARISHES_SOURCE_ID) as unknown as SetData)
+      ?.setData?.(buildParishFeatures(transitData.parishes))
+    ;(map.getSource(PARISHES_LABEL_SOURCE_ID) as unknown as SetData)
+      ?.setData?.(buildParishLabelFeatures(transitData.parishes))
+  }, [transitData.parishes])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (map) applyParishSelection(map)
+  }, [selectedParishId, applyParishSelection])
 
   // Toilet markers. Like the school blocks (and unlike the road works) this
   // data is independent of the simulated clock, so it is pushed here on array
@@ -5165,6 +5358,24 @@ export function MapView(props: MapViewProps) {
                       rel="noopener noreferrer"
                       className="hover:text-(--mm-amber-1) transition-colors"
                     >OSM</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceParishesLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                    <a
+                      href="https://www.openstreetmap.org/copyright"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >OSM</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.dsec.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >DSEC</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, type ReactNode } from 'react'
+import { Fragment, useState, useMemo, useEffect, type ReactNode } from 'react'
 import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType } from '../types'
 import { useI18n, localName, type Translations } from '../i18n'
 import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS, type GroupKey } from '../routeGroups'
@@ -11,6 +11,7 @@ import {
   schoolRamp,
   type SchoolLevelSet,
 } from '../schools'
+import { PARISH_COLORS, PARISH_ORDER } from '../parishes'
 import {
   PUBLIC_HOUSING_DECADES,
   PUBLIC_HOUSING_TYPE_COLOR,
@@ -127,6 +128,16 @@ const TOILET_HATCH = 'repeating-linear-gradient(-45deg, rgba(20,184,166,0.45) 0 
 
 // Blue hatch for the car-park row — the marker colour (#3b82f6).
 const CAR_PARK_HATCH = 'repeating-linear-gradient(-45deg, rgba(59,130,246,0.45) 0 1px, transparent 1px 3px)'
+
+// The PARISHES swatch: one hard band per area, in PARISH_ORDER. Unlike the
+// school and housing strips this is a CATEGORICAL key, not a ramp — the eight
+// tints mean eight places, not eight steps of one thing — so the stops are hard
+// (`c a%, c b%`) instead of blended.
+const PARISH_STRIP = `linear-gradient(90deg, ${PARISH_ORDER.map((slug, i) => {
+  const from = (i * 100) / PARISH_ORDER.length
+  const to = ((i + 1) * 100) / PARISH_ORDER.length
+  return `${PARISH_COLORS[slug]} ${from}% ${to}%`
+}).join(', ')})`
 
 // Green hatch for the WASTE row — the three-colour recycling green (#4ade80).
 // The overlay has six colours and no single dominant one, so the row wears the
@@ -512,6 +523,20 @@ function CarParkIcon() {
   )
 }
 
+// 12px boundary glyph for the PARISHES row: a dashed square with a solid
+// division through it — a region split into areas, in the same stroked style as
+// the sibling row glyphs. Dashed because a civil boundary is a line on paper,
+// not a thing on the ground.
+function RegionIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2.25" y="2.25" width="11.5" height="11.5" rx="1" strokeDasharray="2.6 2" />
+      <path d="M8 2.25v5.1M8 7.35l4.6 2.4M8 7.35l-4.6 2.4" />
+    </svg>
+  )
+}
+
 // 12px restroom figures for the WC row — the universal sign. Heads and bodies
 // are filled silhouettes (stroked figures turn to mush at 12px), legs and the
 // hairline divider are strokes; everything is currentColor so it dims with
@@ -617,6 +642,13 @@ const CAR_PARK_ICON_16 = (
     <path d="M6.25 11.75V4.75h2.1a2.1 2.1 0 0 1 0 4.2h-2.1" />
   </svg>
 )
+const REGION_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <rect x="2.25" y="2.25" width="11.5" height="11.5" rx="1" strokeDasharray="2.6 2" />
+    <path d="M8 2.25v5.1M8 7.35l4.6 2.4M8 7.35l-4.6 2.4" />
+  </svg>
+)
 const WASTE_ICON_16 = (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -702,6 +734,10 @@ interface Props {
   publicHousingOn?: boolean
   publicHousingTypesOn?: PublicHousingTypeSet
   publicHousingTypeCounts?: Record<PublicHousingType, number>
+  // The parish tint. Opt-in like the rows below it, but the one CITY layer
+  // that is CONTEXT rather than data — it is NOT a focus mode, and it has no
+  // per-area toggles, so a single switch is the whole control.
+  parishesOn?: boolean
   // Public toilets. Like schools this layer is opt-in, so it defaults to off
   // here too — the count shown is the whole register, which never changes.
   toiletsOn?: boolean
@@ -735,6 +771,7 @@ interface Props {
   onToggleSchoolLevel?: (level: SchoolLevel) => void
   onTogglePublicHousing?: () => void
   onTogglePublicHousingType?: (type: PublicHousingType) => void
+  onToggleParishes?: () => void
   onToggleToilets?: () => void
   onToggleCarParks?: () => void
   onToggleWaste?: () => void
@@ -750,7 +787,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'housing' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | 'city' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | 'city' | null
 
 export function LineLegend({
   transitData,
@@ -769,6 +806,7 @@ export function LineLegend({
   publicHousingOn = false,
   publicHousingTypesOn,
   publicHousingTypeCounts,
+  parishesOn = false,
   toiletsOn = false,
   carParksOn = false,
   wasteOn = false,
@@ -786,6 +824,7 @@ export function LineLegend({
   onToggleSchoolLevel,
   onTogglePublicHousing,
   onTogglePublicHousingType,
+  onToggleParishes,
   onToggleToilets,
   onToggleCarParks,
   onToggleWaste,
@@ -962,6 +1001,9 @@ export function LineLegend({
   const toiletCount = allTransitData?.toilets.length ?? transitData.toilets.length
   // Same for the car parks: the row always shows the full register.
   const carParkCount = allTransitData?.carParks.length ?? transitData.carParks.length
+  // The number of AREAS, from the unfiltered data — eight, and only ever eight
+  // until the government redraws a boundary.
+  const parishCount = allTransitData?.parishes.length ?? transitData.parishes.length
   // Waste is the one CITY row whose count MOVES: the master switch is a whole-
   // layer toggle like its neighbours, but the six type toggles narrow what is
   // drawn, so the row shows the visible total (and enabled/total when some type
@@ -989,50 +1031,57 @@ export function LineLegend({
   // desktop panel's CITY page. A row's name opens that layer's own modal; its
   // switch toggles the layer in place. Only layers with data get a row.
   const cityLayerRows = [
+    // PARISHES first: it is the ground the other rows are read against, and the
+    // only one that is context rather than data.
+    parishCount > 0 ? {
+      panel: 'parishes' as const, focus: false, label: 'PARISHES · 堂區', icon: REGION_ICON_16, on: parishesOn,
+      count: String(parishCount), iconOn: 'text-(--mm-slate)', countOn: 'text-(--mm-slate)/80',
+      toggle: onToggleParishes,
+    } : null,
     totalRoadWorkCount > 0 ? {
-      panel: 'works' as const, label: 'WORKS · 工程', icon: WORKS_ICON_16, on: roadWorksOn,
+      panel: 'works' as const, focus: false, label: 'WORKS · 工程', icon: WORKS_ICON_16, on: roadWorksOn,
       count: String(activeRoadWorksCount), iconOn: 'text-(--mm-amber)', countOn: 'text-(--mm-amber)/80',
       toggle: onToggleRoadWorks,
     } : null,
+    carParkCount > 0 ? {
+      panel: 'carparks' as const, focus: false, label: 'PARKING · 停車場', icon: CAR_PARK_ICON_16, on: carParksOn,
+      count: String(carParkCount), iconOn: 'text-(--mm-blue)', countOn: 'text-(--mm-blue)/80',
+      toggle: onToggleCarParks,
+    } : null,
+    toiletCount > 0 ? {
+      panel: 'toilets' as const, focus: false, label: 'WC · 公廁', icon: TOILET_ICON_16, on: toiletsOn,
+      count: String(toiletCount), iconOn: 'text-(--mm-teal)', countOn: 'text-(--mm-teal)/80',
+      toggle: onToggleToilets,
+    } : null,
     schoolCount > 0 ? {
-      panel: 'schools' as const, label: 'SCHOOLS · 學校', icon: MORTARBOARD_ICON_16, on: schoolsOn,
+      panel: 'schools' as const, focus: false, label: 'SCHOOLS · 學校', icon: MORTARBOARD_ICON_16, on: schoolsOn,
       count: schoolLevelsAllOn ? String(schoolCount) : `${schoolEnabledCount}/${schoolCount}`,
       iconOn: 'text-(--mm-violet)', countOn: 'text-(--mm-violet)/80', toggle: onToggleSchools,
     } : null,
     publicHousingCount > 0 ? {
-      panel: 'housing' as const, label: 'HOUSING · 居屋', icon: APARTMENT_ICON_16, on: publicHousingOn,
+      panel: 'housing' as const, focus: true, label: 'HOUSING · 居屋', icon: APARTMENT_ICON_16, on: publicHousingOn,
       count: publicHousingTypesAllOn ? String(publicHousingCount) : `${publicHousingEnabledCount}/${publicHousingCount}`,
       iconOn: 'text-(--mm-lime)', countOn: 'text-(--mm-lime)/80', toggle: onTogglePublicHousing,
     } : null,
-    toiletCount > 0 ? {
-      panel: 'toilets' as const, label: 'WC · 公廁', icon: TOILET_ICON_16, on: toiletsOn,
-      count: String(toiletCount), iconOn: 'text-(--mm-teal)', countOn: 'text-(--mm-teal)/80',
-      toggle: onToggleToilets,
-    } : null,
-    carParkCount > 0 ? {
-      panel: 'carparks' as const, label: 'PARKING · 停車場', icon: CAR_PARK_ICON_16, on: carParksOn,
-      count: String(carParkCount), iconOn: 'text-(--mm-blue)', countOn: 'text-(--mm-blue)/80',
-      toggle: onToggleCarParks,
-    } : null,
-    wasteTotal > 0 ? {
-      panel: 'waste' as const, label: 'WASTE · 垃圾回收', icon: WASTE_ICON_16, on: wasteOn,
-      count: wasteTypesAllOn ? String(wasteTotal) : `${wasteVisibleCount}/${wasteTotal}`,
-      iconOn: 'text-(--mm-green)', countOn: 'text-(--mm-green)/80',
-      toggle: onToggleWaste,
-    } : null,
     waterCount > 0 ? {
-      panel: 'water' as const, label: 'WATER · 供水', icon: WATER_ICON_16, on: waterOn,
+      panel: 'water' as const, focus: true, label: 'WATER · 供水', icon: WATER_ICON_16, on: waterOn,
       count: String(waterCount), iconOn: 'text-(--mm-sky)', countOn: 'text-(--mm-sky)/80',
       toggle: onToggleWater,
     } : null,
     powerCount > 0 ? {
-      panel: 'power' as const, label: 'POWER · 電力', icon: POWER_ICON_16, on: powerOn,
+      panel: 'power' as const, focus: true, label: 'POWER · 電力', icon: POWER_ICON_16, on: powerOn,
       count: String(powerCount), iconOn: 'text-(--mm-amber)', countOn: 'text-(--mm-amber)/80',
       toggle: onTogglePower,
     } : null,
+    wasteTotal > 0 ? {
+      panel: 'waste' as const, focus: true, label: 'WASTE · 垃圾回收', icon: WASTE_ICON_16, on: wasteOn,
+      count: wasteTypesAllOn ? String(wasteTotal) : `${wasteVisibleCount}/${wasteTotal}`,
+      iconOn: 'text-(--mm-green)', countOn: 'text-(--mm-green)/80',
+      toggle: onToggleWaste,
+    } : null,
     grandPrixCount > 0 ? {
       // "GP" like the "WC" row: the full name would wrap the row in light mode.
-      panel: 'grandprix' as const, label: 'GP · 大賽車', icon: GRAND_PRIX_ICON_16, on: grandPrixOn,
+      panel: 'grandprix' as const, focus: true, label: 'GP · 大賽車', icon: GRAND_PRIX_ICON_16, on: grandPrixOn,
       count: String(grandPrixCount), iconOn: 'text-(--mm-red)', countOn: 'text-(--mm-red)/80',
       toggle: onToggleGrandPrix,
     } : null,
@@ -1386,6 +1435,43 @@ export function LineLegend({
           </>)}
 
           {layersTab === 'city' && (<>
+          {/* PARISHES — the first CITY row, and the same five columns as WORKS
+              below it (glyph / swatch / label / count / state). It leads the
+              page because it is the context the other rows are read against:
+              a wash under everything, not another set of marks on top. */}
+          {parishCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleParishes}
+              disabled={!onToggleParishes}
+              aria-pressed={parishesOn}
+              title={t.parishesTitle}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
+                         ${parishesOn
+                           ? 'bg-(--mm-slate-2)/[0.05] hover:bg-(--mm-slate-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
+                         ${onToggleParishes ? '' : 'cursor-default'}`}
+            >
+              <span className="inline-flex items-center justify-center w-[12px] shrink-0 text-(--mm-text-muted)">
+                <RegionIcon />
+              </span>
+              {/* Eight hard bands, one per area — a categorical key, not a ramp. */}
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: PARISH_STRIP }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
+                PARISHES · 堂區
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${parishesOn ? 'text-(--mm-slate)/80' : 'text-(--mm-fg)/25'}`}>
+                {parishCount}
+              </span>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${parishesOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {parishesOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
+
           {/* ROAD WORKS — toggleable */}
           {totalRoadWorkCount > 0 && (
             <button
@@ -1413,6 +1499,76 @@ export function LineLegend({
               </span>
               <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${roadWorksOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {roadWorksOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
+
+          {/* PUBLIC CAR PARKS — same five columns as WORKS above it. Switching
+              this on is also what starts the live-vacancy polling (only while
+              the clock runs at 1× — see useCarParkVacancy). */}
+          {carParkCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleCarParks}
+              disabled={!onToggleCarParks}
+              aria-pressed={carParksOn}
+              title={t.carParksCount(carParkCount)}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
+                         ${carParksOn
+                           ? 'bg-(--mm-blue-2)/[0.05] hover:bg-(--mm-blue-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
+                         ${onToggleCarParks ? '' : 'cursor-default'}`}
+            >
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${carParksOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
+                <CarParkIcon />
+              </span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: CAR_PARK_HATCH }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
+                PARKING · 停車場
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${carParksOn ? 'text-(--mm-blue)/80' : 'text-(--mm-fg)/25'}`}>
+                {carParkCount}
+              </span>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${carParksOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {carParksOn ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )}
+
+          {/* PUBLIC TOILETS — toggleable, same five columns as AIR/SEA/WORKS.
+              No collapsible body: the layer has no sub-filters, and the three
+              marker variants are explained by the info panel, not a key. */}
+          {toiletCount > 0 && (
+            <button
+              type="button"
+              onClick={onToggleToilets}
+              disabled={!onToggleToilets}
+              aria-pressed={toiletsOn}
+              title={t.toiletsCount(toiletCount)}
+              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
+                         ${toiletsOn
+                           ? 'bg-(--mm-teal-2)/[0.05] hover:bg-(--mm-teal-2)/[0.1]'
+                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
+                         ${onToggleToilets ? '' : 'cursor-default'}`}
+            >
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${toiletsOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
+                <ToiletIcon />
+              </span>
+              <span
+                className="inline-block w-[8px] h-[8px] shrink-0"
+                style={{ backgroundImage: TOILET_HATCH }}
+              />
+              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
+                WC · 公廁
+              </span>
+              <span className={`mm-mono mm-tabular text-[9px] ${toiletsOn ? 'text-(--mm-teal)/80' : 'text-(--mm-fg)/25'}`}>
+                {toiletCount}
+              </span>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${toiletsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {toiletsOn ? 'ON' : 'OFF'}
               </span>
             </button>
           )}
@@ -1535,6 +1691,19 @@ export function LineLegend({
             </>
           )}
 
+          {/* FOCUS group. Everything below this rule replaces the map one
+              layer at a time — HOUSING keeps SCHOOLS, the others hide
+              everything — so the rule says it once instead of every row's
+              note having to. Same caption styling as the ramp hints. */}
+          <div
+            role="separator"
+            className="px-3 pt-2 pb-1 flex items-center gap-2 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase"
+          >
+            <span className="h-px flex-1 bg-(--mm-fg)/10" />
+            <span className="shrink-0">FOCUS · 專題 · <span className="normal-case tracking-normal mm-han">{t.cityFocusOneAtATime}</span></span>
+            <span className="h-px flex-1 bg-(--mm-fg)/10" />
+          </div>
+
           {/* PUBLIC HOUSING — the SCHOOLS row's twin: the same five columns
               (glyph · swatch · label · count · state) and the same split
               interaction, the body expanding one row per housing type and the
@@ -1656,77 +1825,91 @@ export function LineLegend({
             </>
           )}
 
-          {/* PUBLIC TOILETS — toggleable, same five columns as AIR/SEA/WORKS.
-              No collapsible body: the layer has no sub-filters, and the three
-              marker variants are explained by the info panel, not a key. */}
-          {toiletCount > 0 && (
+          {/* MACAO WATER — same five columns as HOUSING above it. Unlike its
+              neighbours this is a focus mode: switching it on clears every
+              other layer (App snapshots them first) so the supply network is
+              read against an empty city, and switching it off restores them. */}
+          {waterCount > 0 && (
             <button
               type="button"
-              onClick={onToggleToilets}
-              disabled={!onToggleToilets}
-              aria-pressed={toiletsOn}
-              title={t.toiletsCount(toiletCount)}
+              onClick={onToggleWater}
+              disabled={!onToggleWater}
+              aria-pressed={waterOn}
+              // The hover text carries the disclaimer the map itself cannot:
+              // the pipes are our schematic, not Macao Water's real mains.
+              title={`${t.waterCount(waterCount)} · ${t.waterNetworkNote}`}
               className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${toiletsOn
-                           ? 'bg-(--mm-teal-2)/[0.05] hover:bg-(--mm-teal-2)/[0.1]'
+                         ${waterOn
+                           ? 'bg-(--mm-sky-2)/[0.05] hover:bg-(--mm-sky-2)/[0.1]'
                            : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onToggleToilets ? '' : 'cursor-default'}`}
+                         ${onToggleWater ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${toiletsOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                <ToiletIcon />
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${waterOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
+                <WaterIcon />
               </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: TOILET_HATCH }}
+                style={{ backgroundImage: WATER_HATCH }}
               />
               <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                WC · 公廁
+                WATER · 供水
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${toiletsOn ? 'text-(--mm-teal)/80' : 'text-(--mm-fg)/25'}`}>
-                {toiletCount}
+              <span className={`mm-mono mm-tabular text-[9px] ${waterOn ? 'text-(--mm-sky)/80' : 'text-(--mm-fg)/25'}`}>
+                {waterCount}
               </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${toiletsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {toiletsOn ? 'ON' : 'OFF'}
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${waterOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {waterOn ? 'ON' : 'OFF'}
               </span>
             </button>
           )}
+          {/* The key, only while the layer is on — it explains marks that are
+              on screen, so it has nothing to say when they are not. */}
+          {waterCount > 0 && waterOn && (
+            <WaterKey network={waterNetwork} caption={t.waterNetworkNote} />
+          )}
 
-          {/* PUBLIC CAR PARKS — same five columns as WC above it. Switching
-              this on is also what starts the live-vacancy polling (only while
-              the clock runs at 1× — see useCarParkVacancy). */}
-          {carParkCount > 0 && (
+          {/* CEM ELECTRICITY — same five columns as WATER above it, and the
+              same focus-mode behaviour. The two are mutually exclusive:
+              switching this on takes WATER off and restores what WATER was
+              hiding, then hides it all again for POWER. */}
+          {powerCount > 0 && (
             <button
               type="button"
-              onClick={onToggleCarParks}
-              disabled={!onToggleCarParks}
-              aria-pressed={carParksOn}
-              title={t.carParksCount(carParkCount)}
+              onClick={onTogglePower}
+              disabled={!onTogglePower}
+              aria-pressed={powerOn}
+              // The hover text carries the disclaimer the map itself cannot:
+              // the HV lines are our schematic, not CEM's cable routes.
+              title={`${t.powerCount(powerCount)} · ${t.powerNetworkNote}`}
               className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${carParksOn
-                           ? 'bg-(--mm-blue-2)/[0.05] hover:bg-(--mm-blue-2)/[0.1]'
+                         ${powerOn
+                           ? 'bg-(--mm-amber-2)/[0.05] hover:bg-(--mm-amber-2)/[0.1]'
                            : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onToggleCarParks ? '' : 'cursor-default'}`}
+                         ${onTogglePower ? '' : 'cursor-default'}`}
             >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${carParksOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                <CarParkIcon />
+              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${powerOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
+                <PowerIcon />
               </span>
               <span
                 className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: CAR_PARK_HATCH }}
+                style={{ backgroundImage: POWER_HATCH }}
               />
               <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                PARKING · 停車場
+                POWER · 電力
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${carParksOn ? 'text-(--mm-blue)/80' : 'text-(--mm-fg)/25'}`}>
-                {carParkCount}
+              <span className={`mm-mono mm-tabular text-[9px] ${powerOn ? 'text-(--mm-amber)/80' : 'text-(--mm-fg)/25'}`}>
+                {powerCount}
               </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${carParksOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {carParksOn ? 'ON' : 'OFF'}
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${powerOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {powerOn ? 'ON' : 'OFF'}
               </span>
             </button>
           )}
+          {powerCount > 0 && powerOn && (
+            <PowerKey network={powerNetwork} caption={t.powerNetworkNote} />
+          )}
 
-          {/* WASTE & RECYCLING — a FOCUS mode like WATER and POWER below it
+          {/* WASTE & RECYCLING — a FOCUS mode like WATER and POWER above it
               (switching it on clears every other layer, switching it off puts
               them back), drawn with the SCHOOLS split interaction because it is
               the one focus layer with sub-filters: the body expands the six type
@@ -1829,90 +2012,7 @@ export function LineLegend({
             </>
           )}
 
-          {/* MACAO WATER — same five columns as P above it. Unlike its
-              neighbours this is a focus mode: switching it on clears every
-              other layer (App snapshots them first) so the supply network is
-              read against an empty city, and switching it off restores them. */}
-          {waterCount > 0 && (
-            <button
-              type="button"
-              onClick={onToggleWater}
-              disabled={!onToggleWater}
-              aria-pressed={waterOn}
-              // The hover text carries the disclaimer the map itself cannot:
-              // the pipes are our schematic, not Macao Water's real mains.
-              title={`${t.waterCount(waterCount)} · ${t.waterNetworkNote}`}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${waterOn
-                           ? 'bg-(--mm-sky-2)/[0.05] hover:bg-(--mm-sky-2)/[0.1]'
-                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onToggleWater ? '' : 'cursor-default'}`}
-            >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${waterOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                <WaterIcon />
-              </span>
-              <span
-                className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: WATER_HATCH }}
-              />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                WATER · 供水
-              </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${waterOn ? 'text-(--mm-sky)/80' : 'text-(--mm-fg)/25'}`}>
-                {waterCount}
-              </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${waterOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {waterOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          )}
-          {/* The key, only while the layer is on — it explains marks that are
-              on screen, so it has nothing to say when they are not. */}
-          {waterCount > 0 && waterOn && (
-            <WaterKey network={waterNetwork} caption={t.waterNetworkNote} />
-          )}
-
-          {/* CEM ELECTRICITY — same five columns as WATER above it, and the
-              same focus-mode behaviour. The two are mutually exclusive:
-              switching this on takes WATER off and restores what WATER was
-              hiding, then hides it all again for POWER. */}
-          {powerCount > 0 && (
-            <button
-              type="button"
-              onClick={onTogglePower}
-              disabled={!onTogglePower}
-              aria-pressed={powerOn}
-              // The hover text carries the disclaimer the map itself cannot:
-              // the HV lines are our schematic, not CEM's cable routes.
-              title={`${t.powerCount(powerCount)} · ${t.powerNetworkNote}`}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${powerOn
-                           ? 'bg-(--mm-amber-2)/[0.05] hover:bg-(--mm-amber-2)/[0.1]'
-                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onTogglePower ? '' : 'cursor-default'}`}
-            >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${powerOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                <PowerIcon />
-              </span>
-              <span
-                className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: POWER_HATCH }}
-              />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                POWER · 電力
-              </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${powerOn ? 'text-(--mm-amber)/80' : 'text-(--mm-fg)/25'}`}>
-                {powerCount}
-              </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${powerOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {powerOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          )}
-          {powerCount > 0 && powerOn && (
-            <PowerKey network={powerNetwork} caption={t.powerNetworkNote} />
-          )}
-          {/* GRAND PRIX — the Guia Circuit, the fourth focus mode. Same
+          {/* GRAND PRIX — the Guia Circuit, the fifth focus mode. Same
               exclusivity: switching it on takes whichever utility is on off,
               restores what that one was hiding, then hides it all again. */}
           {grandPrixCount > 0 && (
@@ -2419,8 +2519,17 @@ export function LineLegend({
                 </div>
               </div>
               {cityLayerRows.map((row, i) => (
+                <Fragment key={row.panel}>
+                {/* The FOCUS group rule, once, above the first exclusive row —
+                    the mobile twin of the desktop page's separator. */}
+                {row.focus && !cityLayerRows[i - 1]?.focus && (
+                  <div className="px-3 pt-2 pb-1 flex items-center gap-2 border-t border-(--mm-fg)/[0.06] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+                    <span className="h-px flex-1 bg-(--mm-fg)/10" />
+                    <span className="shrink-0">FOCUS · 專題 · <span className="normal-case tracking-normal mm-han">{t.cityFocusOneAtATime}</span></span>
+                    <span className="h-px flex-1 bg-(--mm-fg)/10" />
+                  </div>
+                )}
                 <div
-                  key={row.panel}
                   className={`flex items-stretch ${i > 0 ? 'border-t border-(--mm-fg)/[0.06]' : ''} ${row.on ? '' : 'opacity-60 light:opacity-100'}`}
                 >
                   <button
@@ -2446,6 +2555,7 @@ export function LineLegend({
                     </span>
                   </button>
                 </div>
+                </Fragment>
               ))}
             </div>
           )}
@@ -2824,6 +2934,64 @@ export function LineLegend({
                   {carParksOn ? 'ON' : 'OFF'}
                 </span>
               </button>
+            </div>
+          )}
+
+          {/* PARISHES — one switch, no per-area rows, so the modal is the
+              carparks one: a header carrying the key and a single toggle. */}
+          {mobilePanel === 'parishes' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-slate-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
+            >
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-slate)/85">
+                  <RegionIcon />
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: PARISH_STRIP }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">PARISHES · 堂區</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
+                    {parishesOn ? parishCount : 0}/{parishCount}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setMobilePanel(null)}
+                    aria-label="close"
+                    className="w-6 h-6 flex items-center justify-center leading-none
+                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
+                  >×</button>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={onToggleParishes}
+                disabled={!onToggleParishes}
+                aria-pressed={parishesOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${parishesOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
+                           ${onToggleParishes ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={parishesOn ? 'text-(--mm-slate-2)' : 'text-(--mm-text-muted)'}>
+                    <RegionIcon />
+                  </span>
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
+                    {t.parishesCount(parishCount)}
+                  </span>
+                </span>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${parishesOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
+                  {parishesOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+              <div className="px-3 pb-3 text-[10px] leading-[1.4] text-(--mm-text-subtle) mm-han">
+                {t.parishesTitle}
+              </div>
             </div>
           )}
 

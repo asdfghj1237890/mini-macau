@@ -1259,6 +1259,105 @@ def v_public_housing(data: object) -> list[str]:
     return errs
 
 
+PARISH_SLUGS = {"fatima", "santo-antonio", "sao-lazaro", "se", "sao-lourenco", "carmo", "sao-francisco", "cotai"}
+PARISH_KINDS = {"parish", "reclamation"}
+PARISH_ISLANDS = {"macau", "taipa", "coloane", "cotai"}
+
+
+def v_parishes(data: object) -> list[str]:
+    """parishes.json — mirrors ParishesFileSchema in src/dataSchemas.ts, plus the
+    facts the schema cannot express: exactly the eight areas, one of each slug,
+    Cotai the only non-parish, rings closed and inside Macau."""
+    errs: list[str] = []
+    if not require_fields(errs, "parishes", data, ("fetchedAtUtc", "sources", "parishes")):
+        return errs
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("parishes: fetchedAtUtc must be a string")
+    sources = data["sources"]
+    if require_fields(errs, "parishes.sources", sources, ("osm",)):
+        for key, value in sources.items():
+            if not (isinstance(key, str) and isinstance(value, str) and value.startswith("http")):
+                errs.append(f"parishes.sources: '{key}' must map to an http(s) URL")
+    if not require_nonempty_list(errs, "parishes.parishes", data["parishes"]):
+        return errs
+    seen_slugs: set[str] = set()
+    seen_ids: set[str] = set()
+    for i, p in enumerate(data["parishes"]):
+        ctx = f"parishes.parishes[{i}]"
+        if not require_fields(
+            errs, ctx, p,
+            ("id", "slug", "name", "kind", "island", "areaKm2", "population", "populationYear",
+             "coordinates", "geometry", "osm", "sources"),
+        ):
+            continue
+        pid = p["id"]
+        if not (isinstance(pid, str) and pid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif pid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{pid}'")
+        else:
+            seen_ids.add(pid)
+        label = f"{ctx} ({pid if isinstance(pid, str) and pid else '?'})"
+        slug = p["slug"]
+        if slug not in PARISH_SLUGS:
+            errs.append(f"{label}: slug '{slug}' invalid")
+        elif slug in seen_slugs:
+            errs.append(f"{label}: duplicate slug '{slug}'")
+        else:
+            seen_slugs.add(slug)
+        name = p["name"]
+        if require_fields(errs, f"{label}.name", name, ("zh", "pt", "en")):
+            for key in ("zh", "pt", "en"):
+                if not (isinstance(name[key], str) and name[key].strip()):
+                    errs.append(f"{label}.name.{key} must be a non-empty string")
+        if p["kind"] not in PARISH_KINDS:
+            errs.append(f"{label}: kind '{p['kind']}' invalid")
+        elif (p["kind"] == "reclamation") != (slug == "cotai"):
+            errs.append(f"{label}: only cotai is a reclamation zone, and it must be one")
+        if p["island"] not in PARISH_ISLANDS:
+            errs.append(f"{label}: island '{p['island']}' invalid")
+        area = p["areaKm2"]
+        if not (area is None or (isinstance(area, (int, float)) and not isinstance(area, bool) and area > 0)):
+            errs.append(f"{label}: areaKm2 must be null or a positive number")
+        pop = p["population"]
+        if not (pop is None or (isinstance(pop, int) and not isinstance(pop, bool) and pop >= 0)):
+            errs.append(f"{label}: population must be null or a non-negative integer")
+        year = p["populationYear"]
+        if not (year is None or (isinstance(year, int) and not isinstance(year, bool) and 1990 <= year <= 2035)):
+            errs.append(f"{label}: populationYear must be null or a year")
+        if (pop is None) != (year is None):
+            errs.append(f"{label}: population and populationYear must be set together")
+        density = p.get("densityPerKm2")
+        if not (density is None or (isinstance(density, (int, float)) and not isinstance(density, bool) and density >= 0)):
+            errs.append(f"{label}: densityPerKm2 must be null or a non-negative number")
+        note = p.get("note")
+        if note is not None and require_fields(errs, f"{label}.note", note, ("zh", "pt", "en")):
+            for key in ("zh", "pt", "en"):
+                if not (isinstance(note[key], str) and note[key].strip()):
+                    errs.append(f"{label}.note.{key} must be a non-empty string")
+        check_coords(errs, label, p["coordinates"])
+        geometry = p["geometry"]
+        if not (isinstance(geometry, list) and geometry):
+            errs.append(f"{label}.geometry must be a non-empty MultiPolygon coordinate list")
+        else:
+            for j, polygon in enumerate(geometry):
+                if not (isinstance(polygon, list) and polygon):
+                    errs.append(f"{label}.geometry[{j}] must be a non-empty list of rings")
+                    continue
+                for k, ring in enumerate(polygon):
+                    check_building_ring(errs, f"{label}.geometry[{j}][{k}]", ring)
+        for field in ("osm", "sources"):
+            if require_nonempty_list(errs, f"{label}.{field}", p[field]):
+                for j, v in enumerate(p[field]):
+                    if not (isinstance(v, str) and v):
+                        errs.append(f"{label}.{field}[{j}] must be a non-empty string")
+                    elif field == "sources" and not v.startswith("http"):
+                        errs.append(f"{label}.sources[{j}] must be an http(s) URL")
+    if seen_slugs != PARISH_SLUGS:
+        errs.append(f"parishes: expected exactly the eight areas {sorted(PARISH_SLUGS)}, got {sorted(seen_slugs)}")
+    return errs
+
+
 def v_water_facilities(data: object) -> list[str]:
     errs: list[str] = []
     if not require_fields(
@@ -2626,6 +2725,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "road-works": (PUBLIC / "data/road-works.json", v_road_works),
     "schools": (PUBLIC / "data/schools.json", v_schools),
     "public-housing": (PUBLIC / "data/public-housing.json", v_public_housing),
+    "parishes": (PUBLIC / "data/parishes.json", v_parishes),
     "water-facilities": (PUBLIC / "data/water-facilities.json", v_water_facilities),
     "water-distribution": (PUBLIC / "data/water-distribution.json", v_water_distribution),
     "power-facilities": (PUBLIC / "data/power-facilities.json", v_power_facilities),

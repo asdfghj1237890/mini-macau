@@ -294,6 +294,37 @@ export const PublicHousingFileSchema = z.object({
   ),
 })
 
+// parishes.json — the seven parishes plus Cotai as MultiPolygons with their
+// census figures. Mirrors validate_output.py's v_parishes — change one, change
+// the other. The slug is what the colour table is keyed by, so it is an enum.
+const parishSlug = z.enum([
+  'fatima', 'santo-antonio', 'sao-lazaro', 'se', 'sao-lourenco', 'carmo', 'sao-francisco', 'cotai',
+])
+const parishRing = z.array(lngLat).min(4)
+
+export const ParishesFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  sources: z.record(z.string(), z.string()),
+  parishes: z.array(
+    z.object({
+      id: z.string(),
+      slug: parishSlug,
+      name: z.object({ zh: z.string(), pt: z.string(), en: z.string() }),
+      kind: z.enum(['parish', 'reclamation']),
+      island: z.enum(['macau', 'taipa', 'coloane', 'cotai']),
+      areaKm2: z.number().positive().nullable(),
+      population: z.number().int().nonnegative().nullable(),
+      populationYear: z.number().int().min(1990).max(2035).nullable(),
+      densityPerKm2: z.number().nonnegative().nullable().optional(),
+      note: z.object({ zh: z.string(), pt: z.string(), en: z.string() }).nullable().optional(),
+      coordinates: lngLat,
+      geometry: z.array(z.array(parishRing).min(1)).min(1),
+      osm: z.array(z.string()).min(1),
+      sources: z.array(z.string()).min(1),
+    }),
+  ).min(1),
+})
+
 // toilets.json — the IAM public-toilet register (the 無障礙公廁 dataset is
 // folded into the `accessible` flag by the pipeline). Mirrors the `toilets`
 // block in data/scripts/validate_output.py. Unlike road works this feed is
