@@ -570,10 +570,27 @@ def v_road_works(data: object) -> list[str]:
 
 SCHOOL_LEVELS = {"kindergarten", "primary", "secondary", "university", "all_through"}
 SCHOOL_SYSTEMS = {"private", "public", "tertiary"}
+# Founding year (校史) window; null is allowed when no source gives one.
+SCHOOL_FOUNDED_RANGE = (1500, 2035)
 # Degenerate-run guard: a broken Overpass fetch or a regressed DSEDJ/OSM name
 # match should fail loudly here rather than silently ship a near-empty overlay.
 SCHOOLS_MIN_COUNT = 40
 SCHOOL_BUILDINGS_MIN_COUNT = 100
+
+PUBLIC_HOUSING_TYPES = {"social", "economic", "other"}
+# `other` = the programmes outside IH's two lists (elderly apartments, urban-renewal
+# replacement / temporary housing, sandwich-class housing); `category` names which.
+PUBLIC_HOUSING_CATEGORIES = {"elderly", "replacement", "temporary", "sandwich"}
+PUBLIC_HOUSING_DISTRICTS = {"macau", "taipa", "coloane"}
+PUBLIC_HOUSING_STATUSES = {"occupied", "completed", "under_construction"}
+PUBLIC_HOUSING_YEAR_KINDS = {"occupation", "completion", "expected"}
+# IH's oldest listed estate was occupied in 1985; the upper bound leaves room
+# for "expected" years of lots still being built.
+PUBLIC_HOUSING_YEAR_RANGE = (1950, 2035)
+# Degenerate-run guard: IH lists 71 estates (16 social + 55 economic) and the
+# OSM match should cover the large majority of them.
+PUBLIC_HOUSING_MIN_COUNT = 60
+PUBLIC_HOUSING_BUILDINGS_MIN_COUNT = 120
 
 
 def check_building_ring(errs: list[str], ctx: str, ring: object) -> None:
@@ -650,7 +667,7 @@ def v_schools(data: object) -> list[str]:
         ctx = f"schools.schools[{i}]"
         if not require_fields(
             errs, ctx, s,
-            ("id", "name", "level", "levels", "system", "coordinates", "osm", "buildings"),
+            ("id", "name", "level", "levels", "system", "founded", "foundedNote", "coordinates", "osm", "buildings"),
         ):
             continue
 
@@ -681,6 +698,20 @@ def v_schools(data: object) -> list[str]:
 
         if s["system"] not in SCHOOL_SYSTEMS:
             errs.append(f"{label}: system '{s['system']}' invalid")
+
+        founded = s["founded"]
+        if founded is not None:
+            lo, hi = SCHOOL_FOUNDED_RANGE
+            if not (isinstance(founded, int) and not isinstance(founded, bool) and lo <= founded <= hi):
+                errs.append(f"{label}: founded must be null or an integer in {lo}..{hi}")
+        note = s["foundedNote"]
+        if note is not None:
+            if not require_fields(errs, f"{label}.foundedNote", note, ("zh", "pt", "en")):
+                pass
+            else:
+                for key in ("zh", "pt", "en"):
+                    if not (isinstance(note[key], str) and note[key].strip()):
+                        errs.append(f"{label}.foundedNote.{key} must be a non-empty string")
 
         check_coords(errs, label, s["coordinates"])
 
@@ -1027,6 +1058,205 @@ def v_water_network(errs: list[str], network: object, facility_ids: set[str]) ->
             f"{ctx}: {fallbacks} pipes fell back to straight lines "
             f"(> {WATER_MAX_PIPE_FALLBACKS}) — OSRM was probably down"
         )
+
+
+def _check_public_housing_year(errs: list[str], ctx: str, year: object, *, nullable: bool = True) -> bool:
+    if year is None:
+        if not nullable:
+            errs.append(f"{ctx}: year must not be null")
+        return nullable
+    if not (isinstance(year, int) and not isinstance(year, bool)):
+        errs.append(f"{ctx}: year must be an integer or null")
+        return False
+    lo, hi = PUBLIC_HOUSING_YEAR_RANGE
+    if not lo <= year <= hi:
+        errs.append(f"{ctx}: year {year} outside {lo}..{hi}")
+        return False
+    return True
+
+
+def v_public_housing(data: object) -> list[str]:
+    """public-housing.json — mirrors PublicHousingFileSchema in src/dataSchemas.ts."""
+    errs: list[str] = []
+    if not require_fields(
+        errs, "public-housing", data,
+        ("fetchedAtUtc", "sources", "types", "estates", "unmatched"),
+    ):
+        return errs
+
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("public-housing: fetchedAtUtc must be a string")
+
+    sources = data["sources"]
+    if require_fields(errs, "public-housing.sources", sources, ("ihmSocial", "ihmEconomic", "osm")):
+        for key, value in sources.items():
+            if not (isinstance(key, str) and isinstance(value, str) and value.startswith("http")):
+                errs.append(f"public-housing.sources: '{key}' must map to an http(s) URL")
+
+    types = data["types"]
+    if not (isinstance(types, list) and len(types) == len(PUBLIC_HOUSING_TYPES) and set(types) == PUBLIC_HOUSING_TYPES):
+        errs.append(f"public-housing.types: must be exactly {sorted(PUBLIC_HOUSING_TYPES)}")
+
+    if not require_nonempty_list(errs, "public-housing.estates", data["estates"]):
+        return errs
+
+    seen_ids: set[str] = set()
+    seen_osm: dict[str, str] = {}
+    total_buildings = 0
+    for i, e in enumerate(data["estates"]):
+        ctx = f"public-housing.estates[{i}]"
+        if not require_fields(
+            errs, ctx, e,
+            ("id", "name", "type", "category", "district", "address", "year", "yearKind", "status", "partial",
+             "units", "storeys", "blocks", "coordinates", "approximate", "osm", "buildings", "sources"),
+        ):
+            continue
+
+        eid = e["id"]
+        if not (isinstance(eid, str) and eid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif eid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{eid}'")
+        else:
+            seen_ids.add(eid)
+        label = f"{ctx} ({eid if isinstance(eid, str) and eid else '?'})"
+
+        for field in ("name", "address"):
+            val = e[field]
+            if require_fields(errs, f"{label}.{field}", val, ("zh", "pt")):
+                if not (isinstance(val["zh"], str) and val["zh"]):
+                    errs.append(f"{label}.{field}.zh must be a non-empty string")
+                if not isinstance(val["pt"], str):
+                    errs.append(f"{label}.{field}.pt must be a string")
+
+        if e["type"] not in PUBLIC_HOUSING_TYPES:
+            errs.append(f"{label}: type '{e['type']}' invalid")
+        category = e["category"]
+        if not (category is None or category in PUBLIC_HOUSING_CATEGORIES):
+            errs.append(f"{label}: category '{category}' invalid")
+        elif (e["type"] == "other") != (category is not None):
+            errs.append(f"{label}: category must be set exactly when type is 'other'")
+        if e["district"] not in PUBLIC_HOUSING_DISTRICTS:
+            errs.append(f"{label}: district '{e['district']}' invalid")
+        if e["status"] not in PUBLIC_HOUSING_STATUSES:
+            errs.append(f"{label}: status '{e['status']}' invalid")
+        if not isinstance(e["partial"], bool):
+            errs.append(f"{label}: partial must be a boolean")
+        if not isinstance(e["approximate"], bool):
+            errs.append(f"{label}: approximate must be a boolean")
+
+        for field in ("units", "storeys"):
+            val = e[field]
+            if not (val is None or (isinstance(val, int) and not isinstance(val, bool) and val > 0)):
+                errs.append(f"{label}: {field} must be null or a positive integer")
+
+        year_ok = _check_public_housing_year(errs, label, e["year"])
+        kind = e["yearKind"]
+        if not (kind is None or kind in PUBLIC_HOUSING_YEAR_KINDS):
+            errs.append(f"{label}: yearKind '{kind}' invalid")
+        if e["year"] is None and kind is not None:
+            errs.append(f"{label}: yearKind must be null when year is null")
+        if e["year"] is not None and kind is None:
+            errs.append(f"{label}: yearKind must be set when year is set")
+        if e["status"] == "occupied" and not (e["year"] is not None and kind == "occupation"):
+            errs.append(f"{label}: an occupied estate needs an occupation year")
+
+        blocks = e["blocks"]
+        block_names: set[str] = set()
+        block_years: list[int] = []
+        if not isinstance(blocks, list):
+            errs.append(f"{label}.blocks must be a list")
+        else:
+            for j, b in enumerate(blocks):
+                bctx = f"{label}.blocks[{j}]"
+                if not require_fields(errs, bctx, b, ("name", "year", "date")):
+                    continue
+                bname = b["name"]
+                if require_fields(errs, f"{bctx}.name", bname, ("zh", "pt")):
+                    if not (isinstance(bname["zh"], str) and bname["zh"]):
+                        errs.append(f"{bctx}.name.zh must be a non-empty string")
+                    else:
+                        block_names.add(bname["zh"])
+                    if not isinstance(bname["pt"], str):
+                        errs.append(f"{bctx}.name.pt must be a string")
+                if _check_public_housing_year(errs, bctx, b["year"]) and b["year"] is not None:
+                    block_years.append(b["year"])
+                date = b["date"]
+                if date is not None:
+                    if not (isinstance(date, str) and len(date) == 10 and date[4] == "-" and date[7] == "-"):
+                        errs.append(f"{bctx}: date must be null or 'YYYY-MM-DD'")
+                    elif isinstance(b["year"], int) and int(date[:4]) != b["year"]:
+                        errs.append(f"{bctx}: date {date} does not match year {b['year']}")
+        if year_ok and block_years and e["year"] is not None and e["year"] != min(block_years):
+            errs.append(f"{label}: year {e['year']} must be the earliest block year ({min(block_years)})")
+
+        check_coords(errs, label, e["coordinates"])
+
+        osm = e["osm"]
+        if not isinstance(osm, list):
+            errs.append(f"{label}.osm must be a list")
+        else:
+            for j, o in enumerate(osm):
+                if not (isinstance(o, str) and o):
+                    errs.append(f"{label}.osm[{j}] must be a non-empty string")
+
+        buildings = e["buildings"]
+        if not isinstance(buildings, list):
+            errs.append(f"{label}.buildings must be a list")
+            continue
+        if not buildings and not e["approximate"]:
+            errs.append(f"{label}: an estate without footprints must be marked approximate")
+        total_buildings += len(buildings)
+        for j, b in enumerate(buildings):
+            bctx = f"{label}.buildings[{j}]"
+            check_footprint_building(errs, bctx, b)
+            if not isinstance(b, dict):
+                continue
+            if "block" not in b or "year" not in b:
+                errs.append(f"{bctx}: missing block/year")
+                continue
+            block = b["block"]
+            if not (block is None or (isinstance(block, str) and block)):
+                errs.append(f"{bctx}: block must be null or a non-empty string")
+            elif isinstance(block, str) and block_names and block not in block_names:
+                errs.append(f"{bctx}: block '{block}' is not one of the estate's blocks")
+            _check_public_housing_year(errs, bctx, b["year"])
+            oid = b.get("osmId")
+            if isinstance(oid, str):
+                if oid in seen_osm and seen_osm[oid] != eid:
+                    errs.append(f"{bctx}: footprint {oid} already claimed by '{seen_osm[oid]}'")
+                seen_osm.setdefault(oid, eid if isinstance(eid, str) else "?")
+
+        srcs = e["sources"]
+        if not require_nonempty_list(errs, f"{label}.sources", srcs):
+            continue
+        for j, s in enumerate(srcs):
+            if not (isinstance(s, str) and s.startswith("http")):
+                errs.append(f"{label}.sources[{j}] must be an http(s) URL")
+
+    if len(data["estates"]) < PUBLIC_HOUSING_MIN_COUNT:
+        errs.append(
+            f"public-housing: only {len(data['estates'])} estates (< {PUBLIC_HOUSING_MIN_COUNT}) — looks like a degenerate run"
+        )
+    if total_buildings < PUBLIC_HOUSING_BUILDINGS_MIN_COUNT:
+        errs.append(
+            f"public-housing: only {total_buildings} buildings total (< {PUBLIC_HOUSING_BUILDINGS_MIN_COUNT}) — "
+            "looks like a degenerate run"
+        )
+
+    unmatched = data["unmatched"]
+    if not isinstance(unmatched, list):
+        errs.append("public-housing.unmatched: expected a JSON array")
+    else:
+        for i, u in enumerate(unmatched):
+            uctx = f"public-housing.unmatched[{i}]"
+            if not require_fields(errs, uctx, u, ("id", "name", "reason")):
+                continue
+            for key in ("id", "name", "reason"):
+                if not isinstance(u[key], str):
+                    errs.append(f"{uctx}.{key} must be a string")
+
+    return errs
 
 
 def v_water_facilities(data: object) -> list[str]:
@@ -2395,6 +2625,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "service-status": (PUBLIC / "service-status.json", v_service_status),
     "road-works": (PUBLIC / "data/road-works.json", v_road_works),
     "schools": (PUBLIC / "data/schools.json", v_schools),
+    "public-housing": (PUBLIC / "data/public-housing.json", v_public_housing),
     "water-facilities": (PUBLIC / "data/water-facilities.json", v_water_facilities),
     "water-distribution": (PUBLIC / "data/water-distribution.json", v_water_distribution),
     "power-facilities": (PUBLIC / "data/power-facilities.json", v_power_facilities),

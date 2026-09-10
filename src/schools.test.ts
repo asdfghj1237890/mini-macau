@@ -2,15 +2,20 @@ import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
   ALL_SCHOOL_LEVELS,
   SCHOOL_COLORS,
+  SCHOOL_ERAS,
   SCHOOL_FEATURE_ID_PROPERTY,
+  SCHOOL_LEVEL_COLOR,
   SCHOOL_LEVEL_ORDER,
   buildSchoolFeatures,
   countSchoolsByLevel,
   filterSchoolsByLevel,
   loadSchoolLevelsOn,
   saveSchoolLevelsOn,
+  schoolColor,
   schoolDsedjCode,
+  schoolEra,
   schoolLevelLabel,
+  schoolRamp,
   schoolSystemLabel,
 } from './schools'
 import type { Translations } from './i18n'
@@ -31,6 +36,8 @@ function school(over: Partial<School> = {}): School {
     level: 'all_through',
     levels: { kindergarten: true, primary: true, secondary: true },
     system: 'private',
+    founded: 1889,
+    foundedNote: null,
     coordinates: [113.551476, 22.164204],
     osm: ['w265433532'],
     buildings: [building()],
@@ -39,19 +46,54 @@ function school(over: Partial<School> = {}): School {
 }
 
 describe('SCHOOL_COLORS', () => {
-  it('carries the five user-specified level colours', () => {
-    expect(SCHOOL_COLORS).toEqual({
-      kindergarten: '#ef4444',
-      primary: '#f472b6',
-      secondary: '#3b82f6',
-      university: '#22c55e',
-      all_through: '#a855f7',
-    })
+  it('has one colour per level per era, all 25 distinct, in stage order', () => {
+    expect([...SCHOOL_LEVEL_ORDER]).toEqual(Object.keys(SCHOOL_COLORS))
+    const all = SCHOOL_LEVEL_ORDER.flatMap(level => SCHOOL_ERAS.map(era => SCHOOL_COLORS[level][era]))
+    expect(all).toHaveLength(25)
+    expect(new Set(all).size).toBe(25)
+    for (const hex of all) expect(hex).toMatch(/^#[0-9a-f]{6}$/)
   })
 
-  it('has one legend swatch per colour, in stage order', () => {
-    expect([...SCHOOL_LEVEL_ORDER]).toEqual(Object.keys(SCHOOL_COLORS))
-    expect(new Set(Object.values(SCHOOL_COLORS)).size).toBe(5)
+  it('gets lighter for newer eras within every level', () => {
+    const luminance = (hex: string) =>
+      0.2126 * parseInt(hex.slice(1, 3), 16) + 0.7152 * parseInt(hex.slice(3, 5), 16) + 0.0722 * parseInt(hex.slice(5, 7), 16)
+    for (const level of SCHOOL_LEVEL_ORDER) {
+      const ramp = schoolRamp(level)
+      expect(ramp).toHaveLength(SCHOOL_ERAS.length)
+      for (let i = 1; i < ramp.length; i++) expect(luminance(ramp[i])).toBeGreaterThan(luminance(ramp[i - 1]))
+    }
+  })
+
+  it('uses the middle era stop as each level\'s identity colour', () => {
+    for (const level of SCHOOL_LEVEL_ORDER) expect(SCHOOL_LEVEL_COLOR[level]).toBe(SCHOOL_COLORS[level][1950])
+  })
+
+  it('stays clear of the public-housing hues (no shared colour with those ramps)', async () => {
+    const { PUBLIC_HOUSING_COLORS } = await import('./publicHousing')
+    const housing = new Set(Object.values(PUBLIC_HOUSING_COLORS).flatMap(f => Object.values(f)))
+    for (const level of SCHOOL_LEVEL_ORDER) for (const hex of schoolRamp(level)) expect(housing.has(hex)).toBe(false)
+  })
+})
+
+describe('schoolEra / schoolColor', () => {
+  it('buckets a founding year into its era stop, clamping the ends', () => {
+    expect(schoolEra(1889)).toBe(0)
+    expect(schoolEra(1900)).toBe(1900)
+    expect(schoolEra(1949)).toBe(1900)
+    expect(schoolEra(1965)).toBe(1950)
+    expect(schoolEra(1999)).toBe(1980)
+    expect(schoolEra(2019)).toBe(2000)
+  })
+
+  it('gives an unknown founding year the middle stop, not an end', () => {
+    expect(schoolEra(null)).toBe(1950)
+    expect(schoolEra(undefined)).toBe(1950)
+    expect(schoolColor('primary', null)).toBe(SCHOOL_LEVEL_COLOR.primary)
+  })
+
+  it('picks the family by level and the stop by year', () => {
+    expect(schoolColor('secondary', 1932)).toBe(SCHOOL_COLORS.secondary[1900])
+    expect(schoolColor('university', 1981)).toBe(SCHOOL_COLORS.university[1980])
   })
 })
 
@@ -102,7 +144,7 @@ describe('schoolDsedjCode', () => {
 })
 
 describe('buildSchoolFeatures', () => {
-  it('emits one Polygon feature per building, coloured by the school level', () => {
+  it('emits one Polygon feature per building, coloured by level and founding era', () => {
     const fc = buildSchoolFeatures([
       school({ id: 'a', level: 'primary', buildings: [building({ osmId: 'w1' }), building({ osmId: 'w2' })] }),
       school({ id: 'b', level: 'university', buildings: [building({ osmId: 'w3', height: 40, minHeight: 3 })] }),
@@ -111,10 +153,11 @@ describe('buildSchoolFeatures', () => {
     expect(fc.features).toHaveLength(3)
     expect(fc.features[0].geometry).toEqual({ type: 'Polygon', coordinates: RING })
     expect(fc.features[0].properties).toEqual({
-      schoolId: 'a', level: 'primary', color: '#f472b6', height: 17.8, minHeight: 0, name: 'A座',
+      schoolId: 'a', level: 'primary', founded: 1889, era: 0, color: SCHOOL_COLORS.primary[0],
+      height: 17.8, minHeight: 0, name: 'A座',
     })
     expect(fc.features[2].properties).toMatchObject({
-      schoolId: 'b', color: '#22c55e', height: 42, minHeight: 3,
+      schoolId: 'b', color: SCHOOL_COLORS.university[0], height: 42, minHeight: 3,
     })
   })
 
@@ -147,10 +190,12 @@ describe('buildSchoolFeatures', () => {
       .toEqual(['a', 'a', 'b'])
   })
 
-  it('colours every level distinctly', () => {
+  it('colours every level distinctly and shades by founding era', () => {
     const levels = [...SCHOOL_LEVEL_ORDER] as SchoolLevel[]
-    const fc = buildSchoolFeatures(levels.map((level, i) => school({ id: `s${i}`, level })))
-    expect(fc.features.map(f => f.properties?.color)).toEqual(levels.map(l => SCHOOL_COLORS[l]))
+    const fc = buildSchoolFeatures(levels.map((level, i) => school({ id: `s${i}`, level, founded: 1960 })))
+    expect(fc.features.map(f => f.properties?.color)).toEqual(levels.map(l => SCHOOL_COLORS[l][1950]))
+    const unknown = buildSchoolFeatures([school({ founded: null })])
+    expect(unknown.features[0].properties?.color).toBe(SCHOOL_LEVEL_COLOR.all_through)
   })
 })
 

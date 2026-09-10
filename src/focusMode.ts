@@ -1,4 +1,4 @@
-// FOCUS MODES — the shared machinery behind WATER and POWER.
+// FOCUS MODES — the shared machinery behind HOUSING, WATER and POWER.
 //
 // A focus layer is not just another overlay: switching it on clears every other
 // layer so its network is read against an empty city, and switching it off puts
@@ -6,23 +6,29 @@
 // starts and wins on restore even if the user poked other switches meanwhile,
 // so the two states can never drift apart.
 //
-// All four overlays (WATER, POWER, WASTE, GRAND PRIX) behave identically, so
-// the capture / apply / persist half lives here exactly once and each overlay
-// only supplies its own storage key. App owns the React setters and passes
-// them in, which is what makes this testable without a DOM. (src/water.ts
-// re-exports these under its historical names.)
+// All five overlays (HOUSING, WATER, POWER, WASTE, GRAND PRIX) behave
+// identically, so the capture / apply / persist half lives here exactly once
+// and each overlay only supplies its own storage key. App owns the React
+// setters and passes them in, which is what makes this testable without a DOM.
+// (src/water.ts re-exports these under its historical names.)
 //
-// The four are MUTUALLY EXCLUSIVE: turning one on turns whichever other one is
+// The five are MUTUALLY EXCLUSIVE: turning one on turns whichever other one is
 // on off and hands its snapshot over — see `activeFocusPeer` and
 // `focusHandoffSnapshot`.
+//
+// One layer takes an EXEMPTION: HOUSING leaves the schools alone, because the
+// two overlays are read together (which estates sit in which catchment) and
+// their colour families were chosen not to collide. That is the whole job of
+// FOCUS_KEEPS below — every other focus layer keeps nothing.
 
 // Which focus layer a snapshot belongs to. Each gets its own storage key, so
 // no two can ever read each other's history.
-export type FocusLayer = 'water' | 'power' | 'waste' | 'grandprix'
+export type FocusLayer = 'housing' | 'water' | 'power' | 'waste' | 'grandprix'
 
-// All four, in the order they appear in the CITY legend. Exported so a caller
+// All five, in the order they appear in the CITY legend (HOUSING sits between
+// SCHOOLS and WC, above the four utility/circuit rows). Exported so a caller
 // can ask "which OTHER focus layer is on?" without hard-coding the list.
-export const FOCUS_LAYERS: readonly FocusLayer[] = ['water', 'power', 'waste', 'grandprix'] as const
+export const FOCUS_LAYERS: readonly FocusLayer[] = ['housing', 'water', 'power', 'waste', 'grandprix'] as const
 
 // Everything the focus mode has to put back. Bus visibility is TWO facts, not
 // one: `busAuto` records that the user was in auto-by-time mode, so restoring
@@ -36,6 +42,7 @@ export interface LayerVisibilityState {
   ferries: boolean
   roadWorks: boolean
   schools: boolean // the master switch only — per-level set is left alone
+  publicHousing: boolean // ditto: the per-type set is left alone
   toilets: boolean
   carParks: boolean
 }
@@ -50,8 +57,36 @@ export interface LayerVisibilityApply {
   setFerries: (on: boolean) => void
   setRoadWorks: (on: boolean) => void
   setSchools: (on: boolean) => void
+  setPublicHousing: (on: boolean) => void
   setToilets: (on: boolean) => void
   setCarParks: (on: boolean) => void
+}
+
+// Which layers a focus mode leaves ALONE — neither hidden on the way in nor
+// restored on the way out, so the user keeps whatever they had. HOUSING is the
+// only layer with entries:
+//   • `schools`, because housing and schools are read together and their
+//     colour families are deliberately disjoint (see src/schools.ts);
+//   • `publicHousing`, because that flag IS the housing focus switch — hiding
+//     it here would switch the focus off in the act of switching it on.
+// Naming a key here means "never touch this setter for this layer". `lrt` and
+// `busRoutes` stand for the two vehicle setters; no layer keeps them today.
+export const FOCUS_KEEPS: Record<FocusLayer, ReadonlySet<keyof LayerVisibilityState>> = {
+  housing: new Set(['schools', 'publicHousing']),
+  water: new Set(),
+  power: new Set(),
+  waste: new Set(),
+  grandprix: new Set(),
+}
+
+const NO_KEEPS: ReadonlySet<keyof LayerVisibilityState> = new Set()
+
+// The exemptions for a layer. `undefined` — the historical one-argument call,
+// and what src/water.ts's `applyWaterFocus` alias still uses — means "hide or
+// restore everything", which is exactly right for the four layers that keep
+// nothing.
+function focusKeeps(layer: FocusLayer | undefined): ReadonlySet<keyof LayerVisibilityState> {
+  return layer ? FOCUS_KEEPS[layer] : NO_KEEPS
 }
 
 // Persisted so a reload while a focus layer is on can still restore later. The
@@ -74,37 +109,70 @@ export function captureLayerSnapshot(state: LayerVisibilityState): LayerVisibili
     ferries: !!state.ferries,
     roadWorks: !!state.roadWorks,
     schools: !!state.schools,
+    publicHousing: !!state.publicHousing,
     toilets: !!state.toilets,
     carParks: !!state.carParks,
   }
 }
 
-// Everything off. Buses go to "no routes AND not auto" deliberately: leaving
-// auto on would let the next clock tick refill the map behind the focus mode.
-export function applyFocusMode(apply: LayerVisibilityApply): void {
-  apply.setLrt([])
-  apply.setBus([], false)
-  apply.setFlights(false)
-  apply.setFerries(false)
-  apply.setRoadWorks(false)
-  apply.setSchools(false)
-  apply.setToilets(false)
-  apply.setCarParks(false)
+// Everything off, minus the incoming layer's exemptions. Buses go to "no
+// routes AND not auto" deliberately: leaving auto on would let the next clock
+// tick refill the map behind the focus mode.
+export function applyFocusMode(apply: LayerVisibilityApply, layer?: FocusLayer): void {
+  const keep = focusKeeps(layer)
+  if (!keep.has('lrt')) apply.setLrt([])
+  if (!keep.has('busRoutes')) apply.setBus([], false)
+  if (!keep.has('flights')) apply.setFlights(false)
+  if (!keep.has('ferries')) apply.setFerries(false)
+  if (!keep.has('roadWorks')) apply.setRoadWorks(false)
+  if (!keep.has('schools')) apply.setSchools(false)
+  if (!keep.has('publicHousing')) apply.setPublicHousing(false)
+  if (!keep.has('toilets')) apply.setToilets(false)
+  if (!keep.has('carParks')) apply.setCarParks(false)
 }
 
-// Put the snapshot back, exactly.
+// Put the snapshot back, exactly — except for the layers the focus mode never
+// touched. An exempt layer was left as the user had it on the way in and is
+// left as the user has it NOW on the way out; restoring it from the snapshot
+// would undo edits the focus mode never made.
 export function applyLayerSnapshot(
   snapshot: LayerVisibilityState,
   apply: LayerVisibilityApply,
+  layer?: FocusLayer,
 ): void {
-  apply.setLrt(snapshot.lrt)
-  apply.setBus(snapshot.busAuto ? [] : snapshot.busRoutes, snapshot.busAuto)
-  apply.setFlights(snapshot.flights)
-  apply.setFerries(snapshot.ferries)
-  apply.setRoadWorks(snapshot.roadWorks)
-  apply.setSchools(snapshot.schools)
-  apply.setToilets(snapshot.toilets)
-  apply.setCarParks(snapshot.carParks)
+  const keep = focusKeeps(layer)
+  if (!keep.has('lrt')) apply.setLrt(snapshot.lrt)
+  if (!keep.has('busRoutes')) apply.setBus(snapshot.busAuto ? [] : snapshot.busRoutes, snapshot.busAuto)
+  if (!keep.has('flights')) apply.setFlights(snapshot.flights)
+  if (!keep.has('ferries')) apply.setFerries(snapshot.ferries)
+  if (!keep.has('roadWorks')) apply.setRoadWorks(snapshot.roadWorks)
+  if (!keep.has('schools')) apply.setSchools(snapshot.schools)
+  if (!keep.has('publicHousing')) apply.setPublicHousing(snapshot.publicHousing)
+  if (!keep.has('toilets')) apply.setToilets(snapshot.toilets)
+  if (!keep.has('carParks')) apply.setCarParks(snapshot.carParks)
+}
+
+// The handoff case. When focus passes from one layer to another (WATER on →
+// user switches HOUSING on) the incoming layer inherits the outgoing one's
+// snapshot, and the layers the incoming mode does NOT hide were hidden by the
+// outgoing one. They come back now, from that snapshot: the user asked for
+// housing, not for the schools that water had switched off. Only the exempt
+// keys are touched — everything else stays hidden — and the incoming layer's
+// own switch (`publicHousing` for HOUSING) is the caller's to set.
+export function applyKeptOnHandoff(
+  snapshot: LayerVisibilityState,
+  apply: LayerVisibilityApply,
+  layer: FocusLayer,
+): void {
+  const keep = focusKeeps(layer)
+  if (keep.has('lrt')) apply.setLrt(snapshot.lrt)
+  if (keep.has('busRoutes')) apply.setBus(snapshot.busAuto ? [] : snapshot.busRoutes, snapshot.busAuto)
+  if (keep.has('flights')) apply.setFlights(snapshot.flights)
+  if (keep.has('ferries')) apply.setFerries(snapshot.ferries)
+  if (keep.has('roadWorks')) apply.setRoadWorks(snapshot.roadWorks)
+  if (keep.has('schools')) apply.setSchools(snapshot.schools)
+  if (keep.has('toilets')) apply.setToilets(snapshot.toilets)
+  if (keep.has('carParks')) apply.setCarParks(snapshot.carParks)
 }
 
 // One focus layer's state as seen from another: is it on, and what would it
@@ -167,6 +235,7 @@ export function loadFocusSnapshot(layer: FocusLayer): LayerVisibilityState | nul
       ferries: o.ferries === true,
       roadWorks: o.roadWorks === true,
       schools: o.schools === true,
+      publicHousing: o.publicHousing === true,
       toilets: o.toilets === true,
       carParks: o.carParks === true,
     })

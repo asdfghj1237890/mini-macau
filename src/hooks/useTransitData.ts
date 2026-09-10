@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile, ScheduleType } from '../types'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -15,6 +15,7 @@ import {
   FerryScheduleFileSchema,
   RoadWorksFileSchema,
   SchoolsFileSchema,
+  PublicHousingFileSchema,
   ToiletsFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
@@ -107,6 +108,15 @@ interface SchoolsFile {
   sources: Record<string, string>
   levels: SchoolLevel[]
   schools: School[]
+}
+
+// public-housing.json: the same envelope. Only `estates` reaches TransitData;
+// `unmatched` is a pipeline diagnostic.
+interface PublicHousingFile {
+  fetchedAtUtc: string
+  sources: Record<string, string>
+  types: PublicHousingType[]
+  estates: PublicHousingEstate[]
 }
 
 // toilets.json is the same envelope pattern again: only `toilets` reaches
@@ -401,6 +411,7 @@ export function useTransitData(): UseTransitDataResult {
     ferries: [],
     roadWorks: [],
     schools: [],
+    publicHousing: [],
     toilets: [],
     carParks: [],
     waste: [],
@@ -535,6 +546,13 @@ export function useTransitData(): UseTransitDataResult {
     // map rather than failing the whole load.
     loadJson<SchoolsFile>('/data/schools.json', SchoolsFileSchema, 'schools.json')
       .then(file => commit('schools', file.schools))
+      .catch(() => {})
+
+    // Public housing — the same static, manually regenerated, non-critical
+    // overlay as the schools: a missing file just leaves the estates off the
+    // map.
+    loadJson<PublicHousingFile>('/data/public-housing.json', PublicHousingFileSchema, 'public-housing.json')
+      .then(file => commit('publicHousing', file.estates))
       .catch(() => {})
 
     // Public toilets — another independent, non-critical overlay (and one

@@ -5,7 +5,7 @@ import type { School } from '../types'
 // bilingual-only shape, so it reuses the same rule (en → pt).
 import { pickText } from '../roadWorks'
 import {
-  SCHOOL_COLORS,
+  schoolColor,
   schoolDsedjCode,
   schoolLevelLabel,
   schoolSystemLabel,
@@ -37,9 +37,12 @@ function Row({ label, value }: { label: string; value: string }) {
 export function SchoolInfoPanel({ school, buildingName, onClose }: Props) {
   const { lang, t } = useI18n()
 
-  // Level colour, straight from the table the map blocks and the legend
-  // swatches read — arbitrary hex, so it goes in as an inline style.
-  const color = SCHOOL_COLORS[school.level] ?? SCHOOL_COLORS.all_through
+  // The badge wears the colour of the BLOCK that was clicked — the level's hue
+  // at the shade of its founding era — straight from the table the map and the
+  // legend read, so the panel and the campus on screen match. Arbitrary hex, so
+  // it goes in as an inline style. A school with no known year takes the ramp's
+  // middle stop (see schoolEra), which is the level's identity colour.
+  const color = schoolColor(school.level, school.founded)
 
   // Name in the reading language, with the other script underneath. A school
   // with no Portuguese form upstream (pt: "") just gets no subtitle.
@@ -120,6 +123,20 @@ export function SchoolInfoPanel({ school, buildingName, onClose }: Props) {
                 ))}
               </div>
             </div>
+          )}
+          {/* The year the shade on the map stands for. Em dash rather than a
+              hidden row when it is unknown: the field exists for every school,
+              and an absent row would read as "no such fact". */}
+          <Row label={t.schoolFounded} value={school.founded == null ? '—' : String(school.founded)} />
+          {/* The caveat behind a judgement-call year (a pre-Macau founding, a
+              competing source, an earliest record standing in for an
+              unpublished founding) — data written in all three languages, so
+              it is picked directly rather than through pickText's pt-for-en
+              fallback. */}
+          {school.foundedNote && (
+            <p className="-mt-1 text-[9px] leading-snug text-right text-(--mm-text-muted) mm-han">
+              {lang === 'zh' ? school.foundedNote.zh : lang === 'pt' ? school.foundedNote.pt : school.foundedNote.en}
+            </p>
           )}
           {buildingName && <Row label={t.schoolBuilding} value={buildingName} />}
           <Row label={t.schoolCampus} value={t.schoolBuildings(school.buildings.length)} />

@@ -1,8 +1,10 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import {
+  FOCUS_KEEPS,
   FOCUS_LAYERS,
   activeFocusPeer,
   applyFocusMode,
+  applyKeptOnHandoff,
   applyLayerSnapshot,
   captureLayerSnapshot,
   focusHandoffSnapshot,
@@ -24,6 +26,7 @@ function state(over: Partial<LayerVisibilityState> = {}): LayerVisibilityState {
     ferries: true,
     roadWorks: true,
     schools: false,
+    publicHousing: false,
     toilets: false,
     carParks: false,
     ...over,
@@ -41,6 +44,7 @@ function recorder() {
     setFerries: on => { calls.ferries = on },
     setRoadWorks: on => { calls.roadWorks = on },
     setSchools: on => { calls.schools = on },
+    setPublicHousing: on => { calls.publicHousing = on },
     setToilets: on => { calls.toilets = on },
     setCarParks: on => { calls.carParks = on },
   }
@@ -63,6 +67,7 @@ afterEach(() => { vi.unstubAllGlobals() })
 
 describe('focusSnapshotKey', () => {
   it('gives each focus layer its own key, so no two ever read each other', () => {
+    expect(focusSnapshotKey('housing')).toBe('mini-macau-housing-focus-snapshot')
     expect(focusSnapshotKey('water')).toBe('mini-macau-water-focus-snapshot')
     expect(focusSnapshotKey('power')).toBe('mini-macau-power-focus-snapshot')
     expect(focusSnapshotKey('waste')).toBe('mini-macau-waste-focus-snapshot')
@@ -70,8 +75,22 @@ describe('focusSnapshotKey', () => {
     expect(new Set(FOCUS_LAYERS.map(focusSnapshotKey)).size).toBe(FOCUS_LAYERS.length)
   })
 
-  it('knows all four focus layers, in legend order', () => {
-    expect([...FOCUS_LAYERS]).toEqual(['water', 'power', 'waste', 'grandprix'])
+  it('knows all five focus layers, in legend order', () => {
+    expect([...FOCUS_LAYERS]).toEqual(['housing', 'water', 'power', 'waste', 'grandprix'])
+  })
+})
+
+// The one asymmetry in the focus machinery: HOUSING leaves the schools alone.
+describe('FOCUS_KEEPS — the per-layer exemptions', () => {
+  it('exempts only HOUSING, and only the schools and its own switch', () => {
+    expect([...FOCUS_KEEPS.housing].sort()).toEqual(['publicHousing', 'schools'])
+    for (const layer of FOCUS_LAYERS) {
+      if (layer !== 'housing') expect(FOCUS_KEEPS[layer].size).toBe(0)
+    }
+  })
+
+  it('names a key for every focus layer, so a new layer cannot be forgotten', () => {
+    expect(Object.keys(FOCUS_KEEPS).sort()).toEqual([...FOCUS_LAYERS].sort())
   })
 })
 
@@ -88,7 +107,7 @@ describe('the snapshot covers only the non-focus layers', () => {
   })
 })
 
-describe('activeFocusPeer — the three focus layers are mutually exclusive', () => {
+describe('activeFocusPeer — the five focus layers are mutually exclusive', () => {
   const peer = (layer: FocusLayer, on: boolean): FocusPeer =>
     ({ layer, on, snapshot: on ? state({ flights: true }) : null })
 
@@ -152,9 +171,76 @@ describe('applyFocusMode', () => {
       ferries: false,
       roadWorks: false,
       schools: false,
+      publicHousing: false,
       toilets: false,
       carParks: false,
     })
+  })
+})
+
+describe('applyFocusMode — HOUSING keeps the schools', () => {
+  it('hides every peer but never touches schools or the housing switch', () => {
+    const { apply, calls } = recorder()
+    applyFocusMode(apply, 'housing')
+    expect(calls).toEqual({
+      lrt: [],
+      bus: { routeIds: [], auto: false },
+      flights: false,
+      ferries: false,
+      roadWorks: false,
+      toilets: false,
+      carParks: false,
+    })
+    // Neither setter was called at all — the user's schools stay exactly as
+    // they are, and the layer does not switch itself off on the way in.
+    expect('schools' in calls).toBe(false)
+    expect('publicHousing' in calls).toBe(false)
+  })
+
+  it('still hides everything for the layers that keep nothing', () => {
+    for (const layer of FOCUS_LAYERS.filter(l => l !== 'housing')) {
+      const { apply, calls } = recorder()
+      applyFocusMode(apply, layer)
+      expect(calls.schools).toBe(false)
+      expect(calls.publicHousing).toBe(false)
+    }
+  })
+
+  // The handoff case: HOUSING is on, the user turns WATER on. Water keeps
+  // nothing, so this is where the schools DO go off — housing's exemption is
+  // housing's alone, and every other focus mode still empties the city.
+  it('hides the schools when a peer takes the focus over from HOUSING', () => {
+    const { apply, calls } = recorder()
+    applyFocusMode(apply, 'water')
+    expect(calls.schools).toBe(false)
+    expect(calls.publicHousing).toBe(false)
+  })
+})
+
+// The other direction of the handoff: WATER is on (schools hidden by it), the
+// user turns HOUSING on. Housing inherits water's snapshot and, because it
+// does not hide schools itself, gives them back from that snapshot at once —
+// and only them: everything water hid stays hidden, and housing's own switch
+// is App's to flip.
+describe('applyKeptOnHandoff', () => {
+  it('restores just the exempt layers from the inherited snapshot for HOUSING', () => {
+    const { apply, calls } = recorder()
+    applyKeptOnHandoff(state({ schools: true, roadWorks: true, publicHousing: false }), apply, 'housing')
+    expect(calls).toEqual({ schools: true })
+  })
+
+  it('restores the exempt layer to OFF when that is what the snapshot holds', () => {
+    const { apply, calls } = recorder()
+    applyKeptOnHandoff(state({ schools: false }), apply, 'housing')
+    expect(calls).toEqual({ schools: false })
+  })
+
+  it('touches nothing for the layers that keep nothing', () => {
+    for (const layer of FOCUS_LAYERS.filter(l => l !== 'housing')) {
+      const { apply, calls } = recorder()
+      applyKeptOnHandoff(state({ schools: true }), apply, layer)
+      expect(calls).toEqual({})
+    }
   })
 })
 
@@ -172,6 +258,24 @@ describe('applyLayerSnapshot', () => {
     const { apply, calls } = recorder()
     applyLayerSnapshot(captureLayerSnapshot(state({ busAuto: true })), apply)
     expect(calls.bus).toEqual({ routeIds: [], auto: true })
+  })
+
+  // Ending HOUSING focus restores everything it hid, and NOTHING it didn't:
+  // the snapshot's `schools: true` is not replayed, because the user may have
+  // switched the schools off (or on) while the focus mode was running.
+  it('leaves an exempt layer as the user has it NOW, not as the snapshot has it', () => {
+    const { apply, calls } = recorder()
+    applyLayerSnapshot(state({ schools: true, publicHousing: true, roadWorks: true }), apply, 'housing')
+    expect('schools' in calls).toBe(false)
+    expect('publicHousing' in calls).toBe(false)
+    expect(calls.roadWorks).toBe(true)
+    expect(calls.lrt).toEqual(['lrt-taipa'])
+  })
+
+  it('replays the schools for the layers that keep nothing', () => {
+    const { apply, calls } = recorder()
+    applyLayerSnapshot(state({ schools: true }), apply, 'water')
+    expect(calls.schools).toBe(true)
   })
 })
 
@@ -218,7 +322,7 @@ describe('load / saveFocusSnapshot', () => {
     })
     expect(loadFocusSnapshot('power')).toEqual({
       lrt: ['a'], busAuto: false, busRoutes: [], flights: false, ferries: false,
-      roadWorks: false, schools: false, toilets: false, carParks: false,
+      roadWorks: false, schools: false, publicHousing: false, toilets: false, carParks: false,
     })
   })
 

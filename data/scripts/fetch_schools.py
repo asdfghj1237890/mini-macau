@@ -30,6 +30,16 @@ Matching DSEDJ <-> OSM is by name: exact / substring on the Chinese name (OSM
 names are campus-level, e.g. 勞校中學附屬小學 ⊂ 勞校中學), then a strict
 Portuguese-name ratio, plus a small alias table for the known odd ones.
 
+`founded` is the year the school itself counts its history from — the year on
+its own 校史 / 學校簡介 page, including a pre-Macau founding where the school
+claims one (培正 counts 1889 in Guangzhou; its Macau campus dates from 1938);
+null when no source gives one. DSEDJ publishes no founding-year field, so the
+years are hand-transcribed into the FOUNDED table below — one source URL per
+school, and a one-line comment wherever a competing year, a lineage or a
+merger makes the number a judgement call. A school missing from that table is
+written out as `founded: null` and named in a warning at the end of the run,
+so a newly registered school gets noticed.
+
 Run manually when the school list or OSM changes (not scheduled):
     cd data && uv run python scripts/fetch_schools.py
 Needs network (data.gov.mo + overpass-api.de); ~25 Overpass calls. Budget
@@ -104,6 +114,230 @@ ALIASES = {
     "聖若瑟教區中學校第五校": "聖若瑟教區中學第五校",
     "勞工子弟學校": "勞校中學",  # full name of the school known as 勞校
     "同善堂小學": "同善堂中學",  # primary section of the all-through 同善堂中學
+}
+
+# Reader-facing caveats on `founded`, shown under the year in the school panel
+# (zh / pt / en), for the schools whose year is a judgement call: a founding
+# claimed from a pre-Macau predecessor, a competing year in another source, a
+# lineage that changed names, or an earliest-dated record standing in for an
+# unpublished founding. Everything else gets null. Keep each to one sentence.
+FOUNDED_NOTES: dict[str, dict[str, str]] = {
+    "dsedj:[002]": {  # 培正中學
+        "zh": "以1889年廣州培正書院創校起算；澳門校於1938年開辦。",
+        "pt": "Conta desde a fundação em Cantão (1889); a escola de Macau abriu em 1938.",
+        "en": "Counts from the 1889 founding in Guangzhou; the Macau school opened in 1938.",
+    },
+    "dsedj:[005]": {  # 嶺南中學
+        "zh": "以1919年廣州前身通志小學起算；1937年遷澳。",
+        "pt": "Conta desde a antecessora de 1919 em Cantão; mudou-se para Macau em 1937.",
+        "en": "Counts from its 1919 Guangzhou predecessor; moved to Macau in 1937.",
+    },
+    "dsedj:[021]": {  # 粵華中學
+        "zh": "1925年創於廣州，1928年遷澳。",
+        "pt": "Fundada em Cantão em 1925; mudou-se para Macau em 1928.",
+        "en": "Founded in Guangzhou in 1925; moved to Macau in 1928.",
+    },
+    "dsedj:[020]": {  # 澳門浸信中學
+        "zh": "1955年開學；1904年為澳門浸信教會創立年，維基百科另記1954年。",
+        "pt": "Aulas desde 1955; 1904 é a fundação da igreja baptista, a Wikipédia indica 1954.",
+        "en": "Opened in 1955; 1904 is the founding of the Baptist church, Wikipedia gives 1954.",
+    },
+    "dsedj:[042]": {  # 聖若瑟教區中學第五校
+        "zh": "第五校以1932年真原小學起算；聖若瑟教區中學體系創於1931年。",
+        "pt": "A 5.ª escola conta desde a Escola Chan Un de 1932; o Colégio Diocesano de S. José data de 1931.",
+        "en": "Campus 5 counts from the 1932 Chan Un primary school; the diocesan college system dates from 1931.",
+    },
+    "dsedj:[188]": {  # 聖若瑟教區中學第六校
+        "zh": "以1931年聖若瑟教區中學創立起算。",
+        "pt": "Conta desde a fundação do Colégio Diocesano de S. José em 1931.",
+        "en": "Counts from the 1931 founding of the diocesan college system.",
+    },
+    "dsedj:[069]": {  # 魯彌士主教幼稚園
+        "zh": "1934年10月開幕；部分來源記1933年（校舍改建年）。",
+        "pt": "Inaugurado em Outubro de 1934; algumas fontes indicam 1933 (adaptação do edifício).",
+        "en": "Inaugurated in October 1934; some sources give 1933 (the building's conversion).",
+    },
+    "dsedj:[070]": {  # 澳門葡文學校
+        "zh": "校方以1998年改組成立起算；前身可追溯至1887年的官立小學。",
+        "pt": "A escola data-se da reorganização de 1998; a linhagem remonta à Escola Primária Oficial de 1887.",
+        "en": "Dates itself from the 1998 reorganisation; its lineage goes back to the 1887 official primary school.",
+    },
+    "dsedj:[088]": {  # 聖德蘭學校
+        "zh": "記1957年；同一來源另暗示1958年。",
+        "pt": "Registado 1957; a mesma fonte sugere também 1958.",
+        "en": "Recorded as 1957; the same source also implies 1958.",
+    },
+    "dsedj:[089]": {  # 聖瑪大肋納學校
+        "zh": "記1950年；1948年識字班與1961年新校舍亦有記載。",
+        "pt": "Registado 1950; há registos de aulas de alfabetização em 1948 e de novas instalações em 1961.",
+        "en": "Recorded as 1950; literacy classes in 1948 and a new campus in 1961 are also documented.",
+    },
+    "dsedj:[093]": {  # 海星中學
+        "zh": "校方以1955年起算校慶；另稱有1917年肇慶前身。",
+        "pt": "A escola conta o aniversário desde 1955; reivindica também uma antecessora de 1917 em Zhaoqing.",
+        "en": "The school counts its anniversaries from 1955; it also claims a 1917 predecessor in Zhaoqing.",
+    },
+    "dsedj:[095]": {  # 沙梨頭坊眾學校
+        "zh": "1968年為最早可查紀錄（前身永福社學由坊會接辦），非經確認之創校年。",
+        "pt": "1968 é o registo mais antigo encontrado (a antecessora passou para a associação de moradores); ano de fundação não confirmado.",
+        "en": "1968 is the earliest record found (the predecessor was taken over by the residents' association); the founding year is unconfirmed.",
+    },
+    "dsedj:[096]": {  # 同善堂中學
+        "zh": "1924年為義學開辦年；1892年為同善堂創立，1991年始設中學部。",
+        "pt": "1924 é o início das aulas gratuitas; 1892 é a fundação da Tung Sin Tong, o secundário começou em 1991.",
+        "en": "1924 is the start of the free school; 1892 is the founding of the Tung Sin Tong charity, secondary classes began in 1991.",
+    },
+    "dsedj:[098]": {  # 沙梨頭浸信學校
+        "zh": "1965年為識字班開辦年；另一說正式建校為1969年。",
+        "pt": "1965 é o início das aulas de alfabetização; outra versão data a escola formal de 1969.",
+        "en": "1965 is the start of the literacy classes; another account dates the formal school to 1969.",
+    },
+    "dsedj:[110]": {  # 鮑思高粵華小學
+        "zh": "以1949年葡光工業學校起算；1991年鮑思高學校，2000年合併為現校。",
+        "pt": "Conta desde a Escola Industrial Pou Kuong de 1949; Escola Dom Bosco em 1991, fusão em 2000.",
+        "en": "Counts from the 1949 Pou Kuong Industrial School; Dom Bosco School 1991, merged in 2000.",
+    },
+    "dsedj:[111]": {  # 協同特殊教育學校
+        "zh": "1988年為現名重新註冊年；前身聖保羅聾啞學校創校年不詳。",
+        "pt": "1988 é o novo registo com o nome actual; a antecessora (escola para surdos S. Paulo) não tem ano publicado.",
+        "en": "1988 is the re-registration under the present name; the predecessor St Paul's school for the deaf has no published year.",
+    },
+    "dsedj:[167]": {  # 培道中學
+        "zh": "澳門校1945年創辦、1946年註冊；廣州母校創於1888年。",
+        "pt": "A escola de Macau foi fundada em 1945 e registada em 1946; a escola-mãe de Cantão data de 1888.",
+        "en": "The Macau school was founded in 1945 and registered in 1946; the Guangzhou parent school dates from 1888.",
+    },
+    "dsedj:[200]": {  # 傳承國際學校
+        "zh": "2024年9月開學；部分來源記2023年。",
+        "pt": "Abriu em Setembro de 2024; algumas fontes indicam 2023.",
+        "en": "Opened in September 2024; some sources give 2023.",
+    },
+    "osm:r20002113": {  # 澳門大學校本部
+        "zh": "以1981年東亞大學創立起算；1991年改組為澳門大學。",
+        "pt": "Conta desde a Universidade da Ásia Oriental (1981); reorganizada como Universidade de Macau em 1991.",
+        "en": "Counts from the 1981 University of East Asia; reorganised as the University of Macau in 1991.",
+    },
+    "osm:w580160817": {  # 澳門城市大學
+        "zh": "以1981年東亞大學起算；1992年為亞洲（澳門）國際公開大學，2011年改現名。",
+        "pt": "Conta desde a Universidade da Ásia Oriental (1981); Universidade Aberta Internacional da Ásia (Macau) em 1992, nome actual em 2011.",
+        "en": "Counts from the 1981 University of East Asia; Asia International Open University (Macau) in 1992, present name in 2011.",
+    },
+    "osm:w681663126": {  # 澳門城市大學
+        "zh": "以1981年東亞大學起算；1992年為亞洲（澳門）國際公開大學，2011年改現名。",
+        "pt": "Conta desde a Universidade da Ásia Oriental (1981); Universidade Aberta Internacional da Ásia (Macau) em 1992, nome actual em 2011.",
+        "en": "Counts from the 1981 University of East Asia; Asia International Open University (Macau) in 1992, present name in 2011.",
+    },
+    "osm:n4539942424": {  # 澳門城市大學繼續教育學院
+        "zh": "沿用城市大學1981年起算；學院本身2011年設立一說未經核實。",
+        "pt": "Segue o ano da universidade (1981); a data de 2011 do próprio colégio não foi confirmada.",
+        "en": "Uses the university's 1981; the college's own 2011 date could not be confirmed.",
+    },
+    "osm:n7684206071": {  # 澳門科技大學博雅學院
+        "zh": "博雅學院2020年成立；科技大學本身創於2000年。",
+        "pt": "Faculdade de Artes Liberais fundada em 2020; a universidade data de 2000.",
+        "en": "School of Liberal Arts founded in 2020; the university dates from 2000.",
+    },
+}
+
+# Founding years, keyed by the school id this script writes ("dsedj:[NNN]" for
+# a register school, "osm:<type><id>" for a tertiary campus footprint). Value:
+# (year, the page the year was read from). Hand-maintained; see the module
+# docstring for what the year means.
+FOUNDED: dict[str, tuple[int | None, str]] = {
+    "dsedj:[002]": (1889, "http://www.puiching.edu.mo/intro/school-intro/"),  # 培正中學 — founded in Guangzhou 1889, in Macau since Jan 1938; zh.wikipedia dates it 1938
+    "dsedj:[004]": (1910, "https://wp.kaoyip.edu.mo/pri/blog/"),  # 教業中學
+    "dsedj:[005]": (1919, "http://www.lingnan.edu.mo/gaikuang.html"),  # 嶺南中學 — predecessor 通志小學, Guangzhou 1919; moved to Macau Dec 1937, renamed 1947
+    "dsedj:[006]": (1947, "https://www.esf.edu.mo/intro_Details/article/iqk8cd78.html"),  # 澳門中華總商會附設商訓學校
+    "dsedj:[008]": (1949, "https://www.tongnam.edu.mo/about/history"),  # 東南學校
+    "dsedj:[012]": (1950, "https://zh.wikipedia.org/zh-hant/%E5%8B%9E%E6%A0%A1%E4%B8%AD%E5%AD%B8"),  # 勞校中學
+    "dsedj:[014]": (1931, "https://zh.wikipedia.org/zh-hant/%E8%81%96%E8%8B%A5%E7%91%9F%E6%95%99%E5%8D%80%E4%B8%AD%E5%AD%B8"),  # 聖若瑟教區中學 — 1931 diocesan founding; the college today is the 1979 merger of 聖若瑟/真原/望德
+    "dsedj:[017]": (1985, "https://www.brito.edu.mo/26657222902751121490.html"),  # 庇道學校
+    "dsedj:[018]": (1985, "https://zh.wikipedia.org/zh-hant/%E9%9B%B7%E9%B3%B4%E9%81%93%E4%B8%BB%E6%95%99%E7%B4%80%E5%BF%B5%E5%AD%B8%E6%A0%A1"),  # 雷鳴道主教紀念學校
+    "dsedj:[019]": (1955, "https://zh.wikipedia.org/zh-hant/%E9%99%B3%E7%91%9E%E7%A5%BA%E6%B0%B8%E6%8F%B4%E4%B8%AD%E5%AD%B8"),  # 陳瑞祺永援中學
+    "dsedj:[020]": (1955, "https://www.mbc.edu.mo/it-school/mbc/mbcindex.html"),  # 澳門浸信中學 — 3 Sept 1955 opening; wikipedia says 1954 (church resolution) / 1904 (the church itself)
+    "dsedj:[021]": (1925, "https://www.yuetwah.edu.mo/86/yw.php?read=int&lang=CHT&type=history"),  # 粵華中學 — founded in Guangzhou 1925, moved to Macau 1928, renamed 1933
+    "dsedj:[022]": (1920, "http://lfpc.edu.mo/news2025042701.html"),  # 蓮峰普濟學校
+    "dsedj:[023]": (1989, "https://www.macaudata.mo/macaubook/encyclopedia/html/39206.htm"),  # 聖安東尼幼稚園
+    "dsedj:[026]": (1985, "https://www.caritas.org.mo/education-service/199"),  # 明愛學校
+    "dsedj:[034]": (1989, "http://maids.org.mo/index/index/school.html?ids=%E5%95%9F%E6%99%BA%E5%AD%B8%E6%A0%A1"),  # 啟智學校
+    "dsedj:[042]": (1932, "https://www.macaudata.mo/mechanism/detailed?id=0c74dd25bf9648cc915066599d38d297&view=mutil"),  # 聖若瑟教區中學第五校 — campus traces to 真原小學 1932; its own site elsewhere says 1931 (same era either way)
+    "dsedj:[043]": (1954, "https://www.phcsuc.edu.mo/?page_id=166"),  # 陳瑞祺永援中學(分校)
+    "dsedj:[044]": (1954, "https://www.fatima.edu.mo/iindex.asp?Mod=Page&Pid=3"),  # 化地瑪聖母女子學校
+    "dsedj:[045]": (1994, "https://www.caritas.org.mo/education-service/197"),  # 明愛幼稚園
+    "dsedj:[046]": (1938, "https://www.chongtak.edu.mo/school_history"),  # 澳門中德學校
+    "dsedj:[048]": (1995, "https://www.emm.edu.mo/schoolTntroduction.html"),  # 澳門坊眾學校
+    "dsedj:[049]": (1990, "http://www.mnwhstq.com/szzy/qzwszlqwk/201608/t20160816_102526.htm"),  # 福建學校 — preparatory committee Apr 1990, first intake 1990-09-06; own 校史 page is an image
+    "dsedj:[051]": (1988, "https://www.schoolofthenations.com/"),  # 聯國學校
+    "dsedj:[054]": (1995, "https://zh.wikipedia.org/zh-hant/%E5%9F%B9%E8%8F%AF%E4%B8%AD%E5%AD%B8"),  # 培華中學
+    "dsedj:[055]": (1939, "https://zh.wikipedia.org/zh-hant/%E5%98%89%E8%AB%BE%E6%92%92%E8%81%96%E5%BF%83%E4%B8%AD%E5%AD%B8"),  # 嘉諾撒聖心中學
+    "dsedj:[061]": (1966, "https://fctweb.org/2024/index.php/guan-yu-wo-men/guan-yu-dang-fang/xiao-shi-hui-gu"),  # 氹仔坊眾學校
+    "dsedj:[062]": (1953, "https://zh.wikipedia.org/zh-hant/%E6%BE%B3%E9%96%80%E4%B8%89%E8%82%B2%E4%B8%AD%E5%AD%B8"),  # 澳門三育中學
+    "dsedj:[063]": (1949, "https://zh.wikipedia.org/wiki/%E9%8F%A1%E5%B9%B3%E5%AD%B8%E6%A0%A1"),  # 鏡平學校
+    "dsedj:[064]": (1997, "https://www.sunwah.edu.mo/zh_tw/introduction.html"),  # 新華學校
+    "dsedj:[066]": (1955, "https://zh.wikipedia.org/zh-hk/%E5%88%A9%E7%91%AA%E7%AB%87%E4%B8%AD%E5%AD%B8"),  # 利瑪竇中學
+    "dsedj:[068]": (1998, "https://www.kljc.edu.mo/?p=9544"),  # 澳門工聯職業技術中學
+    "dsedj:[069]": (1934, "https://www.macaumemory.mo/entries_13add9991523409bb3c28d56d6982aa1?token=rg6e6DF2XVYwvN9w4FXc4w%3D%3D&lgType=pt"),  # 魯彌士主教幼稚園 — Oct 1934 inauguration (澳門記憶); unfetchable school/APIM pages say 1933
+    "dsedj:[070]": (1998, "https://www.epmacau.edu.mo/a-escola/sobre-nos/"),  # 澳門葡文學校 — Decreto-Lei 89-B/98; zh.wikipedia says 「1887，1998年改组」 — the school claims only 1998
+    "dsedj:[072]": (1938, "https://zh.wikipedia.org/zh-hant/%E6%BE%B3%E9%96%80%E5%BB%A3%E5%A4%A7%E4%B8%AD%E5%AD%B8"),  # 廣大中學
+    "dsedj:[073]": (1999, "https://xin-hua-evening.com/wordpress/?page_id=7"),  # 新華夜中學
+    "dsedj:[074]": (1919, "https://zh.wikipedia.org/zh-hant/%E8%81%96%E5%85%AC%E6%9C%83%EF%BC%88%E6%BE%B3%E9%96%80%EF%BC%89%E8%94%A1%E9%AB%98%E4%B8%AD%E5%AD%B8"),  # 聖公會(澳門)蔡高中學
+    "dsedj:[075]": (1955, "https://www.macauwomen.org.mo/%E5%A9%A6%E8%81%AF%E5%AD%B8%E6%A0%A1/"),  # 婦聯學校
+    "dsedj:[080]": (1906, "https://ism.edu.mo/about/information"),  # 慈幼中學
+    "dsedj:[081]": (1939, "https://shcces.edu.mo/motto/history/"),  # 嘉諾撒聖心英文中學
+    "dsedj:[082]": (1966, "https://www.esmm.edu.mo/index.php?catid=167"),  # 聖瑪沙利羅學校
+    "dsedj:[083]": (1958, "https://www.oclarim.com.mo/zh/2019/11/22/escola-da-sagrada-familia-principal-lam-sok-wa/"),  # 聖家學校
+    "dsedj:[086]": (1932, "https://www.srleng.edu.mo/history"),  # 聖羅撒英文中學
+    "dsedj:[087]": (1971, "https://zh.wikipedia.org/wiki/%E6%BE%B3%E9%96%80%E8%81%96%E4%BF%9D%E7%A5%BF%E5%AD%B8%E6%A0%A1"),  # 聖保祿學校
+    "dsedj:[088]": (1957, "https://zh.wikipedia.org/zh-hant/%E8%81%96%E5%BE%B7%E8%98%AD%E5%AD%B8%E6%A0%A1"),  # 聖德蘭學校 — campus completed 8 Feb 1957; the same article calls 1963 「五週年」, implying 1958
+    "dsedj:[089]": (1950, "https://www.madalena.edu.mo/index.php?catid=144"),  # 聖瑪大肋納學校 — first Canossian school 1950; 1948 (literacy classes) and 1961 (new campus) also cited
+    "dsedj:[090]": (1911, "https://zh.wikipedia.org/zh-hant/%E8%81%96%E5%96%84%E5%AD%B8%E6%A0%A1"),  # 聖善學校
+    "dsedj:[091]": (1966, "https://www.sjkaho.edu.mo/?pages_40/"),  # 九澳聖若瑟學校
+    "dsedj:[092]": (1903, "https://www.santarosasc.edu.mo/about/information"),  # 聖羅撒女子中學中文部
+    "dsedj:[093]": (1955, "https://edm.edu.mo/%E5%AD%B8%E6%A0%A1%E6%AD%B7%E5%8F%B2%E5%8F%8A%E7%99%BC%E5%B1%95/"),  # 海星中學 — the school runs its 70周年 from 1955; its own page also claims a 1917/18 肇慶 predecessor
+    "dsedj:[095]": (1968, "https://www.fcp.edu.mo/gongsijianjiea.html"),  # 沙梨頭坊眾學校 — earliest dated event (永福社學 renamed and taken over), not a verified founding
+    "dsedj:[096]": (1924, "https://www.tst.org.mo/index.php/our-services/our-services-3"),  # 同善堂中學 — free 義學 from 1924; 1892 is the charity 同善堂, 1991 the secondary section
+    "dsedj:[097]": (1961, "https://school.hwbs.edu.mo/about-us"),  # 下環浸會學校
+    "dsedj:[098]": (1965, "https://www.macaudata.mo/macaubook/encyclopedia/html/22704.htm"),  # 沙梨頭浸信學校 — 1965 識字班; an alternative account dates the formal school to 1969 (that source 403s)
+    "dsedj:[099]": (1956, "https://www.choinong.edu.mo/principal.html"),  # 菜農子弟學校
+    "dsedj:[102]": (1951, "http://www.acm.org.mo/index.php/acm-intro/sub-departments/iv"),  # 澳門中華總商會附設青洲中學
+    "dsedj:[108]": (1932, "https://zh.wikipedia.org/wiki/%E6%BF%A0%E6%B1%9F%E4%B8%AD%E5%AD%B8"),  # 濠江中學
+    "dsedj:[110]": (1949, "https://www.dbyw.edu.mo/?page_id=3922&lang=zh"),  # 鮑思高粵華小學 — 1949 葡光工業學校; wikipedia also lists 1991 and the 2000 merger the school celebrates
+    "dsedj:[111]": (1988, "https://csse.k12.edu.mo/%E6%9C%AC%E6%A0%A1%E7%B0%A1%E4%BB%8B/"),  # 協同特殊教育學校 — earliest dated event (Apr 1988 re-registration); predecessor 聖保羅聾啞學校 has no year
+    "dsedj:[121]": (1977, "https://www.lct.k12.edu.mo/lct/?page_id=2"),  # 氹仔中葡學校
+    "dsedj:[122]": (1951, "https://www.library.gov.mo/zh-hant/HTlib60/person/person-dees"),  # 何東中葡小學
+    "dsedj:[124]": (1985, "https://www.eslc.k12.edu.mo/"),  # 高美士中葡中學
+    "dsedj:[128]": (1998, "https://www.elctp.k12.edu.mo/elctp/?page_id=5"),  # 中葡職業技術學校
+    "dsedj:[131]": (1998, "https://www.asum.edu.mo/about/school-charter"),  # 澳門大學附屬應用學校
+    "dsedj:[154]": (2002, "https://acm.edu.mo/history/"),  # 聖公會中學(澳門)
+    "dsedj:[159]": (2002, "https://tis.edu.mo/about"),  # 澳門國際學校
+    "dsedj:[167]": (1945, "https://zh.wikipedia.org/zh-hk/%E6%BE%B3%E9%96%80%E5%9F%B9%E9%81%93%E4%B8%AD%E5%AD%B8"),  # 培道中學 — the Macau school's own year; 1888 Guangzhou parent, staff arrived 1942, registered 1946
+    "dsedj:[170]": (1989, "https://zh.wikipedia.org/zh-hant/%E6%BE%B3%E9%96%80%E6%BC%94%E8%97%9D%E5%AD%B8%E9%99%A2"),  # 澳門演藝學院
+    "dsedj:[182]": (2011, "https://www.eozgy.k12.edu.mo/eozgy/index.php/introduction/"),  # 鄭觀應公立學校
+    "dsedj:[188]": (1931, "https://www.macaudata.mo/mechanism/detailed?id=83c2ede11c644dac9587bd5b5f8bb982&view=mutil"),  # 聖若瑟教區中學第六校 — counts from the 1931 diocesan founding; the 青洲 campus itself dates from the 1980s
+    "dsedj:[195]": (2019, "https://zh.wikipedia.org/zh-hant/%E7%9F%B3%E6%8E%92%E7%81%A3%E5%85%AC%E7%AB%8B%E5%AD%B8%E6%A0%A1"),  # 石排灣公立學校
+    "dsedj:[196]": (2022, "https://eof.k12.edu.mo/?page_id=2517"),  # 二龍喉公立學校
+    "dsedj:[200]": (2024, "https://zh.wikipedia.org/zh-hant/%E5%82%B3%E6%89%BF%E5%9C%8B%E9%9A%9B%E5%AD%B8%E6%A0%A1"),  # 傳承國際學校 — first school year opened 2024-09-03; wikipedia's infobox implies 2023
+    # Tertiary campuses (OSM footprints). Several footprints belong to one
+    # institution and share its year; a campus differs only when it publishes
+    # its own founding (澳門科技大學博雅學院).
+    "osm:n4539942423": (1996, "https://www.usj.edu.mo/en/about/"),  # 澳門聖若瑟大學
+    "osm:n4539942424": (1981, "https://www.cityu.edu.mo/en/about-cityu-3/"),  # 澳門城市大學繼續教育學院 — falls back to the university's 1981; the college's own pages are dead or 403
+    "osm:n7684206071": (2020, "https://sla.must.edu.mo/page/intro.html"),  # 澳門科技大學博雅學院 — the faculty publishes its own March 2020 founding (parent 科大 = 2000)
+    "osm:w192179920": (1981, "https://mpusite.mpu.edu.mo/studenthandbook/general_info.html"),  # 澳門理工大學澳門主校部 — campus of 澳門理工大學 (1981)
+    "osm:w330914473": (1988, "https://www.fsm.gov.mo/ESFSM/intro"),  # 澳門保安部隊高等學校分教處 — campus of 澳門保安部隊高等學校 (1988)
+    "osm:w347579882": (1995, "https://www.utm.edu.mo/zh-cht/about-utm/general-information"),  # 澳門旅遊大學望廈校區 — campus of 澳門旅遊大學 (1995)
+    "osm:w580160817": (1981, "https://www.cityu.edu.mo/en/about-cityu-3/"),  # 澳門城市大學 — counts from its predecessor 東亞大學, 1981
+    "osm:w622799678": (1981, "https://mpusite.mpu.edu.mo/studenthandbook/general_info.html"),  # 澳門理工大學氹仔校區 — campus of 澳門理工大學 (1981)
+    "osm:w631047322": (1981, "https://mpusite.mpu.edu.mo/studenthandbook/general_info.html"),  # 澳門理工大學氹仔校區 — campus of 澳門理工大學 (1981)
+    "osm:w631047323": (1995, "https://www.utm.edu.mo/zh-cht/about-utm/general-information"),  # 澳門旅遊大學氹仔校區 — campus of 澳門旅遊大學 (1995)
+    "osm:w666232803": (1988, "https://www.fsm.gov.mo/ESFSM/intro"),  # 澳門保安部隊高等學校
+    "osm:w681663126": (1981, "https://www.cityu.edu.mo/en/about-cityu-3/"),  # 澳門城市大學 — campus of 澳門城市大學 (1981)
+    "osm:w851363475": (1995, "https://www.utm.edu.mo/zh-cht/about-utm/general-information"),  # 澳門旅遊大學 (氹仔校區) — campus of 澳門旅遊大學 (1995)
+    "osm:w1100753963": (1923, "https://zh.wikipedia.org/zh-hant/%E6%BE%B3%E9%96%80%E9%8F%A1%E6%B9%96%E8%AD%B7%E7%90%86%E5%AD%B8%E9%99%A2"),  # 澳門鏡湖護理學院 — 鏡湖護士學校 1923, upgraded to 護理學院 1999
+    "osm:r10737363": (2000, "https://zh.wikipedia.org/zh-hant/%E6%BE%B3%E9%96%80%E7%A7%91%E6%8A%80%E5%A4%A7%E5%AD%B8"),  # 澳門科技大學 — must.edu.mo 403s to fetchers; zh (2000-03-27) and en Wikipedia agree
+    "osm:r18408013": (1981, "https://mpusite.mpu.edu.mo/studenthandbook/general_info.html"),  # 澳門理工大學 — institution year, shared by its campus rows
+    "osm:r18408076": (1995, "https://www.utm.edu.mo/zh-cht/about-utm/general-information"),  # 澳門旅遊大學 — institution year, shared by its campus rows
+    "osm:r20002113": (1981, "https://library.um.edu.mo/um_gallery/create_school_history.html"),  # 澳門大學校本部 — counts from 東亞大學 1981; 澳門大學 proper was created by decree in 1991
 }
 
 MIN_SCHOOLS = 40  # degenerate-run guard
@@ -530,6 +764,15 @@ def run() -> int:
             })
 
     # --- assemble output -------------------------------------------------------
+    missing_founded: list[str] = []
+
+    def founded_of(key: str, name: str) -> int | None:
+        entry = FOUNDED.get(key)
+        if entry is None:
+            missing_founded.append(f"{key} {name}")
+            return None
+        return entry[0]
+
     schools = []
     for s in dsedj:
         key = f"dsedj:{s['code']}"
@@ -551,6 +794,8 @@ def run() -> int:
                 "level": s["level"],
                 "levels": s["levels"],
                 "system": s["system"],
+                "founded": founded_of(key, s["nameZh"]),
+                "foundedNote": FOUNDED_NOTES.get(key),
                 "coordinates": [round(main["_point"][0], 6), round(main["_point"][1], 6)],
                 "osm": [f"{el['type'][0]}{el['id']}" for el in els],
                 "buildings": [{k: v for k, v in b.items() if not k.startswith("_")} for b in blds],
@@ -568,6 +813,8 @@ def run() -> int:
                 "level": "university",
                 "levels": {"kindergarten": False, "primary": False, "secondary": False},
                 "system": "tertiary",
+                "founded": founded_of(key, name or key),
+                "foundedNote": FOUNDED_NOTES.get(key),
                 "coordinates": [round(el["_point"][0], 6), round(el["_point"][1], 6)],
                 "osm": [key.split(":")[1]],
                 "buildings": [{k: v for k, v in b.items() if not k.startswith("_")} for b in blds],
@@ -606,6 +853,10 @@ def run() -> int:
     print(f"\nDone. {len(schools)} schools/campuses, {total_b} buildings; by level {by_level}")
     print(f"DSEDJ schools without an OSM match: {len(unmatched_dsedj)} -> {[u['name'] for u in unmatched_dsedj]}")
     print(f"Schools matched but with no building footprint: {len(no_buildings)} -> {no_buildings}")
+    with_founded = sum(1 for s in schools if s["founded"] is not None)
+    print(f"Founding years from the FOUNDED table: {with_founded}/{len(schools)}")
+    if missing_founded:
+        print(f"WARNING: no FOUNDED entry for {len(missing_founded)} school(s), written as null: {missing_founded}", file=sys.stderr)
     print(f"Wrote {OUTPUT_PATH}")
     return 0
 

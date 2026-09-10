@@ -149,6 +149,22 @@ const translations = {
     schoolLevelAllThrough: 'K–12 (all-through)',
     schoolsExpandTitle: 'Show or hide school types',
     schoolsToggleAllTitle: 'Toggle the whole layer',
+    schoolsRampHint: 'Shade = era founded',
+    publicHousing: 'Public housing',
+    publicHousingCount: (n: number) => `${n} estates`,
+    publicHousingSocial: 'Social housing',
+    publicHousingEconomic: 'Economic housing',
+    publicHousingOther: 'Other public housing',
+    publicHousingOtherHint: 'Elderly, replacement, temporary & sandwich-class housing',
+    publicHousingCategory: 'CATEGORY',
+    publicHousingCategoryElderly: 'Government elderly apartments',
+    publicHousingCategoryReplacement: 'Replacement housing (urban renewal)',
+    publicHousingCategoryTemporary: 'Temporary housing (urban renewal)',
+    publicHousingCategorySandwich: 'Sandwich-class housing',
+    publicHousingExpandTitle: 'Show or hide housing types',
+    publicHousingToggleAllTitle: 'Toggle the whole layer',
+    publicHousingRampHint: 'Shade = decade first occupied',
+    publicHousingFocusNote: 'Focus mode — every layer but the schools is hidden while this is on',
     toilets: 'Public toilets',
     toiletsCount: (n: number) => `${n} toilets`,
     cityLayers: 'City layers',
@@ -189,6 +205,7 @@ const translations = {
     dataSourceFerryLabel: 'Ferries',
     dataSourceRoadWorksLabel: 'Road works',
     dataSourceSchoolsLabel: 'Schools',
+    dataSourcePublicHousingLabel: 'Public housing',
     dataSourceToiletsLabel: 'Public toilets',
     dataSourceCarParksLabel: 'Car parks',
     dataSourceWaterLabel: 'Water supply',
@@ -291,11 +308,35 @@ const translations = {
     schoolSystemPublic: 'Public school',
     schoolSystemTertiary: 'Tertiary institution',
     schoolStages: 'STAGES',
+    schoolFounded: 'FOUNDED',
     schoolBuilding: 'BUILDING',
     schoolCampus: 'CAMPUS',
     schoolBuildings: (n: number) => `${n} building${n === 1 ? '' : 's'}`,
     schoolCode: 'DSEDJ CODE',
     schoolSource: 'SOURCE',
+    // ---- PublicHousingInfoPanel ----
+    publicHousingLabel: 'HOUSING',
+    publicHousingDistrict: 'DISTRICT',
+    publicHousingDistrictMacau: 'Macau Peninsula',
+    publicHousingDistrictTaipa: 'Taipa',
+    publicHousingDistrictColoane: 'Coloane',
+    publicHousingAddress: 'ADDRESS',
+    publicHousingYearLabel: 'YEAR',
+    publicHousingOccupiedLabel: 'OCCUPIED',
+    publicHousingCompletedLabel: 'COMPLETED',
+    publicHousingExpectedLabel: 'EXPECTED',
+    publicHousingStatus: 'STATUS',
+    publicHousingStatusOccupied: 'Occupied',
+    publicHousingStatusCompleted: 'Completed, not yet occupied',
+    publicHousingStatusUnderConstruction: 'Under construction',
+    publicHousingUnits: 'UNITS',
+    publicHousingStoreys: 'STOREYS',
+    publicHousingBuilding: 'BUILDING',
+    publicHousingBlocks: 'BLOCKS',
+    publicHousingFootprints: 'FOOTPRINTS',
+    publicHousingBuildingsCount: (n: number) => `${n} building${n === 1 ? '' : 's'}`,
+    publicHousingPartialNote: 'Only part of this estate is public housing',
+    publicHousingSource: 'SOURCE',
     // ---- ToiletInfoPanel ----
     toiletLabel: 'TOILET',
     toiletAccessible: 'Barrier-free',
@@ -576,6 +617,22 @@ const translations = {
     schoolLevelAllThrough: '一條龍',
     schoolsExpandTitle: '展開／收合各類學校',
     schoolsToggleAllTitle: '開關整層',
+    schoolsRampHint: '深淺＝創校年代',
+    publicHousing: '公共房屋',
+    publicHousingCount: (n: number) => `${n} 個屋邨`,
+    publicHousingSocial: '社會房屋',
+    publicHousingEconomic: '經濟房屋',
+    publicHousingOther: '其他公共房屋',
+    publicHousingOtherHint: '長者公寓、置換房、暫住房、夾心房屋',
+    publicHousingCategory: '類別',
+    publicHousingCategoryElderly: '政府長者公寓',
+    publicHousingCategoryReplacement: '置換房（都市更新）',
+    publicHousingCategoryTemporary: '暫住房（都市更新）',
+    publicHousingCategorySandwich: '夾心房屋',
+    publicHousingExpandTitle: '展開／收合房屋類型',
+    publicHousingToggleAllTitle: '開關整層',
+    publicHousingRampHint: '深淺＝首次入伙年代',
+    publicHousingFocusNote: '專注模式 — 開啟時除學校外其他圖層會隱藏',
     toilets: '公廁',
     toiletsCount: (n: number) => `${n} 間公廁`,
     cityLayers: '城市資料',
@@ -614,6 +671,7 @@ const translations = {
     dataSourceFerryLabel: '噴射船',
     dataSourceRoadWorksLabel: '工程改道',
     dataSourceSchoolsLabel: '學校',
+    dataSourcePublicHousingLabel: '公共房屋',
     dataSourceToiletsLabel: '公廁',
     dataSourceCarParksLabel: '停車場',
     dataSourceWaterLabel: '供水設施',
@@ -707,11 +765,35 @@ const translations = {
     schoolSystemPublic: '公立學校',
     schoolSystemTertiary: '高等院校',
     schoolStages: '教育階段',
+    schoolFounded: '創校',
     schoolBuilding: '樓宇',
     schoolCampus: '校舍',
     schoolBuildings: (n: number) => `${n} 棟建築`,
     schoolCode: '教青局編號',
     schoolSource: '來源',
+    // ---- PublicHousingInfoPanel ----
+    publicHousingLabel: '居屋',
+    publicHousingDistrict: '地區',
+    publicHousingDistrictMacau: '澳門半島',
+    publicHousingDistrictTaipa: '氹仔',
+    publicHousingDistrictColoane: '路環',
+    publicHousingAddress: '地址',
+    publicHousingYearLabel: '年份',
+    publicHousingOccupiedLabel: '入伙',
+    publicHousingCompletedLabel: '落成',
+    publicHousingExpectedLabel: '預計',
+    publicHousingStatus: '狀態',
+    publicHousingStatusOccupied: '已入伙',
+    publicHousingStatusCompleted: '已落成，尚未入伙',
+    publicHousingStatusUnderConstruction: '興建中',
+    publicHousingUnits: '單位',
+    publicHousingStoreys: '層數',
+    publicHousingBuilding: '樓宇',
+    publicHousingBlocks: '座數',
+    publicHousingFootprints: '建築',
+    publicHousingBuildingsCount: (n: number) => `${n} 棟建築`,
+    publicHousingPartialNote: '僅部分單位屬公共房屋',
+    publicHousingSource: '來源',
     toiletLabel: '公廁',
     toiletAccessible: '無障礙',
     toiletFamily: '親子廁所',
@@ -946,6 +1028,22 @@ const translations = {
     schoolLevelAllThrough: 'Contínua (K–12)',
     schoolsExpandTitle: 'Mostrar ou ocultar tipos de escola',
     schoolsToggleAllTitle: 'Ligar ou desligar a camada',
+    schoolsRampHint: 'Tom = época de fundação',
+    publicHousing: 'Habitação pública',
+    publicHousingCount: (n: number) => `${n} conjuntos`,
+    publicHousingSocial: 'Habitação social',
+    publicHousingEconomic: 'Habitação económica',
+    publicHousingOther: 'Outra habitação pública',
+    publicHousingOtherHint: 'Idosos, substituição, temporária e classe intermédia',
+    publicHousingCategory: 'CATEGORIA',
+    publicHousingCategoryElderly: 'Residência do Governo para Idosos',
+    publicHousingCategoryReplacement: 'Habitação de substituição (renovação urbana)',
+    publicHousingCategoryTemporary: 'Habitação temporária (renovação urbana)',
+    publicHousingCategorySandwich: 'Habitação intermédia (classe sanduíche)',
+    publicHousingExpandTitle: 'Mostrar ou ocultar tipos de habitação',
+    publicHousingToggleAllTitle: 'Ligar ou desligar a camada',
+    publicHousingRampHint: 'Tom = década da primeira ocupação',
+    publicHousingFocusNote: 'Modo de foco — todas as camadas ficam ocultas, exceto as escolas',
     toilets: 'Sanitários públicos',
     toiletsCount: (n: number) => `${n} sanitários`,
     cityLayers: 'Camadas urbanas',
@@ -984,6 +1082,7 @@ const translations = {
     dataSourceFerryLabel: 'Ferries',
     dataSourceRoadWorksLabel: 'Obras na via',
     dataSourceSchoolsLabel: 'Escolas',
+    dataSourcePublicHousingLabel: 'Habitação pública',
     dataSourceToiletsLabel: 'Sanitários',
     dataSourceCarParksLabel: 'Estacionamentos',
     dataSourceWaterLabel: 'Abastecimento de água',
@@ -1078,11 +1177,35 @@ const translations = {
     schoolSystemPublic: 'Escola oficial',
     schoolSystemTertiary: 'Ensino superior',
     schoolStages: 'NÍVEIS',
+    schoolFounded: 'FUNDAÇÃO',
     schoolBuilding: 'EDIFÍCIO',
     schoolCampus: 'CAMPUS',
     schoolBuildings: (n: number) => `${n} edifício${n === 1 ? '' : 's'}`,
     schoolCode: 'CÓDIGO DSEDJ',
     schoolSource: 'FONTE',
+    // ---- PublicHousingInfoPanel ----
+    publicHousingLabel: 'HABITAÇÃO',
+    publicHousingDistrict: 'ZONA',
+    publicHousingDistrictMacau: 'Península de Macau',
+    publicHousingDistrictTaipa: 'Taipa',
+    publicHousingDistrictColoane: 'Coloane',
+    publicHousingAddress: 'ENDEREÇO',
+    publicHousingYearLabel: 'ANO',
+    publicHousingOccupiedLabel: 'OCUPAÇÃO',
+    publicHousingCompletedLabel: 'CONCLUSÃO',
+    publicHousingExpectedLabel: 'PREVISTO',
+    publicHousingStatus: 'ESTADO',
+    publicHousingStatusOccupied: 'Ocupado',
+    publicHousingStatusCompleted: 'Concluído, ainda não ocupado',
+    publicHousingStatusUnderConstruction: 'Em construção',
+    publicHousingUnits: 'FRACÇÕES',
+    publicHousingStoreys: 'PISOS',
+    publicHousingBuilding: 'EDIFÍCIO',
+    publicHousingBlocks: 'BLOCOS',
+    publicHousingFootprints: 'EDIFÍCIOS',
+    publicHousingBuildingsCount: (n: number) => `${n} edifício${n === 1 ? '' : 's'}`,
+    publicHousingPartialNote: 'Apenas parte deste conjunto é habitação pública',
+    publicHousingSource: 'FONTE',
     toiletLabel: 'SANITÁRIO',
     toiletAccessible: 'Sem barreiras',
     toiletFamily: 'Compartimento familiar',
@@ -1319,6 +1442,22 @@ export interface Translations {
   schoolLevelAllThrough: string
   schoolsExpandTitle: string
   schoolsToggleAllTitle: string
+  schoolsRampHint: string
+  publicHousing: string
+  publicHousingCount: (n: number) => string
+  publicHousingSocial: string
+  publicHousingEconomic: string
+  publicHousingOther: string
+  publicHousingOtherHint: string
+  publicHousingCategory: string
+  publicHousingCategoryElderly: string
+  publicHousingCategoryReplacement: string
+  publicHousingCategoryTemporary: string
+  publicHousingCategorySandwich: string
+  publicHousingExpandTitle: string
+  publicHousingToggleAllTitle: string
+  publicHousingRampHint: string
+  publicHousingFocusNote: string
   toilets: string
   toiletsCount: (n: number) => string
   cityLayers: string
@@ -1357,6 +1496,7 @@ export interface Translations {
   dataSourceFerryLabel: string
   dataSourceRoadWorksLabel: string
   dataSourceSchoolsLabel: string
+  dataSourcePublicHousingLabel: string
   dataSourceToiletsLabel: string
   dataSourceCarParksLabel: string
   dataSourceWaterLabel: string
@@ -1446,11 +1586,35 @@ export interface Translations {
   schoolSystemPublic: string
   schoolSystemTertiary: string
   schoolStages: string
+  schoolFounded: string
   schoolBuilding: string
   schoolCampus: string
   schoolBuildings: (n: number) => string
   schoolCode: string
   schoolSource: string
+  // ---- PublicHousingInfoPanel ----
+  publicHousingLabel: string
+  publicHousingDistrict: string
+  publicHousingDistrictMacau: string
+  publicHousingDistrictTaipa: string
+  publicHousingDistrictColoane: string
+  publicHousingAddress: string
+  publicHousingYearLabel: string
+  publicHousingOccupiedLabel: string
+  publicHousingCompletedLabel: string
+  publicHousingExpectedLabel: string
+  publicHousingStatus: string
+  publicHousingStatusOccupied: string
+  publicHousingStatusCompleted: string
+  publicHousingStatusUnderConstruction: string
+  publicHousingUnits: string
+  publicHousingStoreys: string
+  publicHousingBuilding: string
+  publicHousingBlocks: string
+  publicHousingFootprints: string
+  publicHousingBuildingsCount: (n: number) => string
+  publicHousingPartialNote: string
+  publicHousingSource: string
   toiletLabel: string
   toiletAccessible: string
   toiletFamily: string

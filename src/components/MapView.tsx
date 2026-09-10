@@ -9,7 +9,7 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
 import { LRT3DLayer } from '../layers/LRT3DLayer'
@@ -25,6 +25,7 @@ import {
 import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay, macauYmd, macauDayIndex } from '../macauTime'
 import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks'
 import { SCHOOL_FEATURE_ID_PROPERTY, buildSchoolFeatures } from '../schools'
+import { PUBLIC_HOUSING_FEATURE_ID_PROPERTY, buildPublicHousingFeatures } from '../publicHousing'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import {
@@ -879,6 +880,18 @@ const SCHOOLS_LAYER_ID = 'school-buildings'
 // the promoted feature id, so the `selected` feature-state below repaints the
 // whole campus at once.
 const SCHOOL_SELECTED_COLOR = '#ffffff'
+
+// ---- Public housing overlay ----------------------------------------------
+// The same contract as the schools above, and for the same reason: the basemap
+// merges same-height buildings into one feature, so an estate's blocks have to
+// be drawn from our own footprints (see the header of src/publicHousing.ts).
+// Colour carries two facts at once — the hue is the housing type, the shade the
+// decade the block was first occupied — and both are baked into the feature.
+const PUBLIC_HOUSING_SOURCE_ID = 'public-housing-buildings'
+const PUBLIC_HOUSING_LAYER_ID = 'public-housing-buildings'
+// Colour of the selected estate's blocks. Every building of an estate shares
+// the promoted feature id, so the `selected` feature-state repaints them all.
+const PUBLIC_HOUSING_SELECTED_COLOR = '#ffffff'
 
 // ---- Macao Water supply facilities overlay -------------------------------
 // Three layers off one dataset: a translucent fill for the reservoir surfaces,
@@ -1864,6 +1877,9 @@ export interface MapViewProps {
   // `buildingName` is the clicked footprint's OSM name — null for the many
   // unnamed campus buildings.
   onSchoolClick?: (school: School, buildingName: string | null) => void
+  // `buildingName` is the clicked footprint's IH block name where the pipeline
+  // matched one, else its OSM name — the block is what the panel can highlight.
+  onPublicHousingClick?: (estate: PublicHousingEstate, buildingName: string | null) => void
   onToiletClick?: (toilet: Toilet | null) => void
   onCarParkClick?: (carPark: CarPark | null) => void
   onWasteSiteClick?: (selection: WasteSelection | null) => void
@@ -1918,6 +1934,7 @@ export interface MapViewProps {
   trackedVehicleId?: string | null
   selectedRoadWorkId?: string | null
   selectedSchoolId?: string | null
+  selectedPublicHousingId?: string | null
   selectedToiletId?: string | null
   selectedCarParkId?: string | null
   selectedWasteSiteId?: string | null
@@ -1932,7 +1949,7 @@ export interface MapViewProps {
 }
 
 export function MapView(props: MapViewProps) {
-  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
+  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapThemeRef = useRef<boolean | null>(null)
@@ -2020,6 +2037,12 @@ export function MapView(props: MapViewProps) {
   // The id whose `selected` feature-state is currently set on the map, so the
   // effect clears exactly one entry instead of walking all 76 schools.
   const schoolStateIdRef = useRef<string | null>(null)
+  // The public-housing blocks carry the identical pair: a style swap drops the
+  // source and its feature state, so addCustomLayers needs the selected id, and
+  // the "currently marked" id keeps the clear to one call.
+  const selectedPublicHousingIdRef = useRef<string | null>(selectedPublicHousingId ?? null)
+  selectedPublicHousingIdRef.current = selectedPublicHousingId ?? null
+  const publicHousingStateIdRef = useRef<string | null>(null)
   // Same style-swap contract as the road works: the toilet highlight is a
   // filter on the marker source, so addCustomLayers needs the current id.
   const selectedToiletIdRef = useRef<string | null>(selectedToiletId ?? null)
@@ -2141,6 +2164,19 @@ export function MapView(props: MapViewProps) {
     }
     if (next) m.setFeatureState({ source: SCHOOLS_SOURCE_ID, id: next }, { selected: true })
     schoolStateIdRef.current = next
+  }, [])
+
+  // Same contract for the housing blocks: every footprint of an estate shares
+  // the promoted `estateId`, so one pair of calls lights the whole estate.
+  const applyPublicHousingSelection = useCallback((m: maplibregl.Map) => {
+    if (!m.getSource(PUBLIC_HOUSING_SOURCE_ID)) return
+    const next = selectedPublicHousingIdRef.current
+    const prev = publicHousingStateIdRef.current
+    if (prev && prev !== next) {
+      m.setFeatureState({ source: PUBLIC_HOUSING_SOURCE_ID, id: prev }, { selected: false })
+    }
+    if (next) m.setFeatureState({ source: PUBLIC_HOUSING_SOURCE_ID, id: next }, { selected: true })
+    publicHousingStateIdRef.current = next
   }, [])
 
   // Same contract for the water blocks: every footprint of a facility shares
@@ -2500,6 +2536,40 @@ export function MapView(props: MapViewProps) {
             'case',
             ['boolean', ['feature-state', 'selected'], false],
             SCHOOL_SELECTED_COLOR,
+            ['get', 'color'],
+          ],
+          'fill-extrusion-height': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'height'],
+          ],
+          'fill-extrusion-base': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'minHeight'],
+          ],
+          'fill-extrusion-opacity': 0.95,
+          'fill-extrusion-vertical-gradient': true,
+        },
+      }, firstSymbolId)
+
+      // Public housing. Same anchor, same seeding rule (transitRef, not a
+      // closure, so a theme swap long after public-housing.json landed still
+      // redraws it) and the same height ramp as the schools above — the two are
+      // the same kind of overlay, one dataset of footprints each.
+      m.addSource(PUBLIC_HOUSING_SOURCE_ID, {
+        type: 'geojson',
+        data: buildPublicHousingFeatures(transitRef.current.publicHousing),
+        // All buildings of one estate carry the same `estateId`, so promoting
+        // it to the feature id lets a single setFeatureState light up the whole
+        // estate (see applyPublicHousingSelection).
+        promoteId: PUBLIC_HOUSING_FEATURE_ID_PROPERTY,
+      })
+      m.addLayer({
+        id: PUBLIC_HOUSING_LAYER_ID, type: 'fill-extrusion', source: PUBLIC_HOUSING_SOURCE_ID,
+        paint: {
+          'fill-extrusion-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            PUBLIC_HOUSING_SELECTED_COLOR,
             ['get', 'color'],
           ],
           'fill-extrusion-height': [
@@ -3616,6 +3686,8 @@ export function MapView(props: MapViewProps) {
       // selected school has to be re-marked on the freshly added source.
       schoolStateIdRef.current = null
       applySchoolSelection(m)
+      publicHousingStateIdRef.current = null
+      applyPublicHousingSelection(m)
       // Ditto for the water and electricity blocks, whose highlight is the
       // same feature-state.
       waterStateIdRef.current = null
@@ -3682,6 +3754,32 @@ export function MapView(props: MapViewProps) {
       })
       m.on('mouseenter', SCHOOLS_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', SCHOOLS_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
+
+      // Registered before the vehicle handlers for the same reason as the
+      // schools: a bus parked over an estate block should not steal the click.
+      m.on('click', PUBLIC_HOUSING_LAYER_ID, (e) => {
+        const feature = e.features?.[0]
+        if (feature) {
+          const eid = feature.properties?.[PUBLIC_HOUSING_FEATURE_ID_PROPERTY]
+          // Current list (transitRef), not a closed-over snapshot —
+          // public-housing.json lands after this handler is attached.
+          const estate = transitRef.current.publicHousing.find(h => h.id === eid)
+          if (estate) {
+            // Prefer the IH block name: it is the one the panel's block list
+            // can highlight. The OSM building name is the fallback for the
+            // footprints the pipeline could not match to a block.
+            const block = feature.properties?.block
+            const name = feature.properties?.name
+            const label = (typeof block === 'string' && block)
+              || (typeof name === 'string' && name)
+              || null
+            onPublicHousingClick?.(estate, label)
+            e.preventDefault()
+          }
+        }
+      })
+      m.on('mouseenter', PUBLIC_HOUSING_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
+      m.on('mouseleave', PUBLIC_HOUSING_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
 
       // Also registered before the vehicle handlers, for the same reason: a
       // bus driving over a WC pin should still win the click.
@@ -3849,7 +3947,7 @@ export function MapView(props: MapViewProps) {
 
       m.on('click', (e) => {
         const features = m.queryRenderedFeatures(e.point, {
-          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers],
+          layers: ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, PUBLIC_HOUSING_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers],
         })
         if (features.length === 0) onClearSelection?.()
       })
@@ -3958,6 +4056,22 @@ export function MapView(props: MapViewProps) {
     const map = mapRef.current
     if (map) applySchoolSelection(map)
   }, [selectedSchoolId, applySchoolSelection])
+
+  // Public-housing blocks, on the school blocks' contract exactly: pushed on
+  // array-identity change (public-housing.json arriving, or the legend toggle
+  // swapping in []), never from the RAF tick, and re-seeded from transitRef
+  // after a style rebuild.
+  useEffect(() => {
+    const map = mapRef.current
+    const src = map?.getSource(PUBLIC_HOUSING_SOURCE_ID) as unknown as
+      { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    src?.setData?.(buildPublicHousingFeatures(transitData.publicHousing))
+  }, [transitData.publicHousing])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (map) applyPublicHousingSelection(map)
+  }, [selectedPublicHousingId, applyPublicHousingSelection])
 
   // Toilet markers. Like the school blocks (and unlike the road works) this
   // data is independent of the simulated clock, so it is pushed here on array
@@ -5026,6 +5140,24 @@ export function MapView(props: MapViewProps) {
                       rel="noopener noreferrer"
                       className="hover:text-(--mm-amber-1) transition-colors"
                     >DSEDJ</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.openstreetmap.org/copyright"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >OSM</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourcePublicHousingLabel}</span>
+                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                    <a
+                      href="https://www.ihm.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >IH</a>
                     <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
                       href="https://www.openstreetmap.org/copyright"

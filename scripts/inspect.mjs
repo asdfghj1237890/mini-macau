@@ -21,6 +21,7 @@
 //   node scripts/inspect.mjs flights                # flights.json summary
 //   node scripts/inspect.mjs road-works [YYYY-MM-DD] # road-works.json summary + active/upcoming for a date (default: today, Macau)
 //   node scripts/inspect.mjs schools                # schools.json summary (by level/system, buildings, unmatched/dropped)
+//   node scripts/inspect.mjs public-housing         # public-housing.json summary (by type/category/district/decade, buildings, estates with 0 footprints, blocks with no building, unmatched)
 //   node scripts/inspect.mjs water-facilities       # water-facilities.json summary (by type, exact vs approximate + anchors, footprints, schematic pipe network)
 //   node scripts/inspect.mjs water-distribution     # water-distribution.json summary (Macau-only road network: by class, km, bbox, file size)
 //   node scripts/inspect.mjs power-facilities       # power-facilities.json summary (by type/voltage, exact vs approximate + anchors, footprints, schematic grid)
@@ -176,16 +177,27 @@ function cmdSchools() {
   const bySystem = {}
   let totalBuildings = 0
   const noBuildings = []
+  // The era buckets the 3D overlay shades a school by. `founded` is null when
+  // no source gives the school a year (see FOUNDED in fetch_schools.py).
+  const byEra = { '<1900': 0, '1900-49': 0, '1950-79': 0, '1980-99': 0, '2000+': 0 }
+  const noFounded = []
   for (const s of schools) {
     byLevel[s.level] = (byLevel[s.level] || 0) + 1
     bySystem[s.system] = (bySystem[s.system] || 0) + 1
     totalBuildings += s.buildings.length
     if (s.buildings.length === 0) noBuildings.push(s.name.zh)
+    if (s.founded == null) noFounded.push(s.name.zh)
+    else if (s.founded < 1900) byEra['<1900']++
+    else if (s.founded < 1950) byEra['1900-49']++
+    else if (s.founded < 1980) byEra['1950-79']++
+    else if (s.founded < 2000) byEra['1980-99']++
+    else byEra['2000+']++
   }
 
   console.log(`total schools: ${schools.length}   total buildings: ${totalBuildings}`)
   console.log('by level:', byLevel)
   console.log('by system:', bySystem)
+  console.log(`founded: ${schools.length - noFounded.length}/${schools.length}`, byEra, ...(noFounded.length ? [`| no year: ${noFounded.join(', ')}`] : []))
 
   console.log(`\nschools with 0 buildings: ${noBuildings.length}`)
   for (const name of noBuildings) console.log(`  ${name}`)
@@ -194,6 +206,72 @@ function cmdSchools() {
   for (const u of unmatchedDsedj) console.log(`  [${u.code}] ${u.name} (${u.level})`)
 
   console.log(`\ndroppedOsm: ${droppedOsm.length}`)
+}
+
+function cmdPublicHousing() {
+  const { fetchedAtUtc, estates, unmatched = [] } = load('public/data/public-housing.json')
+
+  const byType = {}
+  // Only `other` estates carry a category (the programme they belong to);
+  // social and economic ones are null, which `type` already says.
+  const byCategory = {}
+  const others = []
+  const byDistrict = {}
+  const byDecade = {}
+  let totalBuildings = 0
+  let approximate = 0
+  let partial = 0
+  // OpenMapTiles' height for a building nothing publishes one for. A footprint
+  // still sitting on it is one neither OSM nor the basemap nor the storey
+  // fallback in fetch_public_housing.py could give a real height.
+  let defaultHeight = 0
+  const noBuildings = []
+  const blocksWithout = []
+  for (const e of estates) {
+    byType[e.type] = (byType[e.type] || 0) + 1
+    if (e.category !== null && e.category !== undefined) {
+      byCategory[e.category] = (byCategory[e.category] || 0) + 1
+    }
+    if (e.type === 'other') others.push(e)
+    byDistrict[e.district] = (byDistrict[e.district] || 0) + 1
+    const decade = e.year === null ? 'unknown' : `${Math.floor(e.year / 10) * 10}s`
+    byDecade[decade] = (byDecade[decade] || 0) + 1
+    totalBuildings += e.buildings.length
+    defaultHeight += e.buildings.filter((b) => b.height === 5).length
+    if (e.approximate) approximate++
+    if (e.partial) partial++
+    if (e.buildings.length === 0) noBuildings.push(`${e.name.zh} (${e.id})`)
+    const matched = new Set(e.buildings.map((b) => b.block).filter(Boolean))
+    for (const b of e.blocks) {
+      if (!matched.has(b.name.zh)) blocksWithout.push(`${e.name.zh} · ${b.name.zh}`)
+    }
+  }
+
+  console.log(`fetchedAtUtc: ${fetchedAtUtc}`)
+  console.log(`estates: ${estates.length}   buildings: ${totalBuildings}   approximate points: ${approximate}   partial (IH asterisk): ${partial}`)
+  console.log('by type:', byType)
+  console.log(`by category (type "other" only): ${JSON.stringify(byCategory)}`)
+  for (const e of others) {
+    const yr = e.year === null ? '—' : `${e.year} ${e.yearKind}`
+    console.log(
+      `  ${e.category.padEnd(11)} ${e.name.zh}  (${e.id})  ${yr} · ${e.status}` +
+        ` · ${e.storeys === null ? 'no storeys' : `${e.storeys} storeys`}` +
+        ` · ${e.units === null ? 'no units' : `${e.units} units`}` +
+        ` · ${e.buildings.length} footprints`,
+    )
+  }
+  console.log('by district:', byDistrict)
+  console.log('by decade (estate year):', Object.fromEntries(Object.entries(byDecade).sort(([a], [b]) => a.localeCompare(b))))
+  console.log(`footprints at the 5 m default height (no height source): ${defaultHeight} of ${totalBuildings}`)
+
+  console.log(`\nestates with 0 buildings: ${noBuildings.length}`)
+  for (const name of noBuildings) console.log(`  ${name}`)
+
+  console.log(`\nblocks with no matched building: ${blocksWithout.length} of ${estates.reduce((n, e) => n + e.blocks.length, 0)}`)
+  for (const b of blocksWithout) console.log(`  ${b}`)
+
+  console.log(`\nunmatched: ${unmatched.length}`)
+  for (const u of unmatched) console.log(`  ${u.name} (${u.id}) — ${u.reason}`)
 }
 
 function cmdWaterFacilities() {
@@ -689,6 +767,7 @@ switch (cmd) {
   case 'flights': summarizeJson('public/data/flights.json'); break
   case 'road-works': cmdRoadWorks(pos[0]); break
   case 'schools': cmdSchools(); break
+  case 'public-housing': cmdPublicHousing(); break
   case 'water-facilities': cmdWaterFacilities(); break
   case 'water-distribution': cmdDistribution('public/data/water-distribution.json'); break
   case 'power-facilities': cmdPowerFacilities(); break
@@ -699,6 +778,6 @@ switch (cmd) {
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks | waste | dspa-stats | grand-prix')
+    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)
 }

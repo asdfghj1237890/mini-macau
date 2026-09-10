@@ -8,24 +8,106 @@
 // so a feature-state tint on `3d-buildings` would colour every building that
 // happens to share a height. schools.json therefore ships the footprints
 // themselves, pre-buffered and raised half a metre by the pipeline.
+//
+// Colour carries two facts, the same way the public-housing blocks do: the
+// HUE is the teaching stage, the SHADE is the era the school was founded
+// (its own 校史 year, from schools.json `founded`) — oldest darkest, newest
+// lightest.
 import type { Translations } from './i18n'
 import type { School, SchoolLevel } from './types'
-
-// Level → block colour (user-specified). Kindergarten red, primary pink,
-// secondary blue, university green, all-through purple.
-export const SCHOOL_COLORS: Record<SchoolLevel, string> = {
-  kindergarten: '#ef4444',
-  primary: '#f472b6',
-  secondary: '#3b82f6',
-  university: '#22c55e',
-  all_through: '#a855f7',
-}
 
 // Display order of the legend's colour key: the teaching stages in ascending
 // order, with the all-through combination last.
 export const SCHOOL_LEVEL_ORDER: readonly SchoolLevel[] = [
   'kindergarten', 'primary', 'secondary', 'university', 'all_through',
 ] as const
+
+// Era stops of the shade ramp, by founding year: before 1900 (the oldest
+// schools on the register trace back to the 1800s), the first half of the
+// twentieth century, the post-war decades, the 1980s–90s, and 2000 onwards.
+// `0` stands for "before 1900".
+export const SCHOOL_ERAS = [0, 1900, 1950, 1980, 2000] as const
+export type SchoolEra = (typeof SCHOOL_ERAS)[number]
+
+// Level → era → block colour (literal data colours). The five hue families
+// deliberately stay clear of the public-housing ones (orange, teal, violet),
+// because the two overlays can be on together: kindergarten fuchsia, primary
+// crimson, secondary blue, university leaf green, all-through gold. Within a
+// family the five stops step from a deep shade (founded before 1900) to a
+// pale tint (founded 2000 or later).
+export const SCHOOL_COLORS: Record<SchoolLevel, Record<SchoolEra, string>> = {
+  kindergarten: {
+    0: '#701a4b',
+    1900: '#a1256b',
+    1950: '#d43d90',
+    1980: '#ec7ab8',
+    2000: '#f8c2dd',
+  },
+  primary: {
+    0: '#7a1b28',
+    1900: '#a8283a',
+    1950: '#d63c4f',
+    1980: '#ef7c8a',
+    2000: '#f9c0c7',
+  },
+  secondary: {
+    0: '#1e3a8a',
+    1900: '#1d4ed8',
+    1950: '#3b82f6',
+    1980: '#7fb2fa',
+    2000: '#c3dafd',
+  },
+  university: {
+    0: '#1f4d12',
+    1900: '#2f7a1c',
+    1950: '#46a428',
+    1980: '#7fcc5f',
+    2000: '#c0e8ad',
+  },
+  all_through: {
+    0: '#5c4a0e',
+    1900: '#8a6d12',
+    1950: '#c49a1a',
+    1980: '#e2bd4a',
+    2000: '#f3e0a0',
+  },
+}
+
+// The ramp's middle stop doubles as the level's identity colour (legend
+// glyphs, the panel badge) so a single swatch still reads as "that family".
+export const SCHOOL_LEVEL_COLOR: Record<SchoolLevel, string> = {
+  kindergarten: SCHOOL_COLORS.kindergarten[1950],
+  primary: SCHOOL_COLORS.primary[1950],
+  secondary: SCHOOL_COLORS.secondary[1950],
+  university: SCHOOL_COLORS.university[1950],
+  all_through: SCHOOL_COLORS.all_through[1950],
+}
+
+// The era stop a founding year falls in. A school with no known founding
+// year (`null`) takes the MIDDLE stop — the level's identity colour — rather
+// than either end, because "unknown" is neither the oldest nor the newest and
+// the legend must not read a missing fact as a date.
+export function schoolEra(founded: number | null | undefined): SchoolEra {
+  if (founded == null || !Number.isFinite(founded)) return 1950
+  let era: SchoolEra = SCHOOL_ERAS[0]
+  for (const stop of SCHOOL_ERAS) {
+    if (founded >= stop) era = stop
+  }
+  return era
+}
+
+// Block colour for a level + founding year.
+export function schoolColor(level: SchoolLevel, founded: number | null | undefined): string {
+  const family = SCHOOL_COLORS[level] ?? SCHOOL_COLORS.all_through
+  return family[schoolEra(founded)]
+}
+
+// The five stops of a level's ramp in era order, for the legend's gradient
+// strip (dark → light, left → right).
+export function schoolRamp(level: SchoolLevel): string[] {
+  const family = SCHOOL_COLORS[level] ?? SCHOOL_COLORS.all_through
+  return SCHOOL_ERAS.map(era => family[era])
+}
 
 // The feature property MapView promotes to the GeoJSON feature id
 // (`promoteId`). Every building of a school carries the same value, so ONE
@@ -128,12 +210,12 @@ export function schoolDsedjCode(id: string): string | null {
   return m ? m[1] : null
 }
 
-// One Polygon feature per building footprint, coloured by its school's level.
-// Buildings with no usable ring are skipped rather than emitted as empty
-// geometry (MapLibre would warn on every tile). `color` is baked into the
-// feature so the paint expression stays a plain ['get', 'color'], and
-// `schoolId` (SCHOOL_FEATURE_ID_PROPERTY) doubles as the promoted feature id
-// used for the selection highlight.
+// One Polygon feature per building footprint, coloured by its school's level
+// and founding era. Buildings with no usable ring are skipped rather than
+// emitted as empty geometry (MapLibre would warn on every tile). `color` is
+// baked into the feature so the paint expression stays a plain
+// ['get', 'color'], and `schoolId` (SCHOOL_FEATURE_ID_PROPERTY) doubles as the
+// promoted feature id used for the selection highlight.
 // The data stores each footprint at the height the basemap draws it. Our block
 // is rendered this much taller so its roof always wins the depth test against
 // the basemap's roof underneath: 0.5 m was not enough — large, low roofs
@@ -144,7 +226,8 @@ export const SCHOOL_HEIGHT_MARGIN_M = 2
 export function buildSchoolFeatures(schools: School[]): GeoJSON.FeatureCollection {
   const features: GeoJSON.Feature[] = []
   for (const school of schools) {
-    const color = SCHOOL_COLORS[school.level] ?? SCHOOL_COLORS.all_through
+    const founded = school.founded ?? null
+    const color = schoolColor(school.level, founded)
     for (const building of school.buildings) {
       const rings = building.coordinates
       if (!rings?.length || !rings[0]?.length) continue
@@ -154,6 +237,8 @@ export function buildSchoolFeatures(schools: School[]): GeoJSON.FeatureCollectio
         properties: {
           schoolId: school.id,
           level: school.level,
+          founded,
+          era: schoolEra(founded),
           color,
           height: building.height + SCHOOL_HEIGHT_MARGIN_M,
           minHeight: building.minHeight,

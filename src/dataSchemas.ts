@@ -213,6 +213,10 @@ export const SchoolsFileSchema = z.object({
         secondary: z.boolean().optional(),
       }),
       system: z.string(),
+      // Founding year (校史); the same window as SCHOOL_FOUNDED_RANGE in
+      // validate_output.py — Macau's oldest register entries trace to the 1800s.
+      founded: z.number().int().min(1500).max(2035).nullable(),
+      foundedNote: z.object({ zh: z.string(), pt: z.string(), en: z.string() }).nullable(),
       coordinates: lngLat,
       osm: z.array(z.string()),
       buildings: z.array(
@@ -225,6 +229,67 @@ export const SchoolsFileSchema = z.object({
           coordinates: z.array(z.array(lngLat)).min(1),
         }),
       ),
+    }),
+  ),
+})
+
+// public-housing.json — the Housing Bureau's 社會房屋 / 經濟房屋 estates with
+// their OSM footprints. `type` picks the hue and `year` (per building, else per
+// estate) the shade, so both are checked strictly; the descriptive fields the
+// info panel shows are typed but not constrained beyond shape. Mirrors
+// data/scripts/validate_output.py's v_public_housing — change one, change the
+// other.
+const publicHousingType = z.enum(['social', 'economic', 'other'])
+const publicHousingCategory = z.enum(['elderly', 'replacement', 'temporary', 'sandwich'])
+const publicHousingDistrict = z.enum(['macau', 'taipa', 'coloane'])
+const publicHousingStatus = z.enum(['occupied', 'completed', 'under_construction'])
+const publicHousingYearKind = z.enum(['occupation', 'completion', 'expected'])
+const publicHousingName = z.object({ zh: z.string(), pt: z.string() })
+// Same window as PUBLIC_HOUSING_YEAR_RANGE in validate_output.py: IH's oldest
+// listed estate was occupied in 1985, and "expected" years stay within reach.
+const publicHousingYear = z.number().int().min(1950).max(2035).nullable()
+
+export const PublicHousingFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  sources: z.record(z.string(), z.string()),
+  types: z.array(publicHousingType),
+  estates: z.array(
+    z.object({
+      id: z.string(),
+      name: publicHousingName,
+      type: publicHousingType,
+      category: publicHousingCategory.nullable(),
+      district: publicHousingDistrict,
+      address: publicHousingName,
+      year: publicHousingYear,
+      yearKind: publicHousingYearKind.nullable(),
+      status: publicHousingStatus,
+      partial: z.boolean(),
+      units: z.number().int().positive().nullable(),
+      storeys: z.number().int().positive().nullable(),
+      blocks: z.array(
+        z.object({
+          name: publicHousingName,
+          year: publicHousingYear,
+          date: z.string().nullable(),
+        }),
+      ),
+      coordinates: lngLat,
+      approximate: z.boolean(),
+      osm: z.array(z.string()),
+      buildings: z.array(
+        z.object({
+          osmId: z.string(),
+          name: z.string().nullable(),
+          block: z.string().nullable(),
+          year: publicHousingYear,
+          height: z.number(),
+          minHeight: z.number(),
+          // GeoJSON Polygon coordinates: at least one ring of [lng, lat].
+          coordinates: z.array(z.array(lngLat)).min(1),
+        }),
+      ),
+      sources: z.array(z.string()),
     }),
   ),
 })

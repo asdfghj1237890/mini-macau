@@ -11,6 +11,8 @@ import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks
 import { macauYmd } from '../macauTime'
 import { useClockMinute } from '../hooks/useSimulationClock'
 import { grandPrixCarState } from '../grandPrix'
+import { publicHousingColor } from '../publicHousing'
+import { schoolColor } from '../schools'
 
 type Props = MapViewProps & {
   initialCamera: { center: [number, number]; zoom: number } | null
@@ -137,7 +139,12 @@ export default function RasterMapFallback(props: Props) {
     for (const notice of data.roadWorks) if (roadWorkStatus(notice, macauYmd(minute), roadWorksHorizon(minute))) {
       point(notice.coordinates, name(notice.location), ROAD_WORK_COLORS[notice.restriction], () => live.current.onRoadWorkClick?.(notice))
     }
-    for (const school of data.schools) point(school.coordinates, name(school.name), '#a78bfa', () => live.current.onSchoolClick?.(school, null))
+    // One dot per school in its level-and-era shade, the same colour rule as
+    // the 3D blocks and as the housing dots below.
+    for (const school of data.schools) point(school.coordinates, name(school.name), schoolColor(school.level, school.founded), () => live.current.onSchoolClick?.(school, null))
+    // One dot per estate in its type-and-decade shade, the same colour rule as
+    // the 3D blocks, so the 2D map keeps the overlay's two facts readable.
+    for (const estate of data.publicHousing) point(estate.coordinates, name(estate.name), publicHousingColor(estate.type, estate.year), () => live.current.onPublicHousingClick?.(estate, null))
     for (const toilet of data.toilets) point(toilet.coordinates, name(toilet.name), '#14b8a6', () => live.current.onToiletClick?.(toilet))
     for (const park of data.carParks) point(park.coordinates, name(park.name), '#3b82f6', () => live.current.onCarParkClick?.(park))
     for (const site of data.waste) point(site.coordinates, name(site.name), '#4ade80', () => live.current.onWasteSiteClick?.({ kind: 'site', site }))

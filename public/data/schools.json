@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-09-03T06:54:34.523715+00:00",
+  "fetchedAtUtc": "2026-09-10T07:42:26.347400+00:00",
   "sources": {
     "dsedj": "https://data.gov.mo/Detail?id=f0578833-7dd6-4ed5-b825-75e9c4f56012",
     "osm": "OpenStreetMap via Overpass (amenity=school/kindergarten/college/university + building ways)"
@@ -25,6 +25,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1889,
+      "foundedNote": {
+        "zh": "以1889年廣州培正書院創校起算；澳門校於1938年開辦。",
+        "pt": "Conta desde a fundação em Cantão (1889); a escola de Macau abriu em 1938.",
+        "en": "Counts from the 1889 founding in Guangzhou; the Macau school opened in 1938."
+      },
       "coordinates": [
         113.547948,
         22.20137
@@ -692,6 +698,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1910,
+      "foundedNote": null,
       "coordinates": [
         113.553285,
         22.189271
@@ -843,6 +851,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1919,
+      "foundedNote": {
+        "zh": "以1919年廣州前身通志小學起算；1937年遷澳。",
+        "pt": "Conta desde a antecessora de 1919 em Cantão; mudou-se para Macau em 1937.",
+        "en": "Counts from its 1919 Guangzhou predecessor; moved to Macau in 1937."
+      },
       "coordinates": [
         113.547952,
         22.195217
@@ -1111,6 +1125,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1947,
+      "foundedNote": null,
       "coordinates": [
         113.556061,
         22.204894
@@ -1182,6 +1198,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1949,
+      "foundedNote": null,
       "coordinates": [
         113.538953,
         22.199497
@@ -1292,6 +1310,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1950,
+      "foundedNote": null,
       "coordinates": [
         113.543331,
         22.2098
@@ -1519,6 +1539,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1931,
+      "foundedNote": null,
       "coordinates": [
         113.540892,
         22.193554
@@ -1837,6 +1859,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1985,
+      "foundedNote": null,
       "coordinates": [
         113.548889,
         22.204076
@@ -1970,6 +1994,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1985,
+      "foundedNote": null,
       "coordinates": [
         113.582307,
         22.133346
@@ -2056,6 +2082,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1955,
+      "foundedNote": null,
       "coordinates": [
         113.549288,
         22.198179
@@ -2370,6 +2398,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1955,
+      "foundedNote": {
+        "zh": "1955年開學；1904年為澳門浸信教會創立年，維基百科另記1954年。",
+        "pt": "Aulas desde 1955; 1904 é a fundação da igreja baptista, a Wikipédia indica 1954.",
+        "en": "Opened in 1955; 1904 is the founding of the Baptist church, Wikipedia gives 1954."
+      },
       "coordinates": [
         113.555317,
         22.211791
@@ -2641,6 +2675,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1925,
+      "foundedNote": {
+        "zh": "1925年創於廣州，1928年遷澳。",
+        "pt": "Fundada em Cantão em 1925; mudou-se para Macau em 1928.",
+        "en": "Founded in Guangzhou in 1925; moved to Macau in 1928."
+      },
       "coordinates": [
         113.548205,
         22.196907
@@ -2989,6 +3029,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1920,
+      "foundedNote": null,
       "coordinates": [
         113.547987,
         22.209833
@@ -3154,6 +3196,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1989,
+      "foundedNote": null,
       "coordinates": [
         113.542371,
         22.192869
@@ -3224,6 +3268,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1985,
+      "foundedNote": null,
       "coordinates": [
         113.546622,
         22.159112
@@ -3314,6 +3360,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1989,
+      "foundedNote": null,
       "coordinates": [
         113.551004,
         22.195562
@@ -3408,6 +3456,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1932,
+      "foundedNote": {
+        "zh": "第五校以1932年真原小學起算；聖若瑟教區中學體系創於1931年。",
+        "pt": "A 5.ª escola conta desde a Escola Chan Un de 1932; o Colégio Diocesano de S. José data de 1931.",
+        "en": "Campus 5 counts from the 1932 Chan Un primary school; the diocesan college system dates from 1931."
+      },
       "coordinates": [
         113.545303,
         22.211652
@@ -3612,6 +3666,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1954,
+      "foundedNote": null,
       "coordinates": [
         113.544661,
         22.19951
@@ -3666,6 +3722,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1954,
+      "foundedNote": null,
       "coordinates": [
         113.546245,
         22.211769
@@ -3829,6 +3887,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1994,
+      "foundedNote": null,
       "coordinates": [
         113.555825,
         22.20836
@@ -3911,6 +3971,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1938,
+      "foundedNote": null,
       "coordinates": [
         113.559658,
         22.204946
@@ -3990,6 +4052,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1995,
+      "foundedNote": null,
       "coordinates": [
         113.554617,
         22.206436
@@ -4578,6 +4642,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1990,
+      "foundedNote": null,
       "coordinates": [
         113.545104,
         22.212487
@@ -4645,6 +4711,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1988,
+      "foundedNote": null,
       "coordinates": [
         113.550742,
         22.159955
@@ -4732,6 +4800,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1995,
+      "foundedNote": null,
       "coordinates": [
         113.543528,
         22.162958
@@ -4935,6 +5005,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1939,
+      "foundedNote": null,
       "coordinates": [
         113.546489,
         22.206051
@@ -5006,6 +5078,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1966,
+      "foundedNote": null,
       "coordinates": [
         113.552485,
         22.158452
@@ -5131,6 +5205,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1953,
+      "foundedNote": null,
       "coordinates": [
         113.554006,
         22.152398
@@ -5254,6 +5330,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1949,
+      "foundedNote": null,
       "coordinates": [
         113.549599,
         22.205156
@@ -5458,6 +5536,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1997,
+      "foundedNote": null,
       "coordinates": [
         113.54958,
         22.212816
@@ -6031,6 +6111,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1955,
+      "foundedNote": null,
       "coordinates": [
         113.541288,
         22.19644
@@ -6357,6 +6439,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1998,
+      "foundedNote": null,
       "coordinates": [
         113.546897,
         22.211724
@@ -6443,6 +6527,12 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1934,
+      "foundedNote": {
+        "zh": "1934年10月開幕；部分來源記1933年（校舍改建年）。",
+        "pt": "Inaugurado em Outubro de 1934; algumas fontes indicam 1933 (adaptação do edifício).",
+        "en": "Inaugurated in October 1934; some sources give 1933 (the building's conversion)."
+      },
       "coordinates": [
         113.550259,
         22.19954
@@ -6728,6 +6818,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1998,
+      "foundedNote": {
+        "zh": "校方以1998年改組成立起算；前身可追溯至1887年的官立小學。",
+        "pt": "A escola data-se da reorganização de 1998; a linhagem remonta à Escola Primária Oficial de 1887.",
+        "en": "Dates itself from the 1998 reorganisation; its lineage goes back to the 1887 official primary school."
+      },
       "coordinates": [
         113.542723,
         22.191354
@@ -6918,6 +7014,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1938,
+      "foundedNote": null,
       "coordinates": [
         113.539391,
         22.206171
@@ -7405,6 +7503,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1999,
+      "foundedNote": null,
       "coordinates": [
         113.543818,
         22.210607
@@ -7523,6 +7623,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1919,
+      "foundedNote": null,
       "coordinates": [
         113.558515,
         22.20604
@@ -7674,6 +7776,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1955,
+      "foundedNote": null,
       "coordinates": [
         113.557352,
         22.205609
@@ -7748,6 +7852,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1906,
+      "foundedNote": null,
       "coordinates": [
         113.537129,
         22.189557
@@ -8066,6 +8172,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1939,
+      "foundedNote": null,
       "coordinates": [
         113.546489,
         22.206051
@@ -8237,6 +8345,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1966,
+      "foundedNote": null,
       "coordinates": [
         113.532646,
         22.188317
@@ -8418,6 +8528,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1958,
+      "foundedNote": null,
       "coordinates": [
         113.544167,
         22.203202
@@ -8497,6 +8609,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1932,
+      "foundedNote": null,
       "coordinates": [
         113.547807,
         22.193182
@@ -8567,6 +8681,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1971,
+      "foundedNote": null,
       "coordinates": [
         113.552399,
         22.205434
@@ -8927,6 +9043,12 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1957,
+      "foundedNote": {
+        "zh": "記1957年；同一來源另暗示1958年。",
+        "pt": "Registado 1957; a mesma fonte sugere também 1958.",
+        "en": "Recorded as 1957; the same source also implies 1958."
+      },
       "coordinates": [
         113.541898,
         22.211248
@@ -9034,6 +9156,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1950,
+      "foundedNote": {
+        "zh": "記1950年；1948年識字班與1961年新校舍亦有記載。",
+        "pt": "Registado 1950; há registos de aulas de alfabetização em 1948 e de novas instalações em 1961.",
+        "en": "Recorded as 1950; literacy classes in 1948 and a new campus in 1961 are also documented."
+      },
       "coordinates": [
         113.542313,
         22.207529
@@ -9151,6 +9279,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1911,
+      "foundedNote": null,
       "coordinates": [
         113.558387,
         22.153032
@@ -9301,6 +9431,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1966,
+      "foundedNote": null,
       "coordinates": [
         113.582255,
         22.132899
@@ -9512,6 +9644,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1903,
+      "foundedNote": null,
       "coordinates": [
         113.544599,
         22.193408
@@ -9882,6 +10016,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1955,
+      "foundedNote": {
+        "zh": "校方以1955年起算校慶；另稱有1917年肇慶前身。",
+        "pt": "A escola conta o aniversário desde 1955; reivindica também uma antecessora de 1917 em Zhaoqing.",
+        "en": "The school counts its anniversaries from 1955; it also claims a 1917 predecessor in Zhaoqing."
+      },
       "coordinates": [
         113.536836,
         22.186864
@@ -10072,6 +10212,12 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1968,
+      "foundedNote": {
+        "zh": "1968年為最早可查紀錄（前身永福社學由坊會接辦），非經確認之創校年。",
+        "pt": "1968 é o registo mais antigo encontrado (a antecessora passou para a associação de moradores); ano de fundação não confirmado.",
+        "en": "1968 is the earliest record found (the predecessor was taken over by the residents' association); the founding year is unconfirmed."
+      },
       "coordinates": [
         113.539779,
         22.202284
@@ -10159,6 +10305,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1924,
+      "foundedNote": {
+        "zh": "1924年為義學開辦年；1892年為同善堂創立，1991年始設中學部。",
+        "pt": "1924 é o início das aulas gratuitas; 1892 é a fundação da Tung Sin Tong, o secundário começou em 1991.",
+        "en": "1924 is the start of the free school; 1892 is the founding of the Tung Sin Tong charity, secondary classes began in 1991."
+      },
       "coordinates": [
         113.538138,
         22.195258
@@ -10277,6 +10429,8 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1961,
+      "foundedNote": null,
       "coordinates": [
         113.534092,
         22.189331
@@ -10331,6 +10485,12 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1965,
+      "foundedNote": {
+        "zh": "1965年為識字班開辦年；另一說正式建校為1969年。",
+        "pt": "1965 é o início das aulas de alfabetização; outra versão data a escola formal de 1969.",
+        "en": "1965 is the start of the literacy classes; another account dates the formal school to 1969."
+      },
       "coordinates": [
         113.539592,
         22.203398
@@ -10389,6 +10549,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1956,
+      "foundedNote": null,
       "coordinates": [
         113.548813,
         22.211621
@@ -10491,6 +10653,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1951,
+      "foundedNote": null,
       "coordinates": [
         113.542381,
         22.211083
@@ -10617,6 +10781,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1932,
+      "foundedNote": null,
       "coordinates": [
         113.553591,
         22.202804
@@ -11124,6 +11290,12 @@
         "secondary": false
       },
       "system": "private",
+      "founded": 1949,
+      "foundedNote": {
+        "zh": "以1949年葡光工業學校起算；1991年鮑思高學校，2000年合併為現校。",
+        "pt": "Conta desde a Escola Industrial Pou Kuong de 1949; Escola Dom Bosco em 1991, fusão em 2000.",
+        "en": "Counts from the 1949 Pou Kuong Industrial School; Dom Bosco School 1991, merged in 2000."
+      },
       "coordinates": [
         113.552492,
         22.203201
@@ -11381,6 +11553,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1988,
+      "foundedNote": {
+        "zh": "1988年為現名重新註冊年；前身聖保羅聾啞學校創校年不詳。",
+        "pt": "1988 é o novo registo com o nome actual; a antecessora (escola para surdos S. Paulo) não tem ano publicado.",
+        "en": "1988 is the re-registration under the present name; the predecessor St Paul's school for the deaf has no published year."
+      },
       "coordinates": [
         113.542298,
         22.210376
@@ -11452,6 +11630,8 @@
         "secondary": false
       },
       "system": "public",
+      "founded": 1977,
+      "foundedNote": null,
       "coordinates": [
         113.555136,
         22.151714
@@ -11571,6 +11751,8 @@
         "secondary": false
       },
       "system": "public",
+      "founded": 1951,
+      "foundedNote": null,
       "coordinates": [
         113.547136,
         22.196983
@@ -11625,6 +11807,8 @@
         "secondary": true
       },
       "system": "public",
+      "founded": 1985,
+      "foundedNote": null,
       "coordinates": [
         113.548321,
         22.198286
@@ -11843,6 +12027,8 @@
         "secondary": true
       },
       "system": "public",
+      "founded": 1998,
+      "foundedNote": null,
       "coordinates": [
         113.5537,
         22.209754
@@ -12097,6 +12283,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1998,
+      "foundedNote": null,
       "coordinates": [
         113.556706,
         22.158359
@@ -12301,6 +12489,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 2002,
+      "foundedNote": null,
       "coordinates": [
         113.559768,
         22.16191
@@ -12746,6 +12936,8 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 2002,
+      "foundedNote": null,
       "coordinates": [
         113.56923,
         22.150953
@@ -12970,6 +13162,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1945,
+      "foundedNote": {
+        "zh": "澳門校1945年創辦、1946年註冊；廣州母校創於1888年。",
+        "pt": "A escola de Macau foi fundada em 1945 e registada em 1946; a escola-mãe de Cantão data de 1888.",
+        "en": "The Macau school was founded in 1945 and registered in 1946; the Guangzhou parent school dates from 1888."
+      },
       "coordinates": [
         113.546788,
         22.192588
@@ -13193,6 +13391,8 @@
         "secondary": true
       },
       "system": "public",
+      "founded": 1989,
+      "foundedNote": null,
       "coordinates": [
         113.549556,
         22.201098
@@ -13366,6 +13566,8 @@
         "secondary": true
       },
       "system": "public",
+      "founded": 2011,
+      "foundedNote": null,
       "coordinates": [
         113.544836,
         22.213265
@@ -13501,6 +13703,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 1931,
+      "foundedNote": {
+        "zh": "以1931年聖若瑟教區中學創立起算。",
+        "pt": "Conta desde a fundação do Colégio Diocesano de S. José em 1931.",
+        "en": "Counts from the 1931 founding of the diocesan college system."
+      },
       "coordinates": [
         113.538919,
         22.211192
@@ -13773,6 +13981,8 @@
         "secondary": true
       },
       "system": "public",
+      "founded": 2019,
+      "foundedNote": null,
       "coordinates": [
         113.560859,
         22.128604
@@ -13876,6 +14086,8 @@
         "secondary": true
       },
       "system": "public",
+      "founded": 2022,
+      "foundedNote": null,
       "coordinates": [
         113.550815,
         22.199872
@@ -13947,6 +14159,12 @@
         "secondary": true
       },
       "system": "private",
+      "founded": 2024,
+      "foundedNote": {
+        "zh": "2024年9月開學；部分來源記2023年。",
+        "pt": "Abriu em Setembro de 2024; algumas fontes indicam 2023.",
+        "en": "Opened in September 2024; some sources give 2023."
+      },
       "coordinates": [
         113.555203,
         22.127933
@@ -14025,6 +14243,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1996,
+      "foundedNote": null,
       "coordinates": [
         113.552316,
         22.188396
@@ -14361,6 +14581,12 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1981,
+      "foundedNote": {
+        "zh": "沿用城市大學1981年起算；學院本身2011年設立一說未經核實。",
+        "pt": "Segue o ano da universidade (1981); a data de 2011 do próprio colégio não foi confirmada.",
+        "en": "Uses the university's 1981; the college's own 2011 date could not be confirmed."
+      },
       "coordinates": [
         113.554095,
         22.188811
@@ -14415,6 +14641,12 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 2020,
+      "foundedNote": {
+        "zh": "博雅學院2020年成立；科技大學本身創於2000年。",
+        "pt": "Faculdade de Artes Liberais fundada em 2020; a universidade data de 2000.",
+        "en": "School of Liberal Arts founded in 2020; the university dates from 2000."
+      },
       "coordinates": [
         113.559234,
         22.129848
@@ -14969,6 +15201,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1981,
+      "foundedNote": null,
       "coordinates": [
         113.551515,
         22.193835
@@ -15227,6 +15461,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1988,
+      "foundedNote": null,
       "coordinates": [
         113.555372,
         22.19588
@@ -15308,6 +15544,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1995,
+      "foundedNote": null,
       "coordinates": [
         113.548198,
         22.206723
@@ -15783,6 +16021,12 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1981,
+      "foundedNote": {
+        "zh": "以1981年東亞大學起算；1992年為亞洲（澳門）國際公開大學，2011年改現名。",
+        "pt": "Conta desde a Universidade da Ásia Oriental (1981); Universidade Aberta Internacional da Ásia (Macau) em 1992, nome actual em 2011.",
+        "en": "Counts from the 1981 University of East Asia; Asia International Open University (Macau) in 1992, present name in 2011."
+      },
       "coordinates": [
         113.557455,
         22.16393
@@ -16245,6 +16489,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1981,
+      "foundedNote": null,
       "coordinates": [
         113.559063,
         22.163744
@@ -16394,6 +16640,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1981,
+      "foundedNote": null,
       "coordinates": [
         113.557033,
         22.1635
@@ -16464,6 +16712,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1995,
+      "foundedNote": null,
       "coordinates": [
         113.559661,
         22.163769
@@ -16677,6 +16927,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1988,
+      "foundedNote": null,
       "coordinates": [
         113.551825,
         22.119577
@@ -17349,6 +17601,12 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1981,
+      "foundedNote": {
+        "zh": "以1981年東亞大學起算；1992年為亞洲（澳門）國際公開大學，2011年改現名。",
+        "pt": "Conta desde a Universidade da Ásia Oriental (1981); Universidade Aberta Internacional da Ásia (Macau) em 1992, nome actual em 2011.",
+        "en": "Counts from the 1981 University of East Asia; Asia International Open University (Macau) in 1992, present name in 2011."
+      },
       "coordinates": [
         113.5559,
         22.16385
@@ -17494,6 +17752,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1995,
+      "foundedNote": null,
       "coordinates": [
         113.558732,
         22.164742
@@ -17762,6 +18022,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1923,
+      "foundedNote": null,
       "coordinates": [
         113.567703,
         22.13598
@@ -17836,6 +18098,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 2000,
+      "foundedNote": null,
       "coordinates": [
         113.568041,
         22.152645
@@ -19044,6 +19308,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1981,
+      "foundedNote": null,
       "coordinates": [
         113.551515,
         22.193835
@@ -19066,6 +19332,8 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1995,
+      "foundedNote": null,
       "coordinates": [
         113.548198,
         22.206723
@@ -19088,6 +19356,12 @@
         "secondary": false
       },
       "system": "tertiary",
+      "founded": 1981,
+      "foundedNote": {
+        "zh": "以1981年東亞大學創立起算；1991年改組為澳門大學。",
+        "pt": "Conta desde a Universidade da Ásia Oriental (1981); reorganizada como Universidade de Macau em 1991.",
+        "en": "Counts from the 1981 University of East Asia; reorganised as the University of Macau in 1991."
+      },
       "coordinates": [
         113.543778,
         22.128365

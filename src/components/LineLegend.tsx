@@ -1,14 +1,25 @@
 import { useState, useMemo, useEffect, type ReactNode } from 'react'
-import type { TransitData, SimulationClock, SchoolLevel } from '../types'
-import { useI18n, localName } from '../i18n'
+import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType } from '../types'
+import { useI18n, localName, type Translations } from '../i18n'
 import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS, type GroupKey } from '../routeGroups'
 import {
-  SCHOOL_COLORS,
+  SCHOOL_ERAS,
+  SCHOOL_LEVEL_COLOR,
   SCHOOL_LEVEL_ORDER,
   countSchoolsByLevel,
   schoolLevelLabel,
+  schoolRamp,
   type SchoolLevelSet,
 } from '../schools'
+import {
+  PUBLIC_HOUSING_DECADES,
+  PUBLIC_HOUSING_TYPE_COLOR,
+  PUBLIC_HOUSING_TYPE_ORDER,
+  countPublicHousingByType,
+  publicHousingRamp,
+  publicHousingTypeLabel,
+  type PublicHousingTypeSet,
+} from '../publicHousing'
 import { waterLegendRows, type WaterLegendRow } from '../water'
 import { powerLegendRows, type PowerLegendRow } from '../power'
 import { grandPrixLegendRows, type GrandPrixLegendRow } from '../grandPrix'
@@ -29,11 +40,31 @@ import {
 // because the per-level rows underneath carry the colour key themselves.
 const SCHOOL_SWATCH_GRADIENT = `linear-gradient(90deg, ${
   SCHOOL_LEVEL_ORDER.map((level, i) =>
-    `${SCHOOL_COLORS[level]} ${i * 20}% ${(i + 1) * 20}%`).join(', ')
+    `${SCHOOL_LEVEL_COLOR[level]} ${i * 20}% ${(i + 1) * 20}%`).join(', ')
 })`
 
 // Violet hatch for the SCHOOLS row, matching the AIR/SEA/WORKS swatches.
 const SCHOOL_HATCH = 'repeating-linear-gradient(-45deg, rgba(167,139,250,0.45) 0 1px, transparent 1px 3px)'
+
+// A level's five era stops as one gradient strip, oldest (darkest) on the
+// left. This is the shade key: each level row below the SCHOOLS row wears its
+// own family, so a reader can match a block on the map to both its teaching
+// stage AND the era it was founded from the legend alone. Same shape as the
+// housing ramp below, because it answers the same question.
+function schoolRampGradient(level: SchoolLevel): string {
+  const stops = schoolRamp(level)
+  const step = 100 / stops.length
+  return `linear-gradient(90deg, ${
+    stops.map((color, i) => `${color} ${i * step}% ${(i + 1) * step}%`).join(', ')
+  })`
+}
+
+// Static English caption naming the two ends of that ramp, in the same mono
+// decoration slot as the housing decades (digits, so it reads the same in all
+// three UI languages). SCHOOL_ERAS[0] is the "before 1900" bucket, so the low
+// end is written as a bound rather than as a decade.
+const SCHOOL_ERA_CAPTION =
+  `<${SCHOOL_ERAS[1]} → ${SCHOOL_ERAS[SCHOOL_ERAS.length - 1]}s`
 
 // Static English caption beside each level's localised label, so a row reads
 // the same in all three UI languages (the mono column is decoration, not a
@@ -45,6 +76,51 @@ const SCHOOL_LEVEL_CAPTIONS: Record<SchoolLevel, string> = {
   university: 'TERTIARY',
   all_through: 'ALL-THROUGH',
 }
+
+// Every type colour as one 8×8 swatch, for the mobile modal header — the
+// desktop row wears the lime hatch instead, because the type rows underneath it
+// carry the colour key themselves (same split as the schools). The band width
+// is divided by PUBLIC_HOUSING_TYPE_ORDER's length, so a new type re-divides
+// the swatch instead of being laid out past its right edge.
+const PUBLIC_HOUSING_SWATCH_STEP = 100 / PUBLIC_HOUSING_TYPE_ORDER.length
+const PUBLIC_HOUSING_SWATCH_GRADIENT = `linear-gradient(90deg, ${
+  PUBLIC_HOUSING_TYPE_ORDER.map((type, i) =>
+    `${PUBLIC_HOUSING_TYPE_COLOR[type]} ${i * PUBLIC_HOUSING_SWATCH_STEP}% ${
+      (i + 1) * PUBLIC_HOUSING_SWATCH_STEP}%`).join(', ')
+})`
+
+// Lime hatch for the HOUSING row — the one CITY hue no other row uses, so the
+// estate blocks' own orange/teal/violet families stay the map's only housing
+// colours.
+const PUBLIC_HOUSING_HATCH =
+  'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-lime-2) 45%, transparent) 0 1px, transparent 1px 3px)'
+
+// A housing type's five decade stops as one gradient strip, oldest (darkest)
+// on the left. This is the shade key: each type row below the HOUSING row
+// wears its own family, so a reader can match a block on the map to both
+// its type AND its decade from the legend alone.
+function publicHousingRampGradient(type: PublicHousingType): string {
+  const stops = publicHousingRamp(type)
+  const step = 100 / stops.length
+  return `linear-gradient(90deg, ${
+    stops.map((color, i) => `${color} ${i * step}% ${(i + 1) * step}%`).join(', ')
+  })`
+}
+
+// Hover text for a type row. The label truncates for the longest EN/PT wording
+// ("Habitação económica"), so the full name is always worth repeating; the
+// `other` row adds the programmes it stands for on a second line, because
+// "Other public housing" names none of them.
+function publicHousingTypeTitle(t: Translations, type: PublicHousingType): string {
+  const label = publicHousingTypeLabel(t, type)
+  return type === 'other' ? `${label}\n${t.publicHousingOtherHint}` : label
+}
+
+// Static English caption naming the two ends of that ramp, in the same mono
+// decoration slot as SCHOOL_LEVEL_CAPTIONS (the range is digits, so it reads
+// the same in all three UI languages).
+const PUBLIC_HOUSING_DECADE_CAPTION =
+  `${PUBLIC_HOUSING_DECADES[0]}s → ${PUBLIC_HOUSING_DECADES[PUBLIC_HOUSING_DECADES.length - 1]}s`
 
 // Teal hatch for the WC row, matching the AIR/SEA/WORKS/SCHOOLS swatches.
 const TOILET_HATCH = 'repeating-linear-gradient(-45deg, rgba(20,184,166,0.45) 0 1px, transparent 1px 3px)'
@@ -481,6 +557,20 @@ function MortarboardIcon() {
   )
 }
 
+// 12px apartment block for the HOUSING row's glyph slot — a tower and its lower
+// wing, in the same stroked style as its siblings so it dims with the row.
+function ApartmentIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 13.5V3.75h5.5v9.75" />
+      <path d="M8.5 13.5V7.5H13v6" />
+      <path d="M1.75 13.5h12.5" strokeWidth="1.25" />
+      <path d="M5 6.25h1.5M5 9.25h1.5M10.5 10h1" strokeWidth="1.1" opacity="0.7" />
+    </svg>
+  )
+}
+
 // 16px glyphs for the mobile CITY chip and modal rows — the chip-sized
 // versions of the desktop row icons, so the list reads like the CITY page.
 const WORKS_ICON_16 = (
@@ -497,6 +587,15 @@ const MORTARBOARD_ICON_16 = (
     <path d="M22 10 12 5 2 10l10 5 10-5z" />
     <path d="M6 12.5V17c3.3 2.7 8.7 2.7 12 0v-4.5" />
     <line x1="22" y1="10" x2="22" y2="15" />
+  </svg>
+)
+const APARTMENT_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4 21V4h9v17" />
+    <path d="M13 21V10h6v11" />
+    <path d="M2.5 21h19" />
+    <path d="M7 8h2M7 12.5h2M16 14.5h1" />
   </svg>
 )
 const TOILET_ICON_16 = (
@@ -564,6 +663,7 @@ const CITY_HATCH = 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--m
 const LS_DESKTOP_OPEN = 'mm-layers-desktop-open'
 const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
 const LS_SCHOOLS_LEGEND_OPEN = 'mm-schools-legend-open'
+const LS_PUBLIC_HOUSING_LEGEND_OPEN = 'mm-public-housing-legend-open'
 const LS_WASTE_LEGEND_OPEN = 'mm-waste-legend-open'
 // Stable "nothing hidden" fallback for a legend rendered without the prop, so
 // the `??` below cannot hand a fresh Set to the render on every pass.
@@ -595,6 +695,13 @@ interface Props {
   // (counted from the UNFILTERED data, so a row keeps its total while off).
   schoolLevelsOn?: SchoolLevelSet
   schoolLevelCounts?: Record<SchoolLevel, number>
+  // The Housing Bureau's estates. Opt-in like the schools it mirrors, and with
+  // the same sub-filters: which of the two types are drawn, and how many
+  // estates each type has (counted from the UNFILTERED data, so a row keeps
+  // its total while off).
+  publicHousingOn?: boolean
+  publicHousingTypesOn?: PublicHousingTypeSet
+  publicHousingTypeCounts?: Record<PublicHousingType, number>
   // Public toilets. Like schools this layer is opt-in, so it defaults to off
   // here too — the count shown is the whole register, which never changes.
   toiletsOn?: boolean
@@ -626,6 +733,8 @@ interface Props {
   onToggleRoadWorks?: () => void
   onToggleSchools?: () => void
   onToggleSchoolLevel?: (level: SchoolLevel) => void
+  onTogglePublicHousing?: () => void
+  onTogglePublicHousingType?: (type: PublicHousingType) => void
   onToggleToilets?: () => void
   onToggleCarParks?: () => void
   onToggleWaste?: () => void
@@ -641,7 +750,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | 'city' | null
+type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'works' | 'schools' | 'housing' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | 'city' | null
 
 export function LineLegend({
   transitData,
@@ -657,6 +766,9 @@ export function LineLegend({
   schoolsOn = true,
   schoolLevelsOn,
   schoolLevelCounts,
+  publicHousingOn = false,
+  publicHousingTypesOn,
+  publicHousingTypeCounts,
   toiletsOn = false,
   carParksOn = false,
   wasteOn = false,
@@ -672,6 +784,8 @@ export function LineLegend({
   onToggleRoadWorks,
   onToggleSchools,
   onToggleSchoolLevel,
+  onTogglePublicHousing,
+  onTogglePublicHousingType,
   onToggleToilets,
   onToggleCarParks,
   onToggleWaste,
@@ -692,6 +806,9 @@ export function LineLegend({
   })
   const [schoolsLegendOpen, setSchoolsLegendOpen] = useState(() => {
     try { return localStorage.getItem(LS_SCHOOLS_LEGEND_OPEN) !== '0' } catch { return true }
+  })
+  const [publicHousingLegendOpen, setPublicHousingLegendOpen] = useState(() => {
+    try { return localStorage.getItem(LS_PUBLIC_HOUSING_LEGEND_OPEN) !== '0' } catch { return true }
   })
   const [wasteLegendOpen, setWasteLegendOpen] = useState(() => {
     try { return localStorage.getItem(LS_WASTE_LEGEND_OPEN) !== '0' } catch { return true }
@@ -715,6 +832,9 @@ export function LineLegend({
   useEffect(() => {
     localStorage.setItem(LS_SCHOOLS_LEGEND_OPEN, schoolsLegendOpen ? '1' : '0')
   }, [schoolsLegendOpen])
+  useEffect(() => {
+    localStorage.setItem(LS_PUBLIC_HOUSING_LEGEND_OPEN, publicHousingLegendOpen ? '1' : '0')
+  }, [publicHousingLegendOpen])
   useEffect(() => {
     localStorage.setItem(LS_WASTE_LEGEND_OPEN, wasteLegendOpen ? '1' : '0')
   }, [wasteLegendOpen])
@@ -742,6 +862,17 @@ export function LineLegend({
   const levelCounts = useMemo(
     () => schoolLevelCounts ?? countSchoolsByLevel(allSchools),
     [schoolLevelCounts, allSchools]
+  )
+  // Same contract for the housing types: App passes them pre-counted from the
+  // UNFILTERED list, and the fallback keeps the two rows correct if the legend
+  // is ever rendered without them.
+  const allPublicHousing = useMemo(
+    () => allTransitData?.publicHousing ?? transitData.publicHousing,
+    [allTransitData, transitData.publicHousing]
+  )
+  const housingTypeCounts = useMemo(
+    () => publicHousingTypeCounts ?? countPublicHousingByType(allPublicHousing),
+    [publicHousingTypeCounts, allPublicHousing]
   )
   // Same contract for the waste types: App passes them pre-counted from the
   // UNFILTERED list, and the fallback keeps the key correct if the legend is
@@ -816,6 +947,16 @@ export function LineLegend({
   const schoolEnabledCount = SCHOOL_LEVEL_ORDER.reduce(
     (sum, level) => (isSchoolLevelOn(level) ? sum + (levelCounts[level] ?? 0) : sum), 0
   )
+  // The housing estates are static too, so `publicHousingCount` is the full
+  // register and the two type toggles narrow it — the enabled/total pair the
+  // SCHOOLS row above uses.
+  const publicHousingCount = allTransitData?.publicHousing.length ?? transitData.publicHousing.length
+  const isPublicHousingTypeOn = (type: PublicHousingType) =>
+    (publicHousingTypesOn ? publicHousingTypesOn.has(type) : true)
+  const publicHousingTypesAllOn = PUBLIC_HOUSING_TYPE_ORDER.every(isPublicHousingTypeOn)
+  const publicHousingEnabledCount = PUBLIC_HOUSING_TYPE_ORDER.reduce(
+    (sum, type) => (isPublicHousingTypeOn(type) ? sum + (housingTypeCounts[type] ?? 0) : sum), 0
+  )
   // Toilets are static and unfiltered: the row always shows the full register,
   // and the master switch is the only thing that empties transitData.toilets.
   const toiletCount = allTransitData?.toilets.length ?? transitData.toilets.length
@@ -857,6 +998,11 @@ export function LineLegend({
       panel: 'schools' as const, label: 'SCHOOLS · 學校', icon: MORTARBOARD_ICON_16, on: schoolsOn,
       count: schoolLevelsAllOn ? String(schoolCount) : `${schoolEnabledCount}/${schoolCount}`,
       iconOn: 'text-(--mm-violet)', countOn: 'text-(--mm-violet)/80', toggle: onToggleSchools,
+    } : null,
+    publicHousingCount > 0 ? {
+      panel: 'housing' as const, label: 'HOUSING · 居屋', icon: APARTMENT_ICON_16, on: publicHousingOn,
+      count: publicHousingTypesAllOn ? String(publicHousingCount) : `${publicHousingEnabledCount}/${publicHousingCount}`,
+      iconOn: 'text-(--mm-lime)', countOn: 'text-(--mm-lime)/80', toggle: onTogglePublicHousing,
     } : null,
     toiletCount > 0 ? {
       panel: 'toilets' as const, label: 'WC · 公廁', icon: TOILET_ICON_16, on: toiletsOn,
@@ -1327,7 +1473,7 @@ export function LineLegend({
                     // "Lit" = actually drawn on the map: the level is on AND
                     // the master switch is on.
                     const lit = schoolsOn && on
-                    const color = SCHOOL_COLORS[level]
+                    const color = SCHOOL_LEVEL_COLOR[level]
                     return (
                       <button
                         key={level}
@@ -1342,10 +1488,16 @@ export function LineLegend({
                                     hover:bg-(--mm-fg)/[0.04] transition
                                     ${onToggleSchoolLevel ? '' : 'cursor-default'}`}
                       >
+                        {/* The whole five-era ramp while the level is on; a
+                            hollow box in its identity colour while it is off.
+                            Same grammar and the same 22px strip as the housing
+                            rows below, because the colour carries the same two
+                            facts: the hue is the teaching stage, the shade the
+                            era the school was founded. */}
                         <span
-                          className="inline-block w-[7px] h-[7px] shrink-0"
+                          className="inline-block w-[22px] h-[7px] shrink-0"
                           style={on
-                            ? { backgroundColor: color }
+                            ? { backgroundImage: schoolRampGradient(level) }
                             : { boxShadow: `inset 0 0 0 1px ${color}99` }}
                         />
                         <span className={`text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
@@ -1369,6 +1521,136 @@ export function LineLegend({
                       </button>
                     )
                   })}
+                  {/* What the strips above mean. Without this line the shade
+                      reads as decoration rather than as the founding era. */}
+                  <div className="pl-8 pr-3 pt-[2px] flex items-baseline gap-2
+                                  mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+                    <span className="mm-tabular shrink-0">{SCHOOL_ERA_CAPTION}</span>
+                    <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
+                      {t.schoolsRampHint}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* PUBLIC HOUSING — the SCHOOLS row's twin: the same five columns
+              (glyph · swatch · label · count · state) and the same split
+              interaction, the body expanding one row per housing type and the
+              ON/OFF button at the right switching the whole layer.
+              It is also a FOCUS mode, like WASTE / WATER / POWER below —
+              switching it on clears the other layers and switching it off puts
+              them back — with ONE exemption: the SCHOOLS row keeps whatever
+              the user has set, because the two overlays are read together. Both
+              buttons say so on hover, and the expanded body repeats it. */}
+          {publicHousingCount > 0 && (
+            <>
+              <div className={`flex items-stretch border-t border-(--mm-fg)/10 transition
+                              ${publicHousingOn ? 'bg-(--mm-lime-2)/[0.05]' : 'opacity-50 light:opacity-100'}`}>
+                <button
+                  type="button"
+                  onClick={() => setPublicHousingLegendOpen(v => !v)}
+                  aria-expanded={publicHousingLegendOpen}
+                  title={`${t.publicHousingExpandTitle} · ${t.publicHousingFocusNote}`}
+                  className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3 pr-1.5
+                             hover:bg-(--mm-lime-2)/[0.1] transition"
+                >
+                  <span className="inline-flex items-center justify-center w-[12px] shrink-0 text-(--mm-text-muted)">
+                    <ApartmentIcon />
+                  </span>
+                  <span
+                    className="inline-block w-[8px] h-[8px] shrink-0"
+                    style={{ backgroundImage: PUBLIC_HOUSING_HATCH }}
+                  />
+                  <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted)
+                                   flex-1 min-w-0 text-left truncate">
+                    HOUSING · 居屋
+                  </span>
+                  <span className={`mm-mono mm-tabular text-[9px] shrink-0
+                                    ${publicHousingOn ? 'text-(--mm-lime)/80' : 'text-(--mm-fg)/25'}`}>
+                    {publicHousingTypesAllOn ? publicHousingCount : `${publicHousingEnabledCount}/${publicHousingCount}`}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={onTogglePublicHousing}
+                  disabled={!onTogglePublicHousing}
+                  aria-pressed={publicHousingOn}
+                  title={`${t.publicHousingToggleAllTitle} · ${t.publicHousingFocusNote}`}
+                  className={`shrink-0 inline-flex items-center justify-end pl-1.5 pr-3
+                              hover:bg-(--mm-emerald)/[0.1] transition
+                              ${onTogglePublicHousing ? '' : 'cursor-default'}`}
+                >
+                  <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ${publicHousingOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                    {publicHousingOn ? 'ON' : 'OFF'}
+                  </span>
+                </button>
+              </div>
+              {publicHousingLegendOpen && (
+                <div className={`pb-1 bg-(--mm-lime-2)/[0.05] ${publicHousingOn ? '' : 'opacity-40 light:opacity-100'}`}>
+                  {PUBLIC_HOUSING_TYPE_ORDER.map(type => {
+                    const on = isPublicHousingTypeOn(type)
+                    // "Lit" = actually drawn on the map: the type is on AND
+                    // the master switch is on.
+                    const lit = publicHousingOn && on
+                    const color = PUBLIC_HOUSING_TYPE_COLOR[type]
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => onTogglePublicHousingType?.(type)}
+                        disabled={!onTogglePublicHousingType}
+                        aria-pressed={on}
+                        // Full label on hover (it truncates), plus — for the
+                        // `other` row — the programmes it covers.
+                        title={publicHousingTypeTitle(t, type)}
+                        className={`w-full flex items-center gap-2 py-1 pl-8 pr-3
+                                    hover:bg-(--mm-fg)/[0.04] transition
+                                    ${onTogglePublicHousingType ? '' : 'cursor-default'}`}
+                      >
+                        {/* The whole five-decade ramp while the type is on; a
+                            hollow box in its identity colour while it is off,
+                            the same on/off grammar as the school dots. */}
+                        <span
+                          className="inline-block w-[22px] h-[7px] shrink-0"
+                          style={on
+                            ? { backgroundImage: publicHousingRampGradient(type) }
+                            : { boxShadow: `inset 0 0 0 1px ${color}99` }}
+                        />
+                        <span className={`text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
+                                          ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
+                          {publicHousingTypeLabel(t, type)}
+                        </span>
+                        <span
+                          className={`mm-mono mm-tabular text-[9px] w-[18px] text-right shrink-0
+                                      ${lit ? '' : 'text-(--mm-fg)/25'}`}
+                          style={lit ? { color } : undefined}
+                        >
+                          {housingTypeCounts[type] ?? 0}
+                        </span>
+                        <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+                                          ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                          {on ? 'ON' : 'OFF'}
+                        </span>
+                      </button>
+                    )
+                  })}
+                  {/* What the strips above mean. Without this line the shade
+                      reads as decoration rather than as the occupation decade. */}
+                  <div className="pl-8 pr-3 pt-[2px] flex items-baseline gap-2
+                                  mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+                    <span className="mm-tabular shrink-0">{PUBLIC_HOUSING_DECADE_CAPTION}</span>
+                    <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
+                      {t.publicHousingRampHint}
+                    </span>
+                  </div>
+                  {/* What switching the layer on does to the rest of the map —
+                      the same caption the WASTE key carries, naming the one
+                      layer this focus mode leaves alone. */}
+                  <div className="pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+                    {t.publicHousingFocusNote}
+                  </div>
                 </div>
               )}
             </>
@@ -2272,7 +2554,7 @@ export function LineLegend({
                 {SCHOOL_LEVEL_ORDER.map(level => {
                   const on = isSchoolLevelOn(level)
                   const lit = schoolsOn && on
-                  const color = SCHOOL_COLORS[level]
+                  const color = SCHOOL_LEVEL_COLOR[level]
                   return (
                     <button
                       key={level}
@@ -2284,10 +2566,12 @@ export function LineLegend({
                       className={`w-full h-11 flex items-center gap-2 px-3 active:bg-(--mm-fg)/[0.04] transition
                                   ${onToggleSchoolLevel ? '' : 'cursor-default'}`}
                     >
+                      {/* The five-era ramp, same 26px strip as the housing
+                          rows in the panel below. */}
                       <span
-                        className="inline-block w-[9px] h-[9px] shrink-0"
+                        className="inline-block w-[26px] h-[9px] shrink-0"
                         style={on
-                          ? { backgroundColor: color }
+                          ? { backgroundImage: schoolRampGradient(level) }
                           : { boxShadow: `inset 0 0 0 1px ${color}99` }}
                       />
                       <span className={`text-[12px] leading-[1.2] flex-1 min-w-0 text-left truncate
@@ -2308,6 +2592,129 @@ export function LineLegend({
                     </button>
                   )
                 })}
+                <div className="px-3 pt-[2px] pb-1 flex items-baseline gap-2
+                                mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+                  <span className="mm-tabular shrink-0">{SCHOOL_ERA_CAPTION}</span>
+                  <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
+                    {t.schoolsRampHint}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* PUBLIC HOUSING */}
+          {mobilePanel === 'housing' && (
+            <div
+              onClick={e => e.stopPropagation()}
+              className="relative w-full max-w-[300px] bg-(--mm-panel)
+                         border border-(--mm-lime-2)/30 rounded-sm overflow-hidden
+                         shadow-[0_8px_32px_var(--mm-shadow)]"
+            >
+              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+                <span className="flex items-center gap-1.5 text-(--mm-lime)/85">
+                  <ApartmentIcon />
+                  <span
+                    className="inline-block w-[8px] h-[8px]"
+                    style={{ backgroundImage: PUBLIC_HOUSING_SWATCH_GRADIENT }}
+                  />
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">HOUSING · 居屋</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMobilePanel(null)}
+                  aria-label="close"
+                  className="w-6 h-6 flex items-center justify-center leading-none
+                             border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
+                >×</button>
+              </div>
+              <button
+                type="button"
+                onClick={onTogglePublicHousing}
+                disabled={!onTogglePublicHousing}
+                aria-pressed={publicHousingOn}
+                className={`w-full px-3 py-3 flex items-center justify-between transition
+                           ${publicHousingOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
+                           ${onTogglePublicHousing ? '' : 'cursor-default'}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={`inline-flex items-center ${publicHousingOn ? 'text-(--mm-lime-2)' : 'text-(--mm-text-muted)'}`}>
+                    <ApartmentIcon />
+                  </span>
+                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
+                    {t.publicHousingCount(publicHousingEnabledCount)}
+                  </span>
+                </span>
+                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${publicHousingOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
+                  {publicHousingOn ? 'ON' : 'OFF'}
+                </span>
+              </button>
+              {/* Per-type rows — same handlers as the desktop panel, at a 44px
+                  tap target. No chevron: the modal is always expanded. */}
+              <div className={`pb-1 border-t border-(--mm-fg)/10 ${publicHousingOn ? '' : 'opacity-40 light:opacity-100'}`}>
+                {PUBLIC_HOUSING_TYPE_ORDER.map(type => {
+                  const on = isPublicHousingTypeOn(type)
+                  const lit = publicHousingOn && on
+                  const color = PUBLIC_HOUSING_TYPE_COLOR[type]
+                  return (
+                    <button
+                      key={type}
+                      type="button"
+                      onClick={() => onTogglePublicHousingType?.(type)}
+                      disabled={!onTogglePublicHousingType}
+                      aria-pressed={on}
+                      title={publicHousingTypeTitle(t, type)}
+                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-(--mm-fg)/[0.04] transition
+                                  ${onTogglePublicHousingType ? '' : 'cursor-default'}`}
+                    >
+                      <span
+                        className="inline-block w-[26px] h-[9px] shrink-0"
+                        style={on
+                          ? { backgroundImage: publicHousingRampGradient(type) }
+                          : { boxShadow: `inset 0 0 0 1px ${color}99` }}
+                      />
+                      {/* One flex cell for the label, so the count and ON/OFF
+                          columns keep their x positions whether or not the row
+                          carries a second line. Touch has no hover, so `other`
+                          shows its programmes here instead of only in `title`. */}
+                      <span className="flex-1 min-w-0 flex flex-col items-start justify-center">
+                        <span className={`w-full text-[12px] leading-[1.2] text-left truncate
+                                          ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
+                          {publicHousingTypeLabel(t, type)}
+                        </span>
+                        {type === 'other' && (
+                          <span className="w-full text-[8px] leading-[1.25] text-left line-clamp-2 mm-han text-(--mm-text-subtle)">
+                            {t.publicHousingOtherHint}
+                          </span>
+                        )}
+                      </span>
+                      <span
+                        className={`mm-mono mm-tabular text-[11px] w-6 text-right shrink-0
+                                    ${lit ? '' : 'text-(--mm-fg)/25'}`}
+                        style={lit ? { color } : undefined}
+                      >
+                        {housingTypeCounts[type] ?? 0}
+                      </span>
+                      <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
+                                        ${lit ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
+                        {on ? 'ON' : 'OFF'}
+                      </span>
+                    </button>
+                  )
+                })}
+                <div className="px-3 pt-[2px] flex items-baseline gap-2
+                                mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+                  <span className="mm-tabular shrink-0">{PUBLIC_HOUSING_DECADE_CAPTION}</span>
+                  <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
+                    {t.publicHousingRampHint}
+                  </span>
+                </div>
+                {/* Touch has no hover, so the focus-mode caption the desktop
+                    row carries in `title` is spelled out here — the same place
+                    the WASTE panel puts its own. */}
+                <div className="px-3 pb-1 mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+                  {t.publicHousingFocusNote}
+                </div>
               </div>
             </div>
           )}

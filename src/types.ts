@@ -189,9 +189,81 @@ export interface School {
   level: SchoolLevel
   levels: { kindergarten?: boolean; primary?: boolean; secondary?: boolean }
   system: string // 'private' | 'public' | 'tertiary' — not read by the runtime
+  // The year the school counts its own history from (校史), hand-transcribed
+  // by the pipeline from DSEDJ / the school / Wikipedia; null when unknown.
+  // The overlay shades each campus by the era this falls in.
+  founded: number | null
+  // One-sentence caveat on `founded` (a pre-Macau founding, a competing
+  // year, an earliest record standing in for an unpublished founding),
+  // shown under the year; null for the schools whose year needs none.
+  foundedNote: { zh: string; pt: string; en: string } | null
   coordinates: [number, number] // representative point [lng, lat]
   osm: string[] // the OSM campus features this school was matched to
   buildings: SchoolBuilding[] // may be empty when no footprint was matched
+}
+
+// ---- Public housing (社會房屋 / 經濟房屋) --------------------------------------
+// The Housing Bureau's (房屋局, IH) two 位置分佈 lists, from
+// public/data/public-housing.json. `social` is rental housing (habitação
+// social), `economic` subsidised-sale housing (habitação económica).
+export type PublicHousingType = 'social' | 'economic' | 'other'
+// The `other` type groups the public-housing programmes that are neither
+// social nor economic housing and have their own legal regimes: the
+// government's elderly apartments (政府長者公寓), the urban-renewal
+// replacement (置換房) and temporary (暫住房) housing, and sandwich-class
+// housing (夾心房屋). `category` says which; it is null for the two IH types.
+export type PublicHousingCategory = 'elderly' | 'replacement' | 'temporary' | 'sandwich'
+export type PublicHousingDistrict = 'macau' | 'taipa' | 'coloane'
+// `occupied` — IH publishes an occupation (入伙) date; `completed` — handed
+// over but no occupation date yet; `under_construction` — not finished.
+export type PublicHousingStatus = 'occupied' | 'completed' | 'under_construction'
+// What `year` means: the block's 入伙 (occupation) year from IH's list, a
+// completion year from IH's progress page, or an expected year for a lot
+// still being built.
+export type PublicHousingYearKind = 'occupation' | 'completion' | 'expected'
+
+// One block (座/樓) of an estate as IH lists it, with its occupation date.
+export interface PublicHousingBlock {
+  name: { zh: string; pt: string } // pt may be ""
+  year: number | null
+  date: string | null // "YYYY-MM-DD" when IH gives the day
+}
+
+// One building footprint of an estate — the same fill-extrusion contract as
+// SchoolBuilding, plus the IH block it was matched to (its `year` is that
+// block's occupation year; null falls back to the estate's).
+export interface PublicHousingBuilding {
+  osmId: string // e.g. "w206823727"
+  name: string | null // OSM building name, null when the footprint is unnamed
+  block: string | null // the matched block's zh name, e.g. "A座"; null if unmatched
+  year: number | null
+  height: number // metres
+  minHeight: number // metres; 0 for a ground-level building
+  coordinates: [number, number][][]
+}
+
+// One estate (or one IH list entry — IH lists e.g. 望廈社屋's four 樓 as
+// four entries). `year` is the earliest block year, the value the overlay
+// shades by when a building carries no block year of its own.
+export interface PublicHousingEstate {
+  id: string // "ihm:sh:<slug>" / "ihm:eh:<slug>", or "gov:..." for lots named only in government releases
+  name: { zh: string; pt: string } // no official English form exists; pt may be ""
+  type: PublicHousingType
+  category: PublicHousingCategory | null // set iff type === 'other'
+  district: PublicHousingDistrict
+  address: { zh: string; pt: string }
+  year: number | null
+  yearKind: PublicHousingYearKind | null
+  status: PublicHousingStatus
+  partial: boolean // IH's asterisk: only some of the units are public housing
+  units: number | null
+  storeys: number | null
+  blocks: PublicHousingBlock[]
+  coordinates: [number, number] // representative point [lng, lat]
+  approximate: boolean // true when the point is not derived from a matched footprint
+  osm: string[] // the OSM features this estate was matched to
+  buildings: PublicHousingBuilding[] // may be empty when no footprint was matched
+  sources: string[] // the pages this record was built from
 }
 
 // Trilingual free text as published by IAM. Unlike the DSAT road-works feed
@@ -887,6 +959,7 @@ export interface TransitData {
   ferries: Ferry[]
   roadWorks: RoadWorkNotice[]
   schools: School[]
+  publicHousing: PublicHousingEstate[]
   toilets: Toilet[]
   carParks: CarPark[]
   // Refuse rooms, compacting bins and the four recycling-point kinds. The
