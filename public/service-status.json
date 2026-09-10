@@ -1,12 +1,10 @@
 {
-  "date": "2026-09-09",
-  "fetchedAtUtc": "2026-09-09T01:07:09.753215+00:00",
-  "dayOfWeek": 2,
+  "date": "2026-09-10",
+  "fetchedAtUtc": "2026-09-10T00:55:27.373664+00:00",
+  "dayOfWeek": 3,
   "dayCategory": "weekday",
   "isHoliday": false,
   "totalRoutes": 92,
-  "inactive": [
-    "15T"
-  ],
+  "inactive": [],
   "errors": []
 }
