@@ -294,15 +294,16 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
         />
         <div
           ref={rootRef}
-          className="mm-ui-scale fixed bottom-0 z-[90] bg-(--mm-panel) border-t border-(--mm-amber)/25"
+          className="mm-ui-scale fixed bottom-0 z-[90] flex flex-col rounded-t-2xl overflow-hidden bg-(--mm-panel) border-t border-(--mm-border)"
           style={{
             left: 0,
             width: 'calc(100vw / 1.2)',
+            maxHeight: 'calc((100dvh - 16px) / 1.2)',
             animation: 'mm-sheet-up 220ms cubic-bezier(0.2,0.8,0.2,1)',
             boxShadow: '0 -12px 40px var(--mm-shadow)',
           }}
         >
-          <div className="flex items-center justify-between px-4 pt-2.5 pb-1.5 border-b border-(--mm-fg)/10 bg-(--mm-amber)/[0.04]">
+          <div className="flex shrink-0 items-center justify-between px-4 pt-2.5 pb-1.5 border-b border-(--mm-fg)/10 bg-(--mm-amber)/[0.04]">
             <div className="flex items-center gap-2">
               <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />
               <span
@@ -312,9 +313,9 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
               <span className="mm-mono text-[9px] tracking-[0.25em] text-(--mm-amber)/80">SET TIME · {t.setTimeLabel}</span>
             </div>
           </div>
-          <div className="mx-auto w-10 h-1 rounded-full bg-(--mm-fg)/12 mt-2" />
-          <div className="p-4 pb-2">{body}</div>
-          <div className="px-4 py-3 flex items-center justify-between gap-2 border-t border-(--mm-fg)/10 bg-(--mm-fg)/[0.02]">
+          <div className="mx-auto w-10 h-1 shrink-0 rounded-full bg-(--mm-fg)/12 mt-2" />
+          <div className="p-4 pb-2 min-h-0 overflow-y-auto">{body}</div>
+          <div className="px-4 py-3 flex shrink-0 items-center justify-between gap-2 border-t border-(--mm-fg)/10 bg-(--mm-fg)/[0.02]">
             <button
               onClick={onCancel}
               className="h-11 px-4 mm-mono text-[12px] tracking-wider text-(--mm-text-secondary) active:bg-(--mm-fg)/10 rounded-sm"
@@ -337,14 +338,13 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
   return (
     <div
       ref={rootRef}
-      className="absolute top-[130px] left-1/2 -translate-x-1/2 z-[90]
-                 bg-(--mm-panel) border border-(--mm-amber)/25 rounded-sm
+      className="mm-clock-picker absolute left-1/2 -translate-x-1/2 z-[90]
+                 bg-(--mm-panel) border border-(--mm-border) rounded-2xl overflow-hidden
                  flex flex-col"
       style={{
         animation: 'mm-pop-in 160ms cubic-bezier(0.2,0.8,0.2,1)',
         boxShadow: '0 18px 52px var(--mm-shadow)',
         zoom: 1.2,
-        maxHeight: 'calc((100vh - 340px) / 1.2)',
       }}
     >
       <div className="flex items-center justify-between px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-amber)/[0.04] shrink-0">

@@ -73,453 +73,120 @@ function CollapseIcon({ size = 11 }: { size?: number }) {
 
 function pad2(n: number) { return String(n).padStart(2, '0') }
 
-function useIsCompact() {
-  const [compact, setCompact] = useState(() =>
-    typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches
-  )
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 639px)')
-    const h = (e: MediaQueryListEvent) => setCompact(e.matches)
-    mq.addEventListener('change', h)
-    return () => mq.removeEventListener('change', h)
-  }, [])
-  return compact
-}
-
-function DensityBand({
-  bins,
-  heightPx,
-  showPeaks,
-  nowFrac,
-  hoverFrac,
-  firstFrac,
-  lastFrac,
-  density,
-  small = false,
-  amPeakLabel,
-  pmPeakLabel,
-}: {
-  bins: number
-  heightPx: number
-  showPeaks: boolean
-  nowFrac: number
-  hoverFrac: number | null
-  firstFrac: number
-  lastFrac: number
-  density: ReadonlyArray<number>
-  small?: boolean
-  amPeakLabel: string
-  pmPeakLabel: string
-}) {
-  return (
-    <div
-      className="relative rounded-sm overflow-hidden bg-(--mm-panel-2) border border-(--mm-fg)/8"
-      style={{ height: heightPx }}
-    >
-      {Array.from({ length: bins }).map((_, i) => {
-        const h = Math.floor((i / bins) * 24)
-        const d = density[h]
-        const d2 = d * d
-        const r = Math.round(252 + (255 - 252) * d2)
-        const g = Math.round(196 - 60 * d2)
-        const b = Math.round(65 - 45 * d2)
-        return (
-          <div
-            key={i}
-            className="absolute top-0 bottom-0"
-            style={{
-              left: `${(i / bins) * 100}%`,
-              width: `${100 / bins + 0.3}%`,
-              background: `linear-gradient(to top, rgba(${r},${g},${b},${d2 * 0.85 + d * 0.1}) 0%, rgba(${r},${g},${b},${d2 * 0.4}) 70%, transparent 100%)`,
-            }}
-          />
-        )
-      })}
-      {showPeaks && (
-        <>
-          <div
-            className="absolute top-[2px] mm-mono text-[7px] text-(--mm-amber-1)/90 tracking-widest pointer-events-none"
-            style={{ left: `${(7.5 / 24) * 100}%`, transform: 'translateX(-50%)' }}
-          >
-            {amPeakLabel}
-          </div>
-          <div
-            className="absolute top-[2px] mm-mono text-[7px] text-(--mm-amber-1)/90 tracking-widest pointer-events-none"
-            style={{ left: `${(18 / 24) * 100}%`, transform: 'translateX(-50%)' }}
-          >
-            {pmPeakLabel}
-          </div>
-        </>
-      )}
-      <div className="absolute top-0 bottom-0 w-px bg-(--mm-emerald-2)/50" style={{ left: `${firstFrac * 100}%` }} />
-      <div className="absolute top-0 bottom-0 w-px bg-(--mm-emerald-2)/50" style={{ left: `${lastFrac * 100}%` }} />
-      <div
-        className="absolute top-[-3px] bottom-[-3px] w-[2px] bg-(--mm-amber) shadow-[0_0_10px_color-mix(in_srgb,_var(--mm-amber)_90%,_transparent)]"
-        style={{ left: `${nowFrac * 100}%`, transform: 'translateX(-1px)' }}
-      />
-      <div
-        className={`absolute rounded-full bg-(--mm-amber) border-2 border-(--mm-panel-2) shadow-[0_0_12px_color-mix(in_srgb,_var(--mm-amber)_90%,_transparent)] ${small ? 'w-2 h-2' : 'w-3 h-3'}`}
-        style={{ left: `${nowFrac * 100}%`, top: '50%', transform: 'translate(-50%,-50%)' }}
-      />
-      {hoverFrac != null && (
-        <div
-          className="absolute top-0 bottom-0 w-px bg-(--mm-fg)/40 pointer-events-none"
-          style={{ left: `${hoverFrac * 100}%` }}
-        />
-      )}
-    </div>
-  )
+function timeLabel(minutes: number) {
+  return `${pad2(Math.floor(minutes / 60))}:${pad2(minutes % 60)}`
 }
 
 export function ControlPanel({ clock }: Props) {
   const { t } = useI18n()
-  const compact = useIsCompact()
-  const scrubRef = useRef<HTMLDivElement>(null)
-  const bandRef = useRef<HTMLDivElement>(null)
-  const [hoverFrac, setHoverFrac] = useState<number | null>(null)
-  const [expanded, setExpanded] = useState(() => {
-    if (typeof window === 'undefined') return true
-    return localStorage.getItem('mm_tl_expanded') !== '0'
-  })
-  const [speedMenuOpen, setSpeedMenuOpen] = useState(false)
+  const [expanded, setExpanded] = useState(() => localStorage.getItem('mm_tl_expanded') !== '0')
+  const [draftMinute, setDraftMinute] = useState<number | null>(null)
+  const draftRef = useRef<number | null>(null)
+  const draggingRef = useRef(false)
 
   useEffect(() => {
     localStorage.setItem('mm_tl_expanded', expanded ? '1' : '0')
   }, [expanded])
 
-  // The scrubber's cursor and label are minute-resolution (HH:MM on a
-  // one-day rail), so this panel re-renders once per simulated minute — not
-  // on every tick; the rail's density bars are far too many for that.
+  // Keep the density rail on a minute subscription, independent of the seconds display.
   const now = useClockMinute(clock)
-  const nowParts = macauParts(now)
-  const nowFrac = (nowParts.hours * 60 + nowParts.minutes) / (24 * 60)
-  const nowLabel = `${pad2(nowParts.hours)}:${pad2(nowParts.minutes)}`
-  const hoverHH = hoverFrac != null ? Math.floor(hoverFrac * 24) : null
-  const hoverMM = hoverFrac != null ? Math.floor((hoverFrac * 24 * 60) % 60) : null
-  const hoverLabel =
-    hoverFrac != null && hoverHH != null && hoverMM != null
-      ? `${pad2(hoverHH)}:${pad2(hoverMM)}`
-      : null
+  const parts = macauParts(now)
+  const minute = draftMinute ?? parts.hours * 60 + parts.minutes
+  const sched = getScheduleDensity(macauWeekday(now))
+  const status = clock.paused ? t.pause : clock.isLive ? t.live : t.simShort
 
-  const scrubTo = useCallback((frac: number) => {
-    const f = Math.max(0, Math.min(1, frac))
-    const totalMin = Math.floor(f * 24 * 60)
-    // The timeline rail spans one Macau day; rebuild the instant from the
-    // selected day's Macau midnight + scrubbed minutes so the scrub means the
-    // same wall-clock time for every viewer. The ref is the exact sim time at
-    // the moment of the scrub, not the last rendered tick.
+  const seekTo = useCallback((value: number) => {
+    const selectedMinute = Math.max(0, Math.min(1439, value))
     const p = macauParts(clock.timeRef.current)
-    const d = macauWallToInstant(p.year, p.month, p.day, Math.floor(totalMin / 60), totalMin % 60)
-    clock.setTime(d)
+    clock.setTime(macauWallToInstant(p.year, p.month, p.day, Math.floor(selectedMinute / 60), selectedMinute % 60))
   }, [clock])
 
-  const fracFromRef = useCallback((ref: React.RefObject<HTMLDivElement | null>, clientX: number) => {
-    if (!ref.current) return null
-    const r = ref.current.getBoundingClientRect()
-    return Math.max(0, Math.min(1, (clientX - r.left) / r.width))
-  }, [])
-
-  const handleMove = useCallback((clientX: number) => {
-    const f = fracFromRef(scrubRef, clientX)
-    if (f != null) setHoverFrac(f)
-  }, [fracFromRef])
-
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    const f = fracFromRef(scrubRef, e.clientX)
-    if (f != null) scrubTo(f)
-  }, [fracFromRef, scrubTo])
-
-  const handleTouch = useCallback((clientX: number, commit: boolean) => {
-    const f = fracFromRef(scrubRef, clientX)
-    if (f == null) return
-    setHoverFrac(f)
-    if (commit) scrubTo(f)
-  }, [fracFromRef, scrubTo])
-
-  const handleBandMove = useCallback((clientX: number) => {
-    const f = fracFromRef(bandRef, clientX)
-    if (f != null) setHoverFrac(f)
-  }, [fracFromRef])
-
-  const handleBandClick = useCallback((e: React.MouseEvent) => {
-    const f = fracFromRef(bandRef, e.clientX)
-    if (f != null) scrubTo(f)
-  }, [fracFromRef, scrubTo])
-
-  const sched = getScheduleDensity(macauWeekday(now))
-
-  const isPaused = clock.paused
-  const speed = clock.speed
-  const isLive = clock.isLive
-
-  // ====================================================
-  // PHONE: scrubber on top + 44px play/speed-menu/NOW row
-  // ====================================================
-  if (compact) {
-    const MOBILE_SPEEDS = [1, 2, 5, 10, 30]
-    return (
-      <div className="absolute bottom-14 left-3 right-3 z-30 mm-fade
-                      pb-[max(0px,env(safe-area-inset-bottom))]">
-        <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-border) rounded-sm
-                        shadow-2xl shadow-(color:--mm-shadow) overflow-visible">
-          {/* Scrubber */}
-          <div
-            ref={scrubRef}
-            className="px-2.5 pt-2.5 pb-1.5 select-none cursor-pointer"
-            onMouseMove={e => handleMove(e.clientX)}
-            onMouseLeave={() => setHoverFrac(null)}
-            onClick={handleClick}
-            onTouchMove={e => handleTouch(e.touches[0].clientX, false)}
-            onTouchEnd={e => {
-              const t = e.changedTouches[0]
-              if (t) handleTouch(t.clientX, true)
-              setHoverFrac(null)
-            }}
-          >
-            <DensityBand bins={48} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} amPeakLabel={t.amPeak} pmPeakLabel={t.pmPeak} />
-          </div>
-          {/* Bottom row */}
-          <div className="flex items-stretch gap-0 px-1 pb-1 pt-0.5 border-t border-(--mm-fg)/8">
-            <button
-              type="button"
-              onClick={clock.togglePause}
-              aria-label={isPaused ? t.play : t.pause}
-              className="w-11 h-11 flex items-center justify-center text-(--mm-amber-1)
-                         active:bg-(--mm-fg)/10 rounded-sm shrink-0"
-            >
-              {isPaused ? <PlayIcon size={14} /> : <PauseIcon size={14} />}
-            </button>
-            <div className="w-px bg-(--mm-fg)/8 my-1.5" />
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setSpeedMenuOpen(o => !o)}
-                aria-haspopup="menu"
-                aria-expanded={speedMenuOpen}
-                  className="h-11 px-3 flex items-center gap-1 text-(--mm-amber-1)
-                           active:bg-(--mm-fg)/10 rounded-sm"
-              >
-                <span className="mm-mono mm-tabular text-[13px] font-bold">{speed}×</span>
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-                  <polyline points="6 15 12 9 18 15" />
-                </svg>
-              </button>
-              {speedMenuOpen && (
-                <div
-                  role="menu"
-                  className="absolute bottom-full left-0 mb-1 z-50 bg-(--mm-panel)
-                             border border-(--mm-fg)/15 shadow-2xl shadow-(color:--mm-shadow) flex flex-col min-w-[64px]
-                             overflow-hidden"
-                >
-                  {MOBILE_SPEEDS.map(s => (
-                    <button
-                      key={s}
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked={s === speed}
-                              onClick={() => { clock.setSpeed(s); setSpeedMenuOpen(false) }}
-                      className={`h-10 px-3 text-left mm-mono mm-tabular text-[13px]
-                                  active:bg-(--mm-fg)/10
-                                  ${s === speed
-                                    ? 'bg-(--mm-amber)/15 text-(--mm-amber-1)'
-                                    : 'text-(--mm-fg)/70'}`}
-                    >
-                      {s}×
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            <div className="w-px bg-(--mm-fg)/8 my-1.5" />
-            <button
-              type="button"
-              onClick={clock.syncToNow}
-              title={t.resetNorth}
-              className="h-11 px-3 flex items-center gap-1.5 text-(--mm-text-secondary)
-                         active:bg-(--mm-fg)/10 active:text-(--mm-amber-1) rounded-sm"
-            >
-              <ClockIcon size={12} />
-              <span className="mm-mono text-[10px] tracking-wider">{t.nowShort}</span>
-            </button>
-            <div className="flex-1" />
-            {hoverLabel && (
-              <div className="h-11 pr-3 flex items-center gap-1.5 text-(--mm-amber-1) shrink-0">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                     strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-                <span className="mm-mono mm-tabular text-[12px] font-bold">{hoverLabel}</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    )
+  const finishScrub = () => {
+    draggingRef.current = false
+    if (draftRef.current !== null) seekTo(draftRef.current)
+    draftRef.current = null
+    setDraftMinute(null)
   }
 
-  // ====================================================
-  // DESKTOP — collapsed rail
-  // ====================================================
-  if (!expanded) {
-    return (
-      <div className="mm-ui-scale absolute bottom-8 left-4 right-4 z-10 mx-auto mm-fade
-                      landscape:bottom-6" style={{ maxWidth: 480 }}>
-        <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-border) rounded-sm
-                        shadow-2xl shadow-(color:--mm-shadow) overflow-hidden flex items-center gap-0 px-1 py-1">
-          <button
-            type="button"
-            onClick={clock.togglePause}
-            aria-label={isPaused ? t.play : t.pause}
-            className="w-7 h-7 flex items-center justify-center text-(--mm-amber-1)
-                       hover:bg-(--mm-fg)/5 rounded-sm shrink-0"
-          >
-            {isPaused ? <PlayIcon size={11} /> : <PauseIcon size={11} />}
-          </button>
-          <span className="mm-mono mm-tabular text-[9px] px-1.5 h-6 rounded-sm text-(--mm-amber-1)
-                           bg-(--mm-amber)/15 shrink-0 flex items-center"
-                style={{ boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--mm-amber-2) 30%, transparent)' }}>
-            {speed}×
-          </span>
-          <div className="w-px h-4 bg-(--mm-fg)/10 mx-1.5 shrink-0" />
-          <div
-            ref={scrubRef}
-            className="flex-1 px-0.5 select-none cursor-pointer"
-            onMouseMove={e => handleMove(e.clientX)}
-            onMouseLeave={() => setHoverFrac(null)}
-            onClick={handleClick}
-          >
-            <DensityBand bins={48} heightPx={14} showPeaks={false} nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} small amPeakLabel={t.amPeak} pmPeakLabel={t.pmPeak} />
-          </div>
-          <div className={`mm-mono text-[10px] mm-tabular px-2 flex items-center gap-1 shrink-0 ${isLive ? 'text-(--mm-amber-1)/90' : 'text-(--mm-text-muted)'}`}>
-            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-(--mm-emerald-2) mm-led-pulse' : 'bg-(--mm-fg)/25'}`} />
-            <span>{hoverLabel ?? nowLabel}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setExpanded(true)}
-            title={t.expand}
-            aria-label={t.expand}
-            className="w-7 h-7 flex items-center justify-center text-(--mm-text-muted)
-                       hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 rounded-sm shrink-0"
-          >
-            <ExpandIcon />
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  // ====================================================
-  // DESKTOP — expanded: full scrubber with hour axis
-  // ====================================================
   return (
-    <div className="mm-ui-scale absolute bottom-8 left-4 right-4 z-10 mx-auto mm-fade
-                    landscape:bottom-6" style={{ maxWidth: 720 }}>
-      <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-border) rounded-sm
-                      shadow-2xl shadow-(color:--mm-shadow) overflow-hidden">
-        {/* Top row */}
-        <div className="flex items-center gap-0 px-1 py-1 border-b border-(--mm-fg)/8">
-          <button
-            type="button"
-            onClick={clock.togglePause}
-            aria-label={isPaused ? t.play : t.pause}
-            className="w-7 h-7 flex items-center justify-center text-(--mm-amber-1)
-                       hover:bg-(--mm-fg)/5 rounded-sm"
-          >
-            {isPaused ? <PlayIcon size={11} /> : <PauseIcon size={11} />}
-          </button>
-          <div className="w-px h-4 bg-(--mm-fg)/10 mx-1" />
-          {SPEEDS.map(s => {
-            const active = s === speed
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => clock.setSpeed(s)}
-                aria-pressed={active}
-                  className={`mm-mono mm-tabular text-[10px] px-1.5 h-6 rounded-sm transition
-                           ${active
-                             ? 'bg-(--mm-amber)/15 text-(--mm-amber-1)'
-                             : 'text-(--mm-text-muted) hover:text-(--mm-fg)/80'}`}
-                style={active ? { boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--mm-amber-2) 30%, transparent)' } : undefined}
-              >
-                {s}×
-              </button>
-            )
-          })}
-          <div className="w-px h-4 bg-(--mm-fg)/10 mx-1" />
-          <button
-            type="button"
-            onClick={clock.syncToNow}
-            title={t.resetNorth}
-            className="h-6 px-2 flex items-center gap-1 text-(--mm-text-secondary) hover:text-(--mm-fg) rounded-sm"
-          >
-            <ClockIcon size={10} />
-            <span className="mm-mono text-[9px] tracking-wider">{t.nowShort}</span>
-          </button>
-          <div className="flex-1" />
-          <div className={`mm-mono mm-tabular text-[9px] pr-2 flex items-center gap-1.5 ${isLive ? 'text-(--mm-amber-1)/80' : 'text-(--mm-text-muted)'}`}>
-            <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-(--mm-emerald-2) mm-led-pulse' : 'bg-(--mm-fg)/25'}`} />
-            <span>{hoverLabel ?? (isLive ? `${nowLabel} · ${t.nowShort}` : `${nowLabel} · ${t.simShort}`)}</span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setExpanded(false)}
-            title={t.collapse}
-            aria-label={t.collapse}
-            className="w-7 h-7 flex items-center justify-center text-(--mm-text-muted)
-                       hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 rounded-sm"
-          >
-            <CollapseIcon />
-          </button>
+    <section className="mm-time-player" data-expanded={expanded} aria-label={t.timelineTitle}>
+      <div className="mm-player-toolbar">
+        <button type="button" className="mm-player-play" onClick={clock.togglePause}
+          aria-label={clock.paused ? t.play : t.pause} title={`${clock.paused ? t.play : t.pause} (Space)`}>
+          {clock.paused ? <PlayIcon size={18} /> : <PauseIcon size={18} />}
+        </button>
+        <span className="mm-player-heading">{t.timelineTitle}<small className="mm-mono">24H / MACAU</small></span>
+        <div className="mm-player-speeds mm-mono" role="group" aria-label={t.playbackSpeed}>
+          {SPEEDS.map(speed => (
+            <button type="button" key={speed} onClick={() => clock.setSpeed(speed)}
+              aria-pressed={clock.speed === speed}>{speed}×</button>
+          ))}
         </div>
+        <select className="mm-player-speed-select mm-mono" value={clock.speed}
+          aria-label={t.playbackSpeed} onChange={e => clock.setSpeed(Number(e.target.value))}
+          onKeyDown={e => e.stopPropagation()}>
+          {SPEEDS.map(speed => <option key={speed} value={speed}>{speed}×</option>)}
+        </select>
+        <button type="button" className="mm-player-now" onClick={clock.syncToNow} title={t.resetNorth}>
+          <ClockIcon size={14} /><span>{t.nowShort}</span>
+        </button>
+        <span className="mm-player-readout">
+          <span className="mm-mono mm-tabular">{timeLabel(minute)}</span>
+          <small><span className="mm-clock-status-dot" data-live={clock.isLive} />{status}</small>
+        </span>
+        <button type="button" className="mm-player-expand" onClick={() => setExpanded(p => !p)}
+          aria-expanded={expanded} aria-controls="mm-day-timeline" aria-label={expanded ? t.collapse : t.expand}>
+          {expanded ? <CollapseIcon size={15} /> : <ExpandIcon size={15} />}
+        </button>
+      </div>
 
-        {/* Scrubber with hour axis + density + first/last labels */}
-        <div className="px-3 pt-2.5 pb-3">
-          <div
-            ref={bandRef}
-            className="relative select-none cursor-pointer"
-            onMouseMove={e => handleBandMove(e.clientX)}
-            onMouseLeave={() => setHoverFrac(null)}
-            onClick={handleBandClick}
-          >
-            {/* hour ticks */}
-            <div className="relative h-6 mb-1">
-              {Array.from({ length: 25 }).map((_, h) => {
-                const major = h % 6 === 0
-                return (
-                  <div
-                    key={h}
-                    className="absolute top-0 flex flex-col items-center"
-                    style={{ left: `${(h / 24) * 100}%`, transform: 'translateX(-50%)' }}
-                  >
-                    <div className={`${major ? 'h-3 bg-(--mm-fg)/30' : 'h-1.5 bg-(--mm-fg)/12'} w-px`} />
-                    {major && h < 24 && (
-                      <div className="mm-mono mm-tabular text-[8px] text-(--mm-text-muted) mt-0.5">{pad2(h)}</div>
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-            <DensityBand bins={96} heightPx={22} showPeaks nowFrac={nowFrac} hoverFrac={hoverFrac} firstFrac={sched.firstFrac} lastFrac={sched.lastFrac} density={sched.density} amPeakLabel={t.amPeak} pmPeakLabel={t.pmPeak} />
-            <div className="relative h-4 mt-0.5">
-              <div
-                className="absolute mm-mono text-[9px] text-(--mm-emerald)/70 tracking-widest whitespace-nowrap"
-                style={{ left: `${sched.firstFrac * 100}%`, transform: 'translateX(-50%)' }}
-              >
-                {t.firstBusLabel} {sched.first}
-              </div>
-              <div
-                className="absolute mm-mono text-[9px] text-(--mm-emerald)/70 tracking-widest whitespace-nowrap"
-                style={{ left: `${sched.lastFrac * 100}%`, transform: 'translateX(-100%)' }}
-              >
-                {t.lastBusLabel} {sched.last}
-              </div>
-            </div>
+      <div className="mm-player-timeline" id="mm-day-timeline" hidden={!expanded}>
+        <div className="mm-player-caption"><span>{t.timelineDensity}</span><span>{t.timelineSeek}</span></div>
+        <div className="mm-player-rail">
+          <div className="mm-player-wave" aria-hidden="true">
+            {Array.from({ length: 96 }, (_, i) => {
+              const density = sched.density[Math.floor(i / 4)]
+              return <span key={i} data-elapsed={i / 96 <= minute / 1440}
+                style={{ height: `${Math.max(7, density * 100)}%` }} />
+            })}
           </div>
+          <div className="mm-player-markers" aria-hidden="true">
+            <span className="mm-player-service-start" style={{ left: `${sched.firstFrac * 100}%` }} />
+            <span className="mm-player-service-end" style={{ left: `${Math.min(100, sched.lastFrac * 100)}%` }} />
+            <span className="mm-player-cursor" style={{ left: `${minute / 1439 * 100}%` }} />
+            <span className="mm-player-peak" style={{ left: '33.33%' }}>{t.amPeak}</span>
+            <span className="mm-player-peak" style={{ left: '75%' }}>{t.pmPeak}</span>
+          </div>
+          <input className="mm-player-scrubber" type="range" min={0} max={1439} step={1}
+            value={minute} aria-label={t.timelineSeek} aria-valuetext={timeLabel(minute)}
+            onPointerDown={e => {
+              draggingRef.current = true
+              e.currentTarget.setPointerCapture(e.pointerId)
+            }}
+            onChange={e => {
+              const next = Number(e.target.value)
+              if (draggingRef.current) {
+                draftRef.current = next
+                setDraftMinute(next)
+              } else {
+                seekTo(next)
+              }
+            }}
+            onPointerUp={finishScrub} onBlur={finishScrub}
+            onPointerCancel={() => {
+              draggingRef.current = false
+              draftRef.current = null
+              setDraftMinute(null)
+            }} />
+        </div>
+        <div className="mm-player-hours mm-mono" aria-hidden="true">
+          {[0, 6, 12, 18, 24].map(hour => <span key={hour}>{pad2(hour)}</span>)}
+        </div>
+        <div className="mm-player-service">
+          <span><i />{t.firstBusLabel} <b className="mm-mono">{sched.first}</b></span>
+          <span>{t.lastBusLabel} <b className="mm-mono">{sched.last}</b><i /></span>
         </div>
       </div>
-    </div>
+    </section>
   )
 }

@@ -1,0 +1,51 @@
+.mm-mobile-service-tickets { display: flex; flex-direction: column; gap: 14px; padding: 22px 16px 24px; }
+.mm-service-tickets-heading { margin: 0 0 2px; }
+.mm-service-tickets-heading h3 { margin: 0; color: var(--mm-fg); font-size: 22px; line-height: 1.3; font-weight: 700; letter-spacing: -.035em; }
+.mm-service-tickets-heading p { margin: 5px 0 0; color: var(--mm-text-secondary); font-size: 11px; line-height: 1.5; }
+.mm-service-ticket { --ticket-stub: 30%; --ticket-hero-height: 80px; position: relative; flex-shrink: 0; overflow: hidden; border-radius: 11px; }
+.mm-service-ticket-surface { border: 1px solid var(--ticket-accent); border-radius: 11px; overflow: hidden; }
+.mm-service-ticket-hero { display: grid; grid-template-columns: minmax(0, 1fr) var(--ticket-stub); min-height: var(--ticket-hero-height); background: var(--ticket-accent); color: var(--mm-on-accent); }
+.mm-service-ticket-body { position: relative; display: flex; align-items: center; gap: 14px; min-width: 0; padding: 10px 14px; overflow: hidden; }
+.mm-service-ticket-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right bottom; pointer-events: none; }
+.mm-service-ticket-body > .mm-mobile-asset-icon, .mm-service-ticket-title { position: relative; }
+.mm-service-ticket[data-kind="air"] .mm-service-ticket-body > .mm-mobile-asset-icon { color: color-mix(in srgb, var(--mm-on-accent) 75%, var(--ticket-accent)); }
+.mm-service-ticket-title { min-width: 0; }
+.mm-service-ticket-title > span { display: block; font-size: 8px; line-height: 1.5; font-weight: 700; letter-spacing: .1em; }
+.mm-service-ticket-title h4 { margin: 4px 0 3px; font-size: 21px; line-height: 1.15; font-weight: 750; letter-spacing: -.04em; }
+.mm-service-ticket-title p { margin: 0; font-size: 11px; line-height: 1.5; font-weight: 600; overflow-wrap: anywhere; }
+.mm-service-ticket-stub { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 3px; min-width: 0; padding: 8px 5px; background: color-mix(in srgb, var(--ticket-accent) 70%, var(--mm-fg)); }
+.mm-service-ticket-stub strong { font-size: 40px; font-weight: 650; line-height: 1.1; letter-spacing: -.08em; }
+.mm-service-ticket-stub > span { font-size: 11px; line-height: 1.5; font-weight: 600; text-align: center; }
+.mm-service-ticket-toggle { position: relative; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 36px; padding: 6px 16px; color: var(--mm-fg); background: color-mix(in srgb, var(--ticket-accent) 23%, var(--mm-panel)); border-top: 1px solid color-mix(in srgb, var(--ticket-accent) 65%, var(--mm-border)); cursor: pointer; }
+/* Keep the ticket's compact action strip while extending its touch area into the hero. */
+.mm-service-ticket-toggle::before { content: ''; position: absolute; inset: -8px 0 0; }
+.mm-service-ticket-action-label { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 12px; line-height: 1.4; font-weight: 600; text-align: left; }
+.mm-service-ticket-switch { position: relative; width: 38px; height: 22px; flex: 0 0 38px; border: 1px solid var(--mm-text-secondary); border-radius: 22px; background: var(--mm-panel-3); }
+.mm-service-ticket-switch i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: var(--mm-text-secondary); transition: transform .15s; }
+.mm-service-ticket-toggle[aria-checked="true"] .mm-service-ticket-switch { border-color: var(--ticket-accent); background: var(--ticket-accent); }
+.mm-service-ticket-toggle[aria-checked="true"] .mm-service-ticket-switch i { transform: translateX(16px); background: var(--mm-fg); }
+.mm-service-ticket[data-active="false"] .mm-service-ticket-hero { opacity: .58; }
+.mm-service-ticket[data-active="false"] .mm-service-ticket-toggle { background: var(--mm-panel-3); }
+.mm-service-ticket[data-active="false"] .mm-service-ticket-surface { border-color: var(--mm-border); }
+.mm-service-ticket::before, .mm-service-ticket::after { content: ''; position: absolute; z-index: 1; top: calc(var(--ticket-hero-height) / 2 - 6px); width: 12px; height: 12px; border-radius: 50%; background: var(--mm-panel); pointer-events: none; }
+.mm-service-ticket::before { left: -6px; }
+.mm-service-ticket::after { right: -6px; }
+.mm-service-ticket-perforation { position: absolute; top: 0; bottom: 0; right: var(--ticket-stub); border-left: 1px dashed color-mix(in srgb, var(--mm-fg) 70%, transparent); pointer-events: none; }
+.mm-service-ticket-perforation::before, .mm-service-ticket-perforation::after { content: ''; position: absolute; left: -6px; width: 12px; height: 12px; border: 1px solid var(--ticket-accent); border-radius: 50%; background: var(--mm-panel); }
+.mm-service-ticket-perforation::before { top: -7px; }
+.mm-service-ticket-perforation::after { bottom: -7px; }
+[data-theme="light"] .mm-service-ticket-art { opacity: .16; mix-blend-mode: screen; }
+[data-theme="light"] .mm-service-ticket-stub { background: color-mix(in srgb, var(--ticket-accent) 92%, var(--mm-fg)); }
+[data-theme="light"] .mm-service-ticket-perforation { border-color: var(--mm-on-accent); }
+[data-theme="light"] .mm-service-ticket-toggle[aria-checked="true"] .mm-service-ticket-switch i { background: var(--mm-on-accent); }
+@media (max-width: 359px) {
+  .mm-mobile-service-tickets { padding-inline: 12px; }
+  .mm-service-ticket-body { padding: 12px; gap: 10px; }
+  .mm-service-ticket-body > .mm-mobile-asset-icon { max-width: 34px; max-height: 34px; }
+  .mm-service-ticket-title h4 { font-size: 21px; }
+  .mm-service-ticket-title p, .mm-service-ticket-stub > span { font-size: 10px; }
+  .mm-service-ticket-stub strong { font-size: 38px; }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .mm-mobile-service-tickets { padding-top: 14px; }
+}

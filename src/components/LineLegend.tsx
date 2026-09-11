@@ -1,4 +1,4 @@
-import { Fragment, useState, useMemo, useEffect, type ReactNode } from 'react'
+import { useState, useMemo, useEffect, type ReactNode } from 'react'
 import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType } from '../types'
 import { useI18n, localName, type Translations } from '../i18n'
 import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS, type GroupKey } from '../routeGroups'
@@ -11,7 +11,6 @@ import {
   schoolRamp,
   type SchoolLevelSet,
 } from '../schools'
-import { PARISH_COLORS, PARISH_ORDER } from '../parishes'
 import {
   PUBLIC_HOUSING_DECADES,
   PUBLIC_HOUSING_TYPE_COLOR,
@@ -25,7 +24,13 @@ import { waterLegendRows, type WaterLegendRow } from '../water'
 import { powerLegendRows, type PowerLegendRow } from '../power'
 import { grandPrixLegendRows, type GrandPrixLegendRow } from '../grandPrix'
 import { useTheme } from '../theme'
-import { BusIcon, LrtIcon } from './TransitIcons'
+import { BusIcon, CloseIcon, LrtIcon } from './TransitIcons'
+import { CityLayerList, type LayerDetail } from './CityLayerList'
+import { MobileLayerSheet, MobileCityIndex, MobileCityDetail, type MobileLayerCategory, type MobileLayerTab } from './MobileLayerSheet'
+import { MobileLayerIcon } from './MobileLayerIcon'
+import { MobileServiceTickets } from './MobileServiceTickets'
+import { MobileBusRegister } from './MobileBusRegister'
+import { MobileLrtConsole } from './MobileLrtConsole'
 import {
   WASTE_LAYER_TYPES,
   countWasteByType,
@@ -35,17 +40,6 @@ import {
   type WasteLayerType,
   type WasteTypeSet,
 } from '../waste'
-
-// The five level colours as one 8×8 swatch. Only the mobile modal header uses
-// it now — the desktop row shows the same violet hatch as the other layers,
-// because the per-level rows underneath carry the colour key themselves.
-const SCHOOL_SWATCH_GRADIENT = `linear-gradient(90deg, ${
-  SCHOOL_LEVEL_ORDER.map((level, i) =>
-    `${SCHOOL_LEVEL_COLOR[level]} ${i * 20}% ${(i + 1) * 20}%`).join(', ')
-})`
-
-// Violet hatch for the SCHOOLS row, matching the AIR/SEA/WORKS swatches.
-const SCHOOL_HATCH = 'repeating-linear-gradient(-45deg, rgba(167,139,250,0.45) 0 1px, transparent 1px 3px)'
 
 // A level's five era stops as one gradient strip, oldest (darkest) on the
 // left. This is the shade key: each level row below the SCHOOLS row wears its
@@ -66,35 +60,6 @@ function schoolRampGradient(level: SchoolLevel): string {
 // end is written as a bound rather than as a decade.
 const SCHOOL_ERA_CAPTION =
   `<${SCHOOL_ERAS[1]} → ${SCHOOL_ERAS[SCHOOL_ERAS.length - 1]}s`
-
-// Static English caption beside each level's localised label, so a row reads
-// the same in all three UI languages (the mono column is decoration, not a
-// translated string).
-const SCHOOL_LEVEL_CAPTIONS: Record<SchoolLevel, string> = {
-  kindergarten: 'KINDER',
-  primary: 'PRIMARY',
-  secondary: 'SECONDARY',
-  university: 'TERTIARY',
-  all_through: 'ALL-THROUGH',
-}
-
-// Every type colour as one 8×8 swatch, for the mobile modal header — the
-// desktop row wears the lime hatch instead, because the type rows underneath it
-// carry the colour key themselves (same split as the schools). The band width
-// is divided by PUBLIC_HOUSING_TYPE_ORDER's length, so a new type re-divides
-// the swatch instead of being laid out past its right edge.
-const PUBLIC_HOUSING_SWATCH_STEP = 100 / PUBLIC_HOUSING_TYPE_ORDER.length
-const PUBLIC_HOUSING_SWATCH_GRADIENT = `linear-gradient(90deg, ${
-  PUBLIC_HOUSING_TYPE_ORDER.map((type, i) =>
-    `${PUBLIC_HOUSING_TYPE_COLOR[type]} ${i * PUBLIC_HOUSING_SWATCH_STEP}% ${
-      (i + 1) * PUBLIC_HOUSING_SWATCH_STEP}%`).join(', ')
-})`
-
-// Lime hatch for the HOUSING row — the one CITY hue no other row uses, so the
-// estate blocks' own orange/teal/violet families stay the map's only housing
-// colours.
-const PUBLIC_HOUSING_HATCH =
-  'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-lime-2) 45%, transparent) 0 1px, transparent 1px 3px)'
 
 // A housing type's five decade stops as one gradient strip, oldest (darkest)
 // on the left. This is the shade key: each type row below the HOUSING row
@@ -118,53 +83,10 @@ function publicHousingTypeTitle(t: Translations, type: PublicHousingType): strin
 }
 
 // Static English caption naming the two ends of that ramp, in the same mono
-// decoration slot as SCHOOL_LEVEL_CAPTIONS (the range is digits, so it reads
+// decoration slot as the school eras (the range is digits, so it reads
 // the same in all three UI languages).
 const PUBLIC_HOUSING_DECADE_CAPTION =
   `${PUBLIC_HOUSING_DECADES[0]}s → ${PUBLIC_HOUSING_DECADES[PUBLIC_HOUSING_DECADES.length - 1]}s`
-
-// Teal hatch for the WC row, matching the AIR/SEA/WORKS/SCHOOLS swatches.
-const TOILET_HATCH = 'repeating-linear-gradient(-45deg, rgba(20,184,166,0.45) 0 1px, transparent 1px 3px)'
-
-// Blue hatch for the car-park row — the marker colour (#3b82f6).
-const CAR_PARK_HATCH = 'repeating-linear-gradient(-45deg, rgba(59,130,246,0.45) 0 1px, transparent 1px 3px)'
-
-// The PARISHES swatch: one hard band per area, in PARISH_ORDER. Unlike the
-// school and housing strips this is a CATEGORICAL key, not a ramp — the eight
-// tints mean eight places, not eight steps of one thing — so the stops are hard
-// (`c a%, c b%`) instead of blended.
-const PARISH_STRIP = `linear-gradient(90deg, ${PARISH_ORDER.map((slug, i) => {
-  const from = (i * 100) / PARISH_ORDER.length
-  const to = ((i + 1) * 100) / PARISH_ORDER.length
-  return `${PARISH_COLORS[slug]} ${from}% ${to}%`
-}).join(', ')})`
-
-// Green hatch for the WASTE row — the three-colour recycling green (#4ade80).
-// The overlay has six colours and no single dominant one, so the row wears the
-// recycling green the map's largest recycling type is drawn in.
-const WASTE_HATCH = 'repeating-linear-gradient(-45deg, rgba(74,222,128,0.45) 0 1px, transparent 1px 3px)'
-
-// Sky hatch for the WATER row — the reservoir colour (#38bdf8), which is the
-// overlay's dominant tone on the map.
-const WATER_HATCH = 'repeating-linear-gradient(-45deg, rgba(56,189,248,0.45) 0 1px, transparent 1px 3px)'
-
-// Amber hatch for the POWER row — the distribution colour (#fbbf24), which is
-// the overlay's dominant tone across the city.
-const POWER_HATCH = 'repeating-linear-gradient(-45deg, rgba(251,191,36,0.45) 0 1px, transparent 1px 3px)'
-
-// 12px lightning bolt for the POWER row, in the same stroked style as its
-// siblings so it dims with the row.
-function PowerIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M9.3 1.6L4.9 8.4h2.6l-1 6 4.6-7h-2.6z" />
-    </svg>
-  )
-}
-
-// Rose hatch for the GRAND PRIX row — the racing line's colour (#f43f5e).
-const GRAND_PRIX_HATCH = 'repeating-linear-gradient(-45deg, rgba(244,63,94,0.45) 0 1px, transparent 1px 3px)'
 
 // 12px chequered flag for the GRAND PRIX row, stroked like its siblings.
 function GrandPrixIcon() {
@@ -174,17 +96,6 @@ function GrandPrixIcon() {
       <path d="M3.5 14.5V2.5" />
       <path d="M3.5 3h9l-1.5 3 1.5 3h-9" />
       <path d="M6.5 3v6M9.5 3v6" strokeWidth="1.1" opacity="0.65" />
-    </svg>
-  )
-}
-
-// 12px droplet for the WATER row — the same stroked style as the sibling row
-// glyphs, so it dims with the row instead of staying lit like an emoji would.
-function WaterIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M8 1.75c2.6 3 4.25 5.05 4.25 7.1a4.25 4.25 0 0 1-8.5 0c0-2.05 1.65-4.1 4.25-7.1z" />
     </svg>
   )
 }
@@ -312,7 +223,7 @@ function KeyChain<R extends ChainRow>({ rows, glyph, caption, stageLabel }: {
   const chain = rows.filter(row => row.stage > 0)
   const styles = rows.filter(row => row.stage === 0)
   const label = (row: R) => (
-    <span className="text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate text-(--mm-text-secondary)"
+    <span className="mm-key-label text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate text-(--mm-text-secondary)"
           title={row.label}>
       {row.label}
     </span>
@@ -343,7 +254,7 @@ function KeyChain<R extends ChainRow>({ rows, glyph, caption, stageLabel }: {
           {label(row)}
         </div>
       ))}
-      <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+      <div className="mm-key-caption pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
         {caption}
       </div>
     </div>
@@ -511,91 +422,6 @@ function GrandPrixKey({ circuit, caption }: { circuit: TransitData['grandPrix'];
   )
 }
 
-// 12px "P" plate for the car-park row: a rounded-square outline with the
-// parking P, in the same stroked style as the sibling row glyphs.
-function CarParkIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="2.25" y="2.25" width="11.5" height="11.5" rx="2" />
-      <path d="M6.25 11.75V4.75h2.1a2.1 2.1 0 0 1 0 4.2h-2.1" />
-    </svg>
-  )
-}
-
-// 12px boundary glyph for the PARISHES row: a dashed square with a solid
-// division through it — a region split into areas, in the same stroked style as
-// the sibling row glyphs. Dashed because a civil boundary is a line on paper,
-// not a thing on the ground.
-function RegionIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <rect x="2.25" y="2.25" width="11.5" height="11.5" rx="1" strokeDasharray="2.6 2" />
-      <path d="M8 2.25v5.1M8 7.35l4.6 2.4M8 7.35l-4.6 2.4" />
-    </svg>
-  )
-}
-
-// 12px restroom figures for the WC row — the universal sign. Heads and bodies
-// are filled silhouettes (stroked figures turn to mush at 12px), legs and the
-// hairline divider are strokes; everything is currentColor so it dims with
-// the row like the other glyphs (an emoji would not recolour).
-function ToiletIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <circle cx="4.75" cy="3.25" r="1.5" fill="currentColor" stroke="none" />
-      <rect x="3" y="5.25" width="3.5" height="5" rx="1.25" fill="currentColor" stroke="none" />
-      <path d="M3.75 10.25v3.25M5.75 10.25v3.25" strokeWidth="1.25" />
-      <circle cx="11.25" cy="3.25" r="1.5" fill="currentColor" stroke="none" />
-      <path d="M11.25 5.25l2.75 5.25h-5.5z" fill="currentColor" strokeWidth="1" />
-      <path d="M10.35 10.5v3M12.15 10.5v3" strokeWidth="1.25" />
-      <path d="M8 2.25v11.5" strokeWidth="1" opacity="0.5" />
-    </svg>
-  )
-}
-
-// 12px lidded bin with a recycling chevron for the WASTE row, in the same
-// stroked style as its siblings so it dims with the row.
-function WasteIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2.75 4.5h10.5" />
-      <path d="M6.5 4.5V3h3v1.5" />
-      <path d="M4 4.5l.85 8.4a.8.8 0 0 0 .8.6h4.7a.8.8 0 0 0 .8-.6l.85-8.4" />
-      <path d="M6.6 7.5v3.4M9.4 7.5v3.4" strokeWidth="1.1" opacity="0.65" />
-    </svg>
-  )
-}
-
-// 12px mortarboard for the SCHOOLS row's glyph slot.
-function MortarboardIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M2 6.5L8 3.5l6 3-6 3-6-3z" />
-      <path d="M4.5 8.2v3c0 .9 1.6 1.8 3.5 1.8s3.5-.9 3.5-1.8v-3" />
-      <path d="M14 6.5v3.5" />
-    </svg>
-  )
-}
-
-// 12px apartment block for the HOUSING row's glyph slot — a tower and its lower
-// wing, in the same stroked style as its siblings so it dims with the row.
-function ApartmentIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor"
-         strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <path d="M3 13.5V3.75h5.5v9.75" />
-      <path d="M8.5 13.5V7.5H13v6" />
-      <path d="M1.75 13.5h12.5" strokeWidth="1.25" />
-      <path d="M5 6.25h1.5M5 9.25h1.5M10.5 10h1" strokeWidth="1.1" opacity="0.7" />
-    </svg>
-  )
-}
-
 // 16px glyphs for the mobile CITY chip and modal rows — the chip-sized
 // versions of the desktop row icons, so the list reads like the CITY page.
 const WORKS_ICON_16 = (
@@ -690,7 +516,6 @@ function CityIcon({ size = 16 }: { size?: number }) {
     </svg>
   )
 }
-const CITY_HATCH = 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-fg) 30%, transparent) 0 1px, transparent 1px 3px)'
 
 const LS_DESKTOP_OPEN = 'mm-layers-desktop-open'
 const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
@@ -787,7 +612,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = 'lrt' | 'bus' | 'air' | 'sea' | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | 'city' | null
+type MobilePanel = MobileLayerCategory | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | null
 
 export function LineLegend({
   transitData,
@@ -840,6 +665,7 @@ export function LineLegend({
 }: Props) {
   const { lang, t } = useI18n()
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>(null)
+  const [mobileBusGroup, setMobileBusGroup] = useState<GroupKey>('peninsula')
   const [desktopOpen, setDesktopOpen] = useState(() => {
     try { return localStorage.getItem(LS_DESKTOP_OPEN) !== '0' } catch { return true }
   })
@@ -1027,68 +853,258 @@ export function LineLegend({
   const grandPrix = allTransitData?.grandPrix ?? transitData.grandPrix
   const grandPrixCount = grandPrix?.corners.length ?? 0
 
-  // Mobile CITY modal — the city overlays in one list, the counterpart of the
-  // desktop panel's CITY page. A row's name opens that layer's own modal; its
-  // switch toggles the layer in place. Only layers with data get a row.
+  // Shared city data; desktop uses cards and mobile uses a numbered index.
+  // Counts always use unfiltered data, including when a focus layer is active.
   const cityLayerRows = [
     // PARISHES first: it is the ground the other rows are read against, and the
     // only one that is context rather than data.
     parishCount > 0 ? {
-      panel: 'parishes' as const, focus: false, label: 'PARISHES · 堂區', icon: REGION_ICON_16, on: parishesOn,
-      count: String(parishCount), iconOn: 'text-(--mm-slate)', countOn: 'text-(--mm-slate)/80',
+      panel: 'parishes' as const, focus: false, label: t.parishes, code: 'PARISHES', accent: 'slate', description: t.parishesTransitNote, icon: REGION_ICON_16, on: parishesOn,
+      count: String(parishCount),
       toggle: onToggleParishes,
     } : null,
     totalRoadWorkCount > 0 ? {
-      panel: 'works' as const, focus: false, label: 'WORKS · 工程', icon: WORKS_ICON_16, on: roadWorksOn,
-      count: String(activeRoadWorksCount), iconOn: 'text-(--mm-amber)', countOn: 'text-(--mm-amber)/80',
+      panel: 'works' as const, focus: false, label: t.roadWorks, code: 'ROAD WORKS', accent: 'amber', description: t.roadWorksActive(activeRoadWorksCount), icon: WORKS_ICON_16, on: roadWorksOn,
+      count: String(activeRoadWorksCount),
       toggle: onToggleRoadWorks,
     } : null,
     carParkCount > 0 ? {
-      panel: 'carparks' as const, focus: false, label: 'PARKING · 停車場', icon: CAR_PARK_ICON_16, on: carParksOn,
-      count: String(carParkCount), iconOn: 'text-(--mm-blue)', countOn: 'text-(--mm-blue)/80',
+      panel: 'carparks' as const, focus: false, label: t.carParks, code: 'PARKING', accent: 'blue', description: t.carParksCount(carParkCount), icon: CAR_PARK_ICON_16, on: carParksOn,
+      count: String(carParkCount),
       toggle: onToggleCarParks,
     } : null,
     toiletCount > 0 ? {
-      panel: 'toilets' as const, focus: false, label: 'WC · 公廁', icon: TOILET_ICON_16, on: toiletsOn,
-      count: String(toiletCount), iconOn: 'text-(--mm-teal)', countOn: 'text-(--mm-teal)/80',
+      panel: 'toilets' as const, focus: false, label: t.toilets, code: 'PUBLIC TOILETS', accent: 'teal', description: t.toiletsCount(toiletCount), icon: TOILET_ICON_16, on: toiletsOn,
+      count: String(toiletCount),
       toggle: onToggleToilets,
     } : null,
     schoolCount > 0 ? {
-      panel: 'schools' as const, focus: false, label: 'SCHOOLS · 學校', icon: MORTARBOARD_ICON_16, on: schoolsOn,
+      panel: 'schools' as const, focus: false, label: t.schools, code: 'EDUCATION', accent: 'violet', description: t.schoolsRampHint, icon: MORTARBOARD_ICON_16, on: schoolsOn,
       count: schoolLevelsAllOn ? String(schoolCount) : `${schoolEnabledCount}/${schoolCount}`,
-      iconOn: 'text-(--mm-violet)', countOn: 'text-(--mm-violet)/80', toggle: onToggleSchools,
+      toggle: onToggleSchools,
     } : null,
     publicHousingCount > 0 ? {
-      panel: 'housing' as const, focus: true, label: 'HOUSING · 居屋', icon: APARTMENT_ICON_16, on: publicHousingOn,
+      panel: 'housing' as const, focus: true, label: t.publicHousing, code: 'PUBLIC HOUSING', accent: 'lime', description: t.publicHousingFocusNote, icon: APARTMENT_ICON_16, on: publicHousingOn,
       count: publicHousingTypesAllOn ? String(publicHousingCount) : `${publicHousingEnabledCount}/${publicHousingCount}`,
-      iconOn: 'text-(--mm-lime)', countOn: 'text-(--mm-lime)/80', toggle: onTogglePublicHousing,
+      toggle: onTogglePublicHousing,
     } : null,
     waterCount > 0 ? {
-      panel: 'water' as const, focus: true, label: 'WATER · 供水', icon: WATER_ICON_16, on: waterOn,
-      count: String(waterCount), iconOn: 'text-(--mm-sky)', countOn: 'text-(--mm-sky)/80',
+      panel: 'water' as const, focus: true, label: t.water, code: 'WATER SUPPLY', accent: 'sky', description: t.waterNetworkNote, icon: WATER_ICON_16, on: waterOn,
+      count: String(waterCount),
       toggle: onToggleWater,
     } : null,
     powerCount > 0 ? {
-      panel: 'power' as const, focus: true, label: 'POWER · 電力', icon: POWER_ICON_16, on: powerOn,
-      count: String(powerCount), iconOn: 'text-(--mm-amber)', countOn: 'text-(--mm-amber)/80',
+      panel: 'power' as const, focus: true, label: t.power, code: 'ELECTRICITY', accent: 'amber', description: t.powerNetworkNote, icon: POWER_ICON_16, on: powerOn,
+      count: String(powerCount),
       toggle: onTogglePower,
     } : null,
     wasteTotal > 0 ? {
-      panel: 'waste' as const, focus: true, label: 'WASTE · 垃圾回收', icon: WASTE_ICON_16, on: wasteOn,
+      panel: 'waste' as const, focus: true, label: t.waste, code: 'WASTE & RECYCLING', accent: 'green', description: t.wasteFocusNote, icon: WASTE_ICON_16, on: wasteOn,
       count: wasteTypesAllOn ? String(wasteTotal) : `${wasteVisibleCount}/${wasteTotal}`,
-      iconOn: 'text-(--mm-green)', countOn: 'text-(--mm-green)/80',
       toggle: onToggleWaste,
     } : null,
     grandPrixCount > 0 ? {
-      // "GP" like the "WC" row: the full name would wrap the row in light mode.
-      panel: 'grandprix' as const, focus: true, label: 'GP · 大賽車', icon: GRAND_PRIX_ICON_16, on: grandPrixOn,
-      count: String(grandPrixCount), iconOn: 'text-(--mm-red)', countOn: 'text-(--mm-red)/80',
+      panel: 'grandprix' as const, focus: true, label: t.grandPrix, code: 'GRAND PRIX', accent: 'red', description: t.grandPrixNote, icon: GRAND_PRIX_ICON_16, on: grandPrixOn,
+      count: String(grandPrixCount),
       toggle: onToggleGrandPrix,
     } : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null)
   const cityLayerTotal = cityLayerRows.length
   const cityLayerOn = cityLayerRows.filter(row => row.on).length
 
+
+  const cityDetails: Record<string, LayerDetail> = {
+    schools: { expanded: schoolsLegendOpen, onExpand: () => setSchoolsLegendOpen(v => !v), content: (
+      <div className={`pb-1 bg-(--mm-violet-2)/[0.05] ${schoolsOn ? '' : 'opacity-40 light:opacity-100'}`}>
+        {SCHOOL_LEVEL_ORDER.map(level => {
+          const on = isSchoolLevelOn(level)
+          // "Lit" = actually drawn on the map: the level is on AND
+          // the master switch is on.
+          const lit = schoolsOn && on
+          const color = SCHOOL_LEVEL_COLOR[level]
+          return (
+            <button
+              key={level}
+              type="button"
+              onClick={() => onToggleSchoolLevel?.(level)}
+              disabled={!onToggleSchoolLevel}
+              aria-pressed={on}
+              // The label truncates for the longest EN/PT wording
+              // ("K–12 (all-through)"), so keep it readable on hover.
+              title={schoolLevelLabel(t, level)}
+              className={`mm-layer-filter w-full flex items-center gap-2 py-1 pl-8 pr-3
+                          hover:bg-(--mm-fg)/[0.04] transition
+                          ${onToggleSchoolLevel ? '' : 'cursor-default'}`}
+            >
+              {/* The whole five-era ramp while the level is on; a
+                  hollow box in its identity colour while it is off.
+                  Same grammar and the same 22px strip as the housing
+                  rows below, because the colour carries the same two
+                  facts: the hue is the teaching stage, the shade the
+                  era the school was founded. */}
+              <span
+                className="inline-block w-[22px] h-[7px] shrink-0"
+                style={on
+                  ? { backgroundImage: schoolRampGradient(level) }
+                  : { boxShadow: `inset 0 0 0 1px ${color}99` }}
+              />
+              <span className={`mm-layer-filter-label text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
+                                ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
+                {schoolLevelLabel(t, level)}
+              </span>
+              <span
+                className={`mm-mono mm-tabular text-[9px] w-[18px] text-right shrink-0
+                            ${lit ? '' : 'text-(--mm-fg)/25'}`}
+                style={lit ? { color } : undefined}
+              >
+                {levelCounts[level] ?? 0}
+              </span>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+                                ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {on ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )
+        })}
+        {/* What the strips above mean. Without this line the shade
+            reads as decoration rather than as the founding era. */}
+        <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] flex items-baseline gap-2
+                        mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+          <span className="mm-tabular shrink-0">{SCHOOL_ERA_CAPTION}</span>
+          <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
+            {t.schoolsRampHint}
+          </span>
+        </div>
+      </div>
+    ) },
+    housing: { expanded: publicHousingLegendOpen, onExpand: () => setPublicHousingLegendOpen(v => !v), content: (
+      <div className={`pb-1 bg-(--mm-lime-2)/[0.05] ${publicHousingOn ? '' : 'opacity-40 light:opacity-100'}`}>
+        {PUBLIC_HOUSING_TYPE_ORDER.map(type => {
+          const on = isPublicHousingTypeOn(type)
+          // "Lit" = actually drawn on the map: the type is on AND
+          // the master switch is on.
+          const lit = publicHousingOn && on
+          const color = PUBLIC_HOUSING_TYPE_COLOR[type]
+          return (
+            <button
+              key={type}
+              type="button"
+              onClick={() => onTogglePublicHousingType?.(type)}
+              disabled={!onTogglePublicHousingType}
+              aria-pressed={on}
+              // Full label on hover (it truncates), plus — for the
+              // `other` row — the programmes it covers.
+              title={publicHousingTypeTitle(t, type)}
+              className={`mm-layer-filter w-full flex items-center gap-2 py-1 pl-8 pr-3
+                          hover:bg-(--mm-fg)/[0.04] transition
+                          ${onTogglePublicHousingType ? '' : 'cursor-default'}`}
+            >
+              {/* The whole five-decade ramp while the type is on; a
+                  hollow box in its identity colour while it is off,
+                  the same on/off grammar as the school dots. */}
+              <span
+                className="inline-block w-[22px] h-[7px] shrink-0"
+                style={on
+                  ? { backgroundImage: publicHousingRampGradient(type) }
+                  : { boxShadow: `inset 0 0 0 1px ${color}99` }}
+              />
+              <span className={`mm-layer-filter-label text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
+                                ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
+                {publicHousingTypeLabel(t, type)}
+              </span>
+              <span
+                className={`mm-mono mm-tabular text-[9px] w-[18px] text-right shrink-0
+                            ${lit ? '' : 'text-(--mm-fg)/25'}`}
+                style={lit ? { color } : undefined}
+              >
+                {housingTypeCounts[type] ?? 0}
+              </span>
+              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+                                ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {on ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )
+        })}
+        {/* What the strips above mean. Without this line the shade
+            reads as decoration rather than as the occupation decade. */}
+        <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] flex items-baseline gap-2
+                        mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+          <span className="mm-tabular shrink-0">{PUBLIC_HOUSING_DECADE_CAPTION}</span>
+          <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
+            {t.publicHousingRampHint}
+          </span>
+        </div>
+        {/* Explain which other layers this focus mode preserves. */}
+        <div className="mm-layer-detail-note pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+          {t.publicHousingFocusNote}
+        </div>
+      </div>
+    ) },
+    waste: { expanded: wasteLegendOpen, onExpand: () => setWasteLegendOpen(v => !v), content: (
+      <div className="pb-1 bg-(--mm-green-2)/[0.05]">
+        {wasteLegendRows(t, wasteCounts, hiddenWasteTypes).map(row => (
+          <button
+            key={row.id}
+            type="button"
+            onClick={() => onToggleWasteType?.(row.id)}
+            disabled={!onToggleWasteType}
+            aria-pressed={row.on}
+            // The label truncates for the longest EN/PT wording, so
+            // keep the whole thing readable on hover.
+            title={row.label}
+            className={`mm-layer-filter w-full flex items-center gap-2 py-1 pl-8 pr-3
+                        hover:bg-(--mm-fg)/[0.04] transition
+                        ${onToggleWasteType ? '' : 'cursor-default'}`}
+          >
+            <span
+              className="inline-block w-[7px] h-[7px] shrink-0"
+              style={row.on
+                ? { backgroundColor: row.color }
+                : { boxShadow: `inset 0 0 0 1px ${row.color}99` }}
+            />
+            <span className={`mm-layer-filter-label text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
+                              ${row.on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
+              {row.label}
+            </span>
+            <span
+              className={`mm-mono mm-tabular text-[9px] w-[26px] text-right shrink-0
+                          ${row.on ? '' : 'text-(--mm-fg)/25'}`}
+              style={row.on ? { color: row.color } : undefined}
+            >
+              {row.count}
+            </span>
+            <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+                              ${row.on ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+              {row.on ? 'ON' : 'OFF'}
+            </span>
+          </button>
+        ))}
+        <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+          {t.wasteTypesHint}
+        </div>
+        <div className="mm-layer-detail-note pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+          {t.wasteFocusNote}
+        </div>
+      </div>
+    ) },
+    water: { content: <WaterKey network={waterNetwork} caption={t.waterNetworkNote} /> },
+    power: { content: <PowerKey network={powerNetwork} caption={t.powerNetworkNote} /> },
+    grandprix: { content: <GrandPrixKey circuit={grandPrix} caption={t.grandPrixNote} /> },
+  }
+
+
+  const airSeaTotal = Number(totalFlightCount > 0) + Number(totalFerryCount > 0)
+  const airSeaActive = Number(totalFlightCount > 0 && flightsOn) + Number(totalFerryCount > 0 && ferriesOn)
+  const mobileTabs: MobileLayerTab[] = [
+    { id: 'lrt', label: t.mobileLayersLrt, count: `${lrtActive}/${lrtTotal}`, accent: 'amber', icon: <MobileLayerIcon name="train" /> },
+    ...(visibleRoutes ? [{ id: 'bus' as const, label: t.mobileLayersBus, count: `${visibleRoutes.size}/${busRoutes.length}`, accent: 'emerald', icon: <MobileLayerIcon name="bus" /> }] : []),
+    ...(airSeaTotal > 0 ? [{ id: 'air-sea' as const, label: t.mobileLayersAirSea, count: `${airSeaActive}/${airSeaTotal}`, accent: 'sky', icon: <MobileLayerIcon name="ship" /> }] : []),
+    ...(cityLayerTotal > 0 ? [{ id: 'city' as const, label: t.layerCity, count: `${cityLayerOn}/${cityLayerTotal}`, accent: 'amber', icon: <CityIcon /> }] : []),
+  ]
+  const mobileCityRow = cityLayerRows.find(row => row.panel === mobilePanel)
+  const mobileCategory: MobileLayerCategory = mobileCityRow || mobilePanel === 'city' || mobilePanel === null
+    ? 'city' : mobilePanel as MobileLayerCategory
   const isLrtOn = (id: string) => (lrtOn ? lrtOn.has(id) : true)
   const isLive = clock ? clock.isLive : true
 
@@ -1096,104 +1112,57 @@ export function LineLegend({
     <>
       {/* Desktop LAYERS panel — collapsible; includes LRT + BUS groups + AIR */}
       {!desktopOpen ? (
-        <button
-          type="button"
-          onClick={() => setDesktopOpen(true)}
-          className="mm-ui-scale absolute top-3 right-3 z-20 hidden sm:flex landscape:hidden
-                     bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-border)
-                     hover:border-(--mm-amber)/40 shadow-xl shadow-(color:--mm-shadow) px-3 py-2 items-center gap-3 transition"
-        >
-          <span className="mm-mono text-[8px] tracking-[0.28em] text-(--mm-text-accent)">▤ LAYERS</span>
-          <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-text-secondary)">
-            {allLrtLines.slice(0, 3).map(line => (
-              <span
-                key={line.id}
-                className="w-1.5 h-[3px]"
-                style={{ backgroundColor: isLrtOn(line.id) ? line.color : 'color-mix(in srgb, var(--mm-fg) 30%, transparent)' }}
-              />
-            ))}
-            <span className="text-(--mm-text-muted) ml-0.5">{lrtActive}/{lrtTotal}</span>
-          </span>
-          <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-text-secondary)">
-            <span className={`w-1.5 h-1.5 rounded-full ${activeRoutes > 0 ? 'bg-(--mm-emerald-2)' : 'bg-(--mm-fg)/20'}`} />
-            <span>{activeRoutes}/{totalRoutes}</span>
-          </span>
-          {totalFlightCount > 0 && flightsOn && (
-            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-sky)/80">
-              <span>✈</span><span>{flightCount}</span>
-            </span>
-          )}
-          {totalFerryCount > 0 && ferriesOn && (
-            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-red)/80">
-              <span>{'\u2693\uFE0E'}</span><span>{ferryCount}</span>
-            </span>
-          )}
-          {totalRoadWorkCount > 0 && roadWorksOn && (
-            <span className="flex items-center gap-1 mm-mono mm-tabular text-[10px] text-(--mm-amber)/80">
-              <span>{'\u26A0\uFE0E'}</span><span>{activeRoadWorksCount}</span>
-            </span>
-          )}
+        <button type="button" onClick={() => setDesktopOpen(true)} aria-expanded={false}
+          className="mm-layer-launcher absolute top-4 right-4 z-20 hidden sm:flex landscape:hidden">
+          <CityIcon size={18} /><span>{t.layerPanelTitle}</span>
         </button>
       ) : (
-        <div className="mm-ui-scale absolute top-3 right-3 z-20 hidden sm:block landscape:hidden
-                        bg-(--mm-panel)/95 backdrop-blur-md rounded-sm
-                        border border-(--mm-border) overflow-hidden w-[240px] shadow-2xl shadow-(color:--mm-shadow)">
-          {/* Header */}
-          <div className="px-3 py-1 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-            <span className="mm-mono text-[9px] tracking-[0.28em] text-(--mm-text-accent)">▤ LAYERS</span>
-            <div className="flex items-center gap-2">
-              <span className={`flex items-center gap-1 mm-mono text-[9px] tracking-[0.2em] ${isLive ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-subtle)'}`}>
-                <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-(--mm-emerald-2) mm-led-pulse' : 'bg-(--mm-fg)/25'}`} />
-                {isLive ? t.live : t.simShort}
-              </span>
-              <button
-                type="button"
-                onClick={() => setDesktopOpen(false)}
-                aria-label="collapse layers panel"
-                className="text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 text-[18px] mm-mono
-                           w-6 h-6 flex items-center justify-center leading-none transition
-                           border border-(--mm-border) hover:border-(--mm-amber)/40 rounded-sm"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-
-          {/* TRANSIT / CITY pages — same segment styling as the BUS mode
-              switch below, so the panel reads as one control vocabulary. */}
-          <div role="tablist" className="grid grid-cols-2 border-b border-(--mm-fg)/8">
-            {LAYERS_TABS.map(tab => (
-              <button
-                key={tab}
-                type="button"
-                role="tab"
-                aria-selected={layersTab === tab}
+        <div className="mm-layer-panel absolute top-4 right-4 z-20 hidden sm:flex landscape:hidden"
+          aria-label={t.layerPanelTitle}>
+          <header className="mm-layer-header">
+            <div className="mm-layer-eyebrow mm-mono"><CityIcon size={14} /> MINI MACAU <span>/ ATLAS</span></div>
+            <button type="button" className="mm-layer-close" onClick={() => setDesktopOpen(false)}
+              aria-label={t.layerClose}><CloseIcon /></button>
+            <h2>{t.layerPanelTitle}</h2>
+            <p>{t.layerPanelSubtitle}</p>
+            <span className="mm-layer-live mm-mono" data-live={isLive}>
+              <span />{isLive ? t.live : t.simShort}
+            </span>
+          </header>
+          <div role="tablist" aria-label={t.layerPanelTitle} className="mm-layer-tabs">
+            {LAYERS_TABS.map((tab, index) => (
+              <button key={tab} id={`layers-tab-${tab}`} type="button" role="tab"
+                aria-selected={layersTab === tab} aria-controls="layers-content"
+                tabIndex={layersTab === tab ? 0 : -1}
                 onClick={() => setLayersTab(tab)}
-                className={`px-1 py-[5px] mm-mono text-[9px] tracking-[0.15em] transition-colors text-center
-                           ${layersTab === tab
-                             ? 'bg-(--mm-amber)/10 text-(--mm-amber-1)'
-                             : 'text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5'}
-                           ${tab === 'city' ? 'border-l border-(--mm-fg)/8' : ''}`}
-                style={layersTab === tab ? { boxShadow: 'inset 0 -2px 0 color-mix(in srgb, var(--mm-amber) 70%, transparent)' } : undefined}
-              >
-                {tab === 'transit' ? 'TRANSIT · 交通' : 'CITY · 城市'}
+                onKeyDown={event => {
+                  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return
+                  event.preventDefault()
+                  const next = event.key === 'Home' ? 'transit' : event.key === 'End' ? 'city' : tab === 'city' ? 'transit' : 'city'
+                  setLayersTab(next)
+                  document.getElementById(`layers-tab-${next}`)?.focus()
+                }}>
+                {tab === 'transit' ? <BusIcon size={16} /> : <CityIcon size={16} />}
+                <span>{tab === 'transit' ? t.layerTransit : t.layerCity}</span>
+                <span className="mm-layer-tab-index mm-mono">0{index + 1}</span>
               </button>
             ))}
           </div>
-
-          {layersTab === 'transit' && (<>
+          <div id="layers-content" role="tabpanel" aria-labelledby={`layers-tab-${layersTab}`}
+            className="mm-layer-scroll" tabIndex={0}>
+          {layersTab === 'transit' && (<div className="mm-transit-layers">
           {/* LRT — clickable rows */}
           <div>
-            <div className="px-3 py-1 flex items-center justify-between bg-(--mm-fg)/[0.015] border-b border-(--mm-fg)/5">
+            <div className="px-3 py-2 flex items-center justify-between bg-(--mm-fg)/[0.015] border-b border-(--mm-fg)/5">
               <span className="flex items-center gap-1.5 text-(--mm-text-muted)">
                 <LrtIcon size={12} className="shrink-0 opacity-70" />
                 <span
                   className="inline-block w-[8px] h-[8px]"
                   style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                 />
-                <span className="mm-mono text-[8px] tracking-[0.25em]">LRT · 輕軌</span>
+                <span className="mm-mono text-[10px] tracking-[0.25em]">LRT · 輕軌</span>
               </span>
-              <span className="mm-mono mm-tabular text-[8px] text-(--mm-text-subtle)">
+              <span className="mm-mono mm-tabular text-[10px] text-(--mm-text-subtle)">
                 {lrtActive}<span className="text-(--mm-fg)/20">/{lrtTotal}</span>
               </span>
             </div>
@@ -1207,18 +1176,18 @@ export function LineLegend({
                     onClick={() => onToggleLrt?.(line.id)}
                     disabled={!onToggleLrt}
                     aria-pressed={on}
-                    className={`w-full flex items-center gap-2 px-2.5 py-1 border-l-2 transition
+                    className={`w-full flex items-center gap-2 px-2.5 py-2 border-l-2 transition
                                ${on
                                  ? 'border-(--mm-amber)/60 bg-(--mm-amber)/[0.04] hover:bg-(--mm-amber)/[0.08]'
                                  : 'border-transparent hover:bg-(--mm-fg)/[0.03] opacity-40 light:opacity-100'}
                                ${onToggleLrt ? '' : 'cursor-default'}`}
                   >
                     <div className="w-3 h-[3px] shrink-0" style={{ backgroundColor: on ? line.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)' }} />
-                    <span className={`mm-han text-[11px] flex-1 text-left truncate
+                    <span className={`mm-han text-[13px] flex-1 text-left truncate
                                       ${on ? 'text-(--mm-fg)/90' : 'text-(--mm-text-muted)'}`}>
                       {localName(lang, line)}
                     </span>
-                    <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] shrink-0
+                    <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] shrink-0
                                       ${on ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                       {on ? 'ON' : 'OFF'}
                     </span>
@@ -1231,23 +1200,23 @@ export function LineLegend({
           {/* BUS section with mode tabs + collapsible groups */}
           {totalRoutes > 0 && visibleRoutes && (
             <div className="border-t border-(--mm-fg)/10">
-              <div className="px-3 py-1 flex items-center justify-between bg-(--mm-fg)/[0.015]">
+              <div className="px-3 py-2 flex items-center justify-between bg-(--mm-fg)/[0.015]">
                 <span className="flex items-center gap-1.5 text-(--mm-text-muted)">
                   <BusIcon size={12} className="shrink-0 opacity-70" />
                   <span
                     className="inline-block w-[8px] h-[8px]"
                     style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-emerald) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                   />
-                  <span className="mm-mono text-[8px] tracking-[0.25em]">BUS · 巴士</span>
+                  <span className="mm-mono text-[10px] tracking-[0.25em]">BUS · 巴士</span>
                 </span>
-                <span className="mm-mono mm-tabular text-[9px] text-(--mm-emerald)/80">
+                <span className="mm-mono mm-tabular text-[11px] text-(--mm-emerald)/80">
                   {activeRoutes}<span className="text-(--mm-text-subtle)">/{totalRoutes}</span>
                 </span>
               </div>
               <div className="grid grid-cols-3 border-y border-(--mm-fg)/8">
                 <button
                   onClick={onResetAuto}
-                  className={`px-1 py-1 mm-mono text-[9px] tracking-[0.1em] transition-colors text-center
+                  className={`px-1 py-2 mm-mono text-[11px] tracking-[0.1em] transition-colors text-center
                              ${isAutoMode
                                ? 'bg-(--mm-amber)/10 text-(--mm-amber-1)'
                                : 'text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5'}`}
@@ -1257,20 +1226,20 @@ export function LineLegend({
                 </button>
                 <button
                   onClick={onShowAll}
-                  className="px-1 py-1 mm-mono text-[9px] tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                  className="px-1 py-2 mm-mono text-[11px] tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
                              hover:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
                 >
                   {t.showAll}
                 </button>
                 <button
                   onClick={onHideAll}
-                  className="px-1 py-1 mm-mono text-[9px] tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                  className="px-1 py-2 mm-mono text-[11px] tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
                              hover:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
                 >
                   {t.hideAll}
                 </button>
               </div>
-              <div className="max-h-[45vh] overflow-y-auto">
+              <div className="">
                 {GROUP_ORDER.map(groupKey => {
                   const routes = grouped.get(groupKey) || []
                   if (routes.length === 0) return null
@@ -1284,19 +1253,20 @@ export function LineLegend({
                         <button
                           type="button"
                           onClick={() => toggleGroupCollapse(groupKey)}
-                          className="flex-1 min-w-0 px-2 py-1 flex items-center gap-2
+                          aria-expanded={!collapsed}
+                          className="flex-1 min-w-0 px-2 py-2 flex items-center gap-2
                                      hover:bg-(--mm-fg)/[0.04] transition"
                         >
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0
                                             ${groupActive > 0 ? 'bg-(--mm-amber)' : 'bg-(--mm-fg)/15'}`}
                                 style={groupActive > 0 ? { boxShadow: '0 0 5px color-mix(in srgb, var(--mm-amber) 80%, transparent)' } : undefined} />
-                          <span className="mm-mono text-[9px] tracking-[0.2em] text-(--mm-text-secondary) uppercase flex-1 text-left">
+                          <span className="mm-mono text-[11px] tracking-[0.2em] text-(--mm-text-secondary) uppercase flex-1 text-left">
                             {t[GROUP_LABEL_KEYS[groupKey]]}
                           </span>
-                          <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-muted) w-10 text-right">
+                          <span className="mm-mono mm-tabular text-[11px] text-(--mm-text-muted) w-10 text-right">
                             {groupActive}/{routes.length}
                           </span>
-                          <span className="text-(--mm-text-subtle) mm-mono text-[8px] w-3 text-center">
+                          <span className="text-(--mm-text-subtle) mm-mono text-[10px] w-3 text-center">
                             {collapsed ? '▸' : '▾'}
                           </span>
                         </button>
@@ -1305,7 +1275,8 @@ export function LineLegend({
                             type="button"
                             onClick={() => onToggleGroup(groupKey)}
                             aria-pressed={groupOn}
-                            className={`shrink-0 w-10 mm-mono text-[8px] tracking-[0.2em]
+                            aria-label={t[GROUP_LABEL_KEYS[groupKey]]}
+                            className={`shrink-0 w-10 mm-mono text-[10px] tracking-[0.2em]
                                         border-l border-(--mm-fg)/8 transition text-center
                                         ${groupOn
                                           ? 'text-(--mm-emerald)/80 hover:bg-(--mm-emerald)/10'
@@ -1325,6 +1296,7 @@ export function LineLegend({
                                 key={route.id}
                                 onClick={() => !inactive && onToggleRoute?.(route.id)}
                                 disabled={inactive}
+                                aria-pressed={on}
                                 title={inactive ? t.noServiceToday : undefined}
                                 className={`w-full px-2 py-[3px] flex items-center gap-2 transition-colors
                                            ${inactive
@@ -1332,7 +1304,7 @@ export function LineLegend({
                                              : on ? 'hover:bg-(--mm-fg)/[0.04]' : 'opacity-35 hover:opacity-60 light:opacity-100'}`}
                               >
                                 <span
-                                  className="mm-mono mm-tabular text-[10px] font-bold text-center shrink-0"
+                                  className="mm-mono mm-tabular text-[12px] font-bold text-center shrink-0"
                                   style={{
                                     width: 36,
                                     color: inactive ? '#444' : on ? route.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)',
@@ -1342,7 +1314,7 @@ export function LineLegend({
                                 >
                                   {route.name}
                                 </span>
-                                <span className={`text-[10px] flex-1 text-left truncate mm-han
+                                <span className={`text-[12px] flex-1 text-left truncate mm-han
                                                   ${inactive ? 'text-(--mm-fg)/25' : on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                                   {inactive
                                     ? t.noServiceToday
@@ -1367,7 +1339,7 @@ export function LineLegend({
               onClick={onToggleFlights}
               disabled={!onToggleFlights}
               aria-pressed={flightsOn}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
+              className={`w-full px-3 py-2.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
                          ${flightsOn
                            ? 'bg-(--mm-sky-2)/[0.04] hover:bg-(--mm-sky-2)/[0.08]'
                            : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
@@ -1384,13 +1356,13 @@ export function LineLegend({
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-sky) 35%, transparent) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
+              <span className="mm-mono text-[10px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 AIR · 航班
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${flightsOn ? 'text-(--mm-sky)/80' : 'text-(--mm-fg)/25'}`}>
+              <span className={`mm-mono mm-tabular text-[11px] ${flightsOn ? 'text-(--mm-sky)/80' : 'text-(--mm-fg)/25'}`}>
                 {flightCount}
               </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${flightsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+              <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ml-1 ${flightsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {flightsOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1403,7 +1375,7 @@ export function LineLegend({
               onClick={onToggleFerries}
               disabled={!onToggleFerries}
               aria-pressed={ferriesOn}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
+              className={`w-full px-3 py-2.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
                          ${ferriesOn
                            ? 'bg-(--mm-red-2)/[0.05] hover:bg-(--mm-red-2)/[0.1]'
                            : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
@@ -1421,648 +1393,30 @@ export function LineLegend({
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-red-2) 35%, transparent) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
+              <span className="mm-mono text-[10px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 SEA · 船運
               </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${ferriesOn ? 'text-(--mm-red)/80' : 'text-(--mm-fg)/25'}`}>
+              <span className={`mm-mono mm-tabular text-[11px] ${ferriesOn ? 'text-(--mm-red)/80' : 'text-(--mm-fg)/25'}`}>
                 {ferryCount}
               </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${ferriesOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+              <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ml-1 ${ferriesOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {ferriesOn ? 'ON' : 'OFF'}
               </span>
             </button>
           )}
-          </>)}
+          </div>)}
 
-          {layersTab === 'city' && (<>
-          {/* PARISHES — the first CITY row, and the same five columns as WORKS
-              below it (glyph / swatch / label / count / state). It leads the
-              page because it is the context the other rows are read against:
-              a wash under everything, not another set of marks on top. */}
-          {parishCount > 0 && (<>
-            <button
-              type="button"
-              onClick={onToggleParishes}
-              disabled={!onToggleParishes}
-              aria-pressed={parishesOn}
-              title={t.parishesTitle}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${parishesOn
-                           ? 'bg-(--mm-slate-2)/[0.05] hover:bg-(--mm-slate-2)/[0.1]'
-                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onToggleParishes ? '' : 'cursor-default'}`}
-            >
-              <span className="inline-flex items-center justify-center w-[12px] shrink-0 text-(--mm-text-muted)">
-                <RegionIcon />
-              </span>
-              {/* Eight hard bands, one per area — a categorical key, not a ramp. */}
-              <span
-                className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: PARISH_STRIP }}
-              />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                PARISHES · 堂區
-              </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${parishesOn ? 'text-(--mm-slate)/80' : 'text-(--mm-fg)/25'}`}>
-                {parishCount}
-              </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${parishesOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {parishesOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-            {/* What the switch does to the rest of the map: the tint is read
-                against the city, so the LRT lines and bus routes step aside
-                while it is on (App's toggleParishes). Same caption styling as
-                the housing focus note. */}
-            <div className="pl-8 pr-3 pb-1 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-              {t.parishesTransitNote}
-            </div>
-          </>)}
-
-          {/* ROAD WORKS — toggleable */}
-          {totalRoadWorkCount > 0 && (
-            <button
-              type="button"
-              onClick={onToggleRoadWorks}
-              disabled={!onToggleRoadWorks}
-              aria-pressed={roadWorksOn}
-              title={t.roadWorksActive(activeRoadWorksCount)}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${roadWorksOn
-                           ? 'bg-(--mm-amber-2)/[0.05] hover:bg-(--mm-amber-2)/[0.1]'
-                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onToggleRoadWorks ? '' : 'cursor-default'}`}
-            >
-              <span className={`inline-flex justify-center text-[10px] leading-none w-[12px] shrink-0 ${roadWorksOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>{'⚠︎'}</span>
-              <span
-                className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber-2) 45%, transparent) 0 1px, transparent 1px 3px)' }}
-              />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                WORKS · 工程
-              </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${roadWorksOn ? 'text-(--mm-amber)/80' : 'text-(--mm-fg)/25'}`}>
-                {activeRoadWorksCount}
-              </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${roadWorksOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {roadWorksOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          )}
-
-          {/* PUBLIC CAR PARKS — same five columns as WORKS above it. Switching
-              this on is also what starts the live-vacancy polling (only while
-              the clock runs at 1× — see useCarParkVacancy). */}
-          {carParkCount > 0 && (
-            <button
-              type="button"
-              onClick={onToggleCarParks}
-              disabled={!onToggleCarParks}
-              aria-pressed={carParksOn}
-              title={t.carParksCount(carParkCount)}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${carParksOn
-                           ? 'bg-(--mm-blue-2)/[0.05] hover:bg-(--mm-blue-2)/[0.1]'
-                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onToggleCarParks ? '' : 'cursor-default'}`}
-            >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${carParksOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                <CarParkIcon />
-              </span>
-              <span
-                className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: CAR_PARK_HATCH }}
-              />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                PARKING · 停車場
-              </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${carParksOn ? 'text-(--mm-blue)/80' : 'text-(--mm-fg)/25'}`}>
-                {carParkCount}
-              </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${carParksOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {carParksOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          )}
-
-          {/* PUBLIC TOILETS — toggleable, same five columns as AIR/SEA/WORKS.
-              No collapsible body: the layer has no sub-filters, and the three
-              marker variants are explained by the info panel, not a key. */}
-          {toiletCount > 0 && (
-            <button
-              type="button"
-              onClick={onToggleToilets}
-              disabled={!onToggleToilets}
-              aria-pressed={toiletsOn}
-              title={t.toiletsCount(toiletCount)}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${toiletsOn
-                           ? 'bg-(--mm-teal-2)/[0.05] hover:bg-(--mm-teal-2)/[0.1]'
-                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onToggleToilets ? '' : 'cursor-default'}`}
-            >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${toiletsOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                <ToiletIcon />
-              </span>
-              <span
-                className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: TOILET_HATCH }}
-              />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                WC · 公廁
-              </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${toiletsOn ? 'text-(--mm-teal)/80' : 'text-(--mm-fg)/25'}`}>
-                {toiletCount}
-              </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${toiletsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {toiletsOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          )}
-
-          {/* SCHOOLS — the row keeps the five columns of AIR/SEA/WORKS above
-              it (glyph · swatch · label · count · state) and adds the bus
-              groups' split interaction: the body expands the per-level rows,
-              the ON/OFF button at the right is the whole-layer switch. No
-              chevron — the rows below are the affordance. */}
-          {schoolCount > 0 && (
-            <>
-              <div className={`flex items-stretch border-t border-(--mm-fg)/10 transition
-                              ${schoolsOn ? 'bg-(--mm-violet-2)/[0.05]' : 'opacity-50 light:opacity-100'}`}>
-                <button
-                  type="button"
-                  onClick={() => setSchoolsLegendOpen(v => !v)}
-                  aria-expanded={schoolsLegendOpen}
-                  title={t.schoolsExpandTitle}
-                  className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3 pr-1.5
-                             hover:bg-(--mm-violet-2)/[0.1] transition"
-                >
-                  <span className={`inline-flex items-center justify-center w-[12px] shrink-0
-                                    ${schoolsOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                    <MortarboardIcon />
-                  </span>
-                  <span
-                    className="inline-block w-[8px] h-[8px] shrink-0"
-                    style={{ backgroundImage: SCHOOL_HATCH }}
-                  />
-                  <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted)
-                                   flex-1 min-w-0 text-left truncate">
-                    SCHOOLS · 學校
-                  </span>
-                  <span className={`mm-mono mm-tabular text-[9px] shrink-0
-                                    ${schoolsOn ? 'text-(--mm-violet)/80' : 'text-(--mm-fg)/25'}`}>
-                    {schoolLevelsAllOn ? schoolCount : `${schoolEnabledCount}/${schoolCount}`}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onToggleSchools}
-                  disabled={!onToggleSchools}
-                  aria-pressed={schoolsOn}
-                  title={t.schoolsToggleAllTitle}
-                  className={`shrink-0 inline-flex items-center justify-end pl-1.5 pr-3
-                              hover:bg-(--mm-emerald)/[0.1] transition
-                              ${onToggleSchools ? '' : 'cursor-default'}`}
-                >
-                  <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ${schoolsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                    {schoolsOn ? 'ON' : 'OFF'}
-                  </span>
-                </button>
-              </div>
-              {schoolsLegendOpen && (
-                <div className={`pb-1 bg-(--mm-violet-2)/[0.05] ${schoolsOn ? '' : 'opacity-40 light:opacity-100'}`}>
-                  {SCHOOL_LEVEL_ORDER.map(level => {
-                    const on = isSchoolLevelOn(level)
-                    // "Lit" = actually drawn on the map: the level is on AND
-                    // the master switch is on.
-                    const lit = schoolsOn && on
-                    const color = SCHOOL_LEVEL_COLOR[level]
-                    return (
-                      <button
-                        key={level}
-                        type="button"
-                        onClick={() => onToggleSchoolLevel?.(level)}
-                        disabled={!onToggleSchoolLevel}
-                        aria-pressed={on}
-                        // The label truncates for the longest EN/PT wording
-                        // ("K–12 (all-through)"), so keep it readable on hover.
-                        title={schoolLevelLabel(t, level)}
-                        className={`w-full flex items-center gap-2 py-1 pl-8 pr-3
-                                    hover:bg-(--mm-fg)/[0.04] transition
-                                    ${onToggleSchoolLevel ? '' : 'cursor-default'}`}
-                      >
-                        {/* The whole five-era ramp while the level is on; a
-                            hollow box in its identity colour while it is off.
-                            Same grammar and the same 22px strip as the housing
-                            rows below, because the colour carries the same two
-                            facts: the hue is the teaching stage, the shade the
-                            era the school was founded. */}
-                        <span
-                          className="inline-block w-[22px] h-[7px] shrink-0"
-                          style={on
-                            ? { backgroundImage: schoolRampGradient(level) }
-                            : { boxShadow: `inset 0 0 0 1px ${color}99` }}
-                        />
-                        <span className={`text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
-                                          ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
-                          {schoolLevelLabel(t, level)}
-                        </span>
-                        <span className="mm-mono text-[7px] tracking-[0.18em] text-(--mm-fg)/25 shrink-0">
-                          {SCHOOL_LEVEL_CAPTIONS[level]}
-                        </span>
-                        <span
-                          className={`mm-mono mm-tabular text-[9px] w-[18px] text-right shrink-0
-                                      ${lit ? '' : 'text-(--mm-fg)/25'}`}
-                          style={lit ? { color } : undefined}
-                        >
-                          {levelCounts[level] ?? 0}
-                        </span>
-                        <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
-                                          ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                          {on ? 'ON' : 'OFF'}
-                        </span>
-                      </button>
-                    )
-                  })}
-                  {/* What the strips above mean. Without this line the shade
-                      reads as decoration rather than as the founding era. */}
-                  <div className="pl-8 pr-3 pt-[2px] flex items-baseline gap-2
-                                  mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                    <span className="mm-tabular shrink-0">{SCHOOL_ERA_CAPTION}</span>
-                    <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
-                      {t.schoolsRampHint}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* FOCUS group. Everything below this rule replaces the map one
-              layer at a time — HOUSING keeps SCHOOLS, the others hide
-              everything — so the rule says it once instead of every row's
-              note having to. Same caption styling as the ramp hints. */}
-          <div
-            role="separator"
-            className="px-3 pt-2 pb-1 flex items-center gap-2 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase"
-          >
-            <span className="h-px flex-1 bg-(--mm-fg)/10" />
-            <span className="shrink-0">FOCUS · 專題 · <span className="normal-case tracking-normal mm-han">{t.cityFocusOneAtATime}</span></span>
-            <span className="h-px flex-1 bg-(--mm-fg)/10" />
+          {layersTab === 'city' && <CityLayerList rows={cityLayerRows} details={cityDetails} />}
           </div>
-
-          {/* PUBLIC HOUSING — the SCHOOLS row's twin: the same five columns
-              (glyph · swatch · label · count · state) and the same split
-              interaction, the body expanding one row per housing type and the
-              ON/OFF button at the right switching the whole layer.
-              It is also a FOCUS mode, like WASTE / WATER / POWER below —
-              switching it on clears the other layers and switching it off puts
-              them back — with ONE exemption: the SCHOOLS row keeps whatever
-              the user has set, because the two overlays are read together. Both
-              buttons say so on hover, and the expanded body repeats it. */}
-          {publicHousingCount > 0 && (
-            <>
-              <div className={`flex items-stretch border-t border-(--mm-fg)/10 transition
-                              ${publicHousingOn ? 'bg-(--mm-lime-2)/[0.05]' : 'opacity-50 light:opacity-100'}`}>
-                <button
-                  type="button"
-                  onClick={() => setPublicHousingLegendOpen(v => !v)}
-                  aria-expanded={publicHousingLegendOpen}
-                  title={`${t.publicHousingExpandTitle} · ${t.publicHousingFocusNote}`}
-                  className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3 pr-1.5
-                             hover:bg-(--mm-lime-2)/[0.1] transition"
-                >
-                  <span className="inline-flex items-center justify-center w-[12px] shrink-0 text-(--mm-text-muted)">
-                    <ApartmentIcon />
-                  </span>
-                  <span
-                    className="inline-block w-[8px] h-[8px] shrink-0"
-                    style={{ backgroundImage: PUBLIC_HOUSING_HATCH }}
-                  />
-                  <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted)
-                                   flex-1 min-w-0 text-left truncate">
-                    HOUSING · 居屋
-                  </span>
-                  <span className={`mm-mono mm-tabular text-[9px] shrink-0
-                                    ${publicHousingOn ? 'text-(--mm-lime)/80' : 'text-(--mm-fg)/25'}`}>
-                    {publicHousingTypesAllOn ? publicHousingCount : `${publicHousingEnabledCount}/${publicHousingCount}`}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onTogglePublicHousing}
-                  disabled={!onTogglePublicHousing}
-                  aria-pressed={publicHousingOn}
-                  title={`${t.publicHousingToggleAllTitle} · ${t.publicHousingFocusNote}`}
-                  className={`shrink-0 inline-flex items-center justify-end pl-1.5 pr-3
-                              hover:bg-(--mm-emerald)/[0.1] transition
-                              ${onTogglePublicHousing ? '' : 'cursor-default'}`}
-                >
-                  <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ${publicHousingOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                    {publicHousingOn ? 'ON' : 'OFF'}
-                  </span>
-                </button>
-              </div>
-              {publicHousingLegendOpen && (
-                <div className={`pb-1 bg-(--mm-lime-2)/[0.05] ${publicHousingOn ? '' : 'opacity-40 light:opacity-100'}`}>
-                  {PUBLIC_HOUSING_TYPE_ORDER.map(type => {
-                    const on = isPublicHousingTypeOn(type)
-                    // "Lit" = actually drawn on the map: the type is on AND
-                    // the master switch is on.
-                    const lit = publicHousingOn && on
-                    const color = PUBLIC_HOUSING_TYPE_COLOR[type]
-                    return (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => onTogglePublicHousingType?.(type)}
-                        disabled={!onTogglePublicHousingType}
-                        aria-pressed={on}
-                        // Full label on hover (it truncates), plus — for the
-                        // `other` row — the programmes it covers.
-                        title={publicHousingTypeTitle(t, type)}
-                        className={`w-full flex items-center gap-2 py-1 pl-8 pr-3
-                                    hover:bg-(--mm-fg)/[0.04] transition
-                                    ${onTogglePublicHousingType ? '' : 'cursor-default'}`}
-                      >
-                        {/* The whole five-decade ramp while the type is on; a
-                            hollow box in its identity colour while it is off,
-                            the same on/off grammar as the school dots. */}
-                        <span
-                          className="inline-block w-[22px] h-[7px] shrink-0"
-                          style={on
-                            ? { backgroundImage: publicHousingRampGradient(type) }
-                            : { boxShadow: `inset 0 0 0 1px ${color}99` }}
-                        />
-                        <span className={`text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
-                                          ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
-                          {publicHousingTypeLabel(t, type)}
-                        </span>
-                        <span
-                          className={`mm-mono mm-tabular text-[9px] w-[18px] text-right shrink-0
-                                      ${lit ? '' : 'text-(--mm-fg)/25'}`}
-                          style={lit ? { color } : undefined}
-                        >
-                          {housingTypeCounts[type] ?? 0}
-                        </span>
-                        <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
-                                          ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                          {on ? 'ON' : 'OFF'}
-                        </span>
-                      </button>
-                    )
-                  })}
-                  {/* What the strips above mean. Without this line the shade
-                      reads as decoration rather than as the occupation decade. */}
-                  <div className="pl-8 pr-3 pt-[2px] flex items-baseline gap-2
-                                  mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                    <span className="mm-tabular shrink-0">{PUBLIC_HOUSING_DECADE_CAPTION}</span>
-                    <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
-                      {t.publicHousingRampHint}
-                    </span>
-                  </div>
-                  {/* What switching the layer on does to the rest of the map —
-                      the same caption the WASTE key carries, naming the one
-                      layer this focus mode leaves alone. */}
-                  <div className="pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                    {t.publicHousingFocusNote}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* MACAO WATER — same five columns as HOUSING above it. Unlike its
-              neighbours this is a focus mode: switching it on clears every
-              other layer (App snapshots them first) so the supply network is
-              read against an empty city, and switching it off restores them. */}
-          {waterCount > 0 && (
-            <button
-              type="button"
-              onClick={onToggleWater}
-              disabled={!onToggleWater}
-              aria-pressed={waterOn}
-              // The hover text carries the disclaimer the map itself cannot:
-              // the pipes are our schematic, not Macao Water's real mains.
-              title={`${t.waterCount(waterCount)} · ${t.waterNetworkNote}`}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${waterOn
-                           ? 'bg-(--mm-sky-2)/[0.05] hover:bg-(--mm-sky-2)/[0.1]'
-                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onToggleWater ? '' : 'cursor-default'}`}
-            >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${waterOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                <WaterIcon />
-              </span>
-              <span
-                className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: WATER_HATCH }}
-              />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                WATER · 供水
-              </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${waterOn ? 'text-(--mm-sky)/80' : 'text-(--mm-fg)/25'}`}>
-                {waterCount}
-              </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${waterOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {waterOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          )}
-          {/* The key, only while the layer is on — it explains marks that are
-              on screen, so it has nothing to say when they are not. */}
-          {waterCount > 0 && waterOn && (
-            <WaterKey network={waterNetwork} caption={t.waterNetworkNote} />
-          )}
-
-          {/* CEM ELECTRICITY — same five columns as WATER above it, and the
-              same focus-mode behaviour. The two are mutually exclusive:
-              switching this on takes WATER off and restores what WATER was
-              hiding, then hides it all again for POWER. */}
-          {powerCount > 0 && (
-            <button
-              type="button"
-              onClick={onTogglePower}
-              disabled={!onTogglePower}
-              aria-pressed={powerOn}
-              // The hover text carries the disclaimer the map itself cannot:
-              // the HV lines are our schematic, not CEM's cable routes.
-              title={`${t.powerCount(powerCount)} · ${t.powerNetworkNote}`}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${powerOn
-                           ? 'bg-(--mm-amber-2)/[0.05] hover:bg-(--mm-amber-2)/[0.1]'
-                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onTogglePower ? '' : 'cursor-default'}`}
-            >
-              <span className={`inline-flex items-center justify-center w-[12px] shrink-0 ${powerOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                <PowerIcon />
-              </span>
-              <span
-                className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: POWER_HATCH }}
-              />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                POWER · 電力
-              </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${powerOn ? 'text-(--mm-amber)/80' : 'text-(--mm-fg)/25'}`}>
-                {powerCount}
-              </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${powerOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {powerOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          )}
-          {powerCount > 0 && powerOn && (
-            <PowerKey network={powerNetwork} caption={t.powerNetworkNote} />
-          )}
-
-          {/* WASTE & RECYCLING — a FOCUS mode like WATER and POWER above it
-              (switching it on clears every other layer, switching it off puts
-              them back), drawn with the SCHOOLS split interaction because it is
-              the one focus layer with sub-filters: the body expands the six type
-              rows, the ON/OFF button at the right is the whole-layer switch.
-              Same five columns as PARKING above it, and the same 6 px + 6 px
-              split so the count→ON gap stays 12 px like every other row. */}
-          {wasteTotal > 0 && (
-            <>
-              <div className={`flex items-stretch border-t border-(--mm-fg)/10 transition
-                              ${wasteOn ? 'bg-(--mm-green-2)/[0.05]' : 'opacity-50 light:opacity-100'}`}>
-                <button
-                  type="button"
-                  onClick={() => setWasteLegendOpen(v => !v)}
-                  aria-expanded={wasteLegendOpen}
-                  title={`${t.wasteExpandTitle} · ${t.wasteFocusNote}`}
-                  className="flex-1 min-w-0 flex items-center gap-2 py-1.5 pl-3 pr-1.5
-                             hover:bg-(--mm-green-2)/[0.1] transition"
-                >
-                  <span className={`inline-flex items-center justify-center w-[12px] shrink-0
-                                    ${wasteOn ? 'text-(--mm-text-muted)' : 'text-(--mm-text-muted)'}`}>
-                    <WasteIcon />
-                  </span>
-                  <span
-                    className="inline-block w-[8px] h-[8px] shrink-0"
-                    style={{ backgroundImage: WASTE_HATCH }}
-                  />
-                  <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted)
-                                   flex-1 min-w-0 text-left truncate">
-                    WASTE · 垃圾回收
-                  </span>
-                  <span className={`mm-mono mm-tabular text-[9px] shrink-0
-                                    ${wasteOn ? 'text-(--mm-green)/80' : 'text-(--mm-fg)/25'}`}>
-                    {wasteTypesAllOn ? wasteTotal : `${wasteVisibleCount}/${wasteTotal}`}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={onToggleWaste}
-                  disabled={!onToggleWaste}
-                  aria-pressed={wasteOn}
-                  title={`${t.wasteCount(wasteVisibleCount)} · ${t.wasteFocusNote}`}
-                  className={`shrink-0 inline-flex items-center justify-end pl-1.5 pr-3
-                              hover:bg-(--mm-emerald)/[0.1] transition
-                              ${onToggleWaste ? '' : 'cursor-default'}`}
-                >
-                  <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ${wasteOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                    {wasteOn ? 'ON' : 'OFF'}
-                  </span>
-                </button>
-              </div>
-              {/* The key, only while the layer is on — it explains marks that
-                  are on screen, so it has nothing to say when they are not. */}
-              {wasteOn && wasteLegendOpen && (
-                <div className="pb-1 bg-(--mm-green-2)/[0.05]">
-                  {wasteLegendRows(t, wasteCounts, hiddenWasteTypes).map(row => (
-                    <button
-                      key={row.id}
-                      type="button"
-                      onClick={() => onToggleWasteType?.(row.id)}
-                      disabled={!onToggleWasteType}
-                      aria-pressed={row.on}
-                      // The label truncates for the longest EN/PT wording, so
-                      // keep the whole thing readable on hover.
-                      title={row.label}
-                      className={`w-full flex items-center gap-2 py-1 pl-8 pr-3
-                                  hover:bg-(--mm-fg)/[0.04] transition
-                                  ${onToggleWasteType ? '' : 'cursor-default'}`}
-                    >
-                      <span
-                        className="inline-block w-[7px] h-[7px] shrink-0"
-                        style={row.on
-                          ? { backgroundColor: row.color }
-                          : { boxShadow: `inset 0 0 0 1px ${row.color}99` }}
-                      />
-                      <span className={`text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
-                                        ${row.on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
-                        {row.label}
-                      </span>
-                      <span
-                        className={`mm-mono mm-tabular text-[9px] w-[26px] text-right shrink-0
-                                    ${row.on ? '' : 'text-(--mm-fg)/25'}`}
-                        style={row.on ? { color: row.color } : undefined}
-                      >
-                        {row.count}
-                      </span>
-                      <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
-                                        ${row.on ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                        {row.on ? 'ON' : 'OFF'}
-                      </span>
-                    </button>
-                  ))}
-                  <div className="pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                    {t.wasteTypesHint}
-                  </div>
-                  <div className="pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                    {t.wasteFocusNote}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-
-          {/* GRAND PRIX — the Guia Circuit, the fifth focus mode. Same
-              exclusivity: switching it on takes whichever utility is on off,
-              restores what that one was hiding, then hides it all again. */}
-          {grandPrixCount > 0 && (
-            <button
-              type="button"
-              onClick={onToggleGrandPrix}
-              disabled={!onToggleGrandPrix}
-              aria-pressed={grandPrixOn}
-              // The hover text carries the disclaimer the map cannot: the
-              // corner positions are ours, the names the organiser's.
-              title={`${t.grandPrixCount(grandPrixCount)} · ${t.grandPrixNote}`}
-              className={`w-full px-3 py-1.5 flex items-center gap-2 transition border-t border-(--mm-fg)/10
-                         ${grandPrixOn
-                           ? 'bg-(--mm-red-2)/[0.05] hover:bg-(--mm-red-2)/[0.1]'
-                           : 'hover:bg-(--mm-fg)/[0.03] opacity-50 light:opacity-100'}
-                         ${onToggleGrandPrix ? '' : 'cursor-default'}`}
-            >
-              <span className="inline-flex items-center justify-center w-[12px] shrink-0 text-(--mm-text-muted)">
-                <GrandPrixIcon />
-              </span>
-              <span
-                className="inline-block w-[8px] h-[8px] shrink-0"
-                style={{ backgroundImage: GRAND_PRIX_HATCH }}
-              />
-              <span className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
-                GP · 大賽車
-              </span>
-              <span className={`mm-mono mm-tabular text-[9px] ${grandPrixOn ? 'text-(--mm-red)/80' : 'text-(--mm-fg)/25'}`}>
-                {grandPrixCount}
-              </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] ml-1 ${grandPrixOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {grandPrixOn ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          )}
-          {grandPrixCount > 0 && grandPrixOn && (
-            <GrandPrixKey circuit={grandPrix} caption={t.grandPrixNote} />
-          )}
-          </>)}
+          <footer className="mm-layer-footer">
+            <span className="mm-layer-footer-dot" />
+            {layersTab === 'city' ? t.layerActive(cityLayerOn) : t.layerTransitHint}
+            <span className="mm-mono">MACAU</span>
+          </footer>
         </div>
       )}
 
-      {/* Mobile: 4-icon stack — LRT / BUS / AIR / SEA, below MapLibre +/- zoom
+      {/* Mobile: 4-icon stack — LRT / BUS / AIR+SEA / CITY, below MapLibre +/- zoom
           controls. POSITIONED BY AN UNZOOMED WRAPPER: engines disagree on
           whether CSS `zoom` also scales an absolutely positioned element's own
           top/right (Chromium yes, iOS 16 WebKit — the last iOS an iPhone X
@@ -2072,12 +1426,13 @@ export function LineLegend({
           is scaled — the same split index.css makes for the MapLibre control.
           154px sits just under that control (bottom ~141px) and still leaves
           room above the bottom timeline for popovers on short viewports. */}
-      <div className="absolute top-[154px] right-[0.5rem] z-10 sm:hidden">
+      <div className="absolute top-[154px] right-[0.5rem] z-10 sm:hidden landscape:block">
       <div className="mm-mode-stack mm-ui-scale flex flex-col gap-1.5">
         {/* LRT chip */}
         <button
           onClick={() => togglePanel('lrt')}
           aria-label={t.lrtLines}
+          aria-expanded={mobilePanel === 'lrt'}
           className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
                      border transition shadow-[0_8px_24px_var(--mm-shadow)]
                      ${mobilePanel === 'lrt'
@@ -2093,6 +1448,7 @@ export function LineLegend({
         <button
           onClick={() => togglePanel('bus')}
           aria-label={t.busRoutes}
+          aria-expanded={mobilePanel === 'bus'}
           className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
                      border transition shadow-[0_8px_24px_var(--mm-shadow)]
                      ${mobilePanel === 'bus'
@@ -2102,44 +1458,24 @@ export function LineLegend({
           <BusIcon />
         </button>
 
-        {/* AIR chip */}
-        {totalFlightCount > 0 && (
+        {/* Combined air and sea chip */}
+        {airSeaTotal > 0 && (
           <button
-            onClick={() => togglePanel('air')}
-            aria-label={t.flights}
+            onClick={() => togglePanel('air-sea')}
+            aria-label={`${t.flights} / ${t.ferries}`}
+            aria-expanded={mobilePanel === 'air-sea'}
             className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
                        border transition shadow-[0_8px_24px_var(--mm-shadow)]
-                       ${mobilePanel === 'air'
+                       ${mobilePanel === 'air-sea'
                          ? 'border-(--mm-sky)/60 text-(--mm-sky)'
-                         : flightsOn
+                         : airSeaActive > 0
                            ? 'border-(--mm-sky)/25 text-(--mm-sky)/80 hover:border-(--mm-sky)/50 active:scale-95'
                            : 'border-(--mm-fg)/10 text-(--mm-text-muted) hover:border-(--mm-fg)/25'}`}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
-            </svg>
-          </button>
-        )}
-
-        {/* SEA chip */}
-        {totalFerryCount > 0 && (
-          <button
-            onClick={() => togglePanel('sea')}
-            aria-label={t.ferries}
-            className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
-                       border transition shadow-[0_8px_24px_var(--mm-shadow)]
-                       ${mobilePanel === 'sea'
-                         ? 'border-(--mm-red-2)/60 text-(--mm-red)'
-                         : ferriesOn
-                           ? 'border-(--mm-red-2)/25 text-(--mm-red)/80 hover:border-(--mm-red-2)/50 active:scale-95'
-                           : 'border-(--mm-fg)/10 text-(--mm-text-muted) hover:border-(--mm-fg)/25'}`}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                 strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <circle cx="12" cy="5" r="3" />
-              <line x1="12" y1="22" x2="12" y2="8" />
-              <path d="M5 12H2a10 10 0 0 0 20 0h-3" />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                 strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+              <path d="m3 11 6 1 11-6c1.5-.8.7-2.7-.8-2l-4.7 2-5-3-2 1 3 4-4 2-2-1z" />
+              <path d="M3 17q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0M3 21q2.25-2 4.5 0t4.5 0 4.5 0 4.5 0" />
             </svg>
           </button>
         )}
@@ -2153,6 +1489,7 @@ export function LineLegend({
             <button
               onClick={() => togglePanel('city')}
               aria-label={t.cityLayers}
+              aria-expanded={mobilePanel === 'city'}
               className={`w-9 h-9 flex items-center justify-center bg-(--mm-panel-2)
                          border transition shadow-[0_8px_24px_var(--mm-shadow)]
                          ${mobilePanel === 'city'
@@ -2168,1128 +1505,32 @@ export function LineLegend({
       </div>
       </div>
 
-      {/* Mobile centered modal for LRT/BUS/AIR/SEA. Rendered OUTSIDE the
-          mm-ui-scale chip stack so CSS `zoom` on that ancestor doesn't
-          trap `fixed` descendants — the modal must anchor to the viewport
-          to dodge the MapLibre nav control (top-right) and the bottom
-          timeline/speed bar simultaneously. The backdrop button closes
-          on outside tap; stopPropagation on the panel keeps taps inside
-          from bubbling up. */}
       {mobilePanel !== null && (
-        <div className="sm:hidden fixed inset-0 z-40 flex items-center justify-center p-4">
-          <button
-            type="button"
-            onClick={() => setMobilePanel(null)}
-            aria-label="close"
-            className="absolute inset-0 bg-(--mm-scrim) backdrop-blur-[2px]"
-          />
+        <MobileLayerSheet tabs={mobileTabs} category={mobileCategory} pageKey={mobilePanel}
+          title={mobileCityRow?.label ?? t.mobileLayersTitle}
+          onCategory={setMobilePanel} onClose={() => setMobilePanel(null)}
+          onBack={mobileCityRow ? () => setMobilePanel('city') : undefined}>
+          {mobilePanel === 'city' && <MobileCityIndex rows={cityLayerRows}
+            onInspect={id => setMobilePanel(id as MobilePanel)} />}
+          {mobileCityRow && <MobileCityDetail row={mobileCityRow}>
+            {mobileCityRow.panel === 'parishes' && <p>{t.parishesTitle}</p>}
+            {cityDetails[mobileCityRow.panel]?.content}
+          </MobileCityDetail>}
 
-          {/* LRT */}
-          {mobilePanel === 'lrt' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[320px] max-h-[80dvh] bg-(--mm-panel)
-                         border border-(--mm-amber)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)] flex flex-col"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-amber)/80">
-                  <LrtIcon size={14} className="shrink-0" />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber) 35%, transparent) 0 1px, transparent 1px 3px)' }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">LRT · 輕軌</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">{lrtActive}/{lrtTotal}</span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <div className="overflow-y-auto flex-1 min-h-0">
-                {allLrtLines.map(line => {
-                  const on = isLrtOn(line.id)
-                  return (
-                    <button
-                      key={line.id}
-                      type="button"
-                      onClick={() => onToggleLrt?.(line.id)}
-                      aria-pressed={on}
-                      className={`w-full flex items-center gap-2 px-3 py-2 border-l-2 transition
-                                 ${on
-                                   ? 'border-(--mm-amber)/60 bg-(--mm-amber)/[0.04] active:bg-(--mm-amber)/[0.08]'
-                                   : 'border-transparent active:bg-(--mm-fg)/[0.04] opacity-40 light:opacity-100'}`}
-                    >
-                      <div className="w-3 h-[3px] shrink-0" style={{ backgroundColor: on ? line.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)' }} />
-                      <span className={`mm-han text-[12px] flex-1 text-left truncate
-                                        ${on ? 'text-(--mm-fg)/90' : 'text-(--mm-text-muted)'}`}>
-                        {localName(lang, line)}
-                      </span>
-                      <span className={`mm-layer-state mm-mono text-[9px] tracking-[0.2em] shrink-0
-                                        ${on ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                        {on ? 'ON' : 'OFF'}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          {mobilePanel === 'lrt' && <MobileLrtConsole lines={allLrtLines}
+            stations={allTransitData?.stations ?? transitData.stations} enabled={lrtOn} onToggle={onToggleLrt} />}
 
-          {/* BUS */}
-          {mobilePanel === 'bus' && visibleRoutes && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[340px] max-h-[80dvh] bg-(--mm-panel)
-                         border border-(--mm-emerald)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)] flex flex-col"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-emerald)/80">
-                  <BusIcon size={14} className="shrink-0" />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-emerald) 35%, transparent) 0 1px, transparent 1px 3px)' }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">BUS · 巴士</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-emerald)/80">
-                    {visibleRoutes.size}<span className="text-(--mm-text-subtle)">/{busRoutes.length}</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <div className="grid grid-cols-3 border-b border-(--mm-fg)/8 shrink-0">
-                <button
-                  onClick={onResetAuto}
-                  className={`px-1 py-1.5 mm-mono text-[10px] tracking-[0.1em] transition-colors text-center
-                             ${isAutoMode
-                               ? 'bg-(--mm-emerald)/10 text-(--mm-emerald-1)'
-                               : 'text-(--mm-text-muted) active:text-(--mm-fg) active:bg-(--mm-fg)/5'}`}
-                  style={isAutoMode ? { boxShadow: 'inset 0 -2px 0 color-mix(in srgb, var(--mm-emerald) 70%, transparent)' } : undefined}
-                >
-                  {t.autoByTime}
-                </button>
-                <button
-                  onClick={onShowAll}
-                  className="px-1 py-1.5 mm-mono text-[10px] tracking-[0.15em] text-(--mm-text-muted) active:text-(--mm-fg)
-                             active:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
-                >
-                  {t.showAll}
-                </button>
-                <button
-                  onClick={onHideAll}
-                  className="px-1 py-1.5 mm-mono text-[10px] tracking-[0.15em] text-(--mm-text-muted) active:text-(--mm-fg)
-                             active:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
-                >
-                  {t.hideAll}
-                </button>
-              </div>
-              <div className="overflow-y-auto flex-1 min-h-0">
-                {GROUP_ORDER.map(groupKey => {
-                  const routes = grouped.get(groupKey) || []
-                  if (routes.length === 0) return null
-                  const groupActive = routes.filter(r => visibleRoutes.has(r.id)).length
-                  const eligibleInGroup = routes.filter(r => !(inactiveRoutes?.has(r.id) ?? false))
-                  const groupOn = groupActive > 0
-                  const collapsed = collapsedGroups.has(groupKey)
-                  return (
-                    <div key={groupKey} className="border-t border-(--mm-fg)/5">
-                      <div className="w-full flex items-stretch bg-(--mm-fg)/[0.015]">
-                        <button
-                          type="button"
-                          onClick={() => toggleGroupCollapse(groupKey)}
-                          className="flex-1 min-w-0 px-2 py-1.5 flex items-center gap-2
-                                     active:bg-(--mm-fg)/[0.04] transition"
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full shrink-0
-                                            ${groupActive > 0 ? 'bg-(--mm-emerald)' : 'bg-(--mm-fg)/15'}`} />
-                          <span className="mm-mono text-[10px] tracking-[0.2em] text-(--mm-text-secondary) uppercase flex-1 text-left">
-                            {t[GROUP_LABEL_KEYS[groupKey]]}
-                          </span>
-                          <span className="mm-mono mm-tabular text-[10px] text-(--mm-text-muted) w-10 text-right">
-                            {groupActive}/{routes.length}
-                          </span>
-                          <span className="text-(--mm-text-subtle) mm-mono text-[9px] w-3 text-center">
-                            {collapsed ? '▸' : '▾'}
-                          </span>
-                        </button>
-                        {onToggleGroup && eligibleInGroup.length > 0 && (
-                          <button
-                            type="button"
-                            onClick={() => onToggleGroup(groupKey)}
-                            aria-pressed={groupOn}
-                            className={`shrink-0 w-11 mm-mono text-[9px] tracking-[0.2em]
-                                        border-l border-(--mm-fg)/8 transition text-center
-                                        ${groupOn
-                                          ? 'text-(--mm-emerald)/80 active:bg-(--mm-emerald)/10'
-                                          : 'text-(--mm-text-subtle) active:bg-(--mm-fg)/[0.05]'}`}
-                          >
-                            {groupOn ? 'ON' : 'OFF'}
-                          </button>
-                        )}
-                      </div>
-                      {!collapsed && (
-                      <div className="bg-(--mm-inset)">
-                        {routes.map(route => {
-                          const inactive = inactiveRoutes?.has(route.id) ?? false
-                          const on = visibleRoutes.has(route.id)
-                          return (
-                            <button
-                              key={route.id}
-                              onClick={() => !inactive && onToggleRoute?.(route.id)}
-                              disabled={inactive}
-                              className={`w-full px-2 py-1 flex items-center gap-2 transition-colors
-                                         ${inactive
-                                           ? 'opacity-30 cursor-not-allowed'
-                                           : on ? 'active:bg-(--mm-fg)/[0.04]' : 'opacity-35 light:opacity-100'}`}
-                            >
-                              <span
-                                className="mm-mono mm-tabular text-[11px] font-bold text-center shrink-0"
-                                style={{
-                                  width: 36,
-                                  color: inactive ? '#444' : on ? route.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)',
-                                  textShadow: !inactive && on ? `0 0 6px ${route.color}66` : 'none',
-                                  textDecoration: inactive ? 'line-through' : 'none',
-                                }}
-                              >
-                                {route.name}
-                              </span>
-                              <span className={`text-[11px] flex-1 text-left truncate mm-han
-                                                ${inactive ? 'text-(--mm-fg)/25' : on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
-                                {inactive
-                                  ? t.noServiceToday
-                                  : (lang !== 'en' && route.nameCn ? route.nameCn : '')}
-                              </span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                      )}
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+          {mobilePanel === 'bus' && visibleRoutes && <MobileBusRegister
+            grouped={grouped} visibleRoutes={visibleRoutes} inactiveRoutes={inactiveRoutes}
+            selectedGroup={mobileBusGroup} onSelectGroup={setMobileBusGroup}
+            isAutoMode={isAutoMode} onToggleRoute={onToggleRoute} onToggleGroup={onToggleGroup}
+            onResetAuto={onResetAuto} onShowAll={onShowAll} onHideAll={onHideAll} />}
 
-          {/* AIR */}
-          {mobilePanel === 'air' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-sky)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-sky)/80">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                       strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
-                    <path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z" />
-                  </svg>
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-sky) 35%, transparent) 0 1px, transparent 1px 3px)' }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">AIR · 航班</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {flightsOn ? flightCount : 0}/{totalFlightCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleFlights}
-                disabled={!onToggleFlights}
-                aria-pressed={flightsOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${flightsOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleFlights ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={flightsOn ? 'text-(--mm-sky)' : 'text-(--mm-text-muted)'}>✈</span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {flightCount} {t.flights}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${flightsOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {flightsOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* SEA */}
-          {mobilePanel === 'sea' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-red-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-red)/85">
-                  <span className="text-[12px] leading-none">{'\u2693\uFE0E'}</span>
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-red-2) 35%, transparent) 0 1px, transparent 1px 3px)' }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">SEA · 船運</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {ferriesOn ? ferryCount : 0}/{totalFerryCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleFerries}
-                disabled={!onToggleFerries}
-                aria-pressed={ferriesOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${ferriesOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleFerries ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={ferriesOn ? 'text-(--mm-red-2)' : 'text-(--mm-text-muted)'}>{'\u2693\uFE0E'}</span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {ferryCount} {t.ferries}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${ferriesOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {ferriesOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* CITY — one list for the city overlays. The name opens that
-              layer's own modal (schools keep their per-level rows there);
-              the count + ON/OFF at the right toggles it in place. */}
-          {mobilePanel === 'city' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-fg)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-fg)/85">
-                  <CityIcon size={12} />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: CITY_HATCH }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">CITY · 城市</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {cityLayerOn}/{cityLayerTotal}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              {cityLayerRows.map((row, i) => (
-                <Fragment key={row.panel}>
-                {/* The FOCUS group rule, once, above the first exclusive row —
-                    the mobile twin of the desktop page's separator. */}
-                {row.focus && !cityLayerRows[i - 1]?.focus && (
-                  <div className="px-3 pt-2 pb-1 flex items-center gap-2 border-t border-(--mm-fg)/[0.06] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                    <span className="h-px flex-1 bg-(--mm-fg)/10" />
-                    <span className="shrink-0">FOCUS · 專題 · <span className="normal-case tracking-normal mm-han">{t.cityFocusOneAtATime}</span></span>
-                    <span className="h-px flex-1 bg-(--mm-fg)/10" />
-                  </div>
-                )}
-                <div
-                  className={`flex items-stretch ${i > 0 ? 'border-t border-(--mm-fg)/[0.06]' : ''} ${row.on ? '' : 'opacity-60 light:opacity-100'}`}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(row.panel)}
-                    className="flex-1 min-w-0 px-3 py-3 flex items-center gap-2 text-left active:bg-(--mm-fg)/[0.04]"
-                  >
-                    <span className={`inline-flex w-4 justify-center shrink-0 ${row.on ? row.iconOn : 'text-(--mm-text-muted)'}`}>
-                      {row.icon}
-                    </span>
-                    <span className="mm-mono text-[10px] tracking-[0.2em] text-(--mm-fg)/80 truncate">{row.label}</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={row.toggle}
-                    disabled={!row.toggle}
-                    aria-pressed={row.on}
-                    className={`shrink-0 pl-3 pr-3 flex items-center gap-3.5 active:bg-(--mm-fg)/[0.04] ${row.toggle ? '' : 'cursor-default'}`}
-                  >
-                    <span className={`mm-mono mm-tabular text-[12px] ${row.on ? row.countOn : 'text-(--mm-text-muted)'}`}>{row.count}</span>
-                    <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] w-[26px] text-right ${row.on ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                      {row.on ? 'ON' : 'OFF'}
-                    </span>
-                  </button>
-                </div>
-                </Fragment>
-              ))}
-            </div>
-          )}
-
-          {/* ROAD WORKS */}
-          {mobilePanel === 'works' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-amber-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-amber)/85">
-                  <span className="text-[12px] leading-none">{'⚠︎'}</span>
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber-2) 45%, transparent) 0 1px, transparent 1px 3px)' }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">WORKS · 工程</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {roadWorksOn ? activeRoadWorksCount : 0}/{totalRoadWorkCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleRoadWorks}
-                disabled={!onToggleRoadWorks}
-                aria-pressed={roadWorksOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${roadWorksOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleRoadWorks ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={roadWorksOn ? 'text-(--mm-amber-2)' : 'text-(--mm-text-muted)'}>{'⚠︎'}</span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.roadWorksActive(activeRoadWorksCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${roadWorksOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {roadWorksOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* SCHOOLS */}
-          {mobilePanel === 'schools' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-violet-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-violet)/85">
-                  <MortarboardIcon />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: SCHOOL_SWATCH_GRADIENT }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">SCHOOLS · 學校</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setMobilePanel(null)}
-                  aria-label="close"
-                  className="w-6 h-6 flex items-center justify-center leading-none
-                             border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                >×</button>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleSchools}
-                disabled={!onToggleSchools}
-                aria-pressed={schoolsOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${schoolsOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleSchools ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={`inline-flex items-center ${schoolsOn ? 'text-(--mm-violet-2)' : 'text-(--mm-text-muted)'}`}>
-                    <MortarboardIcon />
-                  </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.schoolsCount(schoolEnabledCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${schoolsOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {schoolsOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-              {/* Per-level rows — same handlers as the desktop panel, at a
-                  44px tap target. No chevron: the modal is always expanded. */}
-              <div className={`pb-1 border-t border-(--mm-fg)/10 ${schoolsOn ? '' : 'opacity-40 light:opacity-100'}`}>
-                {SCHOOL_LEVEL_ORDER.map(level => {
-                  const on = isSchoolLevelOn(level)
-                  const lit = schoolsOn && on
-                  const color = SCHOOL_LEVEL_COLOR[level]
-                  return (
-                    <button
-                      key={level}
-                      type="button"
-                      onClick={() => onToggleSchoolLevel?.(level)}
-                      disabled={!onToggleSchoolLevel}
-                      aria-pressed={on}
-                      title={schoolLevelLabel(t, level)}
-                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-(--mm-fg)/[0.04] transition
-                                  ${onToggleSchoolLevel ? '' : 'cursor-default'}`}
-                    >
-                      {/* The five-era ramp, same 26px strip as the housing
-                          rows in the panel below. */}
-                      <span
-                        className="inline-block w-[26px] h-[9px] shrink-0"
-                        style={on
-                          ? { backgroundImage: schoolRampGradient(level) }
-                          : { boxShadow: `inset 0 0 0 1px ${color}99` }}
-                      />
-                      <span className={`text-[12px] leading-[1.2] flex-1 min-w-0 text-left truncate
-                                        ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
-                        {schoolLevelLabel(t, level)}
-                      </span>
-                      <span
-                        className={`mm-mono mm-tabular text-[11px] w-6 text-right shrink-0
-                                    ${lit ? '' : 'text-(--mm-fg)/25'}`}
-                        style={lit ? { color } : undefined}
-                      >
-                        {levelCounts[level] ?? 0}
-                      </span>
-                      <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
-                                        ${lit ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                        {on ? 'ON' : 'OFF'}
-                      </span>
-                    </button>
-                  )
-                })}
-                <div className="px-3 pt-[2px] pb-1 flex items-baseline gap-2
-                                mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                  <span className="mm-tabular shrink-0">{SCHOOL_ERA_CAPTION}</span>
-                  <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
-                    {t.schoolsRampHint}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* PUBLIC HOUSING */}
-          {mobilePanel === 'housing' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-lime-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-lime)/85">
-                  <ApartmentIcon />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: PUBLIC_HOUSING_SWATCH_GRADIENT }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">HOUSING · 居屋</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setMobilePanel(null)}
-                  aria-label="close"
-                  className="w-6 h-6 flex items-center justify-center leading-none
-                             border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                >×</button>
-              </div>
-              <button
-                type="button"
-                onClick={onTogglePublicHousing}
-                disabled={!onTogglePublicHousing}
-                aria-pressed={publicHousingOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${publicHousingOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onTogglePublicHousing ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={`inline-flex items-center ${publicHousingOn ? 'text-(--mm-lime-2)' : 'text-(--mm-text-muted)'}`}>
-                    <ApartmentIcon />
-                  </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.publicHousingCount(publicHousingEnabledCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${publicHousingOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {publicHousingOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-              {/* Per-type rows — same handlers as the desktop panel, at a 44px
-                  tap target. No chevron: the modal is always expanded. */}
-              <div className={`pb-1 border-t border-(--mm-fg)/10 ${publicHousingOn ? '' : 'opacity-40 light:opacity-100'}`}>
-                {PUBLIC_HOUSING_TYPE_ORDER.map(type => {
-                  const on = isPublicHousingTypeOn(type)
-                  const lit = publicHousingOn && on
-                  const color = PUBLIC_HOUSING_TYPE_COLOR[type]
-                  return (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => onTogglePublicHousingType?.(type)}
-                      disabled={!onTogglePublicHousingType}
-                      aria-pressed={on}
-                      title={publicHousingTypeTitle(t, type)}
-                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-(--mm-fg)/[0.04] transition
-                                  ${onTogglePublicHousingType ? '' : 'cursor-default'}`}
-                    >
-                      <span
-                        className="inline-block w-[26px] h-[9px] shrink-0"
-                        style={on
-                          ? { backgroundImage: publicHousingRampGradient(type) }
-                          : { boxShadow: `inset 0 0 0 1px ${color}99` }}
-                      />
-                      {/* One flex cell for the label, so the count and ON/OFF
-                          columns keep their x positions whether or not the row
-                          carries a second line. Touch has no hover, so `other`
-                          shows its programmes here instead of only in `title`. */}
-                      <span className="flex-1 min-w-0 flex flex-col items-start justify-center">
-                        <span className={`w-full text-[12px] leading-[1.2] text-left truncate
-                                          ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
-                          {publicHousingTypeLabel(t, type)}
-                        </span>
-                        {type === 'other' && (
-                          <span className="w-full text-[8px] leading-[1.25] text-left line-clamp-2 mm-han text-(--mm-text-subtle)">
-                            {t.publicHousingOtherHint}
-                          </span>
-                        )}
-                      </span>
-                      <span
-                        className={`mm-mono mm-tabular text-[11px] w-6 text-right shrink-0
-                                    ${lit ? '' : 'text-(--mm-fg)/25'}`}
-                        style={lit ? { color } : undefined}
-                      >
-                        {housingTypeCounts[type] ?? 0}
-                      </span>
-                      <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
-                                        ${lit ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                        {on ? 'ON' : 'OFF'}
-                      </span>
-                    </button>
-                  )
-                })}
-                <div className="px-3 pt-[2px] flex items-baseline gap-2
-                                mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                  <span className="mm-tabular shrink-0">{PUBLIC_HOUSING_DECADE_CAPTION}</span>
-                  <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
-                    {t.publicHousingRampHint}
-                  </span>
-                </div>
-                {/* Touch has no hover, so the focus-mode caption the desktop
-                    row carries in `title` is spelled out here — the same place
-                    the WASTE panel puts its own. */}
-                <div className="px-3 pb-1 mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                  {t.publicHousingFocusNote}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TOILETS */}
-          {mobilePanel === 'toilets' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-teal-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-teal)/85">
-                  <ToiletIcon />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: TOILET_HATCH }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">WC · 公廁</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {toiletsOn ? toiletCount : 0}/{toiletCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleToilets}
-                disabled={!onToggleToilets}
-                aria-pressed={toiletsOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${toiletsOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleToilets ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={toiletsOn ? 'text-(--mm-teal-2)' : 'text-(--mm-text-muted)'}>
-                    <ToiletIcon />
-                  </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.toiletsCount(toiletCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${toiletsOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {toiletsOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* CAR PARKS */}
-          {mobilePanel === 'carparks' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-blue-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-blue)/85">
-                  <CarParkIcon />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: CAR_PARK_HATCH }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">PARKING · 停車場</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {carParksOn ? carParkCount : 0}/{carParkCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleCarParks}
-                disabled={!onToggleCarParks}
-                aria-pressed={carParksOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${carParksOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleCarParks ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={carParksOn ? 'text-(--mm-blue-2)' : 'text-(--mm-text-muted)'}>
-                    <CarParkIcon />
-                  </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.carParksCount(carParkCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${carParksOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {carParksOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-            </div>
-          )}
-
-          {/* PARISHES — one switch, no per-area rows, so the modal is the
-              carparks one: a header carrying the key and a single toggle. */}
-          {mobilePanel === 'parishes' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-slate-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-slate)/85">
-                  <RegionIcon />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: PARISH_STRIP }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">PARISHES · 堂區</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {parishesOn ? parishCount : 0}/{parishCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleParishes}
-                disabled={!onToggleParishes}
-                aria-pressed={parishesOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${parishesOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleParishes ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={parishesOn ? 'text-(--mm-slate-2)' : 'text-(--mm-text-muted)'}>
-                    <RegionIcon />
-                  </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.parishesCount(parishCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${parishesOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {parishesOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-              <div className="px-3 pb-3 text-[10px] leading-[1.4] text-(--mm-text-subtle) mm-han">
-                {t.parishesTitle}
-                <br />
-                {t.parishesTransitNote}
-              </div>
-            </div>
-          )}
-
-          {/* WASTE & RECYCLING */}
-          {mobilePanel === 'waste' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-green-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-green)/85">
-                  <WasteIcon />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: WASTE_HATCH }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">WASTE · 垃圾回收</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {wasteOn ? wasteVisibleCount : 0}/{wasteTotal}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleWaste}
-                disabled={!onToggleWaste}
-                aria-pressed={wasteOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${wasteOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleWaste ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={wasteOn ? 'text-(--mm-green-2)' : 'text-(--mm-text-muted)'}>
-                    <WasteIcon />
-                  </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.wasteCount(wasteVisibleCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${wasteOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {wasteOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-              {/* Per-type rows — same handlers as the desktop key, at a 44px tap
-                  target. No collapsing: the modal is always expanded. */}
-              <div className={`pb-1 border-t border-(--mm-fg)/10 ${wasteOn ? '' : 'opacity-40 light:opacity-100'}`}>
-                {wasteLegendRows(t, wasteCounts, hiddenWasteTypes).map(row => {
-                  // "Lit" = actually drawn on the map: the type is on AND the
-                  // master switch is on.
-                  const lit = wasteOn && row.on
-                  return (
-                    <button
-                      key={row.id}
-                      type="button"
-                      onClick={() => onToggleWasteType?.(row.id)}
-                      disabled={!onToggleWasteType}
-                      aria-pressed={row.on}
-                      title={row.label}
-                      className={`w-full h-11 flex items-center gap-2 px-3 active:bg-(--mm-fg)/[0.04] transition
-                                  ${onToggleWasteType ? '' : 'cursor-default'}`}
-                    >
-                      <span
-                        className="inline-block w-[9px] h-[9px] shrink-0"
-                        style={row.on
-                          ? { backgroundColor: row.color }
-                          : { boxShadow: `inset 0 0 0 1px ${row.color}99` }}
-                      />
-                      <span className={`text-[12px] leading-[1.2] flex-1 min-w-0 text-left truncate
-                                        ${row.on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
-                        {row.label}
-                      </span>
-                      <span
-                        className={`mm-mono mm-tabular text-[11px] w-8 text-right shrink-0
-                                    ${lit ? '' : 'text-(--mm-fg)/25'}`}
-                        style={lit ? { color: row.color } : undefined}
-                      >
-                        {row.count}
-                      </span>
-                      <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] w-8 text-right shrink-0
-                                        ${lit ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                        {row.on ? 'ON' : 'OFF'}
-                      </span>
-                    </button>
-                  )
-                })}
-                {/* The same two captions as the desktop key: what the type rows
-                    do, and what switching the layer on does to the rest of the
-                    map — the counterpart of the WATER key's disclaimer. */}
-                <div className="px-3 pt-1 mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                  {t.wasteTypesHint}
-                </div>
-                <div className="px-3 pb-1 mm-mono text-[8px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-                  {t.wasteFocusNote}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* MACAO WATER */}
-          {mobilePanel === 'water' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-sky-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-sky)/85">
-                  <WaterIcon />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: WATER_HATCH }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">WATER · 供水</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {waterOn ? waterCount : 0}/{waterCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleWater}
-                disabled={!onToggleWater}
-                aria-pressed={waterOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${waterOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleWater ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={waterOn ? 'text-(--mm-sky-2)' : 'text-(--mm-text-muted)'}>
-                    <WaterIcon />
-                  </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.waterCount(waterCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${waterOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {waterOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-              {/* The same key as the desktop panel. Shown whether or not the
-                  layer is on: a touch device has no hover, so this modal is
-                  the only place the marks are ever explained. Its caption
-                  carries the "schematic" disclaimer. */}
-              <div className="border-t border-(--mm-fg)/10 pt-1.5">
-                <WaterKey network={waterNetwork} caption={t.waterNetworkNote} />
-              </div>
-            </div>
-          )}
-
-          {/* CEM ELECTRICITY */}
-          {mobilePanel === 'power' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-amber-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-amber)/85">
-                  <PowerIcon />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: POWER_HATCH }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">POWER · 電力</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {powerOn ? powerCount : 0}/{powerCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onTogglePower}
-                disabled={!onTogglePower}
-                aria-pressed={powerOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${powerOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onTogglePower ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={powerOn ? 'text-(--mm-amber-2)' : 'text-(--mm-text-muted)'}>
-                    <PowerIcon />
-                  </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.powerCount(powerCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${powerOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {powerOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-              {/* Shown whether or not the layer is on, like the WATER modal: a
-                  touch device has no hover, so this is the only place the marks
-                  are ever explained. Its caption carries the disclaimer. */}
-              <div className="border-t border-(--mm-fg)/10 pt-1.5">
-                <PowerKey network={powerNetwork} caption={t.powerNetworkNote} />
-              </div>
-            </div>
-          )}
-
-          {/* GRAND PRIX */}
-          {mobilePanel === 'grandprix' && (
-            <div
-              onClick={e => e.stopPropagation()}
-              className="relative w-full max-w-[300px] bg-(--mm-panel)
-                         border border-(--mm-red-2)/30 rounded-sm overflow-hidden
-                         shadow-[0_8px_32px_var(--mm-shadow)]"
-            >
-              <div className="px-3 py-2 border-b border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-(--mm-red)/85">
-                  <GrandPrixIcon />
-                  <span
-                    className="inline-block w-[8px] h-[8px]"
-                    style={{ backgroundImage: GRAND_PRIX_HATCH }}
-                  />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">GP · 大賽車</span>
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="mm-mono mm-tabular text-[9px] text-(--mm-text-subtle)">
-                    {grandPrixOn ? grandPrixCount : 0}/{grandPrixCount}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setMobilePanel(null)}
-                    aria-label="close"
-                    className="w-6 h-6 flex items-center justify-center leading-none
-                               border border-(--mm-fg)/15 text-(--mm-text-secondary) active:bg-(--mm-fg)/10 mm-mono text-[16px]"
-                  >×</button>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onToggleGrandPrix}
-                disabled={!onToggleGrandPrix}
-                aria-pressed={grandPrixOn}
-                className={`w-full px-3 py-3 flex items-center justify-between transition
-                           ${grandPrixOn ? 'active:bg-(--mm-fg)/[0.04]' : 'active:bg-(--mm-fg)/[0.04] opacity-60 light:opacity-100'}
-                           ${onToggleGrandPrix ? '' : 'cursor-default'}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={grandPrixOn ? 'text-(--mm-red-2)' : 'text-(--mm-text-muted)'}>
-                    <GrandPrixIcon />
-                  </span>
-                  <span className="mm-mono mm-tabular text-[12px] text-(--mm-fg)/80">
-                    {t.grandPrixCount(grandPrixCount)}
-                  </span>
-                </span>
-                <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ${grandPrixOn ? 'text-(--mm-emerald)' : 'text-(--mm-text-muted)'}`}>
-                  {grandPrixOn ? 'ON' : 'OFF'}
-                </span>
-              </button>
-              {/* Shown whether or not the layer is on, like the other modals:
-                  the only place a touch device ever sees the key. */}
-              <div className="border-t border-(--mm-fg)/10 pt-1.5">
-                <GrandPrixKey circuit={grandPrix} caption={t.grandPrixNote} />
-              </div>
-            </div>
-          )}
-        </div>
+          {mobilePanel === 'air-sea' && <MobileServiceTickets flightCount={flightCount} ferryCount={ferryCount}
+            showFlights={totalFlightCount > 0} showFerries={totalFerryCount > 0}
+            flightsOn={flightsOn} ferriesOn={ferriesOn}
+            onToggleFlights={onToggleFlights} onToggleFerries={onToggleFerries} />}
+        </MobileLayerSheet>
       )}
     </>
   )

@@ -1,4 +1,4 @@
-// Tabler Icons: outline/train.svg and outline/bus.svg (MIT).
+// Tabler Icons: outline/train.svg, outline/bus.svg and outline/x.svg (MIT).
 // Copyright (c) 2020-2026 Paweł Kuna.
 // Source: https://github.com/tabler/tabler-icons
 // License: public/licenses/tabler-icons.txt
@@ -6,6 +6,17 @@
 interface IconProps {
   size?: number
   className?: string
+}
+
+export function CloseIcon({ size = 16, className }: IconProps) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+         className={className} aria-hidden="true" focusable="false">
+      <path d="M18 6l-12 12" />
+      <path d="M6 6l12 12" />
+    </svg>
+  )
 }
 
 export function LrtIcon({ size = 20, className }: IconProps) {

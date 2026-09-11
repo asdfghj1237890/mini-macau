@@ -133,6 +133,10 @@ const translations = {
     scheduleFriday: 'Friday schedule',
     scheduleSatSun: 'Weekend / holiday schedule',
     clickToSetTime: 'Click to set time',
+    timelineTitle: 'City rhythm',
+    timelineDensity: 'Relative service frequency',
+    timelineSeek: 'Explore a time of day',
+    playbackSpeed: 'Playback speed',
     apply: 'Apply',
     cancel: 'Cancel',
     flights: 'Flights',
@@ -173,6 +177,46 @@ const translations = {
     toilets: 'Public toilets',
     toiletsCount: (n: number) => `${n} toilets`,
     cityLayers: 'City layers',
+    layerPanelTitle: 'Map layers',
+    layerPanelSubtitle: 'Choose what the city reveals.',
+    layerTransit: 'Transit',
+    layerCity: 'City',
+    mobileLayersTitle: 'Explore your Macau',
+    mobileLayersHint: 'Tap a tile to choose what appears on your map.',
+    mobileLayersBack: 'Back to city layers',
+    mobileLayersApplied: 'Changes apply instantly',
+    mobileLayersViewMap: 'View map',
+    mobileLayersShow: 'Show on the map',
+    mobileLayersLrt: 'LRT',
+    mobileLrtTitle: 'Light rail console',
+    mobileLrtShown: 'Shown',
+    mobileLrtHidden: 'Hidden',
+    mobileLrtStations: 'stations',
+    mobileLayersBus: 'Bus',
+    mobileBusTitle: 'Bus network',
+    mobileBusSelectedRoutes: 'selected routes',
+    mobileBusSelected: 'selected',
+    mobileBusShown: 'Shown',
+    mobileBusHidden: 'Hidden',
+    mobileBusScroll: 'Scroll for more routes',
+    mobileBusRegions: 'Route regions',
+    mobileBusShowAll: 'Show all',
+    mobileBusHideAll: 'Hide all',
+    mobileBusGroups: { peninsula: 'Macau', crossHarbour: 'Harbour', taipaCotai: 'Taipa', night: 'Night', special: 'Special' },
+    mobileLayersAirSea: 'Air / Sea',
+    mobileAirSeaTitle: 'Air & sea journeys',
+    mobileAirSeaHint: 'Choose the air and sea networks shown on your map.',
+    mobileAirLocation: 'Macau International Airport',
+    mobileSeaLocation: 'Macau passenger ferries',
+    mobileAirCount: 'Flight records',
+    mobileSeaCount: 'Ferry sailings',
+    layerEveryday: 'Everyday city',
+    layerFocus: 'Focus journeys',
+    layerMix: 'mix & explore',
+    layerDetails: 'Legend',
+    layerClose: 'Close layers panel',
+    layerTransitHint: 'Follow the city in motion.',
+    layerActive: (n: number) => `${n} city layer${n === 1 ? '' : 's'} visible`,
     carParks: 'Public car parks',
     carParksCount: (n: number) => `${n} car parks`,
     water: 'Water supply',
@@ -622,6 +666,10 @@ const translations = {
     scheduleFriday: '週五班次',
     scheduleSatSun: '假日班次',
     clickToSetTime: '點擊設定時間',
+    timelineTitle: '城市節奏',
+    timelineDensity: '班次密度',
+    timelineSeek: '探索一天的不同時刻',
+    playbackSpeed: '播放速度',
     apply: '套用',
     cancel: '取消',
     flights: '航班',
@@ -662,6 +710,46 @@ const translations = {
     toilets: '公廁',
     toiletsCount: (n: number) => `${n} 間公廁`,
     cityLayers: '城市資料',
+    layerPanelTitle: '地圖圖層',
+    layerPanelSubtitle: '選擇你想看見的澳門。',
+    layerTransit: '交通',
+    layerCity: '城市',
+    mobileLayersTitle: '探索你的澳門',
+    mobileLayersHint: '點一下選擇圖層，組合你的城市視角。',
+    mobileLayersBack: '返回城市圖層',
+    mobileLayersApplied: '選擇即時套用',
+    mobileLayersViewMap: '看地圖',
+    mobileLayersShow: '在地圖上顯示',
+    mobileLayersLrt: '輕軌',
+    mobileLrtTitle: '輕軌控制台',
+    mobileLrtShown: '已顯示',
+    mobileLrtHidden: '未顯示',
+    mobileLrtStations: '個車站',
+    mobileLayersBus: '巴士',
+    mobileBusTitle: '巴士路網',
+    mobileBusSelectedRoutes: '已選路線',
+    mobileBusSelected: '已選',
+    mobileBusShown: '已顯示',
+    mobileBusHidden: '未顯示',
+    mobileBusScroll: '向下瀏覽更多路線',
+    mobileBusRegions: '路線區域',
+    mobileBusShowAll: '全部顯示',
+    mobileBusHideAll: '全部隱藏',
+    mobileBusGroups: { peninsula: '半島', crossHarbour: '跨海', taipaCotai: '氹仔', night: '夜間', special: '特別' },
+    mobileLayersAirSea: '海空',
+    mobileAirSeaTitle: '海空航程',
+    mobileAirSeaHint: '選擇在地圖上顯示的海空交通網絡',
+    mobileAirLocation: '澳門國際機場',
+    mobileSeaLocation: '澳門海上客運',
+    mobileAirCount: '航班紀錄',
+    mobileSeaCount: '船運班次',
+    layerEveryday: '城市日常',
+    layerFocus: '城市專題',
+    layerMix: '自由搭配',
+    layerDetails: '圖例',
+    layerClose: '關閉圖層面板',
+    layerTransitHint: '跟隨城市的流動。',
+    layerActive: (n: number) => `${n} 個城市圖層顯示中`,
     carParks: '公共停車場',
     carParksCount: (n: number) => `${n} 個停車場`,
     water: '供水設施',
@@ -1056,6 +1144,10 @@ const translations = {
     scheduleFriday: 'Horário Sex',
     scheduleSatSun: 'Horário fim-de-semana',
     clickToSetTime: 'Clique para definir a hora',
+    timelineTitle: 'Ritmo da cidade',
+    timelineDensity: 'Frequência relativa do serviço',
+    timelineSeek: 'Explore uma hora do dia',
+    playbackSpeed: 'Velocidade de reprodução',
     apply: 'Aplicar',
     cancel: 'Cancelar',
     flights: 'Voos',
@@ -1096,6 +1188,46 @@ const translations = {
     toilets: 'Sanitários públicos',
     toiletsCount: (n: number) => `${n} sanitários`,
     cityLayers: 'Camadas urbanas',
+    layerPanelTitle: 'Camadas do mapa',
+    layerPanelSubtitle: 'Escolha o que a cidade revela.',
+    layerTransit: 'Transportes',
+    layerCity: 'Cidade',
+    mobileLayersTitle: 'Explore Macau',
+    mobileLayersHint: 'Toque num bloco para escolher o que aparece no mapa.',
+    mobileLayersBack: 'Voltar às camadas da cidade',
+    mobileLayersApplied: 'Alterações imediatas',
+    mobileLayersViewMap: 'Ver mapa',
+    mobileLayersShow: 'Mostrar no mapa',
+    mobileLayersLrt: 'MLM',
+    mobileLrtTitle: 'Painel do metro',
+    mobileLrtShown: 'Visível',
+    mobileLrtHidden: 'Oculta',
+    mobileLrtStations: 'estações',
+    mobileLayersBus: 'Autocarros',
+    mobileBusTitle: 'Rede de autocarros',
+    mobileBusSelectedRoutes: 'selecionadas',
+    mobileBusSelected: 'selecionadas',
+    mobileBusShown: 'Visível',
+    mobileBusHidden: 'Oculta',
+    mobileBusScroll: 'Mais carreiras abaixo',
+    mobileBusRegions: 'Regiões das carreiras',
+    mobileBusShowAll: 'Mostrar tudo',
+    mobileBusHideAll: 'Ocultar tudo',
+    mobileBusGroups: { peninsula: 'Macau', crossHarbour: 'Pontes', taipaCotai: 'Taipa', night: 'Noite', special: 'Especial' },
+    mobileLayersAirSea: 'Ar / Mar',
+    mobileAirSeaTitle: 'Viagens por ar e mar',
+    mobileAirSeaHint: 'Escolha as redes aéreas e marítimas visíveis no mapa.',
+    mobileAirLocation: 'Aeroporto Internacional de Macau',
+    mobileSeaLocation: 'Transporte marítimo de Macau',
+    mobileAirCount: 'Registos de voos',
+    mobileSeaCount: 'Viagens de ferry',
+    layerEveryday: 'Vida na cidade',
+    layerFocus: 'Explorar em foco',
+    layerMix: 'combinar',
+    layerDetails: 'Legenda',
+    layerClose: 'Fechar painel de camadas',
+    layerTransitHint: 'Acompanhe a cidade em movimento.',
+    layerActive: (n: number) => n === 1 ? '1 camada da cidade visível' : `${n} camadas da cidade visíveis`,
     carParks: 'Parques de estacionamento',
     carParksCount: (n: number) => `${n} parques`,
     water: 'Abastecimento de água',
@@ -1490,6 +1622,10 @@ export interface Translations {
   scheduleFriday: string
   scheduleSatSun: string
   clickToSetTime: string
+  timelineTitle: string
+  timelineDensity: string
+  timelineSeek: string
+  playbackSpeed: string
   apply: string
   cancel: string
   flights: string
@@ -1530,6 +1666,46 @@ export interface Translations {
   toilets: string
   toiletsCount: (n: number) => string
   cityLayers: string
+  layerPanelTitle: string
+  layerPanelSubtitle: string
+  layerTransit: string
+  layerCity: string
+  mobileLayersTitle: string
+  mobileLayersHint: string
+  mobileLayersBack: string
+  mobileLayersApplied: string
+  mobileLayersViewMap: string
+  mobileLayersShow: string
+  mobileLayersLrt: string
+  mobileLrtTitle: string
+  mobileLrtShown: string
+  mobileLrtHidden: string
+  mobileLrtStations: string
+  mobileLayersBus: string
+  mobileBusTitle: string
+  mobileBusSelectedRoutes: string
+  mobileBusSelected: string
+  mobileBusShown: string
+  mobileBusHidden: string
+  mobileBusScroll: string
+  mobileBusRegions: string
+  mobileBusShowAll: string
+  mobileBusHideAll: string
+  mobileBusGroups: { peninsula: string; crossHarbour: string; taipaCotai: string; night: string; special: string }
+  mobileLayersAirSea: string
+  mobileAirSeaTitle: string
+  mobileAirSeaHint: string
+  mobileAirLocation: string
+  mobileSeaLocation: string
+  mobileAirCount: string
+  mobileSeaCount: string
+  layerEveryday: string
+  layerFocus: string
+  layerMix: string
+  layerDetails: string
+  layerClose: string
+  layerTransitHint: string
+  layerActive: (n: number) => string
   carParks: string
   carParksCount: (n: number) => string
   water: string

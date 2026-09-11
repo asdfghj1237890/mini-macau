@@ -1228,11 +1228,11 @@ export default function App() {
   const { togglePause } = clock
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const isTextEntry =
-        e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement
+      const ownsKeyboard = e.target instanceof HTMLElement &&
+        e.target.closest('input, textarea, select, button, a[href], [contenteditable="true"]') !== null
       // Locked during a focus mode, exactly like the buttons — otherwise the
       // one control that ISN'T dimmed would still pause the clock.
-      if (ignoreClockShortcut(clockHidden, isTextEntry)) return
+      if (ignoreClockShortcut(clockHidden, ownsKeyboard)) return
       if (e.code === 'Space') {
         e.preventDefault()
         togglePause()

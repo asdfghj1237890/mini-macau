@@ -12,9 +12,8 @@
 // stays in one place if more clock shortcuts are added later.
 
 // `locked` — the clock UI is off the screen (WATER focus mode).
-// `isTextEntry` — the user is typing, and the key belongs to the field.
-// The caller does the `instanceof HTMLInputElement` check, which is the part
-// that genuinely needs a DOM.
-export function ignoreClockShortcut(locked: boolean, isTextEntry: boolean): boolean {
-  return locked || isTextEntry
+// `ownsKeyboard` — a native input, button or link owns the key (including Space).
+// The caller checks the focused DOM element; this predicate stays DOM-independent.
+export function ignoreClockShortcut(locked: boolean, ownsKeyboard: boolean): boolean {
+  return locked || ownsKeyboard
 }
