@@ -11,12 +11,12 @@ import {
 function Row({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
+      <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
         {label}
       </span>
       <span className="text-right min-w-0">
-        <span className="block text-[10px] text-(--mm-fg)/80 mm-han">{value}</span>
-        {note && <span className="block text-[9px] text-(--mm-text-subtle) mm-han">{note}</span>}
+        <span className="block text-ui-10 text-(--mm-fg)/80 mm-han">{value}</span>
+        {note && <span className="block text-ui-9 text-(--mm-text-subtle) mm-han">{note}</span>}
       </span>
     </div>
   )
@@ -53,15 +53,15 @@ function Shell({ kindLabel, stage, stageLabel, title, subtitle, sources, onClose
                style={{ backgroundColor: `${color}14` }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-secondary)">
+              <div className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-secondary)">
                 {'🏁'} {t.grandPrixLabel}
               </div>
-              <div className="text-[13px] font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap
+              <div className="text-ui-13 font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap
                               flex items-center gap-1.5">
                 {stage > 0 && (
                   <span
                     className="inline-flex items-center justify-center w-[15px] h-[15px] shrink-0
-                               rounded-full bg-(--mm-panel) border border-(--mm-fg)/70 mm-mono text-[9px]
+                               rounded-full bg-(--mm-panel) border border-(--mm-fg)/70 mm-mono text-ui-9
                                leading-none text-(--mm-fg)"
                     title={stageLabel}
                     aria-label={stageLabel}
@@ -74,11 +74,11 @@ function Shell({ kindLabel, stage, stageLabel, title, subtitle, sources, onClose
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="text-[14px] font-bold text-(--mm-fg) truncate mm-han" title={title}>
+            <div className="text-ui-14 font-bold text-(--mm-fg) truncate mm-han" title={title}>
               {title}
             </div>
             {subtitle && (
-              <div className="text-[10px] text-(--mm-text-muted) truncate mm-han" title={subtitle}>
+              <div className="text-ui-10 text-(--mm-text-muted) truncate mm-han" title={subtitle}>
                 {subtitle}
               </div>
             )}
@@ -86,7 +86,7 @@ function Shell({ kindLabel, stage, stageLabel, title, subtitle, sources, onClose
           <button
             onClick={onClose}
             className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
-                       mm-mono text-[13px] transition-colors"
+                       mm-mono text-ui-13 transition-colors"
             aria-label={t.cancel}
           >
             ×
@@ -102,12 +102,12 @@ function Shell({ kindLabel, stage, stageLabel, title, subtitle, sources, onClose
             landmarks and lettered so the panel and a reader can point at one.
             Secondary sources say so on their own line. */}
         <div className="px-3 py-2 border-t border-(--mm-fg)/10 bg-(--mm-fg)/[0.02]">
-          <div className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) pb-0.5">
+          <div className="mm-mono text-ui-8 tracking-[0.25em] text-(--mm-text-muted) pb-0.5">
             {t.grandPrixSource}
           </div>
-          <ol className="list-[lower-alpha] pl-4 space-y-0.5 marker:text-(--mm-text-subtle) marker:text-[9px]">
+          <ol className="list-[lower-alpha] pl-4 space-y-0.5 marker:text-(--mm-text-subtle) marker:text-ui-9">
             {sortGrandPrixSources(sources).map(source => (
-              <li key={`${source.role}:${source.url}`} className="text-[9px] leading-snug min-w-0 pl-0.5">
+              <li key={`${source.role}:${source.url}`} className="text-ui-9 leading-snug min-w-0 pl-0.5">
                 <a href={source.url} target="_blank" rel="noopener noreferrer"
                    className="text-(--mm-text-secondary) hover:text-(--mm-fg) underline decoration-(--mm-fg)/20 mm-han break-words">
                   {source.name}
@@ -167,15 +167,15 @@ export function GrandPrixCircuitInfoPanel({ circuit, sources, onClose }: {
         />
       )}
       <div className="pt-1">
-        <div className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted) pb-0.5">
+        <div className="mm-mono text-ui-8 tracking-[0.25em] text-(--mm-text-muted) pb-0.5">
           {t.grandPrixCorners}
         </div>
         <ol className="space-y-[1px]">
           {corners.map(corner => (
-            <li key={corner.id} className="flex items-center gap-2 text-[10px] text-(--mm-fg)/80 mm-han">
+            <li key={corner.id} className="flex items-center gap-2 text-ui-10 text-(--mm-fg)/80 mm-han">
               <span
                 className="inline-flex items-center justify-center w-[14px] h-[14px] shrink-0
-                           rounded-full bg-(--mm-panel) border border-(--mm-fg)/60 mm-mono text-[8px]
+                           rounded-full bg-(--mm-panel) border border-(--mm-fg)/60 mm-mono text-ui-8
                            leading-none text-(--mm-fg)"
                 aria-label={t.grandPrixCornerOrder(corner.order)}
               >
@@ -184,13 +184,13 @@ export function GrandPrixCircuitInfoPanel({ circuit, sources, onClose }: {
               <span className="truncate flex-1 min-w-0" title={pickGrandPrixText(corner.name, lang)}>
                 {pickGrandPrixText(corner.name, lang)}
               </span>
-              <span className="mm-mono mm-tabular text-[8px] text-(--mm-text-subtle) shrink-0">
+              <span className="mm-mono mm-tabular text-ui-8 text-(--mm-text-subtle) shrink-0">
                 {corner.distKm.toFixed(2)} km
               </span>
             </li>
           ))}
         </ol>
-        <div className="pt-1 text-[9px] text-(--mm-text-subtle) mm-han">{t.grandPrixNote}</div>
+        <div className="pt-1 text-ui-9 text-(--mm-text-subtle) mm-han">{t.grandPrixNote}</div>
       </div>
     </Shell>
   )
@@ -226,14 +226,14 @@ export function GrandPrixCornerInfoPanel({ corner, circuit, sources, onClose }: 
       />
       {corner.approximate && (
         <div className="pt-1 border-t border-(--mm-fg)/10">
-          <div className="text-[10px] font-bold text-(--mm-fg)/85 mm-han">{t.grandPrixApproximate}</div>
-          <div className="text-[9px] text-(--mm-text-secondary) mm-han leading-snug">
+          <div className="text-ui-10 font-bold text-(--mm-fg)/85 mm-han">{t.grandPrixApproximate}</div>
+          <div className="text-ui-9 text-(--mm-text-secondary) mm-han leading-snug">
             {t.grandPrixApproximateNote}
           </div>
-          <div className="pt-1 mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-muted)">
+          <div className="pt-1 mm-mono text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">
             {t.grandPrixRule}
           </div>
-          <div className="text-[9px] text-(--mm-text-subtle) leading-snug break-words">{corner.rule}</div>
+          <div className="text-ui-9 text-(--mm-text-subtle) leading-snug break-words">{corner.rule}</div>
         </div>
       )}
     </Shell>

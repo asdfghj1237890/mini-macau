@@ -3,9 +3,10 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { seoContentPlugin } from './plugins/seo-content'
 import { lrtDevApiPlugin } from './plugins/lrt-dev-api'
+import { cityCatalogPlugin } from './plugins/city-catalog'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), seoContentPlugin(), lrtDevApiPlugin()],
+  plugins: [react(), tailwindcss(), seoContentPlugin(), lrtDevApiPlugin(), cityCatalogPlugin()],
   server: {
     // /api/* is a Cloudflare Pages Function in production (functions/). In
     // dev, lrtDevApiPlugin serves /api/lrt/* from a local git-ignored copy of

@@ -14,13 +14,13 @@ export function MapSplash() {
     >
       <div className="flex flex-col items-center gap-3">
         <div
-          className="text-[11px] sm:text-[13px] tracking-[0.5em]
+          className="text-ui-11 sm:text-ui-13 tracking-[0.5em]
                      text-(--mm-amber)/90 mm-led-pulse"
           style={{ fontFamily: 'Orbitron, sans-serif' }}
         >
           {t.splashTitle}
         </div>
-        <div className="flex items-center gap-2 text-[10px] sm:text-[11px]
+        <div className="flex items-center gap-2 text-ui-10 sm:text-ui-11
                         mm-mono tracking-[0.3em] text-(--mm-text-secondary)">
           <span
             className="inline-block w-1.5 h-1.5 rounded-full

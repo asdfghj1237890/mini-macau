@@ -12,12 +12,15 @@ maplibregl.setWorkerUrl(maplibreWorkerUrl)
 import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer } from '../layers/Bus3DLayer'
-import { LRT3DLayer } from '../layers/LRT3DLayer'
+import { LRT3DLayer, ALL_LRT_3D_LAYERS } from '../layers/LRT3DLayer'
+import { buildLrtDoubleViaduct } from '../lrtViaduct'
+import { getLrtTrack, LRT_DIRECTIONS } from '../lrtTracks'
+import { getLrtDepartureMinutes } from '../engines/lrtTimetable'
+import { FontSizeControl } from './FontSizeControl'
+import { VehicleFrame } from '../engines/vehicleFrame'
 import { Flight3DLayer, ALL_FLIGHT_3D_LAYERS } from '../layers/Flight3DLayer'
 import { Ferry3DLayer, ALL_FERRY_3D_LAYERS } from '../layers/Ferry3DLayer'
 import {
-  computeVehiclePositions,
-  computeFlightOnly,
   getBusServiceBucket,
   getBusServiceWindow,
   getScheduleType,
@@ -179,49 +182,8 @@ const BUS_LINE_OPACITY_DIM = 0.1
 
 const LRT_VIADUCT_BASE_M = 6
 const LRT_VIADUCT_HEIGHT_M = 7.2
-const LRT_VIADUCT_HALF_WIDTH_M = 3.5
 const LRT_VIADUCT_OPACITY = 0.95
 const LRT_VIADUCT_OPACITY_DIM = 0.18
-
-const METERS_PER_DEG_LAT = 111320
-
-function bufferLineStringToCorridor(
-  geometry: GeoJSON.Feature<GeoJSON.LineString> | GeoJSON.LineString,
-  halfWidthM: number
-): GeoJSON.Feature<GeoJSON.MultiPolygon> {
-  const line = (geometry as GeoJSON.Feature<GeoJSON.LineString>).geometry
-    ? (geometry as GeoJSON.Feature<GeoJSON.LineString>).geometry
-    : (geometry as GeoJSON.LineString)
-  const coords = line.coordinates
-  const polys: number[][][][] = []
-  for (let i = 0; i < coords.length - 1; i++) {
-    const [lng0, lat0] = coords[i]
-    const [lng1, lat1] = coords[i + 1]
-    const midLat = (lat0 + lat1) / 2
-    const cosLat = Math.cos((midLat * Math.PI) / 180)
-    const mLat = 1 / METERS_PER_DEG_LAT
-    const mLng = 1 / (METERS_PER_DEG_LAT * Math.max(cosLat, 1e-6))
-
-    const dxM = (lng1 - lng0) / mLng
-    const dyM = (lat1 - lat0) / mLat
-    const len = Math.sqrt(dxM * dxM + dyM * dyM)
-    if (len < 0.001) continue
-
-    const pxM = (-dyM / len) * halfWidthM
-    const pyM = (dxM / len) * halfWidthM
-
-    const c1: [number, number] = [lng0 + pxM * mLng, lat0 + pyM * mLat]
-    const c2: [number, number] = [lng1 + pxM * mLng, lat1 + pyM * mLat]
-    const c3: [number, number] = [lng1 - pxM * mLng, lat1 - pyM * mLat]
-    const c4: [number, number] = [lng0 - pxM * mLng, lat0 - pyM * mLat]
-    polys.push([[c1, c2, c3, c4, c1]])
-  }
-  return {
-    type: 'Feature',
-    geometry: { type: 'MultiPolygon', coordinates: polys },
-    properties: {},
-  }
-}
 
 function getLRTLineWindow(
   line: LRTLine,
@@ -236,7 +198,7 @@ function getLRTLineWindow(
     if (trip.entries.length === 0) continue
     const s = trip.entries[0].arrivalMinutes
     const last = trip.entries[trip.entries.length - 1]
-    const e = last.departureMinutes ?? last.arrivalMinutes
+    const e = getLrtDepartureMinutes(last)
     if (s < minStart) minStart = s
     if (e > maxEnd) maxEnd = e
   }
@@ -2029,10 +1991,6 @@ export function MapView(props: MapViewProps) {
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapThemeRef = useRef<boolean | null>(null)
   const vehiclesRef = useRef<VehiclePosition[]>([])
-  // Per-RAF flight snapshot. Used as the fallback source for the tracked
-  // plane's live position when we still need one outside the dedicated
-  // per-RAF recompute path.
-  const flightVehiclesRef = useRef<VehiclePosition[]>([])
   const layersAddedRef = useRef(false)
   const bus3DRef = useRef<Bus3DLayer | null>(null)
   const lrt3DRef = useRef<LRT3DLayer | null>(null)
@@ -2336,14 +2294,9 @@ export function MapView(props: MapViewProps) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [])
 
-  const pausedRef = useRef(clock.paused)
-  pausedRef.current = clock.paused
-  const speedRef = useRef(clock.speed)
-  speedRef.current = clock.speed
-  // `timeRef` is a stable ref off the clock. Pull it out as a plain identifier
-  // so effects can depend on it without depending on the whole `clock` object
-  // (which is a fresh literal every render and would restart RAF loops).
-  const { timeRef } = clock
+  // This reader is stable across pause/speed changes; the map loop keeps its
+  // cached fleet and upload cadence while the clock's controls change.
+  const { readTimeMs } = clock
 
   useEffect(() => {
     if (!containerRef.current || mapFailure) return
@@ -2534,7 +2487,7 @@ export function MapView(props: MapViewProps) {
     const corridors = new Map<string, GeoJSON.Feature<GeoJSON.MultiPolygon>>()
     for (const line of allTransitData.lrtLines) {
       if (line.geometry) {
-        corridors.set(line.id, bufferLineStringToCorridor(line.geometry, LRT_VIADUCT_HALF_WIDTH_M))
+        corridors.set(line.id, buildLrtDoubleViaduct(line.geometry))
       }
     }
 
@@ -3203,7 +3156,11 @@ export function MapView(props: MapViewProps) {
 
       for (const line of allTransitData.lrtLines) {
         if (!line.geometry) continue
-        m.addSource(`lrt-line-${line.id}`, { type: 'geojson', data: line.geometry })
+        m.addSource(`lrt-line-${line.id}`, {
+          type: 'geojson', data: {
+            type: 'FeatureCollection', features: LRT_DIRECTIONS.map(direction => getLrtTrack(line.geometry, direction)),
+          },
+        })
         m.addLayer({
           id: `lrt-line-${line.id}`, type: 'line', source: `lrt-line-${line.id}`,
           layout: { 'line-cap': 'round', 'line-join': 'round' },
@@ -4127,7 +4084,7 @@ export function MapView(props: MapViewProps) {
       m.on('mouseleave', 'vehicles-circle', () => { m.getCanvas().style.cursor = '' })
 
       const model3DLayers = ['bus-3d-body', 'bus-3d-roof', 'bus-3d-window', 'bus-3d-windshield', 'bus-3d-wheel',
-        'lrt-3d-body', 'lrt-3d-roof', 'lrt-3d-window', 'lrt-3d-windshield', 'lrt-3d-bogie', 'lrt-3d-gangway',
+        ...ALL_LRT_3D_LAYERS,
         ...ALL_FLIGHT_3D_LAYERS,
         ...ALL_FERRY_3D_LAYERS,
         'ferry-3d-upper-back', 'ferry-3d-wheel-visor']
@@ -4761,135 +4718,50 @@ export function MapView(props: MapViewProps) {
     const TRACK_ZOOM = 16
     const FLY_DURATION = 1200
     const EASE_BACK_DURATION = 400
-    // 30 Hz sim tick. 20 Hz (50 ms) was fine at 1× but at ≥5× sim speed the
-    // per-tick LRT step grew to ~5 m, held for ~3 render frames — visible as
-    // 前後抖動. 33 ms halves that step without piling re-tessellations on
-    // the MapLibre worker the way a full 60 Hz would.
-    const SIM_TICK_MS = 33
-    const HEAVY_TICK_MS_BUSY = 160
-    // Every setData on a GeoJSON source re-tiles all of its in-view tiles in
-    // the worker and re-uploads their buffers, so the upload cadence — the 3D
-    // vehicle sources and the 2D marker source — is what a phone's GPU
-    // actually pays for. Phones upload at 10 Hz (an iPhone X on iOS 16 was
-    // taking 450 tile reloads a second at 60 Hz and losing its WebGL
-    // context); desktops keep the sim tick. Positions and the GRAND PRIX car
-    // still compute at SIM_TICK_MS everywhere.
-    const HEAVY_TICK_MS_PHONE = 100
+    const frames = new VehicleFrame()
     let lastCountReport = 0
-    let lastSimTick = 0
-    let lastHeavyTick = 0
-    let lastMarkerTick = 0
-    let lastFlightTick = 0
-    // Local smooth time for flight computation: the clock hook advances
-    // timeRef in its own RAF loop which can fire after this animate loop
-    // in the same browser frame, causing a stale read (zero delta) followed
-    // by a double-delta on the next frame. At >=10x the alternating 0/2x
-    // steps are visible as 前後抖動. Maintaining our own time from
-    // performance.now() delta guarantees monotonic per-frame advancement.
-    let flightPerfLast = 0
-    let flightSimMs = 0
-    // Exponential camera smoothing for tracked vehicles. setCenter is
-    // synchronous but setData (3D mesh) goes through the worker; the
-    // 1-2 frame latency variance makes the mesh oscillate relative to
-    // the viewport center. Smoothing the camera with alpha < 1 acts as
-    // a low-pass filter, damping that high-frequency oscillation to
-    // sub-pixel levels at the cost of a tiny consistent lag (~0.3 m at
-    // 10× taxi speed).
+    let lastRaceFocus: boolean | null = null
     let smoothCam: [number, number] | null = null
+    let lastTrackedReport: VehiclePosition | null = null
     const CAM_ALPHA = 0.8
 
     const animate = () => {
       const map = mapRef.current
       const td = transitRef.current
-      if (map && !mapUnavailableRef.current && !td.loading && layersAddedRef.current) {
+      if (map && !mapUnavailableRef.current && !td.loading && layersAddedRef.current && !debugSwitches.nosim && !document.hidden) {
         const nowTick = performance.now()
-        const shouldTick = nowTick - lastSimTick >= SIM_TICK_MS && !debugSwitches.nosim
-        const heavyInterval = mapBusyRef.current
-          ? HEAVY_TICK_MS_BUSY
-          : isDesktopRef.current ? SIM_TICK_MS : HEAVY_TICK_MS_PHONE
-        const shouldHeavy = nowTick - lastHeavyTick >= heavyInterval
-        if (shouldTick) {
-          lastSimTick = nowTick
-          const vehicles = computeVehiclePositions(td, timeRef.current)
-          vehiclesRef.current = vehicles
-          if (shouldHeavy) {
-            lastHeavyTick = nowTick
-            bus3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'bus'))
-            lrt3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'lrt'))
-            ferry3DRef.current?.setVehicles(vehicles.filter(v => v.type === 'ferry'))
-          }
-          // The GRAND PRIX car: a dozen boxes at the sim tick on desktop and
-          // on the upload cadence on phones, placed on the lap by the same
-          // clock the buses read, and sized for the current zoom. `td` is the
-          // filtered data, so it is null the moment the layer goes off.
-          if (isDesktopRef.current || shouldHeavy) {
-            if (grandPrixFocusRef.current && td.grandPrix) {
-              const state = grandPrixCarState(td.grandPrix, timeRef.current.getTime(), map.getZoom())
-              raceCarRef.current?.setPose(state?.pose ?? null)
-              writeGrandPrixCarLabel(map, state, grandPrixCarLabelEmptyRef)
-              writeGrandPrixWake(map, td.grandPrix, state, grandPrixWakeEmptyRef)
-            } else {
-              raceCarRef.current?.setPose(null)
-              writeGrandPrixCarLabel(map, null, grandPrixCarLabelEmptyRef)
-              writeGrandPrixWake(map, null, null, grandPrixWakeEmptyRef)
-            }
-          }
+        // Read the clock directly once: camera, tracked mesh and fleet use
+        // one timeline without a second, RAF-order-dependent flight clock.
+        const simMs = readTimeMs()
+        const frame = frames.sample({
+          now: nowTick, simMs, data: td, zoom: map.getZoom(),
+          renderer: flight3DRef.current, trackedId: trackedRef.current ?? null,
+          uploadInterval: mapBusyRef.current ? 160 : isDesktopRef.current ? 33 : 100,
+        })
+        vehiclesRef.current = frame.vehicles
+        if (frame.trackedUpdated || frame.upload) {
+          flight3DRef.current?.setTrackedVehicle(frame.trackedFlight, {
+            updatePicking: frame.upload, refreshFleet: !frame.upload,
+          })
         }
-
-        // Advance local flight time smoothly from performance.now() delta.
-        if (flightPerfLast === 0) {
-          flightPerfLast = nowTick
-          flightSimMs = timeRef.current.getTime()
-        } else {
-          const perfDelta = nowTick - flightPerfLast
-          flightPerfLast = nowTick
-          if (!pausedRef.current) {
-            flightSimMs += perfDelta * speedRef.current
-          }
-          const clockMs = timeRef.current.getTime()
-          if (Math.abs(flightSimMs - clockMs) > 2000) {
-            flightSimMs = clockMs
-          }
+        if (frame.upload) {
+          bus3DRef.current?.setVehicles(frame.surface.filter(v => v.type === 'bus'))
+          lrt3DRef.current?.setVehicles(frame.surface.filter(v => v.type === 'lrt'), td.lrtLines)
+          ferry3DRef.current?.setVehicles(frame.surface.filter(v => v.type === 'ferry'))
+          flight3DRef.current?.setVehicles(frame.flights)
+          updateVehicleData(map, frame.vehicles)
         }
-
-        if (flight3DRef.current && !td.loading) {
-          const flightVehicles = computeFlightOnly(td, new Date(flightSimMs))
-          flightVehiclesRef.current = flightVehicles
-          const flightNow = performance.now()
-          const busyOk = !mapBusyRef.current || flightNow - lastFlightTick >= HEAVY_TICK_MS_BUSY
-          if (shouldHeavy && busyOk) {
-            lastFlightTick = flightNow
-            flight3DRef.current.setVehicles(flightVehicles)
-          }
-          const tid = trackedRef.current
-          const trackedFlight = tid
-            ? flightVehicles.find(v => v.id === tid && v.type === 'flight') ?? null
-            : null
-          flight3DRef.current.setTrackedVehicle(trackedFlight)
-        }
-
-        // The 2D marker source, on the same upload cadence as the 3D layers
-        // (it used to be written every RAF frame — 60 re-tilings a second of
-        // a source that only changes at the sim tick). Flight dots merge in
-        // the per-RAF flight positions so they sit on the 3D model, which is
-        // itself uploaded on this cadence, and bus/LRT/ferry move slowly
-        // enough that the cadence is imperceptible.
-        const shouldMarkers = nowTick - lastMarkerTick >= heavyInterval && !debugSwitches.nosim
-        if (shouldMarkers) {
-          lastMarkerTick = nowTick
-          const freshFlights = flightVehiclesRef.current
-          if (freshFlights.length > 0) {
-            const flightIds = new Set<string>()
-            for (const f of freshFlights) flightIds.add(f.id)
-            const base = vehiclesRef.current
-            const merged: VehiclePosition[] = []
-            for (let i = 0; i < base.length; i++) {
-              if (!flightIds.has(base[i].id)) merged.push(base[i])
-            }
-            for (const f of freshFlights) merged.push(f)
-            updateVehicleData(map, merged)
+        if (frame.upload || (isDesktopRef.current && frame.surfaceUpdated) || lastRaceFocus !== grandPrixFocusRef.current) {
+          lastRaceFocus = grandPrixFocusRef.current
+          if (lastRaceFocus && td.grandPrix) {
+            const state = grandPrixCarState(td.grandPrix, simMs, map.getZoom())
+            raceCarRef.current?.setPose(state?.pose ?? null)
+            writeGrandPrixCarLabel(map, state, grandPrixCarLabelEmptyRef)
+            writeGrandPrixWake(map, td.grandPrix, state, grandPrixWakeEmptyRef)
           } else {
-            updateVehicleData(map, vehiclesRef.current)
+            raceCarRef.current?.setPose(null)
+            writeGrandPrixCarLabel(map, null, grandPrixCarLabelEmptyRef)
+            writeGrandPrixWake(map, null, null, grandPrixWakeEmptyRef)
           }
         }
 
@@ -4899,7 +4771,7 @@ export function MapView(props: MapViewProps) {
           onVehicleCountRef.current?.(vehiclesRef.current.length)
         }
 
-        const simTime = timeRef.current
+        const simTime = new Date(simMs)
         const simMinuteKey = `${macauWeekday(simTime)}-${macauHours(simTime)}-${macauMinutes(simTime)}`
         if (simMinuteKey !== lastServiceMinuteRef.current) {
           lastServiceMinuteRef.current = simMinuteKey
@@ -4977,7 +4849,7 @@ export function MapView(props: MapViewProps) {
           // Prefer the per-RAF flight snapshot for planes so the camera
           // follows the same position the mesh is rendered at.
           const tracked =
-            flightVehiclesRef.current.find(v => v.id === tid) ??
+            (frame.trackedFlight?.id === tid ? frame.trackedFlight : undefined) ??
             vehiclesRef.current.find(v => v.id === tid)
           if (!tracked && prevTrackedRef.current === tid) {
             // Tracked vehicle dropped out of the simulation (service ended,
@@ -4992,8 +4864,9 @@ export function MapView(props: MapViewProps) {
           } else if (tracked) {
             const perfNow = performance.now()
             const sim = lastSimSyncRef.current
-            if (sim.id !== tid || perfNow - sim.at >= 150) {
+            if (sim.id !== tid || (lastTrackedReport !== tracked && perfNow - sim.at >= 150)) {
               lastSimSyncRef.current = { id: tid, at: perfNow }
+              lastTrackedReport = tracked
               onTrackedUpdateRef.current?.(tracked)
             }
             const isNewTrack = prevTrackedRef.current !== tid
@@ -5022,7 +4895,8 @@ export function MapView(props: MapViewProps) {
               } else if (smoothCam) {
                 smoothCam[0] += (tracked.coordinates[0] - smoothCam[0]) * CAM_ALPHA
                 smoothCam[1] += (tracked.coordinates[1] - smoothCam[1]) * CAM_ALPHA
-                map.setCenter(smoothCam)
+                const center = map.getCenter()
+                if (Math.abs(center.lng - smoothCam[0]) + Math.abs(center.lat - smoothCam[1]) > 1e-9) map.setCenter(smoothCam)
               } else {
                 smoothCam = [tracked.coordinates[0], tracked.coordinates[1]]
                 map.setCenter(smoothCam)
@@ -5038,7 +4912,7 @@ export function MapView(props: MapViewProps) {
     }
     raf = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(raf)
-  }, [timeRef])
+  }, [readTimeMs])
 
   const toggle3D = useCallback(() => {
     setIs3D(prev => {
@@ -5147,14 +5021,14 @@ export function MapView(props: MapViewProps) {
           leaving bottom content unreachable by scroll. */}
       <div
         style={{ zoom: 1.2, height: 'calc(100dvh / 1.2)' }}
-        className={`fixed top-0 left-0 z-40 w-60
+        className={`mm-settings-drawer fixed top-0 left-0 z-40 w-60 flex flex-col
                     bg-(--mm-panel) border-r border-(--mm-amber)/20
                     shadow-[8px_0_32px_var(--mm-shadow)]
                     transition-transform duration-200 ease-out
                     ${menuOpen ? 'translate-x-0' : '-translate-x-full'}`}
       >
         {/* CRT header with scanlines */}
-        <div className="relative border-b border-(--mm-amber)/20 px-3 pt-3 pb-2.5
+        <div className="relative shrink-0 border-b border-(--mm-amber)/20 px-3 pt-3 pb-2.5
                         bg-gradient-to-b from-(--mm-amber)/[0.04] to-transparent">
           <div
             className="absolute inset-0 pointer-events-none opacity-30"
@@ -5164,25 +5038,25 @@ export function MapView(props: MapViewProps) {
             }}
           />
           <div className="relative flex items-center justify-between mb-2">
-            <span className="mm-mono text-[8px] tracking-[0.3em] text-(--mm-text-accent)">SYS.MAP v2</span>
-            <span className="flex items-center gap-1 mm-mono text-[8px] tracking-wider text-(--mm-emerald)/80">
+            <span className="mm-mono text-ui-8 tracking-[0.3em] text-(--mm-text-accent)">SYS.MAP v2</span>
+            <span className="flex items-center gap-1 mm-mono text-ui-8 tracking-wider text-(--mm-emerald)/80">
               <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />ONLINE
             </span>
           </div>
           <div className="relative flex items-baseline gap-2">
-            <div className="mm-han text-[20px] font-black tracking-[0.15em] text-(--mm-amber-1) leading-none">澳門</div>
-            <div className="mm-mono text-[10px] tracking-[0.3em] text-(--mm-text-accent) leading-none">MACAU</div>
+            <div className="mm-han text-ui-20 font-black tracking-[0.15em] text-(--mm-amber-1) leading-none">澳門</div>
+            <div className="mm-mono text-ui-10 tracking-[0.3em] text-(--mm-text-accent) leading-none">MACAU</div>
           </div>
-          <div className="relative mm-mono text-[9px] tracking-[0.2em] text-(--mm-text-muted) mt-1">
+          <div className="relative mm-mono text-ui-9 tracking-[0.2em] text-(--mm-text-muted) mt-1">
             MINI · MAP · LIVE
           </div>
         </div>
 
         {/* Content */}
-        <div className="p-2.5 space-y-3 overflow-y-auto" style={{ height: 'calc(100% - 100px)' }}>
+        <div className="p-2.5 space-y-3 overflow-y-auto min-h-0 flex-1">
           {/* Map settings */}
           <div>
-            <div className="mm-mono text-[8px] tracking-[0.3em] text-(--mm-text-muted) px-1 pb-1.5 border-b border-(--mm-fg)/5 flex items-center gap-1.5">
+            <div className="mm-mono text-ui-8 tracking-[0.3em] text-(--mm-text-muted) px-1 pb-1.5 border-b border-(--mm-fg)/5 flex items-center gap-1.5">
               <span
                 className="inline-block w-[8px] h-[8px]"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-fg) 35%, transparent) 0 1px, transparent 1px 3px)' }}
@@ -5240,9 +5114,11 @@ export function MapView(props: MapViewProps) {
             </div>
           </div>
 
+          <FontSizeControl />
+
           {/* Language — Segmented LCD */}
           <div>
-            <div className="mm-mono text-[8px] tracking-[0.3em] text-(--mm-text-muted) px-1 pb-1.5 border-b border-(--mm-fg)/5 flex items-center gap-1.5">
+            <div className="mm-mono text-ui-8 tracking-[0.3em] text-(--mm-text-muted) px-1 pb-1.5 border-b border-(--mm-fg)/5 flex items-center gap-1.5">
               <span
                 className="inline-block w-[8px] h-[8px]"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-fg) 35%, transparent) 0 1px, transparent 1px 3px)' }}
@@ -5268,7 +5144,7 @@ export function MapView(props: MapViewProps) {
                                     ${active ? 'bg-(--mm-amber) mm-led-pulse' : 'bg-(--mm-fg)/15'}`}
                         style={active ? { boxShadow: '0 0 6px color-mix(in srgb, var(--mm-amber) 95%, transparent)' } : undefined}
                       />
-                      <span className="mm-mono text-[13px] font-bold tracking-[0.15em] leading-none">
+                      <span className="mm-mono text-ui-13 font-bold tracking-[0.15em] leading-none">
                         {l.toUpperCase()}
                       </span>
                     </button>
@@ -5276,10 +5152,10 @@ export function MapView(props: MapViewProps) {
                 })}
               </div>
               <div className="flex items-center justify-between mt-1.5 px-0.5">
-                <span className="mm-mono text-[9px] tracking-wider text-(--mm-text-accent)">
+                <span className="mm-mono text-ui-9 tracking-wider text-(--mm-text-accent)">
                   ▸ {lang === 'zh' ? t.langNameZh : lang === 'pt' ? t.langNamePt : t.langNameEn}
                 </span>
-                <span className="mm-mono text-[7px] tracking-[0.2em] text-(--mm-text-subtle)">LANG.SET</span>
+                <span className="mm-mono text-ui-7 tracking-[0.2em] text-(--mm-text-subtle)">LANG.SET</span>
               </div>
             </div>
           </div>
@@ -5288,8 +5164,8 @@ export function MapView(props: MapViewProps) {
           <div className="pt-2">
             <div className="bg-(--mm-inset) border border-(--mm-fg)/8 px-2.5 py-2">
               <div className="flex items-start gap-1.5">
-                <span className="mm-mono text-[9px] tracking-[0.15em] text-(--mm-text-accent) leading-none pt-[1px] shrink-0">⚠</span>
-                <p className="text-[10px] leading-[1.55] text-(--mm-text-muted)">
+                <span className="mm-mono text-ui-9 tracking-[0.15em] text-(--mm-text-accent) leading-none pt-[1px] shrink-0">⚠</span>
+                <p className="text-ui-10 leading-[1.55] text-(--mm-text-muted)">
                   {t.simDisclaimer}
                 </p>
               </div>
@@ -5301,42 +5177,42 @@ export function MapView(props: MapViewProps) {
               stay in Latin script across all three languages. */}
           <div className="pt-2">
             <div className="bg-(--mm-inset) border border-(--mm-fg)/8 px-2.5 py-2">
-              <div className="mm-mono text-[8px] tracking-[0.25em] text-(--mm-text-accent) mb-2 flex items-center gap-1.5">
+              <div className="mm-mono text-ui-8 tracking-[0.25em] text-(--mm-text-accent) mb-2 flex items-center gap-1.5">
                 <span className="w-1 h-1 bg-(--mm-amber)/70 rounded-full shrink-0" />
                 <span>{t.dataSources}</span>
                 <span className="flex-1 h-px bg-gradient-to-r from-(--mm-amber)/20 to-transparent" />
               </div>
               <ul className="space-y-[6px]">
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceBusLabel}</span>
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceBusLabel}</span>
                   <a
                     href="https://www.dsat.gov.mo/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
+                    className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
                   >DSAT</a>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceLrtLabel}</span>
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceLrtLabel}</span>
                   <a
                     href="https://www.mlm.com.mo/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
+                    className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
                   >MLM</a>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceFlightLabel}</span>
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceFlightLabel}</span>
                   <a
                     href="https://aviationstack.com/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
+                    className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
                   >AviationStack</a>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceFerryLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceFerryLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www2.turbojet.com.hk/"
                       target="_blank"
@@ -5353,8 +5229,8 @@ export function MapView(props: MapViewProps) {
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceRoadWorksLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceRoadWorksLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.dsat.gov.mo/"
                       target="_blank"
@@ -5371,8 +5247,8 @@ export function MapView(props: MapViewProps) {
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceSchoolsLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceSchoolsLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.dsedj.gov.mo/"
                       target="_blank"
@@ -5389,8 +5265,8 @@ export function MapView(props: MapViewProps) {
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourcePublicHousingLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourcePublicHousingLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.ihm.gov.mo/"
                       target="_blank"
@@ -5407,8 +5283,8 @@ export function MapView(props: MapViewProps) {
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceParishesLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceParishesLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.openstreetmap.org/copyright"
                       target="_blank"
@@ -5425,8 +5301,8 @@ export function MapView(props: MapViewProps) {
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceToiletsLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceToiletsLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.iam.gov.mo/"
                       target="_blank"
@@ -5443,8 +5319,8 @@ export function MapView(props: MapViewProps) {
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceCarParksLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceCarParksLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.dsat.gov.mo/"
                       target="_blank"
@@ -5461,8 +5337,8 @@ export function MapView(props: MapViewProps) {
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceWasteLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceWasteLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.iam.gov.mo/"
                       target="_blank"
@@ -5479,8 +5355,8 @@ export function MapView(props: MapViewProps) {
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourceWaterLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceWaterLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.macaowater.com/about-macao-water/water-supply-facilities"
                       target="_blank"
@@ -5497,8 +5373,8 @@ export function MapView(props: MapViewProps) {
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
-                  <span className="text-[10px] text-(--mm-text-secondary) leading-tight">{t.dataSourcePowerLabel}</span>
-                  <span className="mm-mono text-[9px] tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourcePowerLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
                     <a
                       href="https://www.cem-macau.com/zh/about-cem/company-profile/operation/"
                       target="_blank"
@@ -5520,16 +5396,16 @@ export function MapView(props: MapViewProps) {
 
           {/* Status footer */}
           <div className="border-t border-(--mm-fg)/5 pt-2 mt-3 space-y-0.5">
-            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-(--mm-text-muted)">
+            <div className="flex items-center justify-between mm-mono text-ui-8 tracking-wider text-(--mm-text-muted)">
               <span className="cursor-default select-none">SRC</span>
               <span className="text-(--mm-text-secondary)">GTFS · SIM</span>
             </div>
-            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-(--mm-text-muted)">
+            <div className="flex items-center justify-between mm-mono text-ui-8 tracking-wider text-(--mm-text-muted)">
               <span>ZOOM</span>
               <ZoomText subscribe={subscribeZoom} getSnapshot={getZoomSnapshot} precision={2}
                         className="mm-tabular text-(--mm-amber-1)/80" />
             </div>
-            <div className="flex items-center justify-between mm-mono text-[8px] tracking-wider text-(--mm-text-muted)">
+            <div className="flex items-center justify-between mm-mono text-ui-8 tracking-wider text-(--mm-text-muted)">
               <span>MODE</span><span className="text-(--mm-emerald)/70">{is3D ? '3D.LIVE' : '2D.LIVE'}</span>
             </div>
           </div>
@@ -5572,14 +5448,14 @@ function DrawerRow({ code, label, active, onClick, disabled }: DrawerRowProps) {
                     active ? 'bg-(--mm-amber)/[0.06] border-(--mm-amber)/15 hover:border-(--mm-amber)/30'
                            : 'border-transparent hover:bg-(--mm-fg)/[0.04] hover:border-(--mm-fg)/10'}`}
     >
-      <span className={`mm-mono text-[9px] tracking-wider leading-none w-8 h-6 flex items-center justify-center shrink-0 border
+      <span className={`mm-mono text-ui-9 tracking-wider leading-none w-8 h-6 flex items-center justify-center shrink-0 border
                         ${active
                           ? 'border-(--mm-amber)/50 bg-(--mm-amber)/10 text-(--mm-amber-1)'
                           : 'border-(--mm-fg)/15 bg-(--mm-fg)/[0.02] text-(--mm-text-secondary)'}`}
             style={active ? { boxShadow: 'inset 0 0 0 1px color-mix(in srgb, var(--mm-amber-2) 15%, transparent)' } : undefined}>
         {code}
       </span>
-      <span className={`text-[12px] ${active ? 'text-(--mm-amber-1)' : 'text-(--mm-fg)/80'}`}>{label}</span>
+      <span className={`text-ui-12 ${active ? 'text-(--mm-amber-1)' : 'text-(--mm-fg)/80'}`}>{label}</span>
       <div className="flex-1" />
       {active && !disabled && <span className="w-1 h-1 rounded-full bg-(--mm-amber) mm-led-pulse shrink-0" />}
     </button>

@@ -104,6 +104,8 @@ const translations = {
     groupNight: 'Night',
     groupSpecial: 'Special',
     loading: 'Loading...',
+    layerLoadFailed: 'Could not load this layer',
+    layerLoadRetry: 'Retry',
     vehicles: (n: number) => `${n} vehicles`,
     now: 'Now',
     play: 'Play',
@@ -234,6 +236,11 @@ const translations = {
     noServiceToday: 'No service today',
     // ---- MapView drawer ----
     mapSettings: 'Map Settings',
+    fontSize: 'Text size',
+    fontSizeDecrease: 'Decrease text size',
+    fontSizeIncrease: 'Increase text size',
+    fontSizeReset: 'Reset',
+    fontSizeHint: 'Menus, panels and information',
     plan2D: '2D Plan',
     terrain3D: '3D Terrain',
     buildings: 'Buildings',
@@ -637,6 +644,8 @@ const translations = {
     groupNight: '夜間線',
     groupSpecial: '特別線',
     loading: '載入中...',
+    layerLoadFailed: '圖層載入失敗',
+    layerLoadRetry: '重試',
     vehicles: (n: number) => `${n} 輛車輛`,
     now: '現在',
     play: '播放',
@@ -766,6 +775,11 @@ const translations = {
     wasteCount: (n: number) => `${n} 個回收／收集點`,
     noServiceToday: '本日無服務',
     mapSettings: '地圖設定',
+    fontSize: '字型大小',
+    fontSizeDecrease: '縮小字型',
+    fontSizeIncrease: '放大字型',
+    fontSizeReset: '恢復預設',
+    fontSizeHint: '選單、面板與資訊文字',
     plan2D: '2D 平面',
     terrain3D: '3D 立體',
     buildings: '建築群',
@@ -1115,6 +1129,8 @@ const translations = {
     groupNight: 'Nocturno',
     groupSpecial: 'Especial',
     loading: 'A carregar...',
+    layerLoadFailed: 'Não foi possível carregar a camada',
+    layerLoadRetry: 'Tentar novamente',
     vehicles: (n: number) => `${n} veículos`,
     now: 'Agora',
     play: 'Reproduzir',
@@ -1244,6 +1260,11 @@ const translations = {
     wasteCount: (n: number) => `${n} pontos de recolha`,
     noServiceToday: 'Sem serviço hoje',
     mapSettings: 'Definições',
+    fontSize: 'Tamanho do texto',
+    fontSizeDecrease: 'Diminuir texto',
+    fontSizeIncrease: 'Aumentar texto',
+    fontSizeReset: 'Repor',
+    fontSizeHint: 'Menus, painéis e informações',
     plan2D: '2D Plano',
     terrain3D: '3D Relevo',
     buildings: 'Edifícios',
@@ -1593,6 +1614,8 @@ export interface Translations {
   groupNight: string
   groupSpecial: string
   loading: string
+  layerLoadFailed: string
+  layerLoadRetry: string
   vehicles: (n: number) => string
   now: string
   play: string
@@ -1722,6 +1745,11 @@ export interface Translations {
   wasteCount: (n: number) => string
   noServiceToday: string
   mapSettings: string
+  fontSize: string
+  fontSizeDecrease: string
+  fontSizeIncrease: string
+  fontSizeReset: string
+  fontSizeHint: string
   plan2D: string
   terrain3D: string
   buildings: string

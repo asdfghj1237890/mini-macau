@@ -2,6 +2,7 @@ import type { Map as MapLibreMap } from 'maplibre-gl'
 import type { VehiclePosition } from '../types'
 import { buildFlightFeatures, type AircraftPartKind } from './aircraftGeometry'
 import { AircraftModelLayer } from './AircraftModelLayer'
+import { FLIGHT_LABEL_LAYER_ID } from './VehicleLayer'
 
 export const FLIGHT_3D_SOURCE_ID = 'flight-3d-source'
 export const FLIGHT_3D_TRACKED_SOURCE_ID = 'flight-3d-tracked-source'
@@ -98,6 +99,9 @@ export class Flight3DLayer {
       })
     }
     map.addLayer(this.model)
+    // Labels are initially added with the 2D markers. Draw them after the
+    // custom mesh so the fuselage cannot paint over its own flight number.
+    if (map.getLayer(FLIGHT_LABEL_LAYER_ID)) map.moveLayer(FLIGHT_LABEL_LAYER_ID)
   }
 
   detach(): void {
@@ -135,7 +139,7 @@ export class Flight3DLayer {
 
   // The tracked GPU instance updates synchronously with the camera. Its small
   // picking source follows independently through the MapLibre worker.
-  setTrackedVehicle(flight: VehiclePosition | null): void {
+  setTrackedVehicle(flight: VehiclePosition | null, options: { updatePicking?: boolean; refreshFleet?: boolean } = {}): void {
     const map = this.map
     if (!map) return
     const src = map.getSource(FLIGHT_3D_TRACKED_SOURCE_ID) as unknown as { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
@@ -153,7 +157,7 @@ export class Flight3DLayer {
       }
       // Plane went back into the main source — rebuild so it reappears there
       // instead of winking out until the next heavy tick.
-      if (idChanged) this.setVehicles(this.lastFlights)
+      if (idChanged && options.refreshFleet !== false) this.setVehicles(this.lastFlights)
       return
     }
 
@@ -169,11 +173,13 @@ export class Flight3DLayer {
     }
 
     this.model.setTrackedVehicle(flight)
-    src.setData({ type: 'FeatureCollection', features: buildFlightFeatures([flight]) })
-    this.trackedEmpty = false
+    if (options.updatePicking !== false || idChanged || this.trackedEmpty) {
+      src.setData({ type: 'FeatureCollection', features: buildFlightFeatures([flight]) })
+      this.trackedEmpty = false
+    }
     // On track-change, refresh the main source immediately so the newly
     // tracked plane is excluded (avoids a 1-heavy-tick window where it would
     // render in both sources, producing a double image).
-    if (idChanged) this.setVehicles(this.lastFlights)
+    if (idChanged && options.refreshFleet !== false) this.setVehicles(this.lastFlights)
   }
 }

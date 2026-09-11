@@ -24,10 +24,10 @@ const OSM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright'
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
+      <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
         {label}
       </span>
-      <span className="text-[10px] text-(--mm-fg)/80 text-right mm-han min-w-0">{value}</span>
+      <span className="text-ui-10 text-(--mm-fg)/80 text-right mm-han min-w-0">{value}</span>
     </div>
   )
 }
@@ -62,15 +62,15 @@ function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: 
                style={{ backgroundColor: `${color}14` }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-secondary)">
+              <div className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-secondary)">
                 {'⚡'} {t.powerLabel}
               </div>
-              <div className="text-[13px] font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap
+              <div className="text-ui-13 font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap
                               flex items-center gap-1.5">
                 {stage > 0 && (
                   <span
                     className="inline-flex items-center justify-center w-[15px] h-[15px] shrink-0
-                               rounded-full bg-(--mm-panel) border border-(--mm-fg)/70 mm-mono text-[9px]
+                               rounded-full bg-(--mm-panel) border border-(--mm-fg)/70 mm-mono text-ui-9
                                leading-none text-(--mm-fg)"
                     title={t.powerStage(stage)}
                     aria-label={t.powerStage(stage)}
@@ -83,11 +83,11 @@ function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: 
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="text-[14px] font-bold text-(--mm-fg) truncate mm-han" title={title}>
+            <div className="text-ui-14 font-bold text-(--mm-fg) truncate mm-han" title={title}>
               {title}
             </div>
             {subtitle && (
-              <div className="text-[10px] text-(--mm-text-muted) truncate mm-han" title={subtitle}>
+              <div className="text-ui-10 text-(--mm-text-muted) truncate mm-han" title={subtitle}>
                 {subtitle}
               </div>
             )}
@@ -95,7 +95,7 @@ function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: 
           <button
             onClick={onClose}
             className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
-                       mm-mono text-[13px] transition-colors"
+                       mm-mono text-ui-13 transition-colors"
             aria-label={t.cancel}
           >
             ✕
@@ -106,10 +106,10 @@ function Shell({ color, kindLabel, stage, title, subtitle, onClose, children }: 
 
         {/* Footer: provenance */}
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between gap-2">
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
+          <span className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {t.powerSource}
           </span>
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-(--mm-text-muted) truncate">
+          <span className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-wider text-(--mm-text-muted) truncate">
             <a
               href={CEM_URL}
               target="_blank"
@@ -211,8 +211,8 @@ export function PowerFacilityInfoPanel({ facility, facilities, network, onClose 
             <Row label={t.powerCommissioned} value={String(facility.details.commissioned)} />
           )}
           {units && (
-            <div className="text-[10px] text-(--mm-fg)/65 mm-han leading-[1.45]">
-              <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) mr-2">
+            <div className="text-ui-10 text-(--mm-fg)/65 mm-han leading-[1.45]">
+              <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted) mr-2">
                 {t.powerUnits}
               </span>
               {units}
@@ -223,7 +223,7 @@ export function PowerFacilityInfoPanel({ facility, facilities, network, onClose 
 
       {/* Ownership. Stated for every facility, because the panel's POWER header
           would otherwise imply CEM owns the government's incineration centre. */}
-      <div className={`px-3 pb-2 pt-2 text-[10px] mm-han leading-[1.4]
+      <div className={`px-3 pb-2 pt-2 text-ui-10 mm-han leading-[1.4]
                        ${isDspa ? 'text-(--mm-lime-1)/80' : 'text-(--mm-text-muted)'}`}>
         {powerOperatorLabel(t, facility)}
       </div>
@@ -233,12 +233,12 @@ export function PowerFacilityInfoPanel({ facility, facilities, network, onClose 
           co-located facility (or a district point), so saying so is honest. */}
       {facility.approximate && (
         <div className="px-3 pb-2 space-y-1">
-          <span className="inline-block mm-han text-[9px] leading-none px-1.5 py-[3px] border"
+          <span className="inline-block mm-han text-ui-9 leading-none px-1.5 py-[3px] border"
                 style={{ borderColor: `${color}66`, color }}>
             {t.powerApproximate}
           </span>
           {anchorName && (
-            <div className="text-[10px] text-(--mm-text-secondary) mm-han leading-[1.4]">
+            <div className="text-ui-10 text-(--mm-text-secondary) mm-han leading-[1.4]">
               {t.powerCoLocatedWith(anchorName)}
             </div>
           )}
@@ -249,7 +249,7 @@ export function PowerFacilityInfoPanel({ facility, facilities, network, onClose 
           and always next to the reminder that the grid is our own schematic
           drawing rather than CEM's cable routes. */}
       {lines > 0 && (
-        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-[10px] text-(--mm-text-secondary) mm-han leading-[1.4]">
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-ui-10 text-(--mm-text-secondary) mm-han leading-[1.4]">
           {t.powerLines(lines)}
           <span className="text-(--mm-text-muted)">{' · '}{t.powerNetworkNote}</span>
         </div>
@@ -286,16 +286,16 @@ export function PowerInletInfoPanel({ node, network, facts, onClose }: InletProp
       subtitle={subtitle}
       onClose={onClose}
     >
-      <div className="px-3 py-2 text-[11px] text-(--mm-fg)/75 mm-han leading-[1.5]">
+      <div className="px-3 py-2 text-ui-11 text-(--mm-fg)/75 mm-han leading-[1.5]">
         {t.powerInletNote(facts ? { pct: facts.importedSharePct, year: facts.year } : null)}
       </div>
       {node.approximate && (
-        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-[10px] text-(--mm-text-secondary) mm-han leading-[1.4]">
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-ui-10 text-(--mm-text-secondary) mm-han leading-[1.4]">
           {t.powerApproximate}
         </div>
       )}
       {lines > 0 && (
-        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-[10px] text-(--mm-text-secondary) mm-han leading-[1.4]">
+        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 text-ui-10 text-(--mm-text-secondary) mm-han leading-[1.4]">
           {t.powerLines(lines)}
           <span className="text-(--mm-text-muted)">{' · '}{t.powerNetworkNote}</span>
         </div>

@@ -75,7 +75,7 @@ export const WASTE_SORT_KEY: Record<WasteSiteType, number> = {
 // The incineration plant. 澳門垃圾焚化中心 is where Macau's collected refuse
 // actually ENDS UP, so the waste overlay would be telling half a story without
 // it — but it is not one of the six point datasets: it is a building complex,
-// and it is already loaded at startup as the `incinerator` record of
+// and it is loaded on demand as the `incinerator` record of
 // power-facilities.json (the POWER layer draws it as a generating station,
 // because it sells its electricity to CEM). Rather than add a pipeline step
 // that would duplicate 11 footprints into a second file, the waste overlay

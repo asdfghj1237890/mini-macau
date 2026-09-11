@@ -17,6 +17,8 @@
 //   node scripts/inspect.mjs route <id>             # one route, all buckets
 //   node scripts/inspect.mjs in-service HH:MM [bucket] [--tail N]
 //   node scripts/inspect.mjs coords                 # bus-line coordinate totals
+//   node scripts/inspect.mjs lrt-motion [--dwell 45] # aggregate motion feasibility; uses LRT_TRIPS_DIR or local dev inputs
+//   node scripts/inspect.mjs city-loading          # city payload and generated count-catalog sizes
 //   node scripts/inspect.mjs ferries                # ferry-schedules.json summary
 //   node scripts/inspect.mjs flights                # flights.json summary
 //   node scripts/inspect.mjs road-works [YYYY-MM-DD] # road-works.json summary + active/upcoming for a date (default: today, Macau)
@@ -37,10 +39,93 @@
 import { readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { gzipSync } from 'node:zlib'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const load = (rel) => JSON.parse(readFileSync(join(ROOT, rel), 'utf8'))
 const busRoutes = () => load('public/data/bus-routes.json')
+
+async function cmdCityLoading() {
+  const { buildCityCatalog } = await import('../plugins/city-catalog.ts')
+  const files = ['road-works', 'schools', 'public-housing', 'parishes', 'toilets',
+    'car-parks', 'waste', 'dspa-stats', 'water-facilities', 'power-facilities', 'grand-prix']
+  const sizes = files.map(name => {
+    const bytes = readFileSync(join(ROOT, 'public/data', `${name}.json`))
+    return { name, decoded: bytes.length, gzip: gzipSync(bytes).length }
+  })
+  const total = list => list.reduce((sum, file) => ({ decoded: sum.decoded + file.decoded, gzip: sum.gzip + file.gzip }), { decoded: 0, gzip: 0 })
+  const catalog = Buffer.from(JSON.stringify(await buildCityCatalog(join(ROOT, 'public/data'))))
+  console.log(JSON.stringify({
+    cityFiles: sizes.length,
+    allCityDataBytes: total(sizes),
+    defaultCityFiles: ['road-works'],
+    deferredByDefaultBytes: total(sizes.filter(file => file.name !== 'road-works')),
+    catalogBytes: { decoded: catalog.length, gzip: gzipSync(catalog).length },
+    note: 'Uncompressed/gzip payload sizes; HTTP compression and transfer overhead depend on the server.',
+  }, null, 2))
+}
+
+async function cmdLrtMotion(defaultDwellSec) {
+  const { getLrtDepartureMinutes, LRT_DEFAULT_DWELL_SEC } = await import('../src/engines/lrtTimetable.ts')
+  defaultDwellSec ??= LRT_DEFAULT_DWELL_SEC
+  if (!Number.isFinite(defaultDwellSec) || defaultDwellSec < 0) throw new Error('Invalid default dwell seconds')
+  const { default: nearestPointOnLine } = await import('@turf/nearest-point-on-line')
+  const { createLrtMotionProfile, sampleLrtMotion } = await import('../src/engines/lrtMotion.ts')
+  const { getLrtTrack, LRT_DIRECTIONS } = await import('../src/lrtTracks.ts')
+  const stations = new Map(load('public/data/stations.json').map(s => [s.id, s.coordinates]))
+  const routes = new Map(load('public/data/lrt-lines.json').map(route => [route.id, route]))
+  const positions = new Map()
+  for (const route of routes.values()) for (const direction of LRT_DIRECTIONS) for (const sid of route.stations) {
+    const point = nearestPointOnLine(getLrtTrack(route.geometry, direction), stations.get(sid), { units: 'kilometers' })
+    positions.set(`${route.id}:${direction}:${sid}`, (point.properties.location ?? 0) * 1000)
+  }
+  const dir = process.env.LRT_TRIPS_DIR || join(ROOT, 'src/data')
+  const summary = {}
+  for (const schedule of ['mon_thu', 'friday', 'sat_sun']) {
+    const trips = JSON.parse(readFileSync(join(dir, `trips-${schedule}.json`), 'utf8'))
+    for (const trip of trips) {
+      const row = summary[trip.lineId] ??= { legs: 0, maxAverageKmh: 0, maxPeakKmh: 0, over80: 0, infeasible: 0, positiveDwell: 0, zeroDwell: 0, minRunSec: Infinity, maxRunSec: 0, overnightTrips: 0, minDwellCeilingSec: Infinity }
+      if (trip.entries.at(-1).arrivalMinutes >= 1440) row.overnightTrips++
+      for (let i = 0; i < trip.entries.length; i++) {
+        const e = trip.entries[i], next = trip.entries[i + 1]
+        const dwell = (e.departureMinutes ?? e.arrivalMinutes) - e.arrivalMinutes
+        if (dwell > 0) row.positiveDwell++; else row.zeroDwell++
+        if (!next) continue
+        const intervalSec = (next.arrivalMinutes - e.arrivalMinutes) * 60
+        const seconds = (next.arrivalMinutes - getLrtDepartureMinutes(e, defaultDwellSec)) * 60
+        const distance = Math.abs(positions.get(`${trip.lineId}:${trip.direction}:${next.stationId}`) - positions.get(`${trip.lineId}:${trip.direction}:${e.stationId}`))
+        if (!Number.isFinite(distance) || seconds <= 0) throw new Error('Invalid LRT segment inputs')
+        const average = distance / seconds * 3.6
+        row.minDwellCeilingSec = Math.min(row.minDwellCeilingSec, intervalSec - distance / (80 / 3.6))
+        row.legs++; row.maxAverageKmh = Math.max(row.maxAverageKmh, average)
+        if (average > 80) row.over80++
+        row.minRunSec = Math.min(row.minRunSec, seconds)
+        row.maxRunSec = Math.max(row.maxRunSec, seconds)
+        const profile = createLrtMotionProfile(distance, seconds)
+        if (!profile) { row.infeasible++; continue }
+        row.maxPeakKmh = Math.max(row.maxPeakKmh, profile.cruiseMps * 3.6)
+        let previous = 0
+        for (let step = 0; step <= 100; step++) {
+          const state = sampleLrtMotion(profile, seconds * step / 100)
+          if (state.progress < previous || state.speedKmh > 80 || !Number.isFinite(state.progress)) throw new Error('Invalid LRT motion sample')
+          previous = state.progress
+        }
+        const start = sampleLrtMotion(profile, 0), end = sampleLrtMotion(profile, seconds)
+        if (start.progress !== 0 || end.progress !== 1 || start.speedKmh !== 0 || end.speedKmh !== 0) throw new Error('LRT endpoint mismatch')
+      }
+    }
+  }
+  // Aggregate diagnostics only: no individual trips or timetable rows.
+  for (const row of Object.values(summary)) {
+    row.maxAverageKmh = +row.maxAverageKmh.toFixed(3)
+    row.maxPeakKmh = +row.maxPeakKmh.toFixed(3)
+    row.minRunSec = +row.minRunSec.toFixed(3)
+    row.maxRunSec = +row.maxRunSec.toFixed(3)
+    row.minDwellCeilingSec = +row.minDwellCeilingSec.toFixed(3)
+  }
+  console.log(JSON.stringify(summary, null, 2))
+  if (Object.values(summary).some(row => row.infeasible > 0)) process.exitCode = 1
+}
 
 // Resolve the active service window for a route + bucket (null = no service).
 function serviceWindow(route, bucket = 'weekday') {
@@ -843,6 +928,12 @@ const tail = tailFlag >= 0 ? Number(rest[tailFlag + 1]) || 0 : 0
 const pos = rest.filter((a, i) => a !== '--tail' && rest[i - 1] !== '--tail')
 
 switch (cmd) {
+  case 'city-loading': await cmdCityLoading(); break
+  case 'lrt-motion': {
+    const index = rest.indexOf('--dwell')
+    await cmdLrtMotion(index < 0 ? undefined : Number(rest[index + 1]))
+    break
+  }
   case 'routes': cmdRoutes(); break
   case 'route': cmdRoute(pos[0]); break
   case 'in-service': cmdInService(pos[0], pos[1], tail); break
@@ -863,6 +954,6 @@ switch (cmd) {
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   default:
-    console.log('commands: routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
+    console.log('commands: city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)
 }

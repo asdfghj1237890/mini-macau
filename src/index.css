@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "maplibre-gl/dist/maplibre-gl.css";
+@import "./typography.css";
 
 @variant landscape (@media (orientation: landscape) and (max-height: 500px));
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
@@ -201,7 +202,7 @@ html, body, #root {
     bottom: 0.25rem;
   }
   .maplibregl-ctrl-attrib {
-    font-size: 9px;
+    font-size: calc(9px * var(--mm-font-scale));
   }
 }
 
@@ -218,7 +219,7 @@ html, body, #root {
     bottom: 0.25rem;
   }
   .maplibregl-ctrl-attrib {
-    font-size: 9px;
+    font-size: calc(9px * var(--mm-font-scale));
   }
 }
 

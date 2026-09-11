@@ -1,16 +1,19 @@
 import type { VehiclePosition, TransitData, SimulationClock, Trip, BusStop } from '../types'
-import { useClockMinute } from '../hooks/useSimulationClock'
+import { useClockTime } from '../hooks/useSimulationClock'
 import { useI18n, localName } from '../i18n'
 import { useMemo, useRef, useEffect } from 'react'
-import length from '@turf/length'
-import nearestPointOnLine from '@turf/nearest-point-on-line'
 import {
+  computeLRTVehicle,
+  getLrtTripMinutes,
   getBusSchedule,
+  getBusServiceBucket,
   computeBusCycleSec,
   computeBusDirSec,
   type BusSchedule,
 } from '../engines/simulationEngine'
-import { macauMinutesOfDay, macauWeekday } from '../macauTime'
+import { macauMinutesOfDay } from '../macauTime'
+import { getLrtDepartureMinutes } from '../engines/lrtTimetable'
+import { formatCountdown, lrtStopStatus, nextStopSummary, type TimedStop } from './vehiclePanelStatus'
 
 interface Props {
   vehicle: VehiclePosition | null
@@ -39,6 +42,7 @@ interface BusStopETA {
   stopName: string
   stopNameCn: string
   etaMinutes: number
+  departureMinutes: number
   status: 'past' | 'dwelling' | 'arriving' | 'future'
 }
 
@@ -70,13 +74,14 @@ function computeBusStopETAs(
       stopName: stop.name,
       stopNameCn: stop.nameCn,
       etaMinutes: nowMinutes + etaMin,
+      departureMinutes: nowMinutes + (s.departSec - dirSec) / 60,
       status,
     })
   }
   return result
 }
 
-interface RowData {
+interface RowData extends TimedStop {
   key: string
   primary: string
   secondary: string
@@ -89,8 +94,8 @@ interface RowData {
 function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerProps) {
   const { lang, t } = useI18n()
 
-  // `vehicle` is a fresh object every sim tick; key memos/effects on the stable
-  // id (+ type) so they don't recompute every frame.
+  // Selection is a snapshot, not a live speed source. Key lookup on its id
+  // and derive current motion from the same engine/time as the map.
   const vehicleId = vehicle?.id
   const vehicleType = vehicle?.type
 
@@ -111,11 +116,15 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     return new Map(transitData.busStops.map(s => [s.id, s]))
   }, [transitData.busStops])
 
-  // ETAs are minute-resolution: subscribe at the minute, not the tick.
-  const now = useClockMinute(clock)
+  // Only this mounted panel subscribes at ~10 Hz; App and map chrome keep
+  // their existing cadence. Pauses, scrubs and speed changes use this clock.
+  const now = useClockTime(clock)
   const nowMinutesForETA = macauMinutesOfDay(now)
-
-  const isSunBucket = macauWeekday(now) === 0
+  const serviceBucket = getBusServiceBucket(now)
+  const liveLrt = useMemo(
+    () => trip ? computeLRTVehicle(transitData, trip, now) : undefined,
+    [transitData, trip, now],
+  )
 
   const busCtx = useMemo(() => {
     if (!vehicle || vehicle.type !== 'bus') return null
@@ -123,16 +132,16 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     if (!route) return null
     const schedule = getBusSchedule(route, busStopMap)
     if (!schedule) return null
-    const cycleSec = computeBusCycleSec(vehicle.id, schedule, route, nowMinutesForETA, isSunBucket)
+    const cycleSec = computeBusCycleSec(vehicle.id, schedule, route, nowMinutesForETA, serviceBucket)
     const { dirSec, returning } = computeBusDirSec(cycleSec, schedule)
     return { route, schedule, dirSec, returning }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, nowMinutesForETA, isSunBucket, busStopMap, transitData.busRoutes])
+  }, [vehicle?.id, nowMinutesForETA, serviceBucket, busStopMap, transitData.busRoutes])
   const busETAs: BusStopETA[] = useMemo(() => {
     if (!vehicle || !busCtx) return []
     return computeBusStopETAs(busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, busCtx, busStopMap, nowMinutesForETA, isSunBucket])
+  }, [vehicle?.id, busCtx, busStopMap, nowMinutesForETA])
 
   const line = vehicle.type === 'lrt'
     ? transitData.lrtLines.find(l => l.id === vehicle.lineId)
@@ -147,7 +156,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     : route
       ? route.name
       : vehicle.lineId
-  const nowMinutes = macauMinutesOfDay(now)
+  const nowMinutes = trip ? getLrtTripMinutes(trip, nowMinutesForETA) : nowMinutesForETA
 
   // Build unified rows
   const rows: RowData[] = []
@@ -157,15 +166,11 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
       const primary = s ? localName(lang, s) : entry.stationId
       const secondary = s ? (s.name !== primary ? s.name : '') : ''
       const arr = entry.arrivalMinutes
-      const dep = entry.departureMinutes ?? arr
+      const dep = getLrtDepartureMinutes(entry)
       const isFirst = i === 0
       const isLast = i === trip.entries.length - 1
 
-      let status: 'past' | 'dwelling' | 'arriving' | 'future'
-      if (nowMinutes > dep + 0.5) status = 'past'
-      else if (nowMinutes >= arr - 0.3 && nowMinutes <= dep + 0.5) status = 'dwelling'
-      else if (nowMinutes >= arr - 5) status = 'arriving'
-      else status = 'future'
+      const status = lrtStopStatus(entry, nowMinutes)
 
       rows.push({
         key: entry.stationId,
@@ -173,6 +178,8 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
         secondary,
         arr: isFirst ? '—' : formatMinutes(arr),
         dep: isLast ? t.terminalStop : formatMinutes(dep),
+        arrivalMinutes: arr,
+        departureMinutes: dep,
         status,
         isLast,
       })
@@ -189,6 +196,8 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
         secondary,
         arr: etaStr,
         dep: isLast ? t.terminalStop : etaStr,
+        arrivalMinutes: s.etaMinutes,
+        departureMinutes: s.departureMinutes,
         status: s.status,
         isLast,
       })
@@ -233,45 +242,13 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     : rows.find(r => r.status === 'future' || r.status === 'arriving')
   const destName = destRow?.primary ?? ''
 
-  // Find next stop dwelling/arriving for NEXT stat
-  const nextRow = rows.find(r => r.status === 'dwelling' || r.status === 'arriving' || r.status === 'future')
-  const nextETA = nextRow ? nextRow.arr : '—'
-  const nextSub = nextRow?.status === 'dwelling' ? 'dwell' : 'arr'
+  const next = nextStopSummary(rows, nowMinutes, vehicle.type !== 'lrt' || liveLrt !== undefined)
+  const nextRow = next ? rows[next.index] : undefined
+  const nextETA = next ? formatCountdown(next.seconds) : '—'
+  const nextSub = next?.phase ?? ''
 
   const speed = useMemo(() => {
-    if (vehicle.type === 'lrt' && trip && line) {
-      const totalLenKm = length(line.geometry, { units: 'kilometers' })
-      for (let i = 0; i < trip.entries.length; i++) {
-        const e = trip.entries[i]
-        const dep = e.departureMinutes ?? e.arrivalMinutes
-        if (nowMinutes >= e.arrivalMinutes - 0.3 && nowMinutes <= dep + 0.3) return 0
-
-        if (i < trip.entries.length - 1) {
-          const next = trip.entries[i + 1]
-          if (nowMinutes > dep && nowMinutes < next.arrivalMinutes) {
-            const travelMin = next.arrivalMinutes - dep
-            if (travelMin <= 0) return 0
-            const stns = transitData.stations
-            const fromCoords = stns.find(s => s.id === e.stationId)?.coordinates
-            const toCoords = stns.find(s => s.id === next.stationId)?.coordinates
-            let segKm: number
-            if (fromCoords && toCoords && totalLenKm > 0) {
-              const p1 = nearestPointOnLine(line.geometry, fromCoords, { units: 'kilometers' })
-              const p2 = nearestPointOnLine(line.geometry, toCoords, { units: 'kilometers' })
-              segKm = Math.abs((p2.properties.location ?? 0) - (p1.properties.location ?? 0))
-            } else {
-              segKm = totalLenKm / Math.max(1, trip.entries.length - 1)
-            }
-            const avgSpeed = (segKm / travelMin) * 60
-            const segProgress = (nowMinutes - dep) / travelMin
-            const approachSlowdown = segProgress > 0.85 ? 1 - ((segProgress - 0.85) / 0.15) * 0.7 : 1
-            const departAccel = segProgress < 0.15 ? 0.3 + (segProgress / 0.15) * 0.7 : 1
-            return Math.round(avgSpeed * approachSlowdown * departAccel)
-          }
-        }
-      }
-      return 0
-    }
+    if (vehicle.type === 'lrt') return liveLrt?.lrtMotion?.speedKmh ?? null
     if (vehicle.type === 'bus' && busCtx) {
       const { schedule, returning } = busCtx
       const stops = returning ? schedule.backwardStops : schedule.forwardStops
@@ -313,7 +290,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     }
     return 0
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle.id, vehicle.type, nowMinutes, trip, line, busCtx])
+  }, [vehicle.id, vehicle.type, liveLrt, busCtx])
 
   return (
     <div className="absolute top-16 left-4 z-20 w-[340px]
@@ -328,23 +305,23 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
                style={{ backgroundColor: color + '22' }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-secondary)">LINE</div>
-              <div className={`mm-han font-bold text-(--mm-fg) leading-tight ${lang === 'zh' ? 'text-[16px]' : 'text-[14px]'}`}>{lineLabel}</div>
+              <div className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-secondary)">LINE</div>
+              <div className={`mm-han font-bold text-(--mm-fg) leading-tight ${lang === 'zh' ? 'text-ui-16' : 'text-ui-14'}`}>{lineLabel}</div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-accent) flex items-center gap-1.5">
+            <div className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-accent) flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-(--mm-amber) mm-led-pulse" />
               {t.towards.toUpperCase()} · BOUND FOR
             </div>
-            <div className={`mm-han font-bold text-(--mm-amber-1) truncate ${lang === 'zh' ? 'text-lg' : 'text-[15px]'}`}>
+            <div className={`mm-han font-bold text-(--mm-amber-1) truncate ${lang === 'zh' ? 'text-lg' : 'text-ui-15'}`}>
               {destName}
             </div>
           </div>
           <button
             onClick={onClose}
             className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
-                       mm-mono text-[16px] transition-colors"
+                       mm-mono text-ui-16 transition-colors"
             aria-label="Close"
           >
             ✕
@@ -354,17 +331,17 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
         {/* Stats strip */}
         <div className="grid grid-cols-2 border-b border-(--mm-fg)/8 bg-(--mm-fg)/[0.02]">
           <div className="px-3 py-1.5 border-r border-(--mm-fg)/8">
-            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted)">SPEED</div>
+            <div className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">SPEED</div>
             <div className="flex items-baseline gap-1">
-              <span className="mm-mono mm-tabular text-[16px] font-bold text-(--mm-fg)/90 leading-tight">{speed}</span>
-              <span className="mm-mono text-[11px] text-(--mm-text-muted)">km/h</span>
+              <span className="mm-mono mm-tabular text-ui-16 font-bold text-(--mm-fg)/90 leading-tight">{speed === null ? '—' : vehicle.type === 'lrt' ? speed.toFixed(1) : speed}</span>
+              <span className="mm-mono text-ui-11 text-(--mm-text-muted)">km/h</span>
             </div>
           </div>
-          <div className="px-3 py-1.5">
-            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted)">NEXT</div>
+          <div className="px-3 py-1.5" title={nextRow?.primary}>
+            <div className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">NEXT</div>
             <div className="flex items-baseline gap-1">
-              <span className="mm-mono mm-tabular text-[17px] font-bold text-(--mm-amber-1) leading-tight">{nextETA}</span>
-              <span className="mm-mono text-[11px] text-(--mm-text-muted)">{nextSub}</span>
+              <span className="mm-mono mm-tabular text-ui-17 font-bold text-(--mm-amber-1) leading-tight">{nextETA}</span>
+              <span className="mm-mono text-ui-11 text-(--mm-text-muted)">{nextSub}</span>
             </div>
           </div>
         </div>
@@ -375,9 +352,9 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
             <div className="grid grid-cols-[16px_1fr_54px_54px] gap-0 px-3 py-1.5
                             border-b border-(--mm-fg)/5 bg-(--mm-fg)/[0.015]">
               <span />
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted)">STATION · 車站</span>
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted) text-right">ARR</span>
-              <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted) text-right">DEP</span>
+              <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">STATION · 車站</span>
+              <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted) text-right">ARR</span>
+              <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted) text-right">DEP</span>
             </div>
             <div ref={scrollRef} className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
               {rows.map((r, i) => {
@@ -415,24 +392,24 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
                     </div>
                     {/* Station */}
                     <div className="flex flex-col min-w-0">
-                      <span className={`mm-han truncate ${lang === 'zh' ? 'text-[14px]' : 'text-[12px]'} ${
+                      <span className={`mm-han truncate ${lang === 'zh' ? 'text-ui-14' : 'text-ui-12'} ${
                         r.status === 'dwelling' ? 'text-(--mm-amber-1) font-bold'
                           : r.status === 'arriving' ? 'text-(--mm-fg) font-medium'
                           : r.status === 'future' ? (r.isLast ? 'text-(--mm-fg) font-bold' : 'text-(--mm-fg)/80')
                           : 'text-(--mm-text-secondary)'
                       }`}>{r.primary}</span>
                       {r.secondary && (
-                        <span className="mm-mono text-[9px] text-(--mm-text-subtle) tracking-wide truncate">{r.secondary}</span>
+                        <span className="mm-mono text-ui-9 text-(--mm-text-subtle) tracking-wide truncate">{r.secondary}</span>
                       )}
                     </div>
                     {/* ARR */}
-                    <span className={`mm-mono mm-tabular text-[13px] text-right ${
+                    <span className={`mm-mono mm-tabular text-ui-13 text-right ${
                       r.status === 'dwelling' ? 'text-(--mm-amber-1)'
                         : r.status === 'past' ? 'text-(--mm-fg)/25 line-through'
                         : 'text-(--mm-fg)/65'
                     }`}>{r.arr}</span>
                     {/* DEP */}
-                    <span className={`mm-mono mm-tabular text-[13px] text-right ${
+                    <span className={`mm-mono mm-tabular text-ui-13 text-right ${
                       r.status === 'dwelling' ? 'text-(--mm-amber)'
                         : r.status === 'past' ? 'text-(--mm-fg)/25 line-through'
                         : 'text-(--mm-text-secondary)'
@@ -446,8 +423,8 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-          <span className="mm-mono text-[10px] tracking-[0.25em] text-(--mm-text-muted) uppercase">{t.schedule}</span>
-          <span className="mm-mono text-[11px] text-(--mm-emerald)/80 flex items-center gap-1.5 tracking-wider">
+          <span className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-text-muted) uppercase">{t.schedule}</span>
+          <span className="mm-mono text-ui-11 text-(--mm-emerald)/80 flex items-center gap-1.5 tracking-wider">
             <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />ON TIME
           </span>
         </div>

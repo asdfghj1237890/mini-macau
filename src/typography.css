@@ -1,0 +1,30 @@
+/* Shared UI typography. Only font sizes scale; rem spacing, map geometry and
+   touch targets retain their baseline sizes. Use text-ui-N for a size whose
+   default is N px, including responsive variants such as max-sm:text-ui-9. */
+:root { --mm-font-scale: 1; }
+body { font-size: calc(16px * var(--mm-font-scale)); }
+[data-large-text="true"] .mm-settings-drawer ul > li { flex-wrap: wrap; }
+[data-large-text="true"] .mm-settings-drawer ul > li > span:first-child { flex-basis: 100%; }
+
+@theme inline {
+  --text-ui-6: calc(6px * var(--mm-font-scale));
+  --text-ui-7: calc(7px * var(--mm-font-scale));
+  --text-ui-8: calc(8px * var(--mm-font-scale));
+  --text-ui-9: calc(9px * var(--mm-font-scale));
+  --text-ui-10: calc(10px * var(--mm-font-scale));
+  --text-ui-11: calc(11px * var(--mm-font-scale));
+  --text-ui-12: calc(12px * var(--mm-font-scale));
+  --text-ui-13: calc(13px * var(--mm-font-scale));
+  --text-ui-14: calc(14px * var(--mm-font-scale));
+  --text-ui-15: calc(15px * var(--mm-font-scale));
+  --text-ui-16: calc(16px * var(--mm-font-scale));
+  --text-ui-17: calc(17px * var(--mm-font-scale));
+  --text-ui-20: calc(20px * var(--mm-font-scale));
+  --text-ui-28: calc(28px * var(--mm-font-scale));
+  --text-ui-34: calc(34px * var(--mm-font-scale));
+  --text-xs: calc(.75rem * var(--mm-font-scale));
+  --text-sm: calc(.875rem * var(--mm-font-scale));
+  --text-base: calc(1rem * var(--mm-font-scale));
+  --text-lg: calc(1.125rem * var(--mm-font-scale));
+  --text-xl: calc(1.25rem * var(--mm-font-scale));
+}

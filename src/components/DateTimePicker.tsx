@@ -122,7 +122,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
     <div className={`${isPhone ? 'space-y-4' : 'w-[380px] space-y-3'}`}>
       {/* Schedule cards */}
       <div>
-        <div className="mm-mono text-[9px] tracking-[0.25em] text-(--mm-text-accent) mb-1.5">◣ SCHEDULE · {t.scheduleCategoryLabel}</div>
+        <div className="mm-mono text-ui-9 tracking-[0.25em] text-(--mm-text-accent) mb-1.5">◣ SCHEDULE · {t.scheduleCategoryLabel}</div>
         <div className="grid grid-cols-3 gap-1.5">
           {SCHEDULES.map(s => {
             const active = schedType === s.key
@@ -137,9 +137,9 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
                 }`}
               >
                 {active && <div className="absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-(--mm-amber) mm-led-pulse" />}
-                <div className={`mm-mono text-[9px] tracking-[0.2em] ${active ? 'text-(--mm-amber)' : 'text-(--mm-text-muted)'}`}>{s.code}</div>
-                <div className={`mm-han text-[13px] font-bold mt-0.5 ${active ? 'text-(--mm-amber-1)' : 'text-(--mm-fg)/75'}`}>{t[s.descKey]}</div>
-                <div className={`text-[9px] mt-0.5 ${active ? 'text-(--mm-amber-1)/70' : 'text-(--mm-text-muted)'}`}>{t[s.noteKey]}</div>
+                <div className={`mm-mono text-ui-9 tracking-[0.2em] ${active ? 'text-(--mm-amber)' : 'text-(--mm-text-muted)'}`}>{s.code}</div>
+                <div className={`mm-han text-ui-13 font-bold mt-0.5 ${active ? 'text-(--mm-amber-1)' : 'text-(--mm-fg)/75'}`}>{t[s.descKey]}</div>
+                <div className={`text-ui-9 mt-0.5 ${active ? 'text-(--mm-amber-1)/70' : 'text-(--mm-text-muted)'}`}>{t[s.noteKey]}</div>
               </button>
             )
           })}
@@ -149,36 +149,36 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
       {/* Date stepper */}
       <div>
         <div className="flex items-end justify-between mb-1.5">
-          <div className="mm-mono text-[9px] tracking-[0.25em] text-(--mm-text-accent)">◣ DATE · {t.dateCategoryLabel}</div>
-          <div className="mm-mono mm-tabular text-[10px] text-(--mm-amber-1)">
+          <div className="mm-mono text-ui-9 tracking-[0.25em] text-(--mm-text-accent)">◣ DATE · {t.dateCategoryLabel}</div>
+          <div className="mm-mono mm-tabular text-ui-10 text-(--mm-amber-1)">
             {sel.year}/{pad2(sel.month + 1)}/{pad2(sel.day)} · {weekdayShort(selected)}
           </div>
         </div>
         <div className="flex items-stretch border border-(--mm-fg)/10 rounded-sm overflow-hidden">
-          <button onClick={() => shiftDate(-7)} className="px-2 h-9 mm-mono text-[10px] text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 border-r border-(--mm-fg)/8">−7D</button>
-          <button onClick={() => shiftDate(-1)} className="px-2 h-9 mm-mono text-[10px] text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 border-r border-(--mm-fg)/8">−1D</button>
-          <button onClick={setToToday} className="flex-1 h-9 mm-mono text-[10px] tracking-wider text-(--mm-emerald)/85 hover:bg-(--mm-emerald-2)/10 border-r border-(--mm-fg)/8">▸ {t.now.toUpperCase()}</button>
-          <button onClick={() => shiftDate(1)} className="px-2 h-9 mm-mono text-[10px] text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 border-r border-(--mm-fg)/8">+1D</button>
-          <button onClick={() => shiftDate(7)} className="px-2 h-9 mm-mono text-[10px] text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5">+7D</button>
+          <button onClick={() => shiftDate(-7)} className="px-2 h-9 mm-mono text-ui-10 text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 border-r border-(--mm-fg)/8">−7D</button>
+          <button onClick={() => shiftDate(-1)} className="px-2 h-9 mm-mono text-ui-10 text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 border-r border-(--mm-fg)/8">−1D</button>
+          <button onClick={setToToday} className="flex-1 h-9 mm-mono text-ui-10 tracking-wider text-(--mm-emerald)/85 hover:bg-(--mm-emerald-2)/10 border-r border-(--mm-fg)/8">▸ {t.now.toUpperCase()}</button>
+          <button onClick={() => shiftDate(1)} className="px-2 h-9 mm-mono text-ui-10 text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5 border-r border-(--mm-fg)/8">+1D</button>
+          <button onClick={() => shiftDate(7)} className="px-2 h-9 mm-mono text-ui-10 text-(--mm-text-secondary) hover:text-(--mm-amber-1) hover:bg-(--mm-fg)/5">+7D</button>
         </div>
       </div>
 
       {/* Time */}
       <div>
-        <div className="mm-mono text-[9px] tracking-[0.25em] text-(--mm-text-accent) mb-1.5">◣ TIME · {t.timeCategoryLabel}</div>
+        <div className="mm-mono text-ui-9 tracking-[0.25em] text-(--mm-text-accent) mb-1.5">◣ TIME · {t.timeCategoryLabel}</div>
         <div className="bg-(--mm-inset) border border-(--mm-amber)/20 rounded-sm px-3 py-2.5 flex items-center justify-between">
           <div className="flex items-end gap-0.5">
-            <span className="mm-seg7 mm-tabular font-bold text-[34px] leading-none text-(--mm-amber-1)"
+            <span className="mm-seg7 mm-tabular font-bold text-ui-34 leading-none text-(--mm-amber-1)"
               style={{ textShadow: '0 0 12px color-mix(in srgb, var(--mm-amber) 40%, transparent)' }}>{pad2(hh)}</span>
-            <span className="mm-seg7 font-bold text-[28px] leading-none text-(--mm-text-accent) mm-colon-blink pb-1">:</span>
-            <span className="mm-seg7 mm-tabular font-bold text-[34px] leading-none text-(--mm-amber-1)"
+            <span className="mm-seg7 font-bold text-ui-28 leading-none text-(--mm-text-accent) mm-colon-blink pb-1">:</span>
+            <span className="mm-seg7 mm-tabular font-bold text-ui-34 leading-none text-(--mm-amber-1)"
               style={{ textShadow: '0 0 12px color-mix(in srgb, var(--mm-amber) 40%, transparent)' }}>{pad2(mm)}</span>
           </div>
           <div className="flex flex-col gap-0.5 items-end">
-            <div className="mm-mono text-[8px] tracking-widest text-(--mm-text-accent)">24H</div>
+            <div className="mm-mono text-ui-8 tracking-widest text-(--mm-text-accent)">24H</div>
             <div className="flex items-center gap-1">
               <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />
-              <span className="mm-mono text-[8px] tracking-widest text-(--mm-emerald)/80">{schedLabel}</span>
+              <span className="mm-mono text-ui-8 tracking-widest text-(--mm-emerald)/80">{schedLabel}</span>
             </div>
           </div>
         </div>
@@ -206,13 +206,13 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
               )
             })}
             <div
-              className="absolute top-[2px] mm-mono text-[7px] text-(--mm-amber-1)/90 tracking-widest pointer-events-none"
+              className="absolute top-[2px] mm-mono text-ui-7 text-(--mm-amber-1)/90 tracking-widest pointer-events-none"
               style={{ left: `${(7.5 / 24) * 100}%`, transform: 'translateX(-50%)' }}
             >
               {t.amPeak}
             </div>
             <div
-              className="absolute top-[2px] mm-mono text-[7px] text-(--mm-amber-1)/90 tracking-widest pointer-events-none"
+              className="absolute top-[2px] mm-mono text-ui-7 text-(--mm-amber-1)/90 tracking-widest pointer-events-none"
               style={{ left: `${(18 / 24) * 100}%`, transform: 'translateX(-50%)' }}
             >
               {t.pmPeak}
@@ -241,13 +241,13 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
           </div>
           <div className="relative h-3 mt-0.5">
             <div
-              className="absolute mm-mono text-[8px] text-(--mm-emerald)/70 tracking-widest whitespace-nowrap"
+              className="absolute mm-mono text-ui-8 text-(--mm-emerald)/70 tracking-widest whitespace-nowrap"
               style={{ left: `${schedDensity.firstFrac * 100}%`, transform: 'translateX(-50%)' }}
             >
               {t.firstBusLabel} {schedDensity.first}
             </div>
             <div
-              className="absolute mm-mono text-[8px] text-(--mm-emerald)/70 tracking-widest whitespace-nowrap"
+              className="absolute mm-mono text-ui-8 text-(--mm-emerald)/70 tracking-widest whitespace-nowrap"
               style={{ left: `${schedDensity.lastFrac * 100}%`, transform: 'translateX(-100%)' }}
             >
               {t.lastBusLabel} {schedDensity.last}
@@ -274,8 +274,8 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
                     : 'border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] text-(--mm-text-secondary) hover:border-(--mm-fg)/25 hover:text-(--mm-fg)/85'
                 }`}
               >
-                <span className="mm-mono mm-tabular text-[10px] font-bold leading-none">{q.t}</span>
-                <span className="mm-han text-[9px] leading-none mt-0.5 opacity-75">{labelStr}</span>
+                <span className="mm-mono mm-tabular text-ui-10 font-bold leading-none">{q.t}</span>
+                <span className="mm-han text-ui-9 leading-none mt-0.5 opacity-75">{labelStr}</span>
               </button>
             )
           })}
@@ -310,7 +310,7 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
                 className="inline-block w-[8px] h-[8px]"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber) 70%, transparent) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[9px] tracking-[0.25em] text-(--mm-amber)/80">SET TIME · {t.setTimeLabel}</span>
+              <span className="mm-mono text-ui-9 tracking-[0.25em] text-(--mm-amber)/80">SET TIME · {t.setTimeLabel}</span>
             </div>
           </div>
           <div className="mx-auto w-10 h-1 shrink-0 rounded-full bg-(--mm-fg)/12 mt-2" />
@@ -318,13 +318,13 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
           <div className="px-4 py-3 flex shrink-0 items-center justify-between gap-2 border-t border-(--mm-fg)/10 bg-(--mm-fg)/[0.02]">
             <button
               onClick={onCancel}
-              className="h-11 px-4 mm-mono text-[12px] tracking-wider text-(--mm-text-secondary) active:bg-(--mm-fg)/10 rounded-sm"
+              className="h-11 px-4 mm-mono text-ui-12 tracking-wider text-(--mm-text-secondary) active:bg-(--mm-fg)/10 rounded-sm"
             >
               {t.cancel.toUpperCase()}
             </button>
             <button
               onClick={() => onApply(selected)}
-              className="h-11 px-5 mm-mono text-[12px] tracking-[0.2em] font-bold text-(--mm-on-accent) bg-(--mm-amber) active:bg-(--mm-amber-2) flex-1 rounded-sm"
+              className="h-11 px-5 mm-mono text-ui-12 tracking-[0.2em] font-bold text-(--mm-on-accent) bg-(--mm-amber) active:bg-(--mm-amber-2) flex-1 rounded-sm"
               style={{ boxShadow: '0 0 20px color-mix(in srgb, var(--mm-amber) 30%, transparent)' }}
             >
               {t.apply.toUpperCase()}
@@ -354,20 +354,20 @@ export function DateTimePicker({ value, onApply, onCancel, anchorRef }: Props) {
                 className="inline-block w-[8px] h-[8px]"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber) 70%, transparent) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[9px] tracking-[0.25em] text-(--mm-amber)/80">SET TIME · {t.setTimeLabel}</span>
+              <span className="mm-mono text-ui-9 tracking-[0.25em] text-(--mm-amber)/80">SET TIME · {t.setTimeLabel}</span>
         </div>
       </div>
       <div className="p-3 overflow-y-auto mm-scrollbar">{body}</div>
       <div className="px-3 py-2 flex items-center justify-end gap-2 border-t border-(--mm-fg)/10 bg-(--mm-fg)/[0.02] shrink-0">
         <button
           onClick={onCancel}
-          className="h-7 px-3 mm-mono text-[10px] tracking-wider text-(--mm-text-secondary) hover:text-(--mm-fg) transition rounded-sm"
+          className="h-7 px-3 mm-mono text-ui-10 tracking-wider text-(--mm-text-secondary) hover:text-(--mm-fg) transition rounded-sm"
         >
           {t.cancel.toUpperCase()}
         </button>
         <button
           onClick={() => onApply(selected)}
-          className="h-7 px-4 mm-mono text-[10px] tracking-[0.2em] font-bold text-(--mm-on-accent) bg-(--mm-amber) hover:bg-(--mm-amber-1) transition rounded-sm"
+          className="h-7 px-4 mm-mono text-ui-10 tracking-[0.2em] font-bold text-(--mm-on-accent) bg-(--mm-amber) hover:bg-(--mm-amber-1) transition rounded-sm"
           style={{ boxShadow: '0 0 14px color-mix(in srgb, var(--mm-amber) 25%, transparent)' }}
         >
           {t.apply.toUpperCase()}

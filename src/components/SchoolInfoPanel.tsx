@@ -26,10 +26,10 @@ const OSM_COPYRIGHT_URL = 'https://www.openstreetmap.org/copyright'
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
+      <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
         {label}
       </span>
-      <span className="text-[10px] text-(--mm-fg)/80 text-right mm-han min-w-0">{value}</span>
+      <span className="text-ui-10 text-(--mm-fg)/80 text-right mm-han min-w-0">{value}</span>
     </div>
   )
 }
@@ -73,20 +73,20 @@ export function SchoolInfoPanel({ school, buildingName, onClose }: Props) {
                style={{ backgroundColor: `${color}14` }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-secondary)">
+              <div className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-secondary)">
                 {'⌂'} {t.schoolLabel}
               </div>
-              <div className="text-[13px] font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap">
+              <div className="text-ui-13 font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap">
                 {schoolLevelLabel(t, school.level)}
               </div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="text-[14px] font-bold text-(--mm-fg) truncate mm-han" title={title}>
+            <div className="text-ui-14 font-bold text-(--mm-fg) truncate mm-han" title={title}>
               {title}
             </div>
             {subtitle && (
-              <div className="text-[10px] text-(--mm-text-muted) truncate mm-han" title={subtitle}>
+              <div className="text-ui-10 text-(--mm-text-muted) truncate mm-han" title={subtitle}>
                 {subtitle}
               </div>
             )}
@@ -94,7 +94,7 @@ export function SchoolInfoPanel({ school, buildingName, onClose }: Props) {
           <button
             onClick={onClose}
             className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
-                       mm-mono text-[13px] transition-colors"
+                       mm-mono text-ui-13 transition-colors"
             aria-label={t.cancel}
           >
             ✕
@@ -106,14 +106,14 @@ export function SchoolInfoPanel({ school, buildingName, onClose }: Props) {
           <Row label={t.schoolSystem} value={schoolSystemLabel(t, school.system)} />
           {showStages && (
             <div className="flex items-start justify-between gap-3">
-              <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
+              <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
                 {t.schoolStages}
               </span>
               <div className="flex flex-wrap justify-end gap-1 min-w-0">
                 {stages.map(([label, on]) => (
                   <span
                     key={label}
-                    className={`mm-han text-[9px] leading-none px-1.5 py-[3px] border
+                    className={`mm-han text-ui-9 leading-none px-1.5 py-[3px] border
                                 ${on
                                   ? 'border-(--mm-fg)/20 bg-(--mm-fg)/[0.06] text-(--mm-fg)/80'
                                   : 'border-(--mm-fg)/8 text-(--mm-fg)/25'}`}
@@ -134,7 +134,7 @@ export function SchoolInfoPanel({ school, buildingName, onClose }: Props) {
               it is picked directly rather than through pickText's pt-for-en
               fallback. */}
           {school.foundedNote && (
-            <p className="-mt-1 text-[9px] leading-snug text-right text-(--mm-text-muted) mm-han">
+            <p className="-mt-1 text-ui-9 leading-snug text-right text-(--mm-text-muted) mm-han">
               {lang === 'zh' ? school.foundedNote.zh : lang === 'pt' ? school.foundedNote.pt : school.foundedNote.en}
             </p>
           )}
@@ -145,10 +145,10 @@ export function SchoolInfoPanel({ school, buildingName, onClose }: Props) {
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between gap-2">
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
+          <span className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {t.schoolSource}
           </span>
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-(--mm-text-muted) truncate">
+          <span className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-wider text-(--mm-text-muted) truncate">
             <a
               href={DSEDJ_URL}
               target="_blank"

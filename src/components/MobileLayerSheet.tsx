@@ -3,6 +3,7 @@ import { useI18n } from '../i18n'
 import { CloseIcon } from './TransitIcons'
 import { MobileLayerIcon } from './MobileLayerIcon'
 import type { CityLayerItem } from './CityLayerList'
+import { CityLayerLoadState } from './CityLayerLoadState'
 import './mobileLayers.css'
 
 export type MobileLayerCategory = 'lrt' | 'bus' | 'air-sea' | 'city'
@@ -166,7 +167,9 @@ export function MobileCityIndex({ rows, onInspect }: {
       <div className="mm-mobile-index-rows">
         {rows.filter(row => row.focus === focus).map(row => <article key={row.panel}
           className="mm-mobile-index-row" data-active={row.on} data-layer={row.panel}
+          aria-busy={row.on && row.loadStatus === 'loading'}
           style={{ '--index-accent': `var(--mm-${row.accent})` } as CSSProperties}>
+          <div className="mm-mobile-index-controls">
           <button type="button" className="mm-mobile-index-main" role="switch"
             aria-label={row.label} aria-describedby={`${id}-${row.panel}-count`}
             aria-checked={row.on} disabled={!row.toggle} onClick={row.toggle} title={row.description}>
@@ -188,6 +191,8 @@ export function MobileCityIndex({ rows, onInspect }: {
           <button type="button" className="mm-mobile-index-details" onClick={() => onInspect(row.panel)}
             aria-label={`${t.layerDetails}: ${row.label}`}><span>{t.layerDetails}</span>
             <MobileLayerIcon name="arrowUpRight" size={15} /></button>
+          </div>
+          {row.on && <CityLayerLoadState row={row} />}
         </article>)}
       </div>
     </section>)}
@@ -204,6 +209,7 @@ export function MobileCityDetail({ row, children }: { row: CityLayerItem; childr
     </div>
     <p className="mm-mobile-detail-description">{row.description}</p>
     <MobileLayerToggle on={row.on} label={t.mobileLayersShow} onToggle={row.toggle} />
+    <CityLayerLoadState row={row} />
     {children && <div className="mm-mobile-detail-key">{children}</div>}
   </div>
 }

@@ -3,6 +3,8 @@ import type { CustomRenderMethodInput, Map as MapLibreMap } from 'maplibre-gl'
 import type { VehiclePosition } from '../types'
 import { AircraftModelLayer } from './AircraftModelLayer'
 import { isShaderRenderError } from '../mapRecovery'
+import { InstancedVehicleModelLayer } from './InstancedVehicleModelLayer'
+import { createLrtMesh } from './lrtMesh'
 
 const flight: VehiclePosition = { id: 'NX1', lineId: 'NX1', type: 'flight', coordinates: [113.57, 22.16], bearing: 90, color: '#38bdf8', progress: 0 }
 const options = { defaultProjectionData: { mainMatrix: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] } } as unknown as CustomRenderMethodInput
@@ -28,7 +30,22 @@ function fixture() {
   return { gl, map, context: gl as unknown as WebGL2RenderingContext, mapInstance: map as unknown as MapLibreMap }
 }
 
-describe('aircraft GPU lifecycle', () => {
+describe('instanced vehicle GPU lifecycle', () => {
+  it('uploads articulated car poses with one draw and a per-vertex coupling weight', () => {
+    const { gl, context, mapInstance } = fixture()
+    const layer = new InstancedVehicleModelLayer({ id: 'lrt-3d-model', label: 'lrt', minZoom: 16, mesh: createLrtMesh(), groundAltitude: 7.2, articulated: true })
+    layer.onAdd(mapInstance, context)
+    expect(gl.vertexAttribPointer).toHaveBeenCalledWith(8, 1, gl.FLOAT, false, 44, 40)
+    expect(gl.vertexAttribPointer).toHaveBeenCalledWith(6, 4, gl.FLOAT, false, 68, 36)
+    expect(gl.vertexAttribPointer).toHaveBeenCalledWith(7, 4, gl.FLOAT, false, 68, 52)
+    layer.setVehicles([{ ...flight, type: 'lrt' }], [{ front: [1, 0, .98, .2], rear: [1, 0, .98, -.2] }])
+    layer.render(context, options)
+    expect(gl.drawArraysInstanced).toHaveBeenCalledTimes(1)
+    expect(gl.drawArraysInstanced.mock.calls[0][3]).toBe(1)
+    expect(gl.bufferData.mock.calls.at(-1)![1]).toHaveLength(17)
+    layer.render(context, options)
+    expect(gl.bufferData).toHaveBeenCalledTimes(2)
+  })
   it('shares one static mesh and uploads only batches whose positions changed', () => {
     const { gl, context, mapInstance } = fixture()
     const layer = new AircraftModelLayer(15.6)

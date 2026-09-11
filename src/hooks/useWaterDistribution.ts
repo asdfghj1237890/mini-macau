@@ -4,8 +4,8 @@ import type { WaterDistributionFile } from '../types'
 
 // water-distribution.json is Macau's own street network, drawn as the thin
 // distribution pipes under the schematic trunk mains. It is ~0.5 MB and only
-// the WATER layer ever wants it, so — unlike every other dataset — it is NOT
-// part of useTransitData's startup fetch: this hook pulls it the first time the
+// the WATER layer ever wants it. Like the city facility datasets, this hook
+// pulls it the first time the
 // layer goes on, and keeps it for the rest of the session.
 //
 // Best-effort by design. A missing or malformed file leaves the thin pipes out

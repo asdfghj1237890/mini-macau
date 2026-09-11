@@ -95,25 +95,25 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
           <div className={`px-3 py-2 flex items-center gap-2 border-r border-(--mm-fg)/10 ${theme.pillBg}`}>
             <div className={`w-1 h-7 shrink-0 ${theme.accentBar}`} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-secondary)">{'\u2693\uFE0E'} {t.ferryLabel}</div>
-              <div className="mm-mono mm-tabular text-[13px] font-bold text-(--mm-fg) leading-tight">
+              <div className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-secondary)">{'\u2693\uFE0E'} {t.ferryLabel}</div>
+              <div className="mm-mono mm-tabular text-ui-13 font-bold text-(--mm-fg) leading-tight">
                 {theme.name}
               </div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className={`mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] ${theme.statusText} flex items-center gap-1.5`}>
+            <div className={`mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] ${theme.statusText} flex items-center gap-1.5`}>
               <span className={`w-1.5 h-1.5 rounded-full ${theme.statusDot} mm-led-pulse`} />
               {isDeparture ? t.ferryDestination.toUpperCase() : t.ferryOrigin.toUpperCase()} · {statusLabel}
             </div>
-            <div className={`text-[14px] font-bold ${theme.titleText} truncate`}>
+            <div className={`text-ui-14 font-bold ${theme.titleText} truncate`}>
               {otherPortName}
             </div>
           </div>
           <button
             onClick={onClose}
             className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
-                       mm-mono text-[13px] transition-colors"
+                       mm-mono text-ui-13 transition-colors"
             aria-label={t.cancel}
           >
             ✕
@@ -123,16 +123,16 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
         {/* Stats strip */}
         <div className="grid grid-cols-2 border-b border-(--mm-fg)/8 bg-(--mm-fg)/[0.02]">
           <div className="px-3 py-1.5 border-r border-(--mm-fg)/8">
-            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted)">
+            <div className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-[0.25em] text-(--mm-text-muted)">
               {isDeparture ? t.ferryDeparture : t.ferryArrival}
             </div>
-            <div className={`mm-mono mm-tabular text-[14px] font-bold ${theme.timeText} leading-tight`}>
+            <div className={`mm-mono mm-tabular text-ui-14 font-bold ${theme.timeText} leading-tight`}>
               {formatMinutes(ferry.scheduledTime)}
             </div>
           </div>
           <div className="px-3 py-1.5">
-            <div className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted)">{t.ferryJourney}</div>
-            <div className="mm-mono text-[11px] font-bold text-(--mm-fg)/90 leading-tight truncate">
+            <div className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-[0.25em] text-(--mm-text-muted)">{t.ferryJourney}</div>
+            <div className="mm-mono text-ui-11 font-bold text-(--mm-fg)/90 leading-tight truncate">
               {ferry.journeyMinutes} {t.ferryMin}
             </div>
           </div>
@@ -141,31 +141,31 @@ export function FerryInfoPanel({ vehicle, clock, onClose }: Props) {
         {/* Detail rows */}
         <div className="px-3 py-2 space-y-1">
           <div className="flex items-center justify-between gap-3">
-            <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted)">{t.ferryRoute}</span>
-            <span className="text-[10px] text-(--mm-fg)/80 truncate text-right mm-han">
+            <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted)">{t.ferryRoute}</span>
+            <span className="text-ui-10 text-(--mm-fg)/80 truncate text-right mm-han">
               {routeName}
             </span>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted)">
+            <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted)">
               {isDeparture ? t.ferryOrigin : t.ferryDestination}
             </span>
-            <span className="text-[10px] text-(--mm-fg)/80">{portLabel}</span>
+            <span className="text-ui-10 text-(--mm-fg)/80">{portLabel}</span>
           </div>
           {ferry.markers && (
             <div className="flex items-center justify-between gap-3">
-              <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted)">{t.ferryNote}</span>
-              <span className={`mm-mono text-[9px] ${theme.noteText}`}>{ferry.markers}</span>
+              <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted)">{t.ferryNote}</span>
+              <span className={`mm-mono text-ui-9 ${theme.noteText}`}>{ferry.markers}</span>
             </div>
           )}
         </div>
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
+          <span className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {isDeparture ? t.ferryFooterDep : t.ferryFooterArr}
           </span>
-          <span className={`mm-mono text-[9px] max-sm:text-[7px] flex items-center gap-1.5 tracking-wider ${isLive ? theme.footerLiveText : 'text-(--mm-text-subtle)'}`}>
+          <span className={`mm-mono text-ui-9 max-sm:text-ui-7 flex items-center gap-1.5 tracking-wider ${isLive ? theme.footerLiveText : 'text-(--mm-text-subtle)'}`}>
             <span className={`w-1 h-1 rounded-full ${isLive ? theme.footerLiveDot : 'bg-(--mm-fg)/25'}`} />
             {isLive ? t.live : t.simShort}
           </span>

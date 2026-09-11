@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
+import './fontSize'
 import App from './App'
 import { I18nProvider } from './i18n'
 import { installDebugOverlay } from './debugOverlay'

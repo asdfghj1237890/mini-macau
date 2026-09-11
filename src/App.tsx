@@ -6,6 +6,9 @@ import { MapSplash } from './components/MapSplash'
 import { PwaInstallPrompt } from './components/PwaInstallPrompt'
 import { useSimulationClock, useClockMinute } from './hooks/useSimulationClock'
 import { useTransitData } from './hooks/useTransitData'
+import cityCatalog from 'virtual:city-catalog'
+import { catalogActiveRoadWorks } from './cityCatalog'
+import type { CityLayer } from './cityData'
 import { useServiceStatus } from './hooks/useServiceStatus'
 import { getBusServiceBucket, getBusServiceWindow, getScheduleType } from './engines/simulationEngine'
 import { macauHours, macauMinutes, macauMinutesOfDay, macauYmd } from './macauTime'
@@ -191,7 +194,7 @@ const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 export default function App() {
   const clock = useSimulationClock()
   const transitData = useTransitData()
-  const { ensureScheduleTypeLoaded } = transitData
+  const { ensureScheduleTypeLoaded, ensureCityLayerLoaded, cityDataStatus } = transitData
   const serviceStatus = useServiceStatus()
 
   // Start the visibility- and idle-aware engagement tracker. See
@@ -325,6 +328,22 @@ export default function App() {
   // exclusive with them.
   const [grandPrixOn, setGrandPrixOn] = useState(() => localStorage.getItem(LS_GRANDPRIX_KEY) === '1')
   const grandPrixFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('grandprix'))
+  const requestedCityLayers = useRef<Partial<Record<CityLayer, boolean>>>({})
+  // Visibility is the loading intent, including restored preferences and focus
+  // mode hand-offs. Status changes are deliberately not dependencies: failures
+  // wait for explicit retry or a toggle instead of creating a retry loop.
+  useEffect(() => {
+    const enabled: Record<CityLayer, boolean> = {
+      works: roadWorksOn, schools: schoolsOn, housing: publicHousingOn,
+      parishes: parishesOn, toilets: toiletsOn, carparks: carParksOn,
+      waste: wasteOn, water: waterOn, power: powerOn, grandprix: grandPrixOn,
+    }
+    for (const layer of Object.keys(enabled) as CityLayer[]) {
+      if (enabled[layer] && !requestedCityLayers.current[layer]) void ensureCityLayerLoaded(layer)
+    }
+    requestedCityLayers.current = enabled
+  }, [ensureCityLayerLoaded, roadWorksOn, schoolsOn, publicHousingOn, parishesOn,
+    toiletsOn, carParksOn, wasteOn, waterOn, powerOn, grandPrixOn])
   // Which of the five teaching stages are drawn. Independent of `schoolsOn`,
   // which is the master switch for the whole layer.
   const [schoolLevelsOn, setSchoolLevelsOn] = useState<SchoolLevelSet>(loadSchoolLevelsOn)
@@ -493,8 +512,8 @@ export default function App() {
   // Per-level totals for the legend, from the UNFILTERED data — the rows show
   // how many schools each type has, not how many are currently drawn.
   const schoolLevelCounts = useMemo(
-    () => countSchoolsByLevel(transitData.schools),
-    [transitData.schools]
+    () => cityDataStatus.schools === 'ready' ? countSchoolsByLevel(transitData.schools) : cityCatalog.schoolLevels,
+    [transitData.schools, cityDataStatus.schools]
   )
 
   // The housing estates on exactly the schools' contract above: memoised apart
@@ -510,8 +529,8 @@ export default function App() {
   // Per-type totals for the legend, from the UNFILTERED data — the rows show
   // how many estates each type has, not how many are currently drawn.
   const publicHousingTypeCounts = useMemo(
-    () => countPublicHousingByType(transitData.publicHousing),
-    [transitData.publicHousing]
+    () => cityDataStatus.housing === 'ready' ? countPublicHousingByType(transitData.publicHousing) : cityCatalog.housingTypes,
+    [transitData.publicHousing, cityDataStatus.housing]
   )
 
   // The parish areas on the same contract, minus the per-sub-type set: the
@@ -531,7 +550,7 @@ export default function App() {
   )
 
   // The incineration plant. It is not in waste.json: it is the `incinerator`
-  // record of power-facilities.json, already loaded at startup, read here from
+  // record of power-facilities.json, loaded with WASTE or POWER, read here from
   // the UNFILTERED data (the POWER layer nulls its own copy out when off).
   const incinerator = useMemo(
     () => wasteIncinerator(transitData.powerFacilities),
@@ -556,12 +575,12 @@ export default function App() {
   // how many marks each row stands for, not how many are currently drawn. The
   // last two rows come from the POWER record and the two extra blocks.
   const wasteTypeCounts = useMemo(
-    () => countWasteByType(transitData.waste, {
+    () => cityDataStatus.waste === 'ready' && cityDataStatus.power === 'ready' ? countWasteByType(transitData.waste, {
       incinerator,
       ecoStations: transitData.wasteEcoStations,
       facilities: transitData.wasteFacilities,
-    }),
-    [transitData.waste, incinerator, transitData.wasteEcoStations, transitData.wasteFacilities]
+    }) : cityCatalog.wasteTypes,
+    [transitData.waste, incinerator, transitData.wasteEcoStations, transitData.wasteFacilities, cityDataStatus.waste, cityDataStatus.power]
   )
 
   const filteredTransitData = useMemo(() => ({
@@ -611,8 +630,10 @@ export default function App() {
   // string, NOT on the minute — the count only changes at midnight.
   const simYmd = macauYmd(simTime)
   const activeRoadWorksCount = useMemo(
-    () => countActiveRoadWorks(transitData.roadWorks, simYmd),
-    [transitData.roadWorks, simYmd]
+    () => cityDataStatus.works === 'ready'
+      ? countActiveRoadWorks(transitData.roadWorks, simYmd)
+      : catalogActiveRoadWorks(cityCatalog, simYmd),
+    [transitData.roadWorks, simYmd, cityDataStatus.works]
   )
 
   const onVehicleCount = useCallback((count: number) => {
@@ -1310,6 +1331,8 @@ export default function App() {
         <TimeDisplay clock={clock} vehicleCount={vehicleCount} />
       )}
       <LineLegend
+        cityDataStatus={cityDataStatus}
+        onRequestCityLayer={ensureCityLayerLoaded}
         transitData={filteredTransitData}
         // Pass the date-aware total here too so the "active / total"
         // flight count tracks the picker; using raw `transitData` would

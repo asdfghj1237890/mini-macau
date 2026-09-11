@@ -42,10 +42,10 @@ function sourceLabel(url: string): string {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
+      <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
         {label}
       </span>
-      <span className="text-[10px] text-(--mm-fg)/80 text-right mm-han min-w-0">{value}</span>
+      <span className="text-ui-10 text-(--mm-fg)/80 text-right mm-han min-w-0">{value}</span>
     </div>
   )
 }
@@ -92,20 +92,20 @@ export function ParishInfoPanel({ parish, onClose }: Props) {
                style={{ backgroundColor: `${color}14` }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-secondary)">
+              <div className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-secondary)">
                 {'▣'} {t.parishLabel}
               </div>
-              <div className="text-[13px] font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap">
+              <div className="text-ui-13 font-bold text-(--mm-fg) leading-tight mm-han whitespace-nowrap">
                 {parishKindLabel(t, parish.kind)}
               </div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="text-[14px] font-bold text-(--mm-fg) truncate mm-han" title={title}>
+            <div className="text-ui-14 font-bold text-(--mm-fg) truncate mm-han" title={title}>
               {title}
             </div>
             {others.length > 0 && (
-              <div className="text-[10px] text-(--mm-text-muted) truncate mm-han" title={others.join(' · ')}>
+              <div className="text-ui-10 text-(--mm-text-muted) truncate mm-han" title={others.join(' · ')}>
                 {others.join(' · ')}
               </div>
             )}
@@ -113,7 +113,7 @@ export function ParishInfoPanel({ parish, onClose }: Props) {
           <button
             onClick={onClose}
             className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
-                       mm-mono text-[13px] transition-colors"
+                       mm-mono text-ui-13 transition-colors"
             aria-label={t.cancel}
           >
             ✕
@@ -130,7 +130,7 @@ export function ParishInfoPanel({ parish, onClose }: Props) {
               Cotai's is folded into Coloane) — data in all three languages,
               picked directly. */}
           {parish.note && (
-            <p className="-mt-1 text-[9px] leading-snug text-right text-(--mm-text-muted) mm-han">
+            <p className="-mt-1 text-ui-9 leading-snug text-right text-(--mm-text-muted) mm-han">
               {lang === 'zh' ? parish.note.zh : lang === 'pt' ? parish.note.pt : parish.note.en}
             </p>
           )}
@@ -138,10 +138,10 @@ export function ParishInfoPanel({ parish, onClose }: Props) {
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between gap-2">
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
+          <span className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {t.parishSource}
           </span>
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-(--mm-text-muted) truncate">
+          <span className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-wider text-(--mm-text-muted) truncate">
             {/* One link per page the area was built from; an area with no list
                 of its own still gets the two publishers' front doors. */}
             {(parish.sources.length ? parish.sources : [OSM_COPYRIGHT_URL, DSEC_URL]).map((url, i) => (

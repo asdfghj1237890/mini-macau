@@ -166,24 +166,24 @@ export function PwaInstallPrompt() {
           className="w-12 h-12 rounded-sm shrink-0 select-none"
         />
         <div className="min-w-0 flex-1">
-          <div id="pwa-install-title" className="mm-mono text-[10px] tracking-[0.25em] text-(--mm-amber-1)">
+          <div id="pwa-install-title" className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-amber-1)">
             {t.installAppTitle.toUpperCase()}
           </div>
-          <p id="pwa-install-hint" className="mt-1 text-[12px] leading-snug text-(--mm-fg)/80">
+          <p id="pwa-install-hint" className="mt-1 text-ui-12 leading-snug text-(--mm-fg)/80">
             {hint}
           </p>
           <div className="mt-2.5 flex justify-end gap-2">
             <button
               type="button"
               onClick={later}
-              className="h-9 px-3 mm-mono text-[11px] tracking-wider text-(--mm-text-secondary) hover:text-(--mm-fg) active:bg-(--mm-fg)/10 rounded-sm transition-colors"
+              className="h-9 px-3 mm-mono text-ui-11 tracking-wider text-(--mm-text-secondary) hover:text-(--mm-fg) active:bg-(--mm-fg)/10 rounded-sm transition-colors"
             >
               {t.installAppLater.toUpperCase()}
             </button>
             <button
               type="button"
               onClick={() => { void installOrDismiss() }}
-              className="h-9 px-4 mm-mono text-[11px] tracking-[0.2em] font-bold text-(--mm-on-accent) bg-(--mm-amber) active:bg-(--mm-amber-2) rounded-sm"
+              className="h-9 px-4 mm-mono text-ui-11 tracking-[0.2em] font-bold text-(--mm-on-accent) bg-(--mm-amber) active:bg-(--mm-amber-2) rounded-sm"
               style={{ boxShadow: '0 0 20px color-mix(in srgb, var(--mm-amber) 30%, transparent)' }}
             >
               {(canInstallDirectly ? t.installAppNow : t.installAppDismiss).toUpperCase()}

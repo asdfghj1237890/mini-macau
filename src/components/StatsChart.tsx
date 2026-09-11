@@ -51,22 +51,22 @@ export function StatsChart({
   return (
     <div className="px-3 py-2.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] space-y-2">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-muted)">
+        <span className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-muted)">
           {title}
         </span>
         {latest && (
-          <span className="mm-mono text-[10px] tracking-wider text-(--mm-text-muted)">
+          <span className="mm-mono text-ui-10 tracking-wider text-(--mm-text-muted)">
             {t.statsLatest(latest.period)}
           </span>
         )}
       </div>
 
       {chips.length > 0 && (
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[12px] mm-han">
+        <div className="flex flex-wrap gap-x-3 gap-y-1 text-ui-12 mm-han">
           {chips.map(chip => (
             <span key={chip.label} className="text-(--mm-text-secondary)">
               {chip.label}{' '}
-              <span className={`mm-mono mm-tabular text-[13px] ${accentClass}`}>{chip.value}</span>
+              <span className={`mm-mono mm-tabular text-ui-13 ${accentClass}`}>{chip.value}</span>
             </span>
           ))}
         </div>
@@ -85,7 +85,7 @@ export function StatsChart({
               {model.ticks.map(tick => (
                 <span
                   key={tick.value}
-                  className="absolute right-0 mm-mono mm-tabular text-[9px] text-(--mm-text-muted)
+                  className="absolute right-0 mm-mono mm-tabular text-ui-9 text-(--mm-text-muted)
                              leading-none -translate-y-1/2"
                   style={{ top: `${tick.offset}%` }}
                 >
@@ -119,14 +119,14 @@ export function StatsChart({
             {model.bars.map(bar => (
               <span
                 key={bar.period}
-                className={`flex-1 mm-mono mm-tabular text-[9px] text-center
+                className={`flex-1 mm-mono mm-tabular text-ui-9 text-center
                             ${bar.latest ? accentClass : 'text-(--mm-text-muted)'}`}
               >
                 {bar.label}
               </span>
             ))}
           </div>
-          <div className="pt-1 mm-mono text-[9px] tracking-[0.18em] text-(--mm-text-muted) uppercase">
+          <div className="pt-1 mm-mono text-ui-9 tracking-[0.18em] text-(--mm-text-muted) uppercase">
             {t.statsMonthsAxis(statsUnitLabel(t, model.unit))}
           </div>
         </div>
@@ -137,7 +137,7 @@ export function StatsChart({
           href={series.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-block mm-mono text-[10px] tracking-wider text-(--mm-text-muted)
+          className="inline-block mm-mono text-ui-10 tracking-wider text-(--mm-text-muted)
                      hover:text-(--mm-fg)/75 transition-colors"
         >
           {series.url.includes('data.gov.mo') ? 'data.gov.mo' : 'dspa.gov.mo'}
@@ -154,10 +154,10 @@ export function StatsUnavailable({ title }: { title: string }) {
   const { t } = useI18n()
   return (
     <div className="px-3 py-2 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02]">
-      <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-muted)">
+      <div className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-muted)">
         {title}
       </div>
-      <div className="pt-1 text-[12px] leading-[1.4] text-(--mm-text-muted) mm-han">
+      <div className="pt-1 text-ui-12 leading-[1.4] text-(--mm-text-muted) mm-han">
         {t.statsNoData}
       </div>
     </div>

@@ -21,10 +21,10 @@ const DATASET_URL = 'https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
+      <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted) shrink-0 pt-[2px]">
         {label}
       </span>
-      <span className="text-[10px] text-(--mm-fg)/80 text-right mm-han min-w-0 whitespace-pre-line">
+      <span className="text-ui-10 text-(--mm-fg)/80 text-right mm-han min-w-0 whitespace-pre-line">
         {value}
       </span>
     </div>
@@ -36,8 +36,8 @@ function Row({ label, value }: { label: string; value: string }) {
 function FeeRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-3">
-      <span className="text-[10px] text-(--mm-text-muted) shrink-0 mm-han">{label}</span>
-      <span className="text-[10px] text-(--mm-fg)/80 text-right mm-han min-w-0 whitespace-pre-line">
+      <span className="text-ui-10 text-(--mm-text-muted) shrink-0 mm-han">{label}</span>
+      <span className="text-ui-10 text-(--mm-fg)/80 text-right mm-han min-w-0 whitespace-pre-line">
         {value}
       </span>
     </div>
@@ -48,8 +48,8 @@ function VacancyCell({ label, value }: { label: string; value: number | null }) 
   if (value === null) return null
   return (
     <div className="flex items-baseline justify-between gap-2">
-      <span className="text-[10px] text-(--mm-text-muted) mm-han truncate">{label}</span>
-      <span className="mm-mono mm-tabular text-[11px] text-(--mm-blue-1) shrink-0">{value}</span>
+      <span className="text-ui-10 text-(--mm-text-muted) mm-han truncate">{label}</span>
+      <span className="mm-mono mm-tabular text-ui-11 text-(--mm-blue-1) shrink-0">{value}</span>
     </div>
   )
 }
@@ -97,18 +97,18 @@ export function CarParkInfoPanel({ carPark, vacancy, polling = false, onClose }:
                style={{ backgroundColor: `${CAR_PARK_COLOR}14` }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: CAR_PARK_COLOR }} />
             <div>
-              <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-secondary)">
+              <div className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-secondary)">
                 {t.carParkLabel}
               </div>
-              <div className="mm-mono text-[13px] font-bold text-(--mm-fg) leading-tight">P</div>
+              <div className="mm-mono text-ui-13 font-bold text-(--mm-fg) leading-tight">P</div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="text-[14px] font-bold text-(--mm-fg) truncate mm-han" title={name}>
+            <div className="text-ui-14 font-bold text-(--mm-fg) truncate mm-han" title={name}>
               {name}
             </div>
             {(zone || parish) && (
-              <div className="text-[10px] text-(--mm-text-muted) truncate mm-han">
+              <div className="text-ui-10 text-(--mm-text-muted) truncate mm-han">
                 {[zone, parish].filter(Boolean).join(' · ')}
               </div>
             )}
@@ -116,7 +116,7 @@ export function CarParkInfoPanel({ carPark, vacancy, polling = false, onClose }:
           <button
             onClick={onClose}
             className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
-                       mm-mono text-[13px] transition-colors"
+                       mm-mono text-ui-13 transition-colors"
             aria-label={t.cancel}
           >
             ✕
@@ -137,14 +137,14 @@ export function CarParkInfoPanel({ carPark, vacancy, polling = false, onClose }:
         {/* Fees */}
         {hasFees && (
           <div className="px-3 py-2 border-t border-(--mm-fg)/8 space-y-1">
-            <div className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted)">
+            <div className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted)">
               {t.carParkFees}
             </div>
             {fees.light && <FeeRow label={t.carParkFeeLight} value={fees.light} />}
             {fees.heavy && <FeeRow label={t.carParkFeeHeavy} value={fees.heavy} />}
             {fees.moto && <FeeRow label={t.carParkFeeMoto} value={fees.moto} />}
             {fees.remark && (
-              <div className="pt-1 text-[9px] leading-[1.35] text-(--mm-text-muted) mm-han whitespace-pre-line">
+              <div className="pt-1 text-ui-9 leading-[1.35] text-(--mm-text-muted) mm-han whitespace-pre-line">
                 {fees.remark}
               </div>
             )}
@@ -154,25 +154,25 @@ export function CarParkInfoPanel({ carPark, vacancy, polling = false, onClose }:
         {/* Live vacancy */}
         <div className="px-3 py-2 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02]">
           <div className="flex items-baseline justify-between gap-2">
-            <span className="mm-mono text-[9px] max-sm:text-[7px] tracking-[0.25em] text-(--mm-text-muted)">
+            <span className="mm-mono text-ui-9 max-sm:text-ui-7 tracking-[0.25em] text-(--mm-text-muted)">
               {t.carParkVacancy}
             </span>
             {polling && !paused && updated && (
-              <span className="mm-mono text-[8px] tracking-wider text-(--mm-text-muted)">
+              <span className="mm-mono text-ui-8 tracking-wider text-(--mm-text-muted)">
                 {t.carParkVacancyUpdated} {updated}
               </span>
             )}
           </div>
           {!polling ? (
-            <div className="pt-1 text-[10px] text-(--mm-text-muted) mm-han">
+            <div className="pt-1 text-ui-10 text-(--mm-text-muted) mm-han">
               {t.carParkVacancyOnlyAtRealtime}
             </div>
           ) : paused ? (
-            <div className="pt-1 text-[10px] text-(--mm-amber-1)/70 mm-han">
+            <div className="pt-1 text-ui-10 text-(--mm-amber-1)/70 mm-han">
               {t.carParkVacancyPaused}
             </div>
           ) : !vacancy ? (
-            <div className="pt-1 mm-mono text-[11px] text-(--mm-text-muted)">…</div>
+            <div className="pt-1 mm-mono text-ui-11 text-(--mm-text-muted)">…</div>
           ) : (
             <div className="pt-1 space-y-0.5">
               <VacancyCell label={t.carParkVacancyCar} value={vacancy.car} />
@@ -186,10 +186,10 @@ export function CarParkInfoPanel({ carPark, vacancy, polling = false, onClose }:
 
         {/* Footer: provenance */}
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between gap-2">
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
+          <span className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {t.carParkSource}
           </span>
-          <span className="mm-mono text-[8px] max-sm:text-[6px] tracking-wider text-(--mm-text-muted) truncate">
+          <span className="mm-mono text-ui-8 max-sm:text-ui-6 tracking-wider text-(--mm-text-muted) truncate">
             <a
               href={DSAT_URL}
               target="_blank"

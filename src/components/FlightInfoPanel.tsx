@@ -45,28 +45,28 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
           <div className="px-3 py-2 flex items-center gap-2 border-r border-(--mm-fg)/10 bg-(--mm-sky-2)/[0.08]">
             <div className="w-1 h-7 shrink-0 bg-(--mm-sky)" />
             <div>
-              <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-secondary)">✈ {t.flightLabel}</div>
-              <div className="mm-mono mm-tabular text-[16px] font-bold text-(--mm-fg) leading-tight">
+              <div className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-secondary)">✈ {t.flightLabel}</div>
+              <div className="mm-mono mm-tabular text-ui-16 font-bold text-(--mm-fg) leading-tight">
                 {flight.flightNumber}
               </div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-sky)/80 flex items-center gap-1.5">
+            <div className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-sky)/80 flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-(--mm-sky) mm-led-pulse" />
               {isDeparture ? t.flightDestination.toUpperCase() : t.flightOrigin.toUpperCase()} · {statusLabel}
             </div>
             <div className="text-lg font-bold text-(--mm-sky-1) truncate">
               {airportName}
               {airport?.iata && (
-                <span className="text-(--mm-sky-1)/60 font-normal text-[14px] ml-1.5">{airport.iata}</span>
+                <span className="text-(--mm-sky-1)/60 font-normal text-ui-14 ml-1.5">{airport.iata}</span>
               )}
             </div>
           </div>
           <button
             onClick={onClose}
             className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
-                       mm-mono text-[16px] transition-colors"
+                       mm-mono text-ui-16 transition-colors"
             aria-label={t.cancel}
           >
             ✕
@@ -76,16 +76,16 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
         {/* Stats strip */}
         <div className="grid grid-cols-2 border-b border-(--mm-fg)/8 bg-(--mm-fg)/[0.02]">
           <div className="px-3 py-1.5 border-r border-(--mm-fg)/8">
-            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted)">
+            <div className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">
               {isDeparture ? t.flightDeparture : t.flightArrival}
             </div>
-            <div className="mm-mono mm-tabular text-[17px] font-bold text-(--mm-sky-1) leading-tight">
+            <div className="mm-mono mm-tabular text-ui-17 font-bold text-(--mm-sky-1) leading-tight">
               {formatMinutes(flight.scheduledTime)}
             </div>
           </div>
           <div className="px-3 py-1.5">
-            <div className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted)">{t.flightAircraft}</div>
-            <div className="mm-mono text-[14px] font-bold text-(--mm-fg)/90 leading-tight truncate">
+            <div className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">{t.flightAircraft}</div>
+            <div className="mm-mono text-ui-14 font-bold text-(--mm-fg)/90 leading-tight truncate">
               {flight.aircraftType ?? '—'}
             </div>
           </div>
@@ -95,8 +95,8 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
         <div className="px-3 py-2 space-y-1">
           {flight.airline.name && (
             <div className="flex items-center justify-between gap-3">
-              <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-muted)">{t.flightAirline}</span>
-              <span className="text-[13px] text-(--mm-fg)/80 truncate text-right">
+              <span className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-muted)">{t.flightAirline}</span>
+              <span className="text-ui-13 text-(--mm-fg)/80 truncate text-right">
                 {flight.airline.name}
                 {flight.airline.iata && (
                   <span className="mm-mono text-(--mm-text-muted) ml-1.5">{flight.airline.iata}</span>
@@ -105,19 +105,19 @@ export function FlightInfoPanel({ vehicle, clock, onClose }: Props) {
             </div>
           )}
           <div className="flex items-center justify-between gap-3">
-            <span className="mm-mono text-[11px] max-sm:text-[9px] tracking-[0.25em] text-(--mm-text-muted)">
+            <span className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-muted)">
               {isDeparture ? t.flightOrigin : t.flightDestination}
             </span>
-            <span className="text-[13px] text-(--mm-fg)/80">{t.flightAirportCode}</span>
+            <span className="text-ui-13 text-(--mm-fg)/80">{t.flightAirportCode}</span>
           </div>
         </div>
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-          <span className="mm-mono text-[10px] max-sm:text-[8px] tracking-[0.25em] text-(--mm-text-muted) uppercase">
+          <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted) uppercase">
             {isDeparture ? t.flightFooterDep : t.flightFooterArr}
           </span>
-          <span className={`mm-mono text-[11px] max-sm:text-[9px] flex items-center gap-1.5 tracking-wider ${isLive ? 'text-(--mm-sky)/80' : 'text-(--mm-text-subtle)'}`}>
+          <span className={`mm-mono text-ui-11 max-sm:text-ui-9 flex items-center gap-1.5 tracking-wider ${isLive ? 'text-(--mm-sky)/80' : 'text-(--mm-text-subtle)'}`}>
             <span className={`w-1 h-1 rounded-full ${isLive ? 'bg-(--mm-sky) mm-led-pulse' : 'bg-(--mm-fg)/25'}`} />
             {isLive ? t.live : t.simShort}
           </span>

@@ -5,6 +5,7 @@ import './rasterMapFallback.css'
 import type { MapViewProps } from './MapView'
 import type { VehiclePosition } from '../types'
 import { computeVehiclePositions } from '../engines/simulationEngine'
+import { getLrtTrack, LRT_DIRECTIONS } from '../lrtTracks'
 import { localName, useI18n } from '../i18n'
 import { debugLog } from '../debugOverlay'
 import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks'
@@ -64,10 +65,17 @@ export default function RasterMapFallback(props: Props) {
     const markers = new Map<string, { marker: L.CircleMarker; vehicle: VehiclePosition }>()
     let raceCar: L.CircleMarker | null = null
     let count = -1
+    let previousTime = NaN
+    let previousData: Props['transitData'] | null = null
+    let previousTracked: string | null | undefined
+    let previousZoom = NaN
     const tick = () => {
       if (document.hidden) return
       const p = live.current
-      const vehicles = computeVehiclePositions(p.transitData, p.clock.timeRef.current)
+      const simMs = p.clock.readTimeMs(), zoom = map.getZoom()
+      if (simMs === previousTime && previousData === p.transitData && previousTracked === p.trackedVehicleId && previousZoom === zoom) return
+      previousTime = simMs; previousData = p.transitData; previousTracked = p.trackedVehicleId; previousZoom = zoom
+      const vehicles = computeVehiclePositions(p.transitData, new Date(simMs))
       const ids = new Set(vehicles.map(v => v.id))
       for (const [id, entry] of markers) {
         if (!ids.has(id)) { entry.marker.remove(); markers.delete(id) }
@@ -93,7 +101,7 @@ export default function RasterMapFallback(props: Props) {
         }
       }
       const race = p.transitData.grandPrix
-      const pose = race && grandPrixCarState(race, p.clock.timeRef.current.getTime(), map.getZoom() - 1)?.pose
+      const pose = race && grandPrixCarState(race, simMs, zoom - 1)?.pose
       if (pose) {
         if (!raceCar) {
           raceCar = L.circleMarker([pose.lat, pose.lng], {
@@ -160,7 +168,10 @@ export default function RasterMapFallback(props: Props) {
         .addTo(group)
         .on('click', () => live.current.onParishClick?.(parish))
     }
-    for (const route of [...data.busRoutes, ...data.lrtLines]) line(route.geometry.geometry.coordinates, route.color)
+    for (const route of data.busRoutes) line(route.geometry.geometry.coordinates, route.color)
+    for (const route of data.lrtLines) for (const direction of LRT_DIRECTIONS) {
+      line(getLrtTrack(route.geometry, direction).geometry.coordinates, route.color)
+    }
     const stationIds = new Set(data.lrtLines.flatMap(l => l.stations))
     for (const station of data.stations) if (stationIds.has(station.id)) {
       point(station.coordinates, localName(lang, station), '#64748b', () => live.current.onStationClick?.(station))
@@ -207,7 +218,7 @@ export default function RasterMapFallback(props: Props) {
         props.onRetry({ center: [center.lng, center.lat], zoom: map.getZoom() - 1 })
       }}>{t.mapRetry}</button>
       {/* Keep attribution visible even when the phone debug log covers the bottom. */}
-      <p className="mt-2 text-[10px]">© <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a></p>
+      <p className="mt-2 text-ui-10">© <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a></p>
     </div>
   </>
 }

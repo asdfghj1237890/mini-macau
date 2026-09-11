@@ -1,5 +1,7 @@
 import { useId, useState, type CSSProperties, type ReactNode } from 'react'
 import { useI18n } from '../i18n'
+import type { CityLoadStatus } from '../cityData'
+import { CityLayerLoadState } from './CityLayerLoadState'
 import './layerPanel.css'
 
 export interface CityLayerItem {
@@ -13,6 +15,8 @@ export interface CityLayerItem {
   count: string
   accent: string
   toggle?: () => void
+  loadStatus?: CityLoadStatus
+  retry?: () => void
 }
 
 export interface LayerDetail {
@@ -31,7 +35,7 @@ function CityLayerCard({ row, detail, onInspect }: {
   const [open, setOpen] = useState(true)
   const expanded = row.on && (detail?.expanded ?? open)
   return (
-    <article className="mm-layer-card" data-active={row.on}
+    <article className="mm-layer-card" data-active={row.on} aria-busy={row.on && row.loadStatus === 'loading'}
       style={{ '--layer-accent': `var(--mm-${row.accent})` } as CSSProperties}>
       <div className="mm-layer-card-row">
         <button type="button" className="mm-layer-card-main"
@@ -52,6 +56,7 @@ function CityLayerCard({ row, detail, onInspect }: {
           <span className="mm-layer-toggle-track" aria-hidden="true"><span /></span>
         </button>
       </div>
+      {row.on && <CityLayerLoadState row={row} />}
       {row.on && (
         <div className="mm-layer-card-caption">
           <span>{row.description}</span>

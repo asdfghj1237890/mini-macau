@@ -1,3 +1,5 @@
+import cityCatalog from 'virtual:city-catalog'
+import { cityLayerStatus, type CityLayer, type CityDataStatus } from '../cityData'
 import { useState, useMemo, useEffect, type ReactNode } from 'react'
 import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType } from '../types'
 import { useI18n, localName, type Translations } from '../i18n'
@@ -190,7 +192,7 @@ function StageBadge({ n, label }: { n: number; label: string }) {
   return (
     <span
       className="relative z-10 inline-flex items-center justify-center w-[12px] h-[12px] shrink-0
-                 rounded-full bg-(--mm-panel) border border-(--mm-fg)/70 mm-mono text-[7px] leading-none text-(--mm-fg)"
+                 rounded-full bg-(--mm-panel) border border-(--mm-fg)/70 mm-mono text-ui-7 leading-none text-(--mm-fg)"
       title={label}
       aria-label={label}
     >
@@ -223,7 +225,7 @@ function KeyChain<R extends ChainRow>({ rows, glyph, caption, stageLabel }: {
   const chain = rows.filter(row => row.stage > 0)
   const styles = rows.filter(row => row.stage === 0)
   const label = (row: R) => (
-    <span className="mm-key-label text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate text-(--mm-text-secondary)"
+    <span className="mm-key-label text-ui-10 leading-[1.2] flex-1 min-w-0 text-left truncate text-(--mm-text-secondary)"
           title={row.label}>
       {row.label}
     </span>
@@ -254,7 +256,7 @@ function KeyChain<R extends ChainRow>({ rows, glyph, caption, stageLabel }: {
           {label(row)}
         </div>
       ))}
-      <div className="mm-key-caption pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+      <div className="mm-key-caption pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
         {caption}
       </div>
     </div>
@@ -534,6 +536,9 @@ const LAYERS_TABS = ['transit', 'city'] as const
 type LayersTab = typeof LAYERS_TABS[number]
 
 interface Props {
+  cityDataStatus?: CityDataStatus
+  onRequestCityLayer?: (layer: CityLayer) => void
+
   transitData: TransitData
   allTransitData?: TransitData
   visibleRoutes?: Set<string>
@@ -615,6 +620,8 @@ interface Props {
 type MobilePanel = MobileLayerCategory | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | null
 
 export function LineLegend({
+  cityDataStatus,
+  onRequestCityLayer,
   transitData,
   allTransitData,
   visibleRoutes,
@@ -784,7 +791,7 @@ export function LineLegend({
       <div className="mm-ui-scale absolute top-3 right-3 z-20 hidden sm:block landscape:hidden
                       bg-(--mm-panel)/95 backdrop-blur-md rounded-sm
                       px-3 py-2 border border-(--mm-border) text-(--mm-amber)/80
-                      mm-mono text-[10px] tracking-[0.25em] w-[240px] text-center">
+                      mm-mono text-ui-10 tracking-[0.25em] w-[240px] text-center">
         {t.loading}
       </div>
     )
@@ -801,11 +808,13 @@ export function LineLegend({
   const totalFlightCount = allTransitData?.flights.length ?? flightCount
   const ferryCount = transitData.ferries.length
   const totalFerryCount = allTransitData?.ferries.length ?? ferryCount
-  const totalRoadWorkCount = allTransitData?.roadWorks.length ?? transitData.roadWorks.length
+  const cityCount = (layer: CityLayer, loaded: number) =>
+    cityDataStatus && cityDataStatus[layer] !== 'ready' ? cityCatalog.counts[layer] : loaded
+  const totalRoadWorkCount = cityCount('works', allTransitData?.roadWorks.length ?? transitData.roadWorks.length)
   // Schools are static, so `schoolCount` is the full register — the master
   // switch empties `transitData.schools`, it doesn't change how many exist.
   // The per-level toggles narrow it, hence the enabled/total pair.
-  const schoolCount = allTransitData?.schools.length ?? transitData.schools.length
+  const schoolCount = cityCount('schools', allTransitData?.schools.length ?? transitData.schools.length)
   const isSchoolLevelOn = (level: SchoolLevel) =>
     (schoolLevelsOn ? schoolLevelsOn.has(level) : true)
   const schoolLevelsAllOn = SCHOOL_LEVEL_ORDER.every(isSchoolLevelOn)
@@ -815,7 +824,7 @@ export function LineLegend({
   // The housing estates are static too, so `publicHousingCount` is the full
   // register and the two type toggles narrow it — the enabled/total pair the
   // SCHOOLS row above uses.
-  const publicHousingCount = allTransitData?.publicHousing.length ?? transitData.publicHousing.length
+  const publicHousingCount = cityCount('housing', allTransitData?.publicHousing.length ?? transitData.publicHousing.length)
   const isPublicHousingTypeOn = (type: PublicHousingType) =>
     (publicHousingTypesOn ? publicHousingTypesOn.has(type) : true)
   const publicHousingTypesAllOn = PUBLIC_HOUSING_TYPE_ORDER.every(isPublicHousingTypeOn)
@@ -824,12 +833,12 @@ export function LineLegend({
   )
   // Toilets are static and unfiltered: the row always shows the full register,
   // and the master switch is the only thing that empties transitData.toilets.
-  const toiletCount = allTransitData?.toilets.length ?? transitData.toilets.length
+  const toiletCount = cityCount('toilets', allTransitData?.toilets.length ?? transitData.toilets.length)
   // Same for the car parks: the row always shows the full register.
-  const carParkCount = allTransitData?.carParks.length ?? transitData.carParks.length
+  const carParkCount = cityCount('carparks', allTransitData?.carParks.length ?? transitData.carParks.length)
   // The number of AREAS, from the unfiltered data — eight, and only ever eight
   // until the government redraws a boundary.
-  const parishCount = allTransitData?.parishes.length ?? transitData.parishes.length
+  const parishCount = cityCount('parishes', allTransitData?.parishes.length ?? transitData.parishes.length)
   // Waste is the one CITY row whose count MOVES: the master switch is a whole-
   // layer toggle like its neighbours, but the six type toggles narrow what is
   // drawn, so the row shows the visible total (and enabled/total when some type
@@ -839,19 +848,19 @@ export function LineLegend({
   const wasteTypesAllOn = WASTE_LAYER_TYPES.every(type => !hiddenWasteTypes.has(type))
   const wasteVisibleCount = visibleWasteCount(wasteCounts, hiddenWasteTypes)
   // And for the water facilities — Macao Water's list is a fixed 22.
-  const waterCount = allTransitData?.waterFacilities.length ?? transitData.waterFacilities.length
+  const waterCount = cityCount('water', allTransitData?.waterFacilities.length ?? transitData.waterFacilities.length)
   // The UNFILTERED network, for the same reason as the count above: the key
   // describes what the layer draws when it is on, and `transitData` is nulled
   // out while it is off.
   const waterNetwork = allTransitData?.waterNetwork ?? transitData.waterNetwork
   // And for the electricity facilities — CEM's list is fixed until the manual
   // pipeline run regenerates it.
-  const powerCount = allTransitData?.powerFacilities.length ?? transitData.powerFacilities.length
+  const powerCount = cityCount('power', allTransitData?.powerFacilities.length ?? transitData.powerFacilities.length)
   const powerNetwork = allTransitData?.powerNetwork ?? transitData.powerNetwork
   // The circuit, from the UNFILTERED data like the two above (App nulls the
   // filtered copy while the layer is off, and the row must still count).
   const grandPrix = allTransitData?.grandPrix ?? transitData.grandPrix
-  const grandPrixCount = grandPrix?.corners.length ?? 0
+  const grandPrixCount = cityCount('grandprix', grandPrix?.corners.length ?? 0)
 
   // Shared city data; desktop uses cards and mobile uses a numbered index.
   // Counts always use unfiltered data, including when a focus layer is active.
@@ -908,7 +917,11 @@ export function LineLegend({
       count: String(grandPrixCount),
       toggle: onToggleGrandPrix,
     } : null,
-  ].filter((row): row is NonNullable<typeof row> => row !== null)
+  ].filter((row): row is NonNullable<typeof row> => row !== null).map(row => ({
+    ...row,
+    loadStatus: cityDataStatus ? cityLayerStatus(cityDataStatus, row.panel) : undefined,
+    retry: onRequestCityLayer ? () => onRequestCityLayer(row.panel) : undefined,
+  }))
   const cityLayerTotal = cityLayerRows.length
   const cityLayerOn = cityLayerRows.filter(row => row.on).length
 
@@ -948,18 +961,18 @@ export function LineLegend({
                   ? { backgroundImage: schoolRampGradient(level) }
                   : { boxShadow: `inset 0 0 0 1px ${color}99` }}
               />
-              <span className={`mm-layer-filter-label text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
+              <span className={`mm-layer-filter-label text-ui-10 leading-[1.2] flex-1 min-w-0 text-left truncate
                                 ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                 {schoolLevelLabel(t, level)}
               </span>
               <span
-                className={`mm-mono mm-tabular text-[9px] w-[18px] text-right shrink-0
+                className={`mm-mono mm-tabular text-ui-9 w-[18px] text-right shrink-0
                             ${lit ? '' : 'text-(--mm-fg)/25'}`}
                 style={lit ? { color } : undefined}
               >
                 {levelCounts[level] ?? 0}
               </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+              <span className={`mm-layer-state mm-mono text-ui-8 tracking-[0.2em] w-[20px] text-right shrink-0
                                 ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {on ? 'ON' : 'OFF'}
               </span>
@@ -969,7 +982,7 @@ export function LineLegend({
         {/* What the strips above mean. Without this line the shade
             reads as decoration rather than as the founding era. */}
         <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] flex items-baseline gap-2
-                        mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+                        mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
           <span className="mm-tabular shrink-0">{SCHOOL_ERA_CAPTION}</span>
           <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
             {t.schoolsRampHint}
@@ -1008,18 +1021,18 @@ export function LineLegend({
                   ? { backgroundImage: publicHousingRampGradient(type) }
                   : { boxShadow: `inset 0 0 0 1px ${color}99` }}
               />
-              <span className={`mm-layer-filter-label text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
+              <span className={`mm-layer-filter-label text-ui-10 leading-[1.2] flex-1 min-w-0 text-left truncate
                                 ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                 {publicHousingTypeLabel(t, type)}
               </span>
               <span
-                className={`mm-mono mm-tabular text-[9px] w-[18px] text-right shrink-0
+                className={`mm-mono mm-tabular text-ui-9 w-[18px] text-right shrink-0
                             ${lit ? '' : 'text-(--mm-fg)/25'}`}
                 style={lit ? { color } : undefined}
               >
                 {housingTypeCounts[type] ?? 0}
               </span>
-              <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+              <span className={`mm-layer-state mm-mono text-ui-8 tracking-[0.2em] w-[20px] text-right shrink-0
                                 ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {on ? 'ON' : 'OFF'}
               </span>
@@ -1029,14 +1042,14 @@ export function LineLegend({
         {/* What the strips above mean. Without this line the shade
             reads as decoration rather than as the occupation decade. */}
         <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] flex items-baseline gap-2
-                        mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+                        mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
           <span className="mm-tabular shrink-0">{PUBLIC_HOUSING_DECADE_CAPTION}</span>
           <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
             {t.publicHousingRampHint}
           </span>
         </div>
         {/* Explain which other layers this focus mode preserves. */}
-        <div className="mm-layer-detail-note pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+        <div className="mm-layer-detail-note pl-8 pr-3 mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
           {t.publicHousingFocusNote}
         </div>
       </div>
@@ -1063,27 +1076,27 @@ export function LineLegend({
                 ? { backgroundColor: row.color }
                 : { boxShadow: `inset 0 0 0 1px ${row.color}99` }}
             />
-            <span className={`mm-layer-filter-label text-[10px] leading-[1.2] flex-1 min-w-0 text-left truncate
+            <span className={`mm-layer-filter-label text-ui-10 leading-[1.2] flex-1 min-w-0 text-left truncate
                               ${row.on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
               {row.label}
             </span>
             <span
-              className={`mm-mono mm-tabular text-[9px] w-[26px] text-right shrink-0
+              className={`mm-mono mm-tabular text-ui-9 w-[26px] text-right shrink-0
                           ${row.on ? '' : 'text-(--mm-fg)/25'}`}
               style={row.on ? { color: row.color } : undefined}
             >
               {row.count}
             </span>
-            <span className={`mm-layer-state mm-mono text-[8px] tracking-[0.2em] w-[20px] text-right shrink-0
+            <span className={`mm-layer-state mm-mono text-ui-8 tracking-[0.2em] w-[20px] text-right shrink-0
                               ${row.on ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
               {row.on ? 'ON' : 'OFF'}
             </span>
           </button>
         ))}
-        <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+        <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
           {t.wasteTypesHint}
         </div>
-        <div className="mm-layer-detail-note pl-8 pr-3 mm-mono text-[7px] tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+        <div className="mm-layer-detail-note pl-8 pr-3 mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
           {t.wasteFocusNote}
         </div>
       </div>
@@ -1160,9 +1173,9 @@ export function LineLegend({
                   className="inline-block w-[8px] h-[8px]"
                   style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-amber) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                 />
-                <span className="mm-mono text-[10px] tracking-[0.25em]">LRT · 輕軌</span>
+                <span className="mm-mono text-ui-10 tracking-[0.25em]">LRT · 輕軌</span>
               </span>
-              <span className="mm-mono mm-tabular text-[10px] text-(--mm-text-subtle)">
+              <span className="mm-mono mm-tabular text-ui-10 text-(--mm-text-subtle)">
                 {lrtActive}<span className="text-(--mm-fg)/20">/{lrtTotal}</span>
               </span>
             </div>
@@ -1183,11 +1196,11 @@ export function LineLegend({
                                ${onToggleLrt ? '' : 'cursor-default'}`}
                   >
                     <div className="w-3 h-[3px] shrink-0" style={{ backgroundColor: on ? line.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)' }} />
-                    <span className={`mm-han text-[13px] flex-1 text-left truncate
+                    <span className={`mm-han text-ui-13 flex-1 text-left truncate
                                       ${on ? 'text-(--mm-fg)/90' : 'text-(--mm-text-muted)'}`}>
                       {localName(lang, line)}
                     </span>
-                    <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] shrink-0
+                    <span className={`mm-layer-state mm-mono text-ui-10 tracking-[0.2em] shrink-0
                                       ${on ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                       {on ? 'ON' : 'OFF'}
                     </span>
@@ -1207,16 +1220,16 @@ export function LineLegend({
                     className="inline-block w-[8px] h-[8px]"
                     style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-emerald) 35%, transparent) 0 1px, transparent 1px 3px)' }}
                   />
-                  <span className="mm-mono text-[10px] tracking-[0.25em]">BUS · 巴士</span>
+                  <span className="mm-mono text-ui-10 tracking-[0.25em]">BUS · 巴士</span>
                 </span>
-                <span className="mm-mono mm-tabular text-[11px] text-(--mm-emerald)/80">
+                <span className="mm-mono mm-tabular text-ui-11 text-(--mm-emerald)/80">
                   {activeRoutes}<span className="text-(--mm-text-subtle)">/{totalRoutes}</span>
                 </span>
               </div>
               <div className="grid grid-cols-3 border-y border-(--mm-fg)/8">
                 <button
                   onClick={onResetAuto}
-                  className={`px-1 py-2 mm-mono text-[11px] tracking-[0.1em] transition-colors text-center
+                  className={`px-1 py-2 mm-mono text-ui-11 tracking-[0.1em] transition-colors text-center
                              ${isAutoMode
                                ? 'bg-(--mm-amber)/10 text-(--mm-amber-1)'
                                : 'text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5'}`}
@@ -1226,14 +1239,14 @@ export function LineLegend({
                 </button>
                 <button
                   onClick={onShowAll}
-                  className="px-1 py-2 mm-mono text-[11px] tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                  className="px-1 py-2 mm-mono text-ui-11 tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
                              hover:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
                 >
                   {t.showAll}
                 </button>
                 <button
                   onClick={onHideAll}
-                  className="px-1 py-2 mm-mono text-[11px] tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                  className="px-1 py-2 mm-mono text-ui-11 tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
                              hover:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
                 >
                   {t.hideAll}
@@ -1260,13 +1273,13 @@ export function LineLegend({
                           <span className={`w-1.5 h-1.5 rounded-full shrink-0
                                             ${groupActive > 0 ? 'bg-(--mm-amber)' : 'bg-(--mm-fg)/15'}`}
                                 style={groupActive > 0 ? { boxShadow: '0 0 5px color-mix(in srgb, var(--mm-amber) 80%, transparent)' } : undefined} />
-                          <span className="mm-mono text-[11px] tracking-[0.2em] text-(--mm-text-secondary) uppercase flex-1 text-left">
+                          <span className="mm-mono text-ui-11 tracking-[0.2em] text-(--mm-text-secondary) uppercase flex-1 text-left">
                             {t[GROUP_LABEL_KEYS[groupKey]]}
                           </span>
-                          <span className="mm-mono mm-tabular text-[11px] text-(--mm-text-muted) w-10 text-right">
+                          <span className="mm-mono mm-tabular text-ui-11 text-(--mm-text-muted) w-10 text-right">
                             {groupActive}/{routes.length}
                           </span>
-                          <span className="text-(--mm-text-subtle) mm-mono text-[10px] w-3 text-center">
+                          <span className="text-(--mm-text-subtle) mm-mono text-ui-10 w-3 text-center">
                             {collapsed ? '▸' : '▾'}
                           </span>
                         </button>
@@ -1276,7 +1289,7 @@ export function LineLegend({
                             onClick={() => onToggleGroup(groupKey)}
                             aria-pressed={groupOn}
                             aria-label={t[GROUP_LABEL_KEYS[groupKey]]}
-                            className={`shrink-0 w-10 mm-mono text-[10px] tracking-[0.2em]
+                            className={`shrink-0 w-10 mm-mono text-ui-10 tracking-[0.2em]
                                         border-l border-(--mm-fg)/8 transition text-center
                                         ${groupOn
                                           ? 'text-(--mm-emerald)/80 hover:bg-(--mm-emerald)/10'
@@ -1304,7 +1317,7 @@ export function LineLegend({
                                              : on ? 'hover:bg-(--mm-fg)/[0.04]' : 'opacity-35 hover:opacity-60 light:opacity-100'}`}
                               >
                                 <span
-                                  className="mm-mono mm-tabular text-[12px] font-bold text-center shrink-0"
+                                  className="mm-mono mm-tabular text-ui-12 font-bold text-center shrink-0"
                                   style={{
                                     width: 36,
                                     color: inactive ? '#444' : on ? route.color : 'color-mix(in srgb, var(--mm-fg) 35%, transparent)',
@@ -1314,7 +1327,7 @@ export function LineLegend({
                                 >
                                   {route.name}
                                 </span>
-                                <span className={`text-[12px] flex-1 text-left truncate mm-han
+                                <span className={`text-ui-12 flex-1 text-left truncate mm-han
                                                   ${inactive ? 'text-(--mm-fg)/25' : on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
                                   {inactive
                                     ? t.noServiceToday
@@ -1356,13 +1369,13 @@ export function LineLegend({
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-sky) 35%, transparent) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[10px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
+              <span className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 AIR · 航班
               </span>
-              <span className={`mm-mono mm-tabular text-[11px] ${flightsOn ? 'text-(--mm-sky)/80' : 'text-(--mm-fg)/25'}`}>
+              <span className={`mm-mono mm-tabular text-ui-11 ${flightsOn ? 'text-(--mm-sky)/80' : 'text-(--mm-fg)/25'}`}>
                 {flightCount}
               </span>
-              <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ml-1 ${flightsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+              <span className={`mm-layer-state mm-mono text-ui-10 tracking-[0.2em] ml-1 ${flightsOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {flightsOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1393,13 +1406,13 @@ export function LineLegend({
                 className="inline-block w-[8px] h-[8px] shrink-0"
                 style={{ backgroundImage: 'repeating-linear-gradient(-45deg, color-mix(in srgb, var(--mm-red-2) 35%, transparent) 0 1px, transparent 1px 3px)' }}
               />
-              <span className="mm-mono text-[10px] tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
+              <span className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-text-muted) flex-1 text-left">
                 SEA · 船運
               </span>
-              <span className={`mm-mono mm-tabular text-[11px] ${ferriesOn ? 'text-(--mm-red)/80' : 'text-(--mm-fg)/25'}`}>
+              <span className={`mm-mono mm-tabular text-ui-11 ${ferriesOn ? 'text-(--mm-red)/80' : 'text-(--mm-fg)/25'}`}>
                 {ferryCount}
               </span>
-              <span className={`mm-layer-state mm-mono text-[10px] tracking-[0.2em] ml-1 ${ferriesOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+              <span className={`mm-layer-state mm-mono text-ui-10 tracking-[0.2em] ml-1 ${ferriesOn ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
                 {ferriesOn ? 'ON' : 'OFF'}
               </span>
             </button>
@@ -1511,7 +1524,10 @@ export function LineLegend({
           onCategory={setMobilePanel} onClose={() => setMobilePanel(null)}
           onBack={mobileCityRow ? () => setMobilePanel('city') : undefined}>
           {mobilePanel === 'city' && <MobileCityIndex rows={cityLayerRows}
-            onInspect={id => setMobilePanel(id as MobilePanel)} />}
+            onInspect={id => {
+              setMobilePanel(id as MobilePanel)
+              onRequestCityLayer?.(id as CityLayer)
+            }} />}
           {mobileCityRow && <MobileCityDetail row={mobileCityRow}>
             {mobileCityRow.panel === 'parishes' && <p>{t.parishesTitle}</p>}
             {cityDetails[mobileCityRow.panel]?.content}

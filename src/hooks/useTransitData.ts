@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile, ScheduleType } from '../types'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
+import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, ScheduleType } from '../types'
 import { getScheduleType } from '../engines/simulationEngine'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
@@ -13,18 +13,12 @@ import {
   BusStopsSchema,
   FlightsSchema,
   FerryScheduleFileSchema,
-  RoadWorksFileSchema,
-  SchoolsFileSchema,
-  PublicHousingFileSchema,
-  ParishesFileSchema,
-  ToiletsFileSchema,
-  CarParksFileSchema,
-  WasteFileSchema,
-  DspaStatsFileSchema,
-  WaterFacilitiesFileSchema,
-  PowerFacilitiesFileSchema,
-  GrandPrixFileSchema,
 } from '../dataSchemas'
+
+import { createCityDataStore, type CityLayer, type CityDataStatus } from '../cityData'
+import { loadCityDataset } from '../cityDataFetch'
+
+const cityStore = createCityDataStore(loadCityDataset)
 
 const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
 
@@ -89,104 +83,6 @@ interface FerryScheduleFile {
   effectiveAs: string
   sources?: Record<string, string>
   routes: FerryScheduleRoute[]
-}
-
-// road-works.json wraps the notices in a metadata envelope; only `notices`
-// reaches TransitData (the runtime never reads the provenance fields — the
-// panel's source attribution is a static label).
-interface RoadWorksFile {
-  fetchedAtUtc: string
-  exportedAt: string
-  source: { name: string; dataset: string; download: string }
-  notices: RoadWorkNotice[]
-}
-
-// schools.json likewise wraps the list in a metadata envelope. Only `schools`
-// reaches TransitData — `unmatchedDsedj` / `droppedOsm` are pipeline
-// diagnostics and the source attribution in the sidebar is a static label.
-interface SchoolsFile {
-  fetchedAtUtc: string
-  sources: Record<string, string>
-  levels: SchoolLevel[]
-  schools: School[]
-}
-
-// public-housing.json: the same envelope. Only `estates` reaches TransitData;
-// `unmatched` is a pipeline diagnostic.
-interface PublicHousingFile {
-  fetchedAtUtc: string
-  sources: Record<string, string>
-  types: PublicHousingType[]
-  estates: PublicHousingEstate[]
-}
-
-// parishes.json: the same envelope; only `parishes` reaches TransitData.
-interface ParishesFile {
-  fetchedAtUtc: string
-  sources: Record<string, string>
-  parishes: Parish[]
-}
-
-// toilets.json is the same envelope pattern again: only `toilets` reaches
-// TransitData. `updatedAt` (the upstream readme's timestamp) and `sources`
-// stay provenance metadata — the panel and the sidebar carry static labels.
-interface ToiletsFile {
-  fetchedAtUtc: string
-  updatedAt: string | null
-  sources: Record<string, string>
-  toilets: Toilet[]
-}
-
-// car-parks.json — the static half of the car-park overlay. The live vacancy
-// numbers are NOT here: the browser polls the DSAT gateway for those
-// (useCarParkVacancy), so nothing time-sensitive rides on this file.
-interface CarParksFile {
-  fetchedAtUtc: string
-  sources: Record<string, string>
-  carParks: CarPark[]
-}
-
-// waste.json — the six kinds of collection point. Unlike its neighbours BOTH
-// halves reach TransitData: the info panel names the dataset a site came from
-// and shows its upstream timestamp, so `sources` is not just metadata here.
-interface WasteFile {
-  fetchedAtUtc: string
-  sources: WasteSource[]
-  sites: WasteSite[]
-  // Added after the file shipped, so all three are optional here and in the zod
-  // schema: an older waste.json simply draws no facilities, no eco stations and
-  // no throughput stats rather than failing validation.
-  facilities?: WasteFacility[]
-  ecoStations?: WasteEcoStation[]
-}
-
-// water-facilities.json — Macao Water's 22 supply facilities, same envelope
-// pattern again: `facilities`, `facts` and the optional `network` reach
-// TransitData, `sources` stays provenance metadata (the panel and sidebar
-// carry static labels).
-interface WaterFacilitiesFile {
-  fetchedAtUtc: string
-  sources: Record<string, string>
-  facts: WaterFacts
-  facilities: WaterFacility[]
-  // The schematic pipe network was added after the facility list shipped, so
-  // it is optional here and in the zod schema: an older file simply draws no
-  // pipes rather than failing validation.
-  network?: WaterNetwork
-}
-
-// power-facilities.json — CEM's generation and HV substations, same envelope
-// pattern again: `facilities`, `facts` and the optional `network` reach
-// TransitData, `sources` stays provenance metadata (the panel and the sidebar
-// carry static labels).
-interface PowerFacilitiesFile {
-  fetchedAtUtc: string
-  sources: Record<string, string>
-  facts: PowerFacts
-  facilities: PowerFacility[]
-  // Optional like the water file's: a file with no HV edge list simply draws no
-  // lines rather than failing validation.
-  network?: PowerNetwork
 }
 
 function hhmmToMinutes(s: string): number | null {
@@ -257,6 +153,9 @@ function flattenFerrySchedules(file: FerryScheduleFile | null): Ferry[] {
 }
 
 export interface UseTransitDataResult extends TransitData {
+  ensureCityLayerLoaded: (layer: CityLayer) => Promise<void>
+  cityDataStatus: CityDataStatus
+
   // Ensures the given schedule type's trips are loaded. Idempotent:
   // re-calls for an already-loaded or in-flight type are no-ops. Used by
   // App to react to DateTimePicker jumps that cross a schedule-type
@@ -409,6 +308,7 @@ export function buildFlightIndex(
 }
 
 export function useTransitData(): UseTransitDataResult {
+  const city = useSyncExternalStore(cityStore.subscribe, cityStore.getSnapshot)
   const [data, setData] = useState<TransitData>({
     lrtLines: [],
     stations: [],
@@ -543,96 +443,6 @@ export function useTransitData(): UseTransitDataResult {
       .then(file => commit('ferries', flattenFerrySchedules(file)))
       .catch(() => {})
 
-    // Road works are a non-critical overlay like flights/ferries: the file is
-    // produced by its own workflow and may legitimately be missing on a fresh
-    // deployment, so a failure just leaves the overlay empty.
-    loadJson<RoadWorksFile>('/data/road-works.json', RoadWorksFileSchema, 'road-works.json')
-      .then(file => commit('roadWorks', file.notices))
-      .catch(() => {})
-
-    // Schools are a static (manually regenerated) overlay, loaded the same
-    // non-critical way: a missing file just leaves the campus blocks off the
-    // map rather than failing the whole load.
-    loadJson<SchoolsFile>('/data/schools.json', SchoolsFileSchema, 'schools.json')
-      .then(file => commit('schools', file.schools))
-      .catch(() => {})
-
-    // Public housing — the same static, manually regenerated, non-critical
-    // overlay as the schools: a missing file just leaves the estates off the
-    // map.
-    loadJson<PublicHousingFile>('/data/public-housing.json', PublicHousingFileSchema, 'public-housing.json')
-      .then(file => commit('publicHousing', file.estates))
-      .catch(() => {})
-
-    // Parish boundaries — static context, loaded the same non-critical way.
-    loadJson<ParishesFile>('/data/parishes.json', ParishesFileSchema, 'parishes.json')
-      .then(file => commit('parishes', file.parishes))
-      .catch(() => {})
-
-    // Public toilets — another independent, non-critical overlay (and one
-    // that's OFF by default), so a missing or malformed file just leaves the
-    // markers out instead of failing the load.
-    loadJson<ToiletsFile>('/data/toilets.json', ToiletsFileSchema, 'toilets.json')
-      .then(file => commit('toilets', file.toilets))
-      .catch(() => {})
-
-    // Public car parks — same independent, non-critical load. Missing file →
-    // no "P" markers and no legend row, everything else unaffected.
-    loadJson<CarParksFile>('/data/car-parks.json', CarParksFileSchema, 'car-parks.json')
-      .then(file => commit('carParks', file.carParks))
-      .catch(() => {})
-
-    // Waste and recycling points — another independent, non-critical overlay
-    // that is OFF by default, so a missing or malformed file just leaves the
-    // markers out instead of failing the load.
-    loadJson<WasteFile>('/data/waste.json', WasteFileSchema, 'waste.json')
-      .then(file => {
-        commit('waste', file.sites)
-        commit('wasteSources', file.sources ?? [])
-        commit('wasteFacilities', file.facilities ?? [])
-        commit('wasteEcoStations', file.ecoStations ?? [])
-      })
-      .catch(() => {})
-
-    // DSPA's monthly statistics — a small file (four series of twelve months),
-    // loaded at startup like the other overlays and just as non-critical: a
-    // missing or malformed file leaves every chart out and nothing else.
-    loadJson<DspaStats>('/data/dspa-stats.json', DspaStatsFileSchema, 'dspa-stats.json')
-      .then(file => commit('dspaStats', file))
-      .catch(() => {})
-
-    // Macao Water supply facilities — a static (manually regenerated) overlay
-    // like the schools, loaded the same non-critical way: a missing file just
-    // leaves the blocks and droplet markers off the map.
-    loadJson<WaterFacilitiesFile>('/data/water-facilities.json', WaterFacilitiesFileSchema, 'water-facilities.json')
-      .then(file => {
-        commit('waterFacilities', file.facilities)
-        commit('waterNetwork', file.network ?? null)
-        commit('waterFacts', file.facts)
-      })
-      .catch(() => {})
-
-    // CEM's electricity network — the same static, non-critical load as the
-    // water facilities above: a missing file just leaves the blocks, the bolt
-    // markers and the HV lines off the map.
-    loadJson<PowerFacilitiesFile>('/data/power-facilities.json', PowerFacilitiesFileSchema, 'power-facilities.json')
-      .then(file => {
-        commit('powerFacilities', file.facilities)
-        commit('powerNetwork', file.network ?? null)
-        commit('powerFacts', file.facts)
-      })
-      .catch(() => {})
-
-    // The Guia Circuit — one small static file (a 6 km line and nine corners),
-    // loaded at startup like the utilities above and just as non-critical: a
-    // missing file leaves the GRAND PRIX row out of the legend and nothing else.
-    loadJson<GrandPrixFile>('/data/grand-prix.json', GrandPrixFileSchema, 'grand-prix.json')
-      .then(file => {
-        commit('grandPrix', file.circuit)
-        commit('grandPrixSources', file.sources ?? [])
-      })
-      .catch(() => {})
-
     return () => { cancelledRef.current = true }
   }, [ensureScheduleTypeLoaded])
 
@@ -666,7 +476,10 @@ export function useTransitData(): UseTransitDataResult {
   // Without this, every App render would spread a fresh object and invalidate
   // every downstream memo that depends on `transitData`.
   return useMemo(
-    () => ({ ...data, ensureScheduleTypeLoaded, getFlightsForDate }),
-    [data, ensureScheduleTypeLoaded, getFlightsForDate]
+    () => ({
+      ...data, ...city.data, cityDataStatus: city.status,
+      ensureCityLayerLoaded: cityStore.ensureLayer, ensureScheduleTypeLoaded, getFlightsForDate,
+    }),
+    [data, city, ensureScheduleTypeLoaded, getFlightsForDate]
   )
 }

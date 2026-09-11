@@ -73,6 +73,10 @@ export function useSimulationClock(): SimulationClock {
   useEffect(() => { pausedRef.current = paused }, [paused])
   useEffect(() => { speedRef.current = speed }, [speed])
 
+  const readTimeMs = useCallback(() => pausedRef.current
+    ? baseSimRef.current
+    : baseSimRef.current + (Date.now() - baseWallRef.current) * speedRef.current, [])
+
   const rebase = useCallback(() => {
     const simNow = pausedRef.current
       ? baseSimRef.current
@@ -170,8 +174,8 @@ export function useSimulationClock(): SimulationClock {
   }, [notify])
 
   return useMemo(() => ({
-    timeRef, subscribeTime, getTimeMs, speed, paused, isLive, setSpeed, togglePause, syncToNow, setTime,
-  }), [subscribeTime, getTimeMs, speed, paused, isLive, setSpeed, togglePause, syncToNow, setTime])
+    timeRef, subscribeTime, getTimeMs, readTimeMs, speed, paused, isLive, setSpeed, togglePause, syncToNow, setTime,
+  }), [subscribeTime, getTimeMs, readTimeMs, speed, paused, isLive, setSpeed, togglePause, syncToNow, setTime])
 }
 
 // The start of the simulated minute an instant falls in. Minute boundaries

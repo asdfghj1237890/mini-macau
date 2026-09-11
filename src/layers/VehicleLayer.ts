@@ -5,8 +5,15 @@ import type { Lang } from '../i18n'
 const SOURCE_ID = 'vehicles-source'
 const CIRCLE_LAYER_ID = 'vehicles-circle'
 const LABEL_LAYER_ID = 'vehicles-label'
-const FLIGHT_LABEL_LAYER_ID = 'vehicles-flight-label'
+export const FLIGHT_LABEL_LAYER_ID = 'vehicles-flight-label'
 const PULSE_LAYER_ID = 'vehicles-pulse'
+const FLIGHT_LABEL_SIZE = 10
+// A bounding sphere around the aircraft mesh, including the raised tail.
+// Offset uses the exact zoom at the existing marker-upload cadence. A layout
+// zoom expression is sampled at integer zooms and can fall inside the nose
+// between zoom levels. Cap extreme close-ups so the label stays in view.
+const AIRCRAFT_LABEL_RADIUS_M = 150
+const EARTH_CIRCUMFERENCE_M = 40075016.68557849
 
 const LINE_LABELS: Record<string, { en: string; zh: string }> = {
   taipa: { en: 'Taipa', zh: '氹仔' },
@@ -14,7 +21,7 @@ const LINE_LABELS: Record<string, { en: string; zh: string }> = {
   hengqin: { en: 'Hengqin', zh: '橫琴' },
 }
 
-function vehiclesToGeoJson(vehicles: VehiclePosition[]): GeoJSON.FeatureCollection {
+function vehiclesToGeoJson(vehicles: VehiclePosition[], zoom: number): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
     features: vehicles.map(v => {
@@ -29,6 +36,11 @@ function vehiclesToGeoJson(vehicles: VehiclePosition[]): GeoJSON.FeatureCollecti
           type: v.type,
           color: v.color,
           bearing: v.bearing,
+          ...(isFlight ? {
+            labelAltitude: v.altitude ?? 0,
+            labelOffset: [0, -Math.min(24, 1.2 + AIRCRAFT_LABEL_RADIUS_M * (v.scale ?? 1) * 512 * 2 ** zoom
+              / (EARTH_CIRCUMFERENCE_M * Math.cos(v.coordinates[1] * Math.PI / 180) * FLIGHT_LABEL_SIZE))],
+          } : {}),
           labelEn: isFlight || isFerry ? v.lineId : (LINE_LABELS[v.lineId]?.en ?? v.lineId),
           labelZh: isFlight || isFerry ? v.lineId : (LINE_LABELS[v.lineId]?.zh ?? v.lineId),
         },
@@ -114,11 +126,15 @@ export function addVehicleLayers(map: MapLibreMap, lang: Lang = 'zh') {
     filter: ['==', ['get', 'type'], 'flight'],
     layout: {
       'text-field': ['get', lang === 'zh' ? 'labelZh' : 'labelEn'],
-      'text-size': 9,
-      'text-letter-spacing': 0.25,
-      'text-offset': [0, -1.5],
+      'text-size': FLIGHT_LABEL_SIZE,
+      'text-letter-spacing': 0.12,
+      'text-offset': ['get', 'labelOffset'],
       'text-anchor': 'bottom',
+      'text-pitch-alignment': 'viewport',
+      'text-rotation-alignment': 'viewport',
       'text-allow-overlap': true,
+      'text-ignore-placement': true,
+      'symbol-height-offset': ['get', 'labelAltitude'],
     },
     paint: {
       'text-color': '#ffffff',
@@ -136,7 +152,7 @@ export const VEHICLE_SOURCE_MAXZOOM = 15
 export function updateVehicleData(map: MapLibreMap, vehicles: VehiclePosition[]) {
   const source = map.getSource(SOURCE_ID) as GeoJSONSource | undefined
   if (!source) return
-  source.setData(vehiclesToGeoJson(vehicles))
+  source.setData(vehiclesToGeoJson(vehicles, map.getZoom()))
 }
 
 export function updateVehicleLabelLang(map: MapLibreMap, lang: Lang) {

@@ -1044,6 +1044,9 @@ export interface VehiclePosition {
   color: string
   altitude?: number
   scale?: number
+  lrtMotion?: { speedKmh: number; phase: 'stopped' | 'accelerating' | 'cruising' | 'braking' }
+  // LRT progress is measured along this directional track, in source order.
+  lrtDirection?: 'forward' | 'backward'
   flightPhase?: 'apron' | 'taxi' | 'climb'
   flightData?: Flight
   ferryData?: Ferry
@@ -1061,6 +1064,9 @@ export interface SimulationClock {
   // clock, and its whole tree, re-render ten times a second.
   subscribeTime: (listener: () => void) => () => void
   getTimeMs: () => number
+  // Imperative animation read, independent of RAF callback ordering. UI
+  // subscriptions continue using the stable, published getTimeMs snapshot.
+  readTimeMs: () => number
   speed: number
   paused: boolean
   // True when the sim is locked to real wall time (not paused, 1× speed, and

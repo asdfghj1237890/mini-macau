@@ -4,6 +4,9 @@ import type { TransitData, VehiclePosition, Trip, LRTLine, BusRoute, BusStop, Fl
 import { FERRY_BERTHS_BY_TERMINAL, FERRY_COLOR_BY_OPERATOR } from './ferryBerths'
 import { FERRY_ROUTES, interpolatePath, pathLengthMeters } from './ferryRoutes'
 import { macauWeekday, macauMinutesOfDay } from '../macauTime'
+import { createLrtMotionProfile, sampleLrtMotion, type LrtMotionProfile } from './lrtMotion'
+import { getLrtDepartureMinutes } from './lrtTimetable'
+import { getLrtTrack, LRT_DIRECTIONS } from '../lrtTracks'
 
 function getScheduleType(date: Date): ScheduleType {
   const day = macauWeekday(date)
@@ -235,11 +238,55 @@ export function interpolateOnLineSmooth(
   return { coordinates: here, bearing }
 }
 
+// Sample a vehicle's wheel positions without scanning the polyline. At a
+// terminus the body can overhang the last point: extend the endpoint tangent
+// instead of collapsing both wheels onto the same coordinate.
+export function sampleLineAtOffset(
+  line: Feature<LineString>, progress: number, offsetMeters: number,
+): [number, number] {
+  const c = getLineCache(line)
+  if (c.coords.length < 2 || c.totalKm < 1e-9) return c.coords[0] ?? [0, 0]
+  const km = Math.max(0, Math.min(1, progress)) * c.totalKm + offsetMeters / 1000
+  const clamped = Math.max(0, Math.min(c.totalKm, km))
+  const point = pointAtKm(c.coords, c.cumKm, clamped)
+  if (km === clamped) return point
+  const step = Math.min(.001, c.totalKm / 2)
+  const inside = pointAtKm(c.coords, c.cumKm, clamped === 0 ? step : c.totalKm - step)
+  const extension = Math.abs(km - clamped) / step
+  return [point[0] + (point[0] - inside[0]) * extension, point[1] + (point[1] - inside[1]) * extension]
+}
+
+const lrtMotionCache = new WeakMap<Feature<LineString>, Map<string, LrtMotionProfile | null>>()
+
+function getLrtMotionProfile(line: Feature<LineString>, from: number, to: number, durationSec: number): LrtMotionProfile | null {
+  let profiles = lrtMotionCache.get(line)
+  if (!profiles) { profiles = new Map(); lrtMotionCache.set(line, profiles) }
+  const key = `${from}:${to}:${durationSec}`
+  if (!profiles.has(key)) {
+    const profile = createLrtMotionProfile(Math.abs(to - from) * getLineLength(line) * 1000, durationSec)
+    profiles.set(key, profile)
+    if (!profile) console.warn('LRT segment cannot fit its scheduled duration within the speed limit; skipping this movement.')
+  }
+  return profiles.get(key) ?? null
+}
+
+// Timetable minutes may extend beyond midnight. Keep panels and map movement
+// on the same clock for an active overnight trip.
+export function getLrtTripMinutes(trip: Trip, nowMinutes: number): number {
+  const firstArr = trip.entries[0]?.arrivalMinutes ?? Infinity
+  const last = trip.entries.at(-1)
+  const lastDep = last ? getLrtDepartureMinutes(last) : -Infinity
+  return nowMinutes < firstArr && nowMinutes + 1440 >= firstArr && nowMinutes + 1440 <= lastDep
+    ? nowMinutes + 1440 : nowMinutes
+}
+
 function computeLRTVehicles(
   trips: Trip[],
   lines: LRTLine[],
   stationProgressMap: Map<string, { progress: number }>,
-  nowMinutes: number
+  nowMinutes: number,
+  scheduleType: ScheduleType,
+  previousScheduleType: ScheduleType,
 ): VehiclePosition[] {
   const vehicles: VehiclePosition[] = []
   const lineMap = new Map(lines.map(l => [l.id, l]))
@@ -252,39 +299,38 @@ function computeLRTVehicles(
     if (entries.length < 2) continue
 
     const firstArr = entries[0].arrivalMinutes
-    const lastDep = entries[entries.length - 1].departureMinutes ?? entries[entries.length - 1].arrivalMinutes
+    const lastDep = getLrtDepartureMinutes(entries[entries.length - 1])
 
-    let effective = nowMinutes
-    if (nowMinutes < firstArr && nowMinutes + 1440 >= firstArr && nowMinutes + 1440 <= lastDep) {
-      effective = nowMinutes + 1440
-    }
+    const effective = getLrtTripMinutes(trip, nowMinutes)
+    const serviceType = effective === nowMinutes ? scheduleType : previousScheduleType
+    if (trip.scheduleType && trip.scheduleType !== serviceType) continue
     if (effective < firstArr || effective > lastDep) continue
 
+    const track = getLrtTrack(line.geometry, trip.direction)
+    const stationProgress = (index: number) => stationProgressMap.get(
+      `${trip.lineId}:${trip.direction}:${entries[index].stationId}`,
+    )?.progress ?? (trip.direction === 'backward' ? 1 - index / (entries.length - 1) : index / (entries.length - 1))
     let overallProgress: number | null = null
+    let motion: NonNullable<VehiclePosition['lrtMotion']> = { speedKmh: 0, phase: 'stopped' }
 
     for (let i = 0; i < entries.length; i++) {
       const e = entries[i]
-      const dep = e.departureMinutes ?? e.arrivalMinutes
+      const dep = getLrtDepartureMinutes(e)
 
       if (effective >= e.arrivalMinutes && effective <= dep) {
-        const key = `${trip.lineId}:${e.stationId}`
-        overallProgress = stationProgressMap.get(key)?.progress ?? (i / (entries.length - 1))
+        overallProgress = stationProgress(i)
         break
       }
 
       if (i < entries.length - 1) {
         const next = entries[i + 1]
         if (effective > dep && effective < next.arrivalMinutes) {
-          const travelDuration = next.arrivalMinutes - dep
-          const segProgress = travelDuration > 0
-            ? (effective - dep) / travelDuration
-            : 0
-
-          const fromKey = `${trip.lineId}:${e.stationId}`
-          const toKey = `${trip.lineId}:${next.stationId}`
-          const fromP = stationProgressMap.get(fromKey)?.progress ?? (i / (entries.length - 1))
-          const toP = stationProgressMap.get(toKey)?.progress ?? ((i + 1) / (entries.length - 1))
-          overallProgress = fromP + (toP - fromP) * segProgress
+          const fromP = stationProgress(i), toP = stationProgress(i + 1)
+          const profile = getLrtMotionProfile(track, fromP, toP, (next.arrivalMinutes - dep) * 60)
+          if (!profile) break
+          const state = sampleLrtMotion(profile, (effective - dep) * 60)
+          overallProgress = fromP + (toP - fromP) * state.progress
+          motion = { speedKmh: state.speedKmh, phase: state.phase }
           break
         }
       }
@@ -293,15 +339,17 @@ function computeLRTVehicles(
     if (overallProgress === null) continue
 
     overallProgress = Math.max(0, Math.min(1, overallProgress))
-    const pos = interpolateOnLineSmooth(line.geometry, overallProgress)
+    const pos = interpolateOnLineSmooth(track, overallProgress)
     vehicles.push({
       id: trip.id,
       lineId: trip.lineId,
       type: 'lrt',
       coordinates: pos.coordinates,
-      bearing: pos.bearing,
+      bearing: (pos.bearing + (trip.direction === 'backward' ? 180 : 0) + 360) % 360,
       progress: overallProgress,
       color: line.color,
+      lrtMotion: motion,
+      lrtDirection: trip.direction,
     })
   }
 
@@ -1167,7 +1215,7 @@ function computeFlightVehicles(
 let cachedProgressMap: Map<string, { progress: number }> | null = null
 let cachedBusStopMap: Map<string, BusStop> | null = null
 let cachedFilteredTrips: Trip[] | null = null
-let cachedFilteredScheduleType: ScheduleType | null = null
+let cachedFilteredScheduleKey: string | null = null
 let cachedTransitRef: TransitData | null = null
 
 function resetTransitCachesIfStale(transitData: TransitData) {
@@ -1175,7 +1223,7 @@ function resetTransitCachesIfStale(transitData: TransitData) {
     cachedProgressMap = null
     cachedBusStopMap = null
     cachedFilteredTrips = null
-    cachedFilteredScheduleType = null
+    cachedFilteredScheduleKey = null
     cachedTransitRef = transitData
   }
 }
@@ -1189,20 +1237,22 @@ function getBusStopMap(transitData: TransitData): Map<string, BusStop> {
   return map
 }
 
-function getFilteredTrips(transitData: TransitData, scheduleType: ScheduleType): Trip[] {
+function getFilteredTrips(transitData: TransitData, scheduleType: ScheduleType, previousScheduleType: ScheduleType): Trip[] {
   resetTransitCachesIfStale(transitData)
-  if (cachedFilteredTrips && cachedFilteredScheduleType === scheduleType) {
+  const key = `${scheduleType}:${previousScheduleType}`
+  if (cachedFilteredTrips && cachedFilteredScheduleKey === key) {
     return cachedFilteredTrips
   }
-  // Filter once per (transitData ref, scheduleType). computeVehiclePositions
-  // runs every sim tick (~20 Hz), and this used to re-walk all ~10k trips on
-  // every call for nothing — scheduleType only flips at midnight (or when the
-  // user drags the DateTimePicker across day boundaries).
+  // Cache by both service days. After midnight, yesterday's tail still uses
+  // yesterday's timetable, even when Friday/weekend/Monday changes the type.
   const filtered = transitData.trips.filter(
-    t => !t.scheduleType || t.scheduleType === scheduleType
+    t => !t.scheduleType || t.scheduleType === scheduleType || (
+      t.scheduleType === previousScheduleType &&
+      t.entries.length > 0 && getLrtDepartureMinutes(t.entries[t.entries.length - 1]) >= 1440
+    )
   )
   cachedFilteredTrips = filtered
-  cachedFilteredScheduleType = scheduleType
+  cachedFilteredScheduleKey = key
   return filtered
 }
 
@@ -1217,18 +1267,21 @@ function getStationProgressMap(transitData: TransitData): Map<string, { progress
 
   const progressMap = new Map<string, { progress: number }>()
   for (const line of transitData.lrtLines) {
-    const totalLen = getLineLength(line.geometry)
-    for (const sid of line.stations) {
-      const coords = stationCoordsMap.get(sid)
-      if (!coords || totalLen === 0) {
-        progressMap.set(`${line.id}:${sid}`, { progress: 0 })
-        continue
+    for (const direction of LRT_DIRECTIONS) {
+      const track = getLrtTrack(line.geometry, direction)
+      const totalLen = getLineLength(track)
+      for (const sid of line.stations) {
+        const coords = stationCoordsMap.get(sid)
+        if (!coords || totalLen === 0) {
+          progressMap.set(`${line.id}:${direction}:${sid}`, { progress: 0 })
+          continue
+        }
+        const pt = nearestPointOnLine(track, coords, { units: 'kilometers' })
+        const dist = pt.properties.location ?? 0
+        progressMap.set(`${line.id}:${direction}:${sid}`, {
+          progress: Math.max(0, Math.min(1, dist / totalLen)),
+        })
       }
-      const pt = nearestPointOnLine(line.geometry, coords, { units: 'kilometers' })
-      const dist = pt.properties.location ?? 0
-      progressMap.set(`${line.id}:${sid}`, {
-        progress: Math.max(0, Math.min(1, dist / totalLen)),
-      })
     }
   }
 
@@ -1363,20 +1416,34 @@ function computeFerryVehicles(
   return vehicles
 }
 
+// A selected vehicle panel reads only this trip, using the map's cached
+// station projections and motion profile. No fleet recompute or stale click
+// snapshot is needed when its clock subscription updates.
+export function computeLRTVehicle(transitData: TransitData, trip: Trip, time: Date): VehiclePosition | undefined {
+  return computeLRTVehicles(
+    [trip], transitData.lrtLines, getStationProgressMap(transitData), timeToMinutes(time),
+    getScheduleType(time), getScheduleType(new Date(time.getTime() - 86400000)),
+  )[0]
+}
+
 export function computeVehiclePositions(
   transitData: TransitData,
   time: Date,
+  options: { includeFlights?: boolean } = {},
 ): VehiclePosition[] {
   const nowMinutes = timeToMinutes(time)
   const stationProgressMap = getStationProgressMap(transitData)
   const scheduleType = getScheduleType(time)
-  const filteredTrips = getFilteredTrips(transitData, scheduleType)
+  const previousScheduleType = getScheduleType(new Date(time.getTime() - 86400000))
+  const filteredTrips = getFilteredTrips(transitData, scheduleType, previousScheduleType)
 
   const lrtVehicles = computeLRTVehicles(
     filteredTrips,
     transitData.lrtLines,
     stationProgressMap,
-    nowMinutes
+    nowMinutes,
+    scheduleType,
+    previousScheduleType,
   )
 
   const busVehicles = computeBusVehicles(
@@ -1386,7 +1453,7 @@ export function computeVehiclePositions(
     getBusServiceBucket(time),
   )
 
-  const flightVehicles = computeFlightVehicles(
+  const flightVehicles = options.includeFlights === false ? [] : computeFlightVehicles(
     transitData.flights,
     nowMinutes
   )
@@ -1399,13 +1466,15 @@ export function computeVehiclePositions(
   return [...lrtVehicles, ...busVehicles, ...flightVehicles, ...ferryVehicles]
 }
 
-// Flights only. Called every RAF frame from the render loop so the 3D plane
-// position tracks continuous time instead of stepping once per sim tick — the
-// tick-held position was the 前後抖動 source at ≥5× sim speed (per-tick step
-// 3–25 m depending on taxi vs approach phase).
+// The fleet is sampled once per map upload. A tracked aircraft can be sampled
+// independently between uploads so its mesh and camera use the same instant.
 export function computeFlightOnly(
   transitData: TransitData,
   time: Date,
 ): VehiclePosition[] {
   return computeFlightVehicles(transitData.flights, timeToMinutes(time))
+}
+
+export function computeSingleFlight(flight: Flight, time: Date): VehiclePosition | null {
+  return computeFlightVehicles([flight], timeToMinutes(time))[0] ?? null
 }
