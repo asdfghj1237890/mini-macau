@@ -7,7 +7,7 @@
     <title>Mini Map Macau · 澳門公共交通 3D 即時模擬地圖</title>
     <meta
       name="description"
-      content="互動式澳門公共交通 3D 地圖：即時模擬輕軌氹仔線、石排灣線、橫琴線與 90+ 條巴士路線（含跨海線與夜間巴士）。查詢到站時間 ETA、車站資訊與路線圖。Real-time Macau LRT &amp; bus network simulation on an interactive 3D map — track 400+ vehicles across Taipa, Cotai, and the Peninsula with live ETAs."
+      content="探索澳門交通與城市的互動地圖：輕軌、巴士、航班與渡輪班表模擬，車輛追蹤、城市設施及即時停車場車位。Explore Macau with timetable-driven transport simulations, city layers and live car-park vacancies."
     />
     <meta
       name="keywords"
@@ -36,7 +36,7 @@
     <meta property="og:title" content="Mini Map Macau · 澳門公共交通 3D 即時模擬地圖" />
     <meta
       property="og:description"
-      content="互動式澳門公共交通 3D 地圖：即時模擬輕軌 3 條線與 90+ 條巴士路線，查詢到站時間與路線圖。"
+      content="探索澳門交通與城市：輕軌、巴士、航班及渡輪班表模擬，搭配城市圖層、車輛追蹤及停車場車位資訊。"
     />
     <meta property="og:url" content="https://mini-map-macau.app/" />
     <meta property="og:locale" content="zh_HK" />
@@ -51,7 +51,7 @@
     <meta name="twitter:title" content="Mini Map Macau · 澳門公共交通 3D 即時模擬地圖" />
     <meta
       name="twitter:description"
-      content="互動式澳門公共交通 3D 地圖：即時模擬輕軌 3 條線與 90+ 條巴士路線，查詢到站時間與路線圖。"
+      content="探索澳門交通與城市：輕軌、巴士、航班及渡輪班表模擬，搭配城市圖層、車輛追蹤及停車場車位資訊。"
     />
     <meta name="twitter:image" content="https://mini-map-macau.app/og-image.png" />
 
@@ -80,14 +80,23 @@
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Mini Map Macau",
-        "alternateName": ["澳門迷你交通地圖", "Mini Mapa Macau", "澳門即時交通地圖", "澳門3D巴士地圖"],
+        "alternateName": [
+          "澳門迷你交通地圖",
+          "Mini Mapa Macau",
+          "澳門即時交通地圖",
+          "澳門3D巴士地圖"
+        ],
         "url": "https://mini-map-macau.app/",
-        "description": "Real-time 3D simulation of Macau's public transit network — LRT (Taipa, Seac Pai Van, Hengqin lines) and 90+ bus routes with 400+ vehicles moving on an interactive map. View live ETAs, station info, and route maps.",
+        "description": "Explore Macau transport and city layers on an interactive map. Timetable-driven LRT, bus, flight and ferry simulations, vehicle tracking, urban facilities and live car-park vacancies.",
         "applicationCategory": "TravelApplication",
         "applicationSubCategory": "TransportationApplication",
-        "operatingSystem": "Any (browser with WebGL 2.0)",
-        "browserRequirements": "Requires JavaScript and WebGL 2.0",
-        "inLanguage": ["zh-Hant", "pt-PT", "en"],
+        "operatingSystem": "Any (modern browser)",
+        "browserRequirements": "Requires JavaScript; WebGL 2.0 for 3D, with a 2D compatibility map available",
+        "inLanguage": [
+          "zh-Hant",
+          "pt-PT",
+          "en"
+        ],
         "isAccessibleForFree": true,
         "offers": {
           "@type": "Offer",
@@ -96,15 +105,35 @@
         },
         "keywords": "澳門輕軌, 澳門巴士, 氹仔線, 石排灣線, 橫琴線, Macau LRT, Macau bus, transit tracker, 到站時間, ETA, 路線圖",
         "about": [
-          { "@type": "Thing", "name": "Macau Light Rapid Transit", "sameAs": "https://en.wikipedia.org/wiki/Macau_Light_Rapid_Transit" },
-          { "@type": "Thing", "name": "Public transport in Macau", "sameAs": "https://en.wikipedia.org/wiki/Public_transport_in_Macau" },
-          { "@type": "Thing", "name": "Taipa", "sameAs": "https://en.wikipedia.org/wiki/Taipa" },
-          { "@type": "Thing", "name": "Cotai", "sameAs": "https://en.wikipedia.org/wiki/Cotai" }
+          {
+            "@type": "Thing",
+            "name": "Macau Light Rapid Transit",
+            "sameAs": "https://en.wikipedia.org/wiki/Macau_Light_Rapid_Transit"
+          },
+          {
+            "@type": "Thing",
+            "name": "Public transport in Macau",
+            "sameAs": "https://en.wikipedia.org/wiki/Public_transport_in_Macau"
+          },
+          {
+            "@type": "Thing",
+            "name": "Taipa",
+            "sameAs": "https://en.wikipedia.org/wiki/Taipa"
+          },
+          {
+            "@type": "Thing",
+            "name": "Cotai",
+            "sameAs": "https://en.wikipedia.org/wiki/Cotai"
+          }
         ],
         "spatialCoverage": {
           "@type": "Place",
           "name": "Macau SAR, China",
-          "alternateName": ["澳門", "Macao", "Região Administrativa Especial de Macau"],
+          "alternateName": [
+            "澳門",
+            "Macao",
+            "Região Administrativa Especial de Macau"
+          ],
           "geo": {
             "@type": "GeoCoordinates",
             "latitude": 22.1604,
@@ -126,42 +155,66 @@
           {
             "@type": "Question",
             "name": "地圖上的車輛是即時數據嗎?",
-            "acceptedAnswer": { "@type": "Answer", "text": "預設為時刻表驅動的模擬:車輛按官方時刻表與班距沿真實路線幾何行駛,並非真實 GPS 位置。巴士可於選單開啟 RT 模式,改用交通事務局(DSAT)即時數據顯示巴士位置;輕軌、航班與渡輪維持模擬。" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "輕軌、巴士、航班與渡輪的位置均由班表、班距及路線計算，不接收車輛即時 GPS。即使顯示「即時」，也只是模擬時鐘同步現在。停車場車位另由 DSAT 更新；暫停、加速或離開現在時刻時不顯示即時餘位。"
+            }
           },
           {
             "@type": "Question",
             "name": "如何查詢巴士或輕軌的到站時間?",
-            "acceptedAnswer": { "@type": "Answer", "text": "點擊地圖上任一車站或車輛,面板會顯示預計到站時間(ETA)、下一班車與路線詳情。" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "點選車站查看班次，或點選車輛查看模擬速度、下一站倒數與站表。NEXT 的 arr 表示距到站時間，dwell 表示剩餘停站時間；ARR／DEP 是到站／離站時刻。巴士 ETA 為模擬估算，輕軌依載入班表計算。"
+            }
           },
           {
             "@type": "Question",
             "name": "澳門輕軌有哪些路線和車站?",
-            "acceptedAnswer": { "@type": "Answer", "text": "共 3 條線:氹仔線、石排灣線與橫琴線,合計 15 個車站,涵蓋媽閣、機場、氹仔碼頭等交通樞紐。" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "地圖收錄氹仔線、石排灣線與橫琴線，共 3 條線、15 個車站，包含媽閣、機場及氹仔碼頭。完整路線與站序見下方列表。"
+            }
           },
           {
             "@type": "Question",
             "name": "網站支援哪些語言?",
-            "acceptedAnswer": { "@type": "Answer", "text": "繁體中文、英文(English)與葡萄牙文(Português),可於選單切換;站名、路線與航班資訊會同步切換語言。" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "支援繁體中文、English 與 Português，可在左側設定切換。介面與已有翻譯的站名、航班等資訊會一起切換；部分來源資料保留原文。"
+            }
           },
           {
             "@type": "Question",
             "name": "資料來源是什麼?",
-            "acceptedAnswer": { "@type": "Answer", "text": "巴士路線與車站來自澳門交通事務局(DSAT)公開資料;輕軌資訊來自澳門輕軌(MLM);航班時刻來自 AviationStack;渡輪時刻來自 TurboJET 與 CotaiJet 官方網站。" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "交通資料包括 DSAT 巴士路網、MLM 輕軌資訊、航班時刻與 TurboJET／Cotai Water Jet 船期；城市資料取自 data.gov.mo、相關部門及設施營運商，地理資料包含 OpenStreetMap。各類資料依不同週期更新，並非全部即時。"
+            }
           },
           {
             "@type": "Question",
             "name": "手機可以使用嗎?需要安裝 App 嗎?",
-            "acceptedAnswer": { "@type": "Answer", "text": "不需安裝。任何支援 WebGL 2 的現代瀏覽器(手機或電腦)直接開啟網站即可使用,介面已針對手機觸控優化;也可從瀏覽器的分享或選單選擇「加入主畫面」,之後像 App 一樣全螢幕開啟。" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "可直接用手機或電腦瀏覽器開啟，無須安裝。3D 地圖需要 WebGL 2；不支援或繪圖失敗時，可使用 2D 相容地圖。也可從瀏覽器分享或選單加入主畫面。載入地圖與資料仍需網絡。"
+            }
           },
           {
             "@type": "Question",
             "name": "為什麼有些巴士路線沒有顯示?",
-            "acceptedAnswer": { "@type": "Answer", "text": "預設「自動模式」只顯示目前營運中的路線,深夜時段日間路線會自動隱藏;可在圖層面板手動開啟任何路線。" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "「按營運時間」會依目前模擬時刻與服務日期選擇路線，夜間或改日期後顯示內容可能不同。可在巴士圖層切換「顯示全部」，或逐條開啟路線；主題探索模式也可能暫時隱藏交通。"
+            }
           },
           {
             "@type": "Question",
             "name": "這是澳門政府的官方網站嗎?",
-            "acceptedAnswer": { "@type": "Answer", "text": "不是。本站為個人開源專案,與澳門特別行政區政府、DSAT、澳門輕軌及各營運商均無從屬關係;資訊僅供參考,實際班次以官方公布為準。" }
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "本站為個人開源專案，與澳門特別行政區政府、DSAT、澳門輕軌及各營運商均無從屬關係。模擬資訊供探索參考，實際班次、路線調整與服務情況以官方公布為準。"
+            }
           }
         ]
       }
@@ -197,62 +250,68 @@
          only generates classes it can see in source files. */
       #site-info-backdrop {
         position: fixed; inset: 0; z-index: 100;
-        background: rgba(0, 0, 0, 0.65);
+        background: var(--mm-scrim);
       }
       #site-info {
         position: fixed; z-index: 101;
         top: 50%; left: 50%; transform: translate(-50%, -50%);
         width: min(720px, calc(100vw - 24px));
         height: min(85dvh, 900px);
-        background: #0b0b0d; color: #eaeaea;
-        border: 1px solid rgba(252, 196, 65, 0.25);
-        box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8);
+        background: var(--mm-panel); color: var(--mm-fg);
+        border: 1px solid color-mix(in srgb, var(--mm-amber) 25%, transparent);
+        box-shadow: 0 16px 48px color-mix(in srgb, var(--mm-shadow) 80%, transparent);
         display: flex; flex-direction: column;
         font-family: 'Noto Sans HK', 'Noto Sans TC', -apple-system, sans-serif;
       }
       #site-info[hidden], #site-info-backdrop[hidden] { display: none; }
       .si-head {
         display: flex; align-items: center; justify-content: space-between;
-        padding: 10px 12px; border-bottom: 1px solid rgba(252, 196, 65, 0.2);
+        padding: 10px 12px; border-bottom: 1px solid color-mix(in srgb, var(--mm-amber) 20%, transparent);
         flex-shrink: 0;
       }
       .si-tabs { display: flex; gap: 6px; }
       .si-tab {
         font-family: 'JetBrains Mono', ui-monospace, monospace;
         font-size: calc(11px * var(--mm-font-scale, 1)); letter-spacing: 0.12em;
-        padding: 5px 12px; cursor: pointer;
-        background: rgba(255, 255, 255, 0.02); color: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        padding: 5px 12px; min-height: 44px; cursor: pointer;
+        background: var(--mm-inset); color: var(--mm-text-secondary);
+        border: 1px solid color-mix(in srgb, var(--mm-fg) 12%, transparent);
       }
       .si-tab[aria-pressed="true"] {
-        background: rgba(252, 196, 65, 0.1); color: #fde68a;
-        border-color: rgba(252, 196, 65, 0.5);
+        background: color-mix(in srgb, var(--mm-amber) 10%, transparent); color: var(--mm-amber-1);
+        border-color: color-mix(in srgb, var(--mm-amber) 50%, transparent);
       }
       .si-close {
-        width: 30px; height: 30px; cursor: pointer;
-        background: transparent; color: rgba(255, 255, 255, 0.6);
-        border: 1px solid rgba(255, 255, 255, 0.15); font-size: calc(13px * var(--mm-font-scale, 1));
+        width: 44px; height: 44px; cursor: pointer; flex-shrink: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: transparent; color: var(--mm-text-secondary);
+        border: 1px solid color-mix(in srgb, var(--mm-fg) 15%, transparent);
       }
-      .si-close:hover { color: #fde68a; border-color: rgba(252, 196, 65, 0.5); }
-      .si-scroll { overflow-y: auto; padding: 14px 16px 28px; overscroll-behavior: contain; }
-      #site-info h1 { font-size: calc(18px * var(--mm-font-scale, 1)); line-height: 1.4; color: #fde68a; margin: 0 0 10px; }
+      .si-close:hover { color: var(--mm-amber-1); border-color: var(--mm-amber); }
+      #site-info button:focus-visible, #site-info a:focus-visible { outline: 2px solid var(--mm-amber); outline-offset: 2px; }
+      .si-scroll { min-height: 0; overflow-y: auto; padding: 18px 18px 28px; overscroll-behavior: contain; overflow-wrap: anywhere; }
+      #site-info h1 { font-size: calc(18px * var(--mm-font-scale, 1)); line-height: 1.4; color: var(--mm-amber-1); margin: 0 0 10px; }
       #site-info h2 {
-        font-size: calc(14px * var(--mm-font-scale, 1)); color: #fcd34d; margin: 22px 0 8px;
-        padding-bottom: 4px; border-bottom: 1px solid rgba(252, 196, 65, 0.15);
+        font-size: calc(14px * var(--mm-font-scale, 1)); color: var(--mm-amber); margin: 24px 0 10px;
+        padding-bottom: 6px; border-bottom: 1px solid color-mix(in srgb, var(--mm-amber) 15%, transparent);
       }
-      #site-info h3 { font-size: calc(12.5px * var(--mm-font-scale, 1)); color: rgba(255, 255, 255, 0.85); margin: 14px 0 6px; }
-      #site-info p, #site-info dd { font-size: calc(12.5px * var(--mm-font-scale, 1)); line-height: 1.7; color: rgba(255, 255, 255, 0.7); margin: 0 0 8px; }
-      #site-info dt { font-size: calc(12.5px * var(--mm-font-scale, 1)); font-weight: 700; color: rgba(255, 255, 255, 0.9); margin: 12px 0 2px; }
+      #site-info h3 { font-size: calc(12.5px * var(--mm-font-scale, 1)); color: var(--mm-fg); margin: 14px 0 6px; }
+      #site-info p, #site-info dd, .si-guide { font-size: calc(13px * var(--mm-font-scale, 1)); line-height: 1.8; color: var(--mm-text-secondary); margin: 0 0 8px; }
+      #site-info dt { font-size: calc(13px * var(--mm-font-scale, 1)); font-weight: 700; color: var(--mm-fg); margin: 16px 0 4px; }
       #site-info dl { margin: 0; }
-      #site-info a { color: #fcd34d; }
+      #site-info a { color: var(--mm-amber); text-decoration: underline; text-underline-offset: 3px; }
+      #site-info .si-note { padding: 12px 14px; margin: 16px 0; background: var(--mm-inset); border-left: 3px solid var(--mm-amber); }
+      .si-guide { list-style: none; padding: 0; }
+      .si-guide li { margin-bottom: 14px; }
+      .si-guide strong { display: block; color: var(--mm-fg); margin-bottom: 2px; }
       .si-stations, .si-routes, .si-ferries {
         margin: 0 0 6px; padding-left: 20px;
-        font-size: calc(12px * var(--mm-font-scale, 1)); line-height: 1.8; color: rgba(255, 255, 255, 0.65);
+        font-size: calc(12px * var(--mm-font-scale, 1)); line-height: 1.8; color: var(--mm-text-secondary);
       }
       .si-routes { list-style: none; padding-left: 2px; column-width: 200px; column-gap: 18px; }
       .si-routes b {
         font-family: 'JetBrains Mono', ui-monospace, monospace;
-        color: #fde68a; font-weight: 700; margin-right: 6px;
+        color: var(--mm-amber-1); font-weight: 700; margin-right: 6px;
       }
       /* Language tabs: only the active language block is shown; the shared
          transit lists below are always visible. */
@@ -265,93 +324,170 @@
   <body>
     <div id="root"></div>
     <div id="site-info-backdrop" hidden></div>
-    <aside id="site-info" hidden data-lang="zh" role="dialog" aria-modal="true" aria-labelledby="si-title">
+    <aside id="site-info" hidden data-lang="zh" role="dialog" aria-modal="true" aria-labelledby="si-title-zh">
       <header class="si-head">
         <div class="si-tabs">
           <button type="button" class="si-tab" data-lang-tab="zh" aria-pressed="true">繁中</button>
           <button type="button" class="si-tab" data-lang-tab="en" aria-pressed="false">EN</button>
           <button type="button" class="si-tab" data-lang-tab="pt" aria-pressed="false">PT</button>
         </div>
-        <button type="button" id="site-info-close" class="si-close" aria-label="close">✕</button>
+        <button type="button" id="site-info-close" class="si-close" aria-label="關閉介紹">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" /></svg>
+        </button>
       </header>
       <div class="si-scroll">
 
         <div data-si-lang="zh" lang="zh-Hant">
-          <h1 id="si-title">Mini Map Macau · 澳門公共交通 3D 即時模擬地圖</h1>
-          <p>Mini Map Macau 是一個互動式澳門公共交通 3D 地圖,以官方時刻表驅動的方式,模擬澳門輕軌(氹仔線、石排灣線、橫琴線)、90+ 條巴士路線(含跨海線與夜間巴士)、港澳/深圳渡輪航線,以及澳門國際機場(MFM)的真實航班動態。點擊任一車輛或車站,即可查看預計到站時間(ETA)、路線詳情與服務狀態;支援 3D/2D 視角、深淺色地圖、時間控制(暫停、1×–60× 加速、任意日期時間)與車輛追蹤。</p>
+          <h1 id="si-title-zh">Mini Map Macau · 看見澳門的城市日常</h1>
+          <p>從輕軌、巴士、航班與渡輪，到學校、公共房屋與城市設施，在同一張互動地圖探索澳門。交通依時刻表與班距模擬，城市圖層呈現各來源的資料。</p>
+          <p class="si-note">「即時」代表模擬時鐘同步現在。車輛位置、速度與到站倒數均為模擬；停車場剩餘車位會在開啟圖層並同步現在時另行更新。</p>
+          <h2>開始探索</h2>
+          <ul class="si-guide">
+            <li><strong>選擇圖層</strong> 手機圖層面板分為「輕軌、巴士、海空、城市」；桌面分為「交通、城市」。可依路線或類別切換，也能查看圖例。</li>
+            <li><strong>追蹤與收合</strong> 點選車輛後，鏡頭會跟隨。巴士與輕軌面板顯示路線、目的地、速度及下一站倒數；點關閉鈕旁的箭頭可收起站表，追蹤持續，再點即可展開。</li>
+            <li><strong>探索不同時刻</strong> 暫停、以 1×–60× 播放，拖動時間列，或點時鐘選擇日期與時間；點「現在」回到當前時刻。時間以澳門 UTC+8 計算，日期切換使用可用班表，並非歷史 GPS 回放。</li>
+            <li><strong>調整閱讀方式</strong> 左側設定可切換 2D／3D、深淺色、語言及 90%–150% 字型大小；時間列也可收合，讓地圖有更多空間。</li>
+          </ul>
+          <h2>地圖裡有什麼</h2>
+          <ul class="si-guide">
+            <li><strong>交通</strong> 三條輕軌線、巴士路網、澳門機場航班及港澳／深圳渡輪。輕軌以雙軌與轉彎連接的車廂呈現，模擬最高時速 80 km/h；未另列離站時間的站點預設停站 20 秒，依班表安排加速與煞車。</li>
+            <li><strong>城市日常</strong> 堂區、工程改道、公共停車場、公廁、學校、公共房屋、供水、電力、垃圾回收及大賽車賽道。點選標記或建築，可讀取對應資料。</li>
+            <li><strong>主題探索</strong> 公共房屋、供水、電力、垃圾回收及大賽車會暫時隱藏其他圖層，關閉後恢復；公共房屋保留學校。水管、電網流向與賽車動態為示意。</li>
+          </ul>
           <h2>常見問題</h2>
           <dl>
             <dt>地圖上的車輛是即時數據嗎?</dt>
-            <dd>預設為時刻表驅動的模擬:車輛按官方時刻表與班距沿真實路線幾何行駛,並非真實 GPS 位置。巴士可於選單開啟 RT 模式,改用交通事務局(DSAT)即時數據顯示巴士位置;輕軌、航班與渡輪維持模擬。</dd>
+            <dd>輕軌、巴士、航班與渡輪的位置均由班表、班距及路線計算，不接收車輛即時 GPS。即使顯示「即時」，也只是模擬時鐘同步現在。停車場車位另由 DSAT 更新；暫停、加速或離開現在時刻時不顯示即時餘位。</dd>
             <dt>如何查詢巴士或輕軌的到站時間?</dt>
-            <dd>點擊地圖上任一車站或車輛,面板會顯示預計到站時間(ETA)、下一班車與路線詳情。</dd>
+            <dd>點選車站查看班次，或點選車輛查看模擬速度、下一站倒數與站表。NEXT 的 arr 表示距到站時間，dwell 表示剩餘停站時間；ARR／DEP 是到站／離站時刻。巴士 ETA 為模擬估算，輕軌依載入班表計算。</dd>
             <dt>澳門輕軌有哪些路線和車站?</dt>
-            <dd>共 3 條線:氹仔線、石排灣線與橫琴線,合計 15 個車站,涵蓋媽閣、機場、氹仔碼頭等交通樞紐。完整列表見下方「澳門輕軌路線與車站」。</dd>
+            <dd>地圖收錄氹仔線、石排灣線與橫琴線，共 3 條線、15 個車站，包含媽閣、機場及氹仔碼頭。完整路線與站序見下方列表。</dd>
             <dt>網站支援哪些語言?</dt>
-            <dd>繁體中文、英文(English)與葡萄牙文(Português),可於選單切換;站名、路線與航班資訊會同步切換語言。</dd>
+            <dd>支援繁體中文、English 與 Português，可在左側設定切換。介面與已有翻譯的站名、航班等資訊會一起切換；部分來源資料保留原文。</dd>
             <dt>資料來源是什麼?</dt>
-            <dd>巴士路線與車站來自澳門交通事務局(DSAT)公開資料;輕軌資訊來自澳門輕軌(MLM);航班時刻來自 AviationStack;渡輪時刻來自 TurboJET 與 CotaiJet 官方網站。</dd>
+            <dd>交通資料包括 DSAT 巴士路網、MLM 輕軌資訊、航班時刻與 TurboJET／Cotai Water Jet 船期；城市資料取自 data.gov.mo、相關部門及設施營運商，地理資料包含 OpenStreetMap。各類資料依不同週期更新，並非全部即時。</dd>
             <dt>手機可以使用嗎?需要安裝 App 嗎?</dt>
-            <dd>不需安裝。任何支援 WebGL 2 的現代瀏覽器(手機或電腦)直接開啟網站即可使用,介面已針對手機觸控優化;也可從瀏覽器的分享或選單選擇「加入主畫面」,之後像 App 一樣全螢幕開啟。</dd>
+            <dd>可直接用手機或電腦瀏覽器開啟，無須安裝。3D 地圖需要 WebGL 2；不支援或繪圖失敗時，可使用 2D 相容地圖。也可從瀏覽器分享或選單加入主畫面。載入地圖與資料仍需網絡。</dd>
             <dt>為什麼有些巴士路線沒有顯示?</dt>
-            <dd>預設「自動模式」只顯示目前營運中的路線,深夜時段日間路線會自動隱藏;可在圖層面板手動開啟任何路線。</dd>
+            <dd>「按營運時間」會依目前模擬時刻與服務日期選擇路線，夜間或改日期後顯示內容可能不同。可在巴士圖層切換「顯示全部」，或逐條開啟路線；主題探索模式也可能暫時隱藏交通。</dd>
             <dt>這是澳門政府的官方網站嗎?</dt>
-            <dd>不是。本站為個人開源專案,與澳門特別行政區政府、DSAT、澳門輕軌及各營運商均無從屬關係;資訊僅供參考,實際班次以官方公布為準。</dd>
+            <dd>本站為個人開源專案，與澳門特別行政區政府、DSAT、澳門輕軌及各營運商均無從屬關係。模擬資訊供探索參考，實際班次、路線調整與服務情況以官方公布為準。</dd>
           </dl>
-          <h2>資料來源與聲明</h2>
-          <p>本站為開源的非官方專案。巴士資料來自 <a href="https://www.dsat.gov.mo/" target="_blank" rel="noopener noreferrer">DSAT</a>、輕軌資料來自 <a href="https://www.mlm.com.mo/" target="_blank" rel="noopener noreferrer">澳門輕軌</a>、航班資料來自 <a href="https://aviationstack.com/" target="_blank" rel="noopener noreferrer">AviationStack</a>、渡輪時刻來自 <a href="https://www2.turbojet.com.hk/" target="_blank" rel="noopener noreferrer">TurboJET</a> 與 <a href="https://www.cotaiwaterjet.com/" target="_blank" rel="noopener noreferrer">CotaiJet</a>。地圖為時刻表驅動之模擬,僅供參考。</p>
+          <h2>資料來源</h2>
+          <dl class="si-sources">
+            <dt>巴士、輕軌與船期</dt>
+            <dd><a href="https://www.dsat.gov.mo/" target="_blank" rel="noopener noreferrer">DSAT</a> · <a href="https://www.mlm.com.mo/" target="_blank" rel="noopener noreferrer">MLM</a> · <a href="https://www2.turbojet.com.hk/" target="_blank" rel="noopener noreferrer">TurboJET</a> / <a href="https://www.cotaiwaterjet.com/" target="_blank" rel="noopener noreferrer">Cotai Water Jet</a></dd>
+            <dt>航班</dt>
+            <dd>澳門機場到離境時刻與班表，並可透過 <a href="https://aviationstack.com/" target="_blank" rel="noopener noreferrer">AviationStack</a> 交叉核對；地圖飛行動態為模擬。</dd>
+            <dt>城市設施、學校、房屋與堂區</dt>
+            <dd><a href="https://data.gov.mo/" target="_blank" rel="noopener noreferrer">data.gov.mo</a> · <a href="https://www.iam.gov.mo/" target="_blank" rel="noopener noreferrer">IAM</a> · <a href="https://www.dspa.gov.mo/" target="_blank" rel="noopener noreferrer">DSPA</a> · <a href="https://www.dsedj.gov.mo/" target="_blank" rel="noopener noreferrer">DSEDJ</a> · <a href="https://www.ihm.gov.mo/" target="_blank" rel="noopener noreferrer">IH</a> · <a href="https://www.dsec.gov.mo/" target="_blank" rel="noopener noreferrer">DSEC</a></dd>
+            <dt>供水與電力</dt>
+            <dd><a href="https://www.macaowater.com/about-macao-water/water-supply-facilities" target="_blank" rel="noopener noreferrer">Macao Water</a> / <a href="https://www.cem-macau.com/zh/about-cem/company-profile/operation/" target="_blank" rel="noopener noreferrer">CEM</a></dd>
+            <dt>地理資料與賽道</dt>
+            <dd><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> · <a href="https://www.macau.grandprix.gov.mo/zh-hant/about-us/matchpath" target="_blank" rel="noopener noreferrer">澳門格蘭披治大賽車</a></dd>
+          </dl>
         </div>
 
         <div data-si-lang="en" lang="en">
-          <h2>Mini Map Macau — Real-time 3D Macau Public Transport Map</h2>
-          <p>Mini Map Macau is an interactive 3D map of Macau's public transport network. A timetable-driven simulation animates the Macau LRT (Taipa, Seac Pai Van and Hengqin lines), 90+ bus routes including cross-harbour and night services, HK/Shenzhen–Macau ferry routes, and real flights at Macau International Airport (MFM). Click any vehicle or station for live ETAs, route details and service status; switch 3D/2D views, dark/light styles, control time (pause, 1×–60× speed, any date/time) and track vehicles.</p>
-          <h2>FAQ</h2>
+          <h1 id="si-title-en">Mini Map Macau · Explore everyday Macau</h1>
+          <p>Explore transport and city life on one interactive map: LRT, buses, flights and ferries alongside schools, public housing and urban facilities. Traffic follows a timetable and headway simulation; city layers show data from their respective sources.</p>
+          <p class="si-note">LIVE means the simulation clock is synced to now. Vehicle positions, speeds and arrival countdowns are simulated. Car-park vacancies update separately when the layer is enabled and the clock is live.</p>
+          <h2>Start exploring</h2>
+          <ul class="si-guide">
+            <li><strong>Choose your layers</strong> On mobile, browse LRT, Bus, Air &amp; Sea and City. Desktop groups layers under Transit and City. Switch individual routes or categories and open their legends.</li>
+            <li><strong>Follow and collapse</strong> Select a vehicle to follow it. Bus and LRT panels show the route, destination, speed and next-stop countdown. The arrow beside Close hides the stop list while tracking continues; tap it again to expand.</li>
+            <li><strong>Explore another time</strong> Pause, play at 1×–60×, scrub the time bar or select a date and time from the clock. Now returns to the present. Times use Macau UTC+8 and available schedules; choosing a date does not replay historical GPS data.</li>
+            <li><strong>Make it easier to read</strong> The left settings menu offers 2D/3D views, light/dark themes, languages and 90%–150% text size. Collapse the time bar to leave more room for the map.</li>
+          </ul>
+          <h2>On the map</h2>
+          <ul class="si-guide">
+            <li><strong>Transport</strong> Three LRT lines, the bus network, MFM flights and HK/Shenzhen–Macau ferries. LRT models use separate tracks and carriages connected through bends. Simulated speed is capped at 80 km/h; stops without a separate departure time default to 20 seconds, with acceleration and braking fitted to the timetable.</li>
+            <li><strong>City life</strong> Parishes, road works, car parks, public toilets, schools, public housing, water, electricity, waste and recycling, and the Grand Prix circuit. Select a marker or building to read its information.</li>
+            <li><strong>Focused views</strong> Housing, water, electricity, waste and Grand Prix views temporarily hide other layers and restore them when switched off. Housing keeps schools available. Water pipes, power flows and racing motion are schematic.</li>
+          </ul>
+          <h2>Common questions</h2>
           <dl>
             <dt>Is the vehicle data real-time?</dt>
-            <dd>By default it is a timetable-driven simulation: vehicles follow real route geometry according to official timetables and headways, not live GPS. An opt-in RT mode replaces simulated bus positions with the DSAT live feed; LRT, flights and ferries remain simulated.</dd>
-            <dt>How do I check arrival times (ETA)?</dt>
-            <dd>Click any station or vehicle on the map to see estimated arrivals, the next departures and route details.</dd>
-            <dt>Which LRT lines and stations are covered?</dt>
-            <dd>All 3 lines — Taipa, Seac Pai Van and Hengqin — with 15 stations including Barra, Airport and Taipa Ferry Terminal. See the full list below.</dd>
+            <dd>LRT, bus, flight and ferry positions are calculated from schedules, headways and routes, without a live vehicle GPS feed. LIVE only means the simulation clock is synced to now. DSAT car-park vacancies update separately and are hidden when paused, accelerated or away from the present.</dd>
+            <dt>How do I check arrival times?</dt>
+            <dd>Select a station for departures or a vehicle for simulated speed, the next-stop countdown and its stop list. NEXT uses arr for time until arrival and dwell for remaining stop time. ARR/DEP are arrival/departure times. Bus ETAs are simulated estimates; LRT times use the loaded timetable.</dd>
+            <dt>Which LRT lines and stations are included?</dt>
+            <dd>The map covers Taipa, Seac Pai Van and Hengqin: 3 lines and 15 stations, including Barra, Airport and Taipa Ferry Terminal. The complete lines and station order are listed below.</dd>
             <dt>Which languages are supported?</dt>
-            <dd>Traditional Chinese, English and Portuguese; station names, routes and flight info all switch with the language.</dd>
-            <dt>What are the data sources?</dt>
-            <dd>Bus routes and stops from Macau's Transport Bureau (DSAT) open data; LRT information from Macao LRT (MLM); flight schedules from AviationStack; ferry timetables from TurboJET and CotaiJet.</dd>
+            <dd>Choose Traditional Chinese, English or Portuguese in the left settings menu. Interface labels and translated station, flight and other information switch together; some source content remains in its original language.</dd>
+            <dt>Where does the data come from?</dt>
+            <dd>Transport data includes DSAT bus routes, MLM LRT information, flight schedules and TurboJET/Cotai Water Jet timetables. City data comes from data.gov.mo, the relevant agencies and facility operators; geographic data includes OpenStreetMap. Sources update on different schedules, rather than all being live.</dd>
             <dt>Does it work on mobile? Do I need an app?</dt>
-            <dd>No install needed — any modern browser with WebGL 2 works, and the UI is optimised for touch. For an app-like full-screen experience, choose Add to Home Screen from the browser's share or menu.</dd>
-            <dt>Why are some bus routes not shown?</dt>
-            <dd>The default auto mode shows only routes currently in service; daytime routes hide late at night. Any route can be enabled manually in the layers panel.</dd>
+            <dd>Open it in a phone or desktop browser without installing an app. The 3D map needs WebGL 2; a compatible 2D map is available if it is unsupported or rendering fails. You can also add the site to your home screen from the browser menu or share sheet. Loading maps and data still requires a network connection.</dd>
+            <dt>Why are some bus routes hidden?</dt>
+            <dd>By service hours selects routes for the current simulation time and service date, so changing the date or time can change what appears. Choose Show all or enable individual routes in the bus layers. A focused city view may also temporarily hide transport.</dd>
             <dt>Is this an official government website?</dt>
-            <dd>No. This is a personal open-source project, unaffiliated with the Macau SAR Government, DSAT, Macao LRT or any operator. For reference only — actual schedules are as officially published.</dd>
+            <dd>This is a personal open-source project, unaffiliated with the Macau SAR Government, DSAT, Macao LRT or transport operators. Simulated information is for exploration and reference; check official announcements for actual schedules, route changes and services.</dd>
           </dl>
-          <h2>Sources &amp; Disclaimer</h2>
-          <p>An open-source, unofficial project. Bus data from <a href="https://www.dsat.gov.mo/" target="_blank" rel="noopener noreferrer">DSAT</a>, LRT data from <a href="https://www.mlm.com.mo/" target="_blank" rel="noopener noreferrer">Macao LRT</a>, flights from <a href="https://aviationstack.com/" target="_blank" rel="noopener noreferrer">AviationStack</a>, ferry timetables from <a href="https://www2.turbojet.com.hk/" target="_blank" rel="noopener noreferrer">TurboJET</a> and <a href="https://www.cotaiwaterjet.com/" target="_blank" rel="noopener noreferrer">CotaiJet</a>. The map is a timetable-driven simulation, for reference only.</p>
+          <h2>Data sources</h2>
+          <dl class="si-sources">
+            <dt>Buses, LRT and ferries</dt>
+            <dd><a href="https://www.dsat.gov.mo/" target="_blank" rel="noopener noreferrer">DSAT</a> · <a href="https://www.mlm.com.mo/" target="_blank" rel="noopener noreferrer">MLM</a> · <a href="https://www2.turbojet.com.hk/" target="_blank" rel="noopener noreferrer">TurboJET</a> / <a href="https://www.cotaiwaterjet.com/" target="_blank" rel="noopener noreferrer">Cotai Water Jet</a></dd>
+            <dt>Flights</dt>
+            <dd>MFM arrival/departure schedules and timetables, with optional cross-checking through <a href="https://aviationstack.com/" target="_blank" rel="noopener noreferrer">AviationStack</a>. Aircraft movement on the map is simulated.</dd>
+            <dt>Facilities, schools, housing and parishes</dt>
+            <dd><a href="https://data.gov.mo/" target="_blank" rel="noopener noreferrer">data.gov.mo</a> · <a href="https://www.iam.gov.mo/" target="_blank" rel="noopener noreferrer">IAM</a> · <a href="https://www.dspa.gov.mo/" target="_blank" rel="noopener noreferrer">DSPA</a> · <a href="https://www.dsedj.gov.mo/" target="_blank" rel="noopener noreferrer">DSEDJ</a> · <a href="https://www.ihm.gov.mo/" target="_blank" rel="noopener noreferrer">IH</a> · <a href="https://www.dsec.gov.mo/" target="_blank" rel="noopener noreferrer">DSEC</a></dd>
+            <dt>Water and electricity</dt>
+            <dd><a href="https://www.macaowater.com/about-macao-water/water-supply-facilities" target="_blank" rel="noopener noreferrer">Macao Water</a> / <a href="https://www.cem-macau.com/zh/about-cem/company-profile/operation/" target="_blank" rel="noopener noreferrer">CEM</a></dd>
+            <dt>Geography and racing circuit</dt>
+            <dd><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> · <a href="https://www.macau.grandprix.gov.mo/en/about-us/matchpath" target="_blank" rel="noopener noreferrer">Macau Grand Prix</a></dd>
+          </dl>
         </div>
 
-        <div data-si-lang="pt" lang="pt">
-          <h2>Mini Map Macau — Mapa 3D do Transporte Público de Macau</h2>
-          <p>O Mini Map Macau é um mapa 3D interactivo da rede de transportes públicos de Macau. Uma simulação baseada em horários anima o Metro Ligeiro de Macau (linhas da Taipa, de Seac Pai Van e de Hengqin), mais de 90 rotas de autocarro incluindo linhas transfronteiriças e nocturnas, rotas de ferry Hong Kong/Shenzhen–Macau e voos reais do Aeroporto Internacional de Macau (MFM). Clique em qualquer veículo ou estação para ver tempos de chegada (ETA), detalhes da rota e estado do serviço.</p>
-          <h2>Perguntas Frequentes</h2>
+        <div data-si-lang="pt" lang="pt-PT">
+          <h1 id="si-title-pt">Mini Map Macau · Explore o quotidiano de Macau</h1>
+          <p>Explore os transportes e a vida urbana num mapa interactivo: metro ligeiro, autocarros, voos e ferries, juntamente com escolas, habitação pública e equipamentos urbanos. O trânsito é simulado segundo horários e frequências; as camadas da cidade apresentam os dados das respectivas fontes.</p>
+          <p class="si-note">O indicador de tempo real significa que o relógio da simulação está sincronizado com o presente. Posições, velocidades e contagens decrescentes são simuladas. As vagas de estacionamento são actualizadas separadamente, com a camada activa e o relógio no presente.</p>
+          <h2>Comece a explorar</h2>
+          <ul class="si-guide">
+            <li><strong>Escolha as camadas</strong> No telemóvel, explore Metro Ligeiro, Autocarros, Ar e Mar e Cidade. No computador, as camadas agrupam-se em Transportes e Cidade. Active rotas ou categorias e consulte as legendas.</li>
+            <li><strong>Siga e recolha o painel</strong> Seleccione um veículo para o seguir. Os painéis de autocarros e metro mostram a linha, o destino, a velocidade e o tempo até à próxima paragem. A seta junto a Fechar recolhe a lista de paragens sem interromper o seguimento; toque novamente para expandir.</li>
+            <li><strong>Explore outro momento</strong> Pause, reproduza a 1×–60×, desloque a barra temporal ou escolha a data e a hora no relógio. Agora regressa ao presente. As horas usam UTC+8 de Macau e os horários disponíveis; mudar a data não reproduz registos históricos de GPS.</li>
+            <li><strong>Ajuste a leitura</strong> O menu de definições à esquerda permite escolher 2D/3D, tema claro/escuro, língua e tamanho do texto entre 90% e 150%. Recolha a barra temporal para dar mais espaço ao mapa.</li>
+          </ul>
+          <h2>O que encontra no mapa</h2>
+          <ul class="si-guide">
+            <li><strong>Transportes</strong> Três linhas de metro ligeiro, a rede de autocarros, voos MFM e ferries entre Macau, Hong Kong e Shenzhen. O metro usa vias separadas e carruagens ligadas nas curvas. A velocidade simulada é limitada a 80 km/h; sem uma hora de partida própria, a paragem assume 20 segundos, com aceleração e travagem ajustadas ao horário.</li>
+            <li><strong>Vida urbana</strong> Freguesias, obras, parques de estacionamento, sanitários, escolas, habitação pública, água, electricidade, resíduos e reciclagem, e o circuito do Grande Prémio. Seleccione um marcador ou edifício para consultar os seus dados.</li>
+            <li><strong>Vistas temáticas</strong> Habitação, água, electricidade, resíduos e Grande Prémio ocultam temporariamente outras camadas, restaurando-as ao desactivar a vista. A habitação mantém as escolas disponíveis. As condutas, os fluxos eléctricos e o movimento do carro de corrida são esquemáticos.</li>
+          </ul>
+          <h2>Perguntas frequentes</h2>
           <dl>
             <dt>Os dados dos veículos são em tempo real?</dt>
-            <dd>Por defeito é uma simulação baseada em horários: os veículos seguem a geometria real das rotas segundo os horários oficiais, não posições GPS reais. O modo RT (opcional) substitui as posições simuladas dos autocarros pelos dados em tempo real da DSAT; o metro ligeiro, os voos e os ferries permanecem simulados.</dd>
-            <dt>Como consultar os tempos de chegada (ETA)?</dt>
-            <dd>Clique em qualquer estação ou veículo no mapa para ver as próximas chegadas e os detalhes da rota.</dd>
+            <dd>As posições de metro, autocarros, voos e ferries são calculadas a partir de horários, frequências e rotas, sem GPS em directo dos veículos. O indicador de tempo real refere-se apenas ao relógio. As vagas da DSAT são actualizadas separadamente e ficam ocultas ao pausar, acelerar ou sair do momento presente.</dd>
+            <dt>Como consultar os tempos de chegada?</dt>
+            <dd>Seleccione uma estação para consultar partidas, ou um veículo para ver velocidade simulada, contagem decrescente e paragens. Em NEXT, arr indica o tempo até à chegada e dwell o tempo restante de paragem. ARR/DEP indicam horas de chegada/partida. Os ETA dos autocarros são estimativas simuladas; o metro usa o horário carregado.</dd>
             <dt>Quais são as linhas e estações do Metro Ligeiro?</dt>
-            <dd>As 3 linhas — Taipa, Seac Pai Van e Hengqin — com 15 estações, incluindo Barra, Aeroporto e Terminal Marítimo da Taipa. Veja a lista completa abaixo.</dd>
+            <dd>O mapa inclui Taipa, Seac Pai Van e Hengqin: 3 linhas e 15 estações, incluindo Barra, Aeroporto e Terminal Marítimo da Taipa. Consulte as linhas e a ordem das estações abaixo.</dd>
             <dt>Que línguas são suportadas?</dt>
-            <dd>Chinês tradicional, inglês e português; os nomes das estações, rotas e voos mudam com a língua.</dd>
+            <dd>Escolha chinês tradicional, inglês ou português nas definições à esquerda. A interface e os dados traduzidos de estações, voos e outros elementos mudam em conjunto; alguns dados mantêm a língua da fonte.</dd>
             <dt>Quais são as fontes de dados?</dt>
-            <dd>Rotas e paragens de autocarro dos dados abertos da DSAT; informação do metro ligeiro da MLM; horários de voos da AviationStack; horários de ferry da TurboJET e CotaiJet.</dd>
+            <dd>Os transportes incluem rotas da DSAT, informação da MLM, horários de voos e de ferries TurboJET/Cotai Water Jet. Os dados urbanos provêm de data.gov.mo, dos serviços competentes e dos operadores; a informação geográfica inclui OpenStreetMap. As fontes têm diferentes ciclos de actualização e nem todas são em tempo real.</dd>
             <dt>Funciona no telemóvel? É preciso instalar uma app?</dt>
-            <dd>Não é preciso instalar — funciona em qualquer navegador moderno com WebGL 2, com interface optimizada para ecrã táctil. Para abrir em ecrã inteiro como uma app, escolha Adicionar ao ecrã principal no menu ou na partilha do navegador.</dd>
+            <dd>Abra o site no navegador do telemóvel ou computador, sem instalar uma app. O mapa 3D requer WebGL 2; existe um mapa 2D compatível quando não é suportado ou a renderização falha. Pode adicionar o site ao ecrã principal pelo menu ou pela partilha do navegador. Carregar mapas e dados continua a exigir ligação à rede.</dd>
             <dt>Porque é que algumas rotas de autocarro não aparecem?</dt>
-            <dd>O modo automático mostra apenas as rotas actualmente em serviço; as rotas diurnas ficam ocultas durante a madrugada. Qualquer rota pode ser activada manualmente no painel de camadas.</dd>
+            <dd>A opção por horário de serviço escolhe rotas para a hora simulada e a data de serviço, pelo que mudar a hora ou a data pode alterar a selecção. Escolha Mostrar todas ou active rotas individualmente. Uma vista temática também pode ocultar temporariamente os transportes.</dd>
             <dt>É um site oficial do Governo?</dt>
-            <dd>Não. É um projecto pessoal de código aberto, sem afiliação com o Governo da RAEM, a DSAT, o Metro Ligeiro de Macau ou qualquer operador. Apenas para referência.</dd>
+            <dd>É um projecto pessoal de código aberto, sem afiliação com o Governo da RAEM, a DSAT, a MLM ou os operadores. A simulação serve para exploração e referência; consulte os anúncios oficiais para horários, alterações de rotas e serviços reais.</dd>
           </dl>
-          <h2>Fontes e Aviso</h2>
-          <p>Projecto não oficial de código aberto. Dados de autocarros da <a href="https://www.dsat.gov.mo/" target="_blank" rel="noopener noreferrer">DSAT</a>, metro ligeiro da <a href="https://www.mlm.com.mo/" target="_blank" rel="noopener noreferrer">MLM</a>, voos da <a href="https://aviationstack.com/" target="_blank" rel="noopener noreferrer">AviationStack</a>, ferries da <a href="https://www2.turbojet.com.hk/" target="_blank" rel="noopener noreferrer">TurboJET</a> e <a href="https://www.cotaiwaterjet.com/" target="_blank" rel="noopener noreferrer">CotaiJet</a>. O mapa é uma simulação baseada em horários, apenas para referência.</p>
+          <h2>Fontes de dados</h2>
+          <dl class="si-sources">
+            <dt>Autocarros, metro e ferries</dt>
+            <dd><a href="https://www.dsat.gov.mo/" target="_blank" rel="noopener noreferrer">DSAT</a> · <a href="https://www.mlm.com.mo/" target="_blank" rel="noopener noreferrer">MLM</a> · <a href="https://www2.turbojet.com.hk/" target="_blank" rel="noopener noreferrer">TurboJET</a> / <a href="https://www.cotaiwaterjet.com/" target="_blank" rel="noopener noreferrer">Cotai Water Jet</a></dd>
+            <dt>Voos</dt>
+            <dd>Horários de chegadas e partidas MFM, com verificação cruzada opcional através da <a href="https://aviationstack.com/" target="_blank" rel="noopener noreferrer">AviationStack</a>. O movimento dos aviões no mapa é simulado.</dd>
+            <dt>Equipamentos, escolas, habitação e freguesias</dt>
+            <dd><a href="https://data.gov.mo/" target="_blank" rel="noopener noreferrer">data.gov.mo</a> · <a href="https://www.iam.gov.mo/" target="_blank" rel="noopener noreferrer">IAM</a> · <a href="https://www.dspa.gov.mo/" target="_blank" rel="noopener noreferrer">DSPA</a> · <a href="https://www.dsedj.gov.mo/" target="_blank" rel="noopener noreferrer">DSEDJ</a> · <a href="https://www.ihm.gov.mo/" target="_blank" rel="noopener noreferrer">IH</a> · <a href="https://www.dsec.gov.mo/" target="_blank" rel="noopener noreferrer">DSEC</a></dd>
+            <dt>Água e electricidade</dt>
+            <dd><a href="https://www.macaowater.com/about-macao-water/water-supply-facilities" target="_blank" rel="noopener noreferrer">Macao Water</a> / <a href="https://www.cem-macau.com/zh/about-cem/company-profile/operation/" target="_blank" rel="noopener noreferrer">CEM</a></dd>
+            <dt>Geografia e circuito</dt>
+            <dd><a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> · <a href="https://www.macau.grandprix.gov.mo/pt/about-us/matchpath" target="_blank" rel="noopener noreferrer">Grande Prémio de Macau</a></dd>
+          </dl>
         </div>
 
         <div class="si-shared">
@@ -364,7 +500,7 @@
       <div style="padding:2rem;font-family:system-ui;color:#ddd;background:#111;min-height:100vh;">
         <h1>Mini Map Macau — 澳門公共交通 3D 即時模擬地圖</h1>
         <p>互動式澳門公共交通 3D 地圖：即時模擬輕軌氹仔線、石排灣線、橫琴線與 90+ 條巴士路線。提供到站時間查詢、車站資訊與路線圖。需要啟用 JavaScript 才能載入。</p>
-        <p>Real-time 3D simulation of Macau's public transit — LRT (Taipa, Seac Pai Van, Hengqin lines) and 90+ bus routes across the Peninsula, Taipa, and Cotai. Track 400+ vehicles with live ETAs. Please enable JavaScript.</p>
+        <p>Explore Macau transport and city layers with timetable-driven LRT, bus, flight and ferry simulations. Vehicle positions and ETAs are simulated. Please enable JavaScript.</p>
         <p>Mapa interactivo 3D do transporte público de Macau — Metro Ligeiro e mais de 90 rotas de autocarro. Por favor active o JavaScript.</p>
       </div>
     </noscript>
@@ -381,6 +517,8 @@
 
         function setLang(l) {
           panel.setAttribute('data-lang', l);
+          panel.setAttribute('aria-labelledby', 'si-title-' + l);
+          closeBtn.setAttribute('aria-label', l === 'zh' ? '關閉介紹' : l === 'pt' ? 'Fechar informações' : 'Close information');
           var tabs = panel.querySelectorAll('.si-tab');
           for (var i = 0; i < tabs.length; i++) {
             tabs[i].setAttribute('aria-pressed',

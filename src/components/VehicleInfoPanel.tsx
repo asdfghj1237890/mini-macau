@@ -1,7 +1,8 @@
 import type { VehiclePosition, TransitData, SimulationClock, Trip, BusStop } from '../types'
 import { useClockTime } from '../hooks/useSimulationClock'
 import { useI18n, localName } from '../i18n'
-import { useMemo, useRef, useEffect } from 'react'
+import { useMemo, useRef, useEffect, useState, useId } from 'react'
+import { CloseIcon } from './TransitIcons'
 import {
   computeLRTVehicle,
   getLrtTripMinutes,
@@ -93,6 +94,8 @@ interface RowData extends TimedStop {
 
 function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerProps) {
   const { lang, t } = useI18n()
+  const [collapsed, setCollapsed] = useState(false)
+  const scheduleId = useId()
 
   // Selection is a snapshot, not a live speed source. Key lookup on its id
   // and derive current motion from the same engine/time as the map.
@@ -218,7 +221,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
   const prevVehicleIdRef = useRef<string | null>(null)
 
   useEffect(() => {
-    if (vehicleId == null || focusIdx < 0) return
+    if (collapsed || vehicleId == null || focusIdx < 0) return
     const isNewVehicle = prevVehicleIdRef.current !== vehicleId
     prevVehicleIdRef.current = vehicleId
     const el = scrollRef.current
@@ -234,7 +237,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
         targetRow.scrollIntoView({ block: 'center', behavior: 'smooth' })
       }
     }
-  }, [vehicleId, focusIdx])
+  }, [vehicleId, focusIdx, collapsed])
 
   // Find next destination (last entry for lrt, last future stop for bus)
   const destRow = trip
@@ -293,39 +296,50 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
   }, [vehicle.id, vehicle.type, liveLrt, busCtx])
 
   return (
-    <div className="absolute top-16 left-4 z-20 w-[340px]
+    <div className="mm-vehicle-panel absolute top-16 left-4 z-20 w-[340px]
                     max-sm:top-auto max-sm:bottom-[calc(env(safe-area-inset-bottom,0px)+168px)] max-sm:left-2 max-sm:right-2 max-sm:w-auto
                     landscape:top-auto landscape:bottom-16 landscape:left-2 landscape:w-[320px]"
-         style={{ zoom: 1.2 }}>
+         style={{ zoom: 1.2 }} data-collapsed={collapsed}>
       <div className="bg-(--mm-panel)/95 backdrop-blur-md border border-(--mm-fg)/10 rounded-sm
                       shadow-2xl shadow-(color:--mm-shadow) overflow-hidden mm-fade">
         {/* Header signboard */}
         <div className="flex items-stretch border-b border-(--mm-amber)/20">
-          <div className="px-3 py-2 flex items-center gap-2 border-r border-(--mm-fg)/10"
+          <div className="px-3 py-2 flex items-center gap-2 border-r border-(--mm-fg)/10 max-w-[38%] min-w-0 shrink-0"
                style={{ backgroundColor: color + '22' }}>
             <div className="w-1 h-7 shrink-0" style={{ backgroundColor: color }} />
-            <div>
+            <div className="min-w-0">
               <div className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-secondary)">LINE</div>
-              <div className={`mm-han font-bold text-(--mm-fg) leading-tight ${lang === 'zh' ? 'text-ui-16' : 'text-ui-14'}`}>{lineLabel}</div>
+              <div title={lineLabel} className={`mm-han font-bold text-(--mm-fg) leading-tight truncate ${lang === 'zh' ? 'text-ui-16' : 'text-ui-14'}`}>{lineLabel}</div>
             </div>
           </div>
           <div className="flex-1 px-3 py-2 flex flex-col justify-center min-w-0">
-            <div className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-accent) flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-(--mm-amber) mm-led-pulse" />
-              {t.towards.toUpperCase()} · BOUND FOR
+            <div className="mm-mono text-ui-11 max-sm:text-ui-9 tracking-[0.25em] text-(--mm-text-accent) flex items-center gap-1.5 min-w-0">
+              <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-(--mm-amber) mm-led-pulse" />
+              <span className="truncate">{t.towards.toUpperCase()}<span className="max-sm:hidden"> · BOUND FOR</span></span>
             </div>
-            <div className={`mm-han font-bold text-(--mm-amber-1) truncate ${lang === 'zh' ? 'text-lg' : 'text-ui-15'}`}>
+            <div title={destName} className={`mm-han font-bold text-(--mm-amber-1) truncate ${lang === 'zh' ? 'text-lg' : 'text-ui-15'}`}>
               {destName}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="px-3 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5 border-l border-(--mm-fg)/10
-                       mm-mono text-ui-16 transition-colors"
-            aria-label="Close"
-          >
-            ✕
-          </button>
+          <div className="flex shrink-0 items-center border-l border-(--mm-fg)/10">
+            <button type="button" onClick={() => setCollapsed(value => !value)}
+              className="flex items-center justify-center w-9 min-h-11 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5
+                         focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-(--mm-amber)"
+              aria-label={`${collapsed ? t.expand : t.collapse} ${t.schedule}`}
+              title={`${collapsed ? t.expand : t.collapse} ${t.schedule}`}
+              aria-expanded={!collapsed} aria-controls={scheduleId}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                <path d={collapsed ? 'm6 15 6-6 6 6' : 'm6 9 6 6 6-6'} />
+              </svg>
+            </button>
+            <button type="button" onClick={onClose}
+              className="flex items-center justify-center w-9 min-h-11 text-(--mm-text-muted) hover:text-(--mm-fg) hover:bg-(--mm-fg)/5
+                         focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-(--mm-amber)"
+              aria-label="Close">
+              <CloseIcon size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Stats strip */}
@@ -337,8 +351,11 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
               <span className="mm-mono text-ui-11 text-(--mm-text-muted)">km/h</span>
             </div>
           </div>
-          <div className="px-3 py-1.5" title={nextRow?.primary}>
-            <div className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">NEXT</div>
+          <div className="px-3 py-1.5 min-w-0" title={nextRow?.primary}>
+            <div className="flex items-center gap-2 mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">
+              <span>NEXT</span>
+              {collapsed && <span className="truncate tracking-normal mm-han">{nextRow?.primary}</span>}
+            </div>
             <div className="flex items-baseline gap-1">
               <span className="mm-mono mm-tabular text-ui-17 font-bold text-(--mm-amber-1) leading-tight">{nextETA}</span>
               <span className="mm-mono text-ui-11 text-(--mm-text-muted)">{nextSub}</span>
@@ -346,87 +363,89 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
           </div>
         </div>
 
-        {/* Schedule table */}
-        {rows.length > 0 && (
-          <>
-            <div className="grid grid-cols-[16px_1fr_54px_54px] gap-0 px-3 py-1.5
-                            border-b border-(--mm-fg)/5 bg-(--mm-fg)/[0.015]">
-              <span />
-              <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">STATION · 車站</span>
-              <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted) text-right">ARR</span>
-              <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted) text-right">DEP</span>
-            </div>
-            <div ref={scrollRef} className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
-              {rows.map((r, i) => {
-                const isFirstRow = i === 0
-                const isLastRow = i === rows.length - 1
-                const railColor = r.status === 'past' ? 'color-mix(in srgb, var(--mm-fg) 15%, transparent)' : color + '88'
-                return (
-                  <div
-                    key={r.key}
-                    className={`grid grid-cols-[16px_1fr_54px_54px] items-center px-3 py-1.5
-                                border-b border-(--mm-fg)/5 last:border-b-0
-                                ${r.status === 'past' ? 'opacity-35' : ''}`}
-                  >
-                    {/* Marker */}
-                    <div className="relative flex items-center justify-center h-full">
-                      {!isLastRow && (
-                        <div className="absolute left-1/2 -translate-x-1/2 top-[14px] bottom-[-8px] w-px"
-                             style={{ backgroundColor: railColor }} />
-                      )}
-                      {!isFirstRow && (
-                        <div className="absolute left-1/2 -translate-x-1/2 top-[-8px] bottom-[14px] w-px"
-                             style={{ backgroundColor: railColor }} />
-                      )}
-                      {r.status === 'dwelling' ? (
-                        <div className="w-2.5 h-2.5 rounded-full bg-(--mm-amber) relative z-10 mm-led-pulse"
-                             style={{ boxShadow: '0 0 6px color-mix(in srgb, var(--mm-amber) 80%, transparent)' }} />
-                      ) : r.status === 'arriving' ? (
-                        <div className="w-2.5 h-2.5 rounded-full border-2 border-(--mm-amber) bg-(--mm-panel) relative z-10" />
-                      ) : r.status === 'past' ? (
-                        <div className="w-1.5 h-1.5 rounded-full bg-(--mm-fg)/30 relative z-10" />
-                      ) : (
-                        <div className="w-2 h-2 rounded-full border-2 relative z-10"
-                             style={{ borderColor: color, backgroundColor: 'var(--mm-panel)' }} />
-                      )}
-                    </div>
-                    {/* Station */}
-                    <div className="flex flex-col min-w-0">
-                      <span className={`mm-han truncate ${lang === 'zh' ? 'text-ui-14' : 'text-ui-12'} ${
-                        r.status === 'dwelling' ? 'text-(--mm-amber-1) font-bold'
-                          : r.status === 'arriving' ? 'text-(--mm-fg) font-medium'
-                          : r.status === 'future' ? (r.isLast ? 'text-(--mm-fg) font-bold' : 'text-(--mm-fg)/80')
+        <div id={scheduleId} hidden={collapsed}>
+          {/* Unmount the long list while collapsed; the live summary above keeps updating. */}
+          {!collapsed && rows.length > 0 && (
+            <>
+              <div className="grid grid-cols-[16px_1fr_54px_54px] gap-0 px-3 py-1.5
+                              border-b border-(--mm-fg)/5 bg-(--mm-fg)/[0.015]">
+                <span />
+                <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted)">STATION · 車站</span>
+                <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted) text-right">ARR</span>
+                <span className="mm-mono text-ui-10 max-sm:text-ui-8 tracking-[0.25em] text-(--mm-text-muted) text-right">DEP</span>
+              </div>
+              <div ref={scrollRef} className="max-h-[45vh] overflow-y-auto max-sm:max-h-[30vh]">
+                {rows.map((r, i) => {
+                  const isFirstRow = i === 0
+                  const isLastRow = i === rows.length - 1
+                  const railColor = r.status === 'past' ? 'color-mix(in srgb, var(--mm-fg) 15%, transparent)' : color + '88'
+                  return (
+                    <div
+                      key={r.key}
+                      className={`grid grid-cols-[16px_1fr_54px_54px] items-center px-3 py-1.5
+                                  border-b border-(--mm-fg)/5 last:border-b-0
+                                  ${r.status === 'past' ? 'opacity-35' : ''}`}
+                    >
+                      {/* Marker */}
+                      <div className="relative flex items-center justify-center h-full">
+                        {!isLastRow && (
+                          <div className="absolute left-1/2 -translate-x-1/2 top-[14px] bottom-[-8px] w-px"
+                               style={{ backgroundColor: railColor }} />
+                        )}
+                        {!isFirstRow && (
+                          <div className="absolute left-1/2 -translate-x-1/2 top-[-8px] bottom-[14px] w-px"
+                               style={{ backgroundColor: railColor }} />
+                        )}
+                        {r.status === 'dwelling' ? (
+                          <div className="w-2.5 h-2.5 rounded-full bg-(--mm-amber) relative z-10 mm-led-pulse"
+                               style={{ boxShadow: '0 0 6px color-mix(in srgb, var(--mm-amber) 80%, transparent)' }} />
+                        ) : r.status === 'arriving' ? (
+                          <div className="w-2.5 h-2.5 rounded-full border-2 border-(--mm-amber) bg-(--mm-panel) relative z-10" />
+                        ) : r.status === 'past' ? (
+                          <div className="w-1.5 h-1.5 rounded-full bg-(--mm-fg)/30 relative z-10" />
+                        ) : (
+                          <div className="w-2 h-2 rounded-full border-2 relative z-10"
+                               style={{ borderColor: color, backgroundColor: 'var(--mm-panel)' }} />
+                        )}
+                      </div>
+                      {/* Station */}
+                      <div className="flex flex-col min-w-0">
+                        <span className={`mm-han truncate ${lang === 'zh' ? 'text-ui-14' : 'text-ui-12'} ${
+                          r.status === 'dwelling' ? 'text-(--mm-amber-1) font-bold'
+                            : r.status === 'arriving' ? 'text-(--mm-fg) font-medium'
+                            : r.status === 'future' ? (r.isLast ? 'text-(--mm-fg) font-bold' : 'text-(--mm-fg)/80')
+                            : 'text-(--mm-text-secondary)'
+                        }`}>{r.primary}</span>
+                        {r.secondary && (
+                          <span className="mm-mono text-ui-9 text-(--mm-text-subtle) tracking-wide truncate">{r.secondary}</span>
+                        )}
+                      </div>
+                      {/* ARR */}
+                      <span className={`mm-mono mm-tabular text-ui-13 text-right ${
+                        r.status === 'dwelling' ? 'text-(--mm-amber-1)'
+                          : r.status === 'past' ? 'text-(--mm-fg)/25 line-through'
+                          : 'text-(--mm-fg)/65'
+                      }`}>{r.arr}</span>
+                      {/* DEP */}
+                      <span className={`mm-mono mm-tabular text-ui-13 text-right ${
+                        r.status === 'dwelling' ? 'text-(--mm-amber)'
+                          : r.status === 'past' ? 'text-(--mm-fg)/25 line-through'
                           : 'text-(--mm-text-secondary)'
-                      }`}>{r.primary}</span>
-                      {r.secondary && (
-                        <span className="mm-mono text-ui-9 text-(--mm-text-subtle) tracking-wide truncate">{r.secondary}</span>
-                      )}
+                      }`}>{r.dep}</span>
                     </div>
-                    {/* ARR */}
-                    <span className={`mm-mono mm-tabular text-ui-13 text-right ${
-                      r.status === 'dwelling' ? 'text-(--mm-amber-1)'
-                        : r.status === 'past' ? 'text-(--mm-fg)/25 line-through'
-                        : 'text-(--mm-fg)/65'
-                    }`}>{r.arr}</span>
-                    {/* DEP */}
-                    <span className={`mm-mono mm-tabular text-ui-13 text-right ${
-                      r.status === 'dwelling' ? 'text-(--mm-amber)'
-                        : r.status === 'past' ? 'text-(--mm-fg)/25 line-through'
-                        : 'text-(--mm-text-secondary)'
-                    }`}>{r.dep}</span>
-                  </div>
-                )
-              })}
-            </div>
-          </>
-        )}
+                  )
+                })}
+              </div>
+            </>
+          )}
 
-        {/* Footer */}
-        <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between">
-          <span className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-text-muted) uppercase">{t.schedule}</span>
-          <span className="mm-mono text-ui-11 text-(--mm-emerald)/80 flex items-center gap-1.5 tracking-wider">
-            <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />ON TIME
-          </span>
+          {/* Footer */}
+          {!collapsed && <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between">
+            <span className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-text-muted) uppercase">{t.schedule}</span>
+            <span className="mm-mono text-ui-11 text-(--mm-emerald)/80 flex items-center gap-1.5 tracking-wider">
+              <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />ON TIME
+            </span>
+          </div>}
         </div>
       </div>
     </div>
@@ -436,5 +455,5 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
 export function VehicleInfoPanel(props: Props) {
   // Thin wrapper: bail before any hook runs when there's no selection.
   if (!props.vehicle) return null
-  return <VehicleInfoPanelInner {...props} vehicle={props.vehicle} />
+  return <VehicleInfoPanelInner key={props.vehicle.id} {...props} vehicle={props.vehicle} />
 }
