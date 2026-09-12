@@ -7,6 +7,11 @@ import { macauWeekday, macauMinutesOfDay } from '../macauTime'
 import { createLrtMotionProfile, sampleLrtMotion, type LrtMotionProfile } from './lrtMotion'
 import { getLrtDepartureMinutes } from './lrtTimetable'
 import { getLrtTrack, LRT_DIRECTIONS } from '../lrtTracks'
+import type { BusTrafficController, BusTrafficPlan, BusTrafficSample } from './busTraffic'
+import { sampleBusRoad } from './busRoadProfile'
+import { busLaneLayout, busLaneOffset, sampleBusLaneBody, sampleBusLaneCourse, type BusLanePlan } from './busLaneGeometry'
+import { buildBusPassages, passageAtDistance } from './busJunctions'
+import { BUS_MAP_SCALE } from '../layers/busMesh'
 
 function getScheduleType(date: Date): ScheduleType {
   const day = macauWeekday(date)
@@ -648,144 +653,124 @@ export function computeBusDirSec(
   return { dirSec: cycleSec - schedule.tripDurationSec, returning: true }
 }
 
-const QUEUE_OFFSET_KM = 0.028 // ~28m per queue slot (22m bus + ~6m gap)
+export function sampleBusPose(line: Feature<LineString>, progress: number, returning = false, roadProfile?: BusRoute['roadProfile'], lanePlan?: BusLanePlan) {
+  // Each direction follows the left side of its classified carriageway.
+  const c = getLineCache(line)
+  const targetKm = Math.max(0, Math.min(1, progress)) * c.totalKm
+  const road = sampleBusRoad(roadProfile, c.coords, c.cumKm, targetKm)
+  const roadAt = (metres: number) => sampleBusRoad(roadProfile, c.coords, c.cumKm, metres / 1000)
+  const laneAt = (at: number) => lanePlan
+    ? sampleBusLaneCourse(line, roadProfile, c.totalKm * 1000, at, returning, roadAt, lanePlan)
+    : busLaneOffset(roadAt(at * c.totalKm * 1000), 0, returning)
+  const mx = 111320 * Math.cos(22.19 * Math.PI / 180)
+  const pose = sampleBusLaneBody(line, roadProfile, c.totalKm * 1000, progress, returning, metres => {
+    const at = Math.max(0, Math.min(1, metres / (c.totalKm * 1000)))
+    const point = sampleLineAtOffset(line, at, 0)
+    const front = sampleLineAtOffset(line, at, 3.4), rear = sampleLineAtOffset(line, at, -3.4)
+    const angle = Math.atan2((front[0] - rear[0]) * Math.cos(point[1] * Math.PI / 180), front[1] - rear[1]) + (returning ? Math.PI : 0)
+    const offset = laneAt(at)
+    return { x: (point[0] - 113.54) * mx - Math.cos(angle) * offset, y: (point[1] - 22.19) * 111320 + Math.sin(angle) * offset,
+      fx: Math.sin(angle), fy: Math.cos(angle) }
+  }, 3.4 * (EARTH_KM * 1000 * Math.PI / 180) / 111320, lanePlan ?? line)
+  const offsets = busLaneLayout(road, returning).offsets, offset = laneAt(progress)
+  return { coordinates: [113.54 + pose.x / mx, 22.19 + pose.y / 111320] as [number, number], bearing: Math.atan2(pose.fx, pose.fy) * 180 / Math.PI, road,
+    laneAllowance: { leftM: Math.max(0, offsets[0] - offset), rightM: Math.max(0, offset - offsets.at(-1)!) } }
+}
+
+const busLanePlans = new WeakMap<BusSchedule, { forward: BusLanePlan[]; reverse: BusLanePlan[]; seed: number }>()
+function getBusLanePlans(route: BusRoute, schedule: BusSchedule) {
+  let plans = busLanePlans.get(schedule)
+  if (!plans) {
+    const count = Math.max(1, ...(route.roadProfile?.sections.flatMap(s => [busLaneLayout(s).offsets.length, busLaneLayout(s, true).offsets.length]) ?? []))
+    let seed = 0
+    for (const character of route.id) seed = (Math.imul(seed, 31) + character.charCodeAt(0)) >>> 0
+    const forward = schedule.forwardStops.map(s => s.progress), reverse = schedule.backwardStops.map(s => s.progress)
+    plans = { seed,
+      forward: Array.from({ length: count }, (_, preference) => ({ preference, stops: forward })),
+      reverse: Array.from({ length: count }, (_, preference) => ({ preference, stops: reverse })),
+    }
+    busLanePlans.set(schedule, plans)
+  }
+  return plans
+}
 
 function computeBusVehicles(
   busRoutes: BusRoute[],
   busStopMap: Map<string, BusStop>,
   nowMinutes: number,
   serviceBucket: BusServiceBucket,
+  traffic?: BusTrafficController,
+  timeMs = 0,
 ): VehiclePosition[] {
-  type Raw = {
-    route: BusRoute
-    schedule: BusSchedule
-    id: string
-    progress: number
-    returning: boolean
-    dwellStopId: string | null
-    dwellTimeIntoSec: number
-  }
-  const raws: Raw[] = []
-
+  const plans: BusTrafficPlan[] = []
   for (const route of busRoutes) {
     const schedule = getBusSchedule(route, busStopMap)
     if (!schedule) continue
-
-    const tripDurationMin = schedule.tripDurationSec / 60
-    const cycleMin = schedule.cycleSec / 60
-
     const window = getBusServiceWindow(route, serviceBucket)
     if (!window) continue
-    const startMin = window.start * 60
+    const cycleMin = schedule.cycleSec / 60, startMin = window.start * 60
     let endMin = window.end * 60
-    // Route crosses midnight (serviceHoursEnd may be >24 or <start)
     if (endMin <= startMin) endMin += 1440
-    // Pick the effective "now" that falls inside the window; wrap-around
-    // takes `nowMinutes + 1440` when the service started yesterday.
     let effectiveNow = nowMinutes
-    if (effectiveNow < startMin && effectiveNow + 1440 <= endMin + cycleMin) {
-      effectiveNow += 1440
-    }
+    if (effectiveNow < startMin && effectiveNow + 1440 <= endMin + cycleMin) effectiveNow += 1440
     if (effectiveNow < startMin || effectiveNow > endMin + cycleMin) continue
-
-    const minutesSinceStart = effectiveNow - startMin
-    const numVehicles = Math.max(1, Math.floor(tripDurationMin / route.frequency))
-
-    for (let v = 0; v < numVehicles; v++) {
-      const offset = v * route.frequency
-      const elapsed = minutesSinceStart - offset
+    const numVehicles = Math.max(1, Math.floor(schedule.tripDurationSec / 60 / route.frequency))
+    const lengthM = schedule.totalLenKm * 1000
+    const passages = getRoutePassages(route, lengthM, schedule.isCircular)
+    const lanes = getBusLanePlans(route, schedule)
+    const distanceAt = (elapsed: number) => {
+      const progress = Math.max(0, Math.min(1, progressAtCycle(schedule, elapsed)))
+      const cycle = Math.floor(elapsed / schedule.cycleSec)
+      const wrapped = elapsed - cycle * schedule.cycleSec
+      const returning = !schedule.isCircular && wrapped > schedule.tripDurationSec
+      return { progress, returning, wrapped, distanceM: (cycle * (schedule.isCircular ? 1 : 2) + (returning ? 2 - progress : progress)) * lengthM }
+    }
+    for (let index = 0; index < numVehicles; index++) {
+      const offset = index * route.frequency
+      const elapsed = effectiveNow - startMin - offset
       if (elapsed < 0) continue
-
-      if (effectiveNow > endMin) {
-        const cycleStart = startMin + offset + Math.floor(elapsed / cycleMin) * cycleMin
-        if (cycleStart > endMin) continue
-      }
-
-      const elapsedSec = elapsed * 60
-      const wrapped = ((elapsedSec % schedule.cycleSec) + schedule.cycleSec) % schedule.cycleSec
-      const { dirSec, returning } = computeBusDirSec(wrapped, schedule)
-      const progress = Math.max(0, Math.min(1, progressAtCycle(schedule, elapsedSec)))
-
-      const stops = returning ? schedule.backwardStops : schedule.forwardStops
-      let dwellStopId: string | null = null
-      let dwellTimeIntoSec = 0
-      for (const s of stops) {
-        if (dirSec >= s.arriveSec && dirSec <= s.departSec) {
-          dwellStopId = s.stopId
-          dwellTimeIntoSec = dirSec - s.arriveSec
-          break
+      if (effectiveNow > endMin && startMin + offset + Math.floor(elapsed / cycleMin) * cycleMin > endMin) continue
+      const id = `${route.id}-${index}`, elapsedSec = elapsed * 60
+      // Initial lane only. The distance course retains subsequent choices
+      // after stops and lane drops, consistently across frames and time seeks.
+      const lanePreference = (lanes.seed + index) % lanes.forward.length
+      const sample = (seconds: number): BusTrafficSample => {
+        const at = Math.max(0, seconds)
+        const position = distanceAt(at)
+        const { dirSec, returning } = computeBusDirSec(position.wrapped, schedule)
+        const stops = returning ? schedule.backwardStops : schedule.forwardStops
+        const dwelling = stops.some(s => dirSec >= s.arriveSec && dirSec <= s.departSec)
+        const pos = sampleBusPose(route.geometry, position.progress, returning, route.roadProfile,
+          (returning ? lanes.reverse : lanes.forward)[lanePreference])
+        const speedKmh = dwelling ? 0 : Math.max(0, (distanceAt(at + .02).distanceM - position.distanceM) / .02 * 3.6)
+        return {
+          distanceM: position.distanceM,
+          laneAllowance: pos.laneAllowance,
+          vehicle: {
+            id, lineId: route.id, type: 'bus', coordinates: pos.coordinates, bearing: pos.bearing,
+            progress: position.progress, color: route.color, scale: BUS_MAP_SCALE,
+            busMotion: { speedKmh, delaySec: 0, dirSec, returning, phase: dwelling ? 'stopped' : 'cruising',
+              roadKind: pos.road.kind, roadWayId: pos.road.wayId, roadEvidence: pos.road.evidence },
+          },
         }
       }
-
-      raws.push({
-        route, schedule, id: `${route.id}-${v}`, progress, returning,
-        dwellStopId, dwellTimeIntoSec,
-      })
+      const nominal = sample(elapsedSec)
+      const motion = nominal.vehicle.busMotion!
+      const stops = motion.returning ? schedule.backwardStops : schedule.forwardStops
+      const stop = stops.find(s => motion.dirSec >= s.arriveSec && motion.dirSec <= s.departSec)
+      plans.push({ id, routeKey: route, elapsedSec, sample, arrivalAgeSec: stop ? motion.dirSec - stop.arriveSec : -1,
+        distanceAt: seconds => distanceAt(Math.max(0, seconds)).distanceM,
+        passageAt: route.roadProfile?.junctions ? distance => passageAtDistance(passages, lengthM, distance, schedule.isCircular) : undefined })
     }
   }
-
-  // Queue dwellers sharing a stop so their sprites don't overlap.
-  // Front of queue (largest dwellTimeIntoSec = arrived earliest) stays put;
-  // later arrivals shift backward along their own route direction.
-  const byStop = new Map<string, Raw[]>()
-  for (const r of raws) {
-    if (!r.dwellStopId) continue
-    const arr = byStop.get(r.dwellStopId)
-    if (arr) arr.push(r)
-    else byStop.set(r.dwellStopId, [r])
-  }
-  const queueIdx = new Map<string, number>()
-  for (const group of byStop.values()) {
-    if (group.length < 2) continue
-    group.sort((a, b) => b.dwellTimeIntoSec - a.dwellTimeIntoSec)
-    for (let i = 0; i < group.length; i++) queueIdx.set(group[i].id, i)
-  }
-
-  const QUEUE_PERP_M = 7 // right-of-travel nudge when longitudinal shift is clamped at an endpoint
-
-  const vehicles: VehiclePosition[] = []
-  for (const r of raws) {
-    let finalProgress = r.progress
-    let clampedSlot = 0
-    const qi = queueIdx.get(r.id) ?? 0
-    if (qi > 0) {
-      const delta = (QUEUE_OFFSET_KM * qi) / r.schedule.totalLenKm
-      if (r.returning) {
-        const shifted = r.progress + delta
-        if (shifted > 1) { finalProgress = 1; clampedSlot = qi }
-        else finalProgress = shifted
-      } else {
-        const shifted = r.progress - delta
-        if (shifted < 0) { finalProgress = 0; clampedSlot = qi }
-        else finalProgress = shifted
-      }
-    }
-
-    const pos = interpolateOnLine(r.route.geometry, finalProgress)
-    let [lng, lat] = pos.coordinates
-    if (clampedSlot > 0) {
-      const bearingRad = (pos.bearing * Math.PI) / 180
-      const eastM = Math.cos(bearingRad) * QUEUE_PERP_M * clampedSlot
-      const northM = -Math.sin(bearingRad) * QUEUE_PERP_M * clampedSlot
-      const latRad = lat * Math.PI / 180
-      lng += eastM / (111320 * Math.cos(latRad))
-      lat += northM / 110574
-    }
-
-    vehicles.push({
-      id: r.id,
-      lineId: r.route.id,
-      type: 'bus',
-      coordinates: [lng, lat],
-      bearing: pos.bearing,
-      progress: finalProgress,
-      color: r.route.color,
-    })
-  }
-
-  return vehicles
+  return traffic ? traffic.sample(plans, timeMs) : plans.map(plan => plan.sample(plan.elapsedSec).vehicle)
 }
-
+const busPassageCache = new WeakMap<BusRoute, ReturnType<typeof buildBusPassages>>()
+function getRoutePassages(route: BusRoute, lengthM: number, circular: boolean) {
+  let passages = busPassageCache.get(route)
+  if (!passages) { passages = buildBusPassages(route.roadProfile, lengthM, circular); busPassageCache.set(route, passages) }
+  return passages
+}
 const FLIGHT_VISIBLE_MINUTES = 15
 const DEPARTURE_CLIMB_MINUTES = 8
 const FLIGHT_MAX_DISTANCE_KM = 30
@@ -1429,7 +1414,7 @@ export function computeLRTVehicle(transitData: TransitData, trip: Trip, time: Da
 export function computeVehiclePositions(
   transitData: TransitData,
   time: Date,
-  options: { includeFlights?: boolean } = {},
+  options: { includeFlights?: boolean; busTraffic?: BusTrafficController } = {},
 ): VehiclePosition[] {
   const nowMinutes = timeToMinutes(time)
   const stationProgressMap = getStationProgressMap(transitData)
@@ -1451,6 +1436,8 @@ export function computeVehiclePositions(
     getBusStopMap(transitData),
     nowMinutes,
     getBusServiceBucket(time),
+    options.busTraffic,
+    time.getTime(),
   )
 
   const flightVehicles = options.includeFlights === false ? [] : computeFlightVehicles(

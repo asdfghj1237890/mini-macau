@@ -65,6 +65,23 @@ export const TripsSchema = z.array(
   }),
 )
 
+const busRoadSection = z.object({
+  start: z.number().int().nonnegative(), end: z.number().int().positive(),
+  kind: z.enum(['one-way', 'two-way', 'divided', 'unknown']),
+  evidence: z.enum(['tag', 'default', 'paired-geometry', 'unmatched', 'conditional', 'direction-mismatch']),
+  wayId: z.number().int().positive().optional(), pairedWayId: z.number().int().positive().optional(),
+  direction: z.union([z.literal(1), z.literal(-1)]).optional(),
+  lanes: z.number().int().min(1).max(12).optional(), directionalLanes: z.number().int().min(1).max(12).optional(),
+  lanesSource: z.url().optional(), osmLanes: z.number().int().min(1).max(12).optional(),
+  opposingRouteGeometry: z.boolean().optional(),
+  minLaneOffsetM: z.number().min(-25).max(25).optional(),
+  widthM: z.number().min(2).max(50).optional(),
+}).superRefine((section, ctx) => {
+  if (section.end <= section.start) ctx.addIssue({ code: 'custom', message: 'Empty road span' })
+  if (section.kind !== 'unknown' && (!section.wayId || !section.direction)) ctx.addIssue({ code: 'custom', message: 'Missing matched road' })
+  if (section.kind === 'divided' && (!section.pairedWayId || section.evidence !== 'paired-geometry')) ctx.addIssue({ code: 'custom', message: 'Missing carriageway pair' })
+})
+
 export const BusRoutesSchema = z.array(
   z.object({
     id: z.string(),
@@ -78,6 +95,12 @@ export const BusRoutesSchema = z.array(
     directionSplitIndex: z.number().int().nonnegative(),
     geometry: lineFeature,
     frequency: z.number(),
+    roadProfile: z.object({
+      version: z.literal(1), geometryKey: z.string().regex(/^\d+:[0-9a-f]{8}$/),
+      fetchedAtUtc: z.iso.datetime(), sections: z.array(busRoadSection).nonempty(),
+      junctions: z.array(z.object({ id: z.string().min(1), start: z.number().min(0).max(1), end: z.number().min(0).max(1), bearing: z.number().min(0).max(360).optional() })
+        .refine(j => j.end > j.start, 'Empty junction span')).optional(),
+    }).optional(),
     serviceHoursStart: z.number().nullable(),
     serviceHoursEnd: z.number().nullable(),
     serviceHoursStartSat: z.number().nullable().optional(),
@@ -85,6 +108,18 @@ export const BusRoutesSchema = z.array(
     serviceHoursStartSun: z.number().nullable().optional(),
     serviceHoursEndSun: z.number().nullable().optional(),
     routeType: z.enum(['bilateral', 'circular']),
+  }).superRefine((route, ctx) => {
+    const profile = route.roadProfile
+    if (!profile) return
+    let hash = 2166136261
+    const coords = route.geometry.geometry.coordinates
+    for (const point of coords) for (const value of point) hash = Math.imul(hash ^ Math.round(value * 1e6), 16777619)
+    if (profile.geometryKey !== `${coords.length}:${(hash >>> 0).toString(16).padStart(8, '0')}`) ctx.addIssue({ code: 'custom', message: 'Stale road geometry profile' })
+    const sections = profile.sections
+    if (sections[0].start !== 0 || sections.at(-1)!.end !== coords.length - 1 ||
+      sections.some((s, i) => s.end >= coords.length || (i > 0 && sections[i - 1].end !== s.start))) {
+      ctx.addIssue({ code: 'custom', message: 'Road sections must cover geometry without gaps or overlaps' })
+    }
   }),
 )
 

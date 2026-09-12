@@ -1,5 +1,6 @@
 import type { Flight, TransitData, VehiclePosition } from '../types'
 import { computeFlightOnly, computeSingleFlight, computeVehiclePositions } from './simulationEngine'
+import { BusTrafficController } from './busTraffic'
 
 interface FrameInput {
   now: number
@@ -14,6 +15,7 @@ interface FrameInput {
 // All GeoJSON uploads share the existing 33/100/160 ms cadence. Dirty state
 // remains pending until that cadence permits a write, including while paused.
 export class VehicleFrame {
+  private busTraffic = new BusTrafficController()
   private surface: VehiclePosition[] = []
   private flights: VehiclePosition[] = []
   private vehicles: VehiclePosition[] = []
@@ -37,7 +39,7 @@ export class VehicleFrame {
     const { now, simMs, data, zoom, renderer, trackedId, uploadInterval } = input
     const surfaceUpdated = now - this.surfaceAt >= 33 && (this.surfaceData !== data || this.surfaceMs !== simMs)
     if (surfaceUpdated) {
-      this.surface = computeVehiclePositions(data, new Date(simMs), { includeFlights: false })
+      this.surface = computeVehiclePositions(data, new Date(simMs), { includeFlights: false, busTraffic: this.busTraffic })
       this.surfaceAt = now
       this.surfaceData = data
       this.surfaceMs = simMs

@@ -24,7 +24,7 @@ describe('vehicle frame scheduling', () => {
       expect(next.vehicles).toBe(first.vehicles)
     }
     expect(computeVehiclePositions).toHaveBeenCalledTimes(1)
-    expect(computeVehiclePositions).toHaveBeenCalledWith(data, new Date(1000), { includeFlights: false })
+    expect(computeVehiclePositions).toHaveBeenCalledWith(data, new Date(1000), expect.objectContaining({ includeFlights: false }))
     expect(computeFlightOnly).toHaveBeenCalledTimes(1)
     expect(computeSingleFlight).not.toHaveBeenCalled()
   })

@@ -136,10 +136,10 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     const schedule = getBusSchedule(route, busStopMap)
     if (!schedule) return null
     const cycleSec = computeBusCycleSec(vehicle.id, schedule, route, nowMinutesForETA, serviceBucket)
-    const { dirSec, returning } = computeBusDirSec(cycleSec, schedule)
+    const { dirSec, returning } = vehicle.busMotion ?? computeBusDirSec(cycleSec, schedule)
     return { route, schedule, dirSec, returning }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle?.id, nowMinutesForETA, serviceBucket, busStopMap, transitData.busRoutes])
+  }, [vehicle?.id, vehicle.busMotion, nowMinutesForETA, serviceBucket, busStopMap, transitData.busRoutes])
   const busETAs: BusStopETA[] = useMemo(() => {
     if (!vehicle || !busCtx) return []
     return computeBusStopETAs(busCtx.schedule, busStopMap, busCtx.dirSec, busCtx.returning, nowMinutesForETA)
@@ -252,6 +252,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
 
   const speed = useMemo(() => {
     if (vehicle.type === 'lrt') return liveLrt?.lrtMotion?.speedKmh ?? null
+    if (vehicle.type === 'bus' && vehicle.busMotion) return Math.round(vehicle.busMotion.speedKmh)
     if (vehicle.type === 'bus' && busCtx) {
       const { schedule, returning } = busCtx
       const stops = returning ? schedule.backwardStops : schedule.forwardStops
@@ -293,7 +294,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     }
     return 0
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [vehicle.id, vehicle.type, liveLrt, busCtx])
+  }, [vehicle.id, vehicle.type, vehicle.busMotion, liveLrt, busCtx])
 
   return (
     <div className="mm-vehicle-panel absolute top-16 left-4 z-20 w-[340px]
@@ -443,7 +444,12 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
           {!collapsed && <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between">
             <span className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-text-muted) uppercase">{t.schedule}</span>
             <span className="mm-mono text-ui-11 text-(--mm-emerald)/80 flex items-center gap-1.5 tracking-wider">
-              <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />ON TIME
+              <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />
+              {vehicle.busMotion?.phase === 'queued'
+                ? (lang === 'zh' ? '跟車中' : lang === 'pt' ? 'EM FILA' : 'QUEUING')
+                : (vehicle.busMotion?.delaySec ?? 0) >= 5
+                  ? `+${Math.ceil(vehicle.busMotion!.delaySec)} s`
+                  : 'ON TIME'}
             </span>
           </div>}
         </div>

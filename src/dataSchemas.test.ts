@@ -63,6 +63,13 @@ describe('committed data files satisfy their schemas', () => {
   it.skipIf(skipTrips('trips-friday.json'))('trips-friday.json', () => expectValid(TripsSchema, 'trips-friday.json', tripsDir))
   it.skipIf(skipTrips('trips-sat_sun.json'))('trips-sat_sun.json', () => expectValid(TripsSchema, 'trips-sat_sun.json', tripsDir))
   it('bus-routes.json', () => expectValid(BusRoutesSchema, 'bus-routes.json'))
+  it('all committed bus routes retain a road classification profile', () => {
+    const routes = BusRoutesSchema.parse(load('bus-routes.json'))
+    expect(routes.every(r => r.roadProfile?.sections.length)).toBe(true)
+    const stale = structuredClone(routes)
+    stale[0].geometry.geometry.coordinates[0][0] += .00001
+    expect(BusRoutesSchema.safeParse(stale).success).toBe(false)
+  })
   it('bus-stops.json', () => expectValid(BusStopsSchema, 'bus-stops.json'))
   it('flights.json', () => expectValid(FlightsSchema, 'flights.json'))
   it('flights-timetable.json', () => expectValid(FlightsSchema, 'flights-timetable.json'))

@@ -25,6 +25,31 @@ export interface LRTLine {
   geometry: Feature<LineString>
 }
 
+export interface BusRoadSection {
+  start: number // inclusive geometry vertex; end is exclusive for segments
+  end: number
+  kind: 'one-way' | 'two-way' | 'divided' | 'unknown'
+  evidence: 'tag' | 'default' | 'paired-geometry' | 'unmatched' | 'conditional' | 'direction-mismatch'
+  wayId?: number
+  pairedWayId?: number
+  direction?: 1 | -1 // route direction relative to OSM way order
+  lanes?: number
+  lanesSource?: string
+  osmLanes?: number
+  opposingRouteGeometry?: boolean // reverse traces share/mismatch the mapped centre-line
+  minLaneOffsetM?: number // conservative inner-lane bound between nearby opposing traces
+  directionalLanes?: number
+  widthM?: number
+}
+
+export interface BusRoadProfile {
+  version: 1
+  geometryKey: string
+  fetchedAtUtc: string
+  sections: BusRoadSection[]
+  junctions?: { id: string; start: number; end: number; bearing?: number }[]
+}
+
 export interface BusRoute {
   id: string
   name: string
@@ -42,6 +67,7 @@ export interface BusRoute {
   directionSplitIndex: number
   geometry: Feature<LineString>
   frequency: number // minutes between departures
+  roadProfile?: BusRoadProfile
   // Fractional hour (5.75 = 05:45). End may exceed 24 when service crosses
   // midnight — simulation & service checks treat end<=start as +1440min.
   serviceHoursStart: number | null      // Weekday/default window
@@ -1045,6 +1071,17 @@ export interface VehiclePosition {
   altitude?: number
   scale?: number
   lrtMotion?: { speedKmh: number; phase: 'stopped' | 'accelerating' | 'cruising' | 'braking' }
+  busMotion?: {
+    roadKind?: BusRoadSection['kind']
+    roadWayId?: number
+    roadEvidence?: BusRoadSection['evidence']
+    speedKmh: number
+    delaySec: number
+    dirSec: number
+    returning: boolean
+    phase: 'stopped' | 'cruising' | 'queued'
+    leaderId?: string
+  }
   // LRT progress is measured along this directional track, in source order.
   lrtDirection?: 'forward' | 'backward'
   flightPhase?: 'apron' | 'taxi' | 'climb'

@@ -11,7 +11,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
 import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner, ScheduleType } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
-import { Bus3DLayer } from '../layers/Bus3DLayer'
+import { Bus3DLayer, ALL_BUS_3D_LAYERS } from '../layers/Bus3DLayer'
 import { LRT3DLayer, ALL_LRT_3D_LAYERS } from '../layers/LRT3DLayer'
 import { buildLrtDoubleViaduct } from '../lrtViaduct'
 import { getLrtTrack, LRT_DIRECTIONS } from '../lrtTracks'
@@ -4083,7 +4083,7 @@ export function MapView(props: MapViewProps) {
       m.on('mouseenter', 'vehicles-circle', () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', 'vehicles-circle', () => { m.getCanvas().style.cursor = '' })
 
-      const model3DLayers = ['bus-3d-body', 'bus-3d-roof', 'bus-3d-window', 'bus-3d-windshield', 'bus-3d-wheel',
+      const model3DLayers = [...ALL_BUS_3D_LAYERS,
         ...ALL_LRT_3D_LAYERS,
         ...ALL_FLIGHT_3D_LAYERS,
         ...ALL_FERRY_3D_LAYERS,
@@ -4149,6 +4149,7 @@ export function MapView(props: MapViewProps) {
       map.off('webglcontextlost', onContextLost)
       window.removeEventListener('error', onRenderError)
       layersAddedRef.current = false
+      bus3DRef.current?.detach()
       bus3DRef.current = null
       lrt3DRef.current = null
       flight3DRef.current = null
@@ -4178,6 +4179,7 @@ export function MapView(props: MapViewProps) {
     if (!map || mapThemeRef.current === isDark) return
     mapThemeRef.current = isDark
     layersAddedRef.current = false
+    bus3DRef.current?.detach()
     bus3DRef.current = null
     lrt3DRef.current = null
     flight3DRef.current = null

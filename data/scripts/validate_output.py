@@ -19,6 +19,7 @@ otherwise.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import sys
@@ -272,6 +273,75 @@ def check_geometry(errs: list[str], ctx: str, geom: object) -> None:
             return
 
 
+def check_bus_road_profile(errs, ctx, profile, coords):
+    """Mirrors BusRoutesSchema; stale spans must not survive a geometry edit."""
+    if not isinstance(profile, dict) or profile.get("version") != 1:
+        errs.append(f"{ctx}: invalid roadProfile version")
+        return
+    value = 2166136261
+    for point in coords:
+        for component in point:
+            value = ((value ^ math.floor(component * 1e6 + 0.5)) * 16777619) & 0xffffffff
+    if profile.get("geometryKey") != f"{len(coords)}:{value:08x}":
+        errs.append(f"{ctx}: stale roadProfile; run node scripts/build-bus-road-profile.mjs")
+    if not isinstance(profile.get("fetchedAtUtc"), str) or not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z", profile["fetchedAtUtc"]):
+        errs.append(f"{ctx}: invalid roadProfile fetchedAtUtc")
+    sections = profile.get("sections")
+    if not isinstance(sections, list) or not sections:
+        errs.append(f"{ctx}: empty roadProfile sections")
+        return
+    previous = 0
+    for i, section in enumerate(sections):
+        name = f"{ctx} roadProfile[{i}]"
+        if not isinstance(section, dict):
+            errs.append(f"{name}: expected object")
+            continue
+        start, end = section.get("start"), section.get("end")
+        if type(start) is not int or type(end) is not int or start != previous or not 0 <= start < end < len(coords):
+            errs.append(f"{name}: non-contiguous or invalid vertex range")
+        previous = end
+        kind, evidence = section.get("kind"), section.get("evidence")
+        if kind not in ("one-way", "two-way", "divided", "unknown"):
+            errs.append(f"{name}: invalid kind")
+        if evidence not in ("tag", "default", "paired-geometry", "unmatched", "conditional", "direction-mismatch"):
+            errs.append(f"{name}: invalid evidence")
+        for key in ("wayId", "pairedWayId"):
+            if key in section and (type(section[key]) is not int or section[key] <= 0):
+                errs.append(f"{name}: invalid {key}")
+        if "direction" in section and (type(section["direction"]) is not int or section["direction"] not in (-1, 1)):
+            errs.append(f"{name}: invalid direction")
+        if kind != "unknown" and (not section.get("wayId") or not section.get("direction")):
+            errs.append(f"{name}: missing matched road")
+        if kind == "divided" and (not section.get("pairedWayId") or evidence != "paired-geometry"):
+            errs.append(f"{name}: missing carriageway pair")
+        for key in ("lanes", "directionalLanes", "osmLanes"):
+            if key in section and (type(section[key]) is not int or not 1 <= section[key] <= 12):
+                errs.append(f"{name}: invalid {key}")
+        if "widthM" in section and (type(section["widthM"]) not in (int, float) or not 2 <= section["widthM"] <= 50):
+            errs.append(f"{name}: invalid widthM")
+        if "lanesSource" in section and (not isinstance(section["lanesSource"], str) or not re.match(r"https?://[^/]+", section["lanesSource"])):
+            errs.append(f"{name}: invalid lanesSource")
+        if "opposingRouteGeometry" in section and type(section["opposingRouteGeometry"]) is not bool:
+            errs.append(f"{name}: invalid opposingRouteGeometry")
+        if "minLaneOffsetM" in section and (type(section["minLaneOffsetM"]) not in (int, float) or not -25 <= section["minLaneOffsetM"] <= 25):
+            errs.append(f"{name}: invalid minLaneOffsetM")
+    if previous != len(coords) - 1:
+        errs.append(f"{ctx}: roadProfile does not cover the geometry")
+    junctions = profile.get("junctions", [])
+    if not isinstance(junctions, list):
+        errs.append(f"{ctx}: invalid junctions")
+        return
+    for junction in junctions:
+        if not isinstance(junction, dict) or not isinstance(junction.get("id"), str) or not junction["id"]:
+            errs.append(f"{ctx}: invalid junction id")
+            continue
+        start, end = junction.get("start"), junction.get("end")
+        if type(start) not in (int, float) or type(end) not in (int, float) or not 0 <= start < end <= 1:
+            errs.append(f"{ctx}: invalid junction interval")
+        if "bearing" in junction and (type(junction["bearing"]) not in (int, float) or not 0 <= junction["bearing"] <= 360):
+            errs.append(f"{ctx}: invalid junction bearing")
+
+
 def v_bus_routes(data: object) -> list[str]:
     errs: list[str] = []
     if not require_nonempty_list(errs, "bus-routes", data):
@@ -339,6 +409,8 @@ def v_bus_routes(data: object) -> list[str]:
                         f"vertex {offset} (limit {MAX_STOP_TO_ROUTE_M:.0f}m)"
                     )
         split_index = r["directionSplitIndex"]
+        if "roadProfile" in r:
+            check_bus_road_profile(errs, f"{ctx} ({rid})", r["roadProfile"], geometry_coords)
         if (
             not isinstance(split_index, int)
             or isinstance(split_index, bool)

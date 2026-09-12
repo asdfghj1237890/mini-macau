@@ -1,0 +1,472 @@
+{
+  "101-0": {
+    "playhead": 66083.38322383713,
+    "nominal": 68040,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -0.1425473185366733,
+    "offsetY": 0.4531061856804201,
+    "stalledSec": 50.5,
+    "rejoinAfterM": 522686.86189314834,
+    "requestOrder": 27226,
+    "requestUntilM": 522732.34735651803,
+    "turnPriority": true,
+    "leaderId": "H3-2",
+    "convoySpeed": 0.10000000000000002,
+    "passage": {
+      "keys": [
+        "j2027471428"
+      ],
+      "approaches": {
+        "j2027471428": 144.6
+      },
+      "entryM": 522672.8677919598,
+      "exitM": 522732.34735651803,
+      "zones": [
+        {
+          "key": "j2027471428",
+          "entryM": 522672.8677919598,
+          "exitM": 522732.34735651803
+        }
+      ]
+    },
+    "cautiousUntilM": 522691.71189285483,
+    "turnWaitOrder": 33057,
+    "turnWaitUntilM": 522697.56776889734,
+    "clearance": {
+      "x": 0,
+      "y": 0
+    },
+    "clearanceRetryAt": 67987.5,
+    "junctionRetryAt": 68041.5,
+    "convoyBlockedBy": "H3-2"
+  },
+  "H3-2": {
+    "playhead": 41063.635094059995,
+    "nominal": 43200,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -0.507773165739011,
+    "offsetY": 0.49981281094354035,
+    "stalledSec": 80.5,
+    "rejoinAfterM": 316802.3342645031,
+    "requestOrder": 28326,
+    "passage": {
+      "keys": [
+        "j7664093694",
+        "j1942360480"
+      ],
+      "approaches": {
+        "j1942360480": 122,
+        "j7664093694": 122
+      },
+      "entryM": 316758.4227114675,
+      "exitM": 316793.4119822918,
+      "zones": [
+        {
+          "key": "j7664093694",
+          "entryM": 316758.4227114675,
+          "exitM": 316793.4119822918
+        },
+        {
+          "key": "j1942360480",
+          "entryM": 316758.73016790784,
+          "exitM": 316793.4119822918
+        }
+      ]
+    },
+    "yieldDistance": 316788.34637338173,
+    "yieldTo": "101-0",
+    "turnPriority": true,
+    "leaderId": "101-0",
+    "convoySpeed": 0,
+    "requestUntilM": 316793.4119822918,
+    "cautiousUntilM": 316808.60922317166,
+    "turnWaitOrder": 30460,
+    "turnWaitUntilM": 316793.17571677006,
+    "clearance": {
+      "x": 0,
+      "y": 0
+    },
+    "clearanceRetryAt": 42824.5,
+    "junctionRetryAt": 43201.5,
+    "convoyBlockedBy": "101-0"
+  },
+  "50-1": {
+    "playhead": 39351.18992978787,
+    "nominal": 41880,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -0.9582961227235234,
+    "offsetY": 0.38092467957572096,
+    "stalledSec": 80.5,
+    "rejoinAfterM": 468607.973693524,
+    "requestOrder": 29457,
+    "requestUntilM": 468609.98104739207,
+    "yieldDistance": 468593.98580221867,
+    "yieldTo": "MT5-3",
+    "turnPriority": true,
+    "leaderId": "H3-2",
+    "passage": {
+      "keys": [
+        "j7664093694",
+        "j1942360480"
+      ],
+      "approaches": {
+        "j1942360480": 122,
+        "j7664093694": 122
+      },
+      "entryM": 468574.99127759197,
+      "exitM": 468609.98104739207,
+      "zones": [
+        {
+          "key": "j7664093694",
+          "entryM": 468574.99127759197,
+          "exitM": 468609.98104739207
+        },
+        {
+          "key": "j1942360480",
+          "entryM": 468575.29844638414,
+          "exitM": 468609.98104739207
+        }
+      ]
+    },
+    "convoySpeed": 0,
+    "cautiousUntilM": 468616.1610728184,
+    "turnWaitOrder": 31590,
+    "turnWaitUntilM": 468604.0110005079,
+    "clearance": {
+      "x": 0,
+      "y": 0
+    },
+    "clearanceRetryAt": 41550.5,
+    "junctionRetryAt": 41827.5,
+    "convoyBlockedBy": "H3-2"
+  },
+  "MT2-2": {
+    "playhead": 39083.82612723785,
+    "nominal": 40800,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -2.6984366103621653,
+    "offsetY": -0.2502898144386076,
+    "stalledSec": 80.5,
+    "rejoinAfterM": 187412.76065731273,
+    "requestOrder": 32092,
+    "requestUntilM": 187425.1735874354,
+    "yieldDistance": 187398.7727662421,
+    "yieldTo": "50-1",
+    "turnPriority": true,
+    "leaderId": "50-1",
+    "passage": {
+      "keys": [
+        "j7664093694",
+        "j1942360480"
+      ],
+      "approaches": {
+        "j1942360480": 122,
+        "j7664093694": 122
+      },
+      "entryM": 187390.18484491008,
+      "exitM": 187425.1735874354,
+      "zones": [
+        {
+          "key": "j7664093694",
+          "entryM": 187390.18484491008,
+          "exitM": 187425.1735874354
+        },
+        {
+          "key": "j1942360480",
+          "entryM": 187390.49205834797,
+          "exitM": 187425.1735874354
+        }
+      ]
+    },
+    "convoySpeed": 0,
+    "cautiousUntilM": 187431.02107455814,
+    "turnWaitOrder": 30578,
+    "turnWaitUntilM": 187400.99300009,
+    "clearanceRetryAt": 40456.5,
+    "junctionRetryAt": 40747.5,
+    "convoyBlockedBy": "50-1"
+  },
+  "MT1-2": {
+    "playhead": 39236.81294590342,
+    "nominal": 41160,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -0.0018556601747820502,
+    "offsetY": -0.0034372774842995474,
+    "stalledSec": 67,
+    "rejoinAfterM": 266646.80864563625,
+    "requestOrder": 33112,
+    "yieldDistance": 266632.80864563625,
+    "yieldTo": "MT2-2",
+    "turnPriority": true,
+    "leaderId": "73-2",
+    "convoySpeed": 0,
+    "waitingFor": "MT2-2",
+    "requestUntilM": 266670.5757379441,
+    "waitReason": "owner:j7664093694",
+    "cautiousUntilM": 266648.9023942911,
+    "turnWaitOrder": 33601,
+    "turnWaitUntilM": 266657.47280922567,
+    "clearanceRetryAt": 41161.5,
+    "junctionRetryAt": 41107,
+    "convoyBlockedBy": "MT2-2"
+  },
+  "73-2": {
+    "playhead": 40997.39818111346,
+    "nominal": 43200,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -0.0024883653350989414,
+    "offsetY": -0.012249817874526867,
+    "stalledSec": 67,
+    "rejoinAfterM": 479197.6253928115,
+    "requestOrder": 28906,
+    "requestUntilM": 479191.3388912834,
+    "yieldDistance": 479183.6375012491,
+    "yieldTo": "MT1-2",
+    "turnPriority": true,
+    "leaderId": "25AX-0",
+    "passage": {
+      "keys": [
+        "j1942360482",
+        "j7414899228"
+      ],
+      "approaches": {
+        "j7414899228": 16.7,
+        "j1942360482": 64.1
+      },
+      "entryM": 479144.76792220597,
+      "exitM": 479191.3388912834,
+      "zones": [
+        {
+          "key": "j1942360482",
+          "entryM": 479144.76792220597,
+          "exitM": 479191.3388912834
+        },
+        {
+          "key": "j7414899228",
+          "entryM": 479160.6741835364,
+          "exitM": 479190.413399365
+        }
+      ]
+    },
+    "convoySpeed": 0,
+    "turnWaitOrder": 34293,
+    "turnWaitUntilM": 479202.9284291038,
+    "clearanceRetryAt": 43151.50000000001,
+    "cautiousUntilM": 479199.7003928115,
+    "junctionRetryAt": 43146.5,
+    "convoyBlockedBy": "MT1-2"
+  },
+  "25AX-0": {
+    "playhead": 43865.109858697004,
+    "nominal": 46440,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -0.04842997047971891,
+    "offsetY": -0.09457061097049949,
+    "stalledSec": 67,
+    "rejoinAfterM": 572298.5980186276,
+    "requestOrder": 30492,
+    "requestUntilM": 572304.2527859882,
+    "yieldDistance": 572284.5980186276,
+    "yieldTo": "73-2",
+    "turnPriority": true,
+    "leaderId": "29-1",
+    "convoySpeed": 0,
+    "turnWaitOrder": 34737,
+    "turnWaitUntilM": 572304.7154124456,
+    "cautiousUntilM": 572301.2355186276,
+    "passage": {
+      "keys": [
+        "j1942360482",
+        "j7414899228"
+      ],
+      "approaches": {
+        "j7414899228": 16.7,
+        "j1942360482": 64.1
+      },
+      "entryM": 572257.683288978,
+      "exitM": 572304.2527859882,
+      "zones": [
+        {
+          "key": "j1942360482",
+          "entryM": 572257.683288978,
+          "exitM": 572304.2527859882
+        },
+        {
+          "key": "j7414899228",
+          "entryM": 572273.5887708468,
+          "exitM": 572303.3272838827
+        }
+      ]
+    },
+    "clearanceRetryAt": 46368,
+    "junctionRetryAt": 46386.5,
+    "convoyBlockedBy": "73-2"
+  },
+  "29-1": {
+    "playhead": 39858.539960206195,
+    "nominal": 42000,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -2.240900846075395,
+    "offsetY": 1.205224357590946,
+    "stalledSec": 55,
+    "rejoinAfterM": 195234.0229842305,
+    "requestOrder": 32928,
+    "yieldDistance": 195220.17340256908,
+    "yieldTo": "25AX-0",
+    "turnPriority": true,
+    "leaderId": "23-1",
+    "convoySpeed": 0,
+    "requestUntilM": 195282.54714857522,
+    "passage": {
+      "keys": [
+        "j1942360482",
+        "j1943939113"
+      ],
+      "approaches": {
+        "j1943939113": 87.7,
+        "j1942360482": 113.4
+      },
+      "entryM": 195204.15499792097,
+      "exitM": 195282.54714857522,
+      "zones": [
+        {
+          "key": "j1942360482",
+          "entryM": 195204.15499792097,
+          "exitM": 195256.1945163201
+        },
+        {
+          "key": "j1943939113",
+          "entryM": 195233.6589023135,
+          "exitM": 195282.54714857522
+        }
+      ]
+    },
+    "cautiousUntilM": 195251.28965658392,
+    "turnWaitOrder": 33844,
+    "turnWaitUntilM": 195233.68989099746,
+    "clearanceRetryAt": 42000.5,
+    "junctionRetryAt": 41946.5,
+    "convoyBlockedBy": "25AX-0"
+  },
+  "23-1": {
+    "playhead": 41846.85807794466,
+    "nominal": 43920,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -5.887012145427283,
+    "offsetY": 4.548477732572862,
+    "stalledSec": 55,
+    "rejoinAfterM": 250882.51855483087,
+    "requestOrder": 30712,
+    "requestUntilM": 250953.158276066,
+    "yieldDistance": 250889.1636129441,
+    "yieldTo": "50B-0",
+    "turnPriority": true,
+    "leaderId": "29-1",
+    "passage": {
+      "keys": [
+        "j1942360482",
+        "j1943939113"
+      ],
+      "approaches": {
+        "j1943939113": 87.7,
+        "j1942360482": 113.4
+      },
+      "entryM": 250874.76516293938,
+      "exitM": 250953.158276066,
+      "zones": [
+        {
+          "key": "j1942360482",
+          "entryM": 250874.76516293938,
+          "exitM": 250926.8053089575
+        },
+        {
+          "key": "j1943939113",
+          "entryM": 250904.2695022799,
+          "exitM": 250953.158276066
+        }
+      ]
+    },
+    "convoySpeed": 0,
+    "cautiousUntilM": 250874.01855483314,
+    "turnWaitOrder": 33892,
+    "turnWaitUntilM": 250895.00690215337,
+    "clearance": {
+      "x": 0,
+      "y": 0
+    },
+    "clearanceRetryAt": 43843.00000000001,
+    "junctionRetryAt": 43867,
+    "convoyBlockedBy": "29-1"
+  },
+  "3A-3": {
+    "playhead": 43473.7722521699,
+    "nominal": 45840,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -0.35915260199237137,
+    "offsetY": 0.7072668344999703,
+    "stalledSec": 55,
+    "rejoinAfterM": 274507.278949687,
+    "requestOrder": 31426,
+    "yieldDistance": 274501.70960326854,
+    "yieldTo": "23-1",
+    "turnPriority": true,
+    "cautiousUntilM": 274540.4389028776,
+    "leaderId": "23-1",
+    "convoySpeed": 0,
+    "requestUntilM": 274590.2939184627,
+    "turnWaitOrder": 30041,
+    "turnWaitUntilM": 274497.1882006189,
+    "clearance": {
+      "x": 0,
+      "y": 0
+    },
+    "clearanceRetryAt": 45169,
+    "junctionRetryAt": 45787.5,
+    "convoyBlockedBy": "23-1"
+  },
+  "32-0": {
+    "playhead": 44573.28247709938,
+    "nominal": 46440,
+    "speed": 0,
+    "active": true,
+    "blocked": true,
+    "offsetX": -1.17596976854488,
+    "offsetY": 4.653718414955995,
+    "stalledSec": 107,
+    "rejoinAfterM": 221788.41943827056,
+    "requestOrder": 29324,
+    "waitingFor": "101-0",
+    "waitReason": "owner:j2027471428",
+    "yieldDistance": 221774.41943827056,
+    "yieldTo": "H3-2",
+    "turnPriority": true,
+    "leaderId": "101-0",
+    "convoySpeed": 0.8000000000000004,
+    "requestUntilM": 221841.31533614968,
+    "turnWaitOrder": 32918,
+    "turnWaitUntilM": 221790.1460674575,
+    "cautiousUntilM": 221819.21943825946,
+    "junctionRetryAt": 46334.5,
+    "clearanceRetryAt": 46135.99999999999
+  }
+}

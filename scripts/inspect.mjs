@@ -17,6 +17,8 @@
 //   node scripts/inspect.mjs route <id>             # one route, all buckets
 //   node scripts/inspect.mjs in-service HH:MM [bucket] [--tail N]
 //   node scripts/inspect.mjs coords                 # bus-line coordinate totals
+//   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks
+//   node scripts/inspect.mjs bus-roads [route-id] [lng,lat] # classification summary or geometry within 20 m
 //   node scripts/inspect.mjs lrt-motion [--dwell 45] # aggregate motion feasibility; uses LRT_TRIPS_DIR or local dev inputs
 //   node scripts/inspect.mjs city-loading          # city payload and generated count-catalog sizes
 //   node scripts/inspect.mjs ferries                # ferry-schedules.json summary
@@ -44,6 +46,156 @@ import { gzipSync } from 'node:zlib'
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const load = (rel) => JSON.parse(readFileSync(join(ROOT, rel), 'utf8'))
 const busRoutes = () => load('public/data/bus-routes.json')
+
+function cmdBusRoads(routeId, location) {
+  const routes = busRoutes().filter(r => !routeId || r.id === routeId)
+  if (location) {
+    const [lng, lat] = location.split(',').map(Number), mx = 111320 * Math.cos(lat * Math.PI / 180)
+    if (!Number.isFinite(lng) || !Number.isFinite(lat)) throw new Error('Expected longitude,latitude')
+    const found = []
+    for (const route of routes) {
+      const coords = route.geometry.geometry.coordinates
+      for (let i = 0; i < coords.length - 1; i++) {
+        const a = [(coords[i][0] - lng) * mx, (coords[i][1] - lat) * 111320]
+        const b = [(coords[i + 1][0] - lng) * mx, (coords[i + 1][1] - lat) * 111320]
+        const dx = b[0] - a[0], dy = b[1] - a[1], length = Math.hypot(dx, dy)
+        if (length < .05) continue
+        const t = Math.max(0, Math.min(1, -(a[0] * dx + a[1] * dy) / length ** 2))
+        const distance = Math.hypot(a[0] + t * dx, a[1] + t * dy)
+        if (distance <= 20) found.push({ route: route.id, segment: i, distance, a, b,
+          road: route.roadProfile?.sections.find(s => i >= s.start && i < s.end) })
+      }
+    }
+    console.log(JSON.stringify(found, null, 2)); return
+  }
+  const totals = {}, reasons = {}, laneTags = {}, wayIds = new Set(), examples = {}, dates = new Set()
+  let junctionSpans = 0
+  const junctionIds = new Set()
+  const mx = 111320 * Math.cos(22.19 * Math.PI / 180)
+  for (const route of routes) {
+    const coords = route.geometry.geometry.coordinates, profile = route.roadProfile
+    if (!profile) continue
+    dates.add(profile.fetchedAtUtc)
+    for (const j of profile.junctions ?? []) { junctionSpans++; junctionIds.add(j.id) }
+    for (const section of profile.sections) {
+      let metres = 0
+      for (let i = section.start; i < section.end; i++) metres += Math.hypot((coords[i + 1][0] - coords[i][0]) * mx, (coords[i + 1][1] - coords[i][1]) * 111320)
+      const group = totals[section.kind] ??= { sections: 0, routeKm: 0 }
+      group.sections++; group.routeKm += metres / 1000
+      const laneKey = `${section.kind}: total=${section.lanes ?? '?'} direction=${section.directionalLanes ?? '?'} width=${section.widthM ?? '?'} opposed=${!!section.opposingRouteGeometry}`
+      laneTags[laneKey] = (laneTags[laneKey] ?? 0) + metres / 1000
+      reasons[section.evidence] = (reasons[section.evidence] ?? 0) + metres / 1000
+      if (section.wayId) wayIds.add(section.wayId)
+      const list = examples[section.kind] ??= []
+      if (list.length < 5 && metres > 30) list.push({ route: route.id, ...section, coordinates: coords[section.start] })
+    }
+  }
+  const km = Object.values(totals).reduce((sum, v) => sum + v.routeKm, 0)
+  console.log(JSON.stringify({ routes: routes.length, source: 'OpenStreetMap contributors', sourceUrl: 'https://www.openstreetmap.org/copyright',
+    fetchedAtUtc: [...dates], uniqueMatchedWays: wayIds.size, junctionSpans, junctions: junctionIds.size, totals, evidenceRouteKm: reasons,
+    classifiedPercent: km ? (km - (totals.unknown?.routeKm ?? 0)) / km * 100 : 0, laneTagRouteKm: laneTags,
+    note: 'Route kilometres count shared roads once per route. Paired geometry and untagged widths are estimates, not surveyed lanes.', examples,
+  }, null, 2))
+}
+
+async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', mode = 'current', focus = '') {
+  if (!['current', 'baseline'].includes(mode)) throw new Error('Mode must be current or baseline')
+  if (!/^\d{2}:\d{2}$/.test(clock)) throw new Error('Expected HH:MM')
+  const seconds = Number(duration)
+  if (!Number.isFinite(seconds) || seconds < 0 || seconds > 3600) throw new Error('Duration must be 0–3600 seconds')
+  const step = Number(interval)
+  if (!Number.isFinite(step) || step < .03 || step > 2) throw new Error('Sample step must be .03–2 simulated seconds')
+  const { createServer } = await import('vite')
+  const server = await createServer({ configFile: false, root: ROOT, optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false }, logLevel: 'error' })
+  try {
+    const { computeVehiclePositions, sampleBusPose } = await server.ssrLoadModule('/src/engines/simulationEngine.ts')
+    const { BusTrafficController, busesConflict } = await server.ssrLoadModule('/src/engines/busTraffic.ts')
+    const data = { busRoutes: busRoutes(), busStops: load('public/data/bus-stops.json'), lrtLines: [], stations: [], trips: [], flights: [], ferries: [] }
+    if (mode === 'baseline') for (const route of data.busRoutes) delete route.roadProfile
+    const checkpoint = process.env.BUS_TRAFFIC_RESUME ? load(process.env.BUS_TRAFFIC_RESUME).checkpoint : undefined
+    const start = checkpoint?.lastMs ?? new Date(`2026-09-11T${clock}:00+08:00`).getTime()
+    if (!Number.isFinite(start)) throw new Error('Invalid time')
+    const nearby = buses => buses.filter(v => Math.abs(v.coordinates[0] - 113.54332) < .003 && Math.abs(v.coordinates[1] - 22.1893) < .003)
+    const conflicts = buses => {
+      const hits = []
+      for (let i = 0; i < buses.length; i++) for (let j = i + 1; j < buses.length; j++)
+        if (Math.abs(buses[i].coordinates[0] - buses[j].coordinates[0]) <= .001 &&
+            Math.abs(buses[i].coordinates[1] - buses[j].coordinates[1]) <= .001 &&
+            busesConflict(buses[i], buses[j], 0)) hits.push([buses[i].id, buses[j].id])
+      return hits
+    }
+    const busTraffic = new BusTrafficController(), timings = []
+    let final = [], collisions = 0, worst = [], queuedPeak = 0, initialMs = 0
+    const holds = new Map()
+    const events = new Map(), trace = [], focusIds = new Set(focus.split(',').filter(Boolean))
+    if (checkpoint) {
+      computeVehiclePositions(data, new Date(start), { busTraffic })
+      const savedIds = new Set(checkpoint.states.map(([id]) => id))
+      for (const id of busTraffic.states.keys()) if (!savedIds.has(id)) busTraffic.states.delete(id)
+      for (const [id, saved] of checkpoint.states) {
+        const state = busTraffic.states.get(id)
+        if (!state) throw new Error(`Checkpoint bus ${id} is absent from this service window`)
+        Object.assign(state, saved)
+        state.passageShapes = undefined
+      }
+      busTraffic.lastMs = start; busTraffic.nextRequest = checkpoint.nextRequest
+      busTraffic.recoverySequence = checkpoint.recoverySequence ?? 0
+      busTraffic.junctionOwners = new Map(checkpoint.junctionOwners.map(([key, owners]) => [key, new Map(owners)]))
+      busTraffic.junctionWaiters.clear()
+    }
+    for (let tick = checkpoint ? 1 : 0; tick <= Math.round(seconds / step); tick++) {
+      const begin = performance.now()
+      final = computeVehiclePositions(data, new Date(start + tick * step * 1000), { busTraffic })
+      const took = performance.now() - begin
+      if (tick === 0) initialMs = took
+      else timings.push(took)
+      const hits = conflicts(final)
+      for (const pair of hits) if (!events.has(pair.join('/'))) events.set(pair.join('/'), { at: tick * step, buses: pair.map(id => { const v = final.find(v => v.id === id); return {id, coordinates:v.coordinates, bearing:v.bearing, motion:v.busMotion} }) })
+      collisions += hits.length
+      if (hits.length > worst.length) worst = hits
+      queuedPeak = Math.max(queuedPeak, final.filter(v => v.busMotion?.phase === 'queued').length)
+      if (focusIds.size) trace.push({ second: tick * step, states: busTraffic.inspectQueues({ includeMoving: true }).filter(s => focusIds.has(s.id)) })
+      for (const v of final) {
+        const held = v.busMotion?.phase === 'queued' && v.busMotion.speedKmh < .2
+        const record = holds.get(v.id) ?? { current: 0, longest: 0 }
+        record.current = held ? record.current + (tick ? step : 0) : 0
+        record.longest = Math.max(record.longest, record.current)
+        holds.set(v.id, record)
+      }
+    }
+    // Measure cold route/body caches during the first traffic frame; computing
+    // the unimpeded comparison earlier would silently warm those caches.
+    const nominal = computeVehiclePositions(data, new Date(start))
+    timings.sort((a, b) => a - b)
+    console.log(JSON.stringify({ clock, seconds, step, mode, nominalBuses: nominal.length, visibleBuses: final.length,
+      nominalAmaralOverlaps: conflicts(nearby(nominal)), replayOverlapObservations: collisions, worstPairs: worst.slice(0, 8),
+      queuedPeak, initialMs, sampleP95Ms: timings[Math.floor(timings.length * .95)] ?? 0,
+      timingScope: 'CPU vehicle calculation only, excluding rendering; initialMs includes cold geometry caches.',
+      longestHolds: [...holds].sort((a, b) => b[1].longest - a[1].longest).slice(0, 10).map(([id, times]) => {
+        const v = final.find(v => v.id === id), route = data.busRoutes.find(r => r.id === v?.lineId)
+        return { id, ...times, coordinates: v?.coordinates, bearing: v?.bearing, leader: v?.busMotion?.leaderId,
+          road: route && sampleBusPose(route.geometry, v.progress, v.busMotion.returning, route.roadProfile).road }
+      }),
+      firstOverlapEvents: [...events.values()].slice(0, 20),
+      trace: focusIds.size ? trace : undefined,
+      focusGeometry: [...focusIds].flatMap(id => {
+        const state = busTraffic.states.get(id)
+        const route = data.busRoutes.find(r => r.id === state?.pose.vehicle.lineId)
+        if (!state || !route) return []
+        const v = state.pose.vehicle
+        return [{ id, pose: sampleBusPose(route.geometry, v.progress, v.busMotion.returning, route.roadProfile),
+          coordinates: route.geometry.geometry.coordinates.filter(p => Math.abs(p[0] - v.coordinates[0]) < .002 && Math.abs(p[1] - v.coordinates[1]) < .002) }]
+      }),
+      queues: busTraffic.inspectQueues({ includeFuture: true }),
+      checkpoint: process.env.BUS_TRAFFIC_CHECKPOINT === '1' ? {
+        lastMs: busTraffic.lastMs, nextRequest: busTraffic.nextRequest, recoverySequence: busTraffic.recoverySequence,
+        junctionOwners: [...busTraffic.junctionOwners].map(([key, owners]) => [key, [...owners]]),
+        states: [...busTraffic.states].map(([id, state]) => [id, { ...state, plan: undefined, passageShapes: undefined }]),
+      } : undefined,
+      finalNearby: nearby(final).map(v => ({ id: v.id, coordinates: v.coordinates, bearing: v.bearing, speed: Math.round(v.busMotion.speedKmh), delay: Math.round(v.busMotion.delaySec), phase: v.busMotion.phase, leader: v.busMotion.leaderId })),
+    }, null, 2))
+  } finally { await server.close() }
+}
 
 async function cmdCityLoading() {
   const { buildCityCatalog } = await import('../plugins/city-catalog.ts')
@@ -928,6 +1080,7 @@ const tail = tailFlag >= 0 ? Number(rest[tailFlag + 1]) || 0 : 0
 const pos = rest.filter((a, i) => a !== '--tail' && rest[i - 1] !== '--tail')
 
 switch (cmd) {
+  case 'bus-roads': cmdBusRoads(pos[0], pos[1]); break
   case 'city-loading': await cmdCityLoading(); break
   case 'lrt-motion': {
     const index = rest.indexOf('--dwell')
@@ -938,6 +1091,7 @@ switch (cmd) {
   case 'route': cmdRoute(pos[0]); break
   case 'in-service': cmdInService(pos[0], pos[1], tail); break
   case 'coords': cmdCoords(); break
+  case 'bus-traffic': await cmdBusTraffic(pos[0], pos[1], pos[2], pos[3], pos[4]); break
   case 'ferries': summarizeJson('public/data/ferry-schedules.json'); break
   case 'flights': summarizeJson('public/data/flights.json'); break
   case 'road-works': cmdRoadWorks(pos[0]); break
@@ -954,6 +1108,6 @@ switch (cmd) {
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   default:
-    console.log('commands: city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
+    console.log('commands: bus-traffic [HH:MM] [seconds] [step] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)
 }

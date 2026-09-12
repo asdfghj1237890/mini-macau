@@ -5,6 +5,7 @@ import './rasterMapFallback.css'
 import type { MapViewProps } from './MapView'
 import type { VehiclePosition } from '../types'
 import { computeVehiclePositions } from '../engines/simulationEngine'
+import { BusTrafficController } from '../engines/busTraffic'
 import { getLrtTrack, LRT_DIRECTIONS } from '../lrtTracks'
 import { localName, useI18n } from '../i18n'
 import { debugLog } from '../debugOverlay'
@@ -63,6 +64,7 @@ export default function RasterMapFallback(props: Props) {
     const resize = new ResizeObserver(() => map.invalidateSize())
     resize.observe(host.current)
     const markers = new Map<string, { marker: L.CircleMarker; vehicle: VehiclePosition }>()
+    const busTraffic = new BusTrafficController()
     let raceCar: L.CircleMarker | null = null
     let count = -1
     let previousTime = NaN
@@ -75,7 +77,7 @@ export default function RasterMapFallback(props: Props) {
       const simMs = p.clock.readTimeMs(), zoom = map.getZoom()
       if (simMs === previousTime && previousData === p.transitData && previousTracked === p.trackedVehicleId && previousZoom === zoom) return
       previousTime = simMs; previousData = p.transitData; previousTracked = p.trackedVehicleId; previousZoom = zoom
-      const vehicles = computeVehiclePositions(p.transitData, new Date(simMs))
+      const vehicles = computeVehiclePositions(p.transitData, new Date(simMs), { busTraffic })
       const ids = new Set(vehicles.map(v => v.id))
       for (const [id, entry] of markers) {
         if (!ids.has(id)) { entry.marker.remove(); markers.delete(id) }
