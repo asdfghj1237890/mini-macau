@@ -2297,7 +2297,7 @@ export function MapView(props: MapViewProps) {
 
   // This reader is stable across pause/speed changes; the map loop keeps its
   // cached fleet and upload cadence while the clock's controls change.
-  const { readTimeMs } = clock
+  const { readTimeMs, setSpeed } = clock
   const playbackSpeedRef = useRef(clock.paused ? 0 : clock.speed)
   useEffect(() => { playbackSpeedRef.current = clock.paused ? 0 : clock.speed }, [clock.paused, clock.speed])
 
@@ -4723,7 +4723,7 @@ export function MapView(props: MapViewProps) {
     const TRACK_ZOOM = 16
     const FLY_DURATION = 1200
     const EASE_BACK_DURATION = 400
-    const frames = new VehicleFrame(new AsyncBusFrame())
+    const frames = new VehicleFrame(new AsyncBusFrame(undefined, setSpeed))
     let lastCountReport = 0
     let lastRaceFocus: boolean | null = null
     let smoothCam: [number, number] | null = null
@@ -4923,7 +4923,7 @@ export function MapView(props: MapViewProps) {
     }
     raf = requestAnimationFrame(animate)
     return () => { cancelAnimationFrame(raf); frames.dispose() }
-  }, [readTimeMs])
+  }, [readTimeMs, setSpeed])
 
   const toggle3D = useCallback(() => {
     setIs3D(prev => {

@@ -10,11 +10,11 @@ vi.mock('./simulationEngine', () => ({ computeBusOnly: vi.fn((data: { busRoutes:
 const route = { id: '1' } as BusRoute
 const data = { busRoutes: [route], busStops: [] as BusStop[] }
 const vehicle = { id: '1-0', lineId: '1' } as VehiclePosition
-function setup() {
+function setup(onOverload?: (speed: number) => void) {
   const sent: BusWorkerRequest[] = []
   const port: BusWorkerPort = { onmessage: null, onerror: null, onmessageerror: null,
     postMessage: request => { sent.push(request) }, terminate: vi.fn() }
-  const frame = new AsyncBusFrame(() => port)
+  const frame = new AsyncBusFrame(() => port, onOverload)
   const reply = (request = sent.at(-1)!, vehicles = [vehicle]) => port.onmessage?.({ data: {
     id: request.id, epoch: request.epoch, simMs: request.simMs, vehicles,
   } } as MessageEvent<BusWorkerReply>)
@@ -22,6 +22,49 @@ function setup() {
 }
 
 describe('background bus frame', () => {
+  it('reports a lower rate after sustained backlog growth without resetting the fleet', () => {
+    const onOverload = vi.fn()
+    const { frame, sent, port, reply } = setup(onOverload)
+    frame.sample(data, 0, 0, {}, 60); reply()
+    frame.sample(data, 0, 1, {}, 60)
+    for (let at = 200; at <= 1400; at += 200) {
+      frame.sample(data, at * 60, at, {}, 60)
+      const request = sent.at(-1)!
+      port.onmessage?.(new MessageEvent<BusWorkerReply>('message', {
+        data: { id: request.id, epoch: request.epoch, simMs: at * 25, vehicles: [vehicle] },
+      }))
+      frame.sample(data, at * 60 + 60, at + 1, {}, 60)
+    }
+    expect(onOverload).toHaveBeenCalledOnce()
+    expect(onOverload).toHaveBeenCalledWith(30)
+    expect(sent.every(request => !request.reset)).toBe(true)
+  })
+
+  it('continues an unfinished target without another clock tick, and holds while paused', () => {
+    const { frame, port, sent, reply } = setup()
+    frame.sample(data, 1000, 0, {}, 60); reply()
+    frame.sample(data, 49000, 800, {}, 60)
+    const delayed = sent.at(-1)!
+    expect(delayed.simMs).toBe(48000)
+    port.onmessage?.(new MessageEvent<BusWorkerReply>('message', { data: { id: delayed.id, epoch: delayed.epoch, simMs: 9000, vehicles: [vehicle] } }))
+    frame.sample(data, 49000, 833, {}, 60)
+    expect(sent.at(-1)?.simMs).toBe(48000)
+    expect(sent.at(-1)?.id).not.toBe(delayed.id)
+    expect(sent.at(-1)?.reset).toBe(false)
+    frame.sample(data, 49000, 850, {}, 0)
+    const running = sent.at(-1)!
+    port.onmessage?.(new MessageEvent<BusWorkerReply>('message', { data: { id: running.id, epoch: running.epoch, simMs: 17000, vehicles: [vehicle] } }))
+    frame.sample(data, 49000, 866, {}, 0)
+    expect(sent.at(-1)?.hold).toBe(true)
+    const hold = sent.at(-1)!
+    port.onmessage?.(new MessageEvent<BusWorkerReply>('message', { data: { id: hold.id, epoch: hold.epoch, simMs: 17000, vehicles: [vehicle] } }))
+    for (let at = 900; at <= 1100; at += 33) frame.sample(data, 49000, at, {}, 0)
+    expect(sent.at(-1)).toBe(hold)
+    frame.sample(data, 49000, 1133, {}, 60)
+    expect(sent.at(-1)?.id).not.toBe(hold.id)
+    expect(sent.at(-1)?.hold).toBeUndefined()
+  })
+
   it('refreshes a paused view once after panning, without resetting traffic', () => {
     const { sent, frame, reply } = setup()
     frame.sample(data, 1000, 0, {}, 0); reply()
@@ -34,7 +77,7 @@ describe('background bus frame', () => {
     frame.sample(data, 1000, 66, { ...view, bounds: [...view.bounds] }, 0)
     expect(sent).toHaveLength(2)
   })
-  it('batches fast playback on aligned steps and flushes the exact paused time', () => {
+  it('batches fast playback on aligned steps and asks the worker to hold a paused fleet', () => {
     const { sent, frame, reply } = setup()
     frame.sample(data, 1000, 0, undefined, 60); reply()
     frame.sample(data, 5000, 67, undefined, 60)
@@ -44,6 +87,7 @@ describe('background bus frame', () => {
     reply()
     frame.sample(data, 11000, 168, undefined, 0)
     expect(sent.at(-1)?.simMs).toBe(11000)
+    expect(sent.at(-1)?.hold).toBe(true)
     reply()
     frame.sample(data, 11000, 200, undefined, 0)
     expect(sent).toHaveLength(3)

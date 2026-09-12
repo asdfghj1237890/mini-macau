@@ -61,6 +61,8 @@ function interpolate(chunk: Chunk, timeMs: number, clockMs: number): VehiclePosi
 export class BusPlayback {
   private chunks: Chunk[] = []
   private latest: VehiclePosition[] = []
+  private latestWithLag: VehiclePosition[] = []
+  private latestLag = NaN
   private endMs = NaN
   private displayMs = NaN
   private delayMs = 120
@@ -72,7 +74,8 @@ export class BusPlayback {
   private rendered: VehiclePosition[] = []
 
   clear(): void {
-    this.chunks = []; this.latest = []; this.rendered = []
+    this.chunks = []; this.latest = []; this.latestWithLag = []; this.rendered = []
+    this.latestLag = NaN
     this.endMs = this.displayMs = this.lastAt = this.lastClock = this.receivedAt = NaN
     this.delayMs = 120
     this.following = false
@@ -81,6 +84,7 @@ export class BusPlayback {
 
   accept(vehicles: VehiclePosition[], trace: BusMotionTrace | undefined, now: number, turnaround: number): void {
     this.latest = vehicles
+    this.latestLag = NaN
     const active = new Set(vehicles.map(v => v.id))
     this.rendered = this.rendered.filter(v => active.has(v.id))
     for (const chunk of this.chunks) for (const id of chunk.vehicles.keys()) if (!active.has(id)) chunk.vehicles.delete(id)
@@ -110,7 +114,15 @@ export class BusPlayback {
     // Pausing flushes the final checked position and freezes it exactly.
     if (!rate || !this.chunks.length) {
       this.displayMs = this.endMs
-      this.rendered = this.latest
+      // A held worker may still be behind the clock. Keep that delay in the
+      // info panel without moving the frozen fleet or reallocating each frame.
+      const lag = Number.isFinite(this.endMs) ? Math.max(0, clockMs - this.endMs) / 1000 : 0
+      if (lag !== this.latestLag) {
+        this.latestLag = lag
+        this.latestWithLag = lag ? this.latest.map(v => v.busMotion
+          ? { ...v, busMotion: { ...v.busMotion, delaySec: v.busMotion.delaySec + lag } } : v) : this.latest
+      }
+      this.rendered = this.latestWithLag
       if (!rate) this.chunks = []
       this.following = false
       return this.rendered

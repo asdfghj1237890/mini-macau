@@ -64,7 +64,7 @@ export default function RasterMapFallback(props: Props) {
     const resize = new ResizeObserver(() => map.invalidateSize())
     resize.observe(host.current)
     const markers = new Map<string, { marker: L.CircleMarker; vehicle: VehiclePosition }>()
-    const frames = new VehicleFrame(new AsyncBusFrame())
+    const frames = new VehicleFrame(new AsyncBusFrame(undefined, speed => live.current.clock.setSpeed(speed)))
     let raceCar: L.CircleMarker | null = null
     let count = -1
     const tick = () => {

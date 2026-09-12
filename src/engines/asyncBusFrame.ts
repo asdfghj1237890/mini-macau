@@ -4,6 +4,7 @@ import { computeBusOnly } from './simulationEngine'
 import type { BusWorkerReply, BusWorkerRequest } from './busWorkerRuntime'
 import type { BusDetailView } from './busMotionTrace'
 import { BusPlayback } from './busPlayback'
+import { BusPlaybackRate } from './busPlaybackRate'
 
 type BusData = Pick<TransitData, 'busRoutes' | 'busStops'>
 export interface BusWorkerPort {
@@ -41,15 +42,21 @@ export class AsyncBusFrame {
   private lastInputMs = NaN
   private lastInputAt = NaN
   private requestedMs = NaN
+  private completedMs = NaN
   private vehicles: VehiclePosition[] = []
   private playback = new BusPlayback()
+  private capacity = new BusPlaybackRate()
   private completed: BusWorkerReply | null = null
   private sentAt = 0
   private turnaround = 0
   private sentView?: BusDetailView
 
   private workerFactory: () => BusWorkerPort
-  constructor(workerFactory: () => BusWorkerPort = createWorker) { this.workerFactory = workerFactory }
+  private onOverload?: (speed: number) => void
+  constructor(workerFactory: () => BusWorkerPort = createWorker, onOverload?: (speed: number) => void) {
+    this.workerFactory = workerFactory
+    this.onOverload = onOverload
+  }
 
   private fail = () => {
     if (this.disposed) return
@@ -57,9 +64,11 @@ export class AsyncBusFrame {
     this.worker = null
     this.pendingId = null
     this.requestedMs = NaN
+    this.completedMs = NaN
     this.fallback = new BusTrafficController()
     this.completed = null
     this.playback.clear()
+    this.capacity.clear()
     console.warn('[bus] Worker unavailable; using synchronous traffic simulation')
   }
 
@@ -72,8 +81,10 @@ export class AsyncBusFrame {
     const resumed = Number.isFinite(this.lastInputAt) && now - this.lastInputAt > 2000
     const seek = Number.isFinite(this.lastInputMs) && (simMs < this.lastInputMs || forwardJump || resumed)
     if (changed || seek) {
+      this.capacity.clear()
       this.epoch++
       this.requestedMs = NaN
+      this.completedMs = NaN
       if (seek) { this.reset = true; this.vehicles = [] }
       else {
         const visible = new Set(data.busRoutes.map(route => route.id))
@@ -105,7 +116,10 @@ export class AsyncBusFrame {
     }
     if (this.completed) {
       this.vehicles = this.completed.vehicles
+      this.completedMs = this.completed.simMs
       this.playback.accept(this.vehicles, this.completed.trace, now, this.turnaround)
+      const nextSpeed = this.capacity.sample(simMs, this.completed.simMs, now, speed ?? 1)
+      if (nextSpeed !== undefined) this.onOverload?.(nextSpeed)
       this.completed = null
     }
     if (this.fallback) {
@@ -124,8 +138,10 @@ export class AsyncBusFrame {
         ? Math.max(this.requestedMs, Math.floor(simMs / quantum) * quantum) : simMs
       // A paused camera can reveal previously coarse markers. Place those
       // buses in detailed traffic even though simulation time has not moved.
-      if (this.requestedMs !== targetMs || speed === 0 && !sameView(this.sentView, view)) {
+      const catchingUp = speed !== 0 && this.completedMs < targetMs
+      if (this.requestedMs !== targetMs || catchingUp || speed === 0 && !sameView(this.sentView, view)) {
         const request: BusWorkerRequest = { id: ++this.serial, epoch: this.epoch, simMs: targetMs, reset: this.reset }
+        if (speed === 0) request.hold = true
         if (view) request.view = view
         this.sentView = view
         if (!sameRoutes(this.sentRoutes, data.busRoutes)) {

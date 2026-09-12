@@ -35,7 +35,7 @@ describe('bus worker replay', () => {
     }
     expect(updates).toBeGreaterThan(60)
   }, 10000)
-  it('retains traffic playheads through a slow reply spanning more than twelve simulated seconds', () => {
+  it('retains traffic playheads and catches up in bounded jobs after a slow reply', () => {
     const runtime = new BusWorkerRuntime(), selected = routes.slice(0, 3)
     const start = new Date('2026-09-11T08:00:00+08:00').getTime()
     runtime.sample({ id: 1, epoch: 0, simMs: start, reset: false,
@@ -44,7 +44,11 @@ describe('bus worker replay', () => {
     const reply = runtime.sample({ id: 2, epoch: 0, simMs: start + 16000, reset: false })
     expect(runtime['traffic']['states'].get(before.plan.id)).toBe(before)
     expect(reply.trace?.startMs).toBe(start)
-    expect(reply.trace?.steps.at(-1)).toBe(start + 16000)
+    expect(reply.simMs).toBe(start + 8000)
+    expect(reply.trace?.steps.at(-1)).toBe(reply.simMs)
+    const caughtUp = runtime.sample({ id: 3, epoch: 0, simMs: start + 16000, reset: false })
+    expect(caughtUp.trace?.startMs).toBe(reply.simMs)
+    expect(caughtUp.simMs).toBe(start + 16000)
     runtime.sample({ id: 3, epoch: 1, simMs: start + 21000, reset: true })
     expect(runtime['traffic']['states'].get(before.plan.id)).not.toBe(before)
   })
@@ -66,14 +70,15 @@ describe('bus worker replay', () => {
       expect(reply.vehicles).toEqual(computeBusOnly(data, new Date(simMs), traffic))
     }
   })
-  it('bounds catch-up after a long stall without tracing offscreen markers across the reset', () => {
+  it('keeps overview traces continuous during bounded catch-up after a long stall', () => {
     const runtime = new BusWorkerRuntime(), selected = routes.slice(0, 3)
     const start = new Date('2026-09-11T08:00:00+08:00').getTime()
     runtime.sample({ id: 1, epoch: 0, simMs: start, reset: false,
       routes: selected.map((r, key) => [key, r]), routeKeys: selected.map((_, i) => i), stops, view: {} })
     const reply = runtime.sample({ id: 2, epoch: 0, simMs: start + 60000, reset: false, view: {} })
-    expect(reply.trace?.startMs).toBe(start + 60000)
+    expect(reply.trace?.startMs).toBe(start)
+    expect(reply.simMs).toBe(start + 8000)
     expect(reply.vehicles.length).toBeGreaterThan(0)
-    expect(reply.trace?.paths.every(p => p.points[0] === start + 60000)).toBe(true)
+    expect(reply.trace?.paths.every(p => p.points[0] === start)).toBe(true)
   })
 })
