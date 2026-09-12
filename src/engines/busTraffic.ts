@@ -2,6 +2,7 @@ import type { VehiclePosition } from '../types'
 import { BUS_HALF_LENGTH_M } from '../layers/busMesh'
 import type { BusPassage } from './busJunctions'
 import { closedWaitGroups, waitsForGroup } from './busWaitGroups'
+import type { BusTraceRecorder } from './busMotionTrace'
 
 export interface BusTrafficSample {
   vehicle: VehiclePosition
@@ -60,7 +61,8 @@ type State = {
 }
 type Body = { x: number; y: number; fx: number; fy: number; half: number; width: number; z: number }
 type TurnPoint = { distanceM: number; body: Body }
-type TurnPair = { a: TurnPoint[]; b: TurnPoint[]; hits: [number, number][] }
+type TurnPair = { a: TurnPoint[]; b: TurnPoint[]; hits: [number, number][];
+  current?: { a: Body; b: Body; distanceA: number; distanceB: number; entryA: number; entryB: number } }
 type PassageShape = { entryM: number; exitM: number; landmarks: Body[]; points: Body[]; compatible: WeakMap<PassageShape, boolean> }
 const CELL_M = 64
 const LAT_METRES = 111320
@@ -84,17 +86,27 @@ const YIELD_SPEED_MPS = 3
 const CLEARANCE_HOLD_M = 14
 const REJOIN_MPS = .5
 
+// Collision grid addresses fit within a numeric integer key.
+const cellKey = (x: number, y: number) => x * 1048576 + y
+
 function recoveryClearance(state: State): number {
   return state.pose.distanceM < (state.tightConvoyUntilM ?? -Infinity) ? .05 : CONVOY_CLEARANCE_M
 }
 
+const bodies = new WeakMap<VehiclePosition, Body & { lng: number; lat: number; bearing: number; scale: number }>()
 function body(v: VehiclePosition): Body {
+  const cached = bodies.get(v)
+  if (cached && cached.lng === v.coordinates[0] && cached.lat === v.coordinates[1] &&
+      cached.bearing === v.bearing && cached.scale === (v.scale ?? 1) && cached.z === (v.altitude ?? 0)) return cached
   const angle = v.bearing * Math.PI / 180, scale = v.scale ?? 1
-  return {
+  const result = {
+    lng: v.coordinates[0], lat: v.coordinates[1], bearing: v.bearing, scale,
     x: (v.coordinates[0] - 113.54) * LNG_METRES, y: (v.coordinates[1] - 22.19) * LAT_METRES,
     fx: Math.sin(angle), fy: Math.cos(angle), half: BUS_HALF_LENGTH_M * scale,
     width: 2.65 * scale, z: v.altitude ?? 0,
   }
+  bodies.set(v, result)
+  return result
 }
 
 function sameFlow(a: Body, b: Body): boolean {
@@ -148,14 +160,15 @@ function claimBlocks(owner: State, p: Body): boolean {
 
 
 class Occupancy {
-  private cells = new Map<string, Set<State>>()
-  private keys = new Map<State, string>()
-  private claimCells = new Map<string, Set<State>>()
-  private claimKeys = new Map<State, { path: TurnPoint[]; keys: Set<string> }>()
+  private nearby?: { x0: number; x1: number; y0: number; y1: number; claims: boolean; states: State[] }
+  private cells = new Map<number, Set<State>>()
+  private keys = new Map<State, number>()
+  private claimCells = new Map<number, Set<State>>()
+  private claimKeys = new Map<State, { path: TurnPoint[]; keys: Set<number> }>()
   put(state: State): void {
     this.removeBody(state)
     if (!state.active) return
-    const p = body(state.pose.vehicle), key = `${Math.floor(p.x / CELL_M)},${Math.floor(p.y / CELL_M)}`
+    const p = body(state.pose.vehicle), key = cellKey(Math.floor(p.x / CELL_M), Math.floor(p.y / CELL_M))
     state.footprint = p
     let cell = this.cells.get(key)
     if (!cell) { cell = new Set(); this.cells.set(key, cell) }
@@ -167,6 +180,7 @@ class Occupancy {
     this.removeClaim(state)
   }
   private removeBody(state: State): void {
+    this.nearby = undefined
     const key = this.keys.get(state)
     if (key !== undefined) {
       const cell = this.cells.get(key)
@@ -176,6 +190,7 @@ class Occupancy {
     }
   }
   private removeClaim(state: State): void {
+    this.nearby = undefined
     for (const key of this.claimKeys.get(state)?.keys ?? []) {
       const cell = this.claimCells.get(key)
       cell?.delete(state)
@@ -190,7 +205,7 @@ class Occupancy {
     if (!path) return
     // Index the swept corridor, not just its owner's current position. Linked
     // junction reservations can reach hundreds of metres beyond that bus.
-    const keys = new Set(path.map(p => `${Math.floor(p.body.x / CELL_M)},${Math.floor(p.body.y / CELL_M)}`))
+    const keys = new Set(path.map(p => cellKey(Math.floor(p.body.x / CELL_M), Math.floor(p.body.y / CELL_M))))
     for (const key of keys) {
       let cell = this.claimCells.get(key)
       if (!cell) { cell = new Set(); this.claimCells.set(key, cell) }
@@ -199,14 +214,26 @@ class Occupancy {
     this.claimKeys.set(state, { path, keys })
   }
   near(p: Body, radius = 100, includeClaims = false): State[] {
-    const result = new Set<State>()
-    for (let x = Math.floor((p.x - radius) / CELL_M); x <= Math.floor((p.x + radius) / CELL_M); x++)
-      for (let y = Math.floor((p.y - radius) / CELL_M); y <= Math.floor((p.y + radius) / CELL_M); y++) {
-        const key = `${x},${y}`
-        for (const state of this.cells.get(key) ?? []) result.add(state)
-        if (includeClaims) for (const state of this.claimCells.get(key) ?? []) result.add(state)
+    const x0 = Math.floor((p.x - radius) / CELL_M), x1 = Math.floor((p.x + radius) / CELL_M)
+    const y0 = Math.floor((p.y - radius) / CELL_M), y1 = Math.floor((p.y + radius) / CELL_M)
+    const cached = this.nearby
+    // Sweeps and bisections probe the same cells repeatedly while occupancy
+    // is unchanged. Preserve the exact iteration order and invalidate on any
+    // body/claim index edit; cached state references still expose fresh poses.
+    if (cached && cached.x0 === x0 && cached.x1 === x1 && cached.y0 === y0 && cached.y1 === y1 && cached.claims === includeClaims) return cached.states
+    const result: State[] = [], seen = includeClaims ? new Set<State>() : null
+    for (let x = x0; x <= x1; x++)
+      for (let y = y0; y <= y1; y++) {
+        const key = cellKey(x, y)
+        for (const state of this.cells.get(key) ?? []) {
+          if (!seen || !seen.has(state)) { result.push(state); seen?.add(state) }
+        }
+        if (seen) for (const state of this.claimCells.get(key) ?? []) {
+          if (!seen.has(state)) { result.push(state); seen.add(state) }
+        }
       }
-    return [...result]
+    this.nearby = { x0, x1, y0, y1, claims: includeClaims, states: result }
+    return result
   }
   blocked(pose: BusTrafficSample, self: State): boolean {
     return this.blocker(pose, self) !== undefined
@@ -249,6 +276,13 @@ function atDistance(plan: BusTrafficPlan, low: number, high: number, limit: numb
 /** A map-owned traffic replay. No global state: changing the clock or rebuilding
  * the map cannot inherit a queue from another preview, date, or renderer. */
 export class BusTrafficController {
+  recorder?: BusTraceRecorder
+  private maxAdvanceSec: number
+  constructor(maxAdvanceSec = MAX_ADVANCE_SEC) { this.maxAdvanceSec = maxAdvanceSec }
+
+  currentVehicles(): VehiclePosition[] {
+    return [...this.states.values()].filter(state => state.active).map(state => state.pose.vehicle)
+  }
   private states = new Map<string, State>()
   private lastMs = NaN
   private junctionOwners = new Map<string, Map<string, number>>()
@@ -277,7 +311,7 @@ export class BusTrafficController {
 
   sample(plans: BusTrafficPlan[], timeMs: number): VehiclePosition[] {
     const dt = (timeMs - this.lastMs) / 1000
-    const reset = !Number.isFinite(dt) || dt < 0 || dt > MAX_ADVANCE_SEC
+    const reset = !Number.isFinite(dt) || dt < 0 || dt > this.maxAdvanceSec
     if (reset) { this.states.clear(); this.junctionOwners.clear(); this.junctionWaiters.clear(); this.nextRequest = 1; this.recoverySequence = 0 }
     this.lastMs = timeMs
     const ids = new Set(plans.map(p => p.id))
@@ -307,6 +341,7 @@ export class BusTrafficController {
         return zones.length ? { ...passage, zones, keys: passage.keys.filter(key => zones.some(z => z.key === key)) } : undefined
       }, sample: at => {
         const pose = plan.sample(at)
+        if (current.offsetX === 0 && current.offsetY === 0) return pose
         return { ...pose, vehicle: { ...pose.vehicle, coordinates: [
           pose.vehicle.coordinates[0] + current.offsetX / LNG_METRES,
           pose.vehicle.coordinates[1] + current.offsetY / LAT_METRES,
@@ -353,11 +388,19 @@ export class BusTrafficController {
       occupancy.put(state)
     }
 
+    const recorder = this.recorder, newStates = new Set(fresh)
+    if (recorder) {
+      recorder.begin(reset ? timeMs : timeMs - dt * 1000)
+      for (const state of this.states.values()) if (state.active) {
+        recorder.add(this.vehicle(state, state.nominal), reset || newStates.has(state) ? timeMs : timeMs - dt * 1000)
+      }
+    }
     if (!reset && dt > 0) {
       const steps = Math.ceil(dt / STEP_SEC), step = dt / steps
-      const newStates = new Set(fresh)
       for (let i = 0; i < steps; i++) {
         const ordered = [...this.states.values()]
+        const before = recorder ? new Map(ordered.map(s => [s, { pose: s.pose, playhead: s.playhead,
+          offsetX: s.offsetX, offsetY: s.offsetY, active: s.active }])) : undefined
         this.junctionWaiters.clear()
         for (const state of ordered) {
           if (state.passage && state.pose.distanceM >= state.passage.exitM) this.releasePassage(state)
@@ -390,6 +433,34 @@ export class BusTrafficController {
           this.advance(state, nominal, step, occupancy)
         }
         this.advanceBlockedGroups(ordered.filter(s => !newStates.has(s)), step, i + 1, occupancy)
+        if (recorder && before) {
+          const endMs = timeMs - (dt - step * (i + 1)) * 1000
+          recorder.step(endMs)
+          for (const state of ordered) {
+            if (newStates.has(state)) continue
+            const previous = before.get(state)!, motion = state.pose.vehicle.busMotion, oldMotion = previous.pose.vehicle.busMotion
+            if (!state.active) { recorder.clear(state.plan.id); continue }
+            const handover = !previous.active || (motion && oldMotion &&
+              (motion.returning !== oldMotion.returning || motion.dirSec < oldMotion.dirSec - .01))
+            if (handover) recorder.clear(state.plan.id)
+            else if (recorder.detailed(state.pose.vehicle) || recorder.detailed(previous.pose.vehicle)) {
+              // Follow the actual lane course through a bend, instead of
+              // drawing a chord between widely spaced worker replies.
+              const distance = state.pose.distanceM - previous.pose.distanceM
+              if (distance > 2 && previous.offsetX === state.offsetX && previous.offsetY === state.offsetY) {
+                const parts = Math.min(128, Math.ceil(distance / 2))
+                for (let p = 1; p < parts; p++) {
+                  const fraction = p / parts, at = previous.playhead + (state.playhead - previous.playhead) * fraction
+                  const pose = state.plan.sample(at), nominal = state.nominal + step * (i + fraction)
+                  recorder.add({ ...pose.vehicle, busMotion: pose.vehicle.busMotion ? { ...pose.vehicle.busMotion,
+                    speedKmh: pose.vehicle.busMotion.phase === 'stopped' ? 0 : state.speed * 3.6,
+                    delaySec: Math.max(0, nominal - at) } : undefined }, endMs - step * 1000 * (1 - fraction))
+                }
+              }
+            }
+            recorder.add(this.vehicle(state, state.nominal + step * (i + 1)), endMs)
+          }
+        }
       }
     }
     const result: VehiclePosition[] = []
@@ -404,6 +475,16 @@ export class BusTrafficController {
       } : undefined })
     }
     return result
+  }
+
+  private vehicle(state: State, nominal: number): VehiclePosition {
+    const vehicle = state.pose.vehicle, motion = vehicle.busMotion
+    return { ...vehicle, busMotion: motion ? { ...motion,
+      speedKmh: motion.phase === 'stopped' && !state.blocked ? 0 : state.speed * 3.6,
+      delaySec: Math.max(0, nominal - state.playhead),
+      phase: state.blocked ? 'queued' : motion.phase,
+      leaderId: state.leaderId,
+    } : undefined }
   }
 
   private advance(state: State, nominal: number, dt: number, occupancy: Occupancy): void {
@@ -748,18 +829,27 @@ export class BusTrafficController {
           }
           pairs.set(b, pair)
         }
-        for (const [ad, bd] of pair.hits) if (ad > a.pose.distanceM + .5 && bd > b.pose.distanceM + .5) {
-          entryA = Math.min(entryA, ad - a.pose.distanceM)
-          entryB = Math.min(entryB, bd - b.pose.distanceM)
-        }
-        const compare = (aa: TurnPoint, bb: TurnPoint) => {
-          if (Math.abs(aa.body.z - bb.body.z) <= 7 && overlap(aa.body, bb.body, GAP_M)) {
-            entryA = Math.min(entryA, aa.distanceM - a.pose.distanceM)
-            entryB = Math.min(entryB, bb.distanceM - b.pose.distanceM)
+        const cached = pair.current
+        const unchanged = (old: Body, now: Body) => old.x === now.x && old.y === now.y && old.fx === now.fx && old.fy === now.fy &&
+          old.z === now.z && old.half === now.half && old.width === now.width
+        if (cached && cached.distanceA === a.pose.distanceM && cached.distanceB === b.pose.distanceM &&
+            unchanged(cached.a, pa) && unchanged(cached.b, pb)) {
+          entryA = cached.entryA; entryB = cached.entryB
+        } else {
+          for (const [ad, bd] of pair.hits) if (ad > a.pose.distanceM + .5 && bd > b.pose.distanceM + .5) {
+            entryA = Math.min(entryA, ad - a.pose.distanceM)
+            entryB = Math.min(entryB, bd - b.pose.distanceM)
           }
+          const compare = (aa: TurnPoint, bb: TurnPoint) => {
+            if (Math.abs(aa.body.z - bb.body.z) <= 7 && overlap(aa.body, bb.body, GAP_M)) {
+              entryA = Math.min(entryA, aa.distanceM - a.pose.distanceM)
+              entryB = Math.min(entryB, bb.distanceM - b.pose.distanceM)
+            }
+          }
+          for (const bb of bp) compare(ap[0], bb)
+          for (let i = 1; i < ap.length; i++) compare(ap[i], bp[0])
+          pair.current = { a: pa, b: pb, distanceA: a.pose.distanceM, distanceB: b.pose.distanceM, entryA, entryB }
         }
-        for (const bb of bp) compare(ap[0], bb)
-        for (let i = 1; i < ap.length; i++) compare(ap[i], bp[0])
         if (!Number.isFinite(entryA)) continue
         // A vehicle already occupying the turning area must clear it first.
         const ahead = (pb.x - pa.x) * (pa.fx + pb.fx) + (pb.y - pa.y) * (pa.fy + pb.fy)

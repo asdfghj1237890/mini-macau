@@ -2,6 +2,7 @@ import type { Flight, TransitData, VehiclePosition } from '../types'
 import { computeFlightOnly, computeSingleFlight, computeVehiclePositions } from './simulationEngine'
 import { BusTrafficController } from './busTraffic'
 import type { AsyncBusFrame } from './asyncBusFrame'
+import type { BusDetailView } from './busMotionTrace'
 
 interface FrameInput {
   now: number
@@ -11,6 +12,8 @@ interface FrameInput {
   renderer: object | null
   trackedId: string | null
   uploadInterval: number
+  busView?: BusDetailView
+  speed?: number
 }
 
 // All GeoJSON uploads share the existing 33/100/160 ms cadence. Dirty state
@@ -51,7 +54,7 @@ export class VehicleFrame {
       if (changed) this.base = computeVehiclePositions(data, new Date(simMs), {
         includeFlights: false, includeBuses: !this.asyncBuses, busTraffic: this.busTraffic,
       })
-      const busFrame = this.asyncBuses?.sample(data, simMs, now)
+      const busFrame = this.asyncBuses?.sample(data, simMs, now, input.busView, input.speed)
       surfaceUpdated = changed || (!!busFrame && this.buses !== busFrame.vehicles)
       if (busFrame) this.buses = busFrame.vehicles
       this.surfacePending = busFrame?.pending ?? false

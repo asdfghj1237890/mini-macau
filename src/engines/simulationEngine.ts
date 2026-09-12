@@ -694,12 +694,15 @@ function getBusLanePlans(route: BusRoute, schedule: BusSchedule) {
   return plans
 }
 
+// Exact samples survive worker batches. A queued bus often probes the same
+// playheads again; bound each cache and tie its lifetime to the route schedule.
+const busSamples = new WeakMap<BusSchedule, Map<number, Map<number, BusTrafficSample>>>()
 function computeBusVehicles(
   busRoutes: BusRoute[],
   busStopMap: Map<string, BusStop>,
   nowMinutes: number,
   serviceBucket: BusServiceBucket,
-  traffic?: BusTrafficController,
+  traffic?: Pick<BusTrafficController, 'sample'>,
   timeMs = 0,
 ): VehiclePosition[] {
   const plans: BusTrafficPlan[] = []
@@ -718,6 +721,8 @@ function computeBusVehicles(
     const lengthM = schedule.totalLenKm * 1000
     const passages = getRoutePassages(route, lengthM, schedule.isCircular)
     const lanes = getBusLanePlans(route, schedule)
+    let fleetSamples = busSamples.get(schedule)
+    if (!fleetSamples) { fleetSamples = new Map(); busSamples.set(schedule, fleetSamples) }
     const distanceAt = (elapsed: number) => {
       const progress = Math.max(0, Math.min(1, progressAtCycle(schedule, elapsed)))
       const cycle = Math.floor(elapsed / schedule.cycleSec)
@@ -734,8 +739,14 @@ function computeBusVehicles(
       // Initial lane only. The distance course retains subsequent choices
       // after stops and lane drops, consistently across frames and time seeks.
       const lanePreference = (lanes.seed + index) % lanes.forward.length
+      // Probes repeat playheads during acceleration, body sweeps and trace
+      // recording. Traffic offsets always wrap these immutable samples.
+      let samples = fleetSamples.get(index)
+      if (!samples) { samples = new Map(); fleetSamples.set(index, samples) }
       const sample = (seconds: number): BusTrafficSample => {
         const at = Math.max(0, seconds)
+        const cached = samples.get(at)
+        if (cached) return cached
         const position = distanceAt(at)
         const { dirSec, returning } = computeBusDirSec(position.wrapped, schedule)
         const stops = returning ? schedule.backwardStops : schedule.forwardStops
@@ -743,7 +754,7 @@ function computeBusVehicles(
         const pos = sampleBusPose(route.geometry, position.progress, returning, route.roadProfile,
           (returning ? lanes.reverse : lanes.forward)[lanePreference])
         const speedKmh = dwelling ? 0 : Math.max(0, (distanceAt(at + .02).distanceM - position.distanceM) / .02 * 3.6)
-        return {
+        const result: BusTrafficSample = {
           distanceM: position.distanceM,
           laneAllowance: pos.laneAllowance,
           vehicle: {
@@ -753,6 +764,9 @@ function computeBusVehicles(
               roadKind: pos.road.kind, roadWayId: pos.road.wayId, roadEvidence: pos.road.evidence },
           },
         }
+        if (samples.size >= 512) samples.clear()
+        samples.set(at, result)
+        return result
       }
       const nominal = sample(elapsedSec)
       const motion = nominal.vehicle.busMotion!
@@ -1454,7 +1468,7 @@ export function computeFlightOnly(
   return computeFlightVehicles(transitData.flights, timeToMinutes(time))
 }
 
-export function computeBusOnly(data: Pick<TransitData, 'busRoutes' | 'busStops'>, time: Date, traffic?: BusTrafficController): VehiclePosition[] {
+export function computeBusOnly(data: Pick<TransitData, 'busRoutes' | 'busStops'>, time: Date, traffic?: Pick<BusTrafficController, 'sample'>): VehiclePosition[] {
   return computeBusVehicles(data.busRoutes, getBusStopMap(data), timeToMinutes(time), getBusServiceBucket(time), traffic, time.getTime())
 }
 

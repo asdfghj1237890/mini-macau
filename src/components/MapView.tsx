@@ -2298,6 +2298,8 @@ export function MapView(props: MapViewProps) {
   // This reader is stable across pause/speed changes; the map loop keeps its
   // cached fleet and upload cadence while the clock's controls change.
   const { readTimeMs } = clock
+  const playbackSpeedRef = useRef(clock.paused ? 0 : clock.speed)
+  useEffect(() => { playbackSpeedRef.current = clock.paused ? 0 : clock.speed }, [clock.paused, clock.speed])
 
   useEffect(() => {
     if (!containerRef.current || mapFailure) return
@@ -4736,10 +4738,16 @@ export function MapView(props: MapViewProps) {
         // Read the clock directly once: camera, tracked mesh and fleet use
         // one timeline without a second, RAF-order-dependent flight clock.
         const simMs = readTimeMs()
+        const zoom = map.getZoom(), busBounds = zoom >= 15.5 ? map.getBounds() : null
         const frame = frames.sample({
-          now: nowTick, simMs, data: td, zoom: map.getZoom(),
+          now: nowTick, simMs, data: td, zoom,
+          speed: playbackSpeedRef.current,
           renderer: flight3DRef.current, trackedId: trackedRef.current ?? null,
           uploadInterval: mapBusyRef.current ? 160 : isDesktopRef.current ? 33 : 100,
+          busView: { trackedId: trackedRef.current, bounds: busBounds ? [
+            busBounds.getWest() - .001, busBounds.getSouth() - .001,
+            busBounds.getEast() + .001, busBounds.getNorth() + .001,
+          ] : undefined },
         })
         vehiclesRef.current = frame.vehicles
         if (frame.trackedUpdated || frame.upload) {

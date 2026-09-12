@@ -4,11 +4,50 @@ import type { BusRoute, BusStop } from '../types'
 import { BusWorkerRuntime } from './busWorkerRuntime'
 import { BusTrafficController } from './busTraffic'
 import { computeBusOnly } from './simulationEngine'
+import { BusPlayback } from './busPlayback'
+import { busesConflict } from './busTraffic'
 
 const routes: BusRoute[] = JSON.parse(readFileSync(new URL('../../public/data/bus-routes.json', import.meta.url), 'utf8'))
 const stops: BusStop[] = JSON.parse(readFileSync(new URL('../../public/data/bus-stops.json', import.meta.url), 'utf8'))
 
 describe('bus worker replay', () => {
+  it.each([4, 8])('presents intermediate checked poses through real Taipa bends with %is batches at 60×', interval => {
+    const runtime = new BusWorkerRuntime(), playback = new BusPlayback()
+    const selected = routes.filter(r => ['73', 'MT1', '21A'].includes(r.id))
+    const start = new Date('2026-09-11T18:00:00+08:00').getTime()
+    let previous = '', updates = 0
+    for (let second = 0; second <= 120; second += interval) {
+      const simMs = start + second * 1000, at = second / 60 * 1000 + 120
+      const reply = runtime.sample({ id: second, epoch: 0, simMs, reset: false,
+        routes: second === 0 ? selected.map((r, key) => [key, r]) : undefined,
+        routeKeys: second === 0 ? selected.map((_, key) => key) : undefined,
+        stops: second === 0 ? stops : undefined, view: { bounds: [113.5, 22.1, 113.6, 22.22] } })
+      playback.accept(reply.vehicles, reply.trace, at, 120)
+      for (let frame = 0; frame < interval; frame++) {
+        const vehicles = playback.sample(simMs + 7200 + frame * 1000, at + frame * 1000 / 60)
+        for (let i = 0; i < vehicles.length; i++) for (let j = i + 1; j < vehicles.length; j++) {
+          expect(busesConflict(vehicles[i], vehicles[j], 0), `${vehicles[i].id}/${vehicles[j].id}`).toBe(false)
+        }
+        const key = vehicles.map(v => v.coordinates.join(',')).join(';')
+        if (key !== previous) updates++
+        previous = key
+      }
+    }
+    expect(updates).toBeGreaterThan(60)
+  }, 10000)
+  it('retains traffic playheads through a slow reply spanning more than twelve simulated seconds', () => {
+    const runtime = new BusWorkerRuntime(), selected = routes.slice(0, 3)
+    const start = new Date('2026-09-11T08:00:00+08:00').getTime()
+    runtime.sample({ id: 1, epoch: 0, simMs: start, reset: false,
+      routes: selected.map((r, key) => [key, r]), routeKeys: selected.map((_, i) => i), stops })
+    const before = [...runtime['traffic']['states'].values()][0]
+    const reply = runtime.sample({ id: 2, epoch: 0, simMs: start + 16000, reset: false })
+    expect(runtime['traffic']['states'].get(before.plan.id)).toBe(before)
+    expect(reply.trace?.startMs).toBe(start)
+    expect(reply.trace?.steps.at(-1)).toBe(start + 16000)
+    runtime.sample({ id: 3, epoch: 1, simMs: start + 21000, reset: true })
+    expect(runtime['traffic']['states'].get(before.plan.id)).not.toBe(before)
+  })
   it('matches synchronous traffic exactly, including a visibility change and clock seek', () => {
     const runtime = new BusWorkerRuntime()
     const traffic = new BusTrafficController()
@@ -26,5 +65,15 @@ describe('bus worker replay', () => {
       })
       expect(reply.vehicles).toEqual(computeBusOnly(data, new Date(simMs), traffic))
     }
+  })
+  it('bounds catch-up after a long stall without tracing offscreen markers across the reset', () => {
+    const runtime = new BusWorkerRuntime(), selected = routes.slice(0, 3)
+    const start = new Date('2026-09-11T08:00:00+08:00').getTime()
+    runtime.sample({ id: 1, epoch: 0, simMs: start, reset: false,
+      routes: selected.map((r, key) => [key, r]), routeKeys: selected.map((_, i) => i), stops, view: {} })
+    const reply = runtime.sample({ id: 2, epoch: 0, simMs: start + 60000, reset: false, view: {} })
+    expect(reply.trace?.startMs).toBe(start + 60000)
+    expect(reply.vehicles.length).toBeGreaterThan(0)
+    expect(reply.trace?.paths.every(p => p.points[0] === start + 60000)).toBe(true)
   })
 })

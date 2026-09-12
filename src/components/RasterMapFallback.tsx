@@ -71,8 +71,14 @@ export default function RasterMapFallback(props: Props) {
       if (document.hidden) return
       const p = live.current
       const simMs = p.clock.readTimeMs(), zoom = map.getZoom()
+      const busBounds = zoom >= 15.5 ? map.getBounds() : null
       const frame = frames.sample({ now: performance.now(), simMs, data: p.transitData, zoom,
-        renderer: map, trackedId: p.trackedVehicleId ?? null, uploadInterval: 150 })
+        speed: p.clock.paused ? 0 : p.clock.speed,
+        renderer: map, trackedId: p.trackedVehicleId ?? null, uploadInterval: 150,
+        busView: { trackedId: p.trackedVehicleId, bounds: busBounds ? [
+          busBounds.getWest() - .001, busBounds.getSouth() - .001,
+          busBounds.getEast() + .001, busBounds.getNorth() + .001,
+        ] : undefined } })
       if (!frame.upload) return
       const vehicles = frame.vehicles
       const ids = new Set(vehicles.map(v => v.id))

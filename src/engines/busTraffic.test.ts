@@ -27,6 +27,38 @@ function clear(vehicles: VehiclePosition[]) {
 }
 
 describe('bus following', () => {
+  it('invalidates cached footprints when a vehicle object changes position or altitude', () => {
+    const a = plan('cache-a', 0).sample(0).vehicle, b = plan('cache-b', 20).sample(20).vehicle
+    expect(busesConflict(a, b, 0)).toBe(false)
+    b.coordinates[0] = a.coordinates[0]
+    expect(busesConflict(a, b, 0)).toBe(true)
+    b.altitude = 20
+    expect(busesConflict(a, b, 0)).toBe(false)
+  })
+  it('cannot cross an adjacent bus during a long clearance batch', () => {
+    const traffic = new BusTrafficController()
+    const make = (at: number) => [plan('changing', at, { speed: 0 }), plan('adjacent', at, { speed: 0, lane: 3.2 })]
+      .map(p => ({ ...p, sample: (time: number) => {
+        const sample = p.sample(time)
+        return { ...sample, vehicle: { ...sample.vehicle, scale: .5 } }
+      } }))
+    traffic.sample(make(0), 0)
+    traffic['states'].get('changing')!.clearance = { x: 0, y: 6.4 }
+    for (let at = 8; at <= 80; at += 8) {
+      const vehicles = traffic.sample(make(at), at * 1000), changing = vehicles.find(v => v.id === 'changing')!
+      expect((changing.coordinates[1] - 22.19) * 111320).toBeLessThan(.551)
+      expect(busesConflict(changing, vehicles.find(v => v.id === 'adjacent')!, 0)).toBe(false)
+    }
+  })
+
+  it('reports zero speed after arriving within a long playback step', () => {
+    const traffic = new BusTrafficController()
+    traffic.sample([plan('arriving', 0, { stopAt: 2, stopFor: 30 })], 0)
+    const [stopped] = traffic.sample([plan('arriving', 8, { stopAt: 2, stopFor: 30 })], 8000)
+    expect(stopped.busMotion?.phase).toBe('stopped')
+    expect(stopped.busMotion?.speedKmh).toBe(0)
+  })
+
   it('uses the same conflict decision from either end of a curved queue', () => {
     const a = plan('curve-a', 100).sample(100).vehicle
     const b = { ...a, id: 'curve-b', bearing: 80, coordinates: [a.coordinates[0] + 20 / lngM, a.coordinates[1] + 3.5 / 111320] as [number, number] }

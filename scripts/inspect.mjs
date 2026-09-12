@@ -104,7 +104,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
   const seconds = Number(duration)
   if (!Number.isFinite(seconds) || seconds < 0 || seconds > 3600) throw new Error('Duration must be 0–3600 seconds')
   const step = Number(interval)
-  if (!Number.isFinite(step) || step < .03 || step > 2) throw new Error('Sample step must be .03–2 simulated seconds')
+  if (!Number.isFinite(step) || step < .03 || step > 8) throw new Error('Sample step must be .03–8 simulated seconds')
   const { createServer } = await import('vite')
   const server = await createServer({ configFile: false, root: ROOT, optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false, watch: null }, logLevel: 'error' })
   try {

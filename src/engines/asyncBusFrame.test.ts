@@ -22,6 +22,33 @@ function setup() {
 }
 
 describe('background bus frame', () => {
+  it('refreshes a paused view once after panning, without resetting traffic', () => {
+    const { sent, frame, reply } = setup()
+    frame.sample(data, 1000, 0, {}, 0); reply()
+    const view = { bounds: [113.53, 22.18, 113.55, 22.2] as [number, number, number, number] }
+    frame.sample(data, 1000, 33, view, 0)
+    expect(sent).toHaveLength(2)
+    expect(sent[1].reset).toBe(false)
+    expect(sent[1].simMs).toBe(1000)
+    reply()
+    frame.sample(data, 1000, 66, { ...view, bounds: [...view.bounds] }, 0)
+    expect(sent).toHaveLength(2)
+  })
+  it('batches fast playback on aligned steps and flushes the exact paused time', () => {
+    const { sent, frame, reply } = setup()
+    frame.sample(data, 1000, 0, undefined, 60); reply()
+    frame.sample(data, 5000, 67, undefined, 60)
+    expect(sent).toHaveLength(1)
+    frame.sample(data, 9000, 134, undefined, 60)
+    expect(sent.at(-1)?.simMs).toBe(8000)
+    reply()
+    frame.sample(data, 11000, 168, undefined, 0)
+    expect(sent.at(-1)?.simMs).toBe(11000)
+    reply()
+    frame.sample(data, 11000, 200, undefined, 0)
+    expect(sent).toHaveLength(3)
+  })
+
   it('coalesces fast clock updates and transfers static bus data only once', () => {
     const { sent, frame, reply } = setup()
     frame.sample(data, 1000)

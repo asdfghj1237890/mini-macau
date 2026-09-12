@@ -18,6 +18,20 @@ function crossing(id: string, time: number, north: boolean, delay = 0): BusTraff
 }
 
 describe('junction passage reservations', () => {
+  it('does not cross an ungranted entry during a long accelerated step', () => {
+    const traffic = new BusTrafficController()
+    const make = (at: number) => {
+      const p = crossing('fast-approach', at, false)
+      return { ...p, sample: (t: number) => p.sample(t * 4),
+        passageAt: () => ({ keys: ['held'], entryM: 160, exitM: 220 }) }
+    }
+    traffic.sample([make(0)], 0)
+    traffic['junctionOwners'].set('held', new Map([['other-approach', 0]]))
+    traffic.sample([make(8)], 8000)
+    expect(traffic['states'].get('fast-approach')!.pose.distanceM).toBeLessThanOrEqual(159.7)
+    expect(traffic['states'].get('fast-approach')!.passage).toBeUndefined()
+  })
+
   it('serves two earlier requests from one approach before a later crossing request without alternating arms', () => {
     const traffic = new BusTrafficController(), crossed: string[] = []
     for (let time = 0; time <= 60; time += .5) {
