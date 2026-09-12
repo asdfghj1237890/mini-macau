@@ -28,6 +28,25 @@ function start(vehicles: VehiclePosition[]) {
 }
 
 describe('checked bus presentation', () => {
+  it('keeps moving through a buffer increase after a delayed reply, with bounded pace and no extrapolation', () => {
+    const a = vehicle('a', 0), b = vehicle('a', 80), c = vehicle('a', 160)
+    const playback = start([a])
+    playback.accept([b], trace([[0, [a]], [8000, [b]]]), 133, 80)
+    playback.sample(12000, 200, 60)
+    const before = xy(playback.sample(14000, 233, 60)[0])[0]
+    // The larger adaptive delay puts the desired playhead behind the current
+    // pose, but the newly checked chunk must still keep the bus moving.
+    playback.accept([c], trace([[8000, [b]], [16000, [c]]]), 266, 400)
+    let previous = before
+    for (let now = 266; now < 400; now += 33) {
+      const x = xy(playback.sample(14000 + (now - 233) * 60, now, 60)[0])[0]
+      expect(x - previous).toBeGreaterThan(15)
+      expect(x - previous).toBeLessThan(24)
+      previous = x
+    }
+    expect(xy(playback.sample(60000, 1000, 60)[0])[0]).toBeCloseTo(160, 6)
+  })
+
   it('continues moving between slow worker replies without extrapolating beyond them', () => {
     const a = vehicle('a', 0), b = vehicle('a', 100)
     const playback = start([a])
@@ -47,6 +66,17 @@ describe('checked bus presentation', () => {
     const result = playback.sample(1100, 1100)[0]
     expect(xy(result)[0]).toBeCloseTo(50, 6)
     expect(xy(result)[1]).toBeCloseTo(0, 6)
+  })
+
+  it('rebases on a lower playback speed without carrying a high-speed buffer for minutes', () => {
+    const a = vehicle('a', 0), b = vehicle('a', 1000)
+    const playback = start([a])
+    playback.accept([b], trace([[0, [a]], [100000, [b]]]), 1000, 400)
+    const fast = xy(playback.sample(100000, 1000, 60)[0])[0]
+    expect(fast).toBeCloseTo(640, 6)
+    const slow = xy(playback.sample(100010, 1010, 1)[0])[0]
+    expect(slow).toBeGreaterThan(990)
+    expect(slow).toBeLessThanOrEqual(1000)
   })
 
   it('keeps the whole fleet clear if two individually clear endpoint paths cross between steps', () => {

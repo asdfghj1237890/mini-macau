@@ -1211,20 +1211,13 @@ function computeFlightVehicles(
   return vehicles
 }
 
-let cachedProgressMap: Map<string, { progress: number }> | null = null
+// Flight/date/visibility updates replace TransitData without changing track
+// geometry. Cache projections by their actual inputs, including per-line
+// identity so rebuilding a filtered line array never repeats Turf scans.
+const stationProgressMaps = new WeakMap<TransitData['stations'], WeakMap<LRTLine, Map<string, { progress: number }>>>()
+let stationView: { stations: TransitData['stations']; lines: LRTLine[]; map: Map<string, { progress: number }> } | undefined
 const busStopMaps = new WeakMap<BusStop[], Map<string, BusStop>>()
-let cachedFilteredTrips: Trip[] | null = null
-let cachedFilteredScheduleKey: string | null = null
-let cachedTransitRef: TransitData | null = null
-
-function resetTransitCachesIfStale(transitData: TransitData) {
-  if (cachedTransitRef !== transitData) {
-    cachedProgressMap = null
-    cachedFilteredTrips = null
-    cachedFilteredScheduleKey = null
-    cachedTransitRef = transitData
-  }
-}
+const filteredTripSets = new WeakMap<Trip[], Map<string, Trip[]>>()
 
 function getBusStopMap(transitData: Pick<TransitData, 'busStops'>): Map<string, BusStop> {
   const cached = busStopMaps.get(transitData.busStops)
@@ -1236,11 +1229,11 @@ function getBusStopMap(transitData: Pick<TransitData, 'busStops'>): Map<string, 
 }
 
 function getFilteredTrips(transitData: TransitData, scheduleType: ScheduleType, previousScheduleType: ScheduleType): Trip[] {
-  resetTransitCachesIfStale(transitData)
   const key = `${scheduleType}:${previousScheduleType}`
-  if (cachedFilteredTrips && cachedFilteredScheduleKey === key) {
-    return cachedFilteredTrips
-  }
+  let sets = filteredTripSets.get(transitData.trips)
+  if (!sets) { sets = new Map(); filteredTripSets.set(transitData.trips, sets) }
+  const cached = sets.get(key)
+  if (cached) return cached
   // Cache by both service days. After midnight, yesterday's tail still uses
   // yesterday's timetable, even when Friday/weekend/Monday changes the type.
   const filtered = transitData.trips.filter(
@@ -1249,14 +1242,14 @@ function getFilteredTrips(transitData: TransitData, scheduleType: ScheduleType, 
       t.entries.length > 0 && getLrtDepartureMinutes(t.entries[t.entries.length - 1]) >= 1440
     )
   )
-  cachedFilteredTrips = filtered
-  cachedFilteredScheduleKey = key
+  sets.set(key, filtered)
   return filtered
 }
 
 function getStationProgressMap(transitData: TransitData): Map<string, { progress: number }> {
-  resetTransitCachesIfStale(transitData)
-  if (cachedProgressMap) return cachedProgressMap
+  if (stationView?.stations === transitData.stations && stationView.lines === transitData.lrtLines) return stationView.map
+  let lines = stationProgressMaps.get(transitData.stations)
+  if (!lines) { lines = new WeakMap(); stationProgressMaps.set(transitData.stations, lines) }
 
   const stationCoordsMap = new Map<string, [number, number]>()
   for (const s of transitData.stations) {
@@ -1265,25 +1258,32 @@ function getStationProgressMap(transitData: TransitData): Map<string, { progress
 
   const progressMap = new Map<string, { progress: number }>()
   for (const line of transitData.lrtLines) {
+    const cached = lines.get(line)
+    if (cached) {
+      for (const [key, value] of cached) progressMap.set(key, value)
+      continue
+    }
+    const projections = new Map<string, { progress: number }>()
     for (const direction of LRT_DIRECTIONS) {
       const track = getLrtTrack(line.geometry, direction)
       const totalLen = getLineLength(track)
       for (const sid of line.stations) {
         const coords = stationCoordsMap.get(sid)
         if (!coords || totalLen === 0) {
-          progressMap.set(`${line.id}:${direction}:${sid}`, { progress: 0 })
+          projections.set(`${line.id}:${direction}:${sid}`, { progress: 0 })
           continue
         }
         const pt = nearestPointOnLine(track, coords, { units: 'kilometers' })
         const dist = pt.properties.location ?? 0
-        progressMap.set(`${line.id}:${direction}:${sid}`, {
+        projections.set(`${line.id}:${direction}:${sid}`, {
           progress: Math.max(0, Math.min(1, dist / totalLen)),
         })
       }
     }
+    lines.set(line, projections)
+    for (const [key, value] of projections) progressMap.set(key, value)
   }
-
-  cachedProgressMap = progressMap
+  stationView = { stations: transitData.stations, lines: transitData.lrtLines, map: progressMap }
   return progressMap
 }
 

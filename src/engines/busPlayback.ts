@@ -67,12 +67,16 @@ export class BusPlayback {
   private lastAt = NaN
   private lastClock = NaN
   private receivedAt = NaN
+  private following = false
+  private lastRate = 0
   private rendered: VehiclePosition[] = []
 
   clear(): void {
     this.chunks = []; this.latest = []; this.rendered = []
     this.endMs = this.displayMs = this.lastAt = this.lastClock = this.receivedAt = NaN
     this.delayMs = 120
+    this.following = false
+    this.lastRate = 0
   }
 
   accept(vehicles: VehiclePosition[], trace: BusMotionTrace | undefined, now: number, turnaround: number): void {
@@ -98,16 +102,29 @@ export class BusPlayback {
   sample(clockMs: number, now: number, speed?: number, view?: BusDetailView): VehiclePosition[] {
     const elapsed = now - this.lastAt
     const rate = speed ?? (elapsed > 0 ? Math.max(0, Math.min(60, (clockMs - this.lastClock) / elapsed)) : 0)
+    // A speed change rebases the buffer in simulated time. Otherwise dropping
+    // from 60× to 1× would take minutes to consume the old high-speed delay.
+    if (rate !== this.lastRate) this.following = false
+    this.lastRate = rate
     this.lastAt = now; this.lastClock = clockMs
     // Pausing flushes the final checked position and freezes it exactly.
     if (!rate || !this.chunks.length) {
       this.displayMs = this.endMs
       this.rendered = this.latest
       if (!rate) this.chunks = []
+      this.following = false
       return this.rendered
     }
-    const wanted = Math.min(this.endMs, clockMs - this.delayMs * rate)
-    const timeMs = Math.max(this.displayMs, wanted, this.chunks[0].trace.startMs)
+    let wanted = clockMs - this.delayMs * rate
+    // Grow/reduce the buffer by gently changing pace. Moving the target
+    // backwards after a slow reply used to freeze a whole fleet that already
+    // had checked movement available, compounding the original worker stall.
+    if (this.following) {
+      const step = Math.max(0, elapsed) * rate
+      wanted = Math.max(this.displayMs + step * .8, Math.min(this.displayMs + step * 1.2, wanted))
+    }
+    const timeMs = Math.max(this.displayMs, Math.min(this.endMs, Math.max(wanted, this.chunks[0].trace.startMs)))
+    this.following = true
     if (timeMs === this.displayMs) return this.rendered
     const chunk = this.chunks.find(c => c.trace.endMs >= timeMs) ?? this.chunks.at(-1)!
     let presentedMs = timeMs

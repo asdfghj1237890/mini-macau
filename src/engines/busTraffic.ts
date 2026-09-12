@@ -93,11 +93,24 @@ function recoveryClearance(state: State): number {
   return state.pose.distanceM < (state.tightConvoyUntilM ?? -Infinity) ? .05 : CONVOY_CLEARANCE_M
 }
 
-const bodies = new WeakMap<VehiclePosition, Body & { lng: number; lat: number; bearing: number; scale: number }>()
+type CachedBody = Body & { lng: number; lat: number; bearing: number; scale: number }
+// Most swept/interpolated poses live for one frame. Keeping every one as an
+// ephemeron made major GC pause accelerated traffic for hundreds of ms. Two
+// small generations retain hot queue footprints without an unbounded weak
+// table; the geometry itself is immutable and safe to recompute on eviction.
+let bodies = new Map<VehiclePosition, CachedBody>()
+let previousBodies = new Map<VehiclePosition, CachedBody>()
+function rememberBody(v: VehiclePosition, result: CachedBody): void {
+  if (bodies.size >= 1024) { previousBodies = bodies; bodies = new Map() }
+  bodies.set(v, result)
+}
 function body(v: VehiclePosition): Body {
-  const cached = bodies.get(v)
+  const cached = bodies.get(v) ?? previousBodies.get(v)
   if (cached && cached.lng === v.coordinates[0] && cached.lat === v.coordinates[1] &&
-      cached.bearing === v.bearing && cached.scale === (v.scale ?? 1) && cached.z === (v.altitude ?? 0)) return cached
+      cached.bearing === v.bearing && cached.scale === (v.scale ?? 1) && cached.z === (v.altitude ?? 0)) {
+    if (!bodies.has(v)) rememberBody(v, cached)
+    return cached
+  }
   const angle = v.bearing * Math.PI / 180, scale = v.scale ?? 1
   const result = {
     lng: v.coordinates[0], lat: v.coordinates[1], bearing: v.bearing, scale,
@@ -105,7 +118,7 @@ function body(v: VehiclePosition): Body {
     fx: Math.sin(angle), fy: Math.cos(angle), half: BUS_HALF_LENGTH_M * scale,
     width: 2.65 * scale, z: v.altitude ?? 0,
   }
-  bodies.set(v, result)
+  rememberBody(v, result)
   return result
 }
 

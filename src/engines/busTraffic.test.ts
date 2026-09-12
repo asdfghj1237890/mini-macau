@@ -35,6 +35,17 @@ describe('bus following', () => {
     b.altitude = 20
     expect(busesConflict(a, b, 0)).toBe(false)
   })
+  it('keeps collision decisions correct after many transient poses evict older footprints', () => {
+    const a = plan('retained-a', 0).sample(0).vehicle, b = plan('retained-b', 0).sample(0).vehicle
+    expect(busesConflict(a, b, 0)).toBe(true)
+    for (let i = 0; i < 5000; i++) {
+      const transient = { ...a, coordinates: [a.coordinates[0] + (100 + i) / lngM, a.coordinates[1]] as [number, number] }
+      expect(busesConflict(a, transient, 0)).toBe(false)
+    }
+    expect(busesConflict(a, b, 0)).toBe(true)
+    b.coordinates[0] += 100 / lngM
+    expect(busesConflict(a, b, 0)).toBe(false)
+  })
   it('cannot cross an adjacent bus during a long clearance batch', () => {
     const traffic = new BusTrafficController()
     const make = (at: number) => [plan('changing', at, { speed: 0 }), plan('adjacent', at, { speed: 0, lane: 3.2 })]
