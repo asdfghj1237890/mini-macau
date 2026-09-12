@@ -106,7 +106,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
   const step = Number(interval)
   if (!Number.isFinite(step) || step < .03 || step > 2) throw new Error('Sample step must be .03–2 simulated seconds')
   const { createServer } = await import('vite')
-  const server = await createServer({ configFile: false, root: ROOT, optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false }, logLevel: 'error' })
+  const server = await createServer({ configFile: false, root: ROOT, optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false, watch: null }, logLevel: 'error' })
   try {
     const { computeVehiclePositions, sampleBusPose } = await server.ssrLoadModule('/src/engines/simulationEngine.ts')
     const { BusTrafficController, busesConflict } = await server.ssrLoadModule('/src/engines/busTraffic.ts')
@@ -170,6 +170,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
     console.log(JSON.stringify({ clock, seconds, step, mode, nominalBuses: nominal.length, visibleBuses: final.length,
       nominalAmaralOverlaps: conflicts(nearby(nominal)), replayOverlapObservations: collisions, worstPairs: worst.slice(0, 8),
       queuedPeak, initialMs, sampleP95Ms: timings[Math.floor(timings.length * .95)] ?? 0,
+      sampleMeanMs: timings.reduce((sum, ms) => sum + ms, 0) / Math.max(1, timings.length),
       timingScope: 'CPU vehicle calculation only, excluding rendering; initialMs includes cold geometry caches.',
       longestHolds: [...holds].sort((a, b) => b[1].longest - a[1].longest).slice(0, 10).map(([id, times]) => {
         const v = final.find(v => v.id === id), route = data.busRoutes.find(r => r.id === v?.lineId)

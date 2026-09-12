@@ -19,7 +19,7 @@ function fixture() {
     getUniformLocation: vi.fn(() => ({})), getShaderParameter: vi.fn(() => true),
     getProgramParameter: vi.fn(() => true), getShaderInfoLog: vi.fn(() => 'compile failure'),
     getProgramInfoLog: vi.fn(() => 'link failure'), shaderSource: vi.fn(), compileShader: vi.fn(),
-    attachShader: vi.fn(), linkProgram: vi.fn(), bindBuffer: vi.fn(), bufferData: vi.fn(),
+    attachShader: vi.fn(), linkProgram: vi.fn(), bindBuffer: vi.fn(), bufferData: vi.fn(), bufferSubData: vi.fn(),
     bindVertexArray: vi.fn(), enableVertexAttribArray: vi.fn(), vertexAttribPointer: vi.fn(),
     vertexAttribDivisor: vi.fn(), deleteShader: vi.fn(), deleteProgram: vi.fn(),
     deleteBuffer: vi.fn(), deleteVertexArray: vi.fn(), useProgram: vi.fn(),
@@ -60,7 +60,8 @@ describe('instanced vehicle GPU lifecycle', () => {
     expect(gl.bufferData).toHaveBeenCalledTimes(3)
     layer.setTrackedVehicle({ ...flight, altitude: 800 })
     layer.render(context, options)
-    expect(gl.bufferData).toHaveBeenCalledTimes(4)
+    expect(gl.bufferData).toHaveBeenCalledTimes(3)
+    expect(gl.bufferSubData).toHaveBeenCalledOnce()
   })
 
   it('does not draw cleared fleets or models below the zoom threshold', () => {
@@ -83,13 +84,32 @@ describe('instanced vehicle GPU lifecycle', () => {
     const layer = new AircraftModelLayer(15.6)
     layer.onAdd(mapInstance, context)
     layer.setVehicles([flight])
+    layer.render(context, options)
     layer.onRemove(mapInstance, context)
     expect(gl.deleteVertexArray).toHaveBeenCalledTimes(2)
     expect(gl.deleteBuffer).toHaveBeenCalledTimes(3)
     expect(gl.deleteProgram).toHaveBeenCalledTimes(1)
     layer.onAdd(mapInstance, context)
     layer.render(context, options)
-    expect(gl.drawArraysInstanced).toHaveBeenCalledTimes(1)
+    expect(gl.drawArraysInstanced).toHaveBeenCalledTimes(2)
+    expect(gl.bufferData).toHaveBeenCalledTimes(4)
+    expect(gl.bufferSubData).not.toHaveBeenCalled()
+  })
+
+  it('reuses a larger GPU allocation after shrinking a fleet and grows only when required', () => {
+    const { gl, context, mapInstance } = fixture()
+    const layer = new AircraftModelLayer(15.6)
+    layer.onAdd(mapInstance, context)
+    layer.setVehicles([flight, { ...flight, id: 'second' }])
+    layer.render(context, options)
+    layer.setVehicles([flight])
+    layer.render(context, options)
+    expect(gl.drawArraysInstanced.mock.calls.map(call => call[3])).toEqual([2, 1])
+    expect(gl.bufferData).toHaveBeenCalledTimes(2)
+    expect(gl.bufferSubData).toHaveBeenCalledOnce()
+    layer.setVehicles([flight, { ...flight, id: 'second' }, { ...flight, id: 'third' }])
+    layer.render(context, options)
+    expect(gl.bufferData).toHaveBeenCalledTimes(3)
   })
 
   it('cleans up failed shader creation and reports errors the map recovery recognises', () => {

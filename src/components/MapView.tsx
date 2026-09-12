@@ -18,6 +18,7 @@ import { getLrtTrack, LRT_DIRECTIONS } from '../lrtTracks'
 import { getLrtDepartureMinutes } from '../engines/lrtTimetable'
 import { FontSizeControl } from './FontSizeControl'
 import { VehicleFrame } from '../engines/vehicleFrame'
+import { AsyncBusFrame } from '../engines/asyncBusFrame'
 import { Flight3DLayer, ALL_FLIGHT_3D_LAYERS } from '../layers/Flight3DLayer'
 import { Ferry3DLayer, ALL_FERRY_3D_LAYERS } from '../layers/Ferry3DLayer'
 import {
@@ -4720,7 +4721,7 @@ export function MapView(props: MapViewProps) {
     const TRACK_ZOOM = 16
     const FLY_DURATION = 1200
     const EASE_BACK_DURATION = 400
-    const frames = new VehicleFrame()
+    const frames = new VehicleFrame(new AsyncBusFrame())
     let lastCountReport = 0
     let lastRaceFocus: boolean | null = null
     let smoothCam: [number, number] | null = null
@@ -4853,7 +4854,7 @@ export function MapView(props: MapViewProps) {
           const tracked =
             (frame.trackedFlight?.id === tid ? frame.trackedFlight : undefined) ??
             vehiclesRef.current.find(v => v.id === tid)
-          if (!tracked && prevTrackedRef.current === tid) {
+          if (!tracked && prevTrackedRef.current === tid && !frame.surfacePending) {
             // Tracked vehicle dropped out of the simulation (service ended,
             // schedule ran out, scrubbed to a time outside its window, etc).
             // Clear the selection so the info panel closes instead of
@@ -4913,7 +4914,7 @@ export function MapView(props: MapViewProps) {
       raf = requestAnimationFrame(animate)
     }
     raf = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(raf)
+    return () => { cancelAnimationFrame(raf); frames.dispose() }
   }, [readTimeMs])
 
   const toggle3D = useCallback(() => {

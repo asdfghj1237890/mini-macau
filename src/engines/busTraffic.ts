@@ -112,7 +112,9 @@ function overlap(a: Body, b: Body, gap = GAP_M): boolean {
       Math.abs(dy) > a.half + b.half + gap + a.width + b.width) return false
   // Separating-axis test for two oriented vehicle bodies. Padding is along
   // travel only: an adjacent lane must not acquire a five-metre side gap.
-  for (const [x, y] of [[a.fx, a.fy], [a.fy, -a.fx], [b.fx, b.fy], [b.fy, -b.fx]]) {
+  for (let axis = 0; axis < 4; axis++) {
+    const x = axis === 0 ? a.fx : axis === 1 ? a.fy : axis === 2 ? b.fx : b.fy
+    const y = axis === 0 ? a.fy : axis === 1 ? -a.fx : axis === 2 ? b.fy : -b.fx
     const ra = Math.abs(x * a.fx + y * a.fy) * (a.half + gap / 2) + Math.abs(x * a.fy - y * a.fx) * a.width
     const rb = Math.abs(x * b.fx + y * b.fy) * (b.half + gap / 2) + Math.abs(x * b.fy - y * b.fx) * b.width
     if (Math.abs(dx * x + dy * y) >= ra + rb) return false

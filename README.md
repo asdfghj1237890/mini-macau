@@ -418,6 +418,15 @@ mini-macau/
 Simulating 300–400 moving vehicles at 30 Hz while MapLibre re-draws 3D extrusions every frame puts real pressure on the main thread. A few optimizations worth calling out:
 
 <details>
+<summary><strong>Bus traffic runs in a dedicated worker</strong></summary>
+
+Both the 3D map and the 2D fallback calculate bus following, junction reservations and swept-body checks in a module worker. The main thread keeps the last checked fleet while the next snapshot is calculated. There is at most one request in flight: clock updates coalesce instead of building a queue of obsolete frames. Seeks and layer changes reject stale replies; paused clocks still display their final completed snapshot. If workers are unavailable, the same traffic engine runs synchronously.
+
+Only bus routes and stops are transferred. Route objects retain stable worker identities across visibility changes, and unchanged data is not copied on each tick. Immutable road sections share directional lane layouts. The collision rules, vehicle dimensions, junction ordering and recovery checks are unchanged. See [`asyncBusFrame.ts`](src/engines/asyncBusFrame.ts) and [`busWorkerRuntime.ts`](src/engines/busWorkerRuntime.ts).
+
+</details>
+
+<details>
 <summary><strong>The clock is an external store, not App state</strong></summary>
 
 The simulation clock ticks ~10 times a second. It used to publish the time as React state on the hook that `App` owns, so every tick re-rendered `App` and its whole tree — the layer panel with its hundreds of rows included — to move a seconds digit. In the dev build that was 30–40 ms of React work ten times a second.
@@ -456,9 +465,9 @@ Consolidating into a single `bus-routes` source (one tile index, one round-trip 
 <details>
 <summary><strong>Two-tier animation throttle</strong></summary>
 
-Moving 300+ buses as 3D fill-extrusion polygons is heavy (each bus is 8 quads × lat/lng math). Moving them as 2D circles is almost free (just a `setData` on a Point FeatureCollection).
+The bus, aircraft and LRT models use shared instanced meshes. CPU instance arrays and GPU buffers are reused for subsequent poses; buffer storage is reallocated only when a batch grows or its WebGL context is rebuilt. Unchanged visible bus snapshots skip both mesh and picking-source uploads, including camera moves that leave the visible fleet unchanged.
 
-The animate loop computes positions every 33 ms, but what a GPU actually pays for is every `setData`: each one re-tiles all of that source's in-view tiles in the worker and re-uploads their buffers. So the uploads — the 3D vehicle sources and the 2D marker source alike — run on one cadence: 33 ms on desktop, 100 ms on phones, and 160 ms whenever the map is actively moving (`movestart` / `moveend` set a `mapBusy` flag). The 2D marker source used to be written every animation frame, 60 re-tilings a second of a source that only changes at the sim tick; on an iPhone X that was 450 tile reloads a second and a lost WebGL context.
+The animate loop samples surface positions and requests available bus-worker updates every 33 ms. GeoJSON `setData` still re-tiles each source's in-view tiles and uploads their buffers, so the 3D picking sources and the 2D marker source share one upload cadence: 33 ms on desktop, 100 ms on phones, and 160 ms whenever the map is actively moving (`movestart` / `moveend` set a `mapBusy` flag). The 2D marker source used to be written every animation frame, 60 re-tilings a second of a source that only changes at the sim tick; on an iPhone X that was 450 tile reloads a second and a lost WebGL context.
 
 </details>
 

@@ -1198,7 +1198,7 @@ function computeFlightVehicles(
 }
 
 let cachedProgressMap: Map<string, { progress: number }> | null = null
-let cachedBusStopMap: Map<string, BusStop> | null = null
+const busStopMaps = new WeakMap<BusStop[], Map<string, BusStop>>()
 let cachedFilteredTrips: Trip[] | null = null
 let cachedFilteredScheduleKey: string | null = null
 let cachedTransitRef: TransitData | null = null
@@ -1206,19 +1206,18 @@ let cachedTransitRef: TransitData | null = null
 function resetTransitCachesIfStale(transitData: TransitData) {
   if (cachedTransitRef !== transitData) {
     cachedProgressMap = null
-    cachedBusStopMap = null
     cachedFilteredTrips = null
     cachedFilteredScheduleKey = null
     cachedTransitRef = transitData
   }
 }
 
-function getBusStopMap(transitData: TransitData): Map<string, BusStop> {
-  resetTransitCachesIfStale(transitData)
-  if (cachedBusStopMap) return cachedBusStopMap
+function getBusStopMap(transitData: Pick<TransitData, 'busStops'>): Map<string, BusStop> {
+  const cached = busStopMaps.get(transitData.busStops)
+  if (cached) return cached
   const map = new Map<string, BusStop>()
   for (const s of transitData.busStops) map.set(s.id, s)
-  cachedBusStopMap = map
+  busStopMaps.set(transitData.busStops, map)
   return map
 }
 
@@ -1414,7 +1413,7 @@ export function computeLRTVehicle(transitData: TransitData, trip: Trip, time: Da
 export function computeVehiclePositions(
   transitData: TransitData,
   time: Date,
-  options: { includeFlights?: boolean; busTraffic?: BusTrafficController } = {},
+  options: { includeFlights?: boolean; includeBuses?: boolean; busTraffic?: BusTrafficController } = {},
 ): VehiclePosition[] {
   const nowMinutes = timeToMinutes(time)
   const stationProgressMap = getStationProgressMap(transitData)
@@ -1431,14 +1430,7 @@ export function computeVehiclePositions(
     previousScheduleType,
   )
 
-  const busVehicles = computeBusVehicles(
-    transitData.busRoutes,
-    getBusStopMap(transitData),
-    nowMinutes,
-    getBusServiceBucket(time),
-    options.busTraffic,
-    time.getTime(),
-  )
+  const busVehicles = options.includeBuses === false ? [] : computeBusOnly(transitData, time, options.busTraffic)
 
   const flightVehicles = options.includeFlights === false ? [] : computeFlightVehicles(
     transitData.flights,
@@ -1460,6 +1452,10 @@ export function computeFlightOnly(
   time: Date,
 ): VehiclePosition[] {
   return computeFlightVehicles(transitData.flights, timeToMinutes(time))
+}
+
+export function computeBusOnly(data: Pick<TransitData, 'busRoutes' | 'busStops'>, time: Date, traffic?: BusTrafficController): VehiclePosition[] {
+  return computeBusVehicles(data.busRoutes, getBusStopMap(data), timeToMinutes(time), getBusServiceBucket(time), traffic, time.getTime())
 }
 
 export function computeSingleFlight(flight: Flight, time: Date): VehiclePosition | null {

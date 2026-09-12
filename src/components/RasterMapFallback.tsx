@@ -4,8 +4,8 @@ import 'leaflet/dist/leaflet.css'
 import './rasterMapFallback.css'
 import type { MapViewProps } from './MapView'
 import type { VehiclePosition } from '../types'
-import { computeVehiclePositions } from '../engines/simulationEngine'
-import { BusTrafficController } from '../engines/busTraffic'
+import { VehicleFrame } from '../engines/vehicleFrame'
+import { AsyncBusFrame } from '../engines/asyncBusFrame'
 import { getLrtTrack, LRT_DIRECTIONS } from '../lrtTracks'
 import { localName, useI18n } from '../i18n'
 import { debugLog } from '../debugOverlay'
@@ -64,20 +64,17 @@ export default function RasterMapFallback(props: Props) {
     const resize = new ResizeObserver(() => map.invalidateSize())
     resize.observe(host.current)
     const markers = new Map<string, { marker: L.CircleMarker; vehicle: VehiclePosition }>()
-    const busTraffic = new BusTrafficController()
+    const frames = new VehicleFrame(new AsyncBusFrame())
     let raceCar: L.CircleMarker | null = null
     let count = -1
-    let previousTime = NaN
-    let previousData: Props['transitData'] | null = null
-    let previousTracked: string | null | undefined
-    let previousZoom = NaN
     const tick = () => {
       if (document.hidden) return
       const p = live.current
       const simMs = p.clock.readTimeMs(), zoom = map.getZoom()
-      if (simMs === previousTime && previousData === p.transitData && previousTracked === p.trackedVehicleId && previousZoom === zoom) return
-      previousTime = simMs; previousData = p.transitData; previousTracked = p.trackedVehicleId; previousZoom = zoom
-      const vehicles = computeVehiclePositions(p.transitData, new Date(simMs), { busTraffic })
+      const frame = frames.sample({ now: performance.now(), simMs, data: p.transitData, zoom,
+        renderer: map, trackedId: p.trackedVehicleId ?? null, uploadInterval: 150 })
+      if (!frame.upload) return
+      const vehicles = frame.vehicles
       const ids = new Set(vehicles.map(v => v.id))
       for (const [id, entry] of markers) {
         if (!ids.has(id)) { entry.marker.remove(); markers.delete(id) }
@@ -122,6 +119,7 @@ export default function RasterMapFallback(props: Props) {
     debugLog('[map] 2D raster fallback started (no WebGL)')
     return () => {
       window.clearInterval(timer)
+      frames.dispose()
       resize.disconnect()
       map.remove()
       mapRef.current = null

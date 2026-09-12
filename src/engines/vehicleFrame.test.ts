@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Flight, TransitData } from '../types'
 import { VehicleFrame } from './vehicleFrame'
 import { computeFlightOnly, computeSingleFlight, computeVehiclePositions } from './simulationEngine'
+import type { AsyncBusFrame } from './asyncBusFrame'
 
 vi.mock('./simulationEngine', () => ({
   computeVehiclePositions: vi.fn(() => [{ id: 'bus', type: 'bus' }]),
@@ -14,6 +15,23 @@ const input = { now: 0, simMs: 1000, data, zoom: 18, renderer, trackedId: null a
 beforeEach(() => vi.clearAllMocks())
 
 describe('vehicle frame scheduling', () => {
+  it('uploads a completed background fleet while paused and keeps the phone upload limit', () => {
+    const buses = [{ id: 'background-bus', type: 'bus' }]
+    const initial: unknown[] = []
+    const asyncBuses = { sample: vi.fn().mockReturnValue({ vehicles: initial, pending: true }), dispose: vi.fn() }
+    const frames = new VehicleFrame(asyncBuses as unknown as AsyncBusFrame)
+    expect(frames.sample({ ...input, uploadInterval: 100 }).surfacePending).toBe(true)
+    asyncBuses.sample.mockReturnValue({ vehicles: buses, pending: false })
+    expect(frames.sample({ ...input, now: 40, uploadInterval: 100 }).upload).toBe(false)
+    const result = frames.sample({ ...input, now: 100, uploadInterval: 100 })
+    expect(result.surfacePending).toBe(false)
+    expect(result.upload).toBe(true)
+    expect(result.vehicles).toEqual(expect.arrayContaining(buses))
+    expect(computeVehiclePositions).toHaveBeenCalledTimes(1)
+    expect(computeVehiclePositions).toHaveBeenCalledWith(data, expect.any(Date), expect.objectContaining({ includeBuses: false }))
+    frames.dispose()
+    expect(asyncBuses.dispose).toHaveBeenCalledOnce()
+  })
   it('does no simulation or upload work while paused with unchanged data and view', () => {
     const frames = new VehicleFrame(), first = frames.sample(input)
     expect(first.upload).toBe(true)

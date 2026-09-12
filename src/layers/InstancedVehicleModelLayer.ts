@@ -55,18 +55,24 @@ void main() {
   fragColor = vec4(v_color * mix(0.58 + 0.28 * key + 0.14 * sky, 1.0, v_emissive), 1.0);
 }`
 
-export function vehicleInstances(vehicles: VehiclePosition[], groundAltitude = 0, articulations?: ModelArticulation[]): Float32Array {
+export function vehicleInstances(vehicles: VehiclePosition[], groundAltitude = 0, articulations?: ModelArticulation[], reuse?: Float32Array): Float32Array {
   const stride = articulations ? INSTANCE_FLOATS + 8 : INSTANCE_FLOATS
-  const values = new Float32Array(vehicles.length * stride)
+  const length = vehicles.length * stride
+  const values = reuse?.length === length ? reuse : new Float32Array(length)
   vehicles.forEach((vehicle, i) => {
     const position = MercatorCoordinate.fromLngLat(vehicle.coordinates, vehicle.altitude ?? groundAltitude)
     const angle = vehicle.bearing * Math.PI / 180
     const color = /^#[\da-f]{6}$/i.test(vehicle.color) ? Number.parseInt(vehicle.color.slice(1), 16) : 0x38bdf8
-    values.set([
-      (position.x - ORIGIN.x) / UNIT, (position.y - ORIGIN.y) / UNIT, position.z / UNIT,
-      Math.cos(angle), Math.sin(angle), (vehicle.scale ?? 1) * position.meterInMercatorCoordinateUnits() / UNIT,
-      (color >> 16 & 255) / 255, (color >> 8 & 255) / 255, (color & 255) / 255,
-    ], i * stride)
+    const at = i * stride
+    values[at] = (position.x - ORIGIN.x) / UNIT
+    values[at + 1] = (position.y - ORIGIN.y) / UNIT
+    values[at + 2] = position.z / UNIT
+    values[at + 3] = Math.cos(angle)
+    values[at + 4] = Math.sin(angle)
+    values[at + 5] = (vehicle.scale ?? 1) * position.meterInMercatorCoordinateUnits() / UNIT
+    values[at + 6] = (color >> 16 & 255) / 255
+    values[at + 7] = (color >> 8 & 255) / 255
+    values[at + 8] = (color & 255) / 255
     if (articulations) {
       values.set(articulations[i]?.front ?? IDENTITY_CAR, i * stride + INSTANCE_FLOATS)
       values.set(articulations[i]?.rear ?? IDENTITY_CAR, i * stride + INSTANCE_FLOATS + 4)
@@ -75,8 +81,8 @@ export function vehicleInstances(vehicles: VehiclePosition[], groundAltitude = 0
   return values
 }
 
-type Batch = { data: Float32Array; dirty: boolean; vao: WebGLVertexArrayObject | null; buffer: WebGLBuffer | null }
-const batch = (): Batch => ({ data: new Float32Array(), dirty: true, vao: null, buffer: null })
+type Batch = { data: Float32Array; capacity: number; dirty: boolean; vao: WebGLVertexArrayObject | null; buffer: WebGLBuffer | null }
+const batch = (): Batch => ({ data: new Float32Array(), capacity: 0, dirty: true, vao: null, buffer: null })
 
 // One immutable mesh, at most two draws (fleet + optional tracked vehicle). Uses the
 // map's WebGL2 context and depth buffer; no texture, extra context or library.
@@ -114,14 +120,14 @@ export class InstancedVehicleModelLayer implements CustomLayerInterface {
 
   setVehicles(vehicles: VehiclePosition[], articulations?: ModelArticulation[]): void {
     if (!vehicles.length && !this.fleet.data.length) return
-    this.fleet.data = vehicleInstances(vehicles, this.groundAltitude, this.articulated ? articulations ?? [] : undefined)
+    this.fleet.data = vehicleInstances(vehicles, this.groundAltitude, this.articulated ? articulations ?? [] : undefined, this.fleet.data)
     this.fleet.dirty = true
     this.map?.triggerRepaint()
   }
 
   setTrackedVehicle(vehicle: VehiclePosition | null, articulation?: ModelArticulation): void {
     if (!vehicle && this.tracked.data.length === 0) return
-    this.tracked.data = vehicleInstances(vehicle ? [vehicle] : [], this.groundAltitude, this.articulated ? articulation ? [articulation] : [] : undefined)
+    this.tracked.data = vehicleInstances(vehicle ? [vehicle] : [], this.groundAltitude, this.articulated ? articulation ? [articulation] : [] : undefined, this.tracked.data)
     this.tracked.dirty = true
     this.map?.triggerRepaint()
   }
@@ -207,7 +213,10 @@ export class InstancedVehicleModelLayer implements CustomLayerInterface {
       gl.bindVertexArray(item.vao)
       if (item.dirty) {
         gl.bindBuffer(gl.ARRAY_BUFFER, item.buffer)
-        gl.bufferData(gl.ARRAY_BUFFER, item.data, gl.DYNAMIC_DRAW)
+        if (item.data.byteLength > item.capacity) {
+          gl.bufferData(gl.ARRAY_BUFFER, item.data, gl.DYNAMIC_DRAW)
+          item.capacity = item.data.byteLength
+        } else gl.bufferSubData(gl.ARRAY_BUFFER, 0, item.data)
         item.dirty = false
       }
       gl.drawArraysInstanced(gl.TRIANGLES, 0, this.mesh.length / this.vertexFloats, item.data.length / this.instanceFloats)
@@ -222,6 +231,7 @@ export class InstancedVehicleModelLayer implements CustomLayerInterface {
       gl.deleteBuffer(item.buffer)
       item.vao = null
       item.buffer = null
+      item.capacity = 0
       item.dirty = true
     }
     gl.deleteBuffer(this.meshBuffer)

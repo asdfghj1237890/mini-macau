@@ -15,6 +15,7 @@ export class Bus3DLayer {
   private map: MapLibreMap | null = null
   private isEmpty = true
   private buses: VehiclePosition[] = []
+  private visible: VehiclePosition[] = []
   private lastViewUpdate = -Infinity
   private onMove = () => {
     if (performance.now() - this.lastViewUpdate >= 100) this.updateView()
@@ -53,6 +54,7 @@ export class Bus3DLayer {
     if (map.getSource(BUS_3D_SOURCE_ID)) map.removeSource(BUS_3D_SOURCE_ID)
     this.model.setVehicles([])
     this.buses = []
+    this.visible = []
     this.isEmpty = true
     this.map = null
   }
@@ -69,6 +71,10 @@ export class Bus3DLayer {
     if (!src?.setData) return
     this.lastViewUpdate = performance.now()
     const visible = map.getZoom() >= MIN_ZOOM - .5 ? busesInBounds(this.buses, map.getBounds()) : []
+    // A render tick may precede the next background fleet. Camera movement
+    // only needs another upload if it changes which immutable poses are visible.
+    if (visible.length === this.visible.length && visible.every((v, i) => v === this.visible[i])) return
+    this.visible = visible
     this.model.setVehicles(visible)
     if (!visible.length && this.isEmpty) return
     src.setData({ type: 'FeatureCollection', features: buildBusFeatures(visible) })

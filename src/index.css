@@ -1,4 +1,8 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
+@source "./";
+@source "../index.html";
+@source "../thank-you.html";
+@source "../plugins/seo-content";
 @import "maplibre-gl/dist/maplibre-gl.css";
 @import "./typography.css";
 

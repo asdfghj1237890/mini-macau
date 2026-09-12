@@ -3,7 +3,19 @@ import type { BusRoadProfile, BusRoadSection } from '../types'
 /** Lane zero is nearest the left kerb. OSM lanes counts the entire way: a
  * separately mapped carriageway has its own count, a two-way road does not.
  * Untagged widths use a display estimate, never extra inferred lanes. */
-export function busLaneLayout(section: BusRoadSection, returning = false): { offsets: number[]; estimated: boolean } {
+type LaneLayout = { readonly offsets: readonly number[]; readonly estimated: boolean }
+const layouts = new WeakMap<BusRoadSection, { forward?: LaneLayout; reverse?: LaneLayout }>()
+
+// Road sections are immutable dataset records. Every vehicle and every swept
+// pose can share their directional layout; do not allocate it per sample.
+export function busLaneLayout(section: BusRoadSection, returning = false): LaneLayout {
+  let cached = layouts.get(section)
+  if (!cached) { cached = {}; layouts.set(section, cached) }
+  const direction = returning ? 'reverse' : 'forward'
+  return cached[direction] ??= buildLaneLayout(section, returning)
+}
+
+function buildLaneLayout(section: BusRoadSection, returning: boolean): LaneLayout {
   const estimated = section.widthM === undefined
   // A mismatched one-way match does not establish a lane on either side of
   // the imported trace. Keep its centre unless the route-pair scan found

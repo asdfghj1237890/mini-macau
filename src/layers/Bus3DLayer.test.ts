@@ -27,6 +27,9 @@ describe('bus viewport lifecycle', () => {
     layer.attach(map as unknown as MapLibreMap)
     layer.setVehicles(fleet)
     expect(ids()).toEqual(['near'])
+    layer.setVehicles([...fleet])
+    events.get('moveend')!()
+    expect(setData).toHaveBeenCalledTimes(1)
     centre = 113.6
     events.get('moveend')!()
     expect(ids()).toEqual(['far'])

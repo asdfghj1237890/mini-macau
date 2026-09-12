@@ -1,6 +1,7 @@
 import type { Flight, TransitData, VehiclePosition } from '../types'
 import { computeFlightOnly, computeSingleFlight, computeVehiclePositions } from './simulationEngine'
 import { BusTrafficController } from './busTraffic'
+import type { AsyncBusFrame } from './asyncBusFrame'
 
 interface FrameInput {
   now: number
@@ -17,6 +18,10 @@ interface FrameInput {
 export class VehicleFrame {
   private busTraffic = new BusTrafficController()
   private surface: VehiclePosition[] = []
+  private base: VehiclePosition[] = []
+  private buses: VehiclePosition[] = []
+  private asyncBuses?: AsyncBusFrame
+  private surfacePending = false
   private flights: VehiclePosition[] = []
   private vehicles: VehiclePosition[] = []
   private surfaceData: TransitData | null = null
@@ -35,15 +40,26 @@ export class VehicleFrame {
   private trackedFlight: VehiclePosition | null = null
   private trackedMs = NaN
 
+  constructor(asyncBuses?: AsyncBusFrame) { this.asyncBuses = asyncBuses }
+  dispose(): void { this.asyncBuses?.dispose() }
+
   sample(input: FrameInput) {
     const { now, simMs, data, zoom, renderer, trackedId, uploadInterval } = input
-    const surfaceUpdated = now - this.surfaceAt >= 33 && (this.surfaceData !== data || this.surfaceMs !== simMs)
-    if (surfaceUpdated) {
-      this.surface = computeVehiclePositions(data, new Date(simMs), { includeFlights: false, busTraffic: this.busTraffic })
+    let surfaceUpdated = false
+    if (now - this.surfaceAt >= 33) {
+      const changed = this.surfaceData !== data || this.surfaceMs !== simMs
+      if (changed) this.base = computeVehiclePositions(data, new Date(simMs), {
+        includeFlights: false, includeBuses: !this.asyncBuses, busTraffic: this.busTraffic,
+      })
+      const busFrame = this.asyncBuses?.sample(data, simMs, now)
+      surfaceUpdated = changed || (!!busFrame && this.buses !== busFrame.vehicles)
+      if (busFrame) this.buses = busFrame.vehicles
+      this.surfacePending = busFrame?.pending ?? false
+      if (surfaceUpdated) this.surface = this.asyncBuses ? [...this.base, ...this.buses] : this.base
       this.surfaceAt = now
       this.surfaceData = data
       this.surfaceMs = simMs
-      this.surfaceDirty = true
+      this.surfaceDirty ||= surfaceUpdated
     }
     const flightChanged = this.flightData !== data || this.flightMs !== simMs
     const viewChanged = this.renderer !== renderer || this.zoom !== zoom
@@ -79,7 +95,7 @@ export class VehicleFrame {
       this.uploadedTrackedId = trackedId
     }
     return {
-      upload, surfaceUpdated, vehicles: this.vehicles, surface: this.surface, flights: this.flights,
+      upload, surfaceUpdated, surfacePending: this.surfacePending, vehicles: this.vehicles, surface: this.surface, flights: this.flights,
       trackedFlight: this.trackedFlight,
       trackedUpdated: oldTracked !== this.trackedFlight || (upload && (viewChanged || selectionChanged)),
     }
