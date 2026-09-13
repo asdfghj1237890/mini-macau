@@ -25,13 +25,24 @@ export class BusTraceRecorder {
     const b = this.view.bounds, [x, y] = vehicle.coordinates
     return !!b && x >= b[0] && y >= b[1] && x <= b[2] && y <= b[3]
   }
+  private encode(vehicle: VehiclePosition, timeMs: number): number[] {
+    const motion = vehicle.busMotion
+    return [timeMs, ...vehicle.coordinates, vehicle.bearing, vehicle.progress,
+      motion?.dirSec ?? 0, motion?.speedKmh ?? 0,
+      motion?.phase === 'stopped' ? 1 : motion?.phase === 'queued' ? 2 : 0, motion?.delaySec ?? 0]
+  }
   add(vehicle: VehiclePosition, timeMs: number): void {
     let points = this.paths.get(vehicle.id)
     if (!points) { points = []; this.paths.set(vehicle.id, points) }
-    const motion = vehicle.busMotion
-    points.push(timeMs, ...vehicle.coordinates, vehicle.bearing, vehicle.progress,
-      motion?.dirSec ?? 0, motion?.speedKmh ?? 0,
-      motion?.phase === 'stopped' ? 1 : motion?.phase === 'queued' ? 2 : 0, motion?.delaySec ?? 0)
+    points.push(...this.encode(vehicle, timeMs))
+  }
+  /** An earlier pose for a vehicle whose first checked point sits later in
+   * this request, so playback slides to it instead of hiding the vehicle. */
+  prepend(vehicle: VehiclePosition, timeMs: number): void {
+    const points = this.paths.get(vehicle.id)
+    if (!points?.length) { this.add(vehicle, timeMs); return }
+    if (timeMs >= points[0]) return
+    points.unshift(...this.encode(vehicle, timeMs))
   }
   finish(vehicles: VehiclePosition[], endMs: number): BusMotionTrace {
     // Only the final active fleet supplies metadata. Removed/hidden vehicles

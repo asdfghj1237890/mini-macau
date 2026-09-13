@@ -62,7 +62,7 @@ getScheduleType(date: Date): 'mon_thu' | 'friday' | 'sat_sun'
 
 ### `getBusSchedule` — 一次性 per-route 的 schedule build
 
-對每條路線，根據幾何長度、停靠點清單、`tripDurationSec`（短於 5 km 是 30 min、否則 60 min）：
+對每條路線，根據幾何長度、停靠點清單、`tripDurationSec`（沿路線積分各路段的巡航速度：三線以上分隔道路 80 km/h、其他分隔道路與多線街道 60、單線／雙向／未配對街道 40、總站車道 20，見 `busCruiseKmh`；每個站再加 8 秒停站與以該路段速度計的煞車／加速時間。舊的固定 30 / 60 min 模型保留為 `busTripModel: 'legacy'`，只給用舊時刻捕捉的重播測試場景用）：
 
 1. **把停靠點投影到路線上**得到每站的 progress：
    - `circular` 用 `projectStopsOrdered`：cursor 沿 polyline 走、每個下一站只在前方 window 內找最近，避免自交路線把 cursor 推過頭。
@@ -78,7 +78,11 @@ getScheduleType(date: Date): 'mon_thu' | 'friday' | 'sat_sun'
 progressAtCycle(schedule: BusSchedule, cycleSec: number): number
 ```
 
-把 cycleSec mod `schedule.cycleSec`（環狀：cycleSec = tripDurationSec；雙向：2 × tripDurationSec），然後在 forward / backward 兩段裡找對應的 stop dwell 或 segment interpolation。dwell 期間 progress 不動；segment 內線性內插。
+把 cycleSec mod `schedule.cycleSec`（環狀：cycleSec = tripDurationSec；雙向：2 × tripDurationSec），然後在 forward / backward 兩段裡找對應的 stop dwell 或 segment interpolation。dwell 期間 progress 不動；segment 內依路段速度曲線內插（legacy 模型為線性）。
+
+服務時間結束後，時刻表上「開始於結束時間之後」的那一圈不再派車；但實體車可能因塞車落後，`computeBusOnly` 會透過交通控制器的 `playheadOf` 看該車自己的時刻，讓它跑完最後一圈才在總站消失，而不是在路上憑空不見。
+
+細節模擬只涵蓋鏡頭附近（`BusTrafficScope`）。一輛車剛被納入細節模擬時，這一批（1× 是一格、10×／30×／60× 是 2／4／8 模擬秒）只有批尾一個實測點，播放層本來會把它整批藏起來，在高倍速下看起來就是車在路上消失又出現；現在 scope 會把上一格的標記位置補在批頭（`BusTraceRecorder.prepend`），讓它滑到實測位置。新車的安置改成沿路線往回最多找 1.5 km 的空位（原本 600 m）；仍放不下的車與跑完一圈在總站等車位的車照舊隱藏，這是 worker 既有的設計（`busWorkerContinuity.test.ts`）。`node scripts/inspect.mjs bus-playback HH:MM 秒數 倍速` 用程式內的 worker＋playback 管線重現，`BUS_PAN=1`／`BUS_ZOOM_TOGGLE=1` 模擬平移與縮放。
 
 ## Flight 模擬（`computeFlightVehicles`）
 

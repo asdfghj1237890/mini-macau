@@ -51,6 +51,7 @@ export class BusWorkerRuntime {
     const recorder = new BusTraceRecorder(request.view)
     const vehicles = computeBusOnly(this.data, new Date(simMs), {
       sample: (plans, timeMs) => this.scope.sample(plans, timeMs, request.view, recorder),
+      playheadOf: id => this.scope.playheadOf(id),
     })
     this.simMs = simMs
     return { id: request.id, epoch: request.epoch, simMs, vehicles, trace: recorder.finish(vehicles, simMs) }

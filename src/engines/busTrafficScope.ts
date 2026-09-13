@@ -12,10 +12,13 @@ const BUFFER_M = 100
  * disappear just because its nominal timetable position has moved away. */
 export class BusTrafficScope {
   private previous = new Map<string, VehiclePosition>()
+  private detailed = new Set<string>()
   private lastMs = NaN
 
   private traffic: BusTrafficController
   constructor(traffic: BusTrafficController) { this.traffic = traffic }
+
+  playheadOf(id: string): number | undefined { return this.traffic.playheadOf(id) }
 
   sample(plans: BusTrafficPlan[], timeMs: number, view: BusDetailView | undefined, recorder: BusTraceRecorder): VehiclePosition[] {
     const dt = (timeMs - this.lastMs) / 1000
@@ -25,6 +28,7 @@ export class BusTrafficScope {
       if (!view) {
         const vehicles = this.traffic.sample(plans, timeMs)
         this.previous = new Map(vehicles.map(v => [v.id, v]))
+        this.detailed = new Set(this.previous.keys())
         return vehicles
       }
       const nominal = new Map(plans.map(plan => [plan.id, plan.sample(plan.elapsedSec).vehicle]))
@@ -47,6 +51,15 @@ export class BusTrafficScope {
       })
       const selectedIds = new Set(selected.map(plan => plan.id))
       const vehicles = this.traffic.sample(selected, timeMs)
+      // A bus that has just entered detailed traffic has one checked point, at
+      // the end of this request. Slide it there from where it was last shown
+      // (its schedule marker) instead of hiding it for the whole request.
+      for (const vehicle of vehicles) {
+        const previous = this.previous.get(vehicle.id)
+        if (previous && !this.detailed.has(vehicle.id) && recorder.startTimeMs < timeMs &&
+            previous.busMotion?.returning === vehicle.busMotion?.returning) recorder.prepend(previous, recorder.startTimeMs)
+      }
+      this.detailed = new Set(vehicles.map(v => v.id))
       for (const [id, vehicle] of nominal) {
         if (selectedIds.has(id)) continue
         const previous = this.previous.get(id)

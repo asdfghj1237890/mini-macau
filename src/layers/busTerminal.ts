@@ -16,10 +16,12 @@ export function addBusTerminal(map: Map, dark: boolean): void {
     layout: { 'symbol-placement': 'line', 'symbol-spacing': 90, 'text-field': '›', 'text-size': 18,
       'text-keep-upright': false, 'text-rotation-alignment': 'map' },
     paint: { 'text-color': dark ? '#bdcdca' : '#496460', 'text-opacity': .75 } })
-  map.addLayer({ id: BUS_TERMINAL_LAYERS[2], type: 'circle', source: 'bus-terminal', minzoom: 17,
+  // Platform poles and their codes are close-up detail: keep them off until
+  // the terminal is big enough to read them (the lanes and arrows stay).
+  map.addLayer({ id: BUS_TERMINAL_LAYERS[2], type: 'circle', source: 'bus-terminal', minzoom: 19.1,
     filter: ['==', ['get', 'kind'], 'platform'],
     paint: { 'circle-radius': 3, 'circle-color': '#f2cf54', 'circle-stroke-color': dark ? '#182026' : '#ffffff', 'circle-stroke-width': 1 } })
-  map.addLayer({ id: BUS_TERMINAL_LAYERS[3], type: 'symbol', source: 'bus-terminal', minzoom: 17.5,
+  map.addLayer({ id: BUS_TERMINAL_LAYERS[3], type: 'symbol', source: 'bus-terminal', minzoom: 19.1,
     filter: ['==', ['get', 'kind'], 'platform'],
     layout: { 'text-field': ['get', 'label'], 'text-size': 11, 'text-offset': [0, -1], 'text-anchor': 'bottom' },
     paint: { 'text-color': dark ? '#e9d689' : '#75580d', 'text-halo-color': dark ? '#182026' : '#ffffff', 'text-halo-width': 1.5 } })

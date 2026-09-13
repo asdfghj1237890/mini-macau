@@ -76,4 +76,20 @@ describe('bus traffic detail scope', () => {
     expect(trace.paths[0].points[0]).toBe(0)
     expect(trace.paths[0].points[9]).toBe(8000)
   })
+  it('slides a bus that enters detailed traffic from its last marker pose instead of hiding it for the request', () => {
+    const traffic = new BusTrafficController(120), scope = new BusTrafficScope(traffic)
+    const narrow: BusDetailView = { bounds: [113.5399, 22.1899, 113.5401, 22.1901] }
+    const wide: BusDetailView = { bounds: [113.5399, 22.1899, 113.5460, 22.1901] }
+    const plans = (at: number) => [plan('near', at, 0, 2), plan('far', at, 400, 2)]
+    scope.sample(plans(0), 0, narrow, new BusTraceRecorder(narrow))
+    const marker = scope.sample(plans(8), 8000, narrow, new BusTraceRecorder(narrow)).find(v => v.id === 'far')!
+    expect(traffic.currentVehicles().map(v => v.id)).toEqual(['near'])
+    const recorder = new BusTraceRecorder(wide)
+    const vehicles = scope.sample(plans(16), 16000, wide, recorder)
+    expect(traffic.currentVehicles().map(v => v.id)).toEqual(['near', 'far'])
+    const path = recorder.finish(vehicles, 16000).paths.find(p => p.id === 'far')!.points
+    expect(path[0]).toBe(8000)
+    expect([path[1], path[2]]).toEqual(marker.coordinates)
+    expect(path[path.length - 9]).toBe(16000)
+  })
 })

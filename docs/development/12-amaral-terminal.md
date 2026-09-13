@@ -87,7 +87,9 @@ The older maneuver tests have captured playheads, distance reservations and
 lane courses. Their exact public bus-route inputs are frozen in
 `src/engines/__fixtures__/bus-replay-routes.json.gz`, shared by both maneuver
 and kerb-turn tests. Replacing those inputs with new route lengths invalidates
-the initial scene before the controller runs. The current network is covered
+the initial scene before the controller runs, and so does a changed service
+cycle: those scenes pass `busTripModel: 'legacy'`, the fixed 30/60-minute
+schedule they were captured under. The current network is covered
 separately by `amaralTerminal.test.ts` and the citywide replay tests. The capture
 utility accepts an explicit public bus-route snapshot; no test fixture is
 loaded by the app.

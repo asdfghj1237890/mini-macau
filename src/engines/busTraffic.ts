@@ -303,6 +303,11 @@ export class BusTrafficController {
   currentVehicles(): VehiclePosition[] {
     return [...this.states.values()].filter(state => state.active).map(state => state.pose.vehicle)
   }
+  /** A held bus's own schedule time (behind its nominal time by its delay);
+   * undefined for a bus this controller is not simulating. */
+  playheadOf(id: string): number | undefined {
+    return this.states.get(id)?.playhead
+  }
   private states = new Map<string, State>()
   private lastMs = NaN
   private junctionOwners = new Map<string, Map<string, number>>()
@@ -391,7 +396,7 @@ export class BusTrafficController {
     for (const state of ordered) {
       const original = state.pose.distanceM
       let searchTime = state.playhead
-      for (let metres = 0; (occupancy.blocked(state.pose, state) || !this.initialPassage(state, occupancy)) && metres < 600; metres += 4) {
+      for (let metres = 0; (occupancy.blocked(state.pose, state) || !this.initialPassage(state, occupancy)) && metres < 1500; metres += 4) {
         // Search backwards in schedule space only on first placement/seek.
         // During playback, existing schedule playheads are never rewound.
         const target = Math.max(0, original - metres - 4)
@@ -1384,6 +1389,14 @@ export class BusTrafficController {
           }
           return leader
         }
+        // The exception: the bus in front is itself trying to move (a rejoin
+        // or a merge creep) and this follower's body is what stops it. A
+        // frozen leader — yielding to an outside bus — gains nothing from it.
+        const leaderNeedsRoom = (leader: State, follower: State): boolean => {
+          const proposal = localProposals.find(m => m.state === leader)
+          if (!proposal || progress(proposal) <= .001) return false
+          return [.25, .5, .75, 1].some(f => busesConflict(sampleMove(proposal, f).vehicle, follower.pose.vehicle, clearance))
+        }
         const search = (index: number, score: number) => {
           if (++visits > 20000 || score + choices.slice(index).reduce((sum, c) => sum + (c[0]?.score ?? 0), 0) <= bestScore) return
           if (index === choices.length) {
@@ -1395,7 +1408,8 @@ export class BusTrafficController {
               if (selected.some(c => {
                 if (progress(c.move) <= .001) return false
                 const leader = queueLeader(c.move.state)
-                return !!leader && !selected.some(o => o.move.state === leader && progress(o.move) > .001)
+                return !!leader && !selected.some(o => o.move.state === leader && progress(o.move) > .001) &&
+                  !leaderNeedsRoom(leader, c.move.state)
               })) return
             }
             best = [...selected]; bestScore = score; return

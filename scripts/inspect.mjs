@@ -17,9 +17,12 @@
 //   node scripts/inspect.mjs route <id>             # one route, all buckets
 //   node scripts/inspect.mjs in-service HH:MM [bucket] [--tail N]
 //   node scripts/inspect.mjs coords                 # bus-line coordinate totals
-//   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks
+//   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks (BUS_TRIP_MODEL=legacy for the fixed 30/60-minute cycle)
 //   node scripts/inspect.mjs bus-roads [route-id] [lng,lat] # classification summary or geometry within 20 m
 //   node scripts/inspect.mjs bus-station [base-id] # platform coordinates and route geometry at each stop
+//   node scripts/inspect.mjs bus-cycles [route-id]  # generated service cycle per route: loop km, stops, minutes, fleet and average speed (road vs legacy model)
+//   node scripts/inspect.mjs bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] # buses that vanish, jump or go NaN between ticks while their route is still in service (scope = the worker's viewport model, BUS_VIEW=w,s,e,n)
+//   node scripts/inspect.mjs bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] # the app's worker+playback pipeline in-process at 1–60x: presented buses that vanish mid-route, empty frames, pending frames
 //   node scripts/inspect.mjs lrt-motion [--dwell 45] # aggregate motion feasibility; uses LRT_TRIPS_DIR or local dev inputs
 //   node scripts/inspect.mjs city-loading          # city payload and generated count-catalog sizes
 //   node scripts/inspect.mjs ferries                # ferry-schedules.json summary
@@ -132,6 +135,147 @@ function cmdBusTerminalReference(routeId, path) {
     lanes: load('src/data/bus-terminals.json').features.filter(f => f.properties.kind === 'lane') }))
 }
 
+async function cmdBusContinuity(clock = '22:30', duration = '3600', interval = '2', mode = 'schedule') {
+  if (!/^\d{2}:\d{2}$/.test(clock)) throw new Error('Expected HH:MM')
+  const seconds = Number(duration), step = Number(interval)
+  if (!['schedule', 'traffic', 'scope'].includes(mode)) throw new Error('Mode must be schedule, traffic or scope')
+  const { createServer } = await import('vite')
+  const server = await createServer({ configFile: false, root: ROOT, optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false, watch: null }, logLevel: 'error' })
+  try {
+    const { computeBusOnly, getBusServiceWindow, getBusServiceBucket, getBusSchedule } = await server.ssrLoadModule('/src/engines/simulationEngine.ts')
+    const { BusTrafficController } = await server.ssrLoadModule('/src/engines/busTraffic.ts')
+    const { BusTrafficScope } = await server.ssrLoadModule('/src/engines/busTrafficScope.ts')
+    const { BusTraceRecorder } = await server.ssrLoadModule('/src/engines/busMotionTrace.ts')
+    const data = { busRoutes: busRoutes(), busStops: load('public/data/bus-stops.json') }
+    const routes = new Map(data.busRoutes.map(r => [r.id, r])), stops = new Map(data.busStops.map(s => [s.id, s]))
+    // scope: the worker's viewport model (BUS_VIEW=w,s,e,n; default: the Amaral demo view).
+    const bounds = (process.env.BUS_VIEW || '113.5357,22.1834,113.5523,22.1942').split(',').map(Number)
+    const view = { bounds }
+    const controller = mode === 'schedule' ? undefined : new BusTrafficController()
+    const scope = mode === 'scope' ? new BusTrafficScope(controller) : undefined
+    const traffic = scope ? { sample: (plans, t) => scope.sample(plans, t, view, new BusTraceRecorder(view)), playheadOf: id => scope.playheadOf(id) } : controller
+    const inView = v => v.coordinates[0] >= bounds[0] && v.coordinates[0] <= bounds[2] && v.coordinates[1] >= bounds[1] && v.coordinates[1] <= bounds[3]
+    const start = new Date(`${process.env.BUS_TRAFFIC_DATE || '2026-09-11'}T${clock}:00+08:00`).getTime()
+    const mx = 111320 * Math.cos(22.19 * Math.PI / 180)
+    const metres = (a, b) => Math.hypot((a[0] - b[0]) * mx, (a[1] - b[1]) * 111320)
+    const events = [], seen = new Map()
+    let previous = new Map()
+    for (let tick = 0; tick <= Math.round(seconds / step); tick++) {
+      const at = new Date(start + tick * step * 1000)
+      const vehicles = computeBusOnly(data, at, traffic)
+      const current = new Map(vehicles.map(v => [v.id, v]))
+      for (const v of vehicles) {
+        if (!Number.isFinite(v.coordinates[0]) || !Number.isFinite(v.coordinates[1]) || !Number.isFinite(v.bearing)) events.push({ tick: tick * step, id: v.id, kind: 'nan', progress: v.progress })
+        const was = previous.get(v.id)
+        if (was && metres(was.coordinates, v.coordinates) > Math.max(150, step * 25) && Math.abs((v.progress ?? 0) - (was.progress ?? 0)) < .9) events.push({ tick: tick * step, id: v.id, kind: 'jump', metres: Math.round(metres(was.coordinates, v.coordinates)), inView: inView(was) || inView(v), progress: [+was.progress.toFixed(3), +v.progress.toFixed(3)] })
+        seen.set(v.id, tick)
+      }
+      for (const [id, was] of previous) if (!current.has(id)) {
+        const route = routes.get(was.lineId), bucket = getBusServiceBucket(at), window = route && getBusServiceWindow(route, bucket)
+        const minutes = at.getUTCHours() * 60 + at.getUTCMinutes() + 480, endMin = window ? (window.end <= window.start ? window.end * 60 + 1440 : window.end * 60) : null
+        const schedule = route && getBusSchedule(route, stops)
+        events.push({ tick: tick * step, id, kind: 'vanish', progress: +was.progress.toFixed(3), phase: was.busMotion?.phase, inView: inView(was), delaySec: Math.round(was.busMotion?.delaySec ?? 0), serviceEndMin: endMin, nowMin: minutes % 1440, cycleMin: schedule ? +(schedule.cycleSec / 60).toFixed(1) : null })
+      }
+      previous = current
+    }
+    const byKind = {}
+    for (const e of events) byKind[e.kind + (e.inView ? 'InView' : '')] = (byKind[e.kind + (e.inView ? 'InView' : '')] ?? 0) + 1
+    console.log(JSON.stringify({ clock, seconds, step, mode, bounds: mode === 'scope' ? bounds : undefined, events: byKind, vehiclesSeen: seen.size }))
+    // Vanishes before the terminus first (the ones a viewer would notice), then jumps.
+    const rank = e => (e.kind === 'vanish' && e.progress < .99 ? 0 : e.kind === 'nan' ? 1 : e.kind === 'jump' ? 2 : 3) - (e.inView ? .5 : 0)
+    for (const e of [...events].sort((a, b) => rank(a) - rank(b) || a.tick - b.tick).slice(0, 60)) console.log(JSON.stringify(e))
+  } finally { await server.close() }
+}
+
+async function cmdBusPlayback(clock = '17:30', realSeconds = '30', speedArg = '60', latencyArg = '120') {
+  if (!/^\d{2}:\d{2}$/.test(clock)) throw new Error('Expected HH:MM')
+  const speed = Number(speedArg), realMs = Number(realSeconds) * 1000, latencyMs = Number(latencyArg)
+  const { createServer } = await import('vite')
+  const server = await createServer({ configFile: false, root: ROOT, optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false, watch: null }, logLevel: 'error' })
+  try {
+    const { AsyncBusFrame } = await server.ssrLoadModule('/src/engines/asyncBusFrame.ts')
+    const { BusWorkerRuntime } = await server.ssrLoadModule('/src/engines/busWorkerRuntime.ts')
+    const data = { busRoutes: busRoutes(), busStops: load('public/data/bus-stops.json') }
+    const origins = new Map(data.busRoutes.map(r => [r.id, r.geometry.geometry.coordinates[0]]))
+    const bounds = (process.env.BUS_VIEW || '113.5357,22.1834,113.5523,22.1942').split(',').map(Number)
+    const view = { bounds }
+    const mx = 111320 * Math.cos(22.19 * Math.PI / 180)
+    const metres = (a, b) => Math.hypot((a[0] - b[0]) * mx, (a[1] - b[1]) * 111320)
+    const inView = c => c[0] >= bounds[0] && c[0] <= bounds[2] && c[1] >= bounds[1] && c[1] <= bounds[3]
+    // A fake worker port: the real runtime computes at once; the reply is
+    // delivered after the configured latency, like a message round trip.
+    const runtime = new BusWorkerRuntime()
+    let port, now = 0
+    const inbox = []
+    const factory = () => (port = { onmessage: null, onerror: null, onmessageerror: null, terminate() {},
+      postMessage(request) { const t0 = performance.now(); const reply = runtime.sample(request); inbox.push({ at: now + latencyMs + (performance.now() - t0), reply }) } })
+    const frame = new AsyncBusFrame(factory, s => events.push({ frame: frames.length, kind: 'overload', speed: s }))
+    const start = new Date(`${process.env.BUS_TRAFFIC_DATE || '2026-09-11'}T${clock}:00+08:00`).getTime()
+    const frames = [], events = []
+    const last = new Map()
+    let emptyFrames = 0, pendingFrames = 0
+    // BUS_PAN=1 slides the view sideways every 3 s (a user panning at speed);
+    // BUS_ZOOM_TOGGLE=1 alternates overview (no bounds) and detail every 5 s.
+    const pan = process.env.BUS_PAN === '1', zoomToggle = process.env.BUS_ZOOM_TOGGLE === '1'
+    const width = bounds[2] - bounds[0]
+    for (now = 0; now <= realMs; now += 33) {
+      while (inbox.length && inbox[0].at <= now) { const { reply } = inbox.shift(); port.onmessage?.({ data: reply }) }
+      const simMs = start + now * speed
+      const frameIndex = frames.length
+      const shift = pan ? ((Math.floor(frameIndex / 90) % 2) * 2 - 1) * width * .5 * (Math.floor(frameIndex / 90) > 0 ? 1 : 0) : 0
+      const currentBounds = [bounds[0] + shift, bounds[1], bounds[2] + shift, bounds[3]]
+      const currentView = zoomToggle && Math.floor(frameIndex / 150) % 2 === 1 ? { bounds: undefined } : { bounds: currentBounds }
+      const inViewNow = c => currentView.bounds ? c[0] >= currentBounds[0] && c[0] <= currentBounds[2] && c[1] >= currentBounds[1] && c[1] <= currentBounds[3] : inView(c)
+      const { vehicles, pending } = frame.sample(data, simMs, now, currentView, speed)
+      if (pending) pendingFrames++
+      if (!vehicles.length) emptyFrames++
+      const ids = new Map(vehicles.map(v => [v.id, v]))
+      const index = frames.length
+      for (const [id, v] of ids) {
+        const l = last.get(id)
+        if (l && index - l.frame >= 3) events.push({ frame: index, kind: 'gap', id, gapMs: now - l.now, simAt: new Date(l.sim).toISOString().slice(11, 19), inView: l.inView, phase: l.v.busMotion?.phase, delaySec: Math.round(l.v.busMotion?.delaySec ?? 0), toOriginM: Math.round(metres(l.v.coordinates, origins.get(l.v.lineId))), progress: +l.v.progress.toFixed(3), jumpM: Math.round(metres(l.v.coordinates, v.coordinates)) })
+        last.set(id, { frame: index, now, sim: simMs, v, inView: inViewNow(v.coordinates) })
+      }
+      frames.push({ now, simMs, count: vehicles.length })
+    }
+    const endFrame = frames.length - 1
+    const gone = [...last].filter(([, l]) => endFrame - l.frame >= 3).map(([id, l]) => ({ kind: 'gone', id, sinceMs: now - 33 - l.now, simAt: new Date(l.sim).toISOString().slice(11, 19), inView: l.inView, phase: l.v.busMotion?.phase, delaySec: Math.round(l.v.busMotion?.delaySec ?? 0), toOriginM: Math.round(metres(l.v.coordinates, origins.get(l.v.lineId))), progress: +l.v.progress.toFixed(3) }))
+    const midRoute = e => e.toOriginM > 60 && e.progress > .02 && e.progress < .98
+    const summary = { clock, speed, realSeconds: Number(realSeconds), latencyMs, pan, zoomToggle, frames: frames.length, emptyFrames, pendingFrames,
+      fleet: { first: frames[0].count, last: frames.at(-1).count, min: Math.min(...frames.map(f => f.count)), max: Math.max(...frames.map(f => f.count)) },
+      gaps: events.filter(e => e.kind === 'gap').length, gapsInViewMidRoute: events.filter(e => e.kind === 'gap' && e.inView && midRoute(e)).length,
+      gone: gone.length, goneInViewMidRoute: gone.filter(e => e.inView && midRoute(e)).length, overloads: events.filter(e => e.kind === 'overload').map(e => e.speed) }
+    console.log(JSON.stringify(summary))
+    const rank = e => (e.inView ? 0 : 1) + (midRoute(e) ? 0 : 2)
+    for (const e of [...events.filter(e => e.kind === 'gap'), ...gone].sort((a, b) => rank(a) - rank(b) || (a.frame ?? 0) - (b.frame ?? 0)).slice(0, 40)) console.log(JSON.stringify(e))
+  } finally { await server.close() }
+}
+
+async function cmdBusCycles(routeId) {
+  const { createServer } = await import('vite')
+  const server = await createServer({ configFile: false, root: ROOT, optimizeDeps: { noDiscovery: true }, server: { middlewareMode: true, hmr: false, watch: null }, logLevel: 'error' })
+  try {
+    const { getBusSchedule } = await server.ssrLoadModule('/src/engines/simulationEngine.ts')
+    const stops = new Map(load('public/data/bus-stops.json').map(s => [s.id, s]))
+    const rows = []
+    for (const route of busRoutes().filter(r => !routeId || r.id === routeId)) {
+      const road = getBusSchedule(route, stops, 'road'), legacy = getBusSchedule(route, stops, 'legacy')
+      if (!road || !legacy) continue
+      const fleet = s => Math.max(1, Math.floor(s.tripDurationSec / 60 / route.frequency))
+      rows.push({ id: route.id, km: +road.totalLenKm.toFixed(1), stops: route.stopsForward.length, freq: route.frequency,
+        roadMin: +(road.tripDurationSec / 60).toFixed(1), legacyMin: legacy.tripDurationSec / 60,
+        roadKmh: +(road.totalLenKm / (road.tripDurationSec / 3600)).toFixed(1), legacyKmh: +(legacy.totalLenKm / (legacy.tripDurationSec / 3600)).toFixed(1),
+        fleetRoad: fleet(road), fleetLegacy: fleet(legacy) })
+    }
+    for (const r of rows) console.log(JSON.stringify(r))
+    const sum = key => rows.reduce((a, r) => a + r[key], 0)
+    const sorted = key => rows.map(r => r[key]).sort((a, b) => a - b)
+    const pick = a => ({ min: a[0], median: a[Math.floor(a.length / 2)], max: a[a.length - 1] })
+    console.log(JSON.stringify({ routes: rows.length, fleetRoad: sum('fleetRoad'), fleetLegacy: sum('fleetLegacy'),
+      roadMin: pick(sorted('roadMin')), roadKmh: pick(sorted('roadKmh')), legacyKmh: pick(sorted('legacyKmh')) }))
+  } finally { await server.close() }
+}
+
 function cmdBusRoads(routeId, location) {
   const routes = busRoutes().filter(r => !routeId || r.id === routeId)
   if (location) {
@@ -210,16 +354,18 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
       return hits
     }
     const busTraffic = new BusTrafficController(), timings = []
+    // BUS_TRIP_MODEL=legacy replays the fixed 30/60-minute service cycle.
+    const tripModel = process.env.BUS_TRIP_MODEL === 'legacy' ? 'legacy' : 'road'
     const { BusTrafficScope } = await server.ssrLoadModule('/src/engines/busTrafficScope.ts')
     const { BusTraceRecorder } = await server.ssrLoadModule('/src/engines/busMotionTrace.ts')
     const scope = new BusTrafficScope(busTraffic)
     const view = { bounds: [113.5418, 22.187, 113.5453, 22.1915] }
-    const driver = mode === 'amaral' ? { sample: (plans, time) => scope.sample(plans, time, view, new BusTraceRecorder(view)) } : busTraffic
+    const driver = mode === 'amaral' ? { sample: (plans, time) => scope.sample(plans, time, view, new BusTraceRecorder(view)), playheadOf: id => scope.playheadOf(id) } : busTraffic
     let final = [], collisions = 0, worst = [], queuedPeak = 0, initialMs = 0
     const holds = new Map()
     const events = new Map(), trace = [], focusIds = new Set(focus.split(',').filter(Boolean))
     if (checkpoint) {
-      computeVehiclePositions(data, new Date(start), { busTraffic })
+      computeVehiclePositions(data, new Date(start), { busTraffic, busTripModel: tripModel })
       const savedIds = new Set(checkpoint.states.map(([id]) => id))
       for (const id of busTraffic.states.keys()) if (!savedIds.has(id)) busTraffic.states.delete(id)
       for (const [id, saved] of checkpoint.states) {
@@ -238,7 +384,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
     }
     for (let tick = checkpoint ? 1 : 0; tick <= Math.round(seconds / step); tick++) {
       const begin = performance.now()
-      final = computeVehiclePositions(data, new Date(start + tick * step * 1000), { busTraffic: driver })
+      final = computeVehiclePositions(data, new Date(start + tick * step * 1000), { busTraffic: driver, busTripModel: tripModel })
       const took = performance.now() - begin
       if (tick === 0) initialMs = took
       else timings.push(took)
@@ -258,7 +404,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
     }
     // Measure cold route/body caches during the first traffic frame; computing
     // the unimpeded comparison earlier would silently warm those caches.
-    const nominal = computeVehiclePositions(data, new Date(start))
+    const nominal = computeVehiclePositions(data, new Date(start), { busTripModel: tripModel })
     timings.sort((a, b) => a - b)
     console.log(JSON.stringify({ clock, seconds, step, mode, nominalBuses: nominal.length, visibleBuses: final.length,
       nominalAmaralOverlaps: conflicts(nearby(nominal)), replayOverlapObservations: collisions, worstPairs: worst.slice(0, 8),
@@ -1190,6 +1336,9 @@ switch (cmd) {
   case 'bus-terminal-crossings': cmdBusTerminalCrossings(); break
   case 'bus-replay-report': cmdBusReplayReport(pos[0]); break
   case 'bus-station': cmdBusStation(pos[0]); break
+  case 'bus-cycles': await cmdBusCycles(pos[0]); break
+  case 'bus-continuity': await cmdBusContinuity(pos[0], pos[1], pos[2], pos[3]); break
+  case 'bus-playback': await cmdBusPlayback(pos[0], pos[1], pos[2], pos[3]); break
   case 'bus-roads': cmdBusRoads(pos[0], pos[1]); break
   case 'city-loading': await cmdCityLoading(); break
   case 'lrt-motion': {
@@ -1218,6 +1367,6 @@ switch (cmd) {
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   default:
-    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral] | bus-station [M172] | bus-terminal-crossings | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
+    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)
 }

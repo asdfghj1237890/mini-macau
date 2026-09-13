@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import type { Feature, LineString } from 'geojson'
 import type { BusRoute, BusStop, TransitData } from '../types'
+import type { BusTrafficPlan } from './busTraffic'
 import {
   computeVehiclePositions,
   getScheduleType,
@@ -11,7 +12,13 @@ import {
   computeBusDirSec,
   computeBusCycleSec,
   getBusSchedule,
+  getLineLength,
+  busCruiseKmh,
+  computeBusOnly,
   DWELL_SEC,
+  BUS_CRUISE_KMH,
+  BUS_ACCEL_MPS2,
+  BUS_BRAKE_MPS2,
   type BusSchedule,
   type BusStopScheduleEntry,
 } from './simulationEngine'
@@ -148,7 +155,7 @@ const stop = (id: string, p: number, arriveSec: number, departSec: number): BusS
 
 describe('progressAtCycle', () => {
   const circular: BusSchedule = {
-    tripDurationSec: 1800, // 30 min
+    tripModel: 'legacy', tripDurationSec: 1800, // 30 min
     cycleSec: 1800,
     isCircular: true,
     totalLenKm: 5,
@@ -160,7 +167,7 @@ describe('progressAtCycle', () => {
   }
 
   const bilateral: BusSchedule = {
-    tripDurationSec: 1800, // 30-min one-way
+    tripModel: 'legacy', tripDurationSec: 1800, // 30-min one-way
     cycleSec: 3600,        // 60-min round trip
     isCircular: false,
     totalLenKm: 5,
@@ -216,11 +223,11 @@ describe('progressAtCycle', () => {
 
 describe('computeBusDirSec', () => {
   const circular: BusSchedule = {
-    tripDurationSec: 1800, cycleSec: 1800, isCircular: true, totalLenKm: 5,
+    tripModel: 'legacy', tripDurationSec: 1800, cycleSec: 1800, isCircular: true, totalLenKm: 5,
     forwardStops: [], backwardStops: [],
   }
   const bilateral: BusSchedule = {
-    tripDurationSec: 1800, cycleSec: 3600, isCircular: false, totalLenKm: 5,
+    tripModel: 'legacy', tripDurationSec: 1800, cycleSec: 3600, isCircular: false, totalLenKm: 5,
     forwardStops: [], backwardStops: [],
   }
 
@@ -259,7 +266,7 @@ const minimalRoute = (over: Partial<BusRoute> = {}): BusRoute => ({
 
 describe('computeBusCycleSec', () => {
   const schedule: BusSchedule = {
-    tripDurationSec: 1800, cycleSec: 3600, isCircular: false, totalLenKm: 5,
+    tripModel: 'legacy', tripDurationSec: 1800, cycleSec: 3600, isCircular: false, totalLenKm: 5,
     forwardStops: [], backwardStops: [],
   }
   // 6:00 = 360 min, 22:00 = 1320 min.
@@ -493,6 +500,72 @@ describe('getBusSchedule', () => {
     const schedule = getBusSchedule(route, stops)
     expect(schedule).not.toBeNull()
     expect(schedule!.forwardStops[1].progress).toBeGreaterThan(0.5)
+  })
+
+  it('road model: integrates the cruise speed of each matched road plus dwell and stop ramps', () => {
+    // Two 2 km legs due north: a single-lane street (40 km/h), then a
+    // three-lane dual carriageway (80 km/h). Stops at both ends.
+    const route = minimalRoute({
+      geometry: line([[113.5, 22.1], [113.5, 22.118], [113.5, 22.136]]),
+      stopsForward: ['s1', 's3'],
+      stopOffsets: [0, 2],
+      routeType: 'circular',
+      roadProfile: { version: 1, geometryKey: 'x', fetchedAtUtc: '2026-09-13T00:00:00Z', sections: [
+        { start: 0, end: 1, kind: 'one-way', evidence: 'tag', wayId: 1, direction: 1, lanes: 1 },
+        { start: 1, end: 2, kind: 'divided', evidence: 'paired-geometry', wayId: 2, pairedWayId: 3, direction: 1, lanes: 3 },
+      ] },
+    })
+    const schedule = getBusSchedule(route, stops)!
+    const legM = getLineLength(route.geometry) * 1000 / 2
+    const ramp = (kmh: number) => kmh / 3.6 / 2 * (1 / BUS_ACCEL_MPS2 + 1 / BUS_BRAKE_MPS2)
+    const slowSec = legM / (BUS_CRUISE_KMH.street / 3.6) + ramp(BUS_CRUISE_KMH.street)
+    const fastSec = legM / (BUS_CRUISE_KMH.expressway / 3.6) + ramp(BUS_CRUISE_KMH.expressway)
+    expect(schedule.tripModel).toBe('road')
+    expect(schedule.tripDurationSec).toBeCloseTo(slowSec + fastSec + 2 * DWELL_SEC, 6)
+    expect(schedule.forwardStops[1].arriveSec).toBeCloseTo(DWELL_SEC + slowSec + fastSec, 6)
+    // The bus reaches the road change exactly when the slow leg's time is up
+    // and covers the fast leg twice as quickly.
+    expect(progressAtCycle(schedule, DWELL_SEC + slowSec)).toBeCloseTo(0.5, 6)
+    expect(progressAtCycle(schedule, DWELL_SEC + slowSec / 2)).toBeLessThan(0.25)
+    expect(progressAtCycle(schedule, DWELL_SEC + slowSec + fastSec / 2)).toBeCloseTo(0.75, 2)
+    expect(getBusSchedule(route, stops, 'legacy')!.tripDurationSec).toBe(30 * 60)
+  })
+
+  it('keeps a delayed physical bus on its last loop after the timetable ends, then drops it at the terminus', () => {
+    const route = minimalRoute({
+      stopsForward: ['s1', 's2', 's3', 's1'],
+      stopsBackward: [],
+      routeType: 'circular',
+      frequency: 10,
+      serviceHoursStart: 6,
+      serviceHoursEnd: 22,
+    })
+    const data = { busRoutes: [route], busStops: [...stops.values()] }
+    const schedule = getBusSchedule(route, stops)!
+    const cycleMin = schedule.cycleSec / 60
+    // 23:00: bus 0 (dispatched 06:00) is on a loop that began after 22:00.
+    const at = macauWallToInstant(2026, 9, 11, 23, 0)
+    const elapsedMin = 17 * 60, loops = Math.floor(elapsedMin / cycleMin)
+    expect(6 * 60 + loops * cycleMin).toBeGreaterThan(22 * 60)
+    const lastLoopEndSec = loops * cycleMin * 60
+    const driver = (playhead: number) => ({
+      sample: (plans: BusTrafficPlan[]) => plans.map(p => p.sample(p.elapsedSec).vehicle),
+      playheadOf: () => playhead,
+    })
+    expect(computeBusOnly(data, at).map(v => v.id)).not.toContain('test-route-0')
+    expect(computeBusOnly(data, at, driver(lastLoopEndSec - 60)).map(v => v.id)).toContain('test-route-0')
+    expect(computeBusOnly(data, at, driver(lastLoopEndSec + 1)).map(v => v.id)).not.toContain('test-route-0')
+  })
+
+  it('maps matched roads to the 20/40/60/80 km/h cruise tiers', () => {
+    expect(busCruiseKmh(undefined)).toBe(BUS_CRUISE_KMH.street)
+    expect(busCruiseKmh({ kind: 'one-way', lanePath: 'amaral/A' })).toBe(BUS_CRUISE_KMH.terminal)
+    expect(busCruiseKmh({ kind: 'divided', lanes: 3 })).toBe(BUS_CRUISE_KMH.expressway)
+    expect(busCruiseKmh({ kind: 'divided', lanes: 2 })).toBe(BUS_CRUISE_KMH.avenue)
+    expect(busCruiseKmh({ kind: 'one-way', lanes: 2 })).toBe(BUS_CRUISE_KMH.avenue)
+    expect(busCruiseKmh({ kind: 'one-way' })).toBe(BUS_CRUISE_KMH.street)
+    expect(busCruiseKmh({ kind: 'two-way', lanes: 2 })).toBe(BUS_CRUISE_KMH.street)
+    expect(busCruiseKmh({ kind: 'unknown' })).toBe(BUS_CRUISE_KMH.street)
   })
 
   it('returns null for a route whose polyline is too short', () => {

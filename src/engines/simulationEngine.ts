@@ -1,7 +1,7 @@
 import { lrtWindowAt } from '../lrtState'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 import type { Feature, LineString } from 'geojson'
-import type { TransitData, VehiclePosition, BusRoute, BusStop, Flight, Ferry, ScheduleType } from '../types'
+import type { TransitData, VehiclePosition, BusRoute, BusRoadSection, BusStop, Flight, Ferry, ScheduleType } from '../types'
 import { FERRY_BERTHS_BY_TERMINAL, FERRY_COLOR_BY_OPERATOR } from './ferryBerths'
 import { FERRY_ROUTES, interpolatePath, pathLengthMeters } from './ferryRoutes'
 import { macauWeekday, macauMinutesOfDay } from '../macauTime'
@@ -292,6 +292,31 @@ export function sampleLrtVehicles(data: Pick<TransitData, 'lrtLines' | 'lrtWindo
 }
 
 export const DWELL_SEC = 8
+// Generated service cycles integrate a cruise speed along the loop, chosen by
+// the matched road (km/h): dual carriageways with three or more lanes 80,
+// other dual carriageways and multi-lane streets 60, single-lane, two-way or
+// unmatched streets 40, a modelled terminal lane 20. Every stop adds its dwell
+// plus a braking and an acceleration ramp at the local cruise speed (the
+// limits in busTraffic.ts). The legacy model fixed a loop at 30 min (< 5 km)
+// or 60 min regardless of length; captured replay scenes still request it
+// (`busTripModel: 'legacy'`) because their playheads were recorded under it.
+export const BUS_CRUISE_KMH = { terminal: 20, street: 40, avenue: 60, expressway: 80 } as const
+export const BUS_ACCEL_MPS2 = 1.5
+export const BUS_BRAKE_MPS2 = 3.5
+export type BusTripModel = 'road' | 'legacy'
+/** What computeBusOnly drives: the traffic controller, or a viewport scope
+ * around it. `playheadOf` lets a delayed bus finish its last loop. */
+export type BusTrafficDriver = Pick<BusTrafficController, 'sample'> & { playheadOf?: (id: string) => number | undefined }
+
+export function busCruiseKmh(section?: Pick<BusRoadSection, 'kind' | 'lanes' | 'lanePath'>): number {
+  if (!section) return BUS_CRUISE_KMH.street
+  if (section.lanePath) return BUS_CRUISE_KMH.terminal
+  const lanes = section.lanes ?? 0
+  if (section.kind === 'divided') return lanes >= 3 ? BUS_CRUISE_KMH.expressway : BUS_CRUISE_KMH.avenue
+  if (section.kind === 'one-way') return lanes >= 2 ? BUS_CRUISE_KMH.avenue : BUS_CRUISE_KMH.street
+  if (section.kind === 'two-way') return lanes >= 3 ? BUS_CRUISE_KMH.avenue : BUS_CRUISE_KMH.street
+  return BUS_CRUISE_KMH.street
+}
 
 export interface BusStopScheduleEntry {
   stopId: string
@@ -300,13 +325,74 @@ export interface BusStopScheduleEntry {
   departSec: number
 }
 
+/** Movement time along the loop, dwell excluded: cumulative seconds at each
+ * geometry vertex, indexed by progress. Absent = uniform speed. */
+export interface BusMoveProfile { progress: Float64Array; moveSec: Float64Array }
+
 export interface BusSchedule {
+  tripModel: BusTripModel
   tripDurationSec: number
   cycleSec: number
   isCircular: boolean
   totalLenKm: number
   forwardStops: BusStopScheduleEntry[]
   backwardStops: BusStopScheduleEntry[]
+  profile?: BusMoveProfile
+}
+
+function profileTimeAt(profile: BusMoveProfile, progress: number): number {
+  const { progress: ps, moveSec } = profile, n = ps.length
+  if (progress <= ps[0]) return moveSec[0]
+  if (progress >= ps[n - 1]) return moveSec[n - 1]
+  let lo = 0, hi = n - 1
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (ps[mid] <= progress) lo = mid; else hi = mid }
+  const span = ps[hi] - ps[lo]
+  return span > 0 ? moveSec[lo] + (moveSec[hi] - moveSec[lo]) * (progress - ps[lo]) / span : moveSec[lo]
+}
+function profileProgressAt(profile: BusMoveProfile, sec: number): number {
+  const { progress: ps, moveSec } = profile, n = ps.length
+  if (sec <= moveSec[0]) return ps[0]
+  if (sec >= moveSec[n - 1]) return ps[n - 1]
+  let lo = 0, hi = n - 1
+  while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (moveSec[mid] <= sec) lo = mid; else hi = mid }
+  const span = moveSec[hi] - moveSec[lo]
+  return span > 0 ? ps[lo] + (ps[hi] - ps[lo]) * (sec - moveSec[lo]) / span : ps[hi]
+}
+// Movement time from a direction's start to `progress`, in travel order, and
+// its inverse.
+function directionMoveSec(profile: BusMoveProfile, startProgress: number, progress: number): number {
+  return Math.abs(profileTimeAt(profile, progress) - profileTimeAt(profile, startProgress))
+}
+function directionProgressAt(profile: BusMoveProfile, startProgress: number, sign: 1 | -1, moveSec: number): number {
+  return profileProgressAt(profile, profileTimeAt(profile, startProgress) + sign * moveSec)
+}
+
+function buildMoveProfile(route: BusRoute, stopProgs: number[]): BusMoveProfile {
+  const { cumKm, totalKm } = getLineCache(route.geometry)
+  const segments = cumKm.length - 1
+  const sections = route.roadProfile?.sections ?? []
+  const speeds = new Float64Array(segments) // m/s per segment
+  let si = 0
+  for (let i = 0; i < segments; i++) {
+    while (si < sections.length && sections[si].end <= i) si++
+    speeds[i] = busCruiseKmh(si < sections.length && sections[si].start <= i ? sections[si] : undefined) / 3.6
+  }
+  // Each stop costs a braking and an acceleration ramp at the local cruise
+  // speed, charged to the segment it stands on.
+  const extra = new Float64Array(segments)
+  for (const p of stopProgs) {
+    const km = Math.max(0, Math.min(1, p)) * totalKm
+    let lo = 0, hi = segments
+    while (hi - lo > 1) { const mid = (lo + hi) >> 1; if (cumKm[mid] <= km) lo = mid; else hi = mid }
+    extra[lo] += speeds[lo] / 2 * (1 / BUS_ACCEL_MPS2 + 1 / BUS_BRAKE_MPS2)
+  }
+  const progress = new Float64Array(segments + 1), moveSec = new Float64Array(segments + 1)
+  for (let i = 0; i < segments; i++) {
+    progress[i + 1] = cumKm[i + 1] / totalKm
+    moveSec[i + 1] = moveSec[i] + (cumKm[i + 1] - cumKm[i]) * 1000 / speeds[i] + extra[i]
+  }
+  progress[segments] = 1
+  return { progress, moveSec }
 }
 
 function projectPointOnSegment(
@@ -411,6 +497,7 @@ function buildDirectionSchedule(
   tripDurationSec: number,
   sign: 1 | -1,
   startProgress: number,
+  profile?: BusMoveProfile,
 ): BusStopScheduleEntry[] {
   const EPS = 0.0001
   const cleaned: { stopId: string; progress: number }[] = []
@@ -430,30 +517,33 @@ function buildDirectionSchedule(
   const moveTimeSec = Math.max(1, tripDurationSec - dwellTotal)
 
   const endProgress = sign === 1 ? 1 : 0
-  const gaps: number[] = []
-  let cur = startProgress
-  for (const s of cleaned) { gaps.push(Math.abs(s.progress - cur)); cur = s.progress }
-  gaps.push(Math.abs(endProgress - cur))
-  const totalGap = gaps.reduce((a, b) => a + b, 0) || 1
-  const scale = moveTimeSec / totalGap
+  // Movement time from the start to each stop: along the road profile, or
+  // proportional to progress (uniform speed) for the legacy model.
+  let moveAt: (progress: number) => number
+  if (profile) moveAt = p => directionMoveSec(profile, startProgress, p)
+  else {
+    const gaps: number[] = []
+    let cur = startProgress
+    for (const s of cleaned) { gaps.push(Math.abs(s.progress - cur)); cur = s.progress }
+    gaps.push(Math.abs(endProgress - cur))
+    const totalGap = gaps.reduce((a, b) => a + b, 0) || 1
+    const scale = moveTimeSec / totalGap
+    moveAt = p => Math.abs(p - startProgress) * scale
+  }
 
   const result: BusStopScheduleEntry[] = []
-  let cursorTime = 0
   for (let i = 0; i < N; i++) {
-    cursorTime += gaps[i] * scale
-    const arriveSec = cursorTime
-    const departSec = arriveSec + DWELL_SEC
-    cursorTime = departSec
-    result.push({ stopId: cleaned[i].stopId, progress: cleaned[i].progress, arriveSec, departSec })
+    const arriveSec = moveAt(cleaned[i].progress) + i * DWELL_SEC
+    result.push({ stopId: cleaned[i].stopId, progress: cleaned[i].progress, arriveSec, departSec: arriveSec + DWELL_SEC })
   }
   return result
 }
 
 const busScheduleCache = new WeakMap<BusRoute, BusSchedule>()
 
-export function getBusSchedule(route: BusRoute, busStopMap: Map<string, BusStop>): BusSchedule | null {
+export function getBusSchedule(route: BusRoute, busStopMap: Map<string, BusStop>, tripModel: BusTripModel = 'road'): BusSchedule | null {
   const cached = busScheduleCache.get(route)
-  if (cached) return cached
+  if (cached && cached.tripModel === tripModel) return cached
 
   const coords = (route.geometry.geometry?.coordinates ?? []) as [number, number][]
   if (coords.length < 2) return null
@@ -467,8 +557,6 @@ export function getBusSchedule(route: BusRoute, busStopMap: Map<string, BusStop>
   }
 
   const isCircular = route.routeType === 'circular'
-  const tripDurationSec = (totalLenKm < 5 ? 30 : 60) * 60
-  const cycleSec = isCircular ? tripDurationSec : tripDurationSec * 2
 
   const hasPublishedOffsets =
     route.stopOffsets.length === route.stopsForward.length
@@ -487,13 +575,25 @@ export function getBusSchedule(route: BusRoute, busStopMap: Map<string, BusStop>
     ? projectStopsUnordered(route.geometry, totalLenKm, route.stopsBackward, busStopMap)
     : []
 
-  const forwardStops = buildDirectionSchedule(route.stopsForward, stopProgFwd, tripDurationSec, 1, 0)
+  let profile: BusMoveProfile | undefined
+  let tripDurationSec: number, cycleSec: number
+  if (tripModel === 'legacy') {
+    tripDurationSec = (totalLenKm < 5 ? 30 : 60) * 60
+    cycleSec = isCircular ? tripDurationSec : tripDurationSec * 2
+  } else {
+    profile = buildMoveProfile(route, [...stopProgFwd, ...stopProgBwd])
+    const moveSec = profile.moveSec[profile.moveSec.length - 1]
+    tripDurationSec = moveSec + route.stopsForward.length * DWELL_SEC
+    cycleSec = isCircular ? tripDurationSec : tripDurationSec + moveSec + route.stopsBackward.length * DWELL_SEC
+  }
+
+  const forwardStops = buildDirectionSchedule(route.stopsForward, stopProgFwd, tripDurationSec, 1, 0, profile)
   const backwardStops = !isCircular
-    ? buildDirectionSchedule(route.stopsBackward, stopProgBwd, tripDurationSec, -1, 1)
+    ? buildDirectionSchedule(route.stopsBackward, stopProgBwd, cycleSec - tripDurationSec, -1, 1, profile)
     : []
 
   const schedule: BusSchedule = {
-    tripDurationSec, cycleSec, isCircular, totalLenKm, forwardStops, backwardStops,
+    tripModel, tripDurationSec, cycleSec, isCircular, totalLenKm, forwardStops, backwardStops, profile,
   }
   busScheduleCache.set(route, schedule)
   return schedule
@@ -505,12 +605,22 @@ function progressAtDirection(
   endProgress: number,
   tripDurationSec: number,
   dirSec: number,
+  profile?: BusMoveProfile,
 ): number {
   const t = Math.max(0, Math.min(tripDurationSec, dirSec))
+  const sign: 1 | -1 = endProgress >= startProgress ? 1 : -1
+  // Between stops, follow the road profile (movement time so far, dwell
+  // excluded) or interpolate linearly for the uniform legacy model.
+  const between = (prevProg: number, prevDepart: number, nextProg: number, nextArrive: number): number => {
+    const seg = nextArrive - prevDepart
+    if (seg <= 0) return nextProg
+    if (profile) return directionProgressAt(profile, startProgress, sign, directionMoveSec(profile, startProgress, prevProg) + (t - prevDepart))
+    return prevProg + (nextProg - prevProg) * ((t - prevDepart) / seg)
+  }
 
   if (stops.length === 0) {
     if (tripDurationSec <= 0) return startProgress
-    return startProgress + (endProgress - startProgress) * (t / tripDurationSec)
+    return between(startProgress, 0, endProgress, tripDurationSec)
   }
 
   for (let i = 0; i < stops.length; i++) {
@@ -519,32 +629,26 @@ function progressAtDirection(
       if (t <= s.arriveSec) {
         const prevDepart = i > 0 ? stops[i - 1].departSec : 0
         const prevProg = i > 0 ? stops[i - 1].progress : startProgress
-        const seg = s.arriveSec - prevDepart
-        if (seg <= 0) return s.progress
-        const f = (t - prevDepart) / seg
-        return prevProg + (s.progress - prevProg) * f
+        return between(prevProg, prevDepart, s.progress, s.arriveSec)
       }
       return s.progress
     }
   }
 
   const last = stops[stops.length - 1]
-  const seg = tripDurationSec - last.departSec
-  if (seg <= 0) return endProgress
-  const f = (t - last.departSec) / seg
-  return last.progress + (endProgress - last.progress) * f
+  return between(last.progress, last.departSec, endProgress, tripDurationSec)
 }
 
 export function progressAtCycle(schedule: BusSchedule, cycleSec: number): number {
   const wrapped = ((cycleSec % schedule.cycleSec) + schedule.cycleSec) % schedule.cycleSec
   if (schedule.isCircular) {
-    return progressAtDirection(schedule.forwardStops, 0, 1, schedule.tripDurationSec, wrapped)
+    return progressAtDirection(schedule.forwardStops, 0, 1, schedule.tripDurationSec, wrapped, schedule.profile)
   }
   if (wrapped <= schedule.tripDurationSec) {
-    return progressAtDirection(schedule.forwardStops, 0, 1, schedule.tripDurationSec, wrapped)
+    return progressAtDirection(schedule.forwardStops, 0, 1, schedule.tripDurationSec, wrapped, schedule.profile)
   }
   return progressAtDirection(
-    schedule.backwardStops, 1, 0, schedule.tripDurationSec, wrapped - schedule.tripDurationSec
+    schedule.backwardStops, 1, 0, schedule.cycleSec - schedule.tripDurationSec, wrapped - schedule.tripDurationSec, schedule.profile
   )
 }
 
@@ -632,12 +736,13 @@ function computeBusVehicles(
   busStopMap: Map<string, BusStop>,
   nowMinutes: number,
   serviceBucket: BusServiceBucket,
-  traffic?: Pick<BusTrafficController, 'sample'>,
+  traffic?: BusTrafficDriver,
   timeMs = 0,
+  tripModel: BusTripModel = 'road',
 ): VehiclePosition[] {
   const plans: BusTrafficPlan[] = []
   for (const route of busRoutes) {
-    const schedule = getBusSchedule(route, busStopMap)
+    const schedule = getBusSchedule(route, busStopMap, tripModel)
     if (!schedule) continue
     const window = getBusServiceWindow(route, serviceBucket)
     if (!window) continue
@@ -645,8 +750,12 @@ function computeBusVehicles(
     let endMin = window.end * 60
     if (endMin <= startMin) endMin += 1440
     let effectiveNow = nowMinutes
-    if (effectiveNow < startMin && effectiveNow + 1440 <= endMin + cycleMin) effectiveNow += 1440
-    if (effectiveNow < startMin || effectiveNow > endMin + cycleMin) continue
+    // Past the last loop the route is done, unless a driver may still hold a
+    // delayed bus on it (checked per vehicle below, allowed up to three hours
+    // after the window closes).
+    const lateGraceMin = traffic?.playheadOf ? 180 : 0
+    if (effectiveNow < startMin && effectiveNow + 1440 <= endMin + cycleMin + lateGraceMin) effectiveNow += 1440
+    if (effectiveNow < startMin || effectiveNow > endMin + cycleMin + lateGraceMin) continue
     const numVehicles = Math.max(1, Math.floor(schedule.tripDurationSec / 60 / route.frequency))
     const lengthM = schedule.totalLenKm * 1000
     const passages = getRoutePassages(route, lengthM, schedule.isCircular)
@@ -664,8 +773,18 @@ function computeBusVehicles(
       const offset = index * route.frequency
       const elapsed = effectiveNow - startMin - offset
       if (elapsed < 0) continue
-      if (effectiveNow > endMin && startMin + offset + Math.floor(elapsed / cycleMin) * cycleMin > endMin) continue
       const id = `${route.id}-${index}`, elapsedSec = elapsed * 60
+      if (effectiveNow > endMin) {
+        const cycleStartMin = startMin + offset + Math.floor(elapsed / cycleMin) * cycleMin
+        if (cycleStartMin > endMin) {
+          // The timetable's last loop is over. A delayed physical bus may still
+          // be driving it: keep its plan until its own playhead reaches the end
+          // of that loop, so it vanishes at the terminus, not mid-street.
+          const lastLoopEndSec = (cycleStartMin - startMin - offset) * 60
+          const playhead = traffic?.playheadOf?.(id)
+          if (playhead === undefined || playhead >= lastLoopEndSec - .01) continue
+        }
+      }
       // Initial lane only. The distance course retains subsequent choices
       // after stops and lane drops, consistently across frames and time seeks.
       const lanePreference = (lanes.seed + index) % lanes.forward.length
@@ -1283,12 +1402,14 @@ function computeFerryVehicles(
 export function computeVehiclePositions(
   transitData: TransitData,
   time: Date,
-  options: { includeFlights?: boolean; includeBuses?: boolean; busTraffic?: BusTrafficController } = {},
+  // busTripModel: captured replay scenes pass 'legacy', the schedule their
+  // playheads were recorded under; everything live uses the road model.
+  options: { includeFlights?: boolean; includeBuses?: boolean; busTraffic?: BusTrafficController; busTripModel?: BusTripModel } = {},
 ): VehiclePosition[] {
   const nowMinutes = timeToMinutes(time)
   const lrtVehicles = sampleLrtVehicles(transitData, time.getTime())
 
-  const busVehicles = options.includeBuses === false ? [] : computeBusOnly(transitData, time, options.busTraffic)
+  const busVehicles = options.includeBuses === false ? [] : computeBusOnly(transitData, time, options.busTraffic, options.busTripModel)
 
   const flightVehicles = options.includeFlights === false ? [] : computeFlightVehicles(
     transitData.flights,
@@ -1312,8 +1433,8 @@ export function computeFlightOnly(
   return computeFlightVehicles(transitData.flights, timeToMinutes(time))
 }
 
-export function computeBusOnly(data: Pick<TransitData, 'busRoutes' | 'busStops'>, time: Date, traffic?: Pick<BusTrafficController, 'sample'>): VehiclePosition[] {
-  return computeBusVehicles(data.busRoutes, getBusStopMap(data), timeToMinutes(time), getBusServiceBucket(time), traffic, time.getTime())
+export function computeBusOnly(data: Pick<TransitData, 'busRoutes' | 'busStops'>, time: Date, traffic?: BusTrafficDriver, tripModel: BusTripModel = 'road'): VehiclePosition[] {
+  return computeBusVehicles(data.busRoutes, getBusStopMap(data), timeToMinutes(time), getBusServiceBucket(time), traffic, time.getTime(), tripModel)
 }
 
 export function computeSingleFlight(flight: Flight, time: Date): VehiclePosition | null {

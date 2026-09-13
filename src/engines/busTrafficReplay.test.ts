@@ -33,7 +33,8 @@ describe('citywide bus traffic replay', () => {
     // the first physics step. The current network has its own replay below.
     const scene: TransitData = { ...data, busRoutes: JSON.parse(gunzipSync(readFileSync(
       new URL('./__fixtures__/bus-replay-routes.json.gz', import.meta.url))).toString('utf8')) }
-    computeVehiclePositions(scene, new Date(start), { busTraffic: controller })
+    // Its playheads were captured under the fixed 30/60-minute schedule.
+    computeVehiclePositions(scene, new Date(start), { busTraffic: controller, busTripModel: 'legacy' })
     controller['junctionOwners'].clear(); controller['junctionWaiters'].clear()
     for (const id of controller['states'].keys()) if (!cases.some(c => c[0] === id)) controller['states'].delete(id)
     const initial = new Map<string, number>()
@@ -165,7 +166,9 @@ describe('citywide bus traffic replay', () => {
         }
       }
     }
-    expect(fleetSize).toBeGreaterThan(300)
+    // The road-speed service cycle runs the loops about twice as fast as the
+    // fixed 30/60-minute one did, so half the buses cover the same headways.
+    expect(fleetSize).toBeGreaterThan(150)
     expect(overlaps, 'Bus body intersections across the entire fleet').toBe(0)
   }, 600000)
 })

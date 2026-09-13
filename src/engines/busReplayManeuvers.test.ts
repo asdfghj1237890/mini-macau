@@ -44,7 +44,8 @@ function pairAt(clock: string, playheads: Map<string, number>) {
   const routeIds = new Set([...playheads.keys()].map(id => id.split('-')[0]))
   const data = { busRoutes: routes.filter(r => routeIds.has(r.id)), busStops: stops,
     lrtLines: [], stations: [], trips: [], flights: [], ferries: [] } as unknown as TransitData
-  computeVehiclePositions(data, new Date(start), { busTraffic: traffic })
+  // The playheads below were captured under the fixed 30/60-minute schedule.
+  computeVehiclePositions(data, new Date(start), { busTraffic: traffic, busTripModel: 'legacy' })
   traffic['junctionOwners'].clear(); traffic['junctionWaiters'].clear()
   for (const [id, state] of traffic['states']) {
     if (!playheads.has(id)) { traffic['states'].delete(id); continue }
