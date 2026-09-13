@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-09-12T20:48:01.379398+00:00",
-  "exportedAt": "2026-09-13T00:30:24+0800",
+  "fetchedAtUtc": "2026-09-13T21:33:08.632820+00:00",
+  "exportedAt": "2026-09-14T00:30:24+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -1408,46 +1408,6 @@
       "previousNotice": null
     },
     {
-      "id": "2255/2026",
-      "restriction": "no_parking",
-      "restrictionText": {
-        "zh": "禁止泊車",
-        "pt": "Ficará proibido ao estacionamento"
-      },
-      "location": {
-        "zh": "西灣湖廣場",
-        "pt": "Praça do Lago Sai Van"
-      },
-      "reason": {
-        "zh": "搬運及起卸建築材料工作",
-        "pt": "Transporte e Carregamento de Material de Construção"
-      },
-      "principal": {
-        "zh": "澳門電力股份有限公司,澳門電訊股份有限公司",
-        "pt": "CEM,CTM"
-      },
-      "contractor": {
-        "zh": "長江建築有限公司、景銘建築工程有限公司",
-        "pt": "Cheong Kong Construction Co. Ltd., Companhia de Construcao e Obras Ken Meng Limitada"
-      },
-      "details": {
-        "zh": "因進行搬運及起卸建築材料工作，本年8月10日至9月13日，禁止車輛停泊西灣湖廣場編號4292(11至12)的咪錶泊車位，並准許相關工作車輛在設置適當交通標誌的條件下，於工作時在上述地點短暫停泊及上、落貨。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido ao transporte e carregamento de material de construção, será proibido o estacionamento nos lugares-parque com parquímetros n.os 4292(11 a 12) na Praça do Lago Sai Van, sendo permitido o estacionamento momentânea do veículo de trabalho no local em causa, durante a execução dos trabalhos, que deverão estar devidamente sinalizados, nos dias 10/08/2026 a 13/09/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 35,
-        "hours": 0
-      },
-      "startDate": "2026-08-10",
-      "endDate": "2026-09-13",
-      "onlineDate": "2026-08-08",
-      "coordinates": [
-        113.536499,
-        22.18112
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "2296/2026",
       "restriction": "one_way",
       "restrictionText": {
@@ -1724,46 +1684,6 @@
       "coordinates": [
         113.54456,
         22.206457
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2472/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "媽閣上街",
-        "pt": "Obra de Reordenamento de Esgoto e de Passeio"
-      },
-      "reason": {
-        "zh": "下水道及行人道整治工程",
-        "pt": "Obra de Reordenamento de Esgoto e de Passeio"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "長江建築有限公司",
-        "pt": "Cheong Kong Construction Co. Ltd."
-      },
-      "details": {
-        "zh": "因進行下水道及行人道整治工程，於本年8月22日至9月13日，介乎樹木巷與煙草里之間的一段媽閣上街將實施有限度通車，並禁止車輛停泊該路段的電單車泊車位及上落客貨位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido as obras de reordenamento de esgoto e de passeio, o troço da Rua de S. Tiago da Barra entre a Travessa da Árvore e o Beco do Tabaco ficará com condicionamentos ao trânsito, sendo proibido o estacionamento nos lugares-parque de motociclos e na zona de carga-descarga e tomada-largada de passageiros deste troço, nos dias 22/08/2026 a 13/09/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 22,
-        "hours": 9
-      },
-      "startDate": "2026-08-22",
-      "endDate": "2026-09-13",
-      "onlineDate": "2026-08-20",
-      "coordinates": [
-        113.531313,
-        22.185683
       ],
       "previousNotice": null
     },
@@ -3928,46 +3848,6 @@
       "previousNotice": null
     },
     {
-      "id": "2642/2026",
-      "restriction": "closed",
-      "restrictionText": {
-        "zh": "封閉交通",
-        "pt": "Ficará vedado ao trânsito"
-      },
-      "location": {
-        "zh": "友誼大馬路內路",
-        "pt": "Via Interior da Avenida da Amizade"
-      },
-      "reason": {
-        "zh": "拆除龍門架工作",
-        "pt": "Trabalhos de Demolição de Pórticos"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "得寶國際-中國路橋合作經營",
-        "pt": ""
-      },
-      "details": {
-        "zh": "因進行拆除龍門架工作，於本年9月10日至13日每日凌晨零時至上午6時，友誼大馬路內路近雷達站的路段將在警方協助下實施封閉交通。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido ao trabalhos de demolição de pórticos, o troço da via interior da Avenida da Amizade junto da Estação da Radar ficará vedado ao trânsito e com apoio policial, das 00H00 às 06H00, dia 10/09/2026 ao dia 13/09/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 3,
-        "hours": 6
-      },
-      "startDate": "2026-09-10",
-      "endDate": "2026-09-13",
-      "onlineDate": "2026-09-08",
-      "coordinates": [
-        113.560538,
-        22.198592
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "2653/2026",
       "restriction": "no_parking",
       "restrictionText": {
@@ -4084,46 +3964,6 @@
       "coordinates": [
         113.552629,
         22.13874
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2614/2026",
-      "restriction": "closed",
-      "restrictionText": {
-        "zh": "封閉交通",
-        "pt": "Ficará vedado ao trânsito"
-      },
-      "location": {
-        "zh": "氹仔偉龍馬路行車天橋",
-        "pt": "Viaduto na Avenida Wai Long na Ilha da Taipa"
-      },
-      "reason": {
-        "zh": "維修路面工程",
-        "pt": "Obra de Reparação de Pavimento"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "明信建築置業有限公司、達昌建築工程有限公司",
-        "pt": "Companhia de Construcao e Investimentos Predial Ming Shun, Lda.、Tat Cheong - Companhia de Construção e Engenharia, Limitada"
-      },
-      "details": {
-        "zh": "因進行維修路面工程，於本年9月12日上午9時至9月13日晚上8時，氹仔偉龍馬路行車天橋將在警方協助的情況下實施封閉交通。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido à obra de reparação de pavimento, o viaduto da Avenida Wai Long na Ilha da Taipa ficará vedado ao trânsito e com apoio policial, das 09H00 do dia 12/09/2026 às 20H00 do dia 13/09/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 1,
-        "hours": 11
-      },
-      "startDate": "2026-09-12",
-      "endDate": "2026-09-13",
-      "onlineDate": "2026-09-10",
-      "coordinates": [
-        113.570997,
-        22.164892
       ],
       "previousNotice": null
     },
