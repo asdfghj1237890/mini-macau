@@ -1,5 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { gunzipSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
 import type { TransitData } from '../types'
 import { BusTrafficController, busesConflict } from './busTraffic'
@@ -26,7 +27,13 @@ describe('citywide bus traffic replay', () => {
     // scheduled arrival records. No legacy lane fixture is used here.
     const cases = Object.entries(kerbTurn)
     const controller = new BusTrafficController(), start = new Date('2026-09-11T18:54:00+08:00').getTime()
-    computeVehiclePositions(data, new Date(start), { busTraffic: controller })
+    // These saved playheads/distances belong to the captured geometry. Keep
+    // that exact public bus scene even when terminal routing is updated;
+    // otherwise unrelated buses are relocated on top of each other before
+    // the first physics step. The current network has its own replay below.
+    const scene: TransitData = { ...data, busRoutes: JSON.parse(gunzipSync(readFileSync(
+      new URL('./__fixtures__/bus-replay-routes.json.gz', import.meta.url))).toString('utf8')) }
+    computeVehiclePositions(scene, new Date(start), { busTraffic: controller })
     controller['junctionOwners'].clear(); controller['junctionWaiters'].clear()
     for (const id of controller['states'].keys()) if (!cases.some(c => c[0] === id)) controller['states'].delete(id)
     const initial = new Map<string, number>()
@@ -136,8 +143,11 @@ describe('citywide bus traffic replay', () => {
           // wait. Confirm route movement in the latest interval, rather than
           // failing it for the congestion that preceded that restart.
           if (group.some(s => recent?.has(s.id) && s.distanceM - recent.get(s.id)!.distanceM > 1)) continue
-          if (group.length === 1 && group[0].phase === 'stopped' &&
-              group[0].playhead - previous.get(group[0].id)!.playhead > 590) continue
+          // A bus can clear a queue and start an ordinary dwell within this
+          // ten-minute window. Its route distance stays fixed while its stop
+          // clock advances. Frozen or physically blocked stops remain checked.
+          if (group.length === 1 && group[0].phase === 'stopped' && !group[0].blocked &&
+              recent?.has(group[0].id) && group[0].playhead > recent.get(group[0].id)!.playhead + .001) continue
           const advanced = Math.max(...group.map(s => s.distanceM - previous.get(s.id)!.distanceM))
           const state = group[0]
           if (advanced <= 20) {

@@ -7,6 +7,7 @@ import { lazy, Suspense, useRef, useEffect, useCallback, useState, useSyncExtern
 import * as maplibregl from 'maplibre-gl'
 import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
+import { addBusTerminal, BUS_TERMINAL_LAYERS } from '../layers/busTerminal'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
 import type { SimulationClock, TransitData, VehiclePosition, Station, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner } from '../types'
@@ -1641,6 +1642,7 @@ const POWER_SELECTED_COLOR = '#ffffff'
 // touches these two properties, so there is no state to fight over.
 const FOCUS_HIDDEN_LAYERS = [
   'bus-routes', 'bus-routes-highlighted', 'stations-circle', 'stations-label',
+  ...BUS_TERMINAL_LAYERS,
 ] as const
 
 // The mirror image: layers that exist ONLY for focus mode. The distribution
@@ -3175,6 +3177,7 @@ export function MapView(props: MapViewProps) {
           properties: { id: r.id, color: r.color },
         }))
       if (busRouteFeatures.length > 0) {
+        addBusTerminal(m, dark)
         m.addSource('bus-routes', {
           type: 'geojson',
           data: { type: 'FeatureCollection', features: busRouteFeatures },
@@ -5156,12 +5159,20 @@ export function MapView(props: MapViewProps) {
               <ul className="space-y-[6px]">
                 <li className="flex items-baseline justify-between gap-2">
                   <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceBusLabel}</span>
-                  <a
-                    href="https://www.dsat.gov.mo/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
-                  >DSAT</a>
+                  <span className="flex flex-wrap justify-end gap-x-1.5 gap-y-1">
+                    <a
+                      href="https://www.dsat.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors shrink-0"
+                    >DSAT</a>
+                    <a
+                      href="https://motransportinfo.com/zh/station/M172"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 hover:text-(--mm-amber-1) transition-colors"
+                    >MO Transport</a>
+                  </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">
                   <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceLrtLabel}</span>

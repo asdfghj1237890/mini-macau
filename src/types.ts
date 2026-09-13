@@ -29,7 +29,9 @@ export interface BusRoadSection {
   start: number // inclusive geometry vertex; end is exclusive for segments
   end: number
   kind: 'one-way' | 'two-way' | 'divided' | 'unknown'
-  evidence: 'tag' | 'default' | 'paired-geometry' | 'unmatched' | 'conditional' | 'direction-mismatch'
+  evidence: 'tag' | 'default' | 'paired-geometry' | 'unmatched' | 'conditional' | 'direction-mismatch' | 'terminal-layout'
+  lanePath?: string // explicitly modelled terminal lane centre; no generic lateral offset
+  entryLane?: 'left' // select the kerb lane before a modelled terminal entrance
   wayId?: number
   pairedWayId?: number
   direction?: 1 | -1 // route direction relative to OSM way order
@@ -90,6 +92,7 @@ export interface BusStop {
   namePt?: string
   coordinates: [number, number]
   routeIds: string[]
+  platform?: string
 }
 
 export interface TimetableEntry {

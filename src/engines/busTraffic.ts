@@ -269,6 +269,13 @@ class Occupancy {
   }
 }
 
+function reservationDistance(state: State, distanceM = state.pose.distanceM): number {
+  // A clearance manoeuvre can leave the body behind its schedule position.
+  // Keep the displaced part of the passage reserved until the body clears;
+  // forward/lateral adjustments must never release a crossing earlier either.
+  return distanceM - Math.hypot(state.offsetX, state.offsetY)
+}
+
 // Invert the monotonic schedule distance, keeping dwell time in the playhead.
 // A queued bus reaches and serves its stop later; it never skips the dwell
 // simply because the unimpeded timetable has already moved on.
@@ -348,9 +355,10 @@ export class BusTrafficController {
       }
       const current = state
       current.plan = { ...plan, passageAt: distanceM => {
-        const passage = plan.passageAt?.(distanceM)
+        const clearedM = reservationDistance(current, distanceM)
+        const passage = plan.passageAt?.(clearedM)
         if (!passage?.zones) return passage
-        const zones = passage.zones.filter(z => z.exitM > distanceM + .01)
+        const zones = passage.zones.filter(z => z.exitM > clearedM + .01)
         return zones.length ? { ...passage, zones, keys: passage.keys.filter(key => zones.some(z => z.key === key)) } : undefined
       }, sample: at => {
         const pose = plan.sample(at)
@@ -416,11 +424,12 @@ export class BusTrafficController {
           offsetX: s.offsetX, offsetY: s.offsetY, active: s.active }])) : undefined
         this.junctionWaiters.clear()
         for (const state of ordered) {
-          if (state.passage && state.pose.distanceM >= state.passage.exitM) this.releasePassage(state)
+          const clearedM = reservationDistance(state)
+          if (state.passage && clearedM >= state.passage.exitM) this.releasePassage(state)
           else if (state.passage?.zones) {
             for (const key of state.passage.keys) {
               const zones = state.passage.zones.filter(z => z.key === key)
-              if (zones.length && zones.every(z => z.exitM <= state.pose.distanceM)) {
+              if (zones.length && zones.every(z => z.exitM <= clearedM)) {
                 const owners = this.junctionOwners.get(key)
                 owners?.delete(state.plan.id)
                 if (!owners?.size) this.junctionOwners.delete(key)
@@ -622,6 +631,26 @@ export class BusTrafficController {
     for (let i = 1; i <= parts; i++) {
       const time = start + (next.time - start) * i / parts
       const candidate = state.plan.sample(time)
+      if (!insideLane(candidate, state.offsetX, state.offsetY)) {
+        // Acceleration and following can stop a step before its requested
+        // endpoint, inside a narrower part of the bend. Check that actual
+        // swept course too, rather than only the uncapped desired pose.
+        let lo = lastClear, hi = time
+        for (let j = 0; j < 12; j++) {
+          const mid = (lo + hi) / 2
+          const pose = state.plan.sample(mid)
+          if (insideLane(pose, state.offsetX, state.offsetY) && !occupancy.blocked(pose, state)) lo = mid
+          else hi = mid
+        }
+        next = { time: lo, pose: state.plan.sample(lo) }; following = true
+        state.clearance = { x: 0, y: 0 }
+        // The bisection also stops at a body. Record that leader, or the
+        // wait graph loses the edge that recovery and progress checks need.
+        const stop = state.plan.sample(hi)
+        const blocker = insideLane(stop, state.offsetX, state.offsetY) ? occupancy.blocker(stop, state) : undefined
+        if (blocker) { bodyBlocked = busesConflict(stop.vehicle, blocker.pose.vehicle, BODY_CLEARANCE_M); state.leaderId = blocker.plan.id }
+        break
+      }
       const blocker = occupancy.blocker(candidate, state)
       if (blocker) {
         bodyBlocked = busesConflict(state.plan.sample(time).vehicle, blocker.pose.vehicle, BODY_CLEARANCE_M)
@@ -1337,14 +1366,38 @@ export class BusTrafficController {
         type Choice = typeof choices[number][number]
         const selected: Choice[] = [], compatible = new Map<Choice, Map<Choice, boolean>>()
         let best: Choice[] | undefined, bestScore = .001, visits = 0
+        // A queued bus backs up only together with the bus directly in front
+        // of it. On its own, that retreat re-opens room which its next forward
+        // creep consumes again: the body stays pinned behind its leader while
+        // the schedule runs ahead by the retreat length, and every later claim
+        // and reservation is computed from that phantom position.
+        const queueLeader = (state: State): State | undefined => {
+          const p = body(state.pose.vehicle)
+          let leader: State | undefined, nearest = 40
+          for (const other of occupancy.near(p, nearest)) {
+            if (other === state) continue
+            const q = body(other.pose.vehicle)
+            if (p.fx * q.fx + p.fy * q.fy < .97 || !sameFlow(p, q)) continue
+            const along = (q.x - p.x) * p.fx + (q.y - p.y) * p.fy, side = Math.abs((q.x - p.x) * p.fy - (q.y - p.y) * p.fx)
+            if (along <= 0 || along >= nearest || side > p.width + q.width) continue
+            leader = other; nearest = along
+          }
+          return leader
+        }
         const search = (index: number, score: number) => {
           if (++visits > 20000 || score + choices.slice(index).reduce((sum, c) => sum + (c[0]?.score ?? 0), 0) <= bestScore) return
           if (index === choices.length) {
-            // Vacate one original blocking approach at a time. Its queued
-            // followers may retreat together to create room; moving both
-            // original approaches backwards would preserve the interlock.
-            if (!selected.some(c => c.move.pose.distanceM - c.move.state.pose.distanceM > .001) &&
-                selected.filter(c => roots.has(c.move.state) && progress(c.move) > .001).length > 1) return
+            if (!selected.some(c => c.move.pose.distanceM - c.move.state.pose.distanceM > .001)) {
+              // Vacate one original blocking approach at a time. Its queued
+              // followers may retreat together to create room; moving both
+              // original approaches backwards would preserve the interlock.
+              if (selected.filter(c => roots.has(c.move.state) && progress(c.move) > .001).length > 1) return
+              if (selected.some(c => {
+                if (progress(c.move) <= .001) return false
+                const leader = queueLeader(c.move.state)
+                return !!leader && !selected.some(o => o.move.state === leader && progress(o.move) > .001)
+              })) return
+            }
             best = [...selected]; bestScore = score; return
           }
           for (const choice of choices[index]) {
@@ -1416,7 +1469,7 @@ export class BusTrafficController {
     // between approaches; it must never reserve a junction against the front
     // of the requester's own queue.
     if (passage.zones) {
-      const zones = passage.zones.filter(zone => zone.exitM > state.pose.distanceM)
+      const zones = passage.zones.filter(zone => zone.exitM > reservationDistance(state))
       const keys = passage.keys.filter(key => zones.some(zone => zone.key === key))
       if (!keys.length) return true
       passage = { ...passage, keys, zones }

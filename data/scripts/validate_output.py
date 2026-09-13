@@ -303,15 +303,21 @@ def check_bus_road_profile(errs, ctx, profile, coords):
         kind, evidence = section.get("kind"), section.get("evidence")
         if kind not in ("one-way", "two-way", "divided", "unknown"):
             errs.append(f"{name}: invalid kind")
-        if evidence not in ("tag", "default", "paired-geometry", "unmatched", "conditional", "direction-mismatch"):
+        if evidence not in ("tag", "default", "paired-geometry", "unmatched", "conditional", "direction-mismatch", "terminal-layout"):
             errs.append(f"{name}: invalid evidence")
         for key in ("wayId", "pairedWayId"):
             if key in section and (type(section[key]) is not int or section[key] <= 0):
                 errs.append(f"{name}: invalid {key}")
         if "direction" in section and (type(section["direction"]) is not int or section["direction"] not in (-1, 1)):
             errs.append(f"{name}: invalid direction")
-        if kind != "unknown" and (not section.get("wayId") or not section.get("direction")):
+        if kind != "unknown" and evidence != "terminal-layout" and (not section.get("wayId") or not section.get("direction")):
             errs.append(f"{name}: missing matched road")
+        if evidence == "terminal-layout" and (kind != "one-way" or not section.get("lanePath")):
+            errs.append(f"{name}: missing terminal lane")
+        if "lanePath" in section and (not isinstance(section["lanePath"], str) or not section["lanePath"]):
+            errs.append(f"{name}: invalid lanePath")
+        if "entryLane" in section and section["entryLane"] != "left":
+            errs.append(f"{name}: invalid entryLane")
         if kind == "divided" and (not section.get("pairedWayId") or evidence != "paired-geometry"):
             errs.append(f"{name}: missing carriageway pair")
         for key in ("lanes", "directionalLanes", "osmLanes"):
@@ -438,6 +444,8 @@ def v_bus_stops(data: object) -> list[str]:
         if not require_fields(errs, ctx, s, ("id", "coordinates", "routeIds")):
             continue
         check_coords(errs, f"{ctx} ({s['id']})", s["coordinates"])
+        if "platform" in s and not isinstance(s["platform"], str):
+            errs.append(f"{ctx}: invalid platform")
         if s["id"] in seen:
             errs.append(f"{ctx}: duplicate id '{s['id']}'")
         seen.add(s["id"])

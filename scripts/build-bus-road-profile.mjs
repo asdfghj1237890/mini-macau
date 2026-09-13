@@ -5,6 +5,7 @@
 import { readFile, writeFile, mkdir, rename, copyFile, unlink } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dirname, join } from 'node:path'
+import { buildAmaralNetwork } from './amaral-network.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const MX = 111320 * Math.cos(22.19 * Math.PI / 180), MY = 111320, CELL = 64
@@ -96,16 +97,22 @@ export function matchRoad(aLngLat, bLngLat, index) {
   let best, score = Infinity
   for (const s of index.near(p, 12)) {
     const dot = fx * s.fx + fy * s.fy, distance = projection(p, s).distance
-    if (Math.abs(dot) < .9 || distance > 8) continue
+    // These curves were constructed from the same directed terminal paths.
+    // A rounded corner must not fall back to an unknown-road lateral shift.
+    const terminalCurve = s.tags._lanePath && dot > .1 && distance < 2
+    if (!terminalCurve && (Math.abs(dot) < .9 || distance > 8)) continue
     // Never choose a distant correct-way carriageway over an exact wrong-way
     // match: the latter reveals stale/imported geometry and must be reviewed.
-    const candidate = distance + (1 - Math.abs(dot)) * 15
+    const candidate = distance + (1 - Math.abs(dot)) * (terminalCurve ? 1 : 15)
     if (candidate < score) { score = candidate; best = s }
   }
   if (!best) return { kind: 'unknown', evidence: 'unmatched' }
   const s = best, travel = fx * s.fx + fy * s.fy >= 0 ? 1 : -1
-  if (s.direction === null) return { kind: 'unknown', evidence: 'conditional', wayId: s.wayId }
-  if (s.direction && travel !== s.direction) return { kind: 'unknown', evidence: 'direction-mismatch', wayId: s.wayId }
+  if (s.tags._lanePath && travel === 1) return { kind: 'one-way', evidence: 'terminal-layout', lanePath: s.tags._lanePath,
+    ...(typeof s.wayId === 'number' ? { wayId: s.wayId, direction: 1 } : {}) }
+  const osmIdentity = typeof s.wayId === 'number' ? { wayId: s.wayId } : {}
+  if (s.direction === null) return { kind: 'unknown', evidence: 'conditional', ...osmIdentity }
+  if (s.direction && travel !== s.direction) return { kind: 'unknown', evidence: 'direction-mismatch', ...osmIdentity }
   const onRoad = projection(p, s)
   const pair = pairedCarriageway(s, [onRoad.x, onRoad.y], index)
   const tags = s.tags, kind = s.direction === 0 ? 'two-way' : pair ? 'divided' : 'one-way'
@@ -144,11 +151,15 @@ export function annotateRoutes(routes, ways, fetchedAtUtc) {
   for (const trace of traces.segments) trace.road = routes[trace.wayId].roadProfile.sections.find(s => trace.segmentIndex >= s.start && trace.segmentIndex < s.end)
   for (const route of routes) {
     const points = route.geometry.geometry.coordinates.map(xy), sections = []
+    const cumulative = [0]
+    for (let i = 1; i < points.length; i++) cumulative.push(cumulative[i - 1] + Math.hypot(points[i][0] - points[i - 1][0], points[i][1] - points[i - 1][1]))
+    const entrances = route.roadProfile.sections.filter((s, i, all) => s.lanePath && !all[i - 1]?.lanePath).map(s => cumulative[s.start])
     let previous = ''
     for (const section of route.roadProfile.sections) {
       for (let i = section.start; i < section.end; i++) {
         const value = { ...section }
         delete value.start; delete value.end
+        if (value.kind === 'one-way' && value.lanes > 1 && entrances.some(at => at > cumulative[i] && at - cumulative[i] <= 110)) value.entryLane = 'left'
         const a = points[i], b = points[i + 1], dx = b[0] - a[0], dy = b[1] - a[1], length = Math.hypot(dx, dy)
         const p = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
         if (length >= .05 && !(section.kind === 'two-way' && (section.lanes === 1 || section.widthM < 5.9))) {
@@ -247,7 +258,7 @@ export function routeJunctions(coords, index, sections = []) {
   let sectionIndex = 0
   for (let i = 0; i < points.length - 1; i++) {
     while (sectionIndex + 1 < sections.length && sections[sectionIndex].end <= i) sectionIndex++
-    const wayId = sections[sectionIndex]?.wayId
+    const wayId = sections[sectionIndex]?.wayId ?? sections[sectionIndex]?.lanePath
     const a = points[i], b = points[i + 1], length = cum[i + 1] - cum[i]
     if (length < .001) continue
     const mid = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]
@@ -310,7 +321,10 @@ async function run() {
     }
     if (!snapshot) throw error
   }
-  const routes = annotateRoutes(JSON.parse(await readFile(path, 'utf8')), snapshot.elements, snapshot.fetchedAtUtc)
+  const source = JSON.parse(await readFile(join(ROOT, 'data/bus_reference/amaral-terminal.json'), 'utf8'))
+  const terminal = buildAmaralNetwork(source), replaced = new Set(terminal.ways.map(w => w.id))
+  const ways = [...snapshot.elements.filter(w => !replaced.has(w.id)), ...terminal.ways]
+  const routes = annotateRoutes(JSON.parse(await readFile(path, 'utf8')), ways, snapshot.fetchedAtUtc)
   const tempPath = join(ROOT, 'data/raw/bus-routes-profile-output.json')
   await writeFile(tempPath, JSON.stringify(routes))
   try { await rename(tempPath, path) } catch (error) {

@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { gunzipSync } from 'node:zlib'
 import { expect, it, vi } from 'vitest'
 import type { Feature, LineString } from 'geojson'
 import type { TransitData } from '../types'
@@ -34,7 +35,7 @@ vi.mock('./busLaneGeometry', async importOriginal => {
 
 // Public route geometry only. Warm starts reproduce the approach positions
 // from city replays without running the preceding twenty minutes each time.
-const routes = JSON.parse(readFileSync(new URL('../../public/data/bus-routes.json', import.meta.url), 'utf8')) as TransitData['busRoutes']
+const routes = JSON.parse(gunzipSync(readFileSync(new URL('./__fixtures__/bus-replay-routes.json.gz', import.meta.url))).toString('utf8')) as TransitData['busRoutes']
 const stops = JSON.parse(readFileSync(new URL('../../public/data/bus-stops.json', import.meta.url), 'utf8')) as TransitData['busStops']
 
 function pairAt(clock: string, playheads: Map<string, number>) {

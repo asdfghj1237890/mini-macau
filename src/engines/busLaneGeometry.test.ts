@@ -102,6 +102,16 @@ describe('classified bus lanes', () => {
     }
     expect(reads).toBe(built)
   })
+  it('moves to the terminal entry lane in advance and keeps it after departure', () => {
+    const line = {}, lane = { preference: 2, stops: [] }
+    const roadAt = (m: number) => section('one-way', { lanes: 3, ...(m >= 400 && m <= 600 ? { entryLane: 'left' as const } : {}) })
+    const sample = (m: number) => sampleBusLaneCourse(line, undefined, 1000, m / 1000, false, roadAt, lane)
+    expect(sample(50)).toBeCloseTo(-3.5)
+    expect(sample(400)).toBeCloseTo(3.5)
+    expect(sample(850)).toBeCloseTo(3.5)
+    expect(busLaneLayout(roadAt(500)).offsets).toHaveLength(3)
+    for (let m = 1; m <= 1000; m++) expect(Math.abs(sample(m) - sample(m - 1))).toBeLessThanOrEqual(.041)
+  })
   it('retains the nearest surviving lane when three lanes become two', () => {
     const line = {}, lane = { preference: 2, stops: [] }
     const roadAt = (m: number) => section('one-way', { lanes: m < 500 ? 3 : 2 })

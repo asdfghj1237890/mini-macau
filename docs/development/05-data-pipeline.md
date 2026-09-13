@@ -88,10 +88,12 @@ OSM (大橋) ──> fetch_bridge_geometry.py ──> raw/bridges.json ──┤
 完成巴士幾何與橋段修改後，在 repo 根目錄執行：
 
 ```bash
-node scripts/build-bus-road-profile.mjs
+npm run data:amaral
 node scripts/inspect.mjs bus-roads
 node scripts/inspect.mjs bus-roads 22
 ```
+
+`data:amaral` 先依 MO Transport 的 17 個分站與 OSM 地面單向道路重建亞馬喇前地進出路徑，再產生全城道路分類與站區標示。此步驟也適用於單條路線重生成；詳見 [亞馬喇前地資料與模型界線](12-amaral-terminal.md)。只修改道路分類規則、未改巴士幾何時，可直接執行 `node scripts/build-bus-road-profile.mjs`。
 
 產生器從 OSM 道路的 `oneway`、巴士／公共交通例外、車道數與寬度標記配對每段巴士路線。單行道的反向標記 `-1`、迴旋處、條件式通行與幾何方向不一致分別處理；條件無法靜態判定或配對距離超過 8 m 的段落保留 `unknown`。分隔道路以同名或同 ref、同層級、平行反向且位於行車右側的另一條道路幾何辨識，標記 `paired-geometry`；這是幾何推定，不代表實測中央分隔設施。參考 [OSM oneway](https://wiki.openstreetmap.org/wiki/Key:oneway) 與 [dual carriageway](https://wiki.openstreetmap.org/wiki/Dual_carriageway)。
 
@@ -301,7 +303,7 @@ Runtime 由 [`useServiceStatus.ts`](../../src/hooks/useServiceStatus.ts) 讀進�
 
 ## 常見維護任務
 
-- **修一條路線的幾何錯誤**：改 `bus_reference/`（或 `extract_bus_data.py` 的 override）、跑 `_regenerate_specific.py`，它直接改寫 `public/data/bus-routes.json`；用 `git diff` 檢視後跑 `validate_output.py bus-routes bus-stops`。
+- **修一條路線的幾何錯誤**：改 `bus_reference/`（或 `extract_bus_data.py` 的 override）、跑 `_regenerate_specific.py`，它直接改寫 `public/data/bus-routes.json`；接著跑 `npm run data:amaral` 重建站區與道路分類，用 `git diff` 檢視後跑 `validate_output.py bus-routes bus-stops`。
 - **加新巴士路線**：DSAT 開新線時，先在 `bus_reference/` 加 reference data、跑全套 extract → osrm → patch、最後在 `routeGroups.ts` 把它分到對的 group。
 - **改服務時段**：`patch_service_hours.py` / `patch_service_hours_by_day.py`，在腳本裡硬編碼新的小時數，重跑。`patch_service_hours_by_day.py` 會把週六或週日的「不設服務」寫成對應的 `serviceHoursStartSat/Sun: null` / `serviceHoursEndSat/Sun: null`。
 - **更新 LRT 班次**：依最新官方公告更新三種 scheduleType 的部署輸入，通過 schema 與方向一致性驗證後重新部署。

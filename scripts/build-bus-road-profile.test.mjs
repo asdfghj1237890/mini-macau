@@ -7,6 +7,23 @@ const way = (id, a, b, tags = {}) => ({ type: 'way', id, tags: { highway: 'resid
 const match = (ways, a = [20, 0], b = [30, 0]) => matchRoad(coord(...a), coord(...b), buildRoadIndex(ways))
 
 describe('offline bus road classification', () => {
+  it('does not publish a synthetic lane identifier as an OSM way id on a reverse match', () => {
+    const road = match([way('amaral/G', [0, 0], [100, 0], { oneway: 'yes', _lanePath: 'amaral/G' })], [30, 0], [20, 0])
+    expect(road).toEqual({ kind: 'unknown', evidence: 'direction-mismatch' })
+  })
+  it('keeps a rounded terminal curve centred and preserves its surface-way identity', () => {
+    const road = match([way(1, [0, 0], [100, 0], { oneway: 'yes', _lanePath: 'amaral/A' })], [20, -1], [21, 0])
+    expect(road).toMatchObject({ evidence: 'terminal-layout', lanePath: 'amaral/A', wayId: 1, direction: 1 })
+  })
+  it('does not claim an underground junction for a modelled surface lane', () => {
+    const tunnel = { ...way(20, [-40, 0], [0, 0], { tunnel: 'yes' }), nodes: [10, 11] }
+    const east = { ...way(21, [0, 0], [40, 0], { tunnel: 'yes' }), nodes: [11, 12] }
+    const north = { ...way(22, [0, 0], [0, 40], { tunnel: 'yes' }), nodes: [11, 13] }
+    const index = buildJunctionIndex([tunnel, east, north])
+    expect(index.zones).toHaveLength(1)
+    expect(routeJunctions([coord(-40, 0), coord(40, 0)], index,
+      [{ start: 0, end: 1, kind: 'one-way', evidence: 'terminal-layout', lanePath: 'amaral/G' }])).toEqual([])
+  })
   it('honours negative direction, roundabouts, bus exceptions and conditional access', () => {
     expect(roadDirection({ oneway: '-1' })).toBe(-1)
     expect(roadDirection({ junction: 'roundabout' })).toBe(1)

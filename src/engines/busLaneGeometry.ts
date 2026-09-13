@@ -16,6 +16,7 @@ export function busLaneLayout(section: BusRoadSection, returning = false): LaneL
 }
 
 function buildLaneLayout(section: BusRoadSection, returning: boolean): LaneLayout {
+  if (section.lanePath) return { offsets: [0], estimated: true }
   const estimated = section.widthM === undefined
   // A mismatched one-way match does not establish a lane on either side of
   // the imported trace. Keep its centre unless the route-pair scan found
@@ -71,9 +72,10 @@ export function sampleBusLaneCourse(line: object, profile: BusRoadProfile | unde
     for (let i = 0; i <= count; i++) {
       const metres = i * step
       while (stopIndex < stops.length && stops[stopIndex] < metres - 12) stopIndex++
-      const layout = busLaneLayout(roadAt(returning ? lengthM - metres : metres), returning)
+      const road = roadAt(returning ? lengthM - metres : metres)
+      const layout = busLaneLayout(road, returning)
       const offsets = layout.offsets
-      const atStop = stopIndex < stops.length && Math.abs(stops[stopIndex] - metres) <= 12
+      const atStop = road.entryLane === 'left' || stopIndex < stops.length && Math.abs(stops[stopIndex] - metres) <= 12
       // Carry this choice in travel order, including on the return journey.
       // Precomputation also makes a time seek agree with driving to that point.
       lane = atStop ? 0 : Math.min(lane, offsets.length - 1)

@@ -27,6 +27,41 @@ function clear(vehicles: VehiclePosition[]) {
 }
 
 describe('bus following', () => {
+  it('rejoins before acceleration leaves an offset body in a narrow intermediate lane', () => {
+    const traffic = new BusTrafficController()
+    const make = (at: number) => {
+      const p = plan('narrow-curve', at, { speed: 8 })
+      return { ...p, sample: (time: number) => {
+        const pose = p.sample(time)
+        return { ...pose, laneAllowance: { leftM: 0, rightM: pose.distanceM >= .25 && pose.distanceM < 2 ? 0 : 2 } }
+      } }
+    }
+    traffic.sample([make(0)], 0)
+    const state = traffic['states'].get('narrow-curve')!
+    state.offsetY = -1; state.rejoinAfterM = 20
+    state.pose = state.plan.sample(0)
+    for (let at = .5; at <= 10; at += .5) {
+      traffic.sample([make(at)], at * 1000)
+      expect(-state.offsetY).toBeLessThanOrEqual(state.pose.laneAllowance!.rightM + .02)
+    }
+    expect(state.pose.distanceM).toBeGreaterThan(20)
+  })
+  it('retains crossing ownership until a retreated body clears the whole passage and its linked zones', () => {
+    for (const linked of [false, true]) {
+      const traffic = new BusTrafficController()
+      traffic.sample([plan('retreated', 5)], 5000)
+      const state = traffic['states'].get('retreated')!
+      state.offsetX = -20
+      state.pose = state.plan.sample(state.playhead)
+      const passage = { keys: linked ? ['junction-a', 'junction-b'] : ['junction-a'], entryM: -10, exitM: linked ? 70 : 10,
+        zones: [{ key: 'junction-a', entryM: -10, exitM: 10 }, ...(linked ? [{ key: 'junction-b', entryM: 10, exitM: 70 }] : [])] }
+      traffic['holdPassage'](state, passage)
+      traffic.sample([plan('retreated', 5.5)], 5500)
+      expect(traffic['junctionOwners'].get('junction-a')?.has('retreated')).toBe(true)
+      for (let at = 6; at <= 30; at += .5) traffic.sample([plan('retreated', at)], at * 1000)
+      expect(traffic['junctionOwners'].has('junction-a')).toBe(false)
+    }
+  })
   it('invalidates cached footprints when a vehicle object changes position or altitude', () => {
     const a = plan('cache-a', 0).sample(0).vehicle, b = plan('cache-b', 20).sample(20).vehicle
     expect(busesConflict(a, b, 0)).toBe(false)

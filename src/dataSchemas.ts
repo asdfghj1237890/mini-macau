@@ -68,7 +68,9 @@ export const TripsSchema = z.array(
 const busRoadSection = z.object({
   start: z.number().int().nonnegative(), end: z.number().int().positive(),
   kind: z.enum(['one-way', 'two-way', 'divided', 'unknown']),
-  evidence: z.enum(['tag', 'default', 'paired-geometry', 'unmatched', 'conditional', 'direction-mismatch']),
+  evidence: z.enum(['tag', 'default', 'paired-geometry', 'unmatched', 'conditional', 'direction-mismatch', 'terminal-layout']),
+  lanePath: z.string().min(1).optional(),
+  entryLane: z.literal('left').optional(),
   wayId: z.number().int().positive().optional(), pairedWayId: z.number().int().positive().optional(),
   direction: z.union([z.literal(1), z.literal(-1)]).optional(),
   lanes: z.number().int().min(1).max(12).optional(), directionalLanes: z.number().int().min(1).max(12).optional(),
@@ -78,7 +80,8 @@ const busRoadSection = z.object({
   widthM: z.number().min(2).max(50).optional(),
 }).superRefine((section, ctx) => {
   if (section.end <= section.start) ctx.addIssue({ code: 'custom', message: 'Empty road span' })
-  if (section.kind !== 'unknown' && (!section.wayId || !section.direction)) ctx.addIssue({ code: 'custom', message: 'Missing matched road' })
+  if (section.kind !== 'unknown' && section.evidence !== 'terminal-layout' && (!section.wayId || !section.direction)) ctx.addIssue({ code: 'custom', message: 'Missing matched road' })
+  if (section.evidence === 'terminal-layout' && (!section.lanePath || section.kind !== 'one-way')) ctx.addIssue({ code: 'custom', message: 'Missing terminal lane' })
   if (section.kind === 'divided' && (!section.pairedWayId || section.evidence !== 'paired-geometry')) ctx.addIssue({ code: 'custom', message: 'Missing carriageway pair' })
 })
 
@@ -126,6 +129,7 @@ export const BusRoutesSchema = z.array(
 export const BusStopsSchema = z.array(
   z.object({
     id: z.string(),
+    platform: z.string().optional(),
     name: z.string(),
     nameCn: z.string(),
     namePt: z.string().optional(),

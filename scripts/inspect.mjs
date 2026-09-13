@@ -19,6 +19,7 @@
 //   node scripts/inspect.mjs coords                 # bus-line coordinate totals
 //   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks
 //   node scripts/inspect.mjs bus-roads [route-id] [lng,lat] # classification summary or geometry within 20 m
+//   node scripts/inspect.mjs bus-station [base-id] # platform coordinates and route geometry at each stop
 //   node scripts/inspect.mjs lrt-motion [--dwell 45] # aggregate motion feasibility; uses LRT_TRIPS_DIR or local dev inputs
 //   node scripts/inspect.mjs city-loading          # city payload and generated count-catalog sizes
 //   node scripts/inspect.mjs ferries                # ferry-schedules.json summary
@@ -45,7 +46,91 @@ import { gzipSync } from 'node:zlib'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const load = (rel) => JSON.parse(readFileSync(join(ROOT, rel), 'utf8'))
-const busRoutes = () => load('public/data/bus-routes.json')
+const busRoutes = () => load(process.env.BUS_TRAFFIC_ROUTES || 'public/data/bus-routes.json')
+
+function cmdBusStation(base = 'M172') {
+  const stops = load('public/data/bus-stops.json').filter(s => s.id.split('/')[0] === base)
+  const routes = busRoutes(), mx = 111320 * Math.cos(22.19 * Math.PI / 180)
+  for (const stop of stops.sort((a, b) => Number(a.id.split('/')[1]) - Number(b.id.split('/')[1]))) {
+    const visits = []
+    for (const route of routes) route.stopsForward.forEach((id, index) => {
+      if (id !== stop.id) return
+      const vertex = route.stopOffsets?.[index], coords = route.geometry.geometry.coordinates, point = coords[vertex]
+      const road = route.roadProfile?.sections.find(s => vertex >= s.start && vertex < s.end)
+      visits.push({ route: route.id, index, vertex, point, errorM: point ? Math.round(Math.hypot(
+        (point[0] - stop.coordinates[0]) * mx, (point[1] - stop.coordinates[1]) * 111320)) : null,
+        before: coords[vertex - 1], after: coords[vertex + 1], road })
+    })
+    console.log(JSON.stringify({ ...stop, visits }))
+  }
+}
+
+function cmdBusTerminalCrossings() {
+  for (const r of busRoutes()) {
+    if (r.stopsForward.some(id => id.startsWith('M172/'))) continue
+    const points = r.geometry.geometry.coordinates
+    const hits = []
+    for (let i = 1; i < points.length; i++) for (let j = 0; j <= 10; j++) {
+      const p = points[i].map((v, a) => v + (points[i - 1][a] - v) * j / 10)
+      if (p[0] > 113.54310 && p[0] < 113.54358 && p[1] > 22.18918 && p[1] < 22.18960) {
+        hits.push({ vertex: i, p, road: r.roadProfile?.sections.find(s => i >= s.start && i < s.end) }); break
+      }
+    }
+    if (hits.length) console.log(JSON.stringify({ route: r.id, hits }))
+  }
+}
+
+function cmdBusReplayReport(path) {
+  const report = load(path), ids = new Set(report.group ?? report.pair ?? [])
+  if (report.trace?.length) {
+    for (const frame of report.trace) console.log(JSON.stringify({ second: frame.second,
+      states: frame.states.map(s => ({ id: s.id, distanceM: s.distanceM, playhead: s.playhead, speed: s.speed,
+        stalledSec: s.stalledSec, offset: s.offset, leader: s.leader, waitingFor: s.waitingFor, yieldTo: s.yieldTo })),
+    }))
+    return
+  }
+  console.log(JSON.stringify({ clock: report.clock, second: report.second, group: [...ids],
+    queues: report.queues?.filter(q => ids.has(q.id)).map(q => {
+      const summary = { ...q }; delete summary.preview; delete summary.path; return summary
+    }),
+    states: report.checkpoint?.states.filter(([id]) => ids.has(id)).map(([id, s]) => ({ id,
+      distanceM: s.pose.distanceM, coordinates: s.pose.vehicle.coordinates, bearing: s.pose.vehicle.bearing,
+      offset: [s.offsetX, s.offsetY], playhead: s.playhead, nominal: s.nominal, clearance: s.clearance,
+      recoveryYield: s.recoveryYield, yieldTo: s.yieldTo, passage: s.passage,
+      laneAllowance: s.pose.laneAllowance, rejoinAfterM: s.rejoinAfterM, tightConvoyUntilM: s.tightConvoyUntilM,
+    })),
+  }, null, 2))
+}
+
+function cmdBusTerminalReference(routeId, path) {
+  const route = busRoutes().find(r => r.id === routeId)
+  if (!route) throw new Error('Expected route id')
+  const xml = path ? readFileSync(path, 'utf8') : ''
+  const reference = path
+    ? [...xml.matchAll(/<trkpt\s+lat="([^"]+)"\s+lon="([^"]+)"/g)].map(m => [Number(m[2]), Number(m[1])])
+    : load('data/bus_reference/amaral-route-paths.json')[routeId]?.paths.flatMap(p => p.coordinates) ?? []
+  if (!reference.length) throw new Error('No GPX track points')
+  const inside = p => p[0] > 113.5424 && p[0] < 113.5443 && p[1] > 22.1876 && p[1] < 22.1902
+  const windows = points => {
+    const result = []
+    for (let i = 0; i < points.length; i++) {
+      if (!inside(points[i])) continue
+      const start = Math.max(0, i - 1)
+      while (i < points.length && inside(points[i])) i++
+      result.push(points.slice(start, Math.min(points.length, i + 1)))
+    }
+    return result
+  }
+  const stops = new Map(load('public/data/bus-stops.json').map(s => [s.id, s]))
+  const metres = (a, b) => Math.hypot((a[0] - b[0]) * 111320 * Math.cos(22.19 * Math.PI / 180), (a[1] - b[1]) * 111320)
+  const nearest = point => Math.min(...reference.map(p => metres(point, p)))
+  console.log(JSON.stringify({ route: routeId, stopOrder: route.stopsForward, local: windows(route.geometry.geometry.coordinates), reference: windows(reference),
+    stops: route.stopsForward.map((id, i) => ({ id, name: stops.get(id)?.nameCn, coordinates: stops.get(id)?.coordinates,
+      routePoint: route.geometry.geometry.coordinates[route.stopOffsets[i]], sourceDistance: nearest(stops.get(id).coordinates),
+      routeSourceDistance: nearest(route.geometry.geometry.coordinates[route.stopOffsets[i]]) })),
+    platforms: load('public/data/bus-stops.json').filter(s => s.id.startsWith('M172/')),
+    lanes: load('src/data/bus-terminals.json').features.filter(f => f.properties.kind === 'lane') }))
+}
 
 function cmdBusRoads(routeId, location) {
   const routes = busRoutes().filter(r => !routeId || r.id === routeId)
@@ -99,7 +184,7 @@ function cmdBusRoads(routeId, location) {
 }
 
 async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', mode = 'current', focus = '') {
-  if (!['current', 'baseline'].includes(mode)) throw new Error('Mode must be current or baseline')
+  if (!['current', 'baseline', 'amaral'].includes(mode)) throw new Error('Mode must be current, baseline or amaral')
   if (!/^\d{2}:\d{2}$/.test(clock)) throw new Error('Expected HH:MM')
   const seconds = Number(duration)
   if (!Number.isFinite(seconds) || seconds < 0 || seconds > 3600) throw new Error('Duration must be 0–3600 seconds')
@@ -113,7 +198,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
     const data = { busRoutes: busRoutes(), busStops: load('public/data/bus-stops.json'), lrtLines: [], stations: [], trips: [], flights: [], ferries: [] }
     if (mode === 'baseline') for (const route of data.busRoutes) delete route.roadProfile
     const checkpoint = process.env.BUS_TRAFFIC_RESUME ? load(process.env.BUS_TRAFFIC_RESUME).checkpoint : undefined
-    const start = checkpoint?.lastMs ?? new Date(`2026-09-11T${clock}:00+08:00`).getTime()
+    const start = checkpoint?.lastMs ?? new Date(`${process.env.BUS_TRAFFIC_DATE || '2026-09-11'}T${clock}:00+08:00`).getTime()
     if (!Number.isFinite(start)) throw new Error('Invalid time')
     const nearby = buses => buses.filter(v => Math.abs(v.coordinates[0] - 113.54332) < .003 && Math.abs(v.coordinates[1] - 22.1893) < .003)
     const conflicts = buses => {
@@ -125,6 +210,11 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
       return hits
     }
     const busTraffic = new BusTrafficController(), timings = []
+    const { BusTrafficScope } = await server.ssrLoadModule('/src/engines/busTrafficScope.ts')
+    const { BusTraceRecorder } = await server.ssrLoadModule('/src/engines/busMotionTrace.ts')
+    const scope = new BusTrafficScope(busTraffic)
+    const view = { bounds: [113.5418, 22.187, 113.5453, 22.1915] }
+    const driver = mode === 'amaral' ? { sample: (plans, time) => scope.sample(plans, time, view, new BusTraceRecorder(view)) } : busTraffic
     let final = [], collisions = 0, worst = [], queuedPeak = 0, initialMs = 0
     const holds = new Map()
     const events = new Map(), trace = [], focusIds = new Set(focus.split(',').filter(Boolean))
@@ -138,6 +228,9 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
         Object.assign(state, saved)
         state.passageShapes = undefined
       }
+      // Creation order breaks ties inside a traffic step. Preserve it too;
+      // reseeding the same states in route order changes the reproduced scene.
+      busTraffic.states = new Map(checkpoint.states.map(([id]) => [id, busTraffic.states.get(id)]))
       busTraffic.lastMs = start; busTraffic.nextRequest = checkpoint.nextRequest
       busTraffic.recoverySequence = checkpoint.recoverySequence ?? 0
       busTraffic.junctionOwners = new Map(checkpoint.junctionOwners.map(([key, owners]) => [key, new Map(owners)]))
@@ -145,11 +238,11 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
     }
     for (let tick = checkpoint ? 1 : 0; tick <= Math.round(seconds / step); tick++) {
       const begin = performance.now()
-      final = computeVehiclePositions(data, new Date(start + tick * step * 1000), { busTraffic })
+      final = computeVehiclePositions(data, new Date(start + tick * step * 1000), { busTraffic: driver })
       const took = performance.now() - begin
       if (tick === 0) initialMs = took
       else timings.push(took)
-      const hits = conflicts(final)
+      const hits = conflicts(mode === 'amaral' ? busTraffic.currentVehicles() : final)
       for (const pair of hits) if (!events.has(pair.join('/'))) events.set(pair.join('/'), { at: tick * step, buses: pair.map(id => { const v = final.find(v => v.id === id); return {id, coordinates:v.coordinates, bearing:v.bearing, motion:v.busMotion} }) })
       collisions += hits.length
       if (hits.length > worst.length) worst = hits
@@ -1081,6 +1174,22 @@ const tail = tailFlag >= 0 ? Number(rest[tailFlag + 1]) || 0 : 0
 const pos = rest.filter((a, i) => a !== '--tail' && rest[i - 1] !== '--tail')
 
 switch (cmd) {
+  case 'bus-terminal-guide-check': {
+    const { applyTerminalGuide } = await import('./amaral-route-guide.mjs')
+    const guides = load('data/bus_reference/amaral-route-paths.json')
+    const stops = new Map(load('public/data/bus-stops.json').map(s => [s.id, s]))
+    let passed = 0
+    for (const route of busRoutes()) if (guides[route.id]) {
+      try { applyTerminalGuide(route, stops, guides[route.id]); passed++ }
+      catch (error) { console.log(error.message) }
+    }
+    console.log(`Compatible GPX guides: ${passed}/${Object.keys(guides).length}`)
+    break
+  }
+  case 'bus-terminal-reference': cmdBusTerminalReference(pos[0], pos[1]); break
+  case 'bus-terminal-crossings': cmdBusTerminalCrossings(); break
+  case 'bus-replay-report': cmdBusReplayReport(pos[0]); break
+  case 'bus-station': cmdBusStation(pos[0]); break
   case 'bus-roads': cmdBusRoads(pos[0], pos[1]); break
   case 'city-loading': await cmdCityLoading(); break
   case 'lrt-motion': {
@@ -1109,6 +1218,6 @@ switch (cmd) {
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   default:
-    console.log('commands: bus-traffic [HH:MM] [seconds] [step] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
+    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral] | bus-station [M172] | bus-terminal-crossings | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)
 }
