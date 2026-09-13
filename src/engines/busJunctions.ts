@@ -7,14 +7,25 @@ export interface BusPassage {
 
 /** Claims are acquired together before entry. Overlapping intersections cannot
  * leave a bus holding one lock while waiting inside it for another lock. */
+// A reservation starts before the junction so a bus commits with room to
+// stop, and ends past it so the tail is clear; consecutive zones closer than
+// the link gap are claimed together (see above). Shorter pads than the
+// original 14/8 m keep the roundabout arcs at Amaral from fusing into single
+// 90-145 m chains that admitted one bus at a time: in the 18:00 replay the
+// queue on the bridge landing fell from 19 to 13 buses and the longest hold
+// from 510 s to 348 s, with no overlaps. Splitting chains at stops instead
+// was tried and rejected: it left buses holding one zone while waiting for
+// the next, and long stalls tripled.
+export const PASSAGE_ENTRY_PAD_M = 8, PASSAGE_EXIT_PAD_M = 4, PASSAGE_LINK_GAP_M = 2
+
 export function buildBusPassages(profile: BusRoadProfile | undefined, lengthM: number, circular = true): BusPassage[] {
   if (!profile?.junctions || !lengthM) return []
-  const intervals = profile.junctions.map(j => ({ keys: [j.id], approaches: { [j.id]: j.bearing ?? 0 }, entryM: Math.max(0, j.start * lengthM - 14), exitM: Math.min(lengthM, j.end * lengthM + 8) }))
+  const intervals = profile.junctions.map(j => ({ keys: [j.id], approaches: { [j.id]: j.bearing ?? 0 }, entryM: Math.max(0, j.start * lengthM - PASSAGE_ENTRY_PAD_M), exitM: Math.min(lengthM, j.end * lengthM + PASSAGE_EXIT_PAD_M) }))
     .sort((a, b) => a.entryM - b.entryM)
   const passages: BusPassage[] = []
   for (const interval of intervals) {
     const last = passages.at(-1)
-    if (last && interval.entryM <= last.exitM + 2) {
+    if (last && interval.entryM <= last.exitM + PASSAGE_LINK_GAP_M) {
       last.exitM = Math.max(last.exitM, interval.exitM)
       last.keys = [...new Set([...last.keys, ...interval.keys])]
       last.approaches = { ...interval.approaches, ...last.approaches }

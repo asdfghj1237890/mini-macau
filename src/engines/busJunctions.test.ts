@@ -107,10 +107,10 @@ describe('junction passage reservations', () => {
     const profile = { junctions: [{ id: 'a', start: .1, end: .2 }, { id: 'b', start: .19, end: .3 }] } as BusRoadProfile
     const p = buildBusPassages(profile, 1000)
     expect(p).toHaveLength(1)
-    expect(p[0]).toMatchObject({ keys: ['a', 'b'], entryM: 86, exitM: 308,
-      zones: [{ entryM: 86, exitM: 208 }, { entryM: 176, exitM: 308 }] })
-    expect(passageAtDistance(p, 1000, 1000, false)).toMatchObject({ keys: ['a', 'b'], entryM: 1692, exitM: 1914,
-      zones: [{ entryM: 1692, exitM: 1824 }, { entryM: 1792, exitM: 1914 }] })
+    expect(p[0]).toMatchObject({ keys: ['a', 'b'], entryM: 92, exitM: 304,
+      zones: [{ entryM: 92, exitM: 204 }, { entryM: 182, exitM: 304 }] })
+    expect(passageAtDistance(p, 1000, 1000, false)).toMatchObject({ keys: ['a', 'b'], entryM: 1696, exitM: 1908,
+      zones: [{ entryM: 1696, exitM: 1818 }, { entryM: 1796, exitM: 1908 }] })
   })
   it('holds one approach before entry and lets both crossing buses clear without sideways motion', () => {
     const traffic = new BusTrafficController()
@@ -456,9 +456,9 @@ describe('junction passage reservations', () => {
     const profile = { junctions: [{ id: 'seam', start: 0, end: .02 }, { id: 'seam', start: .98, end: 1 }] } as BusRoadProfile
     const p = buildBusPassages(profile, 1000)
     expect(p).toHaveLength(1)
-    expect(passageAtDistance(p, 1000, 980)).toMatchObject({ keys: ['seam'], entryM: 966, exitM: 1028 })
-    expect(passageAtDistance(p, 1000, 1010)).toMatchObject({ keys: ['seam'], entryM: 966, exitM: 1028 })
-    expect(passageAtDistance(p, 1000, 1010)?.zones).toEqual([{ key: 'seam', entryM: 966, exitM: 1000 }, { key: 'seam', entryM: 1000, exitM: 1028 }])
+    expect(passageAtDistance(p, 1000, 980)).toMatchObject({ keys: ['seam'], entryM: 972, exitM: 1024 })
+    expect(passageAtDistance(p, 1000, 1010)).toMatchObject({ keys: ['seam'], entryM: 972, exitM: 1024 })
+    expect(passageAtDistance(p, 1000, 1010)?.zones).toEqual([{ key: 'seam', entryM: 972, exitM: 1000 }, { key: 'seam', entryM: 1000, exitM: 1024 }])
   })
   it('releases a removed vehicle and resets reservations after a backward seek', () => {
     const traffic = new BusTrafficController()

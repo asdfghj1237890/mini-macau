@@ -57,6 +57,16 @@ forward creep consumed on the next step: its body stayed pinned behind the
 leader while its schedule distance ran up to 24 m ahead, and later claims and
 reservations came from that phantom position (18:00 replay, MT5 and H3 on the
 roundabout arc east of the terminal).
+A junction reservation starts 8 m before the zone and ends 4 m past it
+(`PASSAGE_ENTRY_PAD_M` / `PASSAGE_EXIT_PAD_M` in `busJunctions.ts`); zones
+whose padded intervals come within 2 m of each other are still claimed as one
+chain. The earlier 14 / 8 m pads fused the west arc of the roundabout and the
+terminal entrance into single 90-145 m chains that admitted one bus at a time,
+so buses coming off the bridge queued back onto it: in the 18:00 replay the
+queue on the landing fell from 19 to 13 buses, the longest hold from 510 s to
+348 s and the median delay around the terminal from 21 to 15 min, with no
+overlaps. Splitting the chains at platforms instead was tried and rejected: a
+bus holding one zone while waiting for the next tripled the long stalls.
 Route geometry and layout fingerprints make repeated runs
 idempotent; fresh extraction or a changed layout invalidates those fingerprints.
 
