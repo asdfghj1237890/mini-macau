@@ -62,7 +62,9 @@ describe('citywide bus traffic replay', () => {
       }
     }
     for (const id of ['101-0', 'H3-2']) expect(controller['states'].get(id)!.pose.distanceM - initial.get(id)!, id).toBeGreaterThan(20)
-  })
+    // This integration replay also initializes the complete route network.
+    // Allow shared CI runners the same budget as the neighboring bend replay.
+  }, 30000)
   it('keeps opposing buses clear through the complete Taipa bend', () => {
     const controller = new BusTrafficController()
     const start = new Date('2026-09-11T18:00:00+08:00').getTime()
