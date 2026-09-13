@@ -40,12 +40,12 @@
            ▼
    ┌────────────────────────────────────────┐
    │  Browser runtime                        │
-   │  - simulationEngine.ts (timetable)      │
+   │  - simulationEngine.ts (playback)      │
    │  - 3D layers + React UI                 │
    └────────────────────────────────────────┘
 ```
 
-> LRT 時刻表透過 `/api/lrt/<scheduleType>` 這個 Cloudflare Pages Function 載入，按模擬日期選擇資料。Function 在部署時打包輸入資料，檢查允許的 Origin／Referer，並回應 `Cache-Control: private`。其餘資料集透過 `/data/*.json` 載入，回應標頭由 `public/_headers` 設定。
+> LRT 運動由 Pages Function 計算，瀏覽器從 `/api/lrt/state?at=<epoch-ms>` 載入固定 120 秒的狀態窗，預取下一個重疊窗。Function 依模擬時間處理日期、跨午夜及到離站事件；地圖與面板共用窗內狀態。來源檢查維持，回應為 `Cache-Control: private, no-store`。其餘資料集由 `/data/*.json` 載入。
 
 ## 三個階段各自負責什麼
 

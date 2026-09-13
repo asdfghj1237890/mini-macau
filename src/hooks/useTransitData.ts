@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import type { TransitData, LRTLine, Station, Trip, BusRoute, BusStop, Flight, Ferry, ScheduleType } from '../types'
-import { getScheduleType } from '../engines/simulationEngine'
+import type { TransitData, LRTLine, Station, BusRoute, BusStop, Flight, Ferry, SimulationClock } from '../types'
+import { useLrtState } from './useLrtState'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
 import type { z } from 'zod'
@@ -8,7 +8,6 @@ import {
   parseData,
   LRTLinesSchema,
   StationsSchema,
-  TripsSchema,
   BusRoutesSchema,
   BusStopsSchema,
   FlightsSchema,
@@ -20,7 +19,6 @@ import { loadCityDataset } from '../cityDataFetch'
 
 const cityStore = createCityDataStore(loadCityDataset)
 
-const SCHEDULE_TYPES: readonly ScheduleType[] = ['mon_thu', 'friday', 'sat_sun'] as const
 
 // Fetch + schema-validate a static data file. A non-2xx response throws (so a
 // 404 doesn't get parsed as an HTML error page), and the JSON is run through
@@ -30,27 +28,6 @@ async function loadJson<T>(path: string, schema: z.ZodType, label: string): Prom
   if (!res.ok) throw new Error(`fetch ${path} → HTTP ${res.status}`)
   const raw = await res.json()
   return parseData<T>(schema, raw, label)
-}
-
-// LRT trips are NOT served from /data/ like the other datasets, and they are
-// not in this repository at all: the MLM timetable compilation lives in a
-// private data repo and reaches the browser only through the Pages Function
-// at /api/lrt/<scheduleType> (functions/api/lrt/[stype].ts), with source
-// checks and private browser caching. Source headers are not authentication.
-// One request per scheduleType: today's loads first, the other two prefetch
-// in the background (see ensureScheduleTypeLoaded). In dev the same URL is
-// served by plugins/lrt-dev-api.ts from a local git-ignored copy, or proxied
-// to production when there is none. A failure here leaves the LRT layer
-// empty and logs once — nothing else depends on the trips.
-async function loadTrips(stype: ScheduleType): Promise<Trip[]> {
-  // Previews use the production API too, where the domain's rate limit applies.
-  const base = /^(?:[a-z0-9-]+\.)?mini-map-macau\.pages\.dev$/.test(window.location.hostname)
-    ? 'https://mini-map-macau.app' : ''
-  const res = await fetch(`${base}/api/lrt/${stype}`)
-  if (!res.ok) throw new Error(`fetch trips-${stype} → HTTP ${res.status}`)
-  // Malformed trips must never enter the simulation. The existing catch leaves
-  // this schedule's LRT layer empty, including in production.
-  return TripsSchema.parse(await res.json())
 }
 
 interface FerryScheduleTime {
@@ -155,13 +132,6 @@ function flattenFerrySchedules(file: FerryScheduleFile | null): Ferry[] {
 export interface UseTransitDataResult extends TransitData {
   ensureCityLayerLoaded: (layer: CityLayer) => Promise<void>
   cityDataStatus: CityDataStatus
-
-  // Ensures the given schedule type's trips are loaded. Idempotent:
-  // re-calls for an already-loaded or in-flight type are no-ops. Used by
-  // App to react to DateTimePicker jumps that cross a schedule-type
-  // boundary — if the user lands on Friday and friday-trips hasn't
-  // finished prefetching yet, this triggers a fetch on demand.
-  ensureScheduleTypeLoaded: (stype: ScheduleType) => void
 
   // Resolve flights for a given calendar date.
   //
@@ -307,7 +277,8 @@ export function buildFlightIndex(
   return { byDate, byWeekday, fallback }
 }
 
-export function useTransitData(): UseTransitDataResult {
+export function useTransitData(clock: SimulationClock): UseTransitDataResult {
+  const lrt = useLrtState(clock)
   const city = useSyncExternalStore(cityStore.subscribe, cityStore.getSnapshot)
   const [data, setData] = useState<TransitData>({
     lrtLines: [],
@@ -343,38 +314,9 @@ export function useTransitData(): UseTransitDataResult {
   // the existing `flights` field semantically "today's realtime".
   const [flightsTimetable, setFlightsTimetable] = useState<Flight[]>([])
 
-  // Track scheduleTypes we've started loading so repeated triggers don't
-  // kick off duplicate fetches. Refs (not state) because we only need
-  // identity semantics — no re-render on change.
-  const loadedRef = useRef<Set<ScheduleType>>(new Set())
-  const inFlightRef = useRef<Set<ScheduleType>>(new Set())
   const cancelledRef = useRef(false)
 
-  const ensureScheduleTypeLoaded = useCallback((stype: ScheduleType) => {
-    if (loadedRef.current.has(stype) || inFlightRef.current.has(stype)) return
-    inFlightRef.current.add(stype)
-    loadTrips(stype)
-      .then(newTrips => {
-        if (cancelledRef.current) return
-        loadedRef.current.add(stype)
-        // Append instead of replace — other scheduleTypes may already be
-        // present in state; simulationEngine.getFilteredTrips picks the
-        // right subset per tick.
-        setData(prev => ({ ...prev, trips: [...prev.trips, ...newTrips] }))
-      })
-      .catch(err => console.error(`Failed to load trips-${stype}:`, err))
-      .finally(() => {
-        inFlightRef.current.delete(stype)
-      })
-  }, [])
-
   useEffect(() => {
-    // All 6 core fetches kick off in parallel to saturate the network, but
-    // each commits to state *as it arrives* (instead of waiting for
-    // Promise.all). This spreads the big JSON.parse cost — bus-routes.json
-    // alone is ~2.7 MB, and the day's trips file is ~900 KB — across
-    // multiple React commits so the browser can paint/interact between
-    // them rather than freeze on one fat setState.
     cancelledRef.current = false
 
     function commit<K extends keyof TransitData>(key: K, value: TransitData[K]) {
@@ -382,43 +324,17 @@ export function useTransitData(): UseTransitDataResult {
       setData(prev => ({ ...prev, [key]: value }))
     }
 
-    // Today's schedule type is loaded first and gates the `loading` flag
-    // so LRT sim can start with the most-relevant data. Other types are
-    // background-prefetched after primary lands (see below) so that by the
-    // time the user drags DateTimePicker across a day boundary, the new
-    // type's trips are already in memory.
-    const primary = getScheduleType(new Date())
-    inFlightRef.current.add(primary)
-    const primaryTripsPromise = loadTrips(primary)
-      .then(v => {
-        if (cancelledRef.current) return
-        loadedRef.current.add(primary)
-        // This is the first trips commit; state's trips is still []. Replace.
-        setData(prev => ({ ...prev, trips: v }))
-      })
-      .catch(err => console.error(`Failed to load primary trips (${primary}):`, err))
-      .finally(() => {
-        inFlightRef.current.delete(primary)
-      })
-
     // Core data gates the `loading` flag — MapView's sim loop waits on it.
     // Flights + ferries are non-critical overlays, so they load independently
     // and do not block the first render of vehicles on the map.
     Promise.all([
       loadJson<LRTLine[]>('/data/lrt-lines.json', LRTLinesSchema, 'lrt-lines.json').then(v => commit('lrtLines', v)),
       loadJson<Station[]>('/data/stations.json', StationsSchema, 'stations.json').then(v => commit('stations', v)),
-      primaryTripsPromise,
       loadJson<BusRoute[]>('/data/bus-routes.json', BusRoutesSchema, 'bus-routes.json').then(v => commit('busRoutes', v)).catch(() => commit('busRoutes', [])),
       loadJson<BusStop[]>('/data/bus-stops.json', BusStopsSchema, 'bus-stops.json').then(v => commit('busStops', v)).catch(() => commit('busStops', [])),
     ]).then(() => {
       if (cancelledRef.current) return
       setData(prev => (prev.loading ? { ...prev, loading: false } : prev))
-      // Background-prefetch the other schedule types. ensureScheduleTypeLoaded
-      // dedupes in-flight and already-loaded types so it's safe to call for
-      // the primary too (it's a no-op by now).
-      for (const stype of SCHEDULE_TYPES) {
-        if (stype !== primary) ensureScheduleTypeLoaded(stype)
-      }
     }).catch(err => {
       console.error('Failed to load core transit data:', err)
       if (!cancelledRef.current) setData(prev => ({ ...prev, loading: false }))
@@ -444,7 +360,7 @@ export function useTransitData(): UseTransitDataResult {
       .catch(() => {})
 
     return () => { cancelledRef.current = true }
-  }, [ensureScheduleTypeLoaded])
+  }, [])
 
   // Build the date-keyed flight index once whenever either source
   // changes, so getFlightsForDate is a cheap Map lookup at call time.
@@ -477,9 +393,9 @@ export function useTransitData(): UseTransitDataResult {
   // every downstream memo that depends on `transitData`.
   return useMemo(
     () => ({
-      ...data, ...city.data, cityDataStatus: city.status,
-      ensureCityLayerLoaded: cityStore.ensureLayer, ensureScheduleTypeLoaded, getFlightsForDate,
+      ...data, ...lrt, ...city.data, cityDataStatus: city.status,
+      ensureCityLayerLoaded: cityStore.ensureLayer, getFlightsForDate,
     }),
-    [data, city, ensureScheduleTypeLoaded, getFlightsForDate]
+    [data, lrt, city, getFlightsForDate]
   )
 }

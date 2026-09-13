@@ -10,7 +10,7 @@ import cityCatalog from 'virtual:city-catalog'
 import { catalogActiveRoadWorks } from './cityCatalog'
 import type { CityLayer } from './cityData'
 import { useServiceStatus } from './hooks/useServiceStatus'
-import { getBusServiceBucket, getBusServiceWindow, getScheduleType } from './engines/simulationEngine'
+import { getBusServiceBucket, getBusServiceWindow } from './engines/simulationEngine'
 import { macauHours, macauMinutes, macauMinutesOfDay, macauYmd } from './macauTime'
 import { countActiveRoadWorks } from './roadWorks'
 import { startEngagementTracker, ga } from './analytics/ga'
@@ -193,8 +193,8 @@ const LS_TIMEBAR_KEY = 'mini-macau-time-bar'
 
 export default function App() {
   const clock = useSimulationClock()
-  const transitData = useTransitData()
-  const { ensureScheduleTypeLoaded, ensureCityLayerLoaded, cityDataStatus } = transitData
+  const transitData = useTransitData(clock)
+  const { ensureCityLayerLoaded, cityDataStatus } = transitData
   const serviceStatus = useServiceStatus()
 
   // Start the visibility- and idle-aware engagement tracker. See
@@ -204,23 +204,12 @@ export default function App() {
     return dispose
   }, [])
 
-  // On-demand safety net for Plan C cross-day handling: if the user drags
-  // DateTimePicker into a different schedule type and the background
-  // prefetch hasn't finished that type yet, this kicks off the fetch.
-  // ensureScheduleTypeLoaded is idempotent, so repeat calls are no-ops once
-  // the type is loaded or in-flight. We derive the type from the simulated
-  // clock each render but only fire the effect when it actually changes.
-  //
   // Everything App decides by the time is minute-resolution (service windows,
   // the day's flights, the timetable, the road-works day), so App subscribes
   // to the clock at the MINUTE: one re-render per simulated minute instead of
   // ten a second. The clock face and the scrubber subscribe to the tick on
   // their own (useClockTime).
   const simTime = useClockMinute(clock)
-  const currentScheduleType = getScheduleType(simTime)
-  useEffect(() => {
-    ensureScheduleTypeLoaded(currentScheduleType)
-  }, [currentScheduleType, ensureScheduleTypeLoaded])
   const [visibleRoutes, setVisibleRoutes] = useState<Set<string>>(new Set())
   const [isAutoMode, setIsAutoMode] = useState(() => loadSavedRoutes() === null)
   const [selectedVehicle, setSelectedVehicle] = useState<VehiclePosition | null>(null)

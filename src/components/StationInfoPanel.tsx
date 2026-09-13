@@ -1,10 +1,8 @@
-import type { Station, TransitData, SimulationClock, ScheduleType } from '../types'
+import type { Station, TransitData, SimulationClock } from '../types'
 import { useMemo } from 'react'
 import { useClockTime } from '../hooks/useSimulationClock'
 import { useI18n, localName } from '../i18n'
-import { getScheduleType } from '../engines/simulationEngine'
-import { getLrtDepartureMinutes } from '../engines/lrtTimetable'
-import { macauMinutesOfDay } from '../macauTime'
+import { lrtWindowAt } from '../lrtState'
 
 interface Props {
   station: Station | null
@@ -14,6 +12,7 @@ interface Props {
 }
 
 interface Arrival {
+  arrivalKnown: boolean
   tripId: string
   lineName: string
   lineCn: string
@@ -27,63 +26,28 @@ interface Arrival {
   destNamePt: string
 }
 
-function getNextArrivals(
-  stationId: string,
-  transitData: TransitData,
-  currentMinutes: number,
-  scheduleType: ScheduleType,
-  previousScheduleType: ScheduleType,
-  count: number = 6,
-): Arrival[] {
-  const arrivals: Arrival[] = []
-  const stationMap = new Map(transitData.stations.map(s => [s.id, s]))
-
-  for (const trip of transitData.trips) {
-    if (trip.scheduleType && trip.scheduleType !== scheduleType && trip.scheduleType !== previousScheduleType) continue
-    const line = transitData.lrtLines.find(l => l.id === trip.lineId)
-    if (!line) continue
-
-    for (const entry of trip.entries) {
-      if (entry.stationId !== stationId) continue
-      const dep = getLrtDepartureMinutes(entry)
-
-      let effective = currentMinutes
-      const previousService = (!trip.scheduleType || trip.scheduleType === previousScheduleType)
-        && dep >= 1440 && currentMinutes + 1440 <= dep
-      if (previousService) {
-        effective = currentMinutes + 1440
-      } else if (trip.scheduleType && trip.scheduleType !== scheduleType) continue
-
-      const atStation = effective >= entry.arrivalMinutes && effective <= dep
-      const upcoming = entry.arrivalMinutes > effective
-
-      if (atStation || upcoming) {
-        const destEntry = trip.entries[trip.entries.length - 1]
-        const destStation = stationMap.get(destEntry.stationId)
-        arrivals.push({
-          tripId: trip.id,
-          lineName: line.name,
-          lineCn: line.nameCn,
-          linePt: line.name,
-          lineColor: line.color,
-          arrivalMinutes: entry.arrivalMinutes,
-          departureMinutes: dep,
-          effectiveMinutes: effective,
-          destName: destStation?.name ?? destEntry.stationId,
-          destNameCn: destStation?.nameCn ?? '',
-          destNamePt: destStation?.namePt ?? '',
-        })
-        break
-      }
-    }
-  }
-
-  arrivals.sort((a, b) => (a.arrivalMinutes - a.effectiveMinutes) - (b.arrivalMinutes - b.effectiveMinutes))
-  return arrivals.slice(0, count)
+function getNextArrivals(stationId: string, data: TransitData, time: number): Arrival[] {
+  const window = lrtWindowAt(data.lrtWindows, time)
+  if (!window) return []
+  const stationMap = new Map(data.stations.map(s => [s.id, s]))
+  return window.vehicles.flatMap(vehicle => {
+    const line = data.lrtLines.find(l => l.id === vehicle.lineId)
+    const stop = vehicle.stops.find(s => s.stationId === stationId && (s.departure === null || s.departure >= time))
+    if (!line || !stop) return []
+    const dest = stationMap.get(vehicle.destination)
+    return [{
+      tripId: vehicle.id, lineName: line.name, lineCn: line.nameCn, linePt: line.namePt ?? line.name,
+      lineColor: line.color, arrivalKnown: stop.arrival !== null,
+      arrivalMinutes: (stop.arrival ?? window.start) / 60_000,
+      departureMinutes: stop.departure === null ? Infinity : stop.departure / 60_000,
+      effectiveMinutes: time / 60_000, destName: dest?.name ?? vehicle.destination,
+      destNameCn: dest?.nameCn ?? '', destNamePt: dest?.namePt ?? '',
+    }]
+  }).sort((a, b) => a.arrivalMinutes - b.arrivalMinutes).slice(0, 6)
 }
 
 function minutesToTimeStr(minutes: number): string {
-  const h = Math.floor(minutes / 60) % 24
+  const h = (Math.floor(minutes / 60) + 8) % 24
   const m = Math.floor(minutes % 60)
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
@@ -91,18 +55,10 @@ function minutesToTimeStr(minutes: number): string {
 export function StationInfoPanel({ station, transitData, clock, onClose }: Props) {
   const { lang, t } = useI18n()
   const now = useClockTime(clock)
-  const nowMinutes = Math.floor(macauMinutesOfDay(now) * 60) / 60
-  const scheduleType = getScheduleType(now)
-  const previousScheduleType = getScheduleType(new Date(now.getTime() - 86400000))
   const stationId = station?.id
-  // Index this station once; only its candidate trips need reevaluating as
-  // the clock advances. Dwell status updates each second, including scrubs.
-  const stationData = useMemo(() => ({ ...transitData, trips: transitData.trips.filter(trip =>
-    trip.entries.some(entry => entry.stationId === stationId),
-  ) }), [transitData, stationId])
-  const arrivals = useMemo(() => stationId
-    ? getNextArrivals(stationId, stationData, nowMinutes, scheduleType, previousScheduleType) : [],
-  [stationId, stationData, nowMinutes, scheduleType, previousScheduleType])
+  const stateWindow = lrtWindowAt(transitData.lrtWindows, now.getTime())
+  const arrivals = useMemo(() => stationId ? getNextArrivals(stationId, transitData, now.getTime()) : [],
+    [stationId, transitData, now])
 
   if (!station) return null
 
@@ -204,7 +160,7 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
                     <span className={`mm-mono mm-tabular text-ui-13 text-right ${
                       isFirst ? 'text-(--mm-amber-1)' : 'text-(--mm-fg)/70'
                     }`}>
-                      {minutesToTimeStr(a.arrivalMinutes)}
+                      {(a.arrivalKnown ? minutesToTimeStr(a.arrivalMinutes) : '—')}
                     </span>
                     <span className={`mm-mono mm-tabular text-right font-bold ${
                       atStation
@@ -223,17 +179,17 @@ export function StationInfoPanel({ station, transitData, clock, onClose }: Props
           </>
         ) : (
           <div className="px-3 py-4 text-center mm-mono text-ui-12 tracking-wider text-(--mm-text-muted)">
-            — NO SERVICE —
+            {stateWindow ? (lang === 'zh' ? '近期視窗內沒有到站班次' : 'No arrivals in this window') : (transitData.lrtStateStatus === 'error' ? (lang === 'zh' ? '狀態暫時無法載入，正在重試' : 'State unavailable · retrying') : (lang === 'zh' ? '載入中…' : 'Loading…'))}
           </div>
         )}
 
         {/* Footer */}
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between">
           <span className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-text-muted) uppercase">
-            {t.nextArrivals} · 下一班
+            {t.nextArrivals} · 2 MIN
           </span>
           <span className="mm-mono text-ui-11 text-(--mm-amber)/80 flex items-center gap-1.5 tracking-wider">
-            <span className="w-1 h-1 rounded-full bg-(--mm-amber) mm-led-pulse" />LIVE
+            <span className="w-1 h-1 rounded-full bg-(--mm-amber) mm-led-pulse" />{clock.isLive ? 'LIVE' : 'SIM'}
           </span>
         </div>
       </div>

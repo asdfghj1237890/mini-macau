@@ -31,12 +31,9 @@ import {
 // data — it runs in CI alongside the unit tests, so bad data fails the build
 // instead of reaching the browser.
 const dataDir = resolve(__dirname, '..', 'public', 'data')
-// LRT trips are NOT committed to this repo: they live in a private data repo
-// and reach the app through /api/lrt (see `loadTrips` in
-// hooks/useTransitData.ts). The deploy job checks that repo out and points
-// LRT_TRIPS_DIR at the copy before running the tests, so the schema still
-// gates every deploy; in plain CI, with no copy on disk, the three cases skip.
-// A maintainer with a local git-ignored copy in src/data gets them for free.
+// Validate the Function's deployment inputs as well as optional local inputs.
+// Runtime responses use bounded state windows; these input schemas run before
+// deploying the server. Plain CI skips these cases when no input is configured.
 const tripsDir = process.env.LRT_TRIPS_DIR
   ? resolve(process.env.LRT_TRIPS_DIR)
   : resolve(__dirname, 'data')

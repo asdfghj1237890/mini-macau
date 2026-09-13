@@ -2,14 +2,14 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { seoContentPlugin } from './plugins/seo-content'
-import { lrtDevApiPlugin } from './plugins/lrt-dev-api'
+import { lrtDevApiPlugin, lrtBrowserBoundaryPlugin } from './plugins/lrt-dev-api'
 import { cityCatalogPlugin } from './plugins/city-catalog'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), seoContentPlugin(), lrtDevApiPlugin(), cityCatalogPlugin()],
+  plugins: [react(), tailwindcss(), seoContentPlugin(), lrtDevApiPlugin(), lrtBrowserBoundaryPlugin(), cityCatalogPlugin()],
   server: {
     // /api/* is a Cloudflare Pages Function in production (functions/). In
-    // dev, lrtDevApiPlugin serves /api/lrt/* from a local git-ignored copy of
+    // dev, lrtDevApiPlugin computes bounded states using a local git-ignored copy of
     // the timetable when there is one; otherwise the request falls through to
     // this proxy and production answers. The Function only accepts requests
     // that look like they come from the site, hence the Referer.

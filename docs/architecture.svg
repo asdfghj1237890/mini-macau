@@ -142,7 +142,7 @@
 <g>
 <rect x="538" y="123" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />
 <rect x="538" y="131" width="3" height="18" rx="1.5" fill="#fcd34d"/>
-<text x="550" y="144" class="t" font-size="12" font-weight="600" fill="#e5e7eb">lrt-lines · stations · trips</text>
+<text x="550" y="144" class="t" font-size="12" font-weight="600" fill="#e5e7eb">lrt-lines · stations · states</text>
 </g>
 <g>
 <rect x="538" y="165" width="166" height="34" rx="6" fill="#17181c" stroke="rgba(255,255,255,0.10)" />

@@ -137,11 +137,11 @@ node scripts/inspect.mjs bus-roads 22
 
 LRT 時刻表以 MLM 各站公布的 PDF/JPG 為來源，經人工轉錄與校對後整理成模擬引擎使用的格式。
 
-每筆資料為 `Trip { lineId, direction, scheduleType, entries[] }`，其中 `entries[]` 記錄各站的到站／離站分鐘數，依 `mon_thu`、`friday`、`sat_sun` 分成三份輸入檔。Runtime 透過 `GET /api/lrt/<scheduleType>` 載入，由 [`functions/api/lrt/[stype].ts`](../../functions/api/lrt/%5Bstype%5D.ts) 回應。Function 檢查允許的 Origin／Referer，回應標示 `Cache-Control: private`。
+每筆資料為 `Trip { lineId, direction, scheduleType, entries[] }`，其中 `entries[]` 記錄各站的到站／離站分鐘數，依 `mon_thu`、`friday`、`sat_sun` 分成三份輸入檔。Runtime 由 [server/lrt-simulation.ts](../../server/lrt-simulation.ts) 計算運動曲線，[server/lrt-window.ts](../../server/lrt-window.ts) 產生固定 120 秒狀態窗。API 為 `GET /api/lrt/state?at=<epoch-ms>`，只接受整分鐘起點，不接受自訂長度、結束時間或批次參數。回應包含窗內的 progress、速度、運動階段、到離站事件與線路服務狀態，標示 `Cache-Control: private, no-store`。原有三種 scheduleType URL 回應 410。
 
 部署工作會依已設定的資料來源準備三份 `trips-*.json`，放入 git-ignored 的 `functions/_lrt/`，完成 schema 與方向一致性驗證後，由 Wrangler 打包進 Function。部署設定見 [deploy.yml](../../.github/workflows/deploy.yml)。
 
-本機 `npm run dev`：`src/data/trips-<scheduleType>.json` 若有一份自己的（git-ignored）副本，[`plugins/lrt-dev-api.ts`](../../plugins/lrt-dev-api.ts) 直接讀那份；沒有的話 Vite 的 `/api` proxy 轉發到正式站；兩者都沒有 LRT 圖層就是空的。
+本機 `npm run dev`：三份 `src/data/trips-<scheduleType>.json` 都存在時，[plugins/lrt-dev-api.ts](../../plugins/lrt-dev-api.ts) 讀入並執行與 Function 相同的運算；缺檔時 Vite proxy 轉發到正式站。狀態回應經前端 schema 驗證，過期不外推。部署後開發 proxy 才能使用新版正式端點。
 
 [`dataSchemas.test.ts`](../../src/dataSchemas.test.ts) 從 `LRT_TRIPS_DIR` 或本機 `src/data/` 讀取時刻表。未設定 `LRT_TRIPS_DIR` 且缺少本機檔案時，相關案例會 skip；明確設定該變數後，缺檔必須失敗。Deploy job 會先準備輸入、設定 `LRT_TRIPS_DIR` 再執行測試。`validate_output.py` 的方向交叉檢查也遵循這個規則。
 

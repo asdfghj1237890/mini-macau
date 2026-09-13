@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import nearestPointOnLine from '@turf/nearest-point-on-line'
-import { computeVehiclePositions } from './simulationEngine'
+import { computeScheduledLrt as computeVehiclePositions } from '../../server/lrt-simulation'
 import type { LRTLine, Station, TransitData, Trip } from '../types'
 
 vi.mock('@turf/nearest-point-on-line', async importOriginal => {
@@ -19,8 +19,8 @@ function fixture(): TransitData {
 }
 const morning = new Date('2026-09-11T08:00:01+08:00')
 
-describe('transit geometry caches', () => {
-  it('reuses projections across unrelated data changes, filtered arrays and alternating map/panel datasets', () => {
+describe('server LRT geometry caches', () => {
+  it('reuses projections across unrelated data changes, filtered arrays and alternating dataset views', () => {
     const data = fixture()
     vi.mocked(nearestPointOnLine).mockClear()
     const first = computeVehiclePositions(data, morning)

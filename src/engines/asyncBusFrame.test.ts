@@ -22,6 +22,24 @@ function setup(onOverload?: (speed: number) => void) {
 }
 
 describe('background bus frame', () => {
+  it('preserves the worker epoch and queues when only LRT windows change', () => {
+    const { sent, frame, reply } = setup()
+    frame.sample(data, 1000, 0)
+    const epoch = sent[0].epoch
+    reply()
+    for (let i = 1; i <= 20; i++) {
+      const updated = { ...data, busRoutes: [...data.busRoutes], lrtWindows: [{
+        version: 1 as const, start: i * 60_000, end: i * 60_000 + 120_000, vehicles: [], service: [],
+      }] }
+      frame.sample(updated, 1000 + i * 100, i * 100)
+      expect(sent.at(-1)?.epoch).toBe(epoch)
+      expect(sent.at(-1)?.reset).toBe(false)
+      expect(sent.at(-1)?.routes).toBeUndefined()
+      expect(sent.at(-1)?.stops).toBeUndefined()
+      reply()
+    }
+  })
+
   it('reports a lower rate after sustained backlog growth without resetting the fleet', () => {
     const onOverload = vi.fn()
     const { frame, sent, port, reply } = setup(onOverload)

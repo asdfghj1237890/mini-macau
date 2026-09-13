@@ -1010,7 +1010,9 @@ export interface GrandPrixFile {
 export interface TransitData {
   lrtLines: LRTLine[]
   stations: Station[]
-  trips: Trip[]
+  trips: Trip[] // Server/test inputs only; the browser always leaves this empty.
+  lrtWindows?: import('./lrtState').LrtStateWindow[]
+  lrtStateStatus?: 'loading' | 'ready' | 'error'
   busRoutes: BusRoute[]
   busStops: BusStop[]
   flights: Flight[]

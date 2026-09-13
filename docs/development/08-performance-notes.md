@@ -100,15 +100,7 @@ const z = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
 ## 5. Per-tick caches in simulationEngine
 
-`computeVehiclePositions` 跑 30 Hz；transit data 派生出來的 map 不該每 tick 重建：
-
-- `cachedProgressMap`（LRT 站 → 線上 progress）
-- `cachedBusStopMap`（stopId → BusStop）
-- `cachedFilteredTrips` × `cachedFilteredScheduleType`（避免每 tick 重 filter ~10k trips）
-
-只要 `transitData` reference 不變、`scheduleType` 不變，就重用上次。`resetTransitCachesIfStale` 在 reference 換掉時清掉所有 cache（lazy load 完成新 trips 會觸發）。
-
-> Source: [`simulationEngine.ts`](../../src/engines/simulationEngine.ts) 行 1101 起的 cache slot。
+前端按幾何身分重用累積長度與站點 map；LRT 站點投影與運動曲線改在伺服器初始化後重用。狀態請求只取窗內的 progress／速度，不需要為每一秒建立地圖座標。伺服器最多快取 8 個回應，瀏覽器最多保留兩個重疊窗。
 
 ## 7. 漸進載入 + lazy bundle split
 
@@ -117,16 +109,11 @@ const z = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 - **Vendor chunk split** in [`vite.config.ts`](../../vite.config.ts)：
   - `vendor-react`
   - `vendor-maplibre`（最大塊，CDN 緩存特別有用）
-- **Trips 按 scheduleType 載入**：透過 `GET /api/lrt/<scheduleType>` 先 fetch 今天的時刻表，剩下兩個在主資料完成後背景 prefetch，避免其他日期的資料阻擋初次載入。見 [`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips` 與 [05-data-pipeline.md](05-data-pipeline.md)。
+- **LRT 短窗預取**：`GET /api/lrt/state?at=<epoch-ms>` 回傳固定 120 秒，前端以 60 秒步進預取下一窗。60× 連續播放正常約每秒一個請求；暫停不預取，網路錯誤退避重試。見 [lrtStateStore.ts](../../src/lrtStateStore.ts)。
 
 ## 8. 漸進 setState 而非 `Promise.all`
 
-`useTransitData` 6 個核心 fetch 都並行發出，但**每個 response 到了就立刻 commit**，不等 `Promise.all`。
-
-> "spreads the big JSON.parse cost — bus-routes.json alone is ~2.7 MB, and the day's trips file is ~900 KB — across multiple React commits so the browser can paint/interact between them rather than freeze on one fat setState."
-> — [`useTransitData.ts:158`](../../src/hooks/useTransitData.ts)
-
-否則 ~3.6 MB 的 JSON 會集中在一個 commit 裡 parse + setState，main thread 卡 1–2 秒。
+公開幾何與巴士資料各自完成後即更新，LRT 狀態獨立載入，不阻擋其他圖層的初始化。每次收到新時間窗才通知 React，逐幀姿態仍由地圖迴圈沿軌道內插。
 
 ## 9. Ferry path 長度 cache + 2D circle for 遠景
 

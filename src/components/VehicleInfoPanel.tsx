@@ -1,11 +1,10 @@
-import type { VehiclePosition, TransitData, SimulationClock, Trip, BusStop } from '../types'
+import type { VehiclePosition, TransitData, SimulationClock, BusStop } from '../types'
 import { useClockTime } from '../hooks/useSimulationClock'
 import { useI18n, localName } from '../i18n'
 import { useMemo, useRef, useEffect, useState, useId } from 'react'
 import { CloseIcon } from './TransitIcons'
 import {
-  computeLRTVehicle,
-  getLrtTripMinutes,
+  sampleLrtVehicles,
   getBusSchedule,
   getBusServiceBucket,
   computeBusCycleSec,
@@ -13,8 +12,8 @@ import {
   type BusSchedule,
 } from '../engines/simulationEngine'
 import { macauMinutesOfDay } from '../macauTime'
-import { getLrtDepartureMinutes } from '../engines/lrtTimetable'
-import { formatCountdown, lrtStopStatus, nextStopSummary, type TimedStop } from './vehiclePanelStatus'
+import { lrtWindowAt } from '../lrtState'
+import { formatCountdown, nextStopSummary, type TimedStop } from './vehiclePanelStatus'
 
 interface Props {
   vehicle: VehiclePosition | null
@@ -100,12 +99,6 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
   // Selection is a snapshot, not a live speed source. Key lookup on its id
   // and derive current motion from the same engine/time as the map.
   const vehicleId = vehicle?.id
-  const vehicleType = vehicle?.type
-
-  const trip: Trip | undefined = useMemo(() => {
-    if (vehicleType !== 'lrt' || vehicleId == null) return undefined
-    return transitData.trips.find(tr => tr.id === vehicleId)
-  }, [vehicleId, vehicleType, transitData.trips])
 
   const stationMap = useMemo(() => {
     const map = new Map<string, { name: string; nameCn: string; namePt: string }>()
@@ -122,11 +115,13 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
   // Only this mounted panel subscribes at ~10 Hz; App and map chrome keep
   // their existing cadence. Pauses, scrubs and speed changes use this clock.
   const now = useClockTime(clock)
+  const lrtWindow = lrtWindowAt(transitData.lrtWindows, now.getTime())
+  const lrtState = vehicle.type === 'lrt' ? lrtWindow?.vehicles.find(v => v.id === vehicleId) : undefined
   const nowMinutesForETA = macauMinutesOfDay(now)
   const serviceBucket = getBusServiceBucket(now)
   const liveLrt = useMemo(
-    () => trip ? computeLRTVehicle(transitData, trip, now) : undefined,
-    [transitData, trip, now],
+    () => vehicle.type === 'lrt' ? sampleLrtVehicles(transitData, now.getTime()).find(v => v.id === vehicleId) : undefined,
+    [transitData, vehicle.type, vehicleId, now],
   )
 
   const busCtx = useMemo(() => {
@@ -159,34 +154,24 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     : route
       ? route.name
       : vehicle.lineId
-  const nowMinutes = trip ? getLrtTripMinutes(trip, nowMinutesForETA) : nowMinutesForETA
+  const nowMinutes = vehicle.type === 'lrt' ? now.getTime() / 60_000 : nowMinutesForETA
 
   // Build unified rows
   const rows: RowData[] = []
-  if (trip) {
-    trip.entries.forEach((entry, i) => {
-      const s = stationMap.get(entry.stationId)
-      const primary = s ? localName(lang, s) : entry.stationId
-      const secondary = s ? (s.name !== primary ? s.name : '') : ''
-      const arr = entry.arrivalMinutes
-      const dep = getLrtDepartureMinutes(entry)
-      const isFirst = i === 0
-      const isLast = i === trip.entries.length - 1
-
-      const status = lrtStopStatus(entry, nowMinutes)
-
-      rows.push({
-        key: entry.stationId,
-        primary,
-        secondary,
-        arr: isFirst ? '—' : formatMinutes(arr),
-        dep: isLast ? t.terminalStop : formatMinutes(dep),
-        arrivalMinutes: arr,
-        departureMinutes: dep,
-        status,
-        isLast,
+  if (lrtState && lrtWindow) {
+    for (const stop of lrtState.stops) {
+      const station = stationMap.get(stop.stationId)
+      const primary = station ? localName(lang, station) : stop.stationId
+      const arrival = (stop.arrival ?? lrtWindow.start) / 60_000
+      const departure = stop.departure === null ? Infinity : stop.departure / 60_000
+      rows.push({ key: stop.stationId, primary, secondary: station?.name !== primary ? station?.name ?? '' : '',
+        arr: stop.arrival === null ? '—' : formatMinutes(arrival + 480),
+        dep: stop.terminal ? t.terminalStop : stop.departure === null ? '—' : formatMinutes(departure + 480),
+        arrivalMinutes: arrival, departureMinutes: departure,
+        status: nowMinutes > departure ? 'past' : nowMinutes >= arrival ? 'dwelling' : 'arriving',
+        isLast: stop.terminal,
       })
-    })
+    }
   } else if (vehicle.type === 'bus') {
     busETAs.forEach((s, i) => {
       const primary = lang === 'zh' ? (s.stopNameCn || s.stopName) : s.stopName
@@ -239,13 +224,11 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
     }
   }, [vehicleId, focusIdx, collapsed])
 
-  // Find next destination (last entry for lrt, last future stop for bus)
-  const destRow = trip
-    ? rows[rows.length - 1]
-    : rows.find(r => r.status === 'future' || r.status === 'arriving')
-  const destName = destRow?.primary ?? ''
-
-  const next = nextStopSummary(rows, nowMinutes, vehicle.type !== 'lrt' || liveLrt !== undefined)
+  const destination = lrtState ? stationMap.get(lrtState.destination) : undefined
+  const destRow = rows.find(r => r.status === 'future' || r.status === 'arriving')
+  const destName = vehicle.type === 'lrt' ? (destination ? localName(lang, destination) : '') : destRow?.primary ?? ''
+  const candidate = nextStopSummary(rows, nowMinutes, vehicle.type !== 'lrt' || liveLrt !== undefined)
+  const next = candidate && Number.isFinite(candidate.seconds) ? candidate : null
   const nextRow = next ? rows[next.index] : undefined
   const nextETA = next ? formatCountdown(next.seconds) : '—'
   const nextSub = next?.phase ?? ''
@@ -366,6 +349,15 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
 
         <div id={scheduleId} hidden={collapsed}>
           {/* Unmount the long list while collapsed; the live summary above keeps updating. */}
+          {!collapsed && vehicle.type === 'lrt' && (
+            <div className="px-3 py-2 mm-mono text-ui-11 text-(--mm-text-muted)" role="status">
+              {lrtWindow
+                ? (lang === 'zh' ? '僅顯示近期 2 分鐘內的到離站時間' : 'Arrival / departure times within a 2-minute window')
+                : (transitData.lrtStateStatus === 'error'
+                  ? (lang === 'zh' ? '輕軌狀態暫時無法載入，正在重試' : 'LRT state unavailable · retrying')
+                  : (lang === 'zh' ? '正在載入輕軌狀態…' : 'Loading LRT state…'))}
+            </div>
+          )}
           {!collapsed && rows.length > 0 && (
             <>
               <div className="grid grid-cols-[16px_1fr_54px_54px] gap-0 px-3 py-1.5
@@ -445,7 +437,7 @@ function VehicleInfoPanelInner({ vehicle, transitData, clock, onClose }: InnerPr
             <span className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-text-muted) uppercase">{t.schedule}</span>
             <span className="mm-mono text-ui-11 text-(--mm-emerald)/80 flex items-center gap-1.5 tracking-wider">
               <span className="w-1 h-1 rounded-full bg-(--mm-emerald-2) mm-led-pulse" />
-              {vehicle.busMotion?.phase === 'queued'
+              {vehicle.type === 'lrt' && !liveLrt ? '—' : vehicle.busMotion?.phase === 'queued'
                 ? (lang === 'zh' ? '跟車中' : lang === 'pt' ? 'EM FILA' : 'QUEUING')
                 : (vehicle.busMotion?.delaySec ?? 0) >= 5
                   ? `+${Math.ceil(vehicle.busMotion!.delaySec)} s`

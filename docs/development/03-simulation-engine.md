@@ -38,15 +38,15 @@ getScheduleType(date: Date): 'mon_thu' | 'friday' | 'sat_sun'
 
 [`simulationEngine.ts:7`](../../src/engines/simulationEngine.ts)。MLM 三線都是這三種班表，週五因為晚班加密所以獨立。
 
-`useTransitData` 用這個決定要載入哪個 scheduleType：`GET /api/lrt/<scheduleType>`，先 fetch 今日對應的，剩下兩個在主資料載完後背景 prefetch。資料格式見 [05-data-pipeline.md](05-data-pipeline.md)。
+伺服器依模擬時間選擇班表，並在跨午夜時保留前一個服務日尚未結束的班次。瀏覽器只傳送時間窗起點。
 
-## LRT 模擬（`computeLRTVehicles`）
+## LRT 伺服器運算與前端播放
 
-對每個 `Trip`：
+[server/lrt-simulation.ts](../../server/lrt-simulation.ts) 預先建立站點投影與加減速曲線，保留 80 km/h 上限、預設 20 秒停站及原到站時間。每個 `/api/lrt/state` 回應固定 120 秒，由整分鐘起點開始；每秒一筆姿態，另加入精確的到離站邊界。
 
-1. 用 `arrivalMinutes`/`departureMinutes` 找出當下這個 trip 處於哪個 stop dwell 或哪個 segment（含跨午夜 wrap，[`simulationEngine.ts:196`](../../src/engines/simulationEngine.ts)）。
-2. 從 `stationProgressMap`（每站事先 `nearestPointOnLine` 得到 0..1 progress）內插出整個路線的 progress。
-3. 餵 `interpolateOnLineSmooth(line.geometry, progress)` 取座標 + bearing。
+前端 [lrtStateStore.ts](../../src/lrtStateStore.ts) 最多保留兩窗，依播放倍率預取下一個重疊視窗。拖曳會中止不再需要的請求，暫停不預取，失敗使用退避重試。播放可暫用尚未過期的重疊窗，不推算窗外狀態。地圖與兩個 LRT 面板使用同一個有效視窗，窗外到離站時間不顯示。
+
+`sampleLrtVehicles` 沿公開的雙軌幾何內插 progress；車廂連接與模型繪製沿用既有系統。
 
 **`interpolateOnLineSmooth` vs `interpolateOnLine`**：LRT 是 57 m 的雙節列車，per-segment 的 piecewise-constant bearing 在彎道會肉眼看到車身在每個 segment 邊界 snap 一下。Smooth 版本用 ±15 m 的 chord 平滑掉這個 step。詳見 [08-performance-notes.md](08-performance-notes.md) 的 `cumKm` 章節。
 
@@ -132,13 +132,7 @@ arrival:   [T - pathMin, T)                     從反向 waypoint 巡航
 
 ## Per-tick caches
 
-`computeVehiclePositions` 跑 ~30 Hz，所以 transit data 派生出來的東西能 cache 就 cache：
-
-- `cachedProgressMap`（LRT 站 → 線上 progress）
-- `cachedBusStopMap`（stopId → BusStop）
-- `cachedFilteredTrips` × `cachedFilteredScheduleType`（避免每 tick 重 filter ~10k trips）
-
-只要 `transitData` reference 不變、scheduleType 不變，就重用上次。reference 變了（lazy load 完成新 trips）時 `resetTransitCachesIfStale` 會清掉。
+前端路線幾何使用累積長度與 bearing 快取；巴士 stop map 依原始資料陣列使用 WeakMap。LRT 站點投影及運動曲線在伺服器依幾何快取，窗口回應最多快取 8 筆以限制 isolate 記憶體。前端只有兩個短窗，更新窗不會重新投影全部站點。
 
 ## 測試
 

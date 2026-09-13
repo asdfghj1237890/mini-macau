@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { renderToStaticMarkup } from 'react-dom/server'
 import type { SimulationClock, TransitData, VehiclePosition } from '../types'
 import { I18nProvider } from '../i18n'
-import { computeLRTVehicle, computeVehiclePositions } from '../engines/simulationEngine'
+import { computeLRTVehicle } from '../../server/lrt-simulation'
+import { createLrtWindowProvider } from '../../server/lrt-window'
+import { lrtWindowStart } from '../lrtState'
 import { VehicleInfoPanel } from './VehicleInfoPanel'
 import { StationInfoPanel } from './StationInfoPanel'
 
@@ -29,8 +31,11 @@ function render(seconds: number, transitData = data, start = '2026-05-04T10:00:0
     timeRef: { current: time }, getTimeMs: () => time.getTime(), readTimeMs: () => time.getTime(), subscribeTime: () => () => {},
     paused: true, speed: 1, isLive: false, setSpeed: () => {}, togglePause: () => {}, syncToNow: () => {}, setTime: () => {},
   }
-  const html = renderToStaticMarkup(<I18nProvider><VehicleInfoPanel vehicle={selected} transitData={transitData} clock={clock} onClose={() => {}} /></I18nProvider>)
-  const stationHtml = renderToStaticMarkup(<I18nProvider><StationInfoPanel station={transitData.stations[1]} transitData={transitData} clock={clock} onClose={() => {}} /></I18nProvider>)
+  const window = createLrtWindowProvider(transitData)(lrtWindowStart(time.getTime()))
+  const browserData = { ...transitData, trips: [], lrtWindows: [window] }
+  const selection = { ...selected, id: window.vehicles[0]?.id ?? selected.id }
+  const html = renderToStaticMarkup(<I18nProvider><VehicleInfoPanel vehicle={selection} transitData={browserData} clock={clock} onClose={() => {}} /></I18nProvider>)
+  const stationHtml = renderToStaticMarkup(<I18nProvider><StationInfoPanel station={transitData.stations[1]} transitData={browserData} clock={clock} onClose={() => {}} /></I18nProvider>)
   return { text: html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' '), stationHtml, time }
 }
 
@@ -43,7 +48,6 @@ describe('VehicleInfoPanel simulation synchronization', () => {
     expect(laterSpeed).not.toBe(firstSpeed)
     expect(first.text).toContain(`SPEED ${firstSpeed} km/h NEXT 01:35 arr`)
     expect(later.text).toContain(`SPEED ${laterSpeed} km/h NEXT 01:25 arr`)
-    expect(computeLRTVehicle(data, data.trips[0], later.time)).toEqual(computeVehiclePositions(data, later.time)[0])
   })
 
   it('counts down the full default dwell, switches at departure and follows time scrubbing', () => {
@@ -75,6 +79,5 @@ describe('VehicleInfoPanel simulation synchronization', () => {
     const live = computeLRTVehicle(overnight, overnight.trips[0], state.time)!
     expect(live.lrtMotion!.speedKmh).toBeGreaterThan(0)
     expect(state.text).toContain(`SPEED ${live.lrtMotion!.speedKmh.toFixed(1)} km/h`)
-    expect(live).toEqual(computeVehiclePositions(overnight, state.time)[0])
   })
 })

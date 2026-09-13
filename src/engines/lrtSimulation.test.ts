@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ScheduleType, TransitData, Trip } from '../types'
 import { macauWallToInstant } from '../macauTime'
-import { computeVehiclePositions } from './simulationEngine'
+import { computeScheduledLrt as computeVehiclePositions } from '../../server/lrt-simulation'
 
 // Entirely synthetic track and timetable; no service data is embedded here.
 function fixture(trips?: Trip[]): TransitData {

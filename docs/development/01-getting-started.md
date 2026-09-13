@@ -17,7 +17,7 @@ Dev server 起在 `http://localhost:5173`。MapView 是 lazy-import 的（[App.t
 
 ## 重要的 dev 設定
 
-- **LRT 按日期載入**：瀏覽器透過 `GET /api/lrt/<scheduleType>`（mon_thu / friday / sat_sun）取得時刻表。頁面先載入今天的 scheduleType，其餘兩個在主資料完成後背景 prefetch。本機 `npm run dev` 時，[`plugins/lrt-dev-api.ts`](../../plugins/lrt-dev-api.ts) 優先讀取 git-ignored 的 `src/data/trips-<scheduleType>.json`；未設定本機資料時，Vite 的 `/api` proxy 轉發到正式站。來源無法使用時，該類型的 LRT 圖層為空。見 [`useTransitData.ts`](../../src/hooks/useTransitData.ts) 的 `loadTrips`。
+- **LRT 按時間窗載入**：瀏覽器透過 `GET /api/lrt/state?at=<epoch-ms>` 取得固定 120 秒的車輛狀態，起點對齊整分鐘。伺服器決定日期與跨午夜班次，前端最多保留兩個重疊視窗並預取下一窗。本機有三份 git-ignored 的 `src/data/trips-<scheduleType>.json` 時，Vite middleware 執行相同的伺服器運算；否則 proxy 到正式 API。載入失敗會重試，狀態過期後 LRT 圖層暫時空白，其餘交通圖層正常運作。見 [useLrtState.ts](../../src/hooks/useLrtState.ts)。
 
 ## Build
 

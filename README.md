@@ -162,7 +162,7 @@ On context loss or shader failure the app rebuilds the map once, retaining its c
 
 ## Data Pipeline
 
-Transit geometry and other static datasets are pre-generated in `public/data/`. LRT schedules are loaded through `/api/lrt/<scheduleType>`, with the current schedule loaded first and the remaining schedules prefetched in the background.
+Transit geometry and other static datasets are pre-generated in `public/data/`. LRT movement is computed by the Pages Function. The browser loads fixed two-minute state windows through `/api/lrt/state?at=<epoch-ms>` and prefetches the next overlapping window for playback and seeking.
 
 <details>
 <summary><strong>Regenerate transit data</strong></summary>
@@ -395,7 +395,7 @@ mini-macau/
 │   ├── bus_reference/
 │   └── main.py
 ├── functions/
-│   └── api/lrt/[stype].ts    # Pages Function — schedule-specific JSON endpoint
+│   └── api/lrt/[stype].ts    # Pages Function — bounded vehicle state endpoint
 ├── plugins/
 │   └── lrt-dev-api.ts        # Dev-only stand-in for the Function above
 ├── .github/workflows/

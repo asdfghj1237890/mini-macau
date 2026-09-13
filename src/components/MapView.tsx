@@ -9,13 +9,13 @@ import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&ur
 import nearestPointOnLine from '@turf/nearest-point-on-line'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
-import type { SimulationClock, TransitData, VehiclePosition, Station, Trip, LRTLine, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner, ScheduleType } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer, ALL_BUS_3D_LAYERS } from '../layers/Bus3DLayer'
 import { LRT3DLayer, ALL_LRT_3D_LAYERS } from '../layers/LRT3DLayer'
 import { buildLrtDoubleViaduct } from '../lrtViaduct'
 import { getLrtTrack, LRT_DIRECTIONS } from '../lrtTracks'
-import { getLrtDepartureMinutes } from '../engines/lrtTimetable'
+import { lrtWindowAt } from '../lrtState'
 import { FontSizeControl } from './FontSizeControl'
 import { VehicleFrame } from '../engines/vehicleFrame'
 import { AsyncBusFrame } from '../engines/asyncBusFrame'
@@ -24,7 +24,6 @@ import { Ferry3DLayer, ALL_FERRY_3D_LAYERS } from '../layers/Ferry3DLayer'
 import {
   getBusServiceBucket,
   getBusServiceWindow,
-  getScheduleType,
 } from '../engines/simulationEngine'
 import { macauWeekday, macauHours, macauMinutes, macauMinutesOfDay, macauYmd, macauDayIndex } from '../macauTime'
 import { ROAD_WORK_COLORS, roadWorkStatus, roadWorksHorizon } from '../roadWorks'
@@ -185,27 +184,6 @@ const LRT_VIADUCT_BASE_M = 6
 const LRT_VIADUCT_HEIGHT_M = 7.2
 const LRT_VIADUCT_OPACITY = 0.95
 const LRT_VIADUCT_OPACITY_DIM = 0.18
-
-function getLRTLineWindow(
-  line: LRTLine,
-  trips: Trip[],
-  scheduleType: ScheduleType
-): [number, number] | null {
-  let minStart = Infinity
-  let maxEnd = -Infinity
-  for (const trip of trips) {
-    if (trip.lineId !== line.id) continue
-    if (trip.scheduleType && trip.scheduleType !== scheduleType) continue
-    if (trip.entries.length === 0) continue
-    const s = trip.entries[0].arrivalMinutes
-    const last = trip.entries[trip.entries.length - 1]
-    const e = getLrtDepartureMinutes(last)
-    if (s < minStart) minStart = s
-    if (e > maxEnd) maxEnd = e
-  }
-  if (minStart === Infinity) return null
-  return [minStart, maxEnd]
-}
 
 const BUS_SERVICE_TAIL_MIN = 60
 
@@ -4656,9 +4634,6 @@ export function MapView(props: MapViewProps) {
   // scan at 1 Hz real time when nothing has changed. Empty string forces
   // a sweep after layer/data swaps.
   const lastServiceMinuteRef = useRef('')
-  const lrtWindowCacheRef = useRef<{ td: TransitData | null; schedule: ScheduleType | null; map: Map<string, [number, number] | null> }>(
-    { td: null, schedule: null, map: new Map() }
-  )
   const onVehicleCountRef = useRef(onVehicleCount)
   onVehicleCountRef.current = onVehicleCount
   const onTrackedUpdateRef = useRef(onTrackedVehicleUpdate)
@@ -4786,28 +4761,13 @@ export function MapView(props: MapViewProps) {
         const simMinuteKey = `${macauWeekday(simTime)}-${macauHours(simTime)}-${macauMinutes(simTime)}`
         if (simMinuteKey !== lastServiceMinuteRef.current) {
           lastServiceMinuteRef.current = simMinuteKey
-          const schedule = getScheduleType(simTime)
-          const nowMinutes = macauHours(simTime) * 60 + macauMinutes(simTime)
-
-          const cache = lrtWindowCacheRef.current
-          if (cache.td !== td || cache.schedule !== schedule) {
-            cache.td = td
-            cache.schedule = schedule
-            cache.map = new Map()
-            for (const line of td.lrtLines) {
-              cache.map.set(line.id, getLRTLineWindow(line, td.trips, schedule))
-            }
-          }
+          const lrtWindow = lrtWindowAt(td.lrtWindows, simMs)
 
           for (const line of td.lrtLines) {
             const layerId = `lrt-line-${line.id}`
             const viaductId = `lrt-viaduct-${line.id}`
             if (!map.getLayer(layerId)) continue
-            const win = cache.map.get(line.id) ?? null
-            const inService = win
-              ? (nowMinutes >= win[0] && nowMinutes <= win[1]) ||
-                (nowMinutes + 1440 >= win[0] && nowMinutes + 1440 <= win[1])
-              : true
+            const inService = lrtWindow?.service.some(span => span.lineId === line.id && simMs >= span.start && simMs <= span.end) ?? true
             const prev = serviceStatusRef.current.get(layerId)
             if (prev !== inService) {
               serviceStatusRef.current.set(layerId, inService)

@@ -1,35 +1,65 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { Plugin } from 'vite'
+import type { TransitData } from '../src/types'
+import type { LrtStateWindow } from '../src/lrtState'
+import { serveLrt } from '../server/lrt-api'
 
-// Dev-only stand-in for the Pages Function at /api/lrt/<scheduleType>
-// (functions/api/lrt/[stype].ts). The LRT timetable is not in the repo, so
-// `npm run dev` has two ways to get it:
-//
-//   1. a local, git-ignored copy at src/data/trips-<scheduleType>.json — the
-//      maintainer's checkout of the private data repo. Served from disk here.
-//   2. none on disk — this middleware steps aside and Vite's `/api` proxy
-//      (vite.config.ts) forwards the request to the production Function.
-//
-// Never active in a build (`apply: 'serve'`), so nothing here can put the
-// timetable into dist/.
-const ROUTE = /^\/api\/lrt\/(mon_thu|friday|sat_sun)$/
-
+// Local inputs stay in the server module graph. Missing inputs use the API proxy.
 export function lrtDevApiPlugin(): Plugin {
   return {
-    name: 'lrt-dev-api',
-    apply: 'serve',
+    name: 'lrt-dev-api', apply: 'serve',
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const path = (req.url ?? '').split('?')[0]
-        const m = ROUTE.exec(path)
-        if (!m) return next()
-        const file = resolve(server.config.root, 'src', 'data', `trips-${m[1]}.json`)
-        if (!existsSync(file)) return next()
-        res.setHeader('Content-Type', 'application/json; charset=utf-8')
-        res.setHeader('Cache-Control', 'no-store')
-        res.end(readFileSync(file))
+      let provider: Promise<(start: number) => LrtStateWindow> | undefined
+      server.watcher.on('change', path => {
+        const normalized = path.replaceAll('\\', '/')
+        if (/\/server\/lrt-/.test(normalized) || /\/src\/(?:engines\/lrt|lrtTracks|macauTime)/.test(normalized)
+          || /\/(?:trips-[^/]+|lrt-lines|stations)\.json$/.test(normalized)) provider = undefined
+      })
+      server.middlewares.use(async (req, res, next) => {
+        const url = new URL(req.url ?? '', `http://${req.headers.host ?? 'localhost'}`)
+        const match = /^\/api\/lrt\/([^/]+)\/?$/.exec(url.pathname)
+        if (!match) return next()
+        const paths = ['mon_thu', 'friday', 'sat_sun'].map(type => resolve(server.config.root, `src/data/trips-${type}.json`))
+        if (match[1] === 'state' && !paths.every(existsSync)) return next()
+        try {
+          if (match[1] === 'state') provider ??= server.ssrLoadModule('/server/lrt-window.ts').then(module => {
+            const read = (path: string) => JSON.parse(readFileSync(path, 'utf8'))
+            const data: Pick<TransitData, 'lrtLines' | 'stations' | 'trips'> = {
+              lrtLines: read(resolve(server.config.root, 'public/data/lrt-lines.json')),
+              stations: read(resolve(server.config.root, 'public/data/stations.json')),
+              trips: paths.flatMap(read),
+            }
+            return module.createLrtWindowProvider(data)
+          })
+          const headers = new Headers()
+          for (const [name, value] of Object.entries(req.headers)) if (typeof value === 'string') headers.set(name, value)
+          const response = serveLrt(new Request(url, { method: req.method, headers }), match[1],
+            provider ? await provider : () => { throw new Error('Unavailable') })
+          res.statusCode = response.status
+          response.headers.forEach((value, name) => res.setHeader(name, value))
+          res.end(await response.text())
+        } catch {
+          provider = undefined
+          res.statusCode = 503
+          res.setHeader('Cache-Control', 'no-store')
+          res.end('LRT state unavailable')
+        }
       })
     },
+  }
+}
+
+export function assertLrtBrowserModule(id: string) {
+  const path = id.replaceAll('\\', '/')
+  if (/\/server\/lrt-/.test(path) || /\/functions\/_lrt\//.test(path) || /\/trips-[^/]+\.json/.test(path)) {
+    throw new Error('Server-only LRT input or computation entered the browser module graph')
+  }
+}
+
+export function lrtBrowserBoundaryPlugin(): Plugin {
+  return {
+    name: 'lrt-browser-boundary', apply: 'build',
+    generateBundle() { for (const id of this.getModuleIds()) assertLrtBrowserModule(id) },
   }
 }
