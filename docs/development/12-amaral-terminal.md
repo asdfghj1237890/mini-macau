@@ -118,6 +118,27 @@ a minute at the end of the runs from 40 to 21; the citywide replays keep zero
 overlaps. Requesting a junction only within braking distance (alone or
 combined with the platoon rule) was tried and rejected: it starved the
 creeping approach and long stalls tripled.
+
+The pace through a reserved turn, after a yield and while carrying a lateral
+clearance (`YIELD_SPEED_MPS` in `busTraffic.ts`) was 3 m/s, and with the
+terminal's many reserved turns a third of all bus time inside it was spent
+under that cap, another quarter stopped behind buses under it. At 5 m/s the
+swept-body checks, which sample the course every 2 m regardless of speed,
+still keep the bodies apart: over the same twelve start times the median
+number of held buses in the terminal box fell from 7.4 to 2.8, the summed
+means from 88 to 33 and buses stalled over a minute from 26 to 0, with no
+overlaps. 7 m/s measured better still at the terminal (median 2.1) but
+locked three buses head to head on the two-way stub into 白鴿巢前地 in the
+08:00 citywide replay, so the cap stays at 5. A faster restart (2 m/s²
+instead of 1.5) helped on its own but added nothing once the cap was
+raised, so the acceleration is unchanged.
+
+The same replays exposed a leak in the junction owner map: a re-hold from the
+recovery solver could arrive after a bus had advanced past a zone in the same
+step, with that zone's key already filtered out of the new passage, so the
+old owner entry outlived the bus by kilometres and held the junction against
+everyone (a 21-minute lock of 23 buses in Taipa in one 08:00 replay).
+`holdPassage` now releases the keys a re-held passage no longer carries.
 Route geometry and layout fingerprints make repeated runs
 idempotent; fresh extraction or a changed layout invalidates those fingerprints.
 

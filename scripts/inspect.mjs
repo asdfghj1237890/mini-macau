@@ -408,6 +408,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
         areaTrace.push({ second: tick * step, states: busTraffic.inspectQueues({ includeMoving: true }).filter(s => inTraceBox(s.coordinates)).map(s => ({
           id: s.id, phase: s.phase, blocked: s.blocked, speed: +s.speed.toFixed(2), stalledSec: +s.stalledSec.toFixed(1), distanceM: +s.distanceM.toFixed(1),
           leader: s.leader, waitingFor: s.waitingFor, waitReason: s.waitReason, blockerIds: s.blockerIds, yieldTo: s.yieldTo, recoveryYield: s.recoveryYield?.id,
+          cautiousUntilM: s.cautiousUntilM === undefined ? undefined : +s.cautiousUntilM.toFixed(1), claimedThroughM: s.claimedThroughM === undefined ? undefined : +s.claimedThroughM.toFixed(1),
           coordinates: s.coordinates, bearing: Math.round(s.bearing), offset: s.offset.map(n => +n.toFixed(2)),
           held: s.held && { keys: s.held.keys, approaches: s.held.approaches, entryM: +s.held.entryM.toFixed(1), exitM: +s.held.exitM.toFixed(1) },
           next: s.next && { keys: s.next.keys, approaches: s.next.approaches, entryM: +s.next.entryM.toFixed(1), exitM: +s.next.exitM.toFixed(1) },

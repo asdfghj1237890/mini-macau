@@ -53,7 +53,9 @@ describe('Amaral terminal routing', () => {
       if (second === 600) movingAtEnd = buses.filter(v => v.coordinates[0] > 113.5427 && v.coordinates[0] < 113.5443 &&
         v.coordinates[1] > 22.1876 && v.coordinates[1] < 22.1900 && (v.busMotion?.speedKmh ?? 0) > 2).length
     }
-    expect(samples).toBeGreaterThan(5000)
+    // Fewer buses linger in the scope now that the terminal keeps moving;
+    // the bound only guards against an empty or collapsed replay.
+    expect(samples).toBeGreaterThan(3000)
     expect(movingAtEnd).toBeGreaterThan(3)
   }, 60000)
 })

@@ -186,6 +186,16 @@ describe('junction passage reservations', () => {
       expect(queues.find(s => s.id === 'rear')?.waitReason).toBe(rearReason)
     }
   })
+  it('releases the keys a re-held passage no longer carries', () => {
+    const traffic = new BusTrafficController()
+    traffic.sample([crossing('east', 20, false)], 20000)
+    const state = traffic['states'].get('east')!
+    traffic['holdPassage'](state, { keys: ['behind', 'ahead'], entryM: 70, exitM: 130 })
+    expect([...traffic['junctionOwners'].keys()].sort()).toEqual(['ahead', 'behind'])
+    traffic['holdPassage'](state, { keys: ['ahead'], entryM: 100, exitM: 130 })
+    expect([...traffic['junctionOwners'].keys()]).toEqual(['ahead'])
+    expect(state.passage?.keys).toEqual(['ahead'])
+  })
   it('keeps the front bus exempt from its convoy until the rear clears a longer linked passage', () => {
     const make = (id: string, t: number): BusTrafficPlan => {
       const base = crossing(id, t, false)

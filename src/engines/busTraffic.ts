@@ -82,7 +82,15 @@ const MAX_LANE_ADJUST_M = 4
 const MAX_RECOVERY_VEHICLES = 4
 const LANE_ADJUST_MPS = .8
 const TURN_SAMPLE_M = 2
-const YIELD_SPEED_MPS = 3
+// The pace through a reserved turn, after a yield and while carrying a
+// lateral clearance. 3 m/s kept the Amaral terminal in a permanent crawl:
+// a third of all bus time inside it was spent under this cap. 5 m/s clears
+// a reserved path in well under half the time and the swept-body checks,
+// which sample the course every 2 m regardless of speed, still keep the
+// bodies apart (zero overlaps across twelve 40-minute viewport replays).
+// 7 m/s measured better still at the terminal but locked three buses head
+// to head on the two-way stub into 白鴿巢前地 in the 08:00 citywide replay.
+const YIELD_SPEED_MPS = 5
 const CLEARANCE_HOLD_M = 14
 // A bus that can join the holders already inside a junction keeps that stream
 // moving: letting it in costs a crossing waiter one more bus length, while
@@ -340,7 +348,7 @@ export class BusTrafficController {
       blockerIds: this.waitDependencies(s).filter(other => other.active).map(other => other.plan.id),
       offset: [s.offsetX, s.offsetY], stalledSec: s.stalledSec,
       convoyBlockedBy: s.convoyBlockedBy,
-      claimedThroughM: s.turnClaim?.at(-1)?.distanceM, requestOrder: s.requestOrder,
+      claimedThroughM: s.turnClaim?.at(-1)?.distanceM, cautiousUntilM: s.cautiousUntilM, requestOrder: s.requestOrder,
       clearance: s.clearance, recoveryYield: s.recoveryYield,
       yieldDistance: s.yieldDistance, yieldTo: s.yieldTo,
       preview: includeFuture && s.stalledSec >= 30 ? [0, .5, 1, 2, 4].map(dt => s.plan.sample(s.playhead + dt)) : undefined,
@@ -1604,6 +1612,15 @@ export class BusTrafficController {
     return true
   }
   private holdPassage(state: State, passage: BusPassage): void {
+    // A re-hold from the recovery solver can arrive after the bus advanced
+    // past a zone in the same step, with that zone's key already filtered
+    // out of the new passage. Release such keys now, or their owner entries
+    // outlive the bus by kilometres and hold the junction against everyone.
+    for (const key of state.passage?.keys ?? []) if (!passage.keys.includes(key)) {
+      const owners = this.junctionOwners.get(key)
+      owners?.delete(state.plan.id)
+      if (!owners?.size) this.junctionOwners.delete(key)
+    }
     for (const key of passage.keys) {
       let owners = this.junctionOwners.get(key)
       if (!owners) { owners = new Map(); this.junctionOwners.set(key, owners) }
