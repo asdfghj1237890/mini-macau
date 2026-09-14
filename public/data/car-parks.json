@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-09-13T21:34:01.460385+00:00",
+  "fetchedAtUtc": "2026-09-14T22:49:03.573129+00:00",
   "sources": {
     "name": "交通事務局 (DSAT) – 停車場資料",
     "dataset": "https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706",
@@ -4988,6 +4988,118 @@
       "coordinates": [
         113.540749,
         22.200229
+      ]
+    },
+    {
+      "id": "7098",
+      "name": {
+        "zh": "南灣大馬路公共停車場",
+        "pt": "Avenida da Praia Grande",
+        "en": "Avenida da Praia Grande"
+      },
+      "location": {
+        "zh": "南灣大馬路旁之區域",
+        "pt": "Constituído por uma área situada ao lado da Avenida da Praia Grande.",
+        "en": "Located at Praia Grande road."
+      },
+      "entrance": {
+        "zh": "入口及出口均設於南灣大馬路",
+        "pt": "A entrada e saída no parque de estacionamento efectua-se pela Avenida da Praia Grande.",
+        "en": "The Entrance and Exit of carpark are located on the Praia Grande road."
+      },
+      "phone": "--",
+      "heightLimitM": null,
+      "fees": {
+        "light": {
+          "zh": "",
+          "pt": "",
+          "en": ""
+        },
+        "heavy": {
+          "zh": "",
+          "pt": "",
+          "en": ""
+        },
+        "moto": {
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
+        },
+        "remark": {
+          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前\n重型及輕型電單車：日間普通票，每半小時或不足半小時為澳門幣1元。夜間普通票，每半小時或不足半小時為澳門幣0.5元。\n進入停車場並於十五分鐘內離場，免收相關泊車費用。",
+          "pt": "Diurno:Das 8,00 horas até antes das 20,00 horas.\nNocturno:Das 20,00 horas até antes das 8,00 horas do dia seguintes.\nMotociclos e ciclomotores: Bilhete simples diurno - 1 pataca por cada meia hora ou fracção. O bilhete simples nocturno - Por cada hora ou fracção: 0,5 patacas.\nA entrada no parque de estacionamento e a saída dentro de 15 minutos estão isentas da tarifa devida pelo estacionamento.",
+          "en": "Day:From 8 a.m. to no later than 8 p.m..\nNight:From 8 p.m. to no later than 8 a.m. of the next day.\nLight and Heavy Motorcycles: Regular Fee (Day), every half an hour or part thereof MOP$1. Regular Fee(Night): every half an hour or part thereof MOP$0.5.\nFree parking for entering and exiting within 15 minutes."
+        }
+      },
+      "zone": {
+        "zh": "澳門",
+        "pt": "Macau",
+        "en": "Macau"
+      },
+      "parish": {
+        "zh": "外港及南灣湖新填海區",
+        "pt": "Novos Aterros do Porto Exterior (NAPE)/ Novos Aterros da Baía da Praia Grande",
+        "en": "NAPE/ Praia Grande bay reclamation area"
+      },
+      "coordinates": [
+        113.543911,
+        22.191531
+      ]
+    },
+    {
+      "id": "7099",
+      "name": {
+        "zh": "徐日昇寅公馬路公共停車場",
+        "pt": "Padre Tomás Pereira",
+        "en": "Padre Tomás Pereira"
+      },
+      "location": {
+        "zh": "徐日昇寅公馬路、氹仔東北馬路及北安碼頭馬路交界旁之區域",
+        "pt": "Constituído por uma área situada ao lado da intersecção entre a Avenida Padre Tomás Pereira, a Estrada Nordeste da Taipa e a Estrada da Ponte de Pac On.",
+        "en": "Located at Padre Tomás Pereira road."
+      },
+      "entrance": {
+        "zh": "入口及出口均設於北安碼頭馬路",
+        "pt": "A entrada e saída no parque de estacionamento efectua-se pela Estrada da Ponte de Pac On.",
+        "en": "The Entrance and Exit of carpark are located on the Ponte de Pac On road."
+      },
+      "phone": "--",
+      "heightLimitM": null,
+      "fees": {
+        "light": {
+          "zh": "",
+          "pt": "",
+          "en": ""
+        },
+        "heavy": {
+          "zh": "",
+          "pt": "",
+          "en": ""
+        },
+        "moto": {
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
+        },
+        "remark": {
+          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前\n重型及輕型電單車：日間普通票，每半小時或不足半小時為澳門幣1元。夜間普通票，每半小時或不足半小時為澳門幣0.5元。\n進入停車場並於十五分鐘內離場，免收相關泊車費用。",
+          "pt": "Diurno:Das 8,00 horas até antes das 20,00 horas.\nNocturno:Das 20,00 horas até antes das 8,00 horas do dia seguintes.\nMotociclos e ciclomotores: Bilhete simples diurno - 1 pataca por cada meia hora ou fracção. O bilhete simples nocturno - Por cada hora ou fracção: 0,5 patacas.\nA entrada no parque de estacionamento e a saída dentro de 15 minutos estão isentas da tarifa devida pelo estacionamento.",
+          "en": "Day:From 8 a.m. to no later than 8 p.m..\nNight:From 8 p.m. to no later than 8 a.m. of the next day.\nLight and Heavy Motorcycles: Regular Fee (Day), every half an hour or part thereof MOP$1. Regular Fee(Night): every half an hour or part thereof MOP$0.5.\nFree parking for entering and exiting within 15 minutes."
+        }
+      },
+      "zone": {
+        "zh": "氹仔",
+        "pt": "Taipa",
+        "en": "Taipa"
+      },
+      "parish": {
+        "zh": "大學及北安灣區",
+        "pt": "Universidade e Baía de Pac On",
+        "en": "University/ Pac On bay"
+      },
+      "coordinates": [
+        113.555436,
+        22.163373
       ]
     }
   ]
