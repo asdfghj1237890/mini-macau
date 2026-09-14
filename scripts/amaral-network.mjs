@@ -43,8 +43,13 @@ export function buildAmaralNetwork(source) {
   // it must not join the neighbouring northbound tunnel exit.
   add('G', [[113.5429941,22.1887788], [113.542994,22.188852], bay(16,60),
     [113.54308,22.188943], [113.54319,22.188978], [113.5433492,22.1889906]])
+  // H is a kerb-side bay on the roundabout arc east of the mouth: MO Transport's
+  // 2A/7 traces pull in from the arc and continue east along it. Rejoining the
+  // arc at its next node, instead of turning back into lane A, keeps those
+  // services out of the A/B lanes and the mouth. (A longer merge lane joining
+  // 30 m further on measured no better in the viewport replay.)
   add('H', [[113.5435626,22.1890065], [113.543613,22.189028], bay(17,85),
-    [113.543726,22.189045], [113.543716,22.189082], [113.543671,22.189113], [113.5436266,22.1891019]])
+    [113.543740,22.189010], [113.5437701,22.1889579]])
   // Shared coordinates, including new bay points, are the graph identities.
   // Only OSM shared nodes are junctions: crossing traces do not connect.
   const osmNodes = new Map(source.ways.flatMap(w => w.geometry.map((p, i) => [key(point(p)), w.nodes[i]])))
@@ -70,7 +75,7 @@ export function streetGraph(ways) {
   return edges
 }
 
-export function attachAnchor(edges, p, heading, target, outgoing = false, maxDistance = 5) {
+export function attachAnchor(edges, p, heading, target, outgoing = false, maxDistance = 5, minDot = .5) {
   const reachable = new Set([key(target)])
   let changed = true
   while (changed) {
@@ -85,7 +90,7 @@ export function attachAnchor(edges, p, heading, target, outgoing = false, maxDis
     if (!reachable.has(key(outgoing ? e.a : e.b))) continue
     const dx = (e.b[0] - e.a[0]) * MX, dy = (e.b[1] - e.a[1]) * MY, length = Math.hypot(dx, dy)
     const dot = heading ? (heading[0] * dx + heading[1] * dy) / length : 1
-    if (dot < .5 || e.lane) continue
+    if (dot < minDot || e.lane) continue
     const t = Math.max(0, Math.min(1, ((p[0] - e.a[0]) * MX * dx + (p[1] - e.a[1]) * MY * dy) / length ** 2))
     const q = lerp(e.a, e.b, t), distance = metres(p, q), score = distance + (1 - dot) * 12
     if (!best || score < best.score) best = { e, q, score, distance, t }

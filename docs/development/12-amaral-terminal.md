@@ -28,6 +28,25 @@ extends to the exact adjacent stop while preserving that stop's position.
 
 The bus routing step visits each route's assigned platform, following directed
 surface streets. It does not use the terminal's underground road connections.
+Inside the terminal box the shortest street path decides the course, with two
+exceptions taken from the published traces. Lane H is a kerb-side bay on the
+roundabout arc east of the mouth: its modelled lane pulls in from the arc,
+serves H17 and rejoins the arc at the next node, where it used to turn back
+into lane A and send 2A and 7 round lanes A and B and through the mouth a
+second time (their traces continue east along the arc). And after a route's
+last bay, guide vertices of its trace that lie on a street become
+intermediate targets, so the C-lane services (50, 52, 71, 73, N3, N5) leave by
+the loop road west of the terminal as MO Transport draws them, instead of
+crossing the entrance through lane D and the mouth; a guide vertex on a
+modelled bay lane, one that no directed path reaches, or a set of waypoints
+whose course laps the terminal or runs far longer than the direct path is
+dropped, one waypoint at a time. Arrivals keep the shortest path: guiding
+them along the loop road as well measured worse in the viewport replay,
+because that road rejoins the arc exactly where every entrance turns off.
+Per hour of timetable this takes lane D from 127 to 103 traversals, lane H
+from 41 to 14, and departures crossing the C entrance from 156 to 131; the
+satellite image and the OSM ways agree that the remaining D/E departures do
+cross that entrance at grade, so those stay.
 It also replaces the former diagonal bridge joins on 102/H3 without adding
 stops to those services. Other stops and their sequence remain unchanged.
 The simulator still uses generated service cycles; this does not make its

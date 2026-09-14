@@ -26,7 +26,7 @@ export function patchAmaral(routes, stops, source, guides = {}) {
   }
   for (const route of routes) {
     const guide = guides[route.id]
-    const layoutKey = fingerprint({ ...baseLayout, guide, guideLayoutVersion: guide ? 3 : undefined,
+    const layoutKey = fingerprint({ ...baseLayout, guide, guideLayoutVersion: guide ? 4 : undefined,
       guideRepetitions: AMARAL_GUIDE_REPETITIONS[route.id] })
     const previous = route.geometry.properties?.amaralLayout
     if (previous?.layoutKey === layoutKey && previous.geometryKey === fingerprint(route.geometry.geometry.coordinates)) continue
@@ -82,9 +82,68 @@ export function patchAmaral(routes, stops, source, guides = {}) {
       }
       if (a < cursor) throw new Error(`Overlapping terminal visits on ${route.id}`)
       output.push(...coords.slice(cursor, a))
-      const targets = [first, ...via, last].filter((p, i, all) => !i || key(p) !== key(all[i - 1]))
-      let path = [targets[0]]
-      for (let i = 1; i < targets.length; i++) path.push(...findPath(edges, targets[i - 1], targets[i]).slice(1))
+      // Follow the published departure corridor inside the box as well, not
+      // only at its edges: the shortest street path from the last bay to the
+      // exit anchor sent C-lane departures out through lane D and the mouth,
+      // where MO Transport's traces use the loop road west of the terminal.
+      // Guide vertices after the last bay that lie on a street (never on a
+      // modelled bay lane) become intermediate targets; those on the open
+      // apron, or that a directed path cannot reach, are skipped. Arrivals
+      // keep the shortest street path: guiding them along the loop road too
+      // measured worse in the viewport replay, since that road rejoins the
+      // arc right where every entrance turns off.
+      const stopAt = new Map(window.stops.map(i => [route.stopOffsets[i], platforms.get(route.stopsForward[i]).vehiclePoint]))
+      const lastStop = Math.max(-1, ...window.stops.map(i => route.stopOffsets[i]))
+      const others = [...platforms.values()].map(p => p.vehiclePoint).filter(p => !via.some(v => key(v) === key(p)))
+      const targets = [first], waypoints = new Set()
+      // A guide vertex that lies on a modelled bay lane must not be pinned to
+      // a neighbouring street: the graph places the bay itself.
+      const laneEdges = edges.filter(e => e.lane)
+      const onLane = p => laneEdges.some(e => {
+        const dx = (e.b[0] - e.a[0]) * MX, dy = (e.b[1] - e.a[1]) * 111320, length = Math.hypot(dx, dy) || 1
+        const t = Math.max(0, Math.min(1, ((p[0] - e.a[0]) * MX * dx + (p[1] - e.a[1]) * 111320 * dy) / length ** 2))
+        return metres(p, [e.a[0] + (e.b[0] - e.a[0]) * t, e.a[1] + (e.b[1] - e.a[1]) * t]) < 6
+      })
+      const clear = p => targets.every(t => metres(p, t) >= 15) && via.every(v => metres(p, v) >= 20) &&
+        others.every(v => metres(p, v) >= 6) && metres(p, last) >= 15 && !onLane(p)
+      for (let i = a; i <= b; i++) {
+        const stop = stopAt.get(i)
+        if (stop) { if (key(stop) !== key(targets.at(-1))) targets.push(stop); continue }
+        if (!guide || i === a || i === b || i < lastStop || !clear(coords[i])) continue
+        let anchor
+        try { anchor = attachAnchor(edges, coords[i], heading(coords[i - 1], coords[i + 1]), targets.at(-1), true, 6, .8) }
+        catch { continue }
+        if (key(anchor) === key(targets.at(-1))) continue
+        targets.push(anchor); waypoints.add(key(anchor))
+      }
+      if (key(last) !== key(targets.at(-1))) targets.push(last)
+      // Between two bays (or an edge anchor and a bay) the guided course is
+      // kept only when it never passes the same node twice and is not much
+      // longer than the shortest street path: a waypoint on a one-way street
+      // that only a lap of the terminal returns from would otherwise drag the
+      // route round the islands.
+      const length = (start, points) => { let sum = 0, previous = start; for (const q of points) { sum += metres(previous, q); previous = q } return sum }
+      const segments = []
+      let fromFixed = targets[0], pending = []
+      const flush = to => {
+        const direct = findPath(edges, fromFixed, to).slice(1), limit = length(fromFixed, direct) * 1.5 + 30
+        const through = points => {
+          const guided = []
+          let cursor = fromFixed
+          for (const w of points) { try { guided.push(...findPath(edges, cursor, w).slice(1)); cursor = w } catch { /* off the directed graph: skip */ } }
+          try { guided.push(...findPath(edges, cursor, to).slice(1)) } catch { return undefined }
+          const lap = new Set([key(fromFixed), ...guided.map(key)]).size <= guided.length
+          return !lap && length(fromFixed, guided) <= limit ? guided : undefined
+        }
+        // One misplaced waypoint should not cost the whole corridor: retry
+        // without each single waypoint, latest first, before routing directly.
+        let guided = through(pending)
+        for (let i = pending.length - 1; i >= 0 && !guided; i--) guided = through(pending.filter((_, j) => j !== i))
+        segments.push(...(guided ?? direct))
+        fromFixed = to; pending = []
+      }
+      for (const to of targets.slice(1)) { if (waypoints.has(key(to))) pending.push(to); else flush(to) }
+      let path = [targets[0], ...segments]
       if (!isStart && metres(coords[a], path[0]) > .05) path.unshift(coords[a])
       if (!isEnd && metres(coords[b], path.at(-1)) > .05) path.push(coords[b])
       path = roundedPath(path, new Set(via.map(key)))
