@@ -22,7 +22,7 @@
 //   node scripts/inspect.mjs bus-station [base-id] # platform coordinates and route geometry at each stop
 //   node scripts/inspect.mjs bus-cycles [route-id]  # generated service cycle per route: loop km, stops, minutes, fleet and average speed (road vs legacy model)
 //   node scripts/inspect.mjs bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] # buses that vanish, jump or go NaN between ticks while their route is still in service (scope = the worker's viewport model, BUS_VIEW=w,s,e,n)
-//   node scripts/inspect.mjs bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] # the app's worker+playback pipeline in-process at 1–60x: presented buses that vanish mid-route, empty frames, pending frames, in-view queued counts per minute (BUS_VIEW=w,s,e,n)
+//   node scripts/inspect.mjs bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] # the app's worker+playback pipeline in-process at 1–60x: presented buses that vanish mid-route, empty/pending frames, in-view queued counts per minute, playhead pace per frame (frozen/slow/nominal/fast/snap), lag, headroom and buffer target, worker compute per request (BUS_VIEW=w,s,e,n; BUS_FRAME_MS=33|100 renderer cadence; BUS_SWITCH_AT=<real ms> [BUS_SPEED_FROM=1] switches speed mid-run and reports the 3 s after it; BUS_PLAYHEAD_TRACE=1 prints per-frame rows around 5 s or the switch)
 //   node scripts/inspect.mjs lrt-motion [--dwell 45] # aggregate motion feasibility; uses LRT_TRIPS_DIR or local dev inputs
 //   node scripts/inspect.mjs city-loading          # city payload and generated count-catalog sizes
 //   node scripts/inspect.mjs ferries                # ferry-schedules.json summary
@@ -206,9 +206,9 @@ async function cmdBusPlayback(clock = '17:30', realSeconds = '30', speedArg = '6
     // delivered after the configured latency, like a message round trip.
     const runtime = new BusWorkerRuntime()
     let port, now = 0
-    const inbox = []
+    const inbox = [], computes = []
     const factory = () => (port = { onmessage: null, onerror: null, onmessageerror: null, terminate() {},
-      postMessage(request) { const t0 = performance.now(); const reply = runtime.sample(request); inbox.push({ at: now + latencyMs + (performance.now() - t0), reply }) } })
+      postMessage(request) { const t0 = performance.now(); const reply = runtime.sample(request); const took = performance.now() - t0; computes.push({ took, simMs: reply.simMs }); inbox.push({ at: now + latencyMs + took, reply }) } })
     const frame = new AsyncBusFrame(factory, s => events.push({ frame: frames.length, kind: 'overload', speed: s }))
     const start = new Date(`${process.env.BUS_TRAFFIC_DATE || '2026-09-11'}T${clock}:00+08:00`).getTime()
     const frames = [], events = []
@@ -218,16 +218,58 @@ async function cmdBusPlayback(clock = '17:30', realSeconds = '30', speedArg = '6
     // BUS_ZOOM_TOGGLE=1 alternates overview (no bounds) and detail every 5 s.
     const pan = process.env.BUS_PAN === '1', zoomToggle = process.env.BUS_ZOOM_TOGGLE === '1'
     const width = bounds[2] - bounds[0]
-    for (now = 0; now <= realMs; now += 33) {
+    // BUS_FRAME_MS mirrors the renderer's sampling cadence (33 ms desktop, 100 ms phones).
+    const frameMs = Number(process.env.BUS_FRAME_MS || 33)
+    let previousVehicles = null, frozenFrames = 0, freezeEpisodes = 0, freezeRunMs = 0, freezeMaxMs = 0, playedFrames = 0
+    // White-box view of the presentation buffer (TypeScript-private, plain at runtime):
+    // how far the playhead moved per frame relative to the clock, and its lag/headroom.
+    const playhead = frame.playback
+    const pace = { frozen: 0, slow: 0, nominal: 0, fast: 0, snap: 0 }
+    const lags = [], heads = [], delays = [], rows = []
+    let previousShownMs = NaN
+    // BUS_SWITCH_AT=<real ms> runs at BUS_SPEED_FROM (default 1×) until then and
+    // switches to the requested speed, the way a viewer speeds the clock up;
+    // the 3 s after the switch are reported separately.
+    const switchAt = Number(process.env.BUS_SWITCH_AT || NaN), speedFrom = Number(process.env.BUS_SPEED_FROM || 1)
+    const switching = Number.isFinite(switchAt)
+    const switchPace = { frozen: 0, slow: 0, nominal: 0, fast: 0, snap: 0 }
+    let switchFrozenMs = 0, switchFreezeMaxMs = 0, switchRunMs = 0
+    const traceFrom = switching ? switchAt - 200 : 5000, traceTo = traceFrom + 2200
+    let simMs = start - frameMs * (switching && switchAt > 0 ? speedFrom : speed)
+    for (now = 0; now <= realMs; now += frameMs) {
       while (inbox.length && inbox[0].at <= now) { const { reply } = inbox.shift(); port.onmessage?.({ data: reply }) }
-      const simMs = start + now * speed
+      const currentSpeed = switching && now < switchAt ? speedFrom : speed
+      simMs += frameMs * currentSpeed
       const frameIndex = frames.length
       const shift = pan ? ((Math.floor(frameIndex / 90) % 2) * 2 - 1) * width * .5 * (Math.floor(frameIndex / 90) > 0 ? 1 : 0) : 0
       const currentBounds = [bounds[0] + shift, bounds[1], bounds[2] + shift, bounds[3]]
       const currentView = zoomToggle && Math.floor(frameIndex / 150) % 2 === 1 ? { bounds: undefined } : { bounds: currentBounds }
       const inViewNow = c => currentView.bounds ? c[0] >= currentBounds[0] && c[0] <= currentBounds[2] && c[1] >= currentBounds[1] && c[1] <= currentBounds[3] : inView(c)
-      const { vehicles, pending } = frame.sample(data, simMs, now, currentView, speed)
+      const { vehicles, pending } = frame.sample(data, simMs, now, currentView, currentSpeed)
       if (pending) pendingFrames++
+      // The playhead returns the identical array when it cannot advance: a
+      // frozen frame while the clock moves is the stutter a viewer sees.
+      const inSwitchWindow = switching && now >= switchAt && now < switchAt + 3000
+      if (!pending && vehicles.length && currentSpeed > 0) {
+        playedFrames++
+        if (vehicles === previousVehicles) { frozenFrames++; if (!freezeRunMs) freezeEpisodes++; freezeRunMs += frameMs; freezeMaxMs = Math.max(freezeMaxMs, freezeRunMs) }
+        else freezeRunMs = 0
+        if (inSwitchWindow) {
+          if (vehicles === previousVehicles) { switchFrozenMs += frameMs; switchRunMs += frameMs; switchFreezeMaxMs = Math.max(switchFreezeMaxMs, switchRunMs) }
+          else switchRunMs = 0
+        }
+      }
+      previousVehicles = vehicles
+      const shownMs = playhead.displayMs
+      if (!pending && vehicles.length && currentSpeed > 0 && Number.isFinite(shownMs) && Number.isFinite(previousShownMs)) {
+        const ratio = (shownMs - previousShownMs) / (frameMs * currentSpeed)
+        const bucket = ratio === 0 ? 'frozen' : ratio < .9 ? 'slow' : ratio <= 1.1 ? 'nominal' : ratio <= 1.3 ? 'fast' : 'snap'
+        pace[bucket]++
+        if (inSwitchWindow) switchPace[bucket]++
+        lags.push((simMs - shownMs) / currentSpeed); heads.push((playhead.endMs - shownMs) / currentSpeed); delays.push(playhead.delayMs)
+        if (process.env.BUS_PLAYHEAD_TRACE && now >= traceFrom && now < traceTo) rows.push({ now, speed: currentSpeed, ratio: +ratio.toFixed(2), lagMs: Math.round((simMs - shownMs) / currentSpeed), headMs: Math.round((playhead.endMs - shownMs) / currentSpeed), delayMs: Math.round(playhead.delayMs), chunks: playhead.chunks.length })
+      }
+      previousShownMs = shownMs
       if (!vehicles.length) emptyFrames++
       const ids = new Map(vehicles.map(v => [v.id, v]))
       const index = frames.length
@@ -240,16 +282,25 @@ async function cmdBusPlayback(clock = '17:30', realSeconds = '30', speedArg = '6
       frames.push({ now, simMs, count: vehicles.length, inView: shown.length, queued: shown.filter(v => v.busMotion?.phase === 'queued').length })
     }
     const endFrame = frames.length - 1
-    const gone = [...last].filter(([, l]) => endFrame - l.frame >= 3).map(([id, l]) => ({ kind: 'gone', id, sinceMs: now - 33 - l.now, simAt: new Date(l.sim).toISOString().slice(11, 19), inView: l.inView, phase: l.v.busMotion?.phase, delaySec: Math.round(l.v.busMotion?.delaySec ?? 0), toOriginM: Math.round(metres(l.v.coordinates, origins.get(l.v.lineId))), progress: +l.v.progress.toFixed(3) }))
+    const gone = [...last].filter(([, l]) => endFrame - l.frame >= 3).map(([id, l]) => ({ kind: 'gone', id, sinceMs: now - frameMs - l.now, simAt: new Date(l.sim).toISOString().slice(11, 19), inView: l.inView, phase: l.v.busMotion?.phase, delaySec: Math.round(l.v.busMotion?.delaySec ?? 0), toOriginM: Math.round(metres(l.v.coordinates, origins.get(l.v.lineId))), progress: +l.v.progress.toFixed(3) }))
     const midRoute = e => e.toOriginM > 60 && e.progress > .02 && e.progress < .98
-    const summary = { clock, speed, realSeconds: Number(realSeconds), latencyMs, pan, zoomToggle, frames: frames.length, emptyFrames, pendingFrames,
+    const sorted = computes.map(c => c.took).sort((a, b) => a - b)
+    const chunkMs = computes.slice(1).map((c, i) => c.simMs - computes[i].simMs).filter(d => d > 0)
+    const mean = a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0
+    const summary = { clock, speed, realSeconds: Number(realSeconds), latencyMs, frameMs, pan, zoomToggle, frames: frames.length, emptyFrames, pendingFrames,
+      switch: switching ? { at: switchAt, from: speedFrom, pace: switchPace, frozenMs: switchFrozenMs, freezeMaxMs: switchFreezeMaxMs } : undefined,
+      pace, lagMs: { mean: Math.round(mean(lags)), max: Math.round(Math.max(0, ...lags)) }, headroomMs: { mean: Math.round(mean(heads)), min: Math.round(Math.min(Infinity, ...heads)) }, delayMs: { mean: Math.round(mean(delays)), max: Math.round(Math.max(0, ...delays)) },
+      playhead: { playedFrames, frozenFrames, frozenPct: playedFrames ? +(frozenFrames / playedFrames * 100).toFixed(1) : 0, freezeEpisodes, freezeMaxMs, freezeMeanMs: freezeEpisodes ? Math.round(frozenFrames * frameMs / freezeEpisodes) : 0 },
+      worker: { requests: computes.length, computeMeanMs: +mean(sorted).toFixed(1), computeP95Ms: sorted.length ? +sorted[Math.floor(sorted.length * .95)].toFixed(1) : 0, computeMaxMs: sorted.length ? +sorted.at(-1).toFixed(1) : 0,
+        chunkSimMs: Math.round(mean(chunkMs)), periodMs: Math.round(mean(chunkMs) / speed) },
       fleet: { first: frames[0].count, last: frames.at(-1).count, min: Math.min(...frames.map(f => f.count)), max: Math.max(...frames.map(f => f.count)) },
       inView: { mean: +(frames.reduce((a, f) => a + f.inView, 0) / frames.length).toFixed(1), max: Math.max(...frames.map(f => f.inView)),
         queuedMean: +(frames.reduce((a, f) => a + f.queued, 0) / frames.length).toFixed(1), queuedMax: Math.max(...frames.map(f => f.queued)),
-        queuedByMinute: frames.filter((_, i) => i % Math.max(1, Math.round(60000 / 33 / speed)) === 0).map(f => f.queued) },
+        queuedByMinute: frames.filter((_, i) => i % Math.max(1, Math.round(60000 / frameMs / speed)) === 0).map(f => f.queued) },
       gaps: events.filter(e => e.kind === 'gap').length, gapsInViewMidRoute: events.filter(e => e.kind === 'gap' && e.inView && midRoute(e)).length,
       gone: gone.length, goneInViewMidRoute: gone.filter(e => e.inView && midRoute(e)).length, overloads: events.filter(e => e.kind === 'overload').map(e => e.speed) }
     console.log(JSON.stringify(summary))
+    for (const row of rows) console.log(JSON.stringify(row))
     const rank = e => (e.inView ? 0 : 1) + (midRoute(e) ? 0 : 2)
     for (const e of [...events.filter(e => e.kind === 'gap'), ...gone].sort((a, b) => rank(a) - rank(b) || (a.frame ?? 0) - (b.frame ?? 0)).slice(0, 40)) console.log(JSON.stringify(e))
   } finally { await server.close() }

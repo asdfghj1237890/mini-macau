@@ -3,7 +3,7 @@ import { BusTrafficController } from './busTraffic'
 import { computeBusOnly } from './simulationEngine'
 import type { BusWorkerReply, BusWorkerRequest } from './busWorkerRuntime'
 import type { BusDetailView } from './busMotionTrace'
-import { BusPlayback } from './busPlayback'
+import { BusPlayback, PACE_DEAD_BAND_MS } from './busPlayback'
 import { BusPlaybackRate } from './busPlaybackRate'
 
 type BusData = Pick<TransitData, 'busRoutes' | 'busStops'>
@@ -50,6 +50,8 @@ export class AsyncBusFrame {
   private sentAt = 0
   private turnaround = 0
   private sentView?: BusDetailView
+  private quantum = 0
+  private bridgeUntil = -Infinity
 
   private workerFactory: () => BusWorkerPort
   private onOverload?: (speed: number) => void
@@ -115,9 +117,15 @@ export class AsyncBusFrame {
       } catch { this.fail() }
     }
     if (this.completed) {
+      const chunkMs = this.completed.simMs - this.completedMs
       this.vehicles = this.completed.vehicles
       this.completedMs = this.completed.simMs
-      this.playback.accept(this.vehicles, this.completed.trace, now, this.turnaround)
+      // An aligned batch lands one batch period plus a batch round trip after
+      // the previous one. While bridging with per-tick chunks, size the buffer
+      // for the batches to come, scaling this chunk's round trip to a batch.
+      const quantum = this.quantum, rate = speed ?? 1
+      const expected = quantum ? quantum / rate + this.turnaround * Math.max(1, quantum / (chunkMs > 0 ? chunkMs : quantum)) * 1.25 + 80 : 0
+      this.playback.accept(this.vehicles, this.completed.trace, now, this.turnaround, expected)
       const nextSpeed = this.capacity.sample(simMs, this.completed.simMs, now, speed ?? 1)
       if (nextSpeed !== undefined) this.onOverload?.(nextSpeed)
       this.completed = null
@@ -134,7 +142,17 @@ export class AsyncBusFrame {
       // a feedback loop in which the next request is even further behind.
       // Presentation still follows the recorded route between these samples.
       const quantum = speed && speed >= 10 ? (speed >= 60 ? 8000 : speed >= 30 ? 4000 : 2000) : 0
-      const targetMs = quantum && !changed && !seek && Number.isFinite(this.requestedMs)
+      if (quantum !== this.quantum) {
+        // Speeding up while playing: keep per-tick requests until the
+        // presentation buffer has grown to a batch period plus a round trip
+        // (the playhead eases to 0.8× meanwhile). Aligning at once left the
+        // buffer empty for a whole batch period: a 165 ms freeze right after
+        // switching 1× -> 10×. A fresh start or a seek needs no bridge.
+        this.bridgeUntil = quantum && Number.isFinite(this.completedMs) ? now + 3000 : -Infinity
+        this.quantum = quantum
+      }
+      if (now < this.bridgeUntil && this.playback.lagMs(simMs, speed!) >= this.playback.targetDelayMs - PACE_DEAD_BAND_MS) this.bridgeUntil = -Infinity
+      const targetMs = quantum && !changed && !seek && Number.isFinite(this.requestedMs) && now >= this.bridgeUntil
         ? Math.max(this.requestedMs, Math.floor(simMs / quantum) * quantum) : simMs
       // A paused camera can reveal previously coarse markers. Place those
       // buses in detailed traffic even though simulation time has not moved.
