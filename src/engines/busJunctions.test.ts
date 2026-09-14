@@ -161,6 +161,31 @@ describe('junction passage reservations', () => {
       expect(traffic.inspectQueues().filter(s => s.held), `turn to ${turnTo}`).toHaveLength(held)
     }
   })
+  it('lets a bus join the holders stream ahead of a crossing ticket until that ticket has waited 45 s', () => {
+    // front holds the crossing just before the crossing point and ends its
+    // trip 25 m past it (so its preview is too short for a swept turn claim
+    // to reach rear's exit pose); rear follows it on the same course; north
+    // stands at its entry line with the older ticket, blocked by front.
+    for (const [waitedSec, held, rearReason] of [[0, 2, undefined], [50, 1, 'arrival-order']] as const) {
+      const traffic = new BusTrafficController()
+      const zoned = (plan: BusTrafficPlan): BusTrafficPlan => ({ ...plan, sample: at => {
+        const pose = plan.sample(at)
+        if (plan.id === 'front' && pose.distanceM > 125) pose.vehicle.busMotion!.returning = true
+        return pose
+      }, passageAt: d => d < 130 ? { keys: ['cross'], approaches: { cross: plan.id === 'north' ? 0 : 90 },
+        entryM: 70, exitM: 130, zones: [{ key: 'cross', entryM: 70, exitM: 130 }] } : undefined })
+      const plans = (dt: number) => [crossing('front', 19 + dt, false), crossing('north', 13.94 + dt, true), crossing('rear', 12 + dt, false)].map(zoned)
+      traffic.sample(plans(0), 0)
+      const north = traffic['states'].get('north')!, rear = traffic['states'].get('rear')!
+      north.requestOrder = 1; rear.requestOrder = 2; north.stalledSec = waitedSec
+      const vehicles = traffic.sample(plans(.5), 500)
+      expect(vehicles).toHaveLength(3)
+      const queues = traffic.inspectQueues({ includeMoving: true })
+      expect(queues.find(s => s.id === 'north')?.waitReason).toBe('owner:cross')
+      expect(queues.filter(s => s.held).map(s => s.id).sort(), JSON.stringify(queues.map(s => ({ id: s.id, d: +s.distanceM.toFixed(1), v: +s.speed.toFixed(2), order: s.requestOrder, wf: s.waitingFor, why: s.waitReason, held: s.held?.keys, stalled: s.stalledSec, leader: s.leader })))).toEqual(held === 2 ? ['front', 'rear'] : ['front'])
+      expect(queues.find(s => s.id === 'rear')?.waitReason).toBe(rearReason)
+    }
+  })
   it('keeps the front bus exempt from its convoy until the rear clears a longer linked passage', () => {
     const make = (id: string, t: number): BusTrafficPlan => {
       const base = crossing(id, t, false)

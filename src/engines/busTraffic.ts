@@ -84,6 +84,12 @@ const LANE_ADJUST_MPS = .8
 const TURN_SAMPLE_M = 2
 const YIELD_SPEED_MPS = 3
 const CLEARANCE_HOLD_M = 14
+// A bus that can join the holders already inside a junction keeps that stream
+// moving: letting it in costs a crossing waiter one more bus length, while
+// alternating single buses across the crossing costs both flows a whole
+// clearance every time. The waiter's arrival ticket wins again once it has
+// stood this long, so a busy stream cannot starve the other arm.
+const PLATOON_BYPASS_SEC = 45
 const REJOIN_MPS = .5
 
 // Collision grid addresses fit within a numeric integer key.
@@ -1520,9 +1526,16 @@ export class BusTrafficController {
         }
         return false
       }
+      // Joining the current holders as one queue (see PLATOON_BYPASS_SEC).
+      const holders = passage.keys.flatMap(key => [...(this.junctionOwners.get(key)?.keys() ?? [])].filter(id => id !== state.plan.id).map(id => ({ key, id })))
+      const joinsHolders = !narrow && holders.length > 0 && holders.every(({ key, id }) => {
+        const owner = this.states.get(id)
+        return !!owner?.passage && this.canSharePassage(state, passage, owner, owner.passage, key, true)
+      })
       const earlier = passage.keys.flatMap(key => (this.junctionWaiters.get(key) ?? []).filter(waiter =>
         waiter.state !== state && this.states.get(waiter.state.plan.id) === waiter.state && !waiter.state.passage &&
         waiter.state.requestOrder > 0 && waiter.state.requestOrder < state.requestOrder &&
+        !(joinsHolders && waiter.state.stalledSec < PLATOON_BYPASS_SEC) &&
         // A request cannot prevent the very queue/exit it depends on from
         // clearing. Follow the complete dependency chain: a curved three-bus
         // queue or several linked approaches need not be direct neighbours.

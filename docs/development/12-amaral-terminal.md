@@ -78,6 +78,27 @@ the terminal (23% of held bus-seconds in the 18:00 replay, sampled with
 the end of the 40-minute replay, the peak queued fleet falls from 55 to 35
 buses, the longest hold from 348 s to 98 s and the median delay around the
 terminal from 15 to 11 minutes, with no overlaps.
+
+The app is busier than that citywide replay suggests. Only buses near the
+viewport run detailed traffic; the rest follow their timetables and enter
+traffic on time, so the terminal sees the full timetable rate (38 routes,
+about 270 visits an hour, i.e. some nine entrance or exit movements a minute)
+that the citywide replay never delivers, because upstream junctions spread
+the arrivals out. Measure what the app shows with the scope model,
+`node scripts/inspect.mjs bus-traffic HH:MM 2400 2 amaral`, not `current`.
+The terminal mouth is a genuine crossing: the entrance lane from the west arc
+and the exit lane from lanes D and E meet at about 100 degrees
+(`j7664093694`), so entering and exiting buses alternate, and at nine
+movements a minute the mouth was saturated at every daytime hour. A bus that
+can join the holders already inside a junction (`followable`) therefore goes
+ahead of a crossing ticket that has waited less than `PLATOON_BYPASS_SEC`
+(45 s), so each alternation carries a platoon rather than one bus; the older
+ticket wins again after that. Over twelve start times the held buses in the
+terminal box fell by 30% (summed means 147 to 102) and buses stalled for over
+a minute at the end of the runs from 40 to 21; the citywide replays keep zero
+overlaps. Requesting a junction only within braking distance (alone or
+combined with the platoon rule) was tried and rejected: it starved the
+creeping approach and long stalls tripled.
 Route geometry and layout fingerprints make repeated runs
 idempotent; fresh extraction or a changed layout invalidates those fingerprints.
 

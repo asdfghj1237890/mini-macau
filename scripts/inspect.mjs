@@ -22,7 +22,7 @@
 //   node scripts/inspect.mjs bus-station [base-id] # platform coordinates and route geometry at each stop
 //   node scripts/inspect.mjs bus-cycles [route-id]  # generated service cycle per route: loop km, stops, minutes, fleet and average speed (road vs legacy model)
 //   node scripts/inspect.mjs bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] # buses that vanish, jump or go NaN between ticks while their route is still in service (scope = the worker's viewport model, BUS_VIEW=w,s,e,n)
-//   node scripts/inspect.mjs bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] # the app's worker+playback pipeline in-process at 1–60x: presented buses that vanish mid-route, empty frames, pending frames
+//   node scripts/inspect.mjs bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] # the app's worker+playback pipeline in-process at 1–60x: presented buses that vanish mid-route, empty frames, pending frames, in-view queued counts per minute (BUS_VIEW=w,s,e,n)
 //   node scripts/inspect.mjs lrt-motion [--dwell 45] # aggregate motion feasibility; uses LRT_TRIPS_DIR or local dev inputs
 //   node scripts/inspect.mjs city-loading          # city payload and generated count-catalog sizes
 //   node scripts/inspect.mjs ferries                # ferry-schedules.json summary
@@ -236,13 +236,17 @@ async function cmdBusPlayback(clock = '17:30', realSeconds = '30', speedArg = '6
         if (l && index - l.frame >= 3) events.push({ frame: index, kind: 'gap', id, gapMs: now - l.now, simAt: new Date(l.sim).toISOString().slice(11, 19), inView: l.inView, phase: l.v.busMotion?.phase, delaySec: Math.round(l.v.busMotion?.delaySec ?? 0), toOriginM: Math.round(metres(l.v.coordinates, origins.get(l.v.lineId))), progress: +l.v.progress.toFixed(3), jumpM: Math.round(metres(l.v.coordinates, v.coordinates)) })
         last.set(id, { frame: index, now, sim: simMs, v, inView: inViewNow(v.coordinates) })
       }
-      frames.push({ now, simMs, count: vehicles.length })
+      const shown = vehicles.filter(v => inView(v.coordinates))
+      frames.push({ now, simMs, count: vehicles.length, inView: shown.length, queued: shown.filter(v => v.busMotion?.phase === 'queued').length })
     }
     const endFrame = frames.length - 1
     const gone = [...last].filter(([, l]) => endFrame - l.frame >= 3).map(([id, l]) => ({ kind: 'gone', id, sinceMs: now - 33 - l.now, simAt: new Date(l.sim).toISOString().slice(11, 19), inView: l.inView, phase: l.v.busMotion?.phase, delaySec: Math.round(l.v.busMotion?.delaySec ?? 0), toOriginM: Math.round(metres(l.v.coordinates, origins.get(l.v.lineId))), progress: +l.v.progress.toFixed(3) }))
     const midRoute = e => e.toOriginM > 60 && e.progress > .02 && e.progress < .98
     const summary = { clock, speed, realSeconds: Number(realSeconds), latencyMs, pan, zoomToggle, frames: frames.length, emptyFrames, pendingFrames,
       fleet: { first: frames[0].count, last: frames.at(-1).count, min: Math.min(...frames.map(f => f.count)), max: Math.max(...frames.map(f => f.count)) },
+      inView: { mean: +(frames.reduce((a, f) => a + f.inView, 0) / frames.length).toFixed(1), max: Math.max(...frames.map(f => f.inView)),
+        queuedMean: +(frames.reduce((a, f) => a + f.queued, 0) / frames.length).toFixed(1), queuedMax: Math.max(...frames.map(f => f.queued)),
+        queuedByMinute: frames.filter((_, i) => i % Math.max(1, Math.round(60000 / 33 / speed)) === 0).map(f => f.queued) },
       gaps: events.filter(e => e.kind === 'gap').length, gapsInViewMidRoute: events.filter(e => e.kind === 'gap' && e.inView && midRoute(e)).length,
       gone: gone.length, goneInViewMidRoute: gone.filter(e => e.inView && midRoute(e)).length, overloads: events.filter(e => e.kind === 'overload').map(e => e.speed) }
     console.log(JSON.stringify(summary))
