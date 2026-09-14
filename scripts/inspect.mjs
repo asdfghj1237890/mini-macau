@@ -17,7 +17,7 @@
 //   node scripts/inspect.mjs route <id>             # one route, all buckets
 //   node scripts/inspect.mjs in-service HH:MM [bucket] [--tail N]
 //   node scripts/inspect.mjs coords                 # bus-line coordinate totals
-//   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks (BUS_TRIP_MODEL=legacy for the fixed 30/60-minute cycle; BUS_TRACE_BOX=w,s,e,n [BUS_TRACE_EVERY=20] records every bus in the box: wait reason, passage held/wanted, owners)
+//   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks (BUS_TRIP_MODEL=legacy for the fixed 30/60-minute cycle; BUS_TRACE_BOX=w,s,e,n [BUS_TRACE_EVERY=20] records every bus in the box: wait reason, passage held/wanted, owners; mode scope = the app's viewport model around BUS_VIEW=w,s,e,n, mode amaral = the same around the terminal)
 //   node scripts/inspect.mjs bus-roads [route-id] [lng,lat] # classification summary or geometry within 20 m
 //   node scripts/inspect.mjs bus-station [base-id] # platform coordinates and route geometry at each stop
 //   node scripts/inspect.mjs bus-cycles [route-id]  # generated service cycle per route: loop km, stops, minutes, fleet and average speed (road vs legacy model)
@@ -332,7 +332,7 @@ function cmdBusRoads(routeId, location) {
 }
 
 async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', mode = 'current', focus = '') {
-  if (!['current', 'baseline', 'amaral'].includes(mode)) throw new Error('Mode must be current, baseline or amaral')
+  if (!['current', 'baseline', 'amaral', 'scope'].includes(mode)) throw new Error('Mode must be current, baseline, amaral or scope')
   if (!/^\d{2}:\d{2}$/.test(clock)) throw new Error('Expected HH:MM')
   const seconds = Number(duration)
   if (!Number.isFinite(seconds) || seconds < 0 || seconds > 3600) throw new Error('Duration must be 0–3600 seconds')
@@ -348,7 +348,10 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
     const checkpoint = process.env.BUS_TRAFFIC_RESUME ? load(process.env.BUS_TRAFFIC_RESUME).checkpoint : undefined
     const start = checkpoint?.lastMs ?? new Date(`${process.env.BUS_TRAFFIC_DATE || '2026-09-11'}T${clock}:00+08:00`).getTime()
     if (!Number.isFinite(start)) throw new Error('Invalid time')
-    const nearby = buses => buses.filter(v => Math.abs(v.coordinates[0] - 113.54332) < .003 && Math.abs(v.coordinates[1] - 22.1893) < .003)
+    // scope = the worker's viewport model around BUS_VIEW=w,s,e,n (default: the Amaral view)
+    const viewBounds = mode === 'scope' && process.env.BUS_VIEW ? process.env.BUS_VIEW.split(',').map(Number) : [113.5418, 22.187, 113.5453, 22.1915]
+    const centre = [(viewBounds[0] + viewBounds[2]) / 2, (viewBounds[1] + viewBounds[3]) / 2]
+    const nearby = buses => buses.filter(v => Math.abs(v.coordinates[0] - centre[0]) < .003 && Math.abs(v.coordinates[1] - centre[1]) < .003)
     const conflicts = buses => {
       const hits = []
       for (let i = 0; i < buses.length; i++) for (let j = i + 1; j < buses.length; j++)
@@ -363,8 +366,8 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
     const { BusTrafficScope } = await server.ssrLoadModule('/src/engines/busTrafficScope.ts')
     const { BusTraceRecorder } = await server.ssrLoadModule('/src/engines/busMotionTrace.ts')
     const scope = new BusTrafficScope(busTraffic)
-    const view = { bounds: [113.5418, 22.187, 113.5453, 22.1915] }
-    const driver = mode === 'amaral' ? { sample: (plans, time) => scope.sample(plans, time, view, new BusTraceRecorder(view)), playheadOf: id => scope.playheadOf(id) } : busTraffic
+    const view = { bounds: viewBounds }
+    const driver = mode === 'amaral' || mode === 'scope' ? { sample: (plans, time) => scope.sample(plans, time, view, new BusTraceRecorder(view)), playheadOf: id => scope.playheadOf(id) } : busTraffic
     let final = [], collisions = 0, worst = [], queuedPeak = 0, initialMs = 0
     const holds = new Map()
     const events = new Map(), trace = [], focusIds = new Set(focus.split(',').filter(Boolean))
@@ -398,7 +401,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
       const took = performance.now() - begin
       if (tick === 0) initialMs = took
       else timings.push(took)
-      const hits = conflicts(mode === 'amaral' ? busTraffic.currentVehicles() : final)
+      const hits = conflicts(mode === 'amaral' || mode === 'scope' ? busTraffic.currentVehicles() : final)
       for (const pair of hits) if (!events.has(pair.join('/'))) events.set(pair.join('/'), { at: tick * step, buses: pair.map(id => { const v = final.find(v => v.id === id); return {id, coordinates:v.coordinates, bearing:v.bearing, motion:v.busMotion} }) })
       collisions += hits.length
       if (hits.length > worst.length) worst = hits
@@ -1388,6 +1391,6 @@ switch (cmd) {
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   default:
-    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
+    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)
 }
