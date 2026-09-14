@@ -162,6 +162,17 @@ function laneOverflow(pose: BusTrafficSample, offsetX: number, offsetY: number):
   return Math.max(0, -pose.laneAllowance.leftM - right, right - pose.laneAllowance.rightM)
 }
 
+// Two courses through a junction can be driven as one queue when every place
+// they overlap is driven the same way, within 45 degrees: a shared arc, a
+// merge or a split. Ordinary following and the turn sweeps then keep the
+// bodies apart, so the passage need not be held exclusively. A crossing, an
+// opposing course, a swerve or a U-turn detour that overlaps an earlier point
+// of the other course must still wait for the holder to leave.
+const FOLLOW_DOT = Math.SQRT1_2
+function followable(ap: Body[], bp: Body[]): boolean {
+  return ap.every(p => bp.every(q => Math.abs(p.z - q.z) > 7 || !overlap(p, q, 1) || p.fx * q.fx + p.fy * q.fy > FOLLOW_DOT))
+}
+
 function claimBlocks(owner: State, p: Body): boolean {
   return owner.turnClaim?.some(point => {
     const q = point.body
@@ -1614,8 +1625,7 @@ export class BusTrafficController {
     if (checkRemaining && (a.pose.distanceM > aa.entryM || b.pose.distanceM > bb.entryM)) {
       const remaining = (s: State, shape: PassageShape) => [body(s.pose.vehicle), ...shape.points.filter((_, i) =>
         shape.entryM + (shape.exitM - shape.entryM) * i / (shape.points.length - 1) > s.pose.distanceM)]
-      const ar = remaining(a, aa), br = remaining(b, bb)
-      if (ar.every(p => br.every(q => Math.abs(p.z - q.z) > 7 || !overlap(p, q, 1) || p.fx * q.fx + p.fy * q.fy > .97))) return true
+      if (followable(remaining(a, aa), remaining(b, bb))) return true
     }
     const cached = aa.compatible.get(bb)
     if (cached !== undefined) return cached
@@ -1633,10 +1643,13 @@ export class BusTrafficController {
       }
       row = next
     }
+    // An identical course still qualifies through a hairpin, where its own
+    // earlier and later points overlap head-on; any other pair must be
+    // co-directional wherever the two courses touch (disjoint courses are).
     const same = similar && row.at(-1) === 1
-    const disjoint = !same && aa.points.every(p => bb.points.every(q => Math.abs(p.z - q.z) > 7 || !overlap(p, q, 1)))
-    aa.compatible.set(bb, same || disjoint); bb.compatible.set(aa, same || disjoint)
-    return same || disjoint
+    const result = same || followable(aa.points, bb.points)
+    aa.compatible.set(bb, result); bb.compatible.set(aa, result)
+    return result
   }
   private shift(state: State, x: number, y: number, occupancy: Occupancy): boolean {
     this.ensureTurnPath(state)

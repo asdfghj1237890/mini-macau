@@ -17,7 +17,7 @@
 //   node scripts/inspect.mjs route <id>             # one route, all buckets
 //   node scripts/inspect.mjs in-service HH:MM [bucket] [--tail N]
 //   node scripts/inspect.mjs coords                 # bus-line coordinate totals
-//   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks (BUS_TRIP_MODEL=legacy for the fixed 30/60-minute cycle)
+//   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks (BUS_TRIP_MODEL=legacy for the fixed 30/60-minute cycle; BUS_TRACE_BOX=w,s,e,n [BUS_TRACE_EVERY=20] records every bus in the box: wait reason, passage held/wanted, owners)
 //   node scripts/inspect.mjs bus-roads [route-id] [lng,lat] # classification summary or geometry within 20 m
 //   node scripts/inspect.mjs bus-station [base-id] # platform coordinates and route geometry at each stop
 //   node scripts/inspect.mjs bus-cycles [route-id]  # generated service cycle per route: loop km, stops, minutes, fleet and average speed (road vs legacy model)
@@ -364,6 +364,12 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
     let final = [], collisions = 0, worst = [], queuedPeak = 0, initialMs = 0
     const holds = new Map()
     const events = new Map(), trace = [], focusIds = new Set(focus.split(',').filter(Boolean))
+    // BUS_TRACE_BOX=w,s,e,n (+ BUS_TRACE_EVERY seconds, default 20) records every
+    // bus inside the box at that cadence: what it waits for, which passage it
+    // holds or wants, and the owners of that passage.
+    const traceBox = process.env.BUS_TRACE_BOX ? process.env.BUS_TRACE_BOX.split(',').map(Number) : undefined
+    const traceEvery = Number(process.env.BUS_TRACE_EVERY || 20), areaTrace = []
+    const inTraceBox = c => !!traceBox && c[0] >= traceBox[0] && c[0] <= traceBox[2] && c[1] >= traceBox[1] && c[1] <= traceBox[3]
     if (checkpoint) {
       computeVehiclePositions(data, new Date(start), { busTraffic, busTripModel: tripModel })
       const savedIds = new Set(checkpoint.states.map(([id]) => id))
@@ -394,6 +400,15 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
       if (hits.length > worst.length) worst = hits
       queuedPeak = Math.max(queuedPeak, final.filter(v => v.busMotion?.phase === 'queued').length)
       if (focusIds.size) trace.push({ second: tick * step, states: busTraffic.inspectQueues({ includeMoving: true }).filter(s => focusIds.has(s.id)) })
+      if (traceBox && Math.abs(tick * step / traceEvery - Math.round(tick * step / traceEvery)) < 1e-6) {
+        areaTrace.push({ second: tick * step, states: busTraffic.inspectQueues({ includeMoving: true }).filter(s => inTraceBox(s.coordinates)).map(s => ({
+          id: s.id, phase: s.phase, blocked: s.blocked, speed: +s.speed.toFixed(2), stalledSec: +s.stalledSec.toFixed(1), distanceM: +s.distanceM.toFixed(1),
+          leader: s.leader, waitingFor: s.waitingFor, waitReason: s.waitReason, blockerIds: s.blockerIds, yieldTo: s.yieldTo, recoveryYield: s.recoveryYield?.id,
+          coordinates: s.coordinates, bearing: Math.round(s.bearing), offset: s.offset.map(n => +n.toFixed(2)),
+          held: s.held && { keys: s.held.keys, approaches: s.held.approaches, entryM: +s.held.entryM.toFixed(1), exitM: +s.held.exitM.toFixed(1) },
+          next: s.next && { keys: s.next.keys, approaches: s.next.approaches, entryM: +s.next.entryM.toFixed(1), exitM: +s.next.exitM.toFixed(1) },
+          owners: s.owners })) })
+      }
       for (const v of final) {
         const held = v.busMotion?.phase === 'queued' && v.busMotion.speedKmh < .2
         const record = holds.get(v.id) ?? { current: 0, longest: 0 }
@@ -427,6 +442,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
           coordinates: route.geometry.geometry.coordinates.filter(p => Math.abs(p[0] - v.coordinates[0]) < .002 && Math.abs(p[1] - v.coordinates[1]) < .002) }]
       }),
       queues: busTraffic.inspectQueues({ includeFuture: true }),
+      areaTrace: traceBox ? areaTrace : undefined,
       checkpoint: process.env.BUS_TRAFFIC_CHECKPOINT === '1' ? {
         lastMs: busTraffic.lastMs, nextRequest: busTraffic.nextRequest, recoverySequence: busTraffic.recoverySequence,
         junctionOwners: [...busTraffic.junctionOwners].map(([key, owners]) => [key, [...owners]]),

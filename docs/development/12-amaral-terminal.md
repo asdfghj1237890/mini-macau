@@ -67,6 +67,17 @@ queue on the landing fell from 19 to 13 buses, the longest hold from 510 s to
 348 s and the median delay around the terminal from 21 to 15 min, with no
 overlaps. Splitting the chains at platforms instead was tried and rejected: a
 bus holding one zone while waiting for the next tripled the long stalls.
+Two courses through a junction share its reservation when every place they
+overlap is driven within 45 degrees of the same direction (`followable` in
+`busTraffic.ts`): a shared arc, a merge or a split is driven as one queue by
+ordinary following and the turn sweeps, while a crossing, an opposing course,
+a swerve or a U-turn detour still waits for the holder to leave. Waiting for
+a co-directional holder had been the largest single cause of held time around
+the terminal (23% of held bus-seconds in the 18:00 replay, sampled with
+`BUS_TRACE_BOX`); with the shared reservation the landing queue is empty at
+the end of the 40-minute replay, the peak queued fleet falls from 55 to 35
+buses, the longest hold from 348 s to 98 s and the median delay around the
+terminal from 15 to 11 minutes, with no overlaps.
 Route geometry and layout fingerprints make repeated runs
 idempotent; fresh extraction or a changed layout invalidates those fingerprints.
 

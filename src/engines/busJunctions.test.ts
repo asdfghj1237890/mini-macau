@@ -136,25 +136,29 @@ describe('junction passage reservations', () => {
     expect(busesConflict(vehicles[0], vehicles[1], 0)).toBe(false)
     expect(vehicles.filter(v => v.progress > .14)).toHaveLength(1)
   })
-  it('shares an approach only when both buses follow the same path through its exit', () => {
-    const make = (id: string, time: number, turns: boolean): BusTrafficPlan => {
+  it('shares an approach with a bus that splits off co-directionally, not with one that turns across the exit', () => {
+    // The rear bus follows the front bus to 100 m, then leaves its line at
+    // the given bearing: a 30-degree split is driven as one queue, a 90-degree
+    // turn sweeps across the front bus's course and waits for it to leave.
+    const make = (id: string, time: number, turnTo?: number): BusTrafficPlan => {
       const base = crossing(id, time, false)
       return { ...base, sample: at => {
         const pose = base.sample(at), beyond = pose.distanceM - 100
-        if (turns && beyond > 0) {
-          pose.vehicle.coordinates = [113.54 + beyond * Math.SQRT1_2 / mx, 22.19 + beyond * Math.SQRT1_2 / 111320]
-          pose.vehicle.bearing = 45
+        if (turnTo !== undefined && beyond > 0) {
+          const angle = turnTo * Math.PI / 180
+          pose.vehicle.coordinates = [113.54 + beyond * Math.sin(angle) / mx, 22.19 + beyond * Math.cos(angle) / 111320]
+          pose.vehicle.bearing = turnTo
         }
         return pose
       }, passageAt: d => d < 130 ? { keys: ['cross'], approaches: { cross: 90 }, entryM: 70, exitM: 130,
         zones: [{ key: 'cross', entryM: 70, exitM: 130 }] } : undefined }
     }
-    for (const turns of [false, true]) {
+    for (const [turnTo, held] of [[undefined, 2], [120, 2], [180, 1]] as const) {
       const traffic = new BusTrafficController()
-      const vehicles = traffic.sample([make('front', 20, false), make('rear', 16, turns)], 20000)
+      const vehicles = traffic.sample([make('front', 20), make('rear', 16, turnTo)], 20000)
       expect(vehicles).toHaveLength(2)
       expect(busesConflict(vehicles[0], vehicles[1], 0)).toBe(false)
-      expect(traffic.inspectQueues().filter(s => s.held)).toHaveLength(turns ? 1 : 2)
+      expect(traffic.inspectQueues().filter(s => s.held), `turn to ${turnTo}`).toHaveLength(held)
     }
   })
   it('keeps the front bus exempt from its convoy until the rear clears a longer linked passage', () => {
