@@ -61,6 +61,7 @@ from pathlib import Path
 
 from openpyxl import load_workbook
 from shapely.geometry import MultiPolygon, Point, Polygon
+from shapely.ops import unary_union
 
 # Overpass access, OSM-geometry -> footprint, and the basemap-tile re-cut are
 # shared with fetch_water_facilities.py; see osm_footprints.py for why the
@@ -83,6 +84,13 @@ from osm_footprints import (
 
 ROOT = Path(__file__).parent.parent.parent
 OUTPUT_PATH = ROOT / "public" / "data" / "schools.json"
+
+# The progress lines print Chinese and Portuguese school names. A Windows
+# console defaults to a legacy code page (cp950 here) and would raise
+# UnicodeEncodeError halfway through the run, before schools.json is written.
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        _stream.reconfigure(encoding="utf-8", errors="replace")
 BUS_STOPS_PATH = ROOT / "public" / "data" / "bus-stops.json"
 
 DSEDJ_DATASET_ID = "f0578833-7dd6-4ed5-b825-75e9c4f56012"
@@ -718,7 +726,7 @@ def run() -> int:
     # whose buildings were claimed by a sibling school sharing the site are
     # left alone.
     def has_claimed_building_inside(poly) -> bool:
-        return any(rec["_poly"].representative_point().within(poly) for rec in claimed.values())
+        return any(rec["_poly"].representative_point().within(poly) for recs in assigned.values() for rec in recs)
 
     fallback = [(key, poly) for key, poly in polygons if not assigned.get(key) and not has_claimed_building_inside(poly)]
     tiles = tiles_covering(
@@ -728,7 +736,70 @@ def run() -> int:
     index = TilePartIndex(fetch_tile_building_parts(tiles))
     parts_within = index.within
 
-    recut = 0
+    recut, moved = 0, 0
+    extra: dict[str, list[dict]] = {}
+    campus_polys: dict[str, list] = {}
+    for k, poly in polygons:
+        campus_polys.setdefault(k, []).append(poly)
+
+    def split_by_campuses(part: dict, key: str) -> list[tuple[str, dict]]:
+        """A basemap part cut along the campus boundaries it straddles.
+
+        石排灣馬路 12a: the basemap draws 傳承國際學校 and 培正中學路環校部 as one
+        continuous block, so the OSM building outline (w1109685833) and its
+        parts run under both campuses, which abut in OSM. Every other campus
+        holding between a tenth and nine tenths of a part's area takes the
+        piece inside its polygon (the basemap's podium and upper parts of the
+        block cross the line at 27 % and 53 %); the rest, fragments included,
+        stays with the outline's owner. A part barely spilling past its own
+        campus is untouched, and so is a part lying wholly inside a wider
+        sibling campus (嘉諾撒聖心英文中學's own outline inside 嘉諾撒聖心中學's
+        grounds, 澳門理工大學's main campus inside the university relation):
+        that is containment, not a boundary through the building."""
+        poly = part["_poly"]
+        claims = []
+        for other, polys in campus_polys.items():
+            if other == key:
+                continue
+            for cp in polys:
+                if not poly.intersects(cp):
+                    continue
+                share = poly.intersection(cp).area / poly.area
+                if 0.1 <= share <= 0.9:
+                    claims.append((other, cp))
+        if not claims:
+            return [(key, part)]
+        pieces: list[tuple[str, dict]] = []
+        rest = poly
+        given = []
+        for other, cp in claims:
+            piece = rest.intersection(cp)
+            taken = [g for g in getattr(piece, "geoms", [piece]) if g.geom_type == "Polygon" and g.area >= 0.05 * poly.area]
+            if not taken:
+                continue  # only slivers on the other side: the owner keeps them
+            rest = rest.difference(cp)
+            given.append(cp)
+            for g in taken:
+                pieces.append((other, {**part, "_poly": g, "_clip": cp}))
+        for g in getattr(rest, "geoms", [rest]):
+            if g.geom_type == "Polygon" and not g.is_empty and g.area >= 1e-10:
+                pieces.append((key, {**part, "_poly": g, "_clip": given}))
+        return pieces or [(key, part)]
+
+    def clip_cut_footprint(rec: dict, piece: dict) -> None:
+        """Keep the grown footprint's outer edges but not its growth across the
+        cut: two schools' pieces would otherwise overlap by the buffer along the
+        campus boundary and z-fight in two colours."""
+        clip = piece.get("_clip")
+        if clip is None:
+            return
+        grown = Polygon(rec["coordinates"][0])
+        cut = grown.intersection(clip) if not isinstance(clip, list) else grown.difference(unary_union(clip))
+        polys = [g for g in getattr(cut, "geoms", [cut]) if g.geom_type == "Polygon" and not g.is_empty]
+        if not polys:
+            return
+        best = max(polys, key=lambda g: g.area)
+        rec["coordinates"] = [[[round(x, 6), round(y, 6)] for x, y in best.exterior.coords]]
     for key, recs in assigned.items():
         new_recs = []
         for rec in recs:
@@ -737,10 +808,27 @@ def run() -> int:
                 new_recs.append(rec)  # nothing quantised into this outline: keep the OSM shape
                 continue
             recut += 1
+            # A part straddling another campus is cut along the boundary (see
+            # split_by_campuses): the north block at 石排灣馬路 12a is drawn as
+            # 傳承's, not 培正's, and 傳承 no longer needs a slab of its outline.
             for i, part in enumerate(inside):
-                new_recs.append(part_record(part, lat0, f"{rec['osmId']}#p{i}" if i else rec["osmId"], rec.get("name"), rec.get("kind") or "yes"))
+                pieces = split_by_campuses(part, key)
+                for j, (target, piece) in enumerate(pieces):
+                    suffix = (f"#p{i}" if i or len(pieces) > 1 else "") + (f"s{j}" if len(pieces) > 1 else "")
+                    part_rec = part_record(piece, lat0, f"{rec['osmId']}{suffix}", rec.get("name"), rec.get("kind") or "yes")
+                    if len(pieces) > 1:
+                        clip_cut_footprint(part_rec, piece)
+                    if target == key:
+                        new_recs.append(part_rec)
+                    else:
+                        extra.setdefault(target, []).append(part_rec)
+                        moved += 1
         assigned[key] = new_recs
-    print(f"  {recut} OSM footprints replaced by the basemap's parts")
+    for key, recs in extra.items():
+        assigned.setdefault(key, []).extend(recs)
+    print(f"  {recut} OSM footprints replaced by the basemap's parts; {moved} pieces cut off for the campus they stand in")
+    # A campus that received a part no longer needs a fallback footprint.
+    fallback = [(key, poly) for key, poly in fallback if not assigned.get(key) and not has_claimed_building_inside(poly)]
 
     for key, poly in fallback:
         inside = parts_within(poly)
