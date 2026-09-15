@@ -83,6 +83,16 @@ OSM (大橋) ──> fetch_bridge_geometry.py ──> raw/bridges.json ──┤
 
 如果你只改了某一條路線，可以用 `_regenerate_specific.py` 跑單條重生成。
 
+### 巴士軌跡校正 — `scripts/capture-route-paths.mjs` + `scripts/patch-route-guides.mjs`
+
+OSRM 的結果有幾類系統性錯誤（2026-09-15 用 MO Transport 路線頁公開的 GPX 逐條比對後找到的）：新城 A 區回半島找不到路，2A／101／102／103／51B 被送過澳門大橋到氹仔再回來（每圈多 5–12 km，2A 與 101 根本是純半島路線）；蓮花路舊蓮花口岸前的直路不可走，15／21A／25／26／26A／N3 繞高爾夫球場一整圈（2.6 km）；「澳大河隧／西堤馬路」站在隧道匝道上，52／55／N6／701X 鑽河底隧道進校園再回頭；還有幾十處迴轉方式跟公佈的不同（9 多走南灣湖景大馬路、28B／16S 繞旅遊塔、7 在水坑尾繞街區、H3 少了水塘馬路那一圈……）。
+
+- `node scripts/capture-route-paths.mjs [id…] [--batch=10] [--pause=400]`：從每條路線頁的 `var direction` 找到 `/gpx/<id>_<Forward|Backward>.gpx`，分批存到 `data/bus_reference/route-paths.json`（92 條，雙向路線兩個檔）。亞馬喇管線用的 `amaral-route-paths.json` 維持原樣。
+- `node scripts/patch-route-guides.mjs [id…] [--dry-run] [--no-osrm]`：把每一站到下一站的路段拿來跟 GPX 比（每 5 m 取樣，離對方 30 m 以上算偏離），偏離超過 120 m 且最遠處超過 60 m（避開對向車道的正常偏移）的路段才改寫；站點先投影到 GPX 上，同一條街來回經過兩次時挑沿線距離合理的那一次。改寫優先用 OSRM 沿 GPX 每 120 m 一個 via（`radiuses=30` 不讓它吸到旁邊小街）取得道路中線，離 GPX 最遠不超過 35 m、偏離不超過 8% 且不比 GPX 長才採用；否則直接用 GPX 每 10 m 加密，再把頂點吸到 12 m 內同向的 OSM way 中線（單行道只吸同向那條），因為道路剖面只認 8 m 內的道路，沒有剖面就沒有對向車道的側向偏移，全市重播會在共用中線的兩輛對向車之間互卡。鄰接亞馬喇分站（`M172/*`）的路段留給總站修補，GPX 路段跨海（同時到半島與氹仔）的留給 `patch_bus_bridges.py`。站點頂點不動，`stopOffsets` 只位移；有 `amaralLayout` 的路線刷新幾何指紋。
+- `node scripts/inspect.mjs bus-route-match [id…] [--threshold=30]`：驗收工具，列每條路線在 GPX 30 m 外的公尺數、GPX 在我們 30 m 外的公尺數與每段的位置／最近站。
+
+2026-09-15 結果：92 條共改 84 條、347 段（42 段用 OSRM、305 段用吸附後的 GPX），環線總長由 2,040 km 降到 1,866 km；我們偏離 GPX 的里程由 145.7 km 降到 6.8 km、GPX 偏離我們的由 46.0 km 降到 9.4 km；雙向都在 50 m 內的路線由 3 條增至 32 條，剩下的差異幾乎都是總站迴轉（2A 東城第三街 1.1 km、H2 俾若翰街 0.7 km、氹仔客運碼頭／湖畔大廈／十月一號前地等 100–400 m）與跨橋引道。道路分類率 98.2% → 97.6%（澳大校園與河隧一帶 OSM 沒有路可吸）。整條後處理鏈是 `npm run data:routes`（總站修補 → 軌跡校正 → 道路分類 → 站區標示）。
+
 ### 巴士道路分類 — `scripts/build-bus-road-profile.mjs`
 
 完成巴士幾何與橋段修改後，在 repo 根目錄執行：
@@ -303,7 +313,7 @@ Runtime 由 [`useServiceStatus.ts`](../../src/hooks/useServiceStatus.ts) 讀進�
 
 ## 常見維護任務
 
-- **修一條路線的幾何錯誤**：改 `bus_reference/`（或 `extract_bus_data.py` 的 override）、跑 `_regenerate_specific.py`，它直接改寫 `public/data/bus-routes.json`；接著跑 `npm run data:amaral` 重建站區與道路分類，用 `git diff` 檢視後跑 `validate_output.py bus-routes bus-stops`。
+- **修一條路線的幾何錯誤**：改 `bus_reference/`（或 `extract_bus_data.py` 的 override）、跑 `_regenerate_specific.py`，它直接改寫 `public/data/bus-routes.json`；接著跑 `npm run data:routes` 重建站區、套用 MO Transport 軌跡校正並重算道路分類，用 `git diff` 與 `node scripts/inspect.mjs bus-route-match <id>` 檢視後跑 `validate_output.py bus-routes bus-stops`。
 - **加新巴士路線**：DSAT 開新線時，先在 `bus_reference/` 加 reference data、跑全套 extract → osrm → patch、最後在 `routeGroups.ts` 把它分到對的 group。
 - **改服務時段**：`patch_service_hours.py` / `patch_service_hours_by_day.py`，在腳本裡硬編碼新的小時數，重跑。`patch_service_hours_by_day.py` 會把週六或週日的「不設服務」寫成對應的 `serviceHoursStartSat/Sun: null` / `serviceHoursEndSat/Sun: null`。
 - **更新 LRT 班次**：依最新官方公告更新三種 scheduleType 的部署輸入，通過 schema 與方向一致性驗證後重新部署。

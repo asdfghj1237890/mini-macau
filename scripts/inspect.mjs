@@ -18,6 +18,7 @@
 //   node scripts/inspect.mjs in-service HH:MM [bucket] [--tail N]
 //   node scripts/inspect.mjs coords                 # bus-line coordinate totals
 //   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks (BUS_TRIP_MODEL=legacy for the fixed 30/60-minute cycle; BUS_TRACE_BOX=w,s,e,n [BUS_TRACE_EVERY=20] records every bus in the box: wait reason, passage held/wanted, owners; mode scope = the app's viewport model around BUS_VIEW=w,s,e,n, mode amaral = the same around the terminal)
+//   node scripts/inspect.mjs bus-route-match [route-id…] [--threshold=30] # our drawn loops vs MO Transport's public GPX traces (data/bus_reference/route-paths.json from scripts/capture-route-paths.mjs): metres of our loop farther than the threshold from their trace, metres of their trace farther from ours, and each stretch with its nearest stop (Amaral terminal bays reported separately)
 //   node scripts/inspect.mjs bus-roads [route-id] [lng,lat] # classification summary or geometry within 20 m
 //   node scripts/inspect.mjs bus-station [base-id] # platform coordinates and route geometry at each stop
 //   node scripts/inspect.mjs bus-cycles [route-id]  # generated service cycle per route: loop km, stops, minutes, fleet and average speed (road vs legacy model)
@@ -1389,6 +1390,105 @@ function fail(msg) {
   process.exit(1)
 }
 
+function cmdBusRouteMatch(ids, thresholdArg) {
+  // Compare each route's drawn loop with the public GPX paths linked by MO
+  // Transport's route pages (captured by scripts/capture-route-paths.mjs):
+  // metres of our loop farther than the threshold from their trace, metres
+  // of their trace farther than the threshold from ours, and where.
+  const threshold = Number(thresholdArg ?? 30), near = 15
+  const routes = busRoutes().filter(r => !ids.length || ids.includes(r.id))
+  const stops = load('public/data/bus-stops.json')
+  const reference = {}
+  for (const file of ['data/bus_reference/amaral-route-paths.json', 'data/bus_reference/route-paths.json']) {
+    try { Object.assign(reference, load(file)) } catch { /* optional capture */ }
+  }
+  const mx = 111320 * Math.cos(22.19 * Math.PI / 180)
+  const toXY = ([lng, lat]) => [(lng - 113.55) * mx, (lat - 22.19) * 111320]
+  const CELL = 50
+  // Segments of a polyline on a grid, for nearest-distance queries.
+  const index = coords => {
+    const pts = coords.map(toXY), cells = new Map()
+    const key = (cx, cy) => cx * 100000 + cy
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [ax, ay] = pts[i], [bx, by] = pts[i + 1]
+      for (let cx = Math.floor(Math.min(ax, bx) / CELL); cx <= Math.floor(Math.max(ax, bx) / CELL); cx++)
+        for (let cy = Math.floor(Math.min(ay, by) / CELL); cy <= Math.floor(Math.max(ay, by) / CELL); cy++) {
+          const k = key(cx, cy)
+          let list = cells.get(k)
+          if (!list) { list = []; cells.set(k, list) }
+          list.push(i)
+        }
+    }
+    const distance = ([px, py], radius) => {
+      let best = Infinity
+      const r = Math.ceil(radius / CELL), cx0 = Math.floor(px / CELL), cy0 = Math.floor(py / CELL)
+      for (let cx = cx0 - r; cx <= cx0 + r; cx++) for (let cy = cy0 - r; cy <= cy0 + r; cy++) for (const i of cells.get(key(cx, cy)) ?? []) {
+        const [ax, ay] = pts[i], [bx, by] = pts[i + 1], dx = bx - ax, dy = by - ay, len2 = dx * dx + dy * dy
+        const t = len2 ? Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / len2)) : 0
+        const d = Math.hypot(px - (ax + t * dx), py - (ay + t * dy))
+        if (d < best) best = d
+      }
+      return best
+    }
+    return { distance }
+  }
+  // Walk a polyline every 5 m.
+  const samples = coords => {
+    const out = [], pts = coords.map(toXY)
+    let along = 0
+    for (let i = 0; i < pts.length - 1; i++) {
+      const seg = Math.hypot(pts[i + 1][0] - pts[i][0], pts[i + 1][1] - pts[i][1]), n = Math.max(1, Math.ceil(seg / 5))
+      for (let j = 0; j < n; j++) {
+        const f = j / n
+        out.push({ xy: [pts[i][0] + (pts[i + 1][0] - pts[i][0]) * f, pts[i][1] + (pts[i + 1][1] - pts[i][1]) * f],
+          lngLat: [coords[i][0] + (coords[i + 1][0] - coords[i][0]) * f, coords[i][1] + (coords[i + 1][1] - coords[i][1]) * f], along: along + seg * f })
+      }
+      along += seg
+    }
+    return { out, length: along }
+  }
+  const nearestStop = lngLat => {
+    const p = toXY(lngLat)
+    let best = null, d0 = Infinity
+    for (const s of stops) { const q = toXY(s.coordinates), d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < d0) { d0 = d; best = s } }
+    return best ? `${best.nameCn} (${Math.round(d0)} m)` : ''
+  }
+  // The Amaral terminal is modelled as bay lanes; the GPX just crosses the forecourt.
+  const inTerminal = ([lng, lat]) => lng > 113.5427 && lng < 113.5440 && lat > 22.18865 && lat < 22.18985
+  // Contiguous stretches farther than the threshold, merged across gaps under 20 m.
+  const runs = (list, other) => {
+    const result = []
+    let current = null
+    for (const s of list) {
+      const d = other.distance(s.xy, 120)
+      if (d <= threshold) continue
+      if (current && s.along - current.toM < 20) { current.toM = s.along; if (d > current.maxM) { current.maxM = d; current.at = s.lngLat } }
+      else { current = { fromM: s.along, toM: s.along, maxM: d, at: s.lngLat }; result.push(current) }
+    }
+    return result.map(r => ({ lengthM: Math.round(r.toM - r.fromM + 5), maxM: Math.round(Math.min(r.maxM, 999)), atM: Math.round(r.fromM), at: r.at.map(v => +v.toFixed(5)), near: nearestStop(r.at), terminal: inTerminal(r.at) || undefined }))
+  }
+  const rows = []
+  for (const route of routes) {
+    const ref = reference[route.id]
+    if (!ref || ref.error || !ref.paths?.length) { rows.push({ id: route.id, error: ref?.error ?? 'no reference' }); continue }
+    const ours = route.geometry.geometry.coordinates, refCoords = ref.paths.flatMap(p => p.coordinates)
+    const oursIndex = index(ours), refIndex = index(refCoords)
+    const oursSamples = samples(ours), refSamples = samples(refCoords)
+    const oursD = oursSamples.out.map(s => refIndex.distance(s.xy, 120))
+    const oursRuns = runs(oursSamples.out, refIndex).sort((a, b) => b.lengthM - a.lengthM)
+    const refRuns = runs(refSamples.out, oursIndex).sort((a, b) => b.lengthM - a.lengthM)
+    const outside = list => list.filter(r => !r.terminal).reduce((a, r) => a + r.lengthM, 0)
+    rows.push({ id: route.id, name: route.nameCn, km: +(oursSamples.length / 1000).toFixed(1), refKm: +(refSamples.length / 1000).toFixed(1), refPaths: ref.paths.length, checkedAt: ref.checkedAt,
+      within15Pct: +(oursD.filter(d => d <= near).length / oursD.length * 100).toFixed(1), maxM: Math.round(Math.min(Math.max(...oursD), 999)),
+      oursOffM: outside(oursRuns), refOffM: outside(refRuns), terminalOffM: [...oursRuns, ...refRuns].filter(r => r.terminal).reduce((a, r) => a + r.lengthM, 0),
+      oursRuns: oursRuns.slice(0, 6), refRuns: refRuns.slice(0, 6) })
+  }
+  for (const row of rows) console.log(JSON.stringify(row))
+  const differing = rows.filter(r => !r.error && (r.oursOffM > 50 || r.refOffM > 50)).sort((a, b) => Math.max(b.oursOffM, b.refOffM) - Math.max(a.oursOffM, a.refOffM))
+  console.log(JSON.stringify({ routes: rows.length, thresholdM: threshold, matching: rows.filter(r => !r.error && r.oursOffM <= 50 && r.refOffM <= 50).length,
+    differing: differing.map(r => `${r.id}: ours ${r.oursOffM} m / ref ${r.refOffM} m`), missingReference: rows.filter(r => r.error).map(r => `${r.id}: ${r.error}`) }))
+}
+
 const [cmd, ...rest] = process.argv.slice(2)
 const tailFlag = rest.indexOf('--tail')
 const tail = tailFlag >= 0 ? Number(rest[tailFlag + 1]) || 0 : 0
@@ -1409,6 +1509,7 @@ switch (cmd) {
   }
   case 'bus-terminal-reference': cmdBusTerminalReference(pos[0], pos[1]); break
   case 'bus-terminal-crossings': cmdBusTerminalCrossings(); break
+  case 'bus-route-match': cmdBusRouteMatch(pos.filter(a => !a.startsWith('--')), rest.find(a => a.startsWith('--threshold='))?.slice(12)); break
   case 'bus-replay-report': cmdBusReplayReport(pos[0]); break
   case 'bus-station': cmdBusStation(pos[0]); break
   case 'bus-cycles': await cmdBusCycles(pos[0]); break
@@ -1442,6 +1543,6 @@ switch (cmd) {
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   default:
-    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
+    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | bus-route-match [route-id…] [--threshold=30] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
     if (cmd) process.exit(1)
 }
