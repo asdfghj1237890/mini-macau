@@ -12,6 +12,7 @@
 // `node scripts/inspect.mjs bus-route-match`.
 //
 //   node scripts/patch-route-guides.mjs [route-id…] [--dry-run] [--no-osrm] [--verbose]
+//   GUIDE_DEBUG=1 prints each stop's candidate passes on the trace and the chosen one.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { buildRoadIndex } from './build-bus-road-profile.mjs'
@@ -25,7 +26,12 @@ const metres = (a, b) => Math.hypot((a[0] - b[0]) * MX, (a[1] - b[1]) * MY)
 const OFF_M = 30            // farther than this from the other line counts as off it
 const STRUCTURAL_M = 120    // metres off before a leg is rewritten…
 const STRUCTURAL_MAX_M = 60 // …and it must leave by more than a parallel carriageway
-const STOP_REACH_M = 80     // the trace must pass this close to a stop to guide its legs
+const STOP_REACH_M = 150    // the trace must pass this close to a stop to guide its legs…
+const STOP_TRUST_M = 80     // …and beyond this (a bay off the main road) only an OSRM course is trusted
+const WEAK_M = 200          // a long stretch off by less than a street's width: OSRM course only
+// Where the bus-only 嘉樂庇總督大橋 is modelled as its own polyline; a guided
+// leg over it stays with the bridge patch.
+const TAIPA_BRIDGE = [[113.5439408, 22.1867834], [113.54871793494438, 22.165134309019084]]
 const OSRM = 'https://router.project-osrm.org/route/v1/driving/'
 const args = process.argv.slice(2)
 const selected = args.filter(a => !a.startsWith('--')), dryRun = args.includes('--dry-run'), useOsrm = !args.includes('--no-osrm'), verbose = args.includes('--verbose')
@@ -117,6 +123,13 @@ function snapTrace(coords) {
 }
 // A course that reaches both the peninsula and Taipa crosses one of the bridges.
 const crossesChannel = coords => coords.some(([, lat]) => lat < 22.172) && coords.some(([, lat]) => lat > 22.186)
+const usesTaipaBridge = coords => {
+  const a = xy(TAIPA_BRIDGE[0]), b = xy(TAIPA_BRIDGE[1]), dx = b[0] - a[0], dy = b[1] - a[1], len2 = dx * dx + dy * dy
+  return coords.some(c => {
+    const p = xy(c), t = Math.max(0, Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / len2))
+    return t > .2 && t < .8 && Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy) < 80
+  })
+}
 
 async function osrm(waypoints, radiusM) {
   // Via points may only snap to a road within radiusM of the trace, so OSRM
@@ -135,6 +148,37 @@ async function osrm(waypoints, radiusM) {
   return undefined
 }
 
+// Routes whose trace is traversed more than once per loop (see
+// AMARAL_GUIDE_REPETITIONS): their closing is not a simple turnaround.
+const NO_CLOSING = { '25AX': true }
+
+// The course to drive from `a` to `b` along `guide`: OSRM's road-snapped path
+// through the trace (centre lines the road profile can match) when it stays
+// on the trace's streets and is not longer than the trace — a parallel
+// carriageway of a wide avenue passes, a different street does not — else
+// the trace itself, snapped to centre lines, unless only OSRM is trusted.
+async function courseFor(a, b, guide, osrmOnly) {
+  let course, method = 'trace'
+  if (useOsrm) {
+    const via = densify(guide, 120).slice(1, -1).filter((p, i, list) => metres(p, a) > 60 && metres(p, b) > 60 && (i === 0 || metres(p, list[i - 1]) > 60))
+    const snapped = await osrm([a, ...via.slice(0, 60), b], 30)
+    await sleep(500)
+    if (snapped && snapped.length >= 2) {
+      // Both ways: the course stays on the trace, and the trace is covered
+      // (a turnaround loop OSRM shortcuts is not a match).
+      const check = offMetres(snapped, guide), covered = offMetres(guide, snapped)
+      const slack = Math.max(60, length(guide) * .08)
+      if (check.max <= 35 && check.off <= slack && covered.off <= slack && length(snapped) <= length(guide) * 1.15 + 30) { course = snapped; method = 'osrm' }
+    }
+  }
+  if (!course && osrmOnly) return undefined
+  if (!course) course = snapTrace(densify(guide, 10))
+  // Endpoints stay on our stop vertices so the offsets remain exact.
+  if (metres(course[0], a) > .05) course.unshift(a)
+  if (metres(course.at(-1), b) > .05) course.push(b)
+  return { course, method }
+}
+
 async function guideRoute(route, reference, stops) {
   const coords = route.geometry.geometry.coordinates
   const trace = []
@@ -150,23 +194,51 @@ async function guideRoute(route, reference, stops) {
   // trace is plausible for the leg, not simply the closest. A stop the trace
   // never comes near (an Amaral bay, a terminal forecourt) leaves its two
   // legs alone.
-  const projections = []
-  let cursor = 0, previousHit = null
-  route.stopOffsets.forEach((offset, k) => {
-    const p = xy(coords[offset])
-    if (k === 0) {
-      const hit = nearest(ringXY, p, 0, trace.length)
-      previousHit = hit.distance <= STOP_REACH_M ? hit : null
-      projections.push(previousHit); cursor = hit.index
-      return
-    }
-    const candidates = passes(ringXY, p, cursor, Math.min(ringXY.length - 1, cursor + trace.length))
-    if (!candidates.length) { projections.push(null); return }
-    const ourLegM = previousHit ? length(coords.slice(route.stopOffsets[k - 1], offset + 1)) : 0
-    const plausible = c => !previousHit || along(c) - along(previousHit) <= ourLegM * 2.5 + 300
-    const hit = candidates.find(plausible) ?? candidates.reduce((a, b) => along(a) <= along(b) ? a : b)
-    projections.push(hit); previousHit = hit; cursor = hit.index
-  })
+  // Dynamic programme over the passes: the monotonic assignment with the
+  // smallest total stop-to-trace distance, penalising a leg whose trace
+  // length is implausible for ours (a pass skipped, a whole excursion
+  // attributed to the wrong leg). The first stop takes its closest pass;
+  // the others come from the loop ahead of it.
+  const origin = nearest(ringXY, xy(coords[route.stopOffsets[0]]), 0, trace.length)
+  const start = origin.index, stopCount = route.stopOffsets.length
+  const candidates = route.stopOffsets.map((offset, k) => k === 0
+    ? (origin.distance <= STOP_REACH_M ? [origin] : [])
+    : passes(ringXY, xy(coords[offset]), start, Math.min(ringXY.length - 1, start + trace.length)))
+  const cost = new Array(stopCount).fill(null).map(() => []), back = cost.map(() => [])
+  const NONE = 1e6 // a stop the trace never comes near: no pass, no ordering constraint
+  candidates[0].forEach((c, i) => { cost[0][i] = c.distance })
+  if (!candidates[0].length) cost[0][0] = NONE
+  for (let k = 1; k < stopCount; k++) {
+    const ourLegM = length(coords.slice(route.stopOffsets[k - 1], route.stopOffsets[k] + 1))
+    const options = candidates[k].length ? candidates[k] : [null]
+    options.forEach((c, i) => {
+      let best = Infinity, from = -1
+      const previousOptions = candidates[k - 1].length ? candidates[k - 1] : [null]
+      previousOptions.forEach((p, j) => {
+        if (cost[k - 1][j] === undefined) return
+        if (c && p && along(c) < along(p)) return
+        let penalty = c ? c.distance : NONE
+        if (c && p) penalty += Math.max(0, along(c) - along(p) - (ourLegM * 2.5 + 300)) / 10
+        if (cost[k - 1][j] + penalty < best) { best = cost[k - 1][j] + penalty; from = j }
+      })
+      if (from >= 0) { cost[k][i] = best; back[k][i] = from }
+    })
+  }
+  const projections = new Array(stopCount).fill(null)
+  let pick = -1
+  cost[stopCount - 1].forEach((value, i) => { if (value !== undefined && (pick < 0 || value < cost[stopCount - 1][pick])) pick = i })
+  for (let k = stopCount - 1; k >= 0 && pick >= 0; k--) {
+    projections[k] = candidates[k][pick] ?? null
+    pick = k ? back[k][pick] ?? -1 : -1
+  }
+  // The first stop's pass is the loop's origin; a later pass that landed
+  // before it (only possible without an ordering chain) is not usable.
+  if (process.env.GUIDE_DEBUG) {
+    console.log(route.id, 'passes', candidates.map((c, k) => k + ':' + c.map(p => Math.round(along(p)) + '@' + Math.round(p.distance)).join('|')).join(' '))
+    console.log(route.id, 'picked', projections.map((p, k) => k + ':' + (p ? Math.round(along(p)) : '-')).join(' '))
+  }
+  const along0 = projections[0] ? along(projections[0]) : 0
+  for (let k = 1; k < stopCount; k++) if (projections[k] && along(projections[k]) < along0) projections[k] = null
   const tracePoint = hit => lerp(ring[hit.index], ring[hit.index + 1], hit.t)
   const traceSlice = (from, to) => {
     const out = [tracePoint(from)]
@@ -177,13 +249,17 @@ async function guideRoute(route, reference, stops) {
   const changes = []
   let output = [], previous = 0, shift = 0
   const offsets = [...route.stopOffsets]
+  const name = id => stops.get(id.split('/')[0])?.nameCn ?? id
+  let legLabel = ''
+  const note = why => { if (verbose) console.log(`${route.id} ${legLabel}: ${why}`) }
   for (let k = 0; k + 1 < route.stopsForward.length; k++) {
     const a = route.stopOffsets[k], b = route.stopOffsets[k + 1]
     const from = projections[k], to = projections[k + 1]
-    const name = id => stops.get(id.split('/')[0])?.nameCn ?? id
-    const note = why => { if (verbose) console.log(`${route.id} leg ${k} ${name(route.stopsForward[k])} -> ${name(route.stopsForward[k + 1])}: ${why}`) }
+    legLabel = `leg ${k} ${name(route.stopsForward[k])} -> ${name(route.stopsForward[k + 1])}`
     if (!from || !to) { note(`unguided (${!from ? 'first' : 'second'} stop is more than ${STOP_REACH_M} m from the trace)`); continue }
     if (b - a < 2) continue
+    // Two consecutive calls at the same platform are a layover loop the trace does not draw.
+    if (route.stopsForward[k] === route.stopsForward[k + 1]) { note('same platform twice (layover loop kept)'); continue }
     if (route.stopsForward[k].startsWith('M172/') || route.stopsForward[k + 1].startsWith('M172/')) { note('Amaral terminal leg'); continue }
     if (to.index < from.index || (to.index === from.index && to.t < from.t)) { note('trace order reversed'); continue }
     const ourLeg = coords.slice(a, b + 1)
@@ -191,34 +267,49 @@ async function guideRoute(route, reference, stops) {
     if (guide.length < 2 || length(guide) < 10) continue
     const ours = offMetres(ourLeg, guide), theirs = offMetres(guide, ourLeg)
     const structural = (ours.off >= STRUCTURAL_M && ours.max >= STRUCTURAL_MAX_M) || (theirs.off >= STRUCTURAL_M && theirs.max >= STRUCTURAL_MAX_M)
-    if (!structural) { if (ours.off || theirs.off) note(`kept (ours off ${ours.off} m / max ${ours.max} m, trace off ${theirs.off} m / max ${theirs.max} m)`); continue }
-    if (crossesChannel(guide)) { changes.push({ leg: k, skipped: 'guide crosses the Macau–Taipa channel (bridge patch owns it)', ours, theirs }); continue }
-    // Prefer OSRM's road-snapped course through the trace (centre lines the
-    // road profile can match); keep it only if it stays on the trace's
-    // streets and is not longer than the trace itself. A parallel carriageway
-    // of a wide avenue passes; a different street does not.
-    let replacement, method = 'trace'
-    if (useOsrm) {
-      const via = densify(guide, 120).slice(1, -1).filter((p, i, list) => metres(p, coords[a]) > 60 && metres(p, coords[b]) > 60 && (i === 0 || metres(p, list[i - 1]) > 60))
-      const snapped = await osrm([coords[a], ...via.slice(0, 60), coords[b]], 30)
-      await sleep(500)
-      if (snapped && snapped.length >= 2) {
-        const check = offMetres(snapped, guide)
-        if (check.max <= 35 && check.off <= Math.max(60, length(guide) * .08) && length(snapped) <= length(guide) * 1.15 + 30) { replacement = snapped; method = 'osrm' }
-      }
-    }
-    if (!replacement) replacement = snapTrace(densify(guide, 10))
-    // Endpoints stay on our stop vertices so the offsets remain exact.
-    if (metres(replacement[0], coords[a]) > .05) replacement.unshift(coords[a])
-    if (metres(replacement.at(-1), coords[b]) > .05) replacement.push(coords[b])
-    output.push(...coords.slice(previous, a), ...replacement.slice(0, -1))
-    const delta = replacement.length - (b - a + 1)
+    const weak = !structural && (ours.off >= WEAK_M || theirs.off >= WEAK_M)
+    if (!structural && !weak) { if (ours.off || theirs.off) note(`kept (ours off ${ours.off} m / max ${ours.max} m, trace off ${theirs.off} m / max ${theirs.max} m)`); continue }
+    if (crossesChannel(guide) && usesTaipaBridge(guide)) { changes.push({ leg: k, skipped: 'guide uses 嘉樂庇總督大橋 (bridge patch owns it)', ours, theirs }); continue }
+    // Only a road-snapped course is trusted when the leg is not plainly on a
+    // different street: a stop in a bay off the main road (the trace never
+    // enters the forecourt), a long stretch within a street's width (the
+    // trace may be on the other carriageway) or a bridge crossing.
+    const osrmOnly = weak || crossesChannel(guide) || from.distance > STOP_TRUST_M || to.distance > STOP_TRUST_M
+    const replacement = await courseFor(coords[a], coords[b], guide, osrmOnly)
+    if (!replacement) { note(`skipped (OSRM found no course along the trace; ${weak ? 'weak' : 'bay/bridge'} leg)`); continue }
+    output.push(...coords.slice(previous, a), ...replacement.course.slice(0, -1))
+    const method = replacement.method
+    const delta = replacement.course.length - (b - a + 1)
     shift += delta
     for (let i = k + 1; i < offsets.length; i++) offsets[i] = route.stopOffsets[i] + shift
     previous = b
-    changes.push({ leg: k, from: name(route.stopsForward[k]), to: name(route.stopsForward[k + 1]), oursOffM: ours.off, theirsOffM: theirs.off, oldM: Math.round(length(ourLeg)), newM: Math.round(length(replacement)), method })
+    changes.push({ leg: k, from: name(route.stopsForward[k]), to: name(route.stopsForward[k + 1]), oursOffM: ours.off, theirsOffM: theirs.off, oldM: Math.round(length(ourLeg)), newM: Math.round(length(replacement.course)), method })
   }
   output.push(...coords.slice(previous))
+  // The turnaround at the origin terminal: the trace's course from its pass
+  // of the last stop round to its pass of the first. Our loops end at the
+  // last stop (60 of them at the origin bay itself, the rest at a bay beside
+  // it and handed over at the seam); driving the published loop back to the
+  // origin closes every loop at its first vertex.
+  const last = route.stopsForward.length - 1, first = projections[0], final = projections[last]
+  legLabel = 'closing'
+  if (first && final && !route.stopsForward[0].startsWith('M172/') && !route.stopsForward[last].startsWith('M172/') && !(route.id in NO_CLOSING)) {
+    const to = along(first) <= along(final) ? { ...first, index: first.index + trace.length } : first
+    const guide = to.index < ring.length - 1 ? traceSlice(final, to) : []
+    const ours = [output.at(-1), coords[0]]
+    const theirs = guide.length > 1 ? offMetres(guide, ours) : { off: 0, max: 0 }
+    if (guide.length > 1 && length(guide) >= 100 && theirs.off >= 100 && theirs.max >= 60) {
+      if (crossesChannel(guide) && usesTaipaBridge(guide)) changes.push({ leg: 'closing', skipped: 'closing loop uses 嘉樂庇總督大橋 (bridge patch owns it)' })
+      else {
+        const replacement = await courseFor(output.at(-1), coords[0], guide, crossesChannel(guide) || final.distance > STOP_TRUST_M || first.distance > STOP_TRUST_M)
+        if (!replacement) note('closing loop skipped (OSRM found no course along the trace)')
+        else {
+          output.push(...replacement.course.slice(1))
+          changes.push({ leg: 'closing', from: name(route.stopsForward[last]), to: name(route.stopsForward[0]), oursOffM: 0, theirsOffM: theirs.off, oldM: Math.round(metres(ours[0], ours[1])), newM: Math.round(length(replacement.course)), method: replacement.method })
+        }
+      }
+    } else if (verbose && theirs.off) note(`closing loop kept (trace off ${theirs.off} m / max ${theirs.max} m over ${Math.round(length(guide))} m)`)
+  }
   if (changes.some(c => !c.skipped)) {
     if (offsets.some((v, i) => i && v <= offsets[i - 1])) throw new Error(`Stop order changed on ${route.id}`)
     for (let k = 0; k < offsets.length; k++) if (metres(output[offsets[k]], coords[route.stopOffsets[k]]) > .05) throw new Error(`Stop ${route.stopsForward[k]} moved on ${route.id}`)
@@ -239,7 +330,7 @@ for (const route of routes) {
   const ref = reference[route.id]
   if (!ref?.paths?.length) { console.log(`${route.id}: no trace`); continue }
   const changes = await guideRoute(route, ref, stops)
-  for (const c of changes) console.log(`${route.id} leg ${c.leg}: ${c.skipped ? 'SKIP ' + c.skipped : `${c.from} -> ${c.to}: ${c.oldM} m -> ${c.newM} m (${c.method}; ours off ${c.oursOffM} m, trace off ${c.theirsOffM} m)`}`)
+  for (const c of changes) console.log(`${route.id} ${c.leg === 'closing' ? 'closing' : 'leg ' + c.leg}: ${c.skipped ? 'SKIP ' + c.skipped : `${c.from} -> ${c.to}: ${c.oldM} m -> ${c.newM} m (${c.method}; ours off ${c.oursOffM} m, trace off ${c.theirsOffM} m)`}`)
   if (changes.some(c => !c.skipped)) summary.push({ id: route.id, legs: changes.filter(c => !c.skipped).length, skipped: changes.filter(c => c.skipped).length })
 }
 if (!dryRun) writeFileSync('public/data/bus-routes.json', JSON.stringify(routes))
