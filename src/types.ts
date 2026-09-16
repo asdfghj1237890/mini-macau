@@ -364,15 +364,22 @@ export interface ReligionText {
   pt: string | null
 }
 
-// temple = 土地廟 / 福德祠 (a building), shrine = 土地神壇 (a street tablet,
-// niche or altar, or one attached to another temple).
-export type ReligionKind = 'temple' | 'shrine'
+// The building type — the icon SHAPE: temple = 廟 / 祠 / 寺 / 禪院 (a building),
+// shrine = a street tablet, niche or altar (土地神壇 and the other folk
+// deities' altars), church = churches, chapels, seminaries and church ruins,
+// mosque = the one mosque.
+export type ReligionKind = 'temple' | 'shrine' | 'church' | 'mosque'
+// The faith or group — the legend's toggles and the marker COLOUR: 土地公 /
+// Tou Tei, the other Chinese temples and altars, churches, the mosque, other
+// faiths (四面佛). religion.json lists them in this order.
+export type ReligionCategoryId = 'tudigong' | 'temple' | 'church' | 'mosque' | 'other'
 export type ReligionSource = 'osm' | 'ic' | 'macaumemory'
 
-// A category of the overlay — so far only 'tudigong' (土地公 / Tou Tei). The
-// optional official counts are the IC's published totals the panel quotes.
+// A category of the overlay with the dataset's own trilingual name. The
+// optional official counts (tudigong only) are the IC's published totals the
+// panel quotes.
 export interface ReligionCategory {
-  id: string
+  id: ReligionCategoryId
   name: ReligionText
   officialCounts?: { temples: string; publicShrines: string; source: string }
 }
@@ -385,7 +392,7 @@ export interface ReligionCategory {
 // description; `macaumemory` links the site to its photo entries there.
 export interface ReligionSite {
   id: string // 'osm-way-823695024' | 'ic-MM032' | 'mm-p0003801'
-  category: string // ReligionCategory.id
+  category: ReligionCategoryId
   kind: ReligionKind
   name: ReligionText
   coordinates: [number, number] // [lng, lat]

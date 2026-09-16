@@ -44,6 +44,7 @@ export async function buildCityCatalog(directory: string): Promise<CityCatalog> 
     },
     schoolLevels: countBy(schools.schools, 'level', ['kindergarten', 'primary', 'secondary', 'university', 'all_through']),
     housingTypes: countBy(housing.estates, 'type', ['social', 'economic', 'other']),
+    religionCategories: countBy(religion.sites, 'category', ['tudigong', 'temple', 'church', 'mosque', 'other']),
     wasteTypes,
     roadWorkWindows: [...windows.values()],
   }

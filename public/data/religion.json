@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "fetchedAtUtc": "2026-09-16T08:14:46.670896+00:00",
+  "fetchedAtUtc": "2026-09-16T15:13:16.958045+00:00",
   "layer": "religion",
   "categories": [
     {
@@ -15,9 +15,74 @@
         "publicShrines": "160多個",
         "source": "https://www.culturalheritage.mo/detail/101974"
       }
+    },
+    {
+      "id": "temple",
+      "name": {
+        "zh": "廟宇",
+        "en": "Chinese temples",
+        "pt": "Templos chineses"
+      },
+      "officialCounts": null
+    },
+    {
+      "id": "church",
+      "name": {
+        "zh": "教堂",
+        "en": "Churches and chapels",
+        "pt": "Igrejas e capelas"
+      },
+      "officialCounts": null
+    },
+    {
+      "id": "mosque",
+      "name": {
+        "zh": "清真寺",
+        "en": "Mosque",
+        "pt": "Mesquita"
+      },
+      "officialCounts": null
+    },
+    {
+      "id": "other",
+      "name": {
+        "zh": "其他信仰",
+        "en": "Other faiths",
+        "pt": "Outras religiões"
+      },
+      "officialCounts": null
     }
   ],
   "sites": [
+    {
+      "id": "ic-MM029",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "仁德堂公所（魯班師傅廟）",
+        "en": "Ian Tak Tong Kong So (Lou Pan Si Fu Temple)",
+        "pt": "Ian Tak Tong Kong So (Templo de Lou Pan Si Fu)"
+      },
+      "coordinates": [
+        113.545881,
+        22.194895
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM029",
+        "description": {
+          "zh": "該廟又稱仁德堂公所，於清咸豐九年(1859年)年由上架行會眾創建，後因地方淺窄，於光緒九年(1883年)擴建成現在規模，並成立公所，廟內按上架行傳統，供奉魯班師傅神像。 建築特色: 面積較小，沒有庭院分隔入口和廟宇的主殿。",
+          "en": "The temple is also called “Ian Tak Tong Civil Office” and was dedicated to Lou Pan (God of carpenters). The temple was constructed in 1859 by the carpenters’ community association and was expanded in 1883. Architectural characteristics: The temple is quite small and there is no courtyard to separate it from the main entrance.",
+          "pt": "Este templo é também chamado de “Repartição Cívica Ian Tak Tong” e é dedicado a Lou Pan (Deus dos Carpinteiros). Construído em 1859 pela Associação dos Carpinteiros, foi aumentado em 1883. A “Repartição Cívica Ian Tak Tong” foi estabelecida após esta renovação. Características arquitectónicas: O templo é bastante pequeno e não tem qualquer átrio a separá-lo da entrada principal."
+        }
+      },
+      "sources": [
+        "ic"
+      ],
+      "osm": null,
+      "macaumemory": null
+    },
     {
       "id": "mm-p0003801",
       "category": "tudigong",
@@ -1477,6 +1542,28 @@
       }
     },
     {
+      "id": "osm-node-11162879375",
+      "category": "temple",
+      "kind": "shrine",
+      "name": {
+        "zh": "井泉龍王神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.542864,
+        22.194298
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11162879375",
+      "macaumemory": null
+    },
+    {
       "id": "osm-node-11166808326",
       "category": "tudigong",
       "kind": "shrine",
@@ -1687,6 +1774,28 @@
           "https://www.macaumemory.mo/entries_ba2d494f23fa44fa8e307493ee249641"
         ]
       }
+    },
+    {
+      "id": "osm-node-11166808334",
+      "category": "temple",
+      "kind": "shrine",
+      "name": {
+        "zh": "城隍行臺",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.541722,
+        22.201665
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808334",
+      "macaumemory": null
     },
     {
       "id": "osm-node-11166808335",
@@ -2087,6 +2196,28 @@
       "macaumemory": null
     },
     {
+      "id": "osm-node-11166808352",
+      "category": "temple",
+      "kind": "shrine",
+      "name": {
+        "zh": "包公老爺 城隍老爺",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.541117,
+        22.202224
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808352",
+      "macaumemory": null
+    },
+    {
       "id": "osm-node-11166808353",
       "category": "tudigong",
       "kind": "shrine",
@@ -2116,6 +2247,28 @@
         ],
         "entries": []
       }
+    },
+    {
+      "id": "osm-node-11166808354",
+      "category": "temple",
+      "kind": "shrine",
+      "name": {
+        "zh": "包相府",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.534205,
+        22.190043
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808354",
+      "macaumemory": null
     },
     {
       "id": "osm-node-11166808355",
@@ -2768,6 +2921,50 @@
       }
     },
     {
+      "id": "osm-node-11166808380",
+      "category": "temple",
+      "kind": "shrine",
+      "name": {
+        "zh": "本境社官水仙尊王",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.551484,
+        22.116295
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808380",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808381",
+      "category": "temple",
+      "kind": "shrine",
+      "name": {
+        "zh": "啟德星君爺爺",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.544088,
+        22.212286
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808381",
+      "macaumemory": null
+    },
+    {
       "id": "osm-node-11166808382",
       "category": "tudigong",
       "kind": "temple",
@@ -2834,6 +3031,154 @@
       "macaumemory": null
     },
     {
+      "id": "osm-node-12846316167",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "城隍廟",
+        "en": null,
+        "pt": "Templo do Chan Vong"
+      },
+      "coordinates": [
+        113.547645,
+        22.206103
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/12846316167",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-3100104704",
+      "category": "other",
+      "kind": "shrine",
+      "name": {
+        "zh": "四面佛",
+        "en": "Four-Faced Buddha",
+        "pt": "O Buda de Quatro Faces"
+      },
+      "coordinates": [
+        113.551096,
+        22.157151
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/3100104704",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-3124646751",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "三聖宮廟",
+        "en": "Sam Seng Temple",
+        "pt": "Templo de Sam Seng"
+      },
+      "coordinates": [
+        113.550945,
+        22.118727
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MC005",
+        "description": {
+          "zh": "建於清同治四年(1865年)。供奉金花、觀音和華光三位神祇 。 建築特色: 單體式小廟，具人字硬山式屋頂，中央安放神台，入門之處左磬右鐘。",
+          "en": "The temple was constructed in 1865 and dedicated to Kum Fa (Goddess of Golden Flowers, patron of children), Goddess Kun Iam (Goddess of Mercy) and Va Kuong (God of Fire). Architectural characteristics: The temple is a single-chamber building with an altar in the middle. There is a musical stone and a bell on the left and right of the entrance respectively.",
+          "pt": "Este templo foi construído em 1865 para albergar Kam Fa (Deusa das Flores Douradas – protectora das crianças), a Deusa Kun Iam (Deusa da Misericórdia) e Va Kuong (Deus do Fogo). Características arquitectónicas: Este templo tem apenas um corpo ao meio do qual se encontra o altar. Na entrada encontra-se uma pedra musical, à esquerda, e um sino, do lado direito."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "node/3124646751",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-4416593989",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "三街會館",
+        "en": "Sam Kai Vui Kun Temple",
+        "pt": "Templo Sam Kai Vui Kun"
+      },
+      "coordinates": [
+        113.53936,
+        22.194011
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/4416593989",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-4416596892",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "望德聖母堂",
+        "en": "St. Lazarus’ Church and forecourt",
+        "pt": "Igreja de S. Lázaro e adro"
+      },
+      "coordinates": [
+        113.545366,
+        22.197327
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM004",
+        "description": {
+          "zh": "望德堂建於1557-1560年之間，是澳門三大古教堂之一，供奉聖母瑪麗亞。因澳門第一任主教卡內羅(D. Belchior Carneiro Leitao)在此設立治療麻瘋的診院，故依聖人辣匝祿（麻瘋病保護者）的名字，俗稱該堂為辣匝祿堂。1576年起曾為澳門的主教座堂。現時的規模為1886年重建時形成，之前更像一座葡式的修道院。從十七世紀起，該教堂成為澳門華人社會天主教宣道中心。 建築特色: 教堂呈新古典主義風格。教堂正面不甚對稱，主體部分兩層，每層都有三個窗口。中央頂部為弧線的三角形山花，上部有一個由十字架和船錨組成的浮雕，表示信仰和信念。右側有一鐘樓。教堂內部主殿之外還有兩個側廊。",
+          "en": "St. Lazarus’ Church was built between 1557 and 1560 and is one of the three oldest churches in Macao. Dom Belchior Carneiro, the first Catholic Bishop of Macao, established a hospital there for lepers named after the patron saint of lepers. Following various extensions and adaptations, the present church has remained more or less the same since its renovation in 1886. In 1576 it was Macao’s cathedral and it has been the centre of Macao’s Chinese Catholic community since the 17th century. Architectural characteristics: The façade of the neoclassic church is asymmetrical and the main building is divided into two storeys, each with three windows. The building is topped with a pediment with a relief composed of a cross and an anchor, representing believe and faith. A belfry is attached to the right side of the façade and there are two aisles inside the church.",
+          "pt": "A Igreja de São Lázaro foi construída entre 1557 e 1560 e é uma das três mais antigas de Macau. Dom Belchior Carneiro Leitão, o primeiro bispo católico de Macau, aí estabeleceu um hospital para atender os leprosos. A este hospício foi dado o nome de São Lázaro, o protector dos leprosos. Após várias reconstruções e obras de melhoramento e expansão, a actual Igreja de São Lázaro é resultado da última renovação efectuada em 1886. Antes destas obras, a igreja parecia-se mais com um mosteiro português. Em 1576 era a Sé Catedral e tem sido o centro da comunidade católica chinesa desde o séc. XVII. Características arquitectónicas: O edifício está dividido em dois andares, cada um com três janelas. Tem uma fachada neoclássica e assimétrica encimada por um frontão onde se destaca um alto relevo composto por uma cruz e uma âncora que representam a crença e a fé. Do lado direito, o campanário. O interior da igreja é composto por duas naves."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "node/4416596892",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-4694461592",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "澳門浸信會",
+        "en": "Macau Baptist Church",
+        "pt": null
+      },
+      "coordinates": [
+        113.54299,
+        22.195107
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/4694461592",
+      "macaumemory": null
+    },
+    {
       "id": "osm-node-5256972401",
       "category": "tudigong",
       "kind": "shrine",
@@ -2853,6 +3198,132 @@
         "osm"
       ],
       "osm": "node/5256972401",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-9097161101",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖公會澳門聖士提反堂",
+        "en": "St. Stephen's Church, Macau",
+        "pt": "St. Stephen's Church, Macau"
+      },
+      "coordinates": [
+        113.553228,
+        22.157475
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/9097161101",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-9097245903",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖公會澳門聖保羅堂",
+        "en": "St. Paul's Church, Macau",
+        "pt": "St. Paul's Church, Macau"
+      },
+      "coordinates": [
+        113.558842,
+        22.205934
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/9097245903",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-9097263228",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖公會澳門聖馬可堂",
+        "en": "St. Mark's Church, Macau",
+        "pt": "St. Mark's Church, Macau"
+      },
+      "coordinates": [
+        113.544235,
+        22.195054
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/9097263228",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-relation-5828699",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖若瑟修院及聖堂",
+        "en": "St. Joseph’s Seminary Church, forecourt and staircase",
+        "pt": "Igreja do Seminário de S. José, adro e escadaria"
+      },
+      "coordinates": [
+        113.537588,
+        22.191767
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM007",
+        "description": {
+          "zh": "聖若瑟修院由耶穌會會士於1728年創辦。與修院毗連的聖堂則於1758年落成，與較早期落成的聖保祿學院，成為耶穌會會士前往中國內地、日本及其鄰近地區傳教在澳門的培訓基地。聖若瑟聖堂，連同已坍塌的天主之母教堂（即聖保祿教堂），是中國罕見的巴洛克風格建築。主祭壇供奉聖若瑟像，左右兩側祭壇供奉耶穌及聖母。該聖堂平面呈希臘十字型，主堂由四個帆拱頂起一個直徑12.5米，頂部高度為19米的穹頂，開有兩環各16個窗戶，具通風和採光功能。堂內存有第一位到遠東傳教的耶穌會會士聖方濟各．沙勿略的上臂骨，供教徒曕仰。該聖髑本藏於天主之母聖堂內。 文化設施: 聖若瑟修院藏珍館",
+          "en": "The Seminary was established in 1728 and the Church that is part of this complex was built in 1758. St. Joseph’s Seminary, together with the old College of St. Paul’s, formed the Jesuits’ base in Macao, for the missionary work that they would implement in China, Japan and around the region. The building has a Greek cross plan. The dome measures 12.5 metres in diameter and rises 19 metres above the ground. It is decorated with two rows of 16 clerestories which enable natural lighting and ventilation. One of Macao’s most precious religious relics, a piece of bone from the arm of St. Francis Xavier, the first Jesuit missionary in the Far East, that formerly belonged to the collection of the old Church of Mater Dei (present St. Paul’s Ruins) is kept in one of the side altars inside this Church. St. Joseph’s Church, together with the Ruins of St. Paul’s, are two very rare examples of Baroque architecture in China. Cultural Facilities : TREASURE OF SACRED ART OF ST. JOSEPH'S SEMINARY",
+          "pt": "O antigo Seminário foi fundado em 1728 e a igreja que faz parte do complexo foi construída em 1758. O Seminário de S. José e o antigo Colégio de S. Paulo formavam a principal base dos Jesuítas em Macau e contribuíram determinantemente para o trabalho missionário por estes desenvolvido na China, no Japão e por toda a região envolvente. O edifício segue uma planta em cruz Grega e a sua cúpula mede 12.5 metros de diâmetro e ergue-se até uma altura de 19 metros acima do piso térreo, estando decorada com dois níveis com 16 pequenas janelas, que permitem luz e ventilação natural. No interior, num dos altares laterais, encontra-se uma das relíquias mais preciosas de Macau: um fragmento de osso do braço de S. Francisco Xavier, o primeiro missionário Jesuíta no Extremo Oriente, tratando-se de uma relíquia que fazia parte do espólio da antiga Igreja da Madre de Deus (actuais Ruínas de S. Paulo). A Igreja de S. José e as Ruínas de S. Paulo são dois exemplos muito raros de arquitectura Barroca na China. Instalações : TESOURO DE ARTE SACRA DO SEMINÁRIO DE S. JOSÉ"
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "relation/5828699",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-1001795463",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖保祿學院天主之母教堂遺址",
+        "en": "Ruins of St. Paul’s College (Former Mater Dei Church, forecourt and staircase)",
+        "pt": "Ruínas do Colégio de S. Paulo (antiga Igreja da Madre de Deus, adro e escadaria)"
+      },
+      "coordinates": [
+        113.540851,
+        22.197671
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM008",
+        "description": {
+          "zh": "大三巴牌坊為聖保祿教堂前壁遺址。該教堂建於1602年至1640年，原名為“天主之母”教堂，附屬於其旁的聖保祿學院。兩者均毁於1835年之大火，“三巴”是“聖保祿 ”(São Paulo)之譯音，前冠以“大”字，乃為區別另一座小三巴教堂。前壁遺址為23米寬，25.5米高，為巴洛克風格，以花崗岩建成，上下共分五層，上有內容豐富的石刻圖案和青銅塑像。底層正門入口處門楣刻有拉丁文 “MATER DEI”，意為“天主之母”，兩側有耶穌會徽。第二層豎立了四位耶穌會會士聖人銅像：順次為方濟各．玻爾日亞，依納爵．羅耀拉，方濟各．沙勿略及雷斯．公撒格。第三層，聖母瑪利亞的銅像轟立在正中，周圍有天使浮雕，綴以七頭龍，並有一艘葡萄牙商船，伴以漢字警句；該層的兩端，設中國獅子樣式的滴水獸。第四層中間，置有耶穌基督銅像，兩側有耶穌受難刑具浮雕。最頂層，以鴿子代表的“聖靈”位於三角楣中央，周圍刻有象徵天際的太陽、月亮和星星。在頂端，還有一枚天主教信仰標誌的十字架，凌駕其上。前壁糅合東西方文化和藝術特色而成，為各地天主教堂中所僅見。 文化設施: 天主教藝術博物館及墓室 公眾服務: 導賞服務 掃描二維碼(QR Code) 或登入網站（ https://vr.icm.gov.mo/wh/dashanbapaifang/ ）聖保祿學院天主之母教堂遺址VR導覽",
+          "en": "The Ruins of St. Paul’s refers to the façade of what was originally the Church of Mater Dei built in 1602-1640 and the archaeological remains of St. Paul’s College, which stood adjacent to the Church, both destroyed by a fire in 1835. The facade of the Ruins of St. Paul’s measures 23 metres across and 25.5 metres high. The design of this church façade is unique in the world, as it is one that integrates oriental decorative motifs on a western Baroque-Mannerist façade. The façade is sub-divided into five horizontal levels that have an ascending reading order. The insignia of the Jesuits is inscribed above the doorways of the side entrances, while the Latin name of the Church of Mater Dei meaning the “Mother of God” is engraved above the central entrance. On the level above the entrance are four bronze statues of Jesuits saints, Francisco de Borja, Ignatius Loyola, Francis Xavier and Luís Gonzaga. The statue of the Virgin Mary is found in the next level up, flanked by a seven-headed hydra, a skeleton, a Portuguese merchant ship and a winged demon, with various inscriptions in Chinese that convey biblical messages. At both ends of this level are Chinese lions jugging out the façade below the pinnacles. On the next upper level, the statue of Jesus Christ as a child is located, surrounded by the Passion tools. A dove representing the Holy Spirit is found at the centre of the triangular pediment and a Latin cross crowns the ensemble. The overall composition presents a fusion of different influences, on a global, regional and local scale. Cultural Facilities : Museum of Sacred Art and the Crypt Please scan the QR Code or directly login to the website ( https://vr.icm.gov.mo/wh/dashanbapaifang/ ) to enjoy the VR tour of the Ruins of St. Paul’s College",
+          "pt": "As Ruínas de S. Paulo referem-se à fachada do que foi, outrora, a antiga Igreja da Madre de Deus, construída entre 1602 e 1640, incluindo ainda os vestígios arqueológicos do antigo Colégio de S. Paulo, ambos destruídos num incêndio em 1835. A fachada das Ruínas de S. Paulo mede 23 metros de largura por 25.5 metros de altura. O desenho desta fachada é único no mundo, uma vez que integra motivos decorativos orientais no contexto de uma fachada ocidental de estilo Barroco-Maneirista. A fachada está sub-dividida em cinco níveis de leitura ascendente. A insígnia da Companhia de Jesus encontra-se representada por cima das entradas laterais, enquanto a dedicação em Latim “Mater Dei”, que significa “Mãe de Deus”, encontra-se representada por cima da entrada principal. No nível acima dos pórticos das entradas, encontramos quatro estátuas em bronze de santos Jesuítas, incluindo: Francisco de Borja , Inácio de Loiola, S. Francisco Xavier e Luís Gonzaga. No nível seguinte, temos a imagem de Nossa Senhora da Assunção, ladeada por uma hidra de sete cabeças, um esqueleto, um barco português (Nau do Trato) e um demónio com asas, incluindo várias inscrições de caracteres Chineses com mensagens de teor bíblico. Em ambos os limites deste nível, encontra-se um leão de desenho chinês de relevo mais saliente, encimados por pináculos. No nível seguinte, encontra-se uma estátua do Menino Jesus, rodeada dos instrumentos da Paixão de Cristo. No último nível, encontramos um frontão triangular com uma pomba que simboliza o Espírito Santo, encimada pela cruz. A composição geral desta fachada representa uma fusão de diferentes influências, à escala global, regional e local. Instalações : Museu de Arte Sacra e a Cripta Por favor digitalize o código QR ou entre directamente na página electrónica （ https://vr.icm.gov.mo/wh/dashanbapaifang/ ） para fazer uma visita de VR às Ruínas do Colégio de S. Paulo"
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/1001795463",
       "macaumemory": null
     },
     {
@@ -2878,6 +3349,826 @@
       "macaumemory": null
     },
     {
+      "id": "osm-way-1216391899",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "教堂",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.544747,
+        22.193399
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/1216391899",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-1288411741",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "三聖廟",
+        "en": "Sam Seng Temple (Ká Hó)",
+        "pt": "Pagode de Sam Seng (Ká-Hó)"
+      },
+      "coordinates": [
+        113.581662,
+        22.134858
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MC008",
+        "description": {
+          "zh": "三聖廟（九澳）建於清光緒九年（1883年），根據歷史資料推測，其前身是一座規模較細小的洪聖廟，洪聖廟大約建於清同治初年，到了光緒年間已經損壞，故於光緒九年（1883年）新修一座廟宇，並加祀譚公及關帝二神成為三聖廟。“洪聖”專稱“南海洪聖大王”，又稱洪聖爺，是中國南方沿海有名的海神，水上人家多有信奉，譚公信仰則來自惠州，除祖籍惠州的人士外，亦為漁民所信奉，而關帝信仰因關羽的忠義氣節而受歷代皇帝推崇和敕封，是華人社會的普及信仰。三聖廟分別於1908及1922年間進行過2次小規模的重修，主要是更換了門額及新繪製了廟內外的數幅灰塑。 三聖廟（九澳）為單開間兩進式建築，但中間沒有天井，是傳統中式廟宇建築中較為罕見。建築主要由門廳和正殿兩座相連的硬山式建築組成，入口前的門廳兩側各有一門洞，使門廳有如過廊般開敞。門廳和正殿的牆體均抹灰並重新劃上磚線，整體主要以灰色為主。屋頂為傳統雙坡硬山式，瓦頂高度約為4米，建築面寬約4.5米，深度約為8.5米。建築整體裝飾簡約，除了入口處的門洞頂部有彩繪壁畫外，在硬山屋頂的山牆上具有雙層末端起翹的裝飾線，並帶有草尾點綴，為整座建築添加了幾分輕巧與別緻。 往昔三聖廟（九澳）香火鼎盛，尤其每逢農曆五月十三，即三聖廟賀誕日，上演神功戲或木偶戲，十分熱鬧。廟宇所在的九澳灣，其地因有三聖廟而被稱為三聖灣，附近的九澳村是一座以客家族群為主的村落，大約形成於清乾隆年間。九澳村屬於海島型的聚落，村民主要從事漁業和農業生產，九澳村與同樣位於路環的黑沙村是澳門目前僅餘的兩條客家村落，該廟宇作為村落的重要宗教場所，其供奉的譚公正是客家族群普遍信奉的神祇，對研究本澳離島傳統村落族群有重要意義。",
+          "en": "Sam Seng Temple (Ká Hó) was built in 1883, the ninth year of Emperor Guangxu’s reign in the Qing dynasty. From historical data it can be inferred that the building was previously a Hung Shing Temple erected in a smaller scale in around the first year of Emperor Tongzhi’s reign and was already damaged during the reign of Emperor Guangxu. Therefore, a new temple was built in the ninth year of Emperor Guangxu’s reign with two additional deities, Tam Kong and Kuan Tai, enshrined, thereby winning the temple the name of Sam Seng Temple. Hung Shing, also hailed as ‘Hung Shing Tai Wong of South Sea’ and ‘Hung Shing Ye’, is a sea deity well known along the southern coast of China and worshipped among most of local boat dwellers. The belief in Tam Kong originated from Huizhou, and has been upheld among fishermen in addition to natives of the city. The belief in Kuan Tai are popular among Chinese communities as revered and upheld by emperors of many dynasties for Kuan U’s royalty and righteousness. Small-scale renovations were carried out at the Sam Seng Temple in 1908 and 1922, which mainly involved replacing the entrance plague and repainting several plasterwork pieces inside and outside the temple. Sam Seng Temple (Ká Hó) is a building with one bay and two halls, and the absence of an atrium between the halls is rarely seen in traditional Chinese temples. The temple mainly consists of two interconnected, flush gable-roofed structures: a porch and a main hall. On each side of the porch is a door opening, which gives the porch the same degree of openness as a corridor. The walls of both the porch and the main hall, mostly grey in colour, are finished with plaster and hand-painted brick patterns. The roof is designed in the traditional double flush gable style with the tiles laid at 4 meters high, and the building measures about 4.5 metres in width and about 8.5 metres in depth. The temple is adorned with simple decorations; in addition to the coloured murals above the door openings of the porch, double fillet mouldings with the ends twisting upward and embellished with leafy patterns are also featured on the gable walls, adding certain lightness and delicacy to the overall appearance. In the past, Sam Seng Temple (Ká Hó) was crowded with worshippers, especially during the annual celebrations on the 13 th day of the fifth lunar month, when Chinese opera and puppet drama performances were held amidst a lively atmosphere. Ká Hó Bay, where the temple is situated, is also known as Sam Seng Bay. Ká Hó Village, which is nearby the temple, was built approximately during Emperor Qianlong’s reign in the Qing dynasty and has been mainly inhabited by the Hakka ethnic group. The village is classified as an island settlement, where the villagers are mostly engaged in fishing and agriculture. Ká Hó Village and Hac Sa Village, both located in Coloane, are currently the only two existing Hakka villages in Macao. Being a major religious site of Ká Hó Village and dedicated to Tam Kong, a deity widely worshipped among the Hakka ethnic group, the temple has been identified as highly significant in the study of traditional villages on the islands of Macao.",
+          "pt": "O Pagode de Sam Seng (Ká-Hó) foi construído no 9.º ano do reinado do imperador Guangxu da Dinastia Qing (1883). De acordo com a documentação histórica, o pagode original, de menores dimensões, era dedicado ao deus Hong Seng. Este pagode foi construído nos inícios do reinado do imperador Tongzhi da Dinastia Qing (década de 1860) e ter-se-á arruinado nos tempos de Guangxu, depois de 1875. Em 1883, foi construído um novo pagode dedicado não só ao culto de Hong Seng, como também ao culto de Tam Kong e Kuan Tai. O novo templo ficou conhecido como Pagode de Sam Seng, o que significa “Pagode dos Três Deuses”. Destes três deuses, Hong Seng é também conhecido como “Grande Rei do Mar do Sul”, ou “Hong Seng Ye”, um deus do mar muito afamado nas regiões litorais do sul da China, a quem a maioria dos pescadores e suas famílias prestam culto. A crença de Tam Kong é proveniente da cidade de Huizhou, na Província de Guangdong. O seu culto é popular entre os habitantes de Huizhou e também entre os pescadores. Kuan Tai (Guan Di ou Guan Yu), devido à sua fama de lealdade e rectidão, foi reverenciado por vários imperadores chineses, os quais lhe conferiram títulos por ordem imperial, levando à deificação de Kuan Tai e à difusão do seu culto por toda a China. Em 1908 e 1922, o Pagode de Sam Seng foi objecto de pequenas intervenções de restauro, incluindo a substituição do lintel de pedra da porta principal e a pintura dos frisos em baixo-relevo. O Pagode de Sam Seng (Ká-Hó) é um edifício constituído por dois pavilhões, medindo 4.5 metros de largura por 8.5 metros de comprimento, que apresenta a característica peculiar de não ter um pátio de separação entre os dois pavilhões, como é habitual nos templos tradicionais chineses. O pavilhão de entrada e o pavilhão principal estão ligados por um telhado de duas águas. A fachada principal é caracterizada por um alpendre que precede a entrada principal. As paredes exteriores apresentam um acabamento rebocado e pintado com uma imitação de alvenaria de tijolo cinzento. A decoração do pagode é simples, destacando-se os frisos pintados no topo das paredes do alpendre de entrada e os frisos em baixo-relevo no topo das empenas, que conferem um toque de leveza e elegância a todo o edifício. No passado, as actividades de culto no Pagode de Sam Seng eram muito populares, especialmente durante as festividades anuais do pagode, celebradas no 13.º dia do quinto mês do calendário lunar, nas quais eram organizados espectáculos de ópera cantonense para as divindades ou de teatro de marionetas para a população da aldeia de Ká-Hó. A Baía de Ká-Hó, em Coloane, onde está localizado o pagode, é também conhecida como Baía de Sam Seng, nome que deriva da existência do templo. A Povoação de Ká-Hó foi formada durante o período do reinado do imperador Qianlong da Dinastia Qing (entre 1735 e 1796), maioritariamente por emigrantes de etnia Hakka, sendo uma povoação insular cujos habitantes se dedicavam sobretudo à pesca e à produção agrícola. Actualmente, a Vila de Ká-Hó e a Vila de Hác-Sá são as duas únicas povoações de origem Hakka em Macau. O pagode constitui um importante centro religioso em Ká-Hó, sendo Tam Kong uma divindade amplamente venerada pela comunidade Hakka. Por conseguinte, este pagode reveste-se de grande importância para o estudo dos grupos étnicos de povoações tradicionais nas ilhas de Macau."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/1288411741",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-1288411745",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "大王廟",
+        "en": "Tai Wong Temple",
+        "pt": "Templo de Tai Wong"
+      },
+      "coordinates": [
+        113.56756,
+        22.119832
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MC006",
+        "description": {
+          "zh": "建於清光緒廿八年(1902年)，為離島廟宇中較小者，單一殿室，古樸簡陋，廟內供奉之洪聖大王，據說是村中的保護神。",
+          "en": "Constructed before 1902, Tai Wong Temple has only one chamber and is quite small compared to others in Coloane. Tai Wong, according to legend, protects the local residents.",
+          "pt": "Construído antes de 1902, o Templo de Tai Wong tem apenas uma câmara e é bastante pequeno, se compararmos com outros em Coloane. De acordo com a lenda, Tai Wong, é o Deus de Hung Seng e protector dos residentes locais."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/1288411745",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-192187333",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "媽閣廟",
+        "en": "A-Ma Temple (Barra Temple)",
+        "pt": "Templo de A-Má (Templo da Barra)"
+      },
+      "coordinates": [
+        113.531269,
+        22.186068
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM020",
+        "description": {
+          "zh": "又名媽祖閣，俗稱天后宮。一說始建於明弘治元年（1488年），一說建於明萬曆三十三年（1605年），是澳門最古老的廟宇。媽閣廟位於半島西端內港入口處，背山面海，主要由大門、牌坊、正殿、弘仁殿、觀音閣和正覺禪林組成，有石獅護門，飛簷凌空，饒有中國民族建築特色。各建築規模小而簡樸，外觀與自然環境相融，佈局錯落有致。除觀音閣供奉觀音外，正殿、弘仁殿和正覺禪林皆供奉媽祖。正殿號稱“神山第一殿”，以花崗石為主導，柱、樑、部分牆體及屋頂均以石材修築，門樑上刻有明朝重修時的記錄；位於正殿右方的正覺禪林則為樑架結構、院落式佈置；半山上的弘仁殿以山體石岩為後壁，屋頂牆身亦以花崗石圍合，內壁有金童玉女及天將浮雕，乃一僅三平方米的石室，據考為廟內最先落成之建築。山間石壁刻有不少名人雅士的題詞和詩句，是研究澳門歷史文化的珍貴資料。",
+          "en": "A-Ma, also known as Tian Hou (Heavenly Empress) is the Goddess of Seafarers. A-Ma Temple already existed before the city of Macao came into being. It is situated on the western slope of Barra Hill and consists the Gate Pavilion, the Memorial Arch, the Prayer Hall, the Hall of Benevolence, the Hall of Guanyin, and Zhengjiao Chanlin (a Buddhist pavilion). The various pavilions of A-Ma Temple were constructed at different times with the present-day configuration dating back to 1828. The Hall of Benevolence is believed to be the earliest structure, built around 1488. The Prayer Hall, also known as “The First Palace of the Holy Mountain”, was built in 1605, according to the inscriptions found on some of the stones at this site. Alongside the upward route leading to the Hall of Guanyin, there are engraved rocks that present inscriptions of poems about the history and culture of Macao.",
+          "pt": "A-Má, também conhecida por Tin Hou (Imperatriz Divina), é a Deusa protectora dos navegantes. O Templo de A-Má é anterior ao estabelecimento da cidade de Macau e encontra-se localizado na encosta poente da Colina da Barra, aonde se desenvolvem os pavilhões, incluindo o Pavilhão do Pórtico, o Arco Memorial, o Pavilhão de Orações, o Pavilhão da Benevolência, o Pavilhão de Guanyin e o Pavilhão budista Zhengjiao Chanlin. Os vários pavilhões datam de diferentes períodos, sendo que a configuração actual do templo é de 1828. Pensa-se que o Pavilhão da Benevolência é a estrutura mais antiga, datando de 1488. O Pavilhão de Orações, também conhecido por “Primeiro Palácio da Montanha Sagrada”, foi construído em 1605, de acordo com inscrições em algumas das pedras encontradas no local. Ao longo da encosta, no percurso que conduz ao Pavilhão de Guanyin, é possível encontrar várias rochas gravadas com a inscrição de poemas sobre a história e a cultura de Macau."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/192187333",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-192573688",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "玫瑰聖母堂",
+        "en": "St. Dominic’s Church",
+        "pt": "Igreja de S. Domingos"
+      },
+      "coordinates": [
+        113.540377,
+        22.194836
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM003",
+        "description": {
+          "zh": "創建於1587年，是多明我修會（道明會）在中國的第一座教堂。該堂初以木板搭建，華人稱之為“板障廟”，或稱“板樟堂”，因堂內供奉玫瑰聖母，故名“玫瑰堂”。1929年起，該堂又成為傳播葡萄牙花地瑪聖母崇拜的重地，每年5月13日舉行的花地瑪聖母巡遊，是本澳天主教重要節日活動之一。教堂建築富麗堂皇，立面四層，構圖形式對稱，第三層多明我修會會徽居中，顯得莊嚴神聖。內部建築平面呈巴西利卡式，有中廳和側廊。主祭壇深遠開闊，層叠的壁柱間以扭曲的麻花柱，精致的斷山花輔以蜿蜒的線腳，形成華美的巴洛克風格。教堂於1997年重修，其鐘樓的“聖物寶庫”收藏展示三百多件珍貴文物。",
+          "en": "This church was established in 1587 by three Spanish Dominican priests who originally came from Acapulco, in Mexico. It was originally built in wood, hence its naming in Chinese as Pan Cheong Tong meaning “Church of Wooden Planks”. This church is connected to the Brotherhood of Our Lady of the Rosary. In 1929, this church integrated the worship of Our Lady of Fatima into its religious service, based on the account of the miraculous sighting that three shepherd children witnessed in Fatima, Portugal. After its establishment in Macao, the popular belief of Our Lady of Fatima expanded to Shiu-Hing, Timor, Philippines, Singapore, Malacca and other regions. St. Dominic’s Church maintains the tradition of organizing a procession through the city, held on 13th May every year. The insignia of the Dominicans is displayed on the pediment that crowns the building façade. The building has a typical Basilican plan and presents some Baroque influences in the interior decorative elements. A three-storey high bell tower is located close to the sacristy area, where a small sacred art museum was installed during the restoration works of 1997.",
+          "pt": "Esta igreja foi fundada em 1587 por três padres Dominicanos Espanhóis, oriundos de Acapulco, México. A igreja foi originalmente construída em madeira, razão pela qual é denominada em Chinês por Pan Cheong Tong , que significa “Igreja das Placas de Madeira”. Esta igreja está ligada à Confraria de Na. Sra. Do Rosário. Em 1929, iniciou-se aqui o culto de Na. Sra. de Fátima, com base na visão miraculosa que três pastorinhos testemunharam em Fátima, Portugal. Depois do seu estabelecimento em Macau, este culto viria a ser divulgado para Shiu-Hing, Timor, Filipinas, Singapura, Malaca e outras regiões. A Igreja de S. Domingos mantém a tradição de organizar uma procissão pela cidade, todos os anos no dia 13 de Maio. A insígnia da Ordem Dominicana encontra-se representada no medalhão central que coroa a fachada principal. Seguindo uma planta Basilical, esta igreja apresenta algumas influências Barrocas nos elementos decorativos interiores. Na parte posterior do edifício, junto da zona da sacristia, há uma torre sineira de três pisos, aonde foi instalado um pequeno museu de arte sacra, aquando das obras de restauro de 1997."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/192573688",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-206105309",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "北帝廟",
+        "en": "Pak Tai Temple",
+        "pt": "Templo de Pak Tai"
+      },
+      "coordinates": [
+        113.555682,
+        22.152666
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MT005",
+        "description": {
+          "zh": "約建於清道光廿四年(1844年)。廟中供奉北帝。傳說北帝是北方神，又稱玄武帝，廟中可見北帝腳踏龜蛇而坐。廟內除供奉北帝外，還供奉華光、金花、關帝、財帛星君及魯班諸神。廟內鐘鼎及神台等處可見“龍頭環”、“龍環” 及“潭仔”等字，都是氹仔舊稱。 建築特色: 該廟建築規模較路氹其他廟宇為大，作二進三間的佈局。正門椽樑及簷拱處除繪有七彩壁畫外，更有雕刻裝飾。廟內正殿左右楹聯均書“北方 武玄天上帝”等字樣。",
+          "en": "The Temple was constructed in around 1844. Legend has it that Pak Tai is the God of the North and is symbolised by a tortoise and a snake. In the temple, one can see that Pak Tai is seated with his feet on the tortoise and the snake. The temple is also dedicated to Va Kuong (God of Fire), Kum Fa (Goddess of Golden Flowers, patron of children), Kuan Tai (God of War and Wealth), Choi Bak (God of Wealth) and Lu Ban (God of Carpenters). Chinese characters reading “Long Tao Wan” carved onto the tripod and altar indicate the old name for Taipa. Architectural characteristics: Pak Tai Temple consists of three parallel chambers and is larger than most of the other temples on Taipa and Coloane. On the lintel over the main entrance there are frescoes and carvings. Inside the temple hangs a large wooden tablet carved with the Chinese characters meaning “The God of the North”.",
+          "pt": "Este templo foi construído por volta de 1844. Segundo a lenda, Pak Tai é o Deus do Norte, simbolizado por uma tartaruga e uma serpente. No interior podemos ver Pak Tai sentado com os pés sobre ambos os animais. Mas este santuário é também dedicado a Va Kuong (Deus do Fogo), Kum Fa (Deusa das Flores Douradas –Protectora das Crianças), Kuan Tai (Deus da Guerra e das Riquezas), Choi Bak (Deus da Fortuna) e Lu Ban (Deus dos Carpinteiros). Os caracteres chineses “Long Tao Wan”, gravados no tripé e no altar, significam o antigo nome da Taipa. Características arquitectónicas: O Templo de Pak Tai é composto por três câmaras horizontais e é maior do que qualquer dos outros tempos da Taipa ou Coloane. No lintel da entrada principal existem frescos e altos relevos. Dentro do templo existe uma grande tabuleta de madeira pendurada, onde se lê uma gravação em chinês que diz: “O Deus do Norte”."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/206105309",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-206824034",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖若瑟勞工主保堂",
+        "en": null,
+        "pt": "Igreja de São José Operário Cartório"
+      },
+      "coordinates": [
+        113.551418,
+        22.21269
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/206824034",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-229184934",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "路環聖方濟各聖堂",
+        "en": "St. Francis Xavier’s Church (Coloane)",
+        "pt": "Igreja de S. Francisco Xavier"
+      },
+      "coordinates": [
+        113.55147,
+        22.116918
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MC001",
+        "description": {
+          "zh": "該教堂原址為1904年嘉諾撒女修會管理的育嬰院。1928年為紀念耶穌會西班牙傳教士聖方濟各．沙勿略(Sao Francisco Xavier)改建成今天的教堂，並因曾收藏過該傳教士的遺髑及1835年大三巴聖堂火災後遺下的59位日本籍及14位越南籍死者的部分骸骨而聞名。該教堂內如今仍有聖方濟各．沙勿略的雕像。而掛在側堂牆壁上具華人相貌的女神像，懷抱嬰孩，實際上是中國化的聖母，是中西文化交融的證明。 建築特色: 教堂呈奶黃色，兩層高，鐘樓位於第三層中間，頗具葡式建築風格。教堂除正堂外還有左右兩間側室。",
+          "en": "The church was originally a nursery under the Canossian Sisters. In 1928, the church was reconstructed in commemoration of the the missionary St. Francis Xavier, and for many years it held a relic of the saint along with relics of 59 Japanese and 14 Vietnamese martyrs. The church still contains a statue of St. Francis Xavier. A picture hanging on the transept wall –a traditional image of a Chinese goddess with a baby in her hands, a Chinese version of the Virgin Mary– reflects cultural interchange between East and West. Architectural characteristics: The church is a simple two-storey milky yellow building with a belfry in the middle of the third floor. On each side of the main hall is a small room.",
+          "pt": "Esta igreja foi, originalmente, uma enfermaria gerida palas irmãs Canossianas. Em 1928, a igreja foi reconstruída em homenagem a São Francisco Xavier. No seu interior é possível encontrar uma imagem do Santo. Uma pintura no interior – a imagem tradicional de uma deusa chinesa segurando um bebé que é, de facto, a versão chinesa da Virgem Maria – constitui uma prova substancial do intercâmbio cultural entre o Oriente e o Ocidente. Características arquitectónicas: A igreja é um edifício de traça simples, com três andares, pintado de amarelo claro. O campanário fica ao meio do terceiro andar. Existem ainda duas câmaras, situadas uma de cada lado da nave principal."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/229184934",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-229191940",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "媽祖文化村",
+        "en": "A-Ma Cultural Village",
+        "pt": "Aldeia Cultural de A-Ma de Coloane"
+      },
+      "coordinates": [
+        113.562761,
+        22.122922
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/229191940",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-229205163",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "竹灣聖若瑟靜院",
+        "en": "Vila São José",
+        "pt": null
+      },
+      "coordinates": [
+        113.562952,
+        22.11314
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/229205163",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-229290411",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "九澳七苦聖母小堂",
+        "en": "Nossa Senhora Village (Our Lady of Sorrows Church)",
+        "pt": "Vila de Nossa Senhora (Igreja de Nossa Senhora das Dores)"
+      },
+      "coordinates": [
+        113.58932,
+        22.132477
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "AC002",
+        "description": {
+          "zh": "九澳聖母村建立於1964年，由原九澳痲瘋院舍、七苦聖母小堂及其他附屬構築物組成，是澳門僅存的、最後一所關閉的痲瘋病院遺址。 澳門的漢生病防治始於十六世紀，1568年賈尼路神父（D. Belchior Carneiro）在其創辦的澳門仁慈堂下開設了痲瘋病院，由於隔離治療的需要，爾後選址於城牆外（今望德堂）設立治療痲瘋病的診院，至十九世紀中後期，由於城市發展，澳葡政府再次將痲瘋院遷往橫琴白沙欄。1883年白沙欄的痲瘋院被颱風摧毀後，並為了分開男女患者，澳葡政府乃在白沙欄和路環九澳建設新的痲瘋院，1885年竣工的九澳痲瘋院則為專門收容女性痲瘋病患的院舍（即現址前身）。 1929年澳葡政府擴建九澳痲瘋院，新院舍於1930年落成，九澳痲瘋院雖然由澳葡政府管理及承擔經費，但天主教澳門教區長期關心漢生病患的生活狀況，在照顧工作上承擔了重要作用，早在二十世紀初已經有神職人員定期前往探視、護理的記錄。 1963年慈幼會胡子義神父赴九澳痲瘋院服務，同時倡議改名為“聖母村”（Vila de Nossa Senhora）。後在羅馬教宗保祿六世、澳葡政府和澳門教區的幫助之下籌建痛苦之母天主堂（Igreja Nossa Senhora das Dores，因奉獻給七苦聖母又稱七苦聖母小堂）並於1966年落成，教堂正立面上的十架苦像由意大利著名雕刻家Francisco Messina設計，而原小禮拜堂則改為康樂室。 七苦聖母小堂由意大利建築商夏剛志負責建造，造型簡約獨特，為鋼筋混凝土磚砌建築，建築具有強烈的現代幾何設計語言，平面為矩形，立面呈三角形，教堂屋頂由8組具排水功能的斜樑支撐，將教堂分為七個部分，與“七苦”的意思相對應，室內沒有立柱，形成寬敞空間，主祭台和聖體櫃放置在北側的中央位置，其上方設計有透光的窗洞，光線通過其後方的鐘樓投射於室內。七苦聖母小堂是本澳首間遵從梵蒂岡第二次大公會議（簡稱梵二）後對教堂內部裝飾和佈置之革新主張的教堂，包括以十字架替代了聖體櫃和神龕式聖像的位置，祭台面向教友，設計風格簡潔且置於聖堂的中心，教友座席以扇形分佈，環繞祭台，縮短教友與主祭之間的距離。",
+          "en": "The Nossa Senhora village, founded in 1964, consists of the former Ká Hó Leprosarium, Our Lady of Sorrows Church and other affiliated structures. It is the only existing site of a leprosarium in Macao, which also happens to be the site of the last leprosarium in the city to cease operation. The prevention and treatment of leprosy in Macao began from the 16th century. In 1568, father D. Belchior Carneiro opened a leprosarium affiliated to the Holy House of Mercy, an organisation also founded by him. Later, due to the requirements for isolation treatment, a clinic dedicated to treating leprosy was established outside the city walls (now St. Lazarus Church). By the middle to late 19 th century, in view of urban development, the then Portuguese government of Macao once again moved the leprosarium to Pac-Sa-Lan in Hengqin, which, however, was destroyed by a typhoon in 1883. To separate male and female lepers, the government then built a new leprosarium in both Pac-Sa-Lan and Ká Hó, Coloane. The Ká Hó Leprosarium completed in 1885 was designated for female lepers (predecessor of the site). In 1929, the Portuguese government of Macao expanded the Ká Hó Leprosarium and the new complex was completed in 1930. Although the government was responsible for managing and financing the Ká Hó Leprosarium, the Catholic Diocese of Macau had always paid attention to the living conditions of lepers and played an important role in caring for them, as documented in the records about clergy members’ regular visits to the leprosarium to provide nursing services as early as the early 20 th century. In 1963, Father Gaetano Nicosia from Salesians of Don Bosco started serving in the Ká Hó Leprosarium and suggested renaming it ‘Nossa Senhora Village’ (Vila de Nossa Senhora). Later, the church ‘Igreja de Nossa Senhora das Dores’ was built and completed in 1966 with the support of Pope Paul VI, the Portuguese government of Macao and the Catholic Diocese of Macau, and was known as Our Lady of Sorrows Church for being dedicated to the Seven Sorrows of the Blessed Virgin Mary. The crucifix featured in the façade of the church was designed by the famed Italian sculptor Francisco Messina and the chapel was reused as a recreation room. Our Lady of Sorrows Church was built by Italian architect Oseo Acconci with a simple and unique appearance. Built with reinforced concrete, the church features a modern geometric design with a rectangular layout and a triangular façade. The roof is supported by eight sets of cant beams, which divide the church into seven parts as well as assisting drainage, corresponding to the implication of ‘seven sorrows’. The church has a spacious interior without columns. The high altar and the tabernacle are placed in the middle north of the church, and the window opening above allows sunlight into the church through the bell tower at the back. Our Lady of Sorrows Church is the first in Macao that has followed the reforms proposed by the Second Vatican Council (Vatican II) regarding the interior decoration and arrangements of churches, such as placing the cross at the original location of the tabernacle and the niche statue, adopting a simple design for the altar and placing the altar in the centre of the church facing the congregation, and arranging the congregation seats in the fan shape to encircle and bring the congregation closer to the high altar.",
+          "pt": "A Vila de Nossa Senhora é composta pela antiga Leprosaria de Ká-Hó, a Igreja de Nossa Senhora das Dores e outras construções acessórias, sendo a única ruína de uma antiga leprosaria que que se conservou até ao pesente em Macau. A história da prevenção e tratamento da lepra em Macau começou no século XVI. Em 1568, o Bispo D. Belchior Carneiro criou uma leprosaria dependente da Santa Casa da Misericórdia de Macau. Devido às necessidades de tratamento em isolamento, a leprosaria foi localizada no exterior das muralhas da cidade (actualmente, o Bairro de São Lázaro). Em consequência do desenvolvimento urbano de Macau na segunda metade do século XIX, os leprosos foram transferidos para Pac Sa Lan, na Ilha da Montanha. Em 1883, após a destruição da leprosaria de Pac Sa Lan por um tufão, e também devido à necessidade de separar os doentes masculinos e femininos, o governo português de Macau construiu novas leprosarias em Pac Sa Lan e em Ká-Hó, Coloane. A Leprosaria de Ká-Hó, concluída em 1885, acolhia exclusivamente doentes do sexo feminino (na actual localização). Em 1963, a Sociedade de São Francisco de Sales destacou o padre Fr. Gaetano Nicosia para prestar serviços na leprosaria. Sob a sua iniciativa, o local mudou de nome, passando a designar-se “Vila de Nossa Senhora”. Mais tarde, graças às ajudas do Papa Paulo VI, do Governo de Macau e da Diocese de Macau, construiu-se uma nova Igreja dedicada a Nossa Senhora das Dores, que foi inaugurada em 1966. A antiga Capela foi transformada numa sala recreativa. A Igreja de Nossa Senhora das Dores insere-se na arquitectura religiosa do Movimento Moderno internacional, revelando influências da experimentação espacial presente em igrejas construídas após o Concílio do Vaticano II (1961-65). As modificações da liturgia implementadas pelo concílio reflectem-se em novas concepções do espaço religioso, destacando-se o novo posicionamento do altar, no centro da Assembleia. A Igreja de Nossa Senhora das Dores, de Ka-Hó, primeiro exemplo de arquitectura religiosa pós-conciliar em Macau, construída pelo empreiteiro italiano Oseo Acconci, foi concebida como um grande salão organizado em torno do altar. O corpo principal da igreja apresenta uma inusitada secção triangular, acentuada pela expressividade da estrutura de betão armado que se prolonga até ao solo. O conjunto é rematado pela presença da torre sineira, colocada ao centro do alçado Norte, marcando o posicionamento interno do altar. Junto ao alçado Nascente localiza-se uma dependência anexa de apoio aos serviços religiosos. O alçado Poente, originalmente voltado ao mar, reflecte de forma despojada o perfil triangular da nave, apresentando um janelão circular sobre a porta da entrada e é encimado por um crucifixo concebido pelo escultor italiano Francisco Messina, colocado sobre o vértice do triângulo. A Igreja revela ainda no acabamento dos espaços interiores e exteriores, a procura de uma austeridade formal modernista, definindo cores e texturas com recurso a materiais sóbrios e autênticos como o betão aparente, o tijolo e o mosaico."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/229290411",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-230576209",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖母雪地殿教堂",
+        "en": "Chapel of Guia",
+        "pt": "Capela de Nossa Senhora da Guia"
+      },
+      "coordinates": [
+        113.549678,
+        22.196596
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/230576209",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-241618736",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "青洲避靜院",
+        "en": null,
+        "pt": "Casa Retiro"
+      },
+      "coordinates": [
+        113.537202,
+        22.210493
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/241618736",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-265429440",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "普濟禪院 (觀音堂)",
+        "en": "Pou Chai Temple (Kun Iam Tong)",
+        "pt": "Templo de Pou Chai (Kun Iam Tong)"
+      },
+      "coordinates": [
+        113.55053,
+        22.204424
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM023",
+        "description": {
+          "zh": "普濟禪院是澳門三大古剎之一，創建時間未知；現時廟內存有一口崇禎五年(1632年)的鐵鐘，可見其歷史悠久。禪院其後於嘉慶廿三年(1818年)和咸豐八年(1858年)兩度重修擴建，形成今天的規模。正殿第一進為大雄寳殿，第二進為長壽殿，第三進為觀音殿，分別供奉三寳佛、彌勒佛和觀音菩薩等十數尊各方神祇。 中國嶺南畫派大師高劍父在抗日戰爭時期曾經寓居於禪院內，作畫授徒。1844年7月3日，中美兩國於普濟禪院內簽訂《望廈條約》。 普濟禪院整體佔地廣闊，除了正殿之外，還有偏殿，以及方丈、頌恩等堂室，後山有花園和碑廊。",
+          "en": "This is one of the three oldest temples in Macao. According to an inscription found in an iron bell, with the date of 1632, it’s possible to estimate the age of this temple. Restoration works were performed in 1818 and 1858, contributing towards the present day form of the complex. The first pavilion that is found alongside the main axis of the entrance is the temple of Tai Hong Pou Tin, the second is that of Cheong Sau Tin and the third is dedicated to Kun Iam Tin. The great master of Chinese painting from the Leng Nam School, Kou Kim Fu lived here during the Chinese People's War of Resistance Against Japanese Aggression and taught painting techniques. On 3 July 1844, China and the United States signed the Treaty of Wangxia at Pou Chai Temple (Kun Iam Tong). The land where this temple is located has a very extensive area. In addition to the central pavilions, there are also side pavilions, as well as a garden, in the backyard, where it’s possible to find a group of memorial stones with inscriptions. Architectural characteristics: The temple occupies a large area and consists of three sets of three parallel chambers. Besides the main temple area, there are the side halls and rooms for religious activities and behind the temple there is a garden and a memorial hall.",
+          "pt": "Este é um dos três templos mais antigos de Macau. Segundo uma inscrição encontrada num sino de ferro pode-se ler a data de 1632, dando indicação sobre a antiguidade deste templo. Em 1818 e 1858, foram efectuadas obras de restauro, que contribuíram para a consolidação da forma actual do complexo. O primeiro pavilhão que se encontra no seguimento do eixo da entrada é o templo de Tai Hong Pou Tin, o segundo é o de Cheong Sau Tin e o terceiro é o de Kun Iam Tin. O grande mestre de pintura Chinesa da Escola Leng Nam, Kou Kim Fu viveu neste local durante a Guerra de Resistência do Povo Chinês contra a Agressão Japonesa e ensinava técnicas de pintura. No dia 3 de Julho de 1844, a China e os Estados Unidos da América assinaram o Tratado de Wangxia no Templo de Pou Chai (Kun Iam Tong). O terreno aonde se encontra este templo tem uma área bastante extensa. Em aditamento aos pavilhões centrais, existem também pavilhões laterais, bem como um jardim, na parte posterior, aonde se encontra um conjunto de rochas e lápides com inscrições. Características arquitectónicas: O templo ocupa uma grande área e é composto por três átrios verticais, incluindo, cada um, três átrios horizontais. Para além do átrio principal, existem outros nas alas e salas para actividades religiosas. Nas traseiras do templo encontra-se um jardim com um arco comemorativo."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/265429440",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-279952093",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖老楞佐堂",
+        "en": "St. Lawrence’s Church and forecourt",
+        "pt": "Igreja de S. Lourenço e adro"
+      },
+      "coordinates": [
+        113.536751,
+        22.190671
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM005",
+        "description": {
+          "zh": "聖老楞佐教堂是耶穌會會士於1560前建造的，是澳門天主教最古老的教堂之一。初時為簡陋木屋，目前的規模則形成於1846年，並由本澳建築師多馬斯．亞奎諾設計重修，該堂主保聖人為聖老楞佐。在南灣海灘未開發之前，其建築主體矗立海邊，葡籍水手的家人常齊集在聖堂前的石梯間，靜候出海之人平安歸來；為此，華人又稱之為“風順堂”。聖老楞佐教堂為新古典建築，堂內陳設雅致，氣度非凡；四周的彩窗上，《聖經》題材圖案與現代造型相互結合，錯綜複雜與簡潔明快互補，使之雖位處鬧市，卻不失其寧靜清幽。",
+          "en": "Originally built by the Jesuits before 1560, this is one of the oldest churches of Macao. The present-day building was the result of the works carried out in 1846, following the project of local Macanese Architect Tomás D’Aquino. Before the development of Praia Grande Bay, the building used to have a direct view towards the riverside and families of Portuguese sailors used to gather on the front steps of the church to await for their safe return, reason why this church is also known as Feng Shun Tong in Chinese, which means “Hall of the Soothing Winds”. St. Lawrence’s Church is a neo-classical building. The church also presents a rare local collection of stained coloured glass windows depicting biblical themes, amidst other decorative elements that contribute towards a rich welcoming interior.",
+          "pt": "Construída pelos Jesuítas antes de 1560, esta é uma das igrejas mais antigas de Macau. O edifício actual é o resultado das obras efectuadas em 1846, seguindo o projecto do Arquitecto Macaense Tomás d’Aquino. Antes do desenvolvimento da Baía da Praia Grande era possível avistar o rio a partir desta igreja e as famílias dos marinheiros Portugueses costumavam reunir-se na sua escadaria principal, aguardando o regresso dos seus entes queridos. Esta é razão pela qual esta igreja também é conhecida em Chinês por Feng Shun Tong , que significa “Igreja dos Ventos Calmos”. A Igreja de S. Lourenço é um edifício predominantemente neoclássico, apresentando uma rara colecção de janelas com vitrais coloridos representando cenas bíblicas, entre outros elementos decorativos que conferem ao espaço interior um ambiente bastante acolhedor."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/279952093",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-319660135",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "馬禮遜教堂",
+        "en": "Morrison Chapel",
+        "pt": "Capela Protestante de Macau"
+      },
+      "coordinates": [
+        113.53991,
+        22.199752
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/319660135",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-319660137",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖安多尼堂 (花王堂)",
+        "en": "St. Anthony’s Church and forecourt",
+        "pt": "Igreja de St.º António e adro"
+      },
+      "coordinates": [
+        113.539576,
+        22.198942
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM002",
+        "description": {
+          "zh": "澳門三大古老教堂之一 ，始建於1560年前，是耶穌會會士最初駐紮在澳門之地。教堂奉聖安多尼為主保，以往葡人婚禮多在此舉行，信徒皆身着白袍，手擁花枝，故又有“花王堂”之稱。教堂多次毀於火災而後重修，教堂於1875年重建而形成現在的面貌，外觀水刷石飾面則為1930年改建而成。教堂正立面為新古典主義風格，而室內祭壇則為巴洛克風格。",
+          "en": "First built before 1560, this is one of the oldest churches in Macao, also marking the site where the Jesuits first set up their original headquarters in the city. The church was rebuilt in 1875, when it acquired its present-day configuration. In 1930, the building’s exterior was covered with a grainy “shanghai-plaster”. The church has a neo-classical façade and Baroque influenced interior, exemplified in the elaborate design of the main altar. In the past, this church was very popular among the local Portuguese community, particularly for wedding ceremonies, giving rise to the Chinese name of Fa Vong Tong, meaning “Church of Flowers”.",
+          "pt": "Construída antes de 1560, esta é uma das igrejas mais antigas de Macau, assinalando o local aonde os Jesuítas se instalaram originalmente na cidade. A igreja foi reconstruída em 1875, altura em que assumiu a configuração que tem actualmente. Em 1930, as paredes exteriores foram revestidas com reboco do tipo “shanghai-plaster”. A igreja é essencialmente neoclássica com alguma influência barroca na decoração interior, particularmente no altar-mor. No passado, esta igreja era muito procurada pela comunidade Portuguesa para a celebração de casamentos, razão pela qual ainda é hoje conhecida pela designação em Chinês Fa Vong Tong , que significa “Igreja das Flores”."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/319660137",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-322228650",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "三婆廟",
+        "en": "Sam Po Temple",
+        "pt": "Templo de Sam Po"
+      },
+      "coordinates": [
+        113.559434,
+        22.155537
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MT007",
+        "description": {
+          "zh": "建於清道光廿五年(1845年)，初時衹為一天然石室，後由當地漁民商家集資，於咸豐九年(1859年)加建殿室，同治三年(1864)重修。廟內供奉三婆，相傳是天后第三姊，是海上保護神，甚受漁民尊崇。 建築特色: 該廟建於一大岩石上，而整塊岩石又處於廟內，並在岩石上鑿一壁龕，作為祭台。廟的外部建築具有中國南方傳統建築特色：門前瓦簷下的字畫彩繪雕塑，雙扇對開棕漆大門，橫連五廂的磚壁瓦甕，均令人感到古趣盎然。",
+          "en": "The temple was built in 1845 based on the shape of a natural cave. The local fishermen raised funds to build a temple there in 1859 and reconstructed it in 1864. Sam Po, who is worshipped in the temple, is said to be the third sister of Goddess Tin Hau (Goddess of Heaven). Sam Po was first known for helping people to defeat the pirates and was very much respected by the fishermen. Architectural characteristics: The temple is built on a huge rock, immersed completely within the temple. The rock is a sacrificial stone in which a shrine was carved. The exterior of the temple is of traditional South China architecture style – the calligraphy and paintings, coloured drawings and sculptures under the roof tiles in front of the door, double-leaf doors painted in brown, and the brick walls and tiled roofs of the five horizontal halls – reflect the artistic skills of the region.",
+          "pt": "O templo inicial foi instalado em 1845 aproveitando uma gruta natural. Em 1858 os pescadores locais fizeram uma recolha de fundos para aí construírem um templo, depois renovado em 1864. Sam Po, que também é venerada neste templo, crê-se ser a terceira irmã da Deusa Tin Hao (Deusa do Céu). Sam Po ficou conhecida por, segundo se diz, ter ajudado o povo a derrotar os piratas e é por isso muito respeitada pelos pescadores., , Rua de Fernão Mendes Pinto, Taipa, O templo é construído sobre uma enorme rocha que ficou completamente imersa pela estrutura edificada. Esta rocha era um altar de sacrifícios na qual foi escavado um relicário. Foi concebido de acordo com as regras arquitectónicas tradicionais do Sul da China, e a caligrafia e as pinturas, os desenhos coloridos e as esculturas sob o alpendre bem como as portas duplas, os tijolos e as telhas que cobrem os cinco átrios deste santuário revelam as qualidades artísticas de uma época distante. Características arquitectónicas: O templo é construído sobre uma enorme rocha que ficou completamente imersa pela estrutura edificada. Esta rocha era um altar de sacrifícios na qual foi escavado um relicário. Foi concebido de acordo com as regras arquitectónicas tradicionais do Sul da China, e a caligrafia e as pinturas, os desenhos coloridos e as esculturas sob o alpendre bem como as portas duplas, os tijolos e as telhas que cobrem os cinco átrios deste santuário revelam as qualidades artísticas de uma época distante."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/322228650",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-322228684",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "觀音堂",
+        "en": "Kun Iam Tong Temple(Taipa)",
+        "pt": "Templo de Kun Iam (Taipa)"
+      },
+      "coordinates": [
+        113.557779,
+        22.153282
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MT002",
+        "description": {
+          "zh": "一座小型廟宇，建於光緒二十八年（1902年），室中只供奉一尊觀音神像。",
+          "en": "This plain simple temple was built in 1902. Inside the temple stands a statue of Goddess Kun Iam (Goddess of Mercy).",
+          "pt": "Este singelo e despretensioso templo foi construído em 1902. No interior podemos encontrar a imagem da Deusa Kun Iam (Deusa da Misericórdia)."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/322228684",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-322228685",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "醫靈廟",
+        "en": "I Leng Temple",
+        "pt": "Templo de I Leng"
+      },
+      "coordinates": [
+        113.558596,
+        22.153898
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MT004",
+        "description": {
+          "zh": "該廟建於1900年。廟內供奉醫靈大帝，即是古代醫術高明、藥學精湛的醫師和藥師的化身。廟內正堂懸掛一橫匾，上書︰ “奉揚仁風”，是該廟創建時鏡湖醫院所贈。 建築特色: 該廟由前後兩殿組成，中隔天井，後殿為神像和祭壇所在之處。廟大門是一道趟櫳門，在今天澳門經已少見。",
+          "en": "The temple was built in 1900 where I Leng (the God of Medicine), is worshipped. I Leng is the embodiment of an ancient physician whose skills and medical knowledge were renowned. Architectural characteristics: The temple consists of a front hall and rear chamber separated by a courtyard. The statue and altar are kept in the rear chamber. The vintage sliding gate, made of thick logs, is a rare relic in Macao today.",
+          "pt": "Este templo foi construído em 1900 e dedicado a I Leng (Deus da Medicina). Diz-se que I Leng é a personificação de um antigo médico com grandes conhecimentos de medicina. Características arquitectónicas: O templo é composto pelo átrio frontal, um átrio traseiro e um pátio central. A estátua e o altar estão no átrio traseiro. A antiga porta deslizante, feita de grossos toros de madeira é uma relíquia rara em Macau."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/322228685",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-322228686",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "關帝廟",
+        "en": "Temple of Kuan Tai and Tin Hau",
+        "pt": "Templo de Kuan Tai e Tin Hau"
+      },
+      "coordinates": [
+        113.558521,
+        22.162011
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MT008",
+        "description": {
+          "zh": "建於約清康熙(1662-1723年)初年，今廟內尚存兩副道光十七年(1837年)的對聯。 建築特色: 該廟建築一列三間，中間為主殿武帝殿，供奉關帝；右邊為天后宮，供奉天后；左邊一間為廟祝寓所。武帝殿與天后宮雖然分為兩個門口出入，但廟內相通。",
+          "en": "The temple was constructed between 1662-1723. Couplets dating back to 1837 recall the temple’s history. Architectural characteristics: This fairly small temple has three chambers. The central chamber is the Hall of Kuan Tai (God of Loyalty and Bravery), to the right is the Temple of the Goddess Tin Hau (Goddess of Heaven) and a room for the temple keeper is on the left side. Although there are two different entrances for the Hall of Kuan Tai and the Temple of Tin Hau, there is an interconnecting corridor.",
+          "pt": "Este templo foi construído entre 1662 e1723. Coplas antitéticas datadas de 1837 relembram a História daqueles tempos. Características arquitectónicas: Composto por três corpos, não se trata de um templo muito grande. O corpo central é dedicado a Kuan Tai (Deus da Lealdade e Bravura), ficando à sua direita a ala dedicada à Deusa Tin Hau (Deusa do Céu), sendo o corpo à esquerda destinado a albergar o guarda do templo. Existem duas entradas independentes para cada uma das câmaras, de Kuan Tai e Tin Hau, estando ambas interligadas por uma passagem."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/322228686",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-330368426",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "主教座堂 (大堂/聖母誕辰主教座堂)",
+        "en": "Cathedral",
+        "pt": "Igreja da Sé Catedral"
+      },
+      "coordinates": [
+        113.541528,
+        22.193495
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM006",
+        "description": {
+          "zh": "又名“望人寺”或“大廟”，是天主教澳門教區主教堂，開埠以來，澳門總督都習慣在主教座堂舉行就職禮。建築約於1622年，以三合土修建，於1844至1850年由澳門土生建築師設計重建。今日的大堂，是1937年再次重建的面貌，外形莊嚴純潔，內部淸麗簡約，一派新古典主義風格。教堂正門入口處門楣的石刻拉丁文字“SS.M.V. MARIAE NASCENTI” ， 意即“本座堂奉獻給童貞瑪利亞的誕生”。",
+          "en": "Built around 1622, the Cathedral was originally constructed in taipa, a compound material consisting of clay and straw that is compacted in a timber frame. The church was reconstructed between 1844-1850, according to the design of Macanese Architect Tomás D’Aquino. The present-day configuration is the result of the reconstruction works carried out in 1937. In the old days, the Governors of Macao used to accept their official posts in the context of a public ceremony that was celebrated in the Cathedral. Above the main entrance we can see the Latin inscription “SS.M.V.MARIAE NASCENTI” corresponding to the dedication of the Cathedral to the Virgin Mary.",
+          "pt": "Construída por volta de 1622, a Igreja da Sé era originalmente de taipa, um material composto de terra e palha compactada entre uma estrutura de tábuas. A igreja foi reconstruída em 1844-1850, seguindo o desenho do Arquitecto Macaense Tomás D’Aquino. O aspecto actual da igreja é o resultado das obras de reconstrução levadas a cabo em 1937. Antigamente, os Governadores de Macau costumavam tomar posse dos seus cargos no contexto de uma cerimónia que era celebrada no interior da Catedral. Acima da entrada principal pode-se ver a inscrição “SS. M. V. MARIAE NASCENTI” que corresponde à dedicação da catedral à Virgem Maria."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/330368426",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-331666100",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "嘉模聖母堂",
+        "en": "Our Lady of Carmel Church",
+        "pt": "Igreja de N.ª Sr.ª do Carmo"
+      },
+      "coordinates": [
+        113.558778,
+        22.153502
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MT001",
+        "description": {
+          "zh": "1885年為方便氹仔教徒的宗教活動而建，同時象徵當年葡萄牙人來到氹仔。該教堂是氹仔唯一的天主教堂。由於與周圍具有濃郁歐陸風格的花園、房屋融為一體，遂成為澳門居民舉行婚禮和郊遊觀光的好去處。 建築特色: 教堂佔地二千餘平方呎，頂部為鐘樓。禮堂高大寬敞，可容二百多教友同時參加儀式；聖壇上置聖母像，據說是從歐洲運來；其兩側有數呎高的天使像，造型栩栩如生，是為紀念建堂百週年而置。",
+          "en": "Built in 1885, the church was constructed to serve the Catholics who lived in Taipa at the time. It also marked the arrival of the Portuguese to Taipa and remains the only Catholic church there today. The church and the surrounding buildings are neoclassical in design and the area is popular for wedding ceremonies and sightseeing. Architectural characteristics: Covering approximately 2,000 square feet, the spacious hall can accommodate over two hundred worshippers. A statue of the Blessed Virgin Mary stands on the altar which allegedly was brought from Europe. Statues of angels that are several feet high flank the altar, added to commemorate the centenary of the church.",
+          "pt": "Construída em 1885, esta igreja foi erigida para servir a comunidade católica residente na Taipa naquela época. Marcou a chegada dos Portugueses à Taipa e mantém-se como a única a igreja católica da ilha. A igreja e as casas circundantes são ao estilo europeu. O local é muito popular para a celebração de casamentos e passeios. Características arquitectónicas: Cobrindo uma área de aproximadamente 186 m2, esta igreja de rara beleza inclui um campanário. De concepção solene, espaçosa, pode acomodar mais de duzentos devotos em simultâneo. O altar é presidido por uma imagem da Virgem Maria que foi, alegadamente, trazida da Europa. O altar é ainda flanqueado por imagens de anjos, que aí foram colocados para celebrar o centésimo aniversário da igreja."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/331666100",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-333975736",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "天后古廟",
+        "en": "Tin Hau Temple",
+        "pt": "Templo de Tin Hau"
+      },
+      "coordinates": [
+        113.551875,
+        22.115276
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MC003",
+        "description": {
+          "zh": "今廟內有一口乾隆廿八年(1763年)的古鐘，證明該廟最少有二百多年的歷史。該廟橫連三間，前後兩進，由四方亭隔開。廟內除了供奉天后外，還供奉關帝、財帛星君、魯班、華佗諸神。廟門外有一對雕刻精巧的石獅，另有一架木製水車，為路環居民百年前(約清光緒年間)救火之用，現已送博物館展出。",
+          "en": "It was said that this temple was constructed in 1677. The date on the iron bell in the temple, 1763, leads us to believe that the temple has a history dating back at least two hundred years. The temple has three parallel halls, with two blocks –one in the front and another at the back– separated by pavilions. Besides Goddess Tin Hau (Goddess of Heaven), other deities including Kuan Tai (God of War and Wealth), Lu Ban (God of Carpenters), Choi Bak (God of Wealth) and Hua Tuo (God of Medicine) are also worshipped here. A pair of delicate rock lions stand outside the temple. The temple originally kept a wooden water cart that was used as a fire truck by Coloane residents a hundred years ago.",
+          "pt": "Diz-se que este templo foi construído em 1677 mas, gravada no sino de ferro localizado no seu interior, lê-se a data de 1763. Tudo isto leva-nos a acreditar que terá uma história com, pelo menos, duzentos anos. O templo tem três átrios horizontais compostos por dois blocos – um na frente e o outro na parte traseira separados por pavilhões. Para além da Deusa Tin Hau (Deusa dos Céus), existem outras entidades veneradas neste santuário onde se incluem Kuan Tai (Deus da Guerra e das Riquezas), Lu Ban (Deus dos Carpinteiros), Choi Bak (Deus da Riqueza) e Hua Tuo (Deus da Medicina). Na entrada, duas delicadas esculturas de leões guardam o templo. Originalmente aqui se albergava um carro de madeira que era utilizado pelos habitantes de Coloane, há centenas de anos, para combater os incêndios. Este primitivo autotanque encontra-se agora num museu."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/333975736",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-347303893",
+      "category": "mosque",
+      "kind": "mosque",
+      "name": {
+        "zh": "澳門伊斯蘭清真寺及墳場",
+        "en": null,
+        "pt": "Mesquita e Cemitério de Macau"
+      },
+      "coordinates": [
+        113.554623,
+        22.202795
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/347303893",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-367209085",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖依撒伯爾靜修院",
+        "en": "Vila de Santa Isabel",
+        "pt": "Vila de Santa Isabel"
+      },
+      "coordinates": [
+        113.555664,
+        22.11797
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/367209085",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-389129453",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖奧斯定教堂",
+        "en": "St. Augustine’s Church",
+        "pt": "Igreja de St.º Agostinho"
+      },
+      "coordinates": [
+        113.538399,
+        22.192325
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM001",
+        "description": {
+          "zh": "由奧斯定會修士於1591年創建。最初建築簡陋，覆蓋屋頂的蒲葵枝葉遇大風常似龍的鬚鬃飛起，故又有“龍鬚廟” 的俗稱；1874年重修，成為今天的模樣。教堂坐北朝南，立面簡樸，構圖採用歐洲文藝復興時期古典樣式。外牆粉刷黃色，頂部為三角形山花，中間神龕供奉聖母像。坡屋頂、瓦面、木屋架，主體為磚木結構。入口矗立羅馬塔司干式石製雙柱，教堂內部平面呈巴西利卡式，有中廳和側廊。中廳莊嚴肅穆，供奉“苦難耶穌像”的主祭壇長20米，寬11米，高12米，顯得開闊而深遠。教堂每年舉行為期兩天的苦難耶穌像巡遊，是本地天主教一項重要活動。",
+          "en": "First established by Spanish Augustinian priests in 1591, this church maintains the tradition of organizing one of the most popular processions through the city, the Way of the Cross’s Procession, which attracts thousands of devotees. Its present-day configuration dates back to 1874. St. Augustine’s Church has a simple main façade typical of a neo-classic style, which contrasts with the more elaborate decoration of the interior nave, high-choir and sacristy. It has a Basilican plan layout, characterized by a rectilinear plan with two rows of columns semi-partitioning the nave from the side aisles and a main altar at the end. Inside the church, above the main entrance there is a high-choir that extends its gallery to the side walls, forming a narrow balcony that has a similar design to that of St. Dominic’s Church.",
+          "pt": "Fundada por padres Agostinhos espanhóis em 1591, esta igreja mantém a tradição de organizar uma das procissões mais populares da cidade, a Procissão da Páscoa ( Via Crucis ), que atrai anualmente milhares de devotos. A configuração actual da igreja remonta a 1874. O seu frontíspicio simples, de estilo neoclássico, contrasta com a elaborada decoração da nave interior, do coro-alto e da sacristia. A igreja apresenta uma planta basilical com uma nave central, rectangular, separada por duas fileiras de colunas das naves laterais, culminando no altar-mor ao fundo. Por cima da entrada principal encontra-se o coro-alto, que tem continuidade pelas paredes laterais, formando um varandim estreito, com uma estrutura semelhante ao desenho interior que se pode observar na Igreja de S. Domingos."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/389129453",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-391342663",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "蓮溪廟",
+        "en": "Lin Kai Temple",
+        "pt": "Templo de Lin Kai"
+      },
+      "coordinates": [
+        113.542614,
+        22.201713
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM028",
+        "description": {
+          "zh": "始建於清道光十年(1830年)，後重修擴建，於光緒年間(1875-1908年)完成，故又稱蓮溪新廟。廟內供奉財帛星君、華光、觀音、關公等各類神佛達十五種之多。其中眾多的金花娘娘、六十太歲和十八羅漢的塑像形態各異，生動有趣。 建築特色: 其規模僅次於澳門的三大廟宇，各殿室前後共有九座之多。",
+          "en": "The temple was constructed in 1830 and later local people raised funds to rebuild and expand the temple, which was completed between 1875-1908. Since then, the temple has been called the “New Lin Kai Temple” and is dedicated to 15 gods and goddesses including Choi Bak (God of Wealth), Va Kuong (God of Fire), Kun Iam (Goddess of Mercy), Kuan Tai (God of War and Wealth), Tai Sui (God presiding over the year) and the eighteen Lohans (Arahats). Architectural characteristics: There are nine chambers in this temple and its scale takes after the three biggest temples in Macao.",
+          "pt": "Este templo foi construído em 1830 e, mais tarde, os habitantes locais reuniram fundos para reconstruí-lo e ampliá-lo, o que aconteceu entre 1875-1908. Desde então o templo tem sido conhecido por “Templo Novo de Lin Kai” e é dedicado a 15 Deuses e deusas onde se incluem Choi Bak (Deus da Riqueza), Va Kuong (Deus do Fogo), Deusa Kun Iam (Deusa da Misericórdia), Kuan Tai (Deus da Guerra e das Riquezas), Tai Sui (Deus do Ano) e os Dezoito Lohans (Arahats). Características arquitectónicas: Com nove átrios é um dos três maiores templos de Macau."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/391342663",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-395117862",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "康真君廟",
+        "en": "Hong Chan Kuan Temple (Bazaar Temple)",
+        "pt": "Templo de Hong Chan Kuan (Templo do Bazar)"
+      },
+      "coordinates": [
+        113.537965,
+        22.19673
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM021",
+        "description": {
+          "zh": "因往時廟前瀕海，相傳有木製康王神像浮至，居民乃建祠奉祀，後於咸豐十年(1860年) 建廟。廟內供奉康公真君、南海廣利洪聖大王、西山金聖候王、六祖聖佛及華佗先師等神佛。 建築特色: 康公廟內是通過一個庭院將廟的各殿相聯一起，具中國南方建築的特點。在廟頂部分，有用多色赤陶製成的薄浮雕檐壁。",
+          "en": "Legend has it that the residents found a wooden statue of Marshal Hong Gong floating near the shore where the temple now stands, so they built a shrine to worship him. Later, a temple was constructed in 1860 and is also dedicated to the God Hung Seng, the Monkey King, Buddha and Hua Tuo (God of Medicine). Architectural characteristics: The temple displays southern Chinese architectural characteristics. A courtyard is designed to unite the main elements of the temple and on the roof there are coloured pottery sculptures for decoration.",
+          "pt": "A lenda diz que os habitantes da zona encontraram uma estátua de madeira do Marechal Hong Gong. Flutuava no rio perto do local onde o templo agora se situa, antes uma zona ribeirinha. Por essa razão construíram um santuário em sua homenagem. Mais tarde, em 1860, foi construído o templo dedicado ao Deus Hung Seng, o Rei Macaco, a Buda e a Hua Tuo (Deus da Medicina). Características arquitectónicas: O templo foi construído de acordo com os preceitos de arquitectura do Sul da China. O pátio é desenhado por forma a unir os elementos do templo sendo coberto por um telhado onde se podem ver esculturas multicoloridas, em cerâmica, usadas para decoração."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/395117862",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-427220571",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "花地瑪聖母堂",
+        "en": "Our Lady of Fatima Church Macau",
+        "pt": "Paróquia de Fátima Macau"
+      },
+      "coordinates": [
+        113.545199,
+        22.211984
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/427220571",
+      "macaumemory": null
+    },
+    {
       "id": "osm-way-436071586",
       "category": "tudigong",
       "kind": "temple",
@@ -2897,6 +4188,124 @@
         "osm"
       ],
       "osm": "way/436071586",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-456596099",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "望廈聖方濟各堂",
+        "en": "St. Francis Church",
+        "pt": "Igreja de São Francisco Xavier"
+      },
+      "coordinates": [
+        113.548732,
+        22.204348
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/456596099",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-461192545",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "竹林寺",
+        "en": "Zhulin Temple",
+        "pt": null
+      },
+      "coordinates": [
+        113.545075,
+        22.203039
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/461192545",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-461196163",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "澳門基督教會宣道堂",
+        "en": "Macau Evangelical Church",
+        "pt": "Igreja Evangélica"
+      },
+      "coordinates": [
+        113.545775,
+        22.204326
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/461196163",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-461365084",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "觀音古廟",
+        "en": "Kun Iam Temple (Kun Iam Tchai)",
+        "pt": "Templo de Kun Iam (Kun Iam Tchai)"
+      },
+      "coordinates": [
+        113.547735,
+        22.206133
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM022",
+        "description": {
+          "zh": "據廟內碑誌記載，觀音古廟是“道光初年牧童所建”，可知其立廟時間不會早於1821年。該廟原為一座小廟，於同治六年(1867年)擴建，形成今貌。廟內除供奉觀音外，還供奉有呂祖、財帛星君、痘母和金花等神祇。 城隍廟是本澳唯一一座城隍廟，建於光緒三十四年(1908年)。事緣望廈鄉民為免受外人入侵，自組民團保衛家園，故得兩廣總督張之洞入奏嘉許。因此，廟中除供奉城隍、洪聖大王之外，更供奉張王爺（張之洞）神位。除此以外，廟中並懸“化洽華夷”一匾，寓意中外族群和睦相處。 建築特色: 觀音仔廟天井植有兩樹，樹齡過百年。望廈城隍廟位於觀音仔廟右側，兩廟相通。",
+          "en": "According to inscriptions from a memorial stone found at the site, this temple is designated as Kun Iam Tchai. It was constructed by a Chinese shepherd after 1821. Previously there was only a small pagoda at the site, noting that, in 1867, extension works took place, adopting the present day form. Inside, devotees can worship various deities, including Kun Iam, Loi Chou, Choi Pak Seng Kuan, Tao Mou and Kam Fa, among others. Seng Wong Temple is the only example of its kind existent in Macao, originally constructed in 1908, with the aim of protecting the residents of the original village nearby. The result of this project from the community of Mong-Ha was praised by the Governor of Canton Cheong Chi Tong, within the context of the Imperial Court. This temple serves to worship various deities such as Seng Wong, Seng Tai Wong and, with a special focus, also Cheong Chi Tong. Above the entrance there is a wooden plaque with Chinese characters where it can be read “pacific co-existence between Chinese and foreigners”. Architectural characteristics: Inside the temple courtyard there are two trees that are over 100 years old. Seng Wong Temple is located to the right of Kun Iam Tchai Temple and they are interlinked.",
+          "pt": "Segundo inscrições de uma lápide encontrada no local este templo é designado por Kun Iam Tchai. Foi construído por um pastor Chinês depois de 1821. Anteriormente só havia neste local um pequeno pagoda, procedendo-se em 1867 a trabalhos de ampliação, adoptando a forma actual. No interior, os devotos podem venerar várias divindades, nomeadamente, Kun Iam, Loi Chou, Choi Pak Seng Kuan, Tao Mou e Kam Fa, entre outros. O Templo de Seng Wong é o único exemplar do seu género que existe em Macau, tendo sido construído em 1908, com o objectivo de proteger os residentes da aldeia original. O resultado desta obra da população de Mong-Há foi elogiada pelo Governador Cheong Chi Tong de Cantão junto da Corte Imperial. Este templo serve para venerar várias divindades, tais como Seng Wong, Hong Seng Tai Wong e, com especial destaque, Cheong Chi Tong. Sobre a entrada encontra-se uma placa de madeira com caracteres chineses, aonde se pode ler “coexistência pacífica entre Chineses e estrangeiros”."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/461365084",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-490954721",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "二龍喉浸信會",
+        "en": "Ye Lung Hau Baptist Church",
+        "pt": "Igreja Baptista Ye Lung Hau"
+      },
+      "coordinates": [
+        113.549725,
+        22.200831
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/490954721",
       "macaumemory": null
     },
     {
@@ -2922,6 +4331,414 @@
       "macaumemory": null
     },
     {
+      "id": "osm-way-542809864",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "天后宮",
+        "en": "Tin Hau Temple",
+        "pt": "Templo de Tin Hau"
+      },
+      "coordinates": [
+        113.555752,
+        22.152227
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MT006",
+        "description": {
+          "zh": "該廟供奉天后，不遲於乾隆五十年(1785年)興建，道光十八年(1838年)春重建。 建築特色: 該廟有三個殿室，左右兩殿室現已挪為它用，僅餘中央一殿",
+          "en": "Dedicated to Tin Hau (Goddess of Heaven), this temple was built before 1785 and reconstructed in the spring of 1848. Architectural characteristics: The temple was constructed to have three chambers but only the central one remains as the two chambers on the left and right sides have been rented to a restaurant.",
+          "pt": "O templo de Tin Hau é dedicado, como o próprio nome indica, à Deusa Tin Hau (Deusa dos Céus). Foi construído antes de 1785 e reconstruído na Primavera de 1848. Características arquitectónicas: Inclui três corpos mas apenas o central subsiste já que os outros dois foram alugados a um restaurante."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/542809864",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-544062672",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "澳門佛學社",
+        "en": null,
+        "pt": "Escola Budista Macau"
+      },
+      "coordinates": [
+        113.549136,
+        22.200316
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/544062672",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-544082912",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "天后廟",
+        "en": "Tin Hau Temple",
+        "pt": "Templo de Tin Hau"
+      },
+      "coordinates": [
+        113.558314,
+        22.204429
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM030",
+        "description": {
+          "zh": "始建於1865年(清同治四年)，一座小型廟宇，1987年重修。主殿供奉天后，由石室加亭組成。",
+          "en": "This is the only existing temple on the North-eastern side of the Macao peninsula and was located on an old Eastern bay, near the Ma Kau Seac Hill, with its various pavilions accompanying the inclination of the hillside. Originally, the temple was installed in a natural cave, serving for the worship of the Goddess Tin Hau. According to an inscription found at the site, the area was converted into a temple, in 1865, and was later restored in 1987. The temple is formed by stone pagodas and pavilions, including Tin Hau, Tei Mou, Kun Iam, Tai Soi and Mou Hau, where the respective deities are venerated.",
+          "pt": "Este é o único templo existente na parte Nordeste da península de Macau e encontrava-se localizado na antiga Baía Nascente, próximo da Colina de Ma Kau Seac , com os vários pavilhões a desenvolverem-se acompanhando o declive da Colina. Originalmente, o templo encontrava-se instalado numa gruta natural, servindo para a veneração da Deusa Tin Hau. Conforme uma inscrição que se pode encontrar neste local, o sítio foi convertido num templo, em 1865, sendo mais tarde recuperado em 1987. O templo é constituído por pagodas de pedra e pavilhões, incluindo o pavilhão Tin Hau, o de Tei Mou, o de Kun Iam, o de Tai Soi e o de Mou Hau, aonde se veneram estas divindades, respectivamente."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/544082912",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-544093058",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "菩提堂",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.550601,
+        22.201956
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/544093058",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-544331876",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "觀音廟（九澳）",
+        "en": "Kun Iam Temple(Ká-Hó)",
+        "pt": "Templo de Kun Iam (Ká-Hó)"
+      },
+      "coordinates": [
+        113.581895,
+        22.131093
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MC004",
+        "description": {
+          "zh": "建於清光緒七年(1881年)，光緒三十三年(1907年)重修，是村中一座最古老的建築文物。單一殿室，廟中供奉觀音。廟門橫楣“觀音廟”三字，乃建廟時題刻。",
+          "en": "The temple was constructed in 1881 and rebuilt in 1907, making it the oldest structure in the village. This single-chamber temple is dedicated to Kun Iam（Goddess of Mercy）. Three Chinese characters “Kun Iam Miu” were carved onto a piece of stone that was placed onto the lintel of the door when it was built.",
+          "pt": "Erigido em 1881, foi reconstruído no ano de 1907, o que faz dele a mais antiga estrutura edificada da aldeia. Apenas com um corpo, é dedicado a Kun Iam (Deusa da Misericórdia). Os caracteres chineses “Kun Iam Miu” foram gravados numa laje colocada no lintel da porta quando o templo foi construído."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/544331876",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-544588485",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "康真君廟",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.54981,
+        22.204417
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/544588485",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-546745854",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖彌額爾小堂",
+        "en": null,
+        "pt": "Capela de S. Miguel"
+      },
+      "coordinates": [
+        113.545497,
+        22.198411
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/546745854",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-605315654",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "慈悲者聖母小堂",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.551859,
+        22.203862
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/605315654",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-635377712",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "聖十字架小堂",
+        "en": "Holy Cross Chapel",
+        "pt": "Holy Cross Chapel"
+      },
+      "coordinates": [
+        113.539295,
+        22.21158
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/635377712",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-655138584",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "大三巴哪吒廟",
+        "en": "Na Tcha Temple (next to the Ruins of St. Paul’s College)",
+        "pt": "Templo de Na Tcha (junto às Ruínas do Colégio de S. Paulo)"
+      },
+      "coordinates": [
+        113.540667,
+        22.19771
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM026",
+        "description": {
+          "zh": "始建於清光緒十四年（1888年），改建於清光緒二十七年（1901年）。廟內供奉神話人物托塔天王李靖之第三子哪吒，代表著一種民間信仰，具有地方色彩。該廟係兩進式磚木建築，面積窄小，主要由門廳及正殿組成，中間沒有天井過渡，為傳統中式廟宇所罕見。門廳三面不砌牆，僅以黑色木柵欄圍繞。屋頂由正面兩根石立柱及插入正殿山牆之木樑承托，正脊有鰲魚及寶珠飾相襯，垂脊呈飛簷狀，裝飾簡約素檏，風格平實內斂，是一輕巧別致而真切實在的民俗小廟。 掃描二維碼(QR Code) 或登入網站（ https://vr.icm.gov.mo/wh/nezhamiao/ ）體驗哪咤廟（大三巴）VR導覽",
+          "en": "This temple was built in 1888 and rebuilt in 1901. The construction of this small Chinese temple near St. Paul’s Ruins, in the heart of the principal Jesuit enterprise of Macao, reflects the harmonious relation between communities, presenting a good example of Macao’s multicultural identity and religious freedom. Na Tcha is a favourite character in Chinese folk story. Legend has it that he was a teenager hero endowed with powers by a Taoist priest, which he later uses to fight the Sea Dragon King and protect his village. As such, he is worshipped as a god of protection. Every year there is a procession departing from this temple to follow in homage to Na Tcha god, an event that originated in this temple and continues to our days, assuming an important role in the context of Macao’s intangible heritage. Please scan the QR Code or directly login to the website ( https://vr.icm.gov.mo/wh/nezhamiao/ ) to enjoy the VR tour of the Na Tcha Temple (next to the Ruins of St. Paul’s College)",
+          "pt": "Construído em 1888 e reconstruído em 1901. A sua localização, próximo das Ruínas de S. Paulo, o maior empreendimento Jesuíta de Macau, reflecte a harmoniosa relação entre diferentes comunidades e é um bom exemplo da identidade multicultural e da liberdade religiosa de Macau. Na Tcha é um dos personagens favoritos dos contos tradicionais chineses. Segundo a lenda, era um menino dotado de poderes sobrenaturais que lhe foram conferidos por um monge taoísta e aos quais recorreu para proteger a sua aldeia numa luta contra o Dragão do Mar, sendo venerado como um deus protector. Todos os anos, parte deste templo uma procissão em honra de Na Tcha, tratando-se de um evento que assume um significado relevante no contexto do património intangível de Macau. Por favor digitalize o código QR ou entre directamente na página electrónica（ https://vr.icm.gov.mo/wh/nezhamiao/ ）para fazer uma visita de VR ao Templo de Na Tcha (junto às Ruínas do Colégio de S. Paulo)"
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/655138584",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-655240802",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "主教山教堂",
+        "en": "Chapel of Our Lady of Penha and Bishop’s Residence",
+        "pt": "Capela de N.ª Sr.ª da Penha e Residência Episcopal"
+      },
+      "coordinates": [
+        113.535207,
+        22.186852
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "AM002",
+        "description": {
+          "zh": "西望洋聖堂由聖奧斯定會修士建於1622年，敬禮海崖聖母。曾經幾次重修，至1935年與主教私邸一起重建，成為現在的規模，而其所在的西望洋山因此又稱主教山。 建築特色: 教堂莊嚴宏偉，附有尖塔式的鐘樓，反映出古典折衷主義風格。",
+          "en": "In 1622, the Chapel of Our Lady of Penha was originally built by Augustinian friars and began paying respect to “Nossa Senhora de Penha da França”. It underwent several renovations before it was reconstructed together with the Bishop’s Residence in 1935, acquiring its current appearance as a result. It is due to the existence of Bishop’s Residence therefore the hill is also known as “Bishop’s Hill.” Architectural characteristics: The neoclassic church is solemn and magnificent with a steeple.",
+          "pt": "A Capela de Nossa Senhora da Penha foi construída em 1622 por frades Agostinhos em honra da Nossa Senhora de Penha da França. Sofreu várias renovações, até no ano 1935, altura em que a residência do Bispo foi concluída e a Capela ganhou o seu aspecto actual. É devido a esta residência que a Colina da Penha é também conhecida por \"Colina do Bispo\". Características arquitectónicas: Magnífica igreja neoclássica com um campanário."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/655240802",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-659329439",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "悅城龍母 (女媧廟)",
+        "en": "Yui Seng Lonh Mou",
+        "pt": "Yui Seng Lonh Mou"
+      },
+      "coordinates": [
+        113.540418,
+        22.19543
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/659329439",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-659929154",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "觀音古廟",
+        "en": "Kun Iam Temple (Coloane)",
+        "pt": "Templo de Kun Iam (Coloane)"
+      },
+      "coordinates": [
+        113.551296,
+        22.116166
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MC007",
+        "description": {
+          "zh": "始建於清嘉慶五年(1800年)，道光十九年(1839年)重修。單一殿室，廟中供奉觀音。",
+          "en": "The temple was constructed in 1800 and rebuilt in 1839. It is a single-chamber temple dedicated to the Goddess Kun Iam (Goddess of Mercy).",
+          "pt": "O templo foi construído em 1800 e reconstruído em 1839. Tem uma única câmara dedicada, naturalmente, à Deusa Kun Iam (Deusa da Misericórdia)."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/659929154",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-661735906",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "中華基督教會志道堂",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.545766,
+        22.195517
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/661735906",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-664699722",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "先鋒廟",
+        "en": "Sin Fong Temple",
+        "pt": "Pagode Sin Fong"
+      },
+      "coordinates": [
+        113.545989,
+        22.206417
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM045",
+        "description": {
+          "zh": "據纂修於清道光七年的〈香山縣下恭常都十三鄉採訪冊〉中“出閘徑蓮花山下有慈護宮側有先鋒廟過為望廈汛”之記述，可知位於連勝巷內的先鋒廟之建成年份不晚於1827年（道光七年） [1] ，至今至少已有190年歷史。現時廟內現存紀年最早的器物是正殿所懸掛，有“咸豐十一年”（1861年）字樣的雲板。 先鋒廟坐東南向西北，昔日位處望廈村村界以西，在二十世紀初填海造地以前本屬臨海之地。先鋒廟鄰近清朝軍兵駐紮的汛地以及葡人兵房 [2] ，在二十世紀初街道名冊中亦記載先鋒廟正位處“汛地河邊村” [3] ，今日先鋒廟側的“本汛土地福德神位”正好與這一歷史相印證。此外，在二十世紀初連勝馬路改變為今日的走向以前，先鋒廟一直位於這條要道之上 [4] ，地理位置特殊。後來又因城市發展，街道路面抬高，廟宇與其周邊的街區有明顯的高差，廟宇亦因而顯得淺殿低牆。先鋒廟與鄰近美副將大馬路兩旁的古剎廟宇一同記載著昔日望廈村一帶華人社區的歷史及村民的生活形態，同時亦是見證連勝馬路改道及這一區域海岸線變遷的實物遺存，對研究昔日華人社區的歷史、村落佈局及組織，以至近代澳門城市街道規劃均具有意義。 整座先鋒廟短簷小瓦，淺殿低壇，古樸莊嚴。廟宇分為三個相連一體的主要部份，包括主殿、偏殿及附屬空間，與本澳大部份傳統中式廟宇格局一致，主殿祀奉先鋒將軍，偏殿祀奉東海龍王。先鋒將軍是護佑平安，消災化危的神祇，在全國各地並不鮮見。先鋒廟偏殿則供奉水神東海龍王，東海龍王崇拜與漁業生產有密切關係，保佑漁民出海平安，漁獲豐收。每至農曆六月初六先鋒誕、農曆九月十七日先鋒龍王誕，都會有一眾善信自發組織參拜，熱鬧非常。先鋒廟對研究昔日華人社區的生活形態及精神信仰具有意義，亦是研究本澳中國民間信俗的範例。 [1] 〔清〕祝淮編纂《澳門志畧》，北京：國家圖書館出版社，2010年，34頁。湯開建《道光七年〈香山縣下恭常都十三鄉採訪冊〉的發現及其史料價值》，《澳門研究第》，63期，2011年，118-154頁。 [2] 從一幅約繪於1886年的地圖中可見先鋒廟位於“望廈西閘口”以外。吳宏岐、趙湘軍《〈望廈及其附近村落地圖〉初步研究》，《文化雜誌》，第77期，2010年，188頁。 [3] Confeccionado por Euclides Honor Rodrigues Vianna, Cadastro das vias publicas de Macau , Macau: Typographia Noronha & Ca, 1906, p.147. [4] Confeccionado por Euclides Honor Rodrigues Vianna, Cadastro das vias publicas de Macau , Macau: Typographia Noronha & Ca, 1906, p.4. Organizado por Augusto de Souza Barbeiro, Cadastro das vias e outros lugares públicos da cidade de Macau, Typographia PO MAN LAU - Macau, 1925, p.70. Cem anos que mudaram macau, Macau: Edição do governo de macau, 1995, p.30.",
+          "en": "As was recorded in the Investigation of 13 Villages in Xiagongchangdu of Xiangshan County from the seventh year of the reign of the Daoguang Emperor (the year of 1827), “there is a Sin Fong Temple at the side of a protection palace at the foot of the Lotus Hill on a small road, near the Mong-Há garrison area”. The Sin Fong Temple, located in the Travessa de Coelho do Amaral, was thus built no later than 1827 (the seventh year of the reign of the Daoguang Emperor) [1] , boasting a history of over 190 years. The oldest extant object in the temple is an “umpan” (literally “cloud plate”) hung in the main hall, which is carved with the Chinese characters for “the 11 th year of the reign of the Xianfeng Emperor” (the year of 1861). Stretching from the southeast to the northwest, the Sin Fong Temple was formerly located to the west of the border of the Mong-Há Village. In the early 20 th century before land there was reclaimed, it was in a coastal area. Due to its location in the vicinity of the garrison area of Qing soldiers and the Portuguese military camp [2] , the temple was also known as the “riverside village in the garrison area” [3] according to street records of the early 20 th century. This part of history can be confirmed by the “memorial tablet of happiness and morality for the garrison area” at the side of the Sin Fong Temple. The temple was located on Estrada de Coelho do Amaral before the road changed course in the early 20 th century to what it is today [4] . Due to urban development, and the construction of large scale buildings in the surrounding streets, the urban presence of the Sin Fong Templewas dwarfed. Together with the ancient temples flanking Avenida do Coronel Mesquita, the Sin Fong Temple has witnessed the history of the Chinese community near the Mong-Há Village and the lifestyle of local residents. It is also a material remain after Estrada de Coelho do Amaral changed course and the coastal area was reclaimed. The temple is significant for studying the history of the then Chinese community and the layout of villages, as well as for Macao’s planning of its modern city streets. The Sin Fong Temple assumes an air of antiquity and solemnity with short eaves, small tiles, low halls, and low altars. In a style of traditional Chinese temples in Macao, it has three connected components, namely a main hall, a side hall and an attached space. The main hall is dedicated to General Vanguard, while the side hall to the Dragon King of the East Sea. General Vanguard is a deity to protect against disasters and danger, the worship of which is not uncommon nationwide. The worship of the Dragon King of the East Sea that is housed in the side hall of the Sin Fong Temple has something to do with fishery, which carries with it the good wishes for safety on the sea and bumper harvests. On the birthday of General Vanguard on the sixth day of the sixth month of the lunar calendar and on the birth of the Dragon King of the East Sea on the 17 th day of the ninth month of the lunar calendar, the Sin Fong Temple never fails to receive a large number of worshippers. It is important for studying the lifestyle and spiritual beliefs of the then Chinese community and a good example of studying folk Chinese customs in Macao. [1] [Qing Dynasty] Zhu Huai, Short Records of Macao, Beijing: National Library of China Publishing House, 2014, p. 34; Tang Kaijian, Discoveries from the Investigation of 13 Villages in Xiagongchangdu of Xiangshan County in the Seventh Year of the Reign of the Daoguang Emperor and Historical Values, Journal of Macau Studies, Issue 63, 2011, p. 118-154. [2] From a map of 1886, the Sin Fong Temple can be seen located outside the “Mong-Há Gate”. Wu Hongqi & Zhao Xiangjun, Preliminary Studies on Mong-Há and Villages Nearby, RC, Issue 77, 2010, p. 188. [3] Confeccionado por Euclides Honor Rodrigues Vianna, Cadastro das vias publicas de Macau , Macau: Typographia Noronha & Ca, 1906, p. 147. [4] Confeccionado por Euclides Honor Rodrigues Vianna, Cadastro das vias publicas de Macau , Macau: Typographia Noronha & Ca, 1906, p. 4. Organizado por Augusto de Souza Barbeiro, Cadastro das vias e outros lugares públicos da cidade de Macau, Typographia PO MAN LAU - Macau, 1925, p. 70. Cem anos que mudaram macau, Macau: Edição do governo de Macau, 1995, p. 30.",
+          "pt": ""
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/664699722",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-664890999",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "瑪利亞方濟各傳教修會 聖嘉俾厄爾修院",
+        "en": null,
+        "pt": "Franciscanas Missionárias de Maria Casa São Gabriel"
+      },
+      "coordinates": [
+        113.536588,
+        22.187909
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/664890999",
+      "macaumemory": null
+    },
+    {
       "id": "osm-way-673644890",
       "category": "tudigong",
       "kind": "shrine",
@@ -2941,6 +4758,110 @@
         "osm"
       ],
       "osm": "way/673644890",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-679973157",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "菩提園",
+        "en": null,
+        "pt": "Templo de Pou Tai Un"
+      },
+      "coordinates": [
+        113.551728,
+        22.161137
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/679973157",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-680830775",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "譚僊聖廟 (譚公廟)",
+        "en": "Tam Kong Temple",
+        "pt": "Templo de Tam Kong"
+      },
+      "coordinates": [
+        113.550083,
+        22.114184
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MC002",
+        "description": {
+          "zh": "建於清同治元年(1862年)。相傳譚公經常化身小童顯靈，被視為漁家保護神，受其香火供奉。又據記載，譚公“每杖履出山，一虎隨之”，今廟內牆上亦畫有虎。廟內還有以鯨骨作舟身的龍舟模型，長三米餘，裝配有木製的龍頭、龍尾、錦旗、羅傘、鑼鼓、梢公及撓手等，為漁民所贈。廟側有一通近二百年的“過路環勒石曉諭”碑，記錄當地民政管理歷史。每年農曆四月初八譚公誕，許多港澳居民都前來進香祈福，搭大棚演出神功戲。 建築特色: 過去一百三十五年間，譚公廟大規模重修三次。現時廟堂橫連三間，左右兩邊加設涼亭，柱石之處刻有現代人的書法對聯。廟宇內外有精緻的壁畫和雕塑，廟前安放護法石獅一對，莊重古雅。",
+          "en": "The temple was constructed in 1862. Legend has it that Tam Kong was a god who protected fishermen and often revealed himself as a child. According to this legend, a tiger follows Tam Kong every time he leaves home. The temple has a painting of this tiger on one of its walls and houses a three-metre dragon boat made of a whale bone with carvings representing the dragon’s head and tail, a silk banner, parasol, gong and drum, and canoeists which was a gift from the fishermen. Next to the temple is a Chinese calligraphy tablet over two hundred years old, which houses the records of history and civil affairs. Every year during Tam Kung Festival, which is held on the eighth day of the fourth month of the lunar calendar, many Hong Kong and Macao residents come to pray for blessings and watch Cantonese opera. Architectural characteristics: Tam Kong Temple has had three renovations over the past 135 years. The present temple has three horizontal chambers and two pavilions were built on the left and right of the temple respectively. On the pillars there is a pair of modern literary couplets. On the exterior walls there are frescoes and sculptures and in front of the temple is a pair of guardian stone lions.",
+          "pt": "O templo foi edificado em 1862. Diz a lenda que Tam Kong foi um Deus protector dos pescadores e que aparecia frequentemente na forma de uma criança. De acordo com esta lenda, sempre que Tam Kong sai de casa traz um tigre com ele. Assim, é possível encontrar numa das paredes do templo a pintura de um desses felinº Lá dentro existe ainda um barco-dragão com três metros, oferta dos pescadores, feito de um osso de baleia e que inclui uma cabeça de dragão, a cauda, um estandarte de seda, um guarda-sol, gongo e tambor, e os remadores. Ao lado do templo existe uma laje, com mais de duzentos anos, um monumento da caligrafia chinesa, que relata assuntos históricos e sociais. Todos os anos, no Festival de Tam Kung, que acontece no oitavo dia do quarto mês do calendário lunar, são muitas as pessoas de Hong Kong e Macau que aqui se dirigem em peregrinação e para assistirem às representações de ópera cantonense que então ocorrem. Características arquitectónicas: Este templo sofreu apenas três remodelações nos últimos 135 anº Actualmente, possui três câmaras horizontais e foram construídos dois pavilhões em cada um dos lados. Nos pilares foram gravados, mais recentemente, um par de coplas literárias. Nas paredes exteriores existem frescos e esculturas. À frente do templo, um par de leões de pedra guarda a entrada."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/680830775",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-681663121",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "觀音岩",
+        "en": "Kun Iam Small Temple",
+        "pt": "Pequeno Templo de Kun Iam"
+      },
+      "coordinates": [
+        113.555999,
+        22.164341
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/681663121",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-693561337",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "哪咤古廟",
+        "en": "Na Tcha Temple (Calçada das Verdades)",
+        "pt": "Templo de Na Tcha (Calçada das Verdades)"
+      },
+      "coordinates": [
+        113.542341,
+        22.195503
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM025",
+        "description": {
+          "zh": "柿山哪咤廟建於清初，初時只為一座小廟，狹小簡陋，其後於清光緒廿四年（1898年）擴建。該廟其實只是一座四方亭，並無殿室，亭內設有以麻石雕琢而成神龕、神枱、香爐。 柿山哪咤廟是本澳現存兩座哪吒廟之一，供奉民間神話中的「三十三天哪吒太子」。哪吒是民間信仰和兒童的守護神之一，其信仰在本澳已有三百多年的歷史，民間若遇瘟疫、兒童患病，或欲驅魔鎮邪時，往往會向其求助。 每年農曆五月十八日為“哪吒誕”，當天該廟會舉行哪吒巡遊活動，哪吒聖像會被安放在鑾輿中起行出巡，而該鑾輿為清光緒廿九年（1903年）所造，距今已有百年歷史。 建築特色: 一座微型小廟，外建以亭。內裡的神龕、神檯、香爐均以麻石雕琢而成，為該廟特色。",
+          "en": "Na Tcha Temple was initially built in a smaller and simpler form in the early Qing Dynasty (1644-1912), and was later expanded in the 24th year of the reign of Emperor Guangxu (1898). This small temple is actually a small rectangular pavilion without any enclosed worship hall but the temple established a niche, an altar for offerings and an incense burner, all made of granite to be used. This is one of two remaining temples dedicated to the protection deity Prince Na Tcha and advocated the myth of “Na Tcha Trayastrimśat in [33]”, where can be translated in English as Na Tcha \"belonging to the thirty-three [devas]\". 33 is primarily the name of the second heaven in Buddhist cosmology, and secondarily used of the devas who dwell there. The faith in Na Tcha could date back over 300 years ago. Due to his powers, people would pray to Na Tcha to guard children away from sickness and for help whenever there were plagues or the need to repel evil spirits from the city. Over time this deity became part of popular faith and patron of children in Macao. The Na Tcha Festival, which includes celebration activities and parades, is held on the eighteenth day of the fifth month of the lunar calendar each year. During the festival, the statue of Na Tcha is carried with a highly decorated timber litter (also known as sedan chair) which was made in 1903, and has a history of more than one hundred years in Macao. Architectural characteristics: This small temple has a pavilion shelter. Inside the temple there is a niche, an altar and an incense burner, which are all made of granite and are the distinguishing features of the temple.",
+          "pt": "O Templo de Na Tcha foi construído no início da dinastia Qing (1644-1912) e foi renovado no 24.º ano do reinado do Imperador Guangxu (1898). Este exíguo templo é constituído por um pequeno pavilhão, em cujo interior se encontra um nicho, um altar de oferendas e um queimador de incenso, todos feitos em granito. É um dos dois templos de Na Tcha que existem em Macau. Na Tcha advogando “Na Tcha Príncipe em 33 dias”. A crença em Na Tcha em Macau remonta há mais de 300 anos. Devido aos seus poderes, sempre que havia uma praga, crianças doentes ou a necessidade de afastar maus espíritos da cidade, as pessoas pediam ajuda a Na Tcha, tornando-se este, com o tempo, parte das crenças populares e o patrono das crianças. No décimo oitavo dia do quinto mês lunar realiza-se a Festa de Na Tcha, que inclui actividades e desfiles. A estátua de Na Tcha é colocada numa liteira que foi construída em 1903 e já tem mais de cem anos de história. Características arquitectónicas: Este exíguo templo tem um pequeno pavilhão a servir de abrigo, onde podemos encontrar um nicho, um altar de oferendas e um queimador de incenso, todos feitos em granito, e que em conjunto constituem as suas principais características."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/693561337",
       "macaumemory": null
     },
     {
@@ -2971,6 +4892,102 @@
         "ic"
       ],
       "osm": "way/702054446",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-702056328",
+      "category": "church",
+      "kind": "church",
+      "name": {
+        "zh": "新橋宣道堂",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.541136,
+        22.202499
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/702056328",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-704605667",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "南山廟,包公廟,醫靈廟",
+        "en": "Nam San Temple, Pao Kong Temple, I Leng Temple and Loi Tsou Temple",
+        "pt": "Templos de Nam San, Pao Kong, I Leng e Loi Tsou"
+      },
+      "coordinates": [
+        113.541863,
+        22.198778
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM027",
+        "description": {
+          "zh": "建於清光緒十五年(1889年)。當年澳門瘟疫流行，居民遂從佛山請來包公神像坐鎮三巴門。後來疫情大減，居民相信神靈鎮壓了妖邪，遂建廟以供奉包公。該廟右側有供奉鍾馗的南山廟，建於清光緒廿一年(1895年)；左側為呂祖廟，建於清光緒十七年(1891年)；以及醫靈廟，建於清光緒廿一年(1895年)。",
+          "en": "When this temple was built in 1889, a plague broke out in Macao and the residents brought the statue of Pao Kong (a historical character) from Foshan in Guangdong province for protection. Later, after the plague subsided, the residents believed that Pao Kong had suppressed evil and built Pao Kong Temple in his honour. To the right of Pao Kong Temple is Nam San Temple, built in 1895 to worship Zhong Kui (God who eliminates devils). To the left are Loi Tsou Temple and I Leng Temple, which were built in 1891 and 1895 respectively.",
+          "pt": "Na época da sua construção, 1889, Macau foi assolada por uma peste o que levou a população a trazer de Foshan, província de Guangdong, uma imagem de Pao Kong (um personagem histórico). O acalmar da peste levou os locais a acreditarem que tinha sido obra de Pao Kong e construíram um templo em sua homenagem. À direita deste situa-se o Templo de Nam San, construído em 1895 para venerar Zhong Kui (Deus que elimina os diabos). À esquerda, situam-se os Templos de Loi Tsou e I Leng, construídos em 1891 e 1895, respectivamente."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/704605667",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-704605668",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "呂祖仙院",
+        "en": null,
+        "pt": "Templos de Loi Tsou"
+      },
+      "coordinates": [
+        113.54167,
+        22.198763
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/704605668",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-718157866",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "黃曹二仙廟",
+        "en": "Vong Chow Yi Sin Temple",
+        "pt": "Templo de Vong Chow Yi Sin"
+      },
+      "coordinates": [
+        113.541537,
+        22.198842
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/718157866",
       "macaumemory": null
     },
     {
@@ -3088,6 +5105,28 @@
       }
     },
     {
+      "id": "osm-way-778305617",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "天后宮",
+        "en": "Tin Hau Temple",
+        "pt": "Palácio de Tin Hau"
+      },
+      "coordinates": [
+        113.562663,
+        22.123
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/778305617",
+      "macaumemory": null
+    },
+    {
       "id": "osm-way-798057863",
       "category": "tudigong",
       "kind": "temple",
@@ -3184,6 +5223,36 @@
       }
     },
     {
+      "id": "osm-way-824733411",
+      "category": "temple",
+      "kind": "temple",
+      "name": {
+        "zh": "蓮峰廟",
+        "en": "Lin Fong Temple",
+        "pt": "Templo de Lin Fong"
+      },
+      "coordinates": [
+        113.547662,
+        22.209868
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM024",
+        "description": {
+          "zh": "蓮峯廟相傳始建於明朝晚年，但根據廟內碑文記載，該廟鼎建於清雍正元年(1723年)，後經多次擴建，漸成今日規模。廟中主要供奉天后和觀音。廟名最初稱為慈護宮，後又稱娘媽新廟，最後定名為蓮峯廟。蓮峯廟由中國官府和本澳商人出資共建，不僅可供民間祭祀，同時也作為赴澳公幹的中方官員的駐節公所。著名的禁煙欽差大臣林則徐及兩廣總督鄧廷楨1839年巡視澳門，即以蓮峯廟作為接見澳葡官員之場所。 蓮峯廟的建築佈局由一條主軸線以及東西兩條次軸線組成，建築結構以木構抬樑式為主，中間以巷道相隔。主軸線排列著拜亭、天后殿和觀音殿，東面的次軸線排列著仁壽殿、文昌殿和金花痘母殿，西面的次軸線排列著武帝殿等。 建築特色: 蓮峯廟為澳門三大古廟之一，是一座規模闊大的建築群。整座廟宇橫連三間，前後兩進。首進中殿供奉天后，殿前有方亭一座，專供來澳中方官員辦公之用。二進中殿供奉觀音。首二進之側殿分別供奉關帝、醫靈大帝、神農以及金花娘娘等等神佛。蓮峯廟前場地寬闊，榕蔭蔽日，是昔日民眾活動的好場所。",
+          "en": "It is said that this temple was constructed in the Ming Dynasty. However, according to a record found in a memorial stone at the site, the temple was officially constructed in 1723. With the passage of time there were several alterations, progressively adopting the present-day structure. At this site, the deities of Tin Hau and Kun Iam are worshiped. The name of the temple was originally “Palace Chi Hu”, later adopting the designation of “New Temple of Nheong Ma” and finally the name of “Lin Fong Temple”. This temple was constructed by the Chinese Government and by local Chinese businessmen, who jointly supported construction expenses. The site served, not only for worship, but also as the place where Chinese officials would stay when they came to Macao in official capacity. The famous Chinese official Lam Chak Choi, envoy of the Emperor, and Tang Teng Chen, Governor of Canton, visited Macao in 1839 to hold meetings with Portuguese official counterparts. The main pavilions are organized following the main axis of the entrance, with symmetrical side pavilions separated by corridors on each side. The first central pavilion is named Pai Teng, the second is dedicated to Tin Hau, following the one dedicated to Kun Iam. In the left side alignment there is the temple of Ian Sau, followed by the temple of Man Cheong and the one dedicated to Kam Fa Tao Mou. On the right side is located the temple of Mou Tai. Architectural characteristics: Lin Fong Temple is one of the three oldest temples in Macao and is fairly large. It consists of two parallel chambers, each with three halls in succession with a pavilion reserved for Chinese officials who came to Macao. The central hall is dedicated to Tin Hau (Goddess of Heaven), while other chambers are dedicated to Goddess Kun Iam (Goddess of Mercy), Kuan Tai (God of War and Wealth), I Leng (God of Medicine) Shen Nong (God of Agriculture), Kum Fa (Goddess of Golden Flowers, patron of children) and other gods and goddesses. In front of the temple there is a spacious forecourt shaded by banyan trees.",
+          "pt": "Consta que este templo foi construído na Dinastia Ming, contudo, segundo registo encontrado numa lápide do local, o templo foi construído formalmente em 1723. Ao longo do tempo houve várias alterações, assumindo progressivamente a forma actual. Aqui veneram-se as divindades Tin Hau e Kun Iam. O nome do templo era originalmente “Palácio Chi Hu”, posteriormente adoptando o nome de “Novo Templo Nheong Ma”, acabando por ficar “Templo Lin Fong”. Este templo foi construído pelo Governo Chinês e por comerciantes Chineses locais que financiaram conjuntamente a obra. O local servia, não só como lugar de culto, mas também como sítio aonde os oficiais Chineses ficavam instalados quando se deslocavam a Macau. O famoso Mandarim Lam Chak Choi, enviado do Imperador, e Tang Teng Chen, Governador de Cantão, visitaram Macau em 1839 para terem reuniões com oficiais Portugueses. Os pavilhões principais estão organizados sob o eixo da entrada, com pavilhões laterais simétricos, separados por corredores. O primeiro pavilhão central está denominado Pai Teng, o segundo está dedicado a Tin Hau, seguindo-se o de Kun Iam. Na fiada de pavilhões do lado esquerdo encontra-se o templo de Ian Sau, seguindo-se o de Man Cheong e o de Kam Fa Tao Mou. Do lado direito encontra-se o templo de Mou Tai. Características arquitectónicas: O templo de Lin Fong é um dos três mais antigos de Macau e tem uma escala liberal. Consiste de 3 blocos, cada um com três átrios horizontais e um pavilhão em frente do átrio reservado aos dignatários chineses que vinham a Macau. O átrio central do primeiro bloco é dedicado à Deusa Tin Hau (Deusa dos Céus), o central do segundo bloco à Deusa Kun Iam (Deusa da Misericórdia) e os átrios laterais a Kuan Tai (Deus da Guerra e das Riquezas), I Leng (Deus da Medicina), Shen Nong (Deus da Agricultura), Kum Fa (Deusa das Flores Douradas - protectora das crianças) e outros Deuses e deusas. À frente do templo existe um espaçoso pátio, que já foi uma zona de lazer pública, sombreado pela presença de diversos banianos."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/824733411",
+      "macaumemory": null
+    },
+    {
       "id": "osm-way-825459219",
       "category": "tudigong",
       "kind": "temple",
@@ -3251,7 +5320,7 @@
     "osm": {
       "name": "OpenStreetMap contributors (ODbL)",
       "url": "https://www.openstreetmap.org/copyright",
-      "queriedAt": "2026-09-16T08:14:32.735175+00:00"
+      "queriedAt": "2026-09-16T15:12:56.498973+00:00"
     },
     "ic": {
       "name": "文化局 文化遺產資料 (data.gov.mo)",
@@ -3265,14 +5334,21 @@
     }
   },
   "stats": {
-    "total": 107,
-    "temples": 23,
-    "shrines": 84,
+    "total": 186,
+    "temples": 61,
+    "shrines": 91,
     "approximate": 41,
     "bySource": {
-      "osm": 66,
-      "ic": 6,
+      "osm": 144,
+      "ic": 43,
       "macaumemory": 69
+    },
+    "byCategory": {
+      "tudigong": 107,
+      "temple": 44,
+      "church": 33,
+      "mosque": 1,
+      "other": 1
     }
   }
 }

@@ -22,7 +22,7 @@ import {
   parishName,
 } from '../parishes'
 import { schoolColor } from '../schools'
-import { RELIGION_COLORS } from '../religion'
+import { religionColor } from '../religion'
 
 type Props = MapViewProps & {
   initialCamera: { center: [number, number]; zoom: number } | null
@@ -195,7 +195,7 @@ export default function RasterMapFallback(props: Props) {
     for (const toilet of data.toilets) point(toilet.coordinates, name(toilet.name), '#14b8a6', () => live.current.onToiletClick?.(toilet))
     // Tou Tei temples and shrines in their kind colour; a street-level guess is
     // still a dot here (the 2D map has no opacity channel per marker).
-    for (const site of data.religion) point(site.coordinates, name({ zh: site.name.zh, en: site.name.en ?? undefined, pt: site.name.pt ?? undefined }), RELIGION_COLORS[site.kind], () => live.current.onReligionClick?.(site))
+    for (const site of data.religion) point(site.coordinates, name({ zh: site.name.zh, en: site.name.en ?? undefined, pt: site.name.pt ?? undefined }), religionColor(site), () => live.current.onReligionClick?.(site))
     for (const park of data.carParks) point(park.coordinates, name(park.name), '#3b82f6', () => live.current.onCarParkClick?.(park))
     for (const site of data.waste) point(site.coordinates, name(site.name), '#4ade80', () => live.current.onWasteSiteClick?.({ kind: 'site', site }))
     for (const station of wasteExtras?.ecoStations ?? []) point(station.coordinates, name(station.name), '#4ade80', () => live.current.onWasteSiteClick?.({ kind: 'ecoStation', station }))

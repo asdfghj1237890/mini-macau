@@ -1,6 +1,14 @@
 """
-Manual fetch: RELIGION overlay, first category 土地公 / Tou Tei (Earth God)
-temples and street shrines, normalised into public/data/religion.json.
+Manual fetch: RELIGION overlay — 土地公 / Tou Tei (Earth God) temples and
+street shrines, Chinese temples, churches and chapels, the mosque, and other
+faiths — normalised into public/data/religion.json.
+
+The tudigong category (below) claims its OSM elements first, unchanged from
+the original single-category fetch. The other four categories (temple/
+church/mosque/other) are a separate OSM fetch + classification pass — see
+the "New categories" section below Q2_SHE's block for the query, the name/
+religion-tag classification rules, the dedupe rule, and the 文化局 (IC)
+heritage join that mirrors attach_heritage() for them.
 
 There is no single upstream list of Macau's Tou Tei sites (official figures —
 "近10所" temples, "160多個" public shrines, culturalheritage.mo/detail/101974
@@ -62,6 +70,7 @@ Run manually when the source data changes (not scheduled):
     DATAGOVMO_APPCODE=... uv run python data/scripts/fetch_religion.py
 """
 
+import difflib
 import hashlib
 import html
 import json
@@ -94,7 +103,7 @@ TIMEOUT = 30
 MAX_ATTEMPTS = 5
 BACKOFF_BASE = 2.0  # seconds; 2, 4, 8, 16
 
-RELIGION_MIN_SITES = 60  # degenerate-fetch guard; mirrored in validate_output.py
+RELIGION_MIN_SITES = 120  # degenerate-fetch guard; mirrored in validate_output.py
 
 # ----------------------------------------------------------------------------
 # OSM (Overpass)
@@ -140,6 +149,26 @@ CATEGORIES = [
             "publicShrines": "160多個",
             "source": "https://www.culturalheritage.mo/detail/101974",
         },
+    },
+    {
+        "id": "temple",
+        "name": {"zh": "廟宇", "en": "Chinese temples", "pt": "Templos chineses"},
+        "officialCounts": None,
+    },
+    {
+        "id": "church",
+        "name": {"zh": "教堂", "en": "Churches and chapels", "pt": "Igrejas e capelas"},
+        "officialCounts": None,
+    },
+    {
+        "id": "mosque",
+        "name": {"zh": "清真寺", "en": "Mosque", "pt": "Mesquita"},
+        "officialCounts": None,
+    },
+    {
+        "id": "other",
+        "name": {"zh": "其他信仰", "en": "Other faiths", "pt": "Outras religiões"},
+        "officialCounts": None,
     },
 ]
 
@@ -645,6 +674,531 @@ def merge_mymaps(sites: dict[str, dict], mymaps_sites: list[dict], entry_by_reco
 
 
 # ----------------------------------------------------------------------------
+# New categories: temple 廟宇 / church 教堂 / mosque 清真寺 / other 其他信仰
+# ----------------------------------------------------------------------------
+# One Overpass query unions the five selection criteria: worship-tagged
+# amenity, a qualifying building enum, any element carrying a religion tag,
+# named historic church ruins, and a building=yes element whose name reads
+# like a temple/church. Tudigong claims its own elements FIRST (the
+# unchanged Q1_WORSHIP/Q2_SHE fetch above) — anything already claimed (by
+# OSM ref) is excluded below, so the 107 tudigong sites are only ever added
+# to, never touched.
+#
+# RUINS_NAME_PATTERN/QUERY_E_NAME_PATTERN are shared, as plain strings,
+# between the query text below and matches_new_worship_query()'s compiled
+# regexes, so the two can never drift apart — matches_new_worship_query is a
+# defensive re-check that classification never trusts an element none of
+# these five clauses would actually select (live Overpass already only
+# returns matching elements; this only bites when the offline dry-run
+# harness feeds fetch_new_osm_sites a broader test dump).
+RUINS_NAME_PATTERN = r"教堂|Igreja"
+QUERY_E_NAME_PATTERN = r"聖堂|小堂|教堂|教會|宣道堂|浸信|聖公會|修院|靜院|Igreja|Capela|Ermida|廟|寺|庵|禪院|Templo"
+
+Q_NEW_WORSHIP = f"""[out:json][timeout:180];
+area(3601867188)->.mo;
+(
+  nwr["amenity"="place_of_worship"](area.mo);
+  nwr["building"~"^(church|chapel|cathedral|temple|mosque|monastery|shrine|synagogue)$"](area.mo);
+  nwr["religion"](area.mo);
+  nwr["historic"="ruins"]["name"~"{RUINS_NAME_PATTERN}"](area.mo);
+  nwr["building"="yes"]["name"~"{QUERY_E_NAME_PATTERN}"](area.mo);
+);
+out center tags;"""
+
+QUALIFYING_BUILDING_RE = re.compile(r"^(church|chapel|cathedral|temple|mosque|monastery|shrine|synagogue)$")
+RUINS_NAME_RE = re.compile(RUINS_NAME_PATTERN)
+QUERY_E_NAME_RE = re.compile(QUERY_E_NAME_PATTERN)
+
+RELIGION_TAG_CATEGORY = {
+    "christian": "church",
+    "muslim": "mosque",
+    "hindu": "other",
+    "sikh": "other",
+    "jewish": "other",
+    "bahai": "other",
+    "buddhist": "temple",
+    "taoist": "temple",
+    "chinese_folk": "temple",
+    "confucian": "temple",
+    "shinto": "temple",
+}
+
+# Rule 3 name-based classification, checked against the combined
+# name+name:pt+name:en string — same convention as is_shrine_like above,
+# since the pt/en half is sometimes the only half that reads as a temple or
+# church (e.g. 望廈聖方濟各堂 only carries a recognisable word, "Igreja", in
+# its pt name). These three regexes are a deliberately separate family from
+# NAME_RE/TEMPLE_RE/STREET_RE above (tudigong's own), so neither can change
+# the other's behaviour.
+CHURCH2_NAME_RE = re.compile(r"聖堂|小堂|教堂|教會|宣道堂|浸信|聖公會|主教座堂|修院|靜院|修會|Igreja|Capela|Ermida|Church|Chapel|Cristo")
+MOSQUE2_NAME_RE = re.compile(r"清真寺|Mesquita|Mosque")
+# DECISION: 包相府 (node/11166808354, one of "the 2023 survey's non-土地
+# street altars" the task spec names as an expected temple/shrine result)
+# matches none of the deity/temple words the spec gives verbatim. Appended
+# here as one more specific proper-noun alternative, the same way the given
+# list already mixes generic building words (廟/宮/寺) with deity names
+# (譚公/康公/包公/女媧/星君/水仙/尊王/老爺) — see the report for the one node
+# this changes the outcome for.
+TEMPLE2_NAME_RE = re.compile(
+    r"廟|宮|寺|庵|禪院|觀音|媽祖|天后|北帝|關帝|哪咤|哪吒|譚公|康公|包公|城隍|龍母|女媧|龍王|星君|水仙|尊王|老爺|包相府|Templo|Temple|Pagode"
+)
+# Rule 4: temple-vs-shrine kind, consulted only once category == temple (or,
+# see classify_new_category, as a last-resort category signal in its own
+# right — DECISION below). 仙院 added (coordinator correction): 呂祖仙院 reads
+# as a proper temple building, not a street shrine.
+KIND_TEMPLE_RE = re.compile(r"廟|宮|寺|庵|禪院|仙院|堂|殿|會館|園|岩|文化村|佛學社")
+
+# Rule 5: hard exclusions, checked against the zh half only (split_osm_name)
+# and only for elements NOT independently confirmed as a worship site (see
+# is_confirmed_worship) — e.g. amenity=place_of_worship "康真君廟, 望廈坊眾
+# 互助會" keeps its 互助會 clause, while the building=yes-only guesthouse
+# "家欣賓館（康公廟）" does not survive it.
+HARD_EXCLUDE_RE = re.compile(
+    r"皇宮|娛樂場|酒店|賓館|旅館|餅店|餐廳|火鍋|停車場|辦公室|中心|慈善會|互助會|大廈|Hotel|Casino|Car Park|Palace|Marquee|Gallery|Shuttle|Restaurant|Beer"
+)
+RELIGION2_STREET_RE = re.compile(r"前地|巷|街|里|斜巷|馬路|Largo|Beco|Travessa|Rua |Calçada|Estrada|Av\.|站$")
+# Plain civic/commercial amenities are never the worship site itself, even
+# when the name or a religion tag matches — school and grave_yard earn their
+# place here empirically: Macau has several church-run schools and Catholic/
+# Protestant cemeteries that carry religion=christian (and, for the schools,
+# a name containing "聖公會"/"浸信" — an affiliation, not a building type) —
+# see DECISION in the report. social_facility is deliberately left off this
+# set, since a real chapel (澳門基督教會宣道堂) can legitimately carry it; that
+# one lives or dies on the normal category-name match instead.
+PLAIN_AMENITY_EXCLUDE = {"restaurant", "pub", "toilets", "parking", "casino", "community_centre", "school", "grave_yard"}
+# A religion tag alone must not admit a feature (coordinator correction):
+# Macau's Catholic/Protestant cemeteries, the diocesan funeral home, the
+# Bishop's residence and several church-run schools all carry
+# religion=christian despite not being a place of worship themselves —
+# see classify_new_category's religion-tag gate, which additionally
+# requires this to NOT match and one of amenity=place_of_worship / a
+# qualifying building tag / a worship name pattern to independently hold.
+RELIGION2_NONWORSHIP_EXCLUDE_RE = re.compile(
+    r"墳場|Cemetery|Cemitério|殯儀|學校|中學|小學|學院|College|Escola|School|公署|大樓|安老院|舊址|醫院|中心|辦事處|會所"
+)
+# An OSM name that is a comma list ending in the maintaining association,
+# not the site itself (e.g. "康真君廟, 望廈坊眾互助會") — the temple/church is
+# only the part before the comma; the pt half (the association's Portuguese
+# name) stops applying once the zh half is truncated to match.
+COMMA_ASSOCIATION_RE = re.compile(r"^(.+?)[,，]\s*.+(?:互助會|慈善會|坊會)$")
+
+RELIGION2_DEDUPE_M = 60.0
+RELIGION2_IC_MATCH_M = 60.0
+
+# DECISION (coordinator correction): OSM and IC disagree on a handful of
+# variant/traditional characters for the same site — 蓮峰廟 (OSM) vs 蓮峯廟
+# (IC), 大三巴哪吒廟 vs an IC 哪咤 spelling, 譚僊聖廟 vs a hypothetical 譚仙聖廟,
+# etc. Every zh-name comparison used for matching (dedupe's same_site AND
+# attach_new_heritage's join) normalises through this map first and strips
+# spaces/punctuation, so e.g. "蓮峯廟" and "蓮峰廟" compare equal. The map is
+# for COMPARISON ONLY — build_new_site/attach_new_heritage still write the
+# original, un-normalised characters into the output.
+NAME_VARIANT_MAP = str.maketrans({"峯": "峰", "芳": "方", "咤": "吒", "僊": "仙", "靑": "青", "裡": "里"})
+NAME_PUNCT_RE = re.compile(r"[\s,，、。·:：\-\(\)（）《》\[\]【】\"'‘’“”]")
+
+
+def normalize_for_compare(s: str) -> str:
+    return NAME_PUNCT_RE.sub("", s.translate(NAME_VARIANT_MAP))
+
+
+def has_cjk(s: str) -> bool:
+    return any("一" <= ch <= "鿿" for ch in s)
+
+
+def is_confirmed_worship(tags: dict) -> bool:
+    """A strong, tag-level signal that the element IS a place of worship, as
+    opposed to being pulled in only by the generic building=yes name regex.
+    Confirmed elements skip the hard-exclusion word list (rule 5) — the tag
+    itself is taken as decisive over an incidental word in a compound name."""
+    if tags.get("amenity") == "place_of_worship":
+        return True
+    if tags.get("religion"):
+        return True
+    if QUALIFYING_BUILDING_RE.match(tags.get("building") or ""):
+        return True
+    if tags.get("historic") == "ruins":
+        return True
+    return False
+
+
+def matches_new_worship_query(tags: dict, combined: str) -> bool:
+    """True if the element satisfies at least one of Q_NEW_WORSHIP's five
+    clauses. A live Overpass fetch only ever returns matching elements, so
+    this is a no-op in production; it earns its keep against the offline
+    dry-run harness's broader test dump, which also carries elements with
+    NONE of these tags (a casino resort whose name happens to contain 宮, or
+    a bus-stop node named after a nearby temple) that the name-based rules
+    below would otherwise wrongly classify."""
+    if is_confirmed_worship(tags):
+        return True
+    if tags.get("building") == "yes" and QUERY_E_NAME_RE.search(combined):
+        return True
+    return False
+
+
+def classify_new_category(tags: dict, zh: str, combined: str, confirmed: bool) -> tuple[str | None, str | None]:
+    """(category, kind) per rules 2-4, or (None, None) to skip (and print)."""
+    cat = RELIGION_TAG_CATEGORY.get(tags.get("religion") or "")
+    if cat is not None:
+        # DECISION (coordinator correction): a religion tag alone must not
+        # admit a feature — a cemetery, funeral home, administrative office
+        # or school can carry the parent institution's religion tag without
+        # itself being a place of worship. Also needs amenity=place_of_
+        # worship, a qualifying building tag, or a worship name pattern, AND
+        # the zh name must not read as one of those non-worship uses.
+        has_worship_signal = (
+            tags.get("amenity") == "place_of_worship"
+            or QUALIFYING_BUILDING_RE.match(tags.get("building") or "")
+            or CHURCH2_NAME_RE.search(combined)
+            or MOSQUE2_NAME_RE.search(combined)
+            or TEMPLE2_NAME_RE.search(combined)
+        )
+        if has_worship_signal and not RELIGION2_NONWORSHIP_EXCLUDE_RE.search(zh):
+            if cat == "church":
+                return "church", "church"
+            if cat == "mosque":
+                return "mosque", "mosque"
+            if cat == "other":
+                return "other", "shrine"
+            if cat == "temple":
+                return "temple", ("temple" if KIND_TEMPLE_RE.search(zh) else "shrine")
+        # Gate failed: fall through to the name-only rules below rather than
+        # skip outright — a real worship name pattern can still admit it.
+
+    # No (recognised, or gate-failed) religion tag: by name.
+    if CHURCH2_NAME_RE.search(combined):
+        return "church", "church"
+    if MOSQUE2_NAME_RE.search(combined):
+        return "mosque", "mosque"
+    if TEMPLE2_NAME_RE.search(combined):
+        return "temple", ("temple" if KIND_TEMPLE_RE.search(zh) else "shrine")
+
+    # DECISION: rule 4's kind vocabulary (堂|殿|會館|園|岩|文化村|佛學社) names a
+    # real element the task spec expects present (澳門佛學社, via the 佛學社
+    # token) that rule 3's own list never reaches on its own. Applied only to
+    # independently confirmed worship sites (see is_confirmed_worship) so a
+    # plain building=yes candidate still needs an explicit rule-3 match.
+    if confirmed and KIND_TEMPLE_RE.search(zh):
+        return "temple", "temple"
+    return None, None
+
+
+def build_new_site(el: dict, category: str, kind: str, name_zh: str, name_pt: str | None, tags: dict) -> dict:
+    lat, lon = osm_pos(el)
+    return {
+        "id": f"osm-{el['type']}-{el['id']}",
+        "category": category,
+        "kind": kind,
+        "name": {"zh": name_zh, "en": clean(tags.get("name:en")) or None, "pt": name_pt},
+        "coordinates": [round(float(lon), 6), round(float(lat), 6)],
+        "approximate": False,
+        "address": None,
+        "heritage": None,
+        "sources": ["osm"],
+        "osm": osm_ref(el),
+        "macaumemory": None,
+    }
+
+
+def dedupe_new_candidates(items: list[dict]) -> list[dict]:
+    """Cluster candidates within RELIGION2_DEDUPE_M whose zh names share
+    their first 3 characters or contain one another (rule 6), then keep one
+    per cluster: amenity=place_of_worship > qualifying building tag/ruins >
+    building=yes, a way over a node, else the lower OSM id — deterministic,
+    and matches every pair named in the task spec."""
+
+    def tier(item: dict) -> int:
+        t = item["tags"]
+        if t.get("amenity") == "place_of_worship":
+            return 1
+        if QUALIFYING_BUILDING_RE.match(t.get("building") or "") or t.get("historic") == "ruins":
+            return 2
+        return 3
+
+    def same_site(a: dict, b: dict) -> bool:
+        if metres(a["lat"], a["lon"], b["lat"], b["lon"]) > RELIGION2_DEDUPE_M:
+            return False
+        # normalize_for_compare (variant characters + punctuation/space
+        # stripping) — e.g. "望廈聖方濟各堂" and "望廈聖芳濟各聖堂" are the same
+        # church under a mapper typo/variant, which would not share a
+        # first-3-chars/containment match on the raw strings.
+        za, zb = normalize_for_compare(a["zh"]), normalize_for_compare(b["zh"])
+        return za[:3] == zb[:3] or za in zb or zb in za
+
+    parent = list(range(len(items)))
+
+    def find(i: int) -> int:
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    def union(i: int, j: int) -> None:
+        ri, rj = find(i), find(j)
+        if ri != rj:
+            parent[ri] = rj
+
+    for i in range(len(items)):
+        for j in range(i + 1, len(items)):
+            if same_site(items[i], items[j]):
+                union(i, j)
+
+    clusters: dict[int, list[int]] = {}
+    for i in range(len(items)):
+        clusters.setdefault(find(i), []).append(i)
+
+    def rank(i: int) -> tuple:
+        item = items[i]
+        return (tier(item), 0 if item["ref"].startswith("way/") else 1, item["el"]["id"])
+
+    return [items[min(idxs, key=rank)] for idxs in clusters.values()]
+
+
+def fetch_new_osm_sites(claimed_refs: set[str]) -> dict[str, dict]:
+    elements = overpass(Q_NEW_WORSHIP)
+    print(f"  {len(elements)} raw elements (amenity/building/religion/ruins/name queries unioned)")
+
+    candidates = []
+    skipped_claimed = skipped_unnamed = skipped_no_cjk = skipped_not_selected = skipped_excluded = skipped_no_category = 0
+    for el in elements:
+        ref = osm_ref(el)
+        if ref in claimed_refs:
+            skipped_claimed += 1
+            continue
+        tags = el.get("tags") or {}
+        name_zh, name_pt = split_osm_name(tags)
+        lat, lon = osm_pos(el)
+        if not name_zh or lat is None or lon is None:
+            skipped_unnamed += 1
+            continue
+        if not has_cjk(name_zh):
+            # DECISION: a few OSM elements (e.g. "IGLISIA NI CRSTO",
+            # "Evangelize China Fellowship") carry no CJK name at all, so
+            # split_osm_name's Latin-tail stripping produces a garbled "zh"
+            # for them (e.g. "Evangelize") — skipped rather than written
+            # with a fake Chinese name. See the report for the full list.
+            print(f"  skip (no CJK name): {ref} {clean(tags.get('name'))!r}")
+            skipped_no_cjk += 1
+            continue
+        tag_zh = clean(tags.get("name:zh"))
+        if tag_zh and not tags.get("name:zh-Hant") and name_zh.startswith(tag_zh) and has_cjk(tag_zh):
+            leftover = name_zh[len(tag_zh):]
+            if leftover and not has_cjk(leftover) and re.search(r"[A-Za-zÀ-ÿ]", leftover):
+                # DECISION: split_osm_name's Latin-tail regex assumes a space
+                # before the Latin half; when a full-width bracket butts
+                # straight up against it (觀音廟（九澳）Templo de Kun Iam
+                # (Ká-Hó)) it cuts after the first LATER space instead,
+                # leaving "Templo" stuck onto the zh half. Narrowly scoped to
+                # "name:zh is a prefix, and what is left over is Latin text
+                # with no CJK of its own" so it does not also strip a
+                # legitimate CJK parenthetical alt-name split_osm_name
+                # otherwise preserves (e.g. "聖安多尼堂 (花王堂)", where
+                # name:zh is just "聖安多尼堂"). split_osm_name itself is
+                # untouched — it is shared with the tudigong fetch above,
+                # which must stay byte-identical.
+                name_zh = tag_zh
+        combined = f"{tags.get('name', '')} {tags.get('name:pt', '')} {tags.get('name:en', '')}"
+        if not matches_new_worship_query(tags, combined):
+            skipped_not_selected += 1
+            continue
+        amenity = tags.get("amenity")
+        if amenity and amenity != "place_of_worship" and amenity in PLAIN_AMENITY_EXCLUDE:
+            print(f"  skip (plain amenity={amenity}): {ref} {name_zh}")
+            skipped_excluded += 1
+            continue
+        confirmed = is_confirmed_worship(tags)
+        if not confirmed and (HARD_EXCLUDE_RE.search(name_zh) or RELIGION2_STREET_RE.search(name_zh)):
+            print(f"  skip (hard exclusion): {ref} {name_zh}")
+            skipped_excluded += 1
+            continue
+        category, kind = classify_new_category(tags, name_zh, combined, confirmed)
+        if category is None:
+            print(f"  skip (no category signal): {ref} {name_zh}")
+            skipped_no_category += 1
+            continue
+        assoc_m = COMMA_ASSOCIATION_RE.match(name_zh)
+        if assoc_m:
+            # DECISION (coordinator correction): "康真君廟, 望廈坊眾互助會" names
+            # the maintaining association alongside the temple — only the
+            # part before the comma is the site; the pt half (the
+            # association's Portuguese name) no longer applies once zh is
+            # truncated to match, so it is dropped rather than left mismatched.
+            name_zh, name_pt = assoc_m.group(1).strip(), None
+        candidates.append(
+            {"el": el, "ref": ref, "tags": tags, "zh": name_zh, "pt": name_pt, "lat": lat, "lon": lon, "category": category, "kind": kind}
+        )
+
+    print(
+        f"  {len(candidates)} candidates after excluding {skipped_claimed} tudigong-claimed, "
+        f"{skipped_unnamed} unnamed, {skipped_no_cjk} no-CJK-name, {skipped_not_selected} not "
+        f"matching any selection clause, {skipped_excluded} excluded, {skipped_no_category} uncategorised"
+    )
+
+    winners = dedupe_new_candidates(candidates)
+    print(f"  {len(winners)} sites after {RELIGION2_DEDUPE_M:.0f} m / shared-name dedupe")
+
+    sites: dict[str, dict] = {}
+    for item in winners:
+        site = build_new_site(item["el"], item["category"], item["kind"], item["zh"], item["pt"], item["tags"])
+        sites[site["id"]] = site
+    return sites
+
+
+# 文化局 (IC) heritage join for the new categories — independently fetched
+# and filtered from tudigong's own fetch_heritage_rows/attach_heritage pair
+# above (left untouched) rather than sharing a refactored fetch, so neither
+# path can change the other's behaviour.
+NEW_IC_WANT_RE = re.compile(r"堂|廟|宮|寺|殿|仙院|會館|牌坊|清真寺|修院|教堂")
+# DECISION (coordinator correction): only individual-monument code series —
+# MM/MT/MC (Macau/Taipa/Coloane monuments) and AM/AT/AC (Macau/Taipa/Coloane
+# 具建築藝術價值之樓宇, architecturally valuable buildings) — name a single
+# site. CM/SM/SC (conjuntos/ensembles) name a group of buildings or a whole
+# precinct (CM002 望德堂坊 is the São Lázaro PARISH area, not one church) and
+# were double-joining onto a site an MM/AM code already legitimately claimed.
+NEW_IC_ALLOWED_PREFIXES = ("MM", "MT", "MC", "AM", "AT", "AC")
+NEW_IC_EXCLUDE_RE = re.compile(
+    r"墳場|石塊|海旁|炮台|大屋|房屋|街|馬路|舊址|大樓|安老院|仁慈堂|春草堂|公園|圖書館|學校|醫院|藥房|中心"
+)
+# Rule: temple FIRST (its vocabulary — 廟/宮/寺/禪院/會館/殿/仙院/公所/媽閣/觀音 —
+# is specific enough that nothing here is ambiguously a church), THEN church.
+# The old church-first order used a bare "堂"/"聖" catch-all that wrongly
+# swallowed temple names carrying either character as part of a proper noun
+# (三聖宮, 三聖廟, 譚僊聖廟, 普濟禪院(觀音堂)), sending their IC rows hunting a
+# nearby OSM CHURCH when the real match was a TEMPLE a few metres away.
+NEW_IC_TEMPLE_RE = re.compile(r"廟|宮|寺|禪院|觀音|會館|殿|仙院|公所|媽閣")
+NEW_IC_CHURCH_RE = re.compile(r"教堂|聖堂|小堂|主教座堂|聖母|牌坊|修院|遺址|聖[^廟宮]*堂$")
+
+
+def classify_ic_new_category(zh_name: str) -> str:
+    if NEW_IC_TEMPLE_RE.search(zh_name):
+        return "temple"
+    if NEW_IC_CHURCH_RE.search(zh_name):
+        return "church"
+    if "堂" in zh_name:
+        # DECISION: a name like "聖安多尼堂及前地（花王堂）" carries a 及前地/
+        # parenthetical suffix after the 堂, so the anchored 聖[^廟宮]*堂$
+        # pattern never reaches the true end of the string. By this point
+        # every temple-specific word has already been ruled out, so a bare
+        # "堂" left over is a worship-hall/church use.
+        return "church"
+    return "temple"
+
+
+def fetch_new_heritage_rows(appcode: str) -> list[dict]:
+    cn, en, pt = fetch_ic("CN", appcode), fetch_ic("EN", appcode), fetch_ic("PT", appcode)
+
+    def by_code(rows: list[dict]) -> dict[str, dict]:
+        out = {}
+        for r in rows:
+            m = IC_CODE_RE.match(clean(r.get("Name")))
+            if m:
+                out[m.group(1)] = {"name": m.group(2).strip(), "description": strip_html(r.get("Description_html"))}
+        return out
+
+    en_by_code, pt_by_code = by_code(en), by_code(pt)
+
+    rows = []
+    for r in cn:
+        m = IC_CODE_RE.match(clean(r.get("Name")))
+        if not m:
+            continue
+        code, zh_name = m.group(1), m.group(2).strip()
+        if code[:2] not in NEW_IC_ALLOWED_PREFIXES:
+            continue
+        if not NEW_IC_WANT_RE.search(zh_name) or NEW_IC_EXCLUDE_RE.search(zh_name):
+            continue
+        if IC_WANT_RE.search(zh_name):
+            continue  # tudigong's own (福德祠 etc.) — handled by fetch_heritage_rows/attach_heritage above
+        category = classify_ic_new_category(zh_name)
+        en_entry, pt_entry = en_by_code.get(code, {}), pt_by_code.get(code, {})
+        rows.append(
+            {
+                "code": code,
+                "zh_name": zh_name,
+                "en_name": en_entry.get("name"),
+                "pt_name": pt_entry.get("name"),
+                "gps": parse_ic_gps(r.get("GPS")),
+                "category": category,
+                "kind": category,  # standalone-site kind mirrors category: church->church, temple->temple
+                "description": {
+                    "zh": strip_html(r.get("Description_html")),
+                    "en": en_entry.get("description", ""),
+                    "pt": pt_entry.get("description", ""),
+                },
+            }
+        )
+    return rows
+
+
+def longest_common_substring_len(a: str, b: str) -> int:
+    match = difflib.SequenceMatcher(None, a, b, autojunk=False).find_longest_match(0, len(a), 0, len(b))
+    return match.size
+
+
+def attach_new_heritage(sites: dict[str, dict], rows: list[dict]) -> None:
+    """Join each row to a same-category OSM site within RELIGION2_IC_MATCH_M:
+    among every such site, prefer the one whose (normalised) zh name shares
+    the longest common substring with the row's zh name, nearest metres only
+    as a tie-break (mirrors attach_heritage above, but nearest-only there was
+    wrong here: two same-category temples both within range of an IC point
+    is common — e.g. MM022 觀音古廟（觀音仔）has both the actual 觀音古廟 OSM
+    site and an unrelated 城隍廟 within 60 m, and 城隍廟 happened to be
+    nearer). A standalone ic-<code> site is reserved for a row with NO
+    same-category OSM site within range at all — if one exists but shares no
+    substring (e.g. two names that are just genuinely different), the
+    nearest one still wins rather than forking a near-duplicate point next
+    to it (this is what MM024 蓮峯廟 vs OSM's 蓮峰廟 needs even after variant-
+    character normalisation closes most such gaps)."""
+    for h in rows:
+        if h["gps"] is None:
+            print(f"  WARNING: heritage {h['code']} has no parseable GPS; skipped", file=sys.stderr)
+            continue
+        hlat, hlon = h["gps"]
+        h_norm = normalize_for_compare(h["zh_name"])
+        best_id, best_d, best_lcs = None, None, None
+        for sid, site in sites.items():
+            if site["category"] != h["category"]:
+                continue
+            slon, slat = site["coordinates"]
+            d = metres(hlat, hlon, slat, slon)
+            if d > RELIGION2_IC_MATCH_M:
+                continue
+            lcs = longest_common_substring_len(h_norm, normalize_for_compare(site["name"]["zh"]))
+            if best_id is None or lcs > best_lcs or (lcs == best_lcs and d < best_d):
+                best_id, best_d, best_lcs = sid, d, lcs
+        heritage_block = {"code": h["code"], "description": h["description"]}
+        if best_d is not None and best_d <= RELIGION2_IC_MATCH_M:
+            site = sites[best_id]
+            site["heritage"] = heritage_block
+            if h["en_name"]:
+                site["name"]["en"] = h["en_name"]
+            if h["pt_name"]:
+                site["name"]["pt"] = h["pt_name"]
+            if "ic" not in site["sources"]:
+                site["sources"].append("ic")
+            print(f"  heritage {h['code']} {h['zh_name']} -> {best_id} ({best_d:.1f} m, lcs={best_lcs})")
+        else:
+            new_id = f"ic-{h['code']}"
+            sites[new_id] = {
+                "id": new_id,
+                "category": h["category"],
+                "kind": h["kind"],
+                "name": {"zh": h["zh_name"], "en": h["en_name"], "pt": h["pt_name"]},
+                "coordinates": [round(hlon, 6), round(hlat, 6)],
+                "approximate": False,
+                "address": None,
+                "heritage": heritage_block,
+                "sources": ["ic"],
+                "osm": None,
+                "macaumemory": None,
+            }
+            print(
+                f"  heritage {h['code']} {h['zh_name']} -> standalone "
+                f"(no same-category OSM site within {RELIGION2_IC_MATCH_M:.0f} m at all)"
+            )
+
+
+# ----------------------------------------------------------------------------
 # main
 # ----------------------------------------------------------------------------
 def run() -> int:
@@ -659,9 +1213,9 @@ def run() -> int:
         )
         return 1
 
-    print("Fetching RELIGION overlay: 土地公 / Tou Tei temples and street shrines")
+    print("Fetching RELIGION overlay: 土地公, Chinese temples, churches, the mosque and other faiths")
 
-    print("- OSM (Overpass): worship + 社壇 candidates")
+    print("- OSM (Overpass): tudigong worship + 社壇 candidates")
     osm_queried_at = datetime.now(tz=timezone.utc).isoformat()
     try:
         sites = fetch_osm_sites()
@@ -688,18 +1242,38 @@ def run() -> int:
         print(f"ERROR: {e}", file=sys.stderr)
         return 1
     print(f"  {matched} matched onto an existing site, {added} new")
+    print(f"  tudigong total: {len(sites)}")
+
+    print("- OSM (Overpass): temples, churches, the mosque, other faiths")
+    claimed_refs = {s["osm"] for s in sites.values() if s.get("osm")}
+    try:
+        new_sites = fetch_new_osm_sites(claimed_refs)
+    except RuntimeError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
+    sites.update(new_sites)
+    print(f"  {len(new_sites)} new OSM sites (temple/church/mosque/other)")
+
+    print("- 文化局 (IC) 文化遺產資料: heritage-listed temples/churches")
+    try:
+        attach_new_heritage(sites, fetch_new_heritage_rows(appcode))
+    except RuntimeError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        return 1
 
     if len(sites) < RELIGION_MIN_SITES:
         print(f"ERROR: only {len(sites)} sites (< {RELIGION_MIN_SITES}) — looks like a degenerate run, refusing to write", file=sys.stderr)
         return 1
 
     site_list = sorted(sites.values(), key=lambda s: s["id"])
+    category_ids = [c["id"] for c in CATEGORIES]
     stats = {
         "total": len(site_list),
         "temples": sum(1 for s in site_list if s["kind"] == "temple"),
         "shrines": sum(1 for s in site_list if s["kind"] == "shrine"),
         "approximate": sum(1 for s in site_list if s["approximate"]),
         "bySource": {src: sum(1 for s in site_list if src in s["sources"]) for src in ("osm", "ic", "macaumemory")},
+        "byCategory": {cid: sum(1 for s in site_list if s["category"] == cid) for cid in category_ids},
     }
 
     output = {
@@ -721,8 +1295,9 @@ def run() -> int:
         json.dump(output, f, ensure_ascii=False, indent=2)
 
     print(
-        f"\nDone. {stats['total']} sites (temples={stats['temples']}, shrines={stats['shrines']}, "
-        f"approximate={stats['approximate']}); bySource={stats['bySource']}"
+        f"\nDone. {stats['total']} sites; byCategory={stats['byCategory']}; "
+        f"kinds (temple={stats['temples']}, shrine={stats['shrines']}); "
+        f"approximate={stats['approximate']}; bySource={stats['bySource']}"
     )
     print(f"Wrote {OUTPUT_PATH}")
     return 0

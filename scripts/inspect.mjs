@@ -1386,13 +1386,17 @@ function cmdGrandPrixKinks(track, corners, minTurnDeg = 35, maxSegM = 25) {
   console.log(`turns ≥ 60° (${sharp.length}): ${sharp.join('  ')}`)
 }
 
-// religion.json: RELIGION overlay, category tudigong (土地公 / Tou Tei) — OSM
-// worship/社壇 candidates, 文化局 heritage-listed sites attached (not kept as
-// separate points), and 澳門記憶 / Google My Maps 澳門的土地信仰 sites (attached
-// onto an existing site, accumulating into macaumemory.names/records/entries,
-// or added as new approximate street-level sites) — see fetch_religion.py.
+// religion.json: RELIGION overlay — five categories (tudigong 土地公, temple
+// 廟宇, church 教堂, mosque 清真寺, other 其他信仰). tudigong is OSM worship/社壇
+// candidates plus 澳門記憶 / Google My Maps 澳門的土地信仰 sites (attached onto an
+// existing site, accumulating into macaumemory.names/records/entries, or
+// added as new approximate street-level sites); the other four categories
+// are a separate OSM classification pass. 文化局 heritage rows are attached
+// to the nearest same-category site for both (not kept as separate points)
+// or, unmatched, become their own standalone `ic-<code>` site — see
+// fetch_religion.py.
 function cmdReligion() {
-  const { fetchedAtUtc, sites, stats } = load('public/data/religion.json')
+  const { fetchedAtUtc, categories, sites, stats } = load('public/data/religion.json')
   const bytes = statSync(join(ROOT, 'public/data/religion.json')).size
 
   console.log(`total sites: ${sites.length}   fetchedAtUtc: ${fetchedAtUtc}   file size: ${(bytes / 1024).toFixed(1)} KiB`)
@@ -1406,12 +1410,30 @@ function cmdReligion() {
   for (const s of sites) for (const src of s.sources) bySource[src] = (bySource[src] || 0) + 1
   console.log('by source:', bySource)
 
+  console.log('\nby category:')
+  for (const c of categories) {
+    const n = sites.filter((s) => s.category === c.id).length
+    console.log(`  ${c.id.padEnd(10)} ${String(n).padStart(3)}  ${c.name.zh} / ${c.name.en} / ${c.name.pt}`)
+  }
+
+  console.log('\nby category x kind:')
+  for (const c of categories) {
+    const inCat = sites.filter((s) => s.category === c.id)
+    const kinds = {}
+    for (const s of inCat) kinds[s.kind] = (kinds[s.kind] || 0) + 1
+    console.log(`  ${c.id.padEnd(10)} ${JSON.stringify(kinds)}`)
+  }
+
   const approx = sites.filter((s) => s.approximate)
   console.log(`\napproximate: ${approx.length}`)
 
   const heritage = sites.filter((s) => s.heritage)
   console.log(`\nheritage sites (${heritage.length}):`)
-  for (const s of heritage) console.log(`  ${s.heritage.code.padEnd(6)} ${s.id.padEnd(16)} ${s.name.zh}`)
+  for (const s of heritage) console.log(`  ${s.heritage.code.padEnd(6)} ${s.id.padEnd(16)} ${s.category.padEnd(9)} ${s.name.zh}`)
+
+  const icStandalone = sites.filter((s) => s.id.startsWith('ic-'))
+  console.log(`\nstandalone ic- sites (heritage row with no same-category OSM match within range, ${icStandalone.length}):`)
+  for (const s of icStandalone) console.log(`  ${s.id.padEnd(16)} ${s.category.padEnd(9)} kind=${s.kind.padEnd(7)} ${s.name.zh}`)
 
   const mmOnly = sites.filter((s) => s.id.startsWith('mm-'))
   console.log(`\nMy Maps-only sites (id starts 'mm-'): ${mmOnly.length}`)

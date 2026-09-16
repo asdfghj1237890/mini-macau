@@ -1,13 +1,21 @@
-import { describe, it, expect } from 'vitest'
+import { afterEach, describe, it, expect, vi } from 'vitest'
 import {
+  ALL_RELIGION_CATEGORIES,
   RELIGION_APPROXIMATE_OPACITY,
-  RELIGION_COLORS,
+  RELIGION_CATEGORY_COLORS,
+  RELIGION_CATEGORY_ORDER,
+  RELIGION_ICON_VARIANTS,
   RELIGION_KIND_ORDER,
   buildReligionFeatures,
+  countReligionByCategory,
   countReligionByKind,
+  filterReligionByCategory,
+  loadReligionCategoriesOn,
   pickHeritageText,
   pickReligionText,
+  religionColor,
   religionIconName,
+  saveReligionCategoriesOn,
 } from './religion'
 import type { ReligionSite } from './types'
 
@@ -28,15 +36,22 @@ function site(over: Partial<ReligionSite> = {}): ReligionSite {
   }
 }
 
-describe('religion kinds', () => {
-  it('has a colour and a distinct icon name for every kind', () => {
-    const names = RELIGION_KIND_ORDER.map(religionIconName)
-    expect(new Set(names).size).toBe(RELIGION_KIND_ORDER.length)
-    for (const kind of RELIGION_KIND_ORDER) {
-      expect(RELIGION_COLORS[kind]).toMatch(/^#[0-9a-f]{6}$/)
+describe('religion categories and kinds', () => {
+  it('has a colour for every category and a distinct icon name for every category × kind', () => {
+    for (const category of RELIGION_CATEGORY_ORDER) {
+      expect(RELIGION_CATEGORY_COLORS[category]).toMatch(/^#[0-9a-f]{6}$/)
     }
+    const names = RELIGION_ICON_VARIANTS.map(v => religionIconName(v.category, v.kind))
+    expect(names).toHaveLength(RELIGION_CATEGORY_ORDER.length * RELIGION_KIND_ORDER.length)
+    expect(new Set(names).size).toBe(names.length)
     expect(RELIGION_APPROXIMATE_OPACITY).toBeGreaterThan(0)
     expect(RELIGION_APPROXIMATE_OPACITY).toBeLessThan(1)
+  })
+
+  it('colours a site by its category, not its kind', () => {
+    expect(religionColor(site({ category: 'church', kind: 'church' }))).toBe(RELIGION_CATEGORY_COLORS.church)
+    expect(religionColor(site({ category: 'temple', kind: 'shrine' }))).toBe(RELIGION_CATEGORY_COLORS.temple)
+    expect(religionColor(site({ category: 'tudigong', kind: 'shrine' }))).toBe(RELIGION_CATEGORY_COLORS.tudigong)
   })
 })
 
@@ -69,20 +84,23 @@ describe('pickReligionText', () => {
 })
 
 describe('buildReligionFeatures', () => {
-  it('emits one point per site, carrying id, kind, icon and the approximate flag', () => {
+  it('emits one point per site, carrying id, category, kind, icon and the approximate flag', () => {
     const fc = buildReligionFeatures([
       site({ id: 'A' }),
       site({ id: 'B', kind: 'shrine', approximate: true, sources: ['macaumemory'], osm: null, heritage: null }),
+      site({ id: 'C', category: 'church', kind: 'church' }),
     ])
-    expect(fc.features).toHaveLength(2)
-    expect(fc.features.map(f => f.properties?.kind)).toEqual(['temple', 'shrine'])
-    expect(fc.features.map(f => f.properties?.icon)).toEqual(['religion-temple', 'religion-shrine'])
-    expect(fc.features.map(f => f.properties?.approximate)).toEqual([false, true])
+    expect(fc.features).toHaveLength(3)
+    expect(fc.features.map(f => f.properties?.kind)).toEqual(['temple', 'shrine', 'church'])
+    expect(fc.features.map(f => f.properties?.icon)).toEqual([
+      'religion-tudigong-temple', 'religion-tudigong-shrine', 'religion-church-church',
+    ])
+    expect(fc.features.map(f => f.properties?.approximate)).toEqual([false, true, false])
     expect(fc.features[0].geometry).toEqual({ type: 'Point', coordinates: [113.54482, 22.194745] })
-    expect(fc.features.map(f => f.properties?.id)).toEqual(['A', 'B'])
+    expect(fc.features.map(f => f.properties?.id)).toEqual(['A', 'B', 'C'])
   })
 
-  it('ranks exact temples above approximate shrines for collision order', () => {
+  it('ranks exact buildings above approximate street shrines for collision order', () => {
     const fc = buildReligionFeatures([
       site({ id: 'T', kind: 'temple', approximate: false }),
       site({ id: 'S', kind: 'shrine', approximate: true }),
@@ -101,10 +119,68 @@ describe('buildReligionFeatures', () => {
   })
 })
 
-describe('countReligionByKind', () => {
-  it('counts temples and shrines separately', () => {
-    expect(countReligionByKind([site(), site({ kind: 'shrine' }), site({ kind: 'shrine' })]))
-      .toEqual({ temple: 1, shrine: 2 })
-    expect(countReligionByKind([])).toEqual({ temple: 0, shrine: 0 })
+describe('counts', () => {
+  it('counts kinds and categories separately, with every key present', () => {
+    const sites = [site(), site({ kind: 'shrine' }), site({ category: 'church', kind: 'church' })]
+    expect(countReligionByKind(sites)).toEqual({ temple: 1, shrine: 1, church: 1, mosque: 0 })
+    expect(countReligionByCategory(sites)).toEqual({ tudigong: 2, temple: 0, church: 1, mosque: 0, other: 0 })
+    expect(countReligionByCategory([])).toEqual({ tudigong: 0, temple: 0, church: 0, mosque: 0, other: 0 })
+  })
+})
+
+describe('filterReligionByCategory', () => {
+  const sites = [site({ id: 'a' }), site({ id: 'b', category: 'church', kind: 'church' }), site({ id: 'c', category: 'mosque', kind: 'mosque' })]
+
+  it('returns the same array when every category is on — MapView skips the setData', () => {
+    expect(filterReligionByCategory(sites, ALL_RELIGION_CATEGORIES)).toBe(sites)
+  })
+
+  it('drops the sites whose category is off', () => {
+    const on = new Set(['church', 'other'] as const)
+    expect(filterReligionByCategory(sites, on).map(s => s.id)).toEqual(['b'])
+    expect(filterReligionByCategory(sites, new Set()).length).toBe(0)
+  })
+})
+
+describe('loadReligionCategoriesOn / saveReligionCategoriesOn', () => {
+  function stubStorage(initial: Record<string, string> = {}) {
+    const store = new Map(Object.entries(initial))
+    vi.stubGlobal('localStorage', {
+      getItem: (k: string) => store.get(k) ?? null,
+      setItem: (k: string, v: string) => { store.set(k, v) },
+      removeItem: (k: string) => { store.delete(k) },
+    })
+    return store
+  }
+  afterEach(() => { vi.unstubAllGlobals() })
+
+  it('defaults to every category when nothing is stored', () => {
+    stubStorage()
+    expect([...loadReligionCategoriesOn()]).toEqual([...RELIGION_CATEGORY_ORDER])
+  })
+
+  it('round-trips a partial selection in legend order', () => {
+    const store = stubStorage()
+    saveReligionCategoriesOn(new Set(['other', 'tudigong'] as const))
+    expect(store.get('mini-macau-religion-categories-on')).toBe('["tudigong","other"]')
+    expect([...loadReligionCategoriesOn()]).toEqual(['tudigong', 'other'])
+  })
+
+  it('degrades to all-on for corrupt or unknown storage', () => {
+    stubStorage({ 'mini-macau-religion-categories-on': '{"nope":1}' })
+    expect([...loadReligionCategoriesOn()]).toEqual([...RELIGION_CATEGORY_ORDER])
+    stubStorage({ 'mini-macau-religion-categories-on': '["zeus"]' })
+    expect(loadReligionCategoriesOn().size).toBe(0)
+    stubStorage({ 'mini-macau-religion-categories-on': 'not json' })
+    expect([...loadReligionCategoriesOn()]).toEqual([...RELIGION_CATEGORY_ORDER])
+  })
+
+  it('never lets a throwing storage break the toggle', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: () => { throw new Error('blocked') },
+      setItem: () => { throw new Error('blocked') },
+    })
+    expect(() => saveReligionCategoriesOn(ALL_RELIGION_CATEGORIES)).not.toThrow()
+    expect([...loadReligionCategoriesOn()]).toEqual([...RELIGION_CATEGORY_ORDER])
   })
 })

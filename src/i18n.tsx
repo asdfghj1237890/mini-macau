@@ -180,7 +180,7 @@ const translations = {
     toiletsCount: (n: number) => `${n} toilets`,
     religion: 'Religion',
     religionCount: (n: number) => `${n} sites`,
-    religionNote: 'Tou Tei temples and street shrines',
+    religionNote: 'Temples, churches, the mosque and Tou Tei street shrines',
     cityLayers: 'City layers',
     layerPanelTitle: 'Map layers',
     layerPanelSubtitle: 'Choose what the city reveals.',
@@ -427,8 +427,15 @@ const translations = {
     // ---- ReligionInfoPanel ----
     religionLabel: 'RELIGION',
     religionCategoryTudigong: 'Tou Tei (Earth God)',
+    religionCategoryTemple: 'Chinese temples',
+    religionCategoryChurch: 'Churches and chapels',
+    religionCategoryMosque: 'Mosque',
+    religionCategoryOther: 'Other faiths',
+    religionCategoriesHint: 'Colour = faith or group · shape = building type',
     religionKindTemple: 'Tou Tei temple (土地廟 / 福德祠)',
     religionKindShrine: 'Street shrine (土地神壇)',
+    religionKindChurch: 'Church or chapel',
+    religionKindMosque: 'Mosque',
     religionKind: 'TYPE',
     religionAddress: 'ADDRESS',
     religionHeritage: 'HERITAGE',
@@ -740,7 +747,7 @@ const translations = {
     toiletsCount: (n: number) => `${n} 間公廁`,
     religion: '宗教',
     religionCount: (n: number) => `${n} 處`,
-    religionNote: '土地廟、福德祠與街頭土地神壇',
+    religionNote: '廟宇、教堂、清真寺與街頭土地神壇',
     cityLayers: '城市資料',
     layerPanelTitle: '地圖圖層',
     layerPanelSubtitle: '選擇你想看見的澳門。',
@@ -977,8 +984,15 @@ const translations = {
     // ---- ReligionInfoPanel ----
     religionLabel: '宗教',
     religionCategoryTudigong: '土地公',
+    religionCategoryTemple: '廟宇',
+    religionCategoryChurch: '教堂',
+    religionCategoryMosque: '清真寺',
+    religionCategoryOther: '其他信仰',
+    religionCategoriesHint: '顏色＝宗教或類別，形狀＝建築類型',
     religionKindTemple: '土地廟／福德祠',
-    religionKindShrine: '街頭土地神壇',
+    religionKindShrine: '街頭神壇',
+    religionKindChurch: '教堂／小堂',
+    religionKindMosque: '清真寺',
     religionKind: '類型',
     religionAddress: '地址',
     religionHeritage: '文物',
@@ -1245,7 +1259,7 @@ const translations = {
     toiletsCount: (n: number) => `${n} sanitários`,
     religion: 'Religião',
     religionCount: (n: number) => `${n} locais`,
-    religionNote: 'Templos de Tou Tei e altares de rua',
+    religionNote: 'Templos, igrejas, a mesquita e altares de Tou Tei',
     cityLayers: 'Camadas urbanas',
     layerPanelTitle: 'Camadas do mapa',
     layerPanelSubtitle: 'Escolha o que a cidade revela.',
@@ -1480,8 +1494,15 @@ const translations = {
     // ---- ReligionInfoPanel ----
     religionLabel: 'RELIGIÃO',
     religionCategoryTudigong: 'Tou Tei (Deus da Terra)',
+    religionCategoryTemple: 'Templos chineses',
+    religionCategoryChurch: 'Igrejas e capelas',
+    religionCategoryMosque: 'Mesquita',
+    religionCategoryOther: 'Outras religiões',
+    religionCategoriesHint: 'Cor = religião ou grupo · forma = tipo de edifício',
     religionKindTemple: 'Templo de Tou Tei (土地廟 / 福德祠)',
     religionKindShrine: 'Altar de rua (土地神壇)',
+    religionKindChurch: 'Igreja ou capela',
+    religionKindMosque: 'Mesquita',
     religionKind: 'TIPO',
     religionAddress: 'MORADA',
     religionHeritage: 'PATRIMÓNIO',
@@ -1980,8 +2001,15 @@ export interface Translations {
   toiletSource: string
   religionLabel: string
   religionCategoryTudigong: string
+  religionCategoryTemple: string
+  religionCategoryChurch: string
+  religionCategoryMosque: string
+  religionCategoryOther: string
+  religionCategoriesHint: string
   religionKindTemple: string
   religionKindShrine: string
+  religionKindChurch: string
+  religionKindMosque: string
   religionKind: string
   religionAddress: string
   religionHeritage: string

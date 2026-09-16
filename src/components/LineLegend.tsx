@@ -1,7 +1,7 @@
 import cityCatalog from 'virtual:city-catalog'
 import { cityLayerStatus, type CityLayer, type CityDataStatus } from '../cityData'
 import { useState, useMemo, useEffect, type ReactNode } from 'react'
-import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType } from '../types'
+import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType, ReligionCategoryId } from '../types'
 import { useI18n, localName, type Translations } from '../i18n'
 import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS, type GroupKey } from '../routeGroups'
 import {
@@ -13,6 +13,13 @@ import {
   schoolRamp,
   type SchoolLevelSet,
 } from '../schools'
+import {
+  RELIGION_CATEGORY_COLORS,
+  RELIGION_CATEGORY_ORDER,
+  countReligionByCategory,
+  religionCategoryLabel,
+  type ReligionCategorySet,
+} from '../religion'
 import {
   PUBLIC_HOUSING_DECADES,
   PUBLIC_HOUSING_TYPE_COLOR,
@@ -533,6 +540,7 @@ const LS_DESKTOP_COLLAPSED_GROUPS = 'mm-layers-collapsed-groups'
 const LS_SCHOOLS_LEGEND_OPEN = 'mm-schools-legend-open'
 const LS_PUBLIC_HOUSING_LEGEND_OPEN = 'mm-public-housing-legend-open'
 const LS_WASTE_LEGEND_OPEN = 'mm-waste-legend-open'
+const LS_RELIGION_LEGEND_OPEN = 'mm-religion-legend-open'
 // Stable "nothing hidden" fallback for a legend rendered without the prop, so
 // the `??` below cannot hand a fresh Set to the render on every pass.
 const EMPTY_WASTE_TYPES: WasteTypeSet = new Set<WasteLayerType>()
@@ -583,6 +591,8 @@ interface Props {
   // Tou Tei temples and street shrines — opt-in like the toilets; the count is
   // the whole register (temples + shrines) and never moves.
   religionOn?: boolean
+  religionCategoriesOn?: ReligionCategorySet
+  religionCategoryCounts?: Record<ReligionCategoryId, number>
   // Public car parks — opt-in like the toilets; the count is the whole
   // register, which only changes when the daily workflow lands a new file.
   carParksOn?: boolean
@@ -616,6 +626,7 @@ interface Props {
   onToggleParishes?: () => void
   onToggleToilets?: () => void
   onToggleReligion?: () => void
+  onToggleReligionCategory?: (category: ReligionCategoryId) => void
   onToggleCarParks?: () => void
   onToggleWaste?: () => void
   onToggleWasteType?: (type: WasteLayerType) => void
@@ -654,6 +665,8 @@ export function LineLegend({
   parishesOn = false,
   toiletsOn = false,
   religionOn = false,
+  religionCategoriesOn,
+  religionCategoryCounts,
   carParksOn = false,
   wasteOn = false,
   wasteHiddenTypes,
@@ -673,6 +686,7 @@ export function LineLegend({
   onToggleParishes,
   onToggleToilets,
   onToggleReligion,
+  onToggleReligionCategory,
   onToggleCarParks,
   onToggleWaste,
   onToggleWasteType,
@@ -700,6 +714,9 @@ export function LineLegend({
   const [wasteLegendOpen, setWasteLegendOpen] = useState(() => {
     try { return localStorage.getItem(LS_WASTE_LEGEND_OPEN) !== '0' } catch { return true }
   })
+  const [religionLegendOpen, setReligionLegendOpen] = useState(() => {
+    try { return localStorage.getItem(LS_RELIGION_LEGEND_OPEN) !== '0' } catch { return true }
+  })
   const [layersTab, setLayersTab] = useState<LayersTab>(() => {
     try { return localStorage.getItem(LS_LAYERS_TAB) === 'city' ? 'city' : 'transit' } catch { return 'transit' }
   })
@@ -725,6 +742,9 @@ export function LineLegend({
   useEffect(() => {
     localStorage.setItem(LS_WASTE_LEGEND_OPEN, wasteLegendOpen ? '1' : '0')
   }, [wasteLegendOpen])
+  useEffect(() => {
+    localStorage.setItem(LS_RELIGION_LEGEND_OPEN, religionLegendOpen ? '1' : '0')
+  }, [religionLegendOpen])
   useEffect(() => {
     localStorage.setItem(LS_DESKTOP_COLLAPSED_GROUPS, JSON.stringify([...collapsedGroups]))
   }, [collapsedGroups])
@@ -852,6 +872,16 @@ export function LineLegend({
   // Same for the Tou Tei sites: temples + shrines, static until the manual
   // pipeline run regenerates religion.json.
   const religionCount = cityCount('religion', allTransitData?.religion.length ?? transitData.religion.length)
+  // Per-category totals from the UNFILTERED data (or the build-time catalog
+  // before the file lands), and the enabled/total pair for the row, exactly
+  // the SCHOOLS row's grammar.
+  const religionCategoryTotals = religionCategoryCounts ?? countReligionByCategory(allTransitData?.religion ?? transitData.religion)
+  const isReligionCategoryOn = (category: ReligionCategoryId) =>
+    (religionCategoriesOn ? religionCategoriesOn.has(category) : true)
+  const religionCategoriesAllOn = RELIGION_CATEGORY_ORDER.every(isReligionCategoryOn)
+  const religionEnabledCount = RELIGION_CATEGORY_ORDER.reduce(
+    (sum, category) => (isReligionCategoryOn(category) ? sum + (religionCategoryTotals[category] ?? 0) : sum), 0
+  )
   // Same for the car parks: the row always shows the full register.
   const carParkCount = cityCount('carparks', allTransitData?.carParks.length ?? transitData.carParks.length)
   // The number of AREAS, from the unfiltered data — eight, and only ever eight
@@ -907,7 +937,7 @@ export function LineLegend({
     } : null,
     religionCount > 0 ? {
       panel: 'religion' as const, focus: false, label: t.religion, code: 'RELIGION', accent: 'red', description: t.religionNote, icon: RELIGION_ICON_16, on: religionOn,
-      count: String(religionCount),
+      count: religionCategoriesAllOn ? String(religionCount) : `${religionEnabledCount}/${religionCount}`,
       toggle: onToggleReligion,
     } : null,
     schoolCount > 0 ? {
@@ -1010,6 +1040,59 @@ export function LineLegend({
           <span className="flex-1 min-w-0 text-right truncate normal-case tracking-normal mm-han">
             {t.schoolsRampHint}
           </span>
+        </div>
+      </div>
+    ) },
+    religion: { expanded: religionLegendOpen, onExpand: () => setReligionLegendOpen(v => !v), content: (
+      <div className={`pb-1 bg-(--mm-red-2)/[0.05] ${religionOn ? '' : 'opacity-40 light:opacity-100'}`}>
+        {RELIGION_CATEGORY_ORDER.map(category => {
+          const on = isReligionCategoryOn(category)
+          // "Lit" = actually drawn on the map: the category is on AND
+          // the master switch is on.
+          const lit = religionOn && on
+          const color = RELIGION_CATEGORY_COLORS[category]
+          return (
+            <button
+              key={category}
+              type="button"
+              onClick={() => onToggleReligionCategory?.(category)}
+              disabled={!onToggleReligionCategory}
+              aria-pressed={on}
+              title={religionCategoryLabel(t, category)}
+              className={`mm-layer-filter w-full flex items-center gap-2 py-1 pl-8 pr-3
+                          hover:bg-(--mm-fg)/[0.04] transition
+                          ${onToggleReligionCategory ? '' : 'cursor-default'}`}
+            >
+              {/* A solid swatch in the category colour while it is on (the
+                  colour is the whole message here — the shape belongs to the
+                  building kind), a hollow box while it is off. */}
+              <span
+                className="inline-block w-[22px] h-[7px] shrink-0"
+                style={on
+                  ? { backgroundColor: color }
+                  : { boxShadow: `inset 0 0 0 1px ${color}99` }}
+              />
+              <span className={`mm-layer-filter-label text-ui-10 leading-[1.2] flex-1 min-w-0 text-left truncate
+                                ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
+                {religionCategoryLabel(t, category)}
+              </span>
+              <span
+                className={`mm-mono mm-tabular text-ui-9 w-[18px] text-right shrink-0
+                            ${lit ? '' : 'text-(--mm-fg)/25'}`}
+                style={lit ? { color } : undefined}
+              >
+                {religionCategoryTotals[category] ?? 0}
+              </span>
+              <span className={`mm-layer-state mm-mono text-ui-8 tracking-[0.2em] w-[20px] text-right shrink-0
+                                ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {on ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )
+        })}
+        {/* Colour = faith or group, shape = building kind; said once. */}
+        <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+          <span className="normal-case tracking-normal mm-han">{t.religionCategoriesHint}</span>
         </div>
       </div>
     ) },

@@ -23,6 +23,13 @@ import {
   type SchoolLevelSet,
 } from './schools'
 import {
+  countReligionByCategory,
+  filterReligionByCategory,
+  loadReligionCategoriesOn,
+  saveReligionCategoriesOn,
+  type ReligionCategorySet,
+} from './religion'
+import {
   countPublicHousingByType,
   filterPublicHousingByType,
   loadPublicHousingTypesOn,
@@ -68,7 +75,7 @@ import { useCarParkVacancy } from './hooks/useCarParkVacancy'
 import { useWaterDistribution } from './hooks/useWaterDistribution'
 import { usePowerDistribution } from './hooks/usePowerDistribution'
 import { ignoreClockShortcut } from './timeControls'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, ReligionCategoryId, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -344,6 +351,9 @@ export default function App() {
   // Which of the five teaching stages are drawn. Independent of `schoolsOn`,
   // which is the master switch for the whole layer.
   const [schoolLevelsOn, setSchoolLevelsOn] = useState<SchoolLevelSet>(loadSchoolLevelsOn)
+  // Which of the five faith groups are drawn (土地公 / temples / churches / the
+  // mosque / other). Independent of `religionOn`, the layer's master switch.
+  const [religionCategoriesOn, setReligionCategoriesOn] = useState<ReligionCategorySet>(loadReligionCategoriesOn)
   // Which of the two housing types are drawn. Independent of `publicHousingOn`,
   // which is the master switch for the whole layer.
   const [publicHousingTypesOn, setPublicHousingTypesOn] = useState<PublicHousingTypeSet>(loadPublicHousingTypesOn)
@@ -407,6 +417,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_POWER_KEY, powerOn ? '1' : '0') }, [powerOn])
   useEffect(() => { localStorage.setItem(LS_GRANDPRIX_KEY, grandPrixOn ? '1' : '0') }, [grandPrixOn])
   useEffect(() => { saveSchoolLevelsOn(schoolLevelsOn) }, [schoolLevelsOn])
+  useEffect(() => { saveReligionCategoriesOn(religionCategoriesOn) }, [religionCategoriesOn])
   useEffect(() => { savePublicHousingTypesOn(publicHousingTypesOn) }, [publicHousingTypesOn])
   // Hiding the layer must also close its panel — the marker it describes is
   // gone from the map.
@@ -440,6 +451,10 @@ export default function App() {
   useEffect(() => {
     setSelectedSchool(prev => (prev && !schoolLevelsOn.has(prev.school.level) ? null : prev))
   }, [schoolLevelsOn])
+  // And for the faith groups of the RELIGION layer.
+  useEffect(() => {
+    setSelectedReligion(prev => (prev && !religionCategoriesOn.has(prev.category) ? null : prev))
+  }, [religionCategoriesOn])
   // Same rule for the housing types.
   useEffect(() => {
     setSelectedPublicHousing(prev =>
@@ -513,6 +528,21 @@ export default function App() {
   const schoolLevelCounts = useMemo(
     () => cityDataStatus.schools === 'ready' ? countSchoolsByLevel(transitData.schools) : cityCatalog.schoolLevels,
     [transitData.schools, cityDataStatus.schools]
+  )
+
+  // The RELIGION sites on the schools' contract: memoised apart from
+  // filteredTransitData so the array identity only moves when the master
+  // switch, the per-category set or the data itself does.
+  const visibleReligion = useMemo(
+    () => (religionOn ? filterReligionByCategory(transitData.religion, religionCategoriesOn) : NO_RELIGION),
+    [transitData.religion, religionOn, religionCategoriesOn]
+  )
+
+  // Per-category totals for the legend, from the UNFILTERED data (the
+  // build-time catalog until the file has loaded).
+  const religionCategoryCounts = useMemo(
+    () => cityDataStatus.religion === 'ready' ? countReligionByCategory(transitData.religion) : cityCatalog.religionCategories,
+    [transitData.religion, cityDataStatus.religion]
   )
 
   // The housing estates on exactly the schools' contract above: memoised apart
@@ -593,7 +623,7 @@ export default function App() {
     publicHousing: visiblePublicHousing,
     parishes: visibleParishes,
     toilets: toiletsOn ? transitData.toilets : NO_TOILETS,
-    religion: religionOn ? transitData.religion : NO_RELIGION,
+    religion: visibleReligion,
     carParks: carParksOn ? transitData.carParks : NO_CAR_PARKS,
     waste: visibleWaste,
     waterFacilities: waterOn ? transitData.waterFacilities : NO_WATER_FACILITIES,
@@ -606,7 +636,7 @@ export default function App() {
     // And for the circuit: null empties the track, the corners, the pulse and
     // takes the car off.
     grandPrix: grandPrixOn ? transitData.grandPrix : null,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, visiblePublicHousing, visibleParishes, toiletsOn, religionOn, carParksOn, visibleWaste, waterOn, powerOn, grandPrixOn])
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, visiblePublicHousing, visibleParishes, toiletsOn, visibleReligion, carParksOn, visibleWaste, waterOn, powerOn, grandPrixOn])
 
   // Macau's streets, for the thin distribution pipes. Fetched the first time
   // WATER goes on and kept for the session — the hook ignores later toggles, so
@@ -1264,6 +1294,15 @@ export default function App() {
       return next
     })
   }, [])
+  const toggleReligionCategory = useCallback((category: ReligionCategoryId) => {
+    setReligionCategoriesOn(prev => {
+      const next = new Set(prev)
+      if (next.has(category)) next.delete(category)
+      else next.add(category)
+      ga.layerToggled(`religion_${category}`, next.has(category))
+      return next
+    })
+  }, [])
   const togglePublicHousingType = useCallback((type: PublicHousingType) => {
     setPublicHousingTypesOn(prev => {
       const next = new Set(prev)
@@ -1397,6 +1436,8 @@ export default function App() {
         publicHousingTypeCounts={publicHousingTypeCounts}
         toiletsOn={toiletsOn}
         religionOn={religionOn}
+        religionCategoriesOn={religionCategoriesOn}
+        religionCategoryCounts={religionCategoryCounts}
         carParksOn={carParksOn}
         wasteOn={wasteOn}
         wasteHiddenTypes={wasteHiddenTypes}
@@ -1416,6 +1457,7 @@ export default function App() {
         onTogglePublicHousingType={togglePublicHousingType}
         onToggleToilets={toggleToilets}
         onToggleReligion={toggleReligion}
+        onToggleReligionCategory={toggleReligionCategory}
         onToggleCarParks={toggleCarParks}
         onToggleWaste={toggleWaste}
         onToggleWasteType={toggleWasteType}

@@ -2795,8 +2795,17 @@ def v_grand_prix(data: object) -> list[str]:
 # appends "macaumemory" last), and a degenerate-fetch guard mirroring
 # fetch_religion.py's own RELIGION_MIN_SITES.
 RELIGION_SOURCE_KINDS = ("osm", "ic", "macaumemory")
-RELIGION_MIN_SITES = 60
+RELIGION_MIN_SITES = 120
 RELIGION_IC_CODE_RE = re.compile(r"^[A-Z]{2}\d{3}$")
+# The five categories, in this exact order (mirrors fetch_religion.py's
+# CATEGORIES). kind is a building type, not a religion — RELIGION_KINDS is
+# every kind any category may use; RELIGION_CATEGORY_KINDS additionally
+# pins the categories with only one legal kind (church/mosque always match
+# their own name; "other" is always a shrine per the task spec's religion-
+# tag mapping). tudigong/temple sites may be either temple or shrine.
+RELIGION_CATEGORY_IDS = ("tudigong", "temple", "church", "mosque", "other")
+RELIGION_KINDS = ("temple", "shrine", "church", "mosque")
+RELIGION_CATEGORY_KINDS = {"church": {"church"}, "mosque": {"mosque"}, "other": {"shrine"}}
 
 
 def v_religion(data: object) -> list[str]:
@@ -2817,6 +2826,9 @@ def v_religion(data: object) -> list[str]:
     category_ids: set[str] = set()
     if not require_nonempty_list(errs, "religion.categories", data["categories"]):
         return errs
+    got_ids = [c.get("id") if isinstance(c, dict) else None for c in data["categories"]]
+    if got_ids != list(RELIGION_CATEGORY_IDS):
+        errs.append(f"religion.categories ids must be exactly {RELIGION_CATEGORY_IDS} in that order, got {got_ids}")
     for i, c in enumerate(data["categories"]):
         ctx = f"religion.categories[{i}]"
         if not require_fields(errs, ctx, c, ("id", "name", "officialCounts")):
@@ -2831,11 +2843,17 @@ def v_religion(data: object) -> list[str]:
             for lang in ("zh", "en", "pt"):
                 if not (isinstance(name[lang], str) and name[lang]):
                     errs.append(f"{ctx}.name.{lang} must be a non-empty string")
+        # Only tudigong carries the official 近10所/160多個 estimate; the four
+        # categories added for the other faiths have no equivalent published
+        # figure, so officialCounts is present-but-null for them.
         oc = c["officialCounts"]
-        if require_fields(errs, f"{ctx}.officialCounts", oc, ("temples", "publicShrines", "source")):
-            for key in ("temples", "publicShrines", "source"):
-                if not isinstance(oc[key], str):
-                    errs.append(f"{ctx}.officialCounts.{key} must be a string")
+        if cid == "tudigong":
+            if require_fields(errs, f"{ctx}.officialCounts", oc, ("temples", "publicShrines", "source")):
+                for key in ("temples", "publicShrines", "source"):
+                    if not isinstance(oc[key], str):
+                        errs.append(f"{ctx}.officialCounts.{key} must be a string")
+        elif oc is not None:
+            errs.append(f"{ctx}.officialCounts must be null for category {cid!r}")
 
     sources = data["sources"]
     if require_fields(errs, "religion.sources", sources, RELIGION_SOURCE_KINDS):
@@ -2854,6 +2872,7 @@ def v_religion(data: object) -> list[str]:
     seen_ids: set[str] = set()
     n_temples = n_shrines = n_approx = 0
     by_source = {k: 0 for k in RELIGION_SOURCE_KINDS}
+    by_category = {k: 0 for k in RELIGION_CATEGORY_IDS}
     for i, s in enumerate(sites):
         ctx = f"religion.sites[{i}]"
         if not require_fields(
@@ -2871,16 +2890,23 @@ def v_religion(data: object) -> list[str]:
             seen_ids.add(sid)
         label = f"{ctx} ({sid if isinstance(sid, str) and sid else '?'})"
 
-        if s["category"] not in category_ids:
-            errs.append(f"{label}: category '{s['category']}' is not in categories")
+        category = s["category"]
+        if category not in category_ids:
+            errs.append(f"{label}: category '{category}' is not in categories")
+        elif category in by_category:
+            by_category[category] += 1
 
         kind = s["kind"]
-        if kind not in ("temple", "shrine"):
-            errs.append(f"{label}: kind must be 'temple' or 'shrine', got {kind!r}")
-        elif kind == "temple":
-            n_temples += 1
+        if kind not in RELIGION_KINDS:
+            errs.append(f"{label}: kind must be one of {RELIGION_KINDS}, got {kind!r}")
         else:
-            n_shrines += 1
+            allowed = RELIGION_CATEGORY_KINDS.get(category)
+            if allowed is not None and kind not in allowed:
+                errs.append(f"{label}: category {category!r} requires kind in {sorted(allowed)}, got {kind!r}")
+            if kind == "temple":
+                n_temples += 1
+            elif kind == "shrine":
+                n_shrines += 1
 
         name = s["name"]
         if require_fields(errs, f"{label}.name", name, ("zh", "en", "pt")):
@@ -2960,7 +2986,7 @@ def v_religion(data: object) -> list[str]:
         errs.append(f"religion: only {len(sites)} sites (< {RELIGION_MIN_SITES}) — looks like a degenerate run")
 
     stats = data["stats"]
-    if require_fields(errs, "religion.stats", stats, ("total", "temples", "shrines", "approximate", "bySource")):
+    if require_fields(errs, "religion.stats", stats, ("total", "temples", "shrines", "approximate", "bySource", "byCategory")):
         for key, expected in (("total", len(sites)), ("temples", n_temples), ("shrines", n_shrines), ("approximate", n_approx)):
             if stats.get(key) != expected:
                 errs.append(f"religion.stats.{key} is {stats.get(key)!r}, expected {expected} (recomputed)")
@@ -2971,6 +2997,13 @@ def v_religion(data: object) -> list[str]:
             for k in RELIGION_SOURCE_KINDS:
                 if by_source_stats.get(k) != by_source[k]:
                     errs.append(f"religion.stats.bySource.{k} is {by_source_stats.get(k)!r}, expected {by_source[k]} (recomputed)")
+        by_category_stats = stats["byCategory"]
+        if not isinstance(by_category_stats, dict):
+            errs.append("religion.stats.byCategory must be an object")
+        else:
+            for k in RELIGION_CATEGORY_IDS:
+                if by_category_stats.get(k) != by_category[k]:
+                    errs.append(f"religion.stats.byCategory.{k} is {by_category_stats.get(k)!r}, expected {by_category[k]} (recomputed)")
 
     return errs
 

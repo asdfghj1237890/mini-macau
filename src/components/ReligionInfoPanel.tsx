@@ -1,6 +1,6 @@
 import { useI18n } from '../i18n'
-import type { ReligionCategory, ReligionSite } from '../types'
-import { RELIGION_COLORS, pickHeritageText, pickReligionText } from '../religion'
+import type { ReligionCategory, ReligionKind, ReligionSite } from '../types'
+import { pickHeritageText, pickReligionText, religionCategoryName, religionColor, religionKindLabel } from '../religion'
 
 interface Props {
   site: ReligionSite
@@ -14,6 +14,10 @@ interface Props {
 const IC_DATASET_URL = 'https://data.gov.mo/Detail?id=7e1eca8e-6ffe-4f74-8c81-25c25beb45b2'
 const MACAU_MEMORY_URL = 'https://www.macaumemory.mo/exhibitions/showexhibition!toSep?id=8c35d71325374eeda344f11a351a27d7'
 const OSM_URL = 'https://www.openstreetmap.org/'
+
+// The one-character signboard glyph for a building kind — language-neutral,
+// like the toilets' "WC".
+const KIND_GLYPH: Record<ReligionKind, string> = { temple: '廟', shrine: '壇', church: '堂', mosque: '寺' }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -29,17 +33,16 @@ function Row({ label, value }: { label: string; value: string }) {
 export function ReligionInfoPanel({ site, categories, onClose }: Props) {
   const { lang, t } = useI18n()
 
-  // Header accent = the marker colour this site is drawn with, so the panel
-  // and the pin the user just clicked read as the same object.
-  const color = RELIGION_COLORS[site.kind]
+  // Header accent = the marker colour this site is drawn with (its category),
+  // so the panel and the pin the user just clicked read as the same object.
+  const color = religionColor(site)
 
   // The Chinese name is the inscription; English/Portuguese readers get the
-  // official name only where the IC publishes one (see pickReligionText).
+  // official or bilingual-OSM name only where one exists (see pickReligionText).
   const title = pickReligionText(site.name, lang)
   const zhName = site.name.zh
-  const category = categories.find(c => c.id === site.category)
-  const categoryLabel = category ? pickReligionText(category.name, lang) : t.religionCategoryTudigong
-  const kindLabel = site.kind === 'temple' ? t.religionKindTemple : t.religionKindShrine
+  const categoryLabel = religionCategoryName(categories, site.category, lang, t)
+  const kindLabel = religionKindLabel(t, site.kind)
   const heritageText = pickHeritageText(site.heritage?.description, lang)
 
   // Source chips — only the ones this record actually came from.
@@ -68,7 +71,7 @@ export function ReligionInfoPanel({ site, categories, onClose }: Props) {
                 {t.religionLabel}
               </div>
               <div className="mm-han text-ui-13 font-bold text-(--mm-fg) leading-tight">
-                {site.kind === 'temple' ? '廟' : '壇'}
+                {KIND_GLYPH[site.kind]}
               </div>
             </div>
           </div>
@@ -76,7 +79,7 @@ export function ReligionInfoPanel({ site, categories, onClose }: Props) {
             <div className="text-ui-14 font-bold text-(--mm-fg) truncate mm-han" title={title}>
               {title}
             </div>
-            {/* The inscription itself, when the headline is an official translation. */}
+            {/* The inscription itself, when the headline is a translation. */}
             {title !== zhName && (
               <div className="text-ui-10 text-(--mm-text-muted) truncate mm-han" title={zhName}>
                 {zhName}
@@ -127,10 +130,13 @@ export function ReligionInfoPanel({ site, categories, onClose }: Props) {
           ))}
         </div>
 
-        {/* Coverage note: the official totals this register is measured against */}
-        <div className="px-3 pb-2 text-ui-9 text-(--mm-text-muted) mm-han leading-snug">
-          {t.religionCoverageNote}
-        </div>
+        {/* Coverage note: the official totals the Tou Tei register is measured
+            against. Only that category has a published count. */}
+        {site.category === 'tudigong' && (
+          <div className="px-3 pb-2 text-ui-9 text-(--mm-text-muted) mm-han leading-snug">
+            {t.religionCoverageNote}
+          </div>
+        )}
 
         {/* Footer: provenance links for THIS site */}
         <div className="px-3 py-1.5 border-t border-(--mm-fg)/8 bg-(--mm-fg)/[0.02] flex items-center justify-between gap-2">

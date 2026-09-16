@@ -10,7 +10,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { addBusTerminal, BUS_TERMINAL_LAYERS } from '../layers/busTerminal'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
-import type { SimulationClock, TransitData, VehiclePosition, Station, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, ReligionSite, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, ReligionSite, ReligionKind, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer, ALL_BUS_3D_LAYERS } from '../layers/Bus3DLayer'
 import { LRT3DLayer, ALL_LRT_3D_LAYERS } from '../layers/LRT3DLayer'
@@ -40,7 +40,7 @@ import {
   buildParishLabelFeatures,
 } from '../parishes'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
-import { RELIGION_APPROXIMATE_OPACITY, RELIGION_COLORS, RELIGION_KIND_ORDER, buildReligionFeatures, religionIconName } from '../religion'
+import { RELIGION_APPROXIMATE_OPACITY, RELIGION_CATEGORY_COLORS, RELIGION_ICON_VARIANTS, buildReligionFeatures, religionIconName } from '../religion'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import {
   WASTE_AREA_FILL_OPACITY,
@@ -357,12 +357,13 @@ const RELIGION_SOURCE_ID = 'religion'
 const RELIGION_ICON_LAYER_ID = 'religion-icon'
 const RELIGION_SELECTED_LAYER_ID = 'religion-selected'
 
-// A round marker in the kind colour with a white rim: a temple carries a
-// white roof-and-hall silhouette, a street shrine a smaller disc with a white
-// tablet. Drawn with paths rather than a CJK glyph so no font is needed, and
-// so the two read apart from the lettered WC / P squares at a glance. Same
-// canvas contract as drawToiletIcon (null when the 2D context is missing).
-function drawReligionIcon(color: string, kind: 'temple' | 'shrine'): ImageData | null {
+// A round marker in the CATEGORY colour with a white rim, carrying the KIND's
+// white glyph: a temple its roof-and-hall silhouette, a church a cross, the
+// mosque a crescent, a street shrine (drawn smaller) a tablet. Paths rather
+// than CJK glyphs so no font is needed, and so they read apart from the
+// lettered WC / P squares at a glance. Same canvas contract as
+// drawToiletIcon (null when the 2D context is missing).
+function drawReligionIcon(color: string, kind: ReligionKind): ImageData | null {
   const size = TOILET_ICON_PX
   const canvas = document.createElement('canvas')
   canvas.width = size
@@ -372,7 +373,7 @@ function drawReligionIcon(color: string, kind: 'temple' | 'shrine'): ImageData |
 
   const border = 3 // 1.5 CSS px at pixelRatio 2
   const c = size / 2
-  const r = kind === 'temple' ? c - border / 2 - 1 : c - border / 2 - 5
+  const r = kind === 'shrine' ? c - border / 2 - 5 : c - border / 2 - 1
   ctx.beginPath()
   ctx.arc(c, c, r, 0, Math.PI * 2)
   ctx.closePath()
@@ -393,6 +394,19 @@ function drawReligionIcon(color: string, kind: 'temple' | 'shrine'): ImageData |
     ctx.fill()
     // … and hall.
     ctx.fillRect(c - 6, c + 2, 12, 7)
+  } else if (kind === 'church') {
+    // A Latin cross.
+    ctx.fillRect(c - 2, c - 10, 4, 20)
+    ctx.fillRect(c - 7, c - 5, 14, 4)
+  } else if (kind === 'mosque') {
+    // A crescent: a white disc with a colour disc punched out of its side.
+    ctx.beginPath()
+    ctx.arc(c, c, 8, 0, Math.PI * 2)
+    ctx.fill()
+    ctx.fillStyle = color
+    ctx.beginPath()
+    ctx.arc(c + 3.5, c - 1, 6.5, 0, Math.PI * 2)
+    ctx.fill()
   } else {
     // The tablet.
     ctx.fillRect(c - 3, c - 5, 6, 10)
@@ -3369,10 +3383,10 @@ export function MapView(props: MapViewProps) {
       // Tou Tei temples and street shrines. Same image contract as the toilets
       // (hasImage guard, seeded from transitRef, refreshed only by the
       // [transitData.religion] effect below).
-      for (const kind of RELIGION_KIND_ORDER) {
-        const name = religionIconName(kind)
+      for (const { category, kind } of RELIGION_ICON_VARIANTS) {
+        const name = religionIconName(category, kind)
         if (m.hasImage(name)) continue
-        const img = drawReligionIcon(RELIGION_COLORS[kind], kind)
+        const img = drawReligionIcon(RELIGION_CATEGORY_COLORS[category], kind)
         if (img) m.addImage(name, img, { pixelRatio: 2 })
       }
       m.addSource(RELIGION_SOURCE_ID, {

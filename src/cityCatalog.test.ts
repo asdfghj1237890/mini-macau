@@ -4,17 +4,19 @@ import { buildCityCatalog } from '../plugins/city-catalog'
 import { catalogActiveRoadWorks } from './cityCatalog'
 import { countSchoolsByLevel } from './schools'
 import { countPublicHousingByType } from './publicHousing'
+import { countReligionByCategory } from './religion'
 import { countWasteByType, wasteIncinerator } from './waste'
 import { countActiveRoadWorks } from './roadWorks'
 import type { RoadWorkNotice } from './types'
 
 it('builds compact counts matching the full city data and existing filters', async () => {
   const catalog = await buildCityCatalog('public/data')
-  const [schools, housing, waste, power, works] = await Promise.all(
-    ['schools', 'public-housing', 'waste', 'power-facilities', 'road-works'].map(async name =>
+  const [schools, housing, waste, power, works, religion] = await Promise.all(
+    ['schools', 'public-housing', 'waste', 'power-facilities', 'road-works', 'religion'].map(async name =>
       JSON.parse(await readFile(`public/data/${name}.json`, 'utf8'))))
   expect(catalog.schoolLevels).toEqual(countSchoolsByLevel(schools.schools))
   expect(catalog.housingTypes).toEqual(countPublicHousingByType(housing.estates))
+  expect(catalog.religionCategories).toEqual(countReligionByCategory(religion.sites))
   expect(catalog.wasteTypes).toEqual(countWasteByType(waste.sites, {
     incinerator: wasteIncinerator(power.facilities), ecoStations: waste.ecoStations, facilities: waste.facilities,
   }))

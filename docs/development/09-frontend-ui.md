@@ -86,7 +86,9 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-schools-on` | SCHOOLS 總開關 | 關 |
 | `mini-macau-school-levels-on` | 五個教育階段個別開關 | 全開 |
 | `mini-macau-toilets-on` | WC 總開關 | 關 |
-| `mini-macau-religion-on` | RELIGION（土地公）總開關 | 關 |
+| `mini-macau-religion-on` | RELIGION 總開關 | 關 |
+| `mini-macau-religion-categories-on` | 五個宗教類別（土地公／廟宇／教堂／清真寺／其他）個別開關 | 全開 |
+| `mm-religion-legend-open` | RELIGION 圖例子列展開 | 開 |
 | `mini-macau-carparks-on` | P 總開關 | 關 |
 | `mini-macau-waste-on` | WASTE 總開關（專注模式） | 關 |
 | `mini-macau-waste-focus-snapshot` | WASTE 開啟前其他圖層的可見狀態快照（JSON） | 無 |

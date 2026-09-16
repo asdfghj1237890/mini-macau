@@ -399,16 +399,17 @@ export const ToiletsFileSchema = z.object({
 // Only `name.zh` is guaranteed; `en`/`pt` are null except on the IC-classified
 // sites. `approximate` marks a street-level geocode (Macau Memory-only sites).
 const religionText = z.object({ zh: z.string(), en: z.string().nullable(), pt: z.string().nullable() })
+const religionCategoryId = z.enum(['tudigong', 'temple', 'church', 'mosque', 'other'])
 
 export const ReligionFileSchema = z.object({
   version: z.literal(1),
   fetchedAtUtc: z.string(),
-  categories: z.array(z.object({ id: z.string(), name: religionText })).min(1),
+  categories: z.array(z.object({ id: religionCategoryId, name: religionText })).min(1),
   sites: z.array(
     z.object({
       id: z.string(),
-      category: z.string(),
-      kind: z.enum(['temple', 'shrine']),
+      category: religionCategoryId,
+      kind: z.enum(['temple', 'shrine', 'church', 'mosque']),
       name: religionText,
       coordinates: lngLat,
       approximate: z.boolean(),
