@@ -432,10 +432,19 @@ const translations = {
     religionCategoryMosque: 'Mosque',
     religionCategoryOther: 'Other faiths',
     religionCategoriesHint: 'Colour = faith or group · shape = building type',
-    religionKindTemple: 'Tou Tei temple (土地廟 / 福德祠)',
-    religionKindShrine: 'Street shrine (土地神壇)',
+    religionKindTemple: 'Temple',
+    religionKindShrine: 'Street shrine',
     religionKindChurch: 'Church or chapel',
     religionKindMosque: 'Mosque',
+    religionFaithFolk: 'Folk religion',
+    religionFaithTaoist: 'Taoist',
+    religionFaithBuddhist: 'Buddhist',
+    religionFaithCatholic: 'Catholic',
+    religionFaithProtestant: 'Protestant',
+    religionFaithChristian: 'Christian',
+    religionFaithIslam: 'Islam',
+    religionFaithHindu: 'Hindu',
+    religionFaithOther: 'Other',
     religionKind: 'TYPE',
     religionAddress: 'ADDRESS',
     religionHeritage: 'HERITAGE',
@@ -989,10 +998,19 @@ const translations = {
     religionCategoryMosque: '清真寺',
     religionCategoryOther: '其他信仰',
     religionCategoriesHint: '顏色＝宗教或類別，形狀＝建築類型',
-    religionKindTemple: '土地廟／福德祠',
+    religionKindTemple: '廟宇建築',
     religionKindShrine: '街頭神壇',
     religionKindChurch: '教堂／小堂',
     religionKindMosque: '清真寺',
+    religionFaithFolk: '民間信仰',
+    religionFaithTaoist: '道教',
+    religionFaithBuddhist: '佛教',
+    religionFaithCatholic: '天主教',
+    religionFaithProtestant: '基督教',
+    religionFaithChristian: '基督宗教',
+    religionFaithIslam: '伊斯蘭教',
+    religionFaithHindu: '印度教',
+    religionFaithOther: '其他',
     religionKind: '類型',
     religionAddress: '地址',
     religionHeritage: '文物',
@@ -1499,10 +1517,19 @@ const translations = {
     religionCategoryMosque: 'Mesquita',
     religionCategoryOther: 'Outras religiões',
     religionCategoriesHint: 'Cor = religião ou grupo · forma = tipo de edifício',
-    religionKindTemple: 'Templo de Tou Tei (土地廟 / 福德祠)',
-    religionKindShrine: 'Altar de rua (土地神壇)',
+    religionKindTemple: 'Templo',
+    religionKindShrine: 'Altar de rua',
     religionKindChurch: 'Igreja ou capela',
     religionKindMosque: 'Mesquita',
+    religionFaithFolk: 'Religião popular',
+    religionFaithTaoist: 'Taoista',
+    religionFaithBuddhist: 'Budista',
+    religionFaithCatholic: 'Católica',
+    religionFaithProtestant: 'Protestante',
+    religionFaithChristian: 'Cristã',
+    religionFaithIslam: 'Islão',
+    religionFaithHindu: 'Hindu',
+    religionFaithOther: 'Outra',
     religionKind: 'TIPO',
     religionAddress: 'MORADA',
     religionHeritage: 'PATRIMÓNIO',
@@ -2010,6 +2037,15 @@ export interface Translations {
   religionKindShrine: string
   religionKindChurch: string
   religionKindMosque: string
+  religionFaithFolk: string
+  religionFaithTaoist: string
+  religionFaithBuddhist: string
+  religionFaithCatholic: string
+  religionFaithProtestant: string
+  religionFaithChristian: string
+  religionFaithIslam: string
+  religionFaithHindu: string
+  religionFaithOther: string
   religionKind: string
   religionAddress: string
   religionHeritage: string

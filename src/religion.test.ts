@@ -15,6 +15,7 @@ import {
   pickReligionText,
   religionColor,
   religionIconName,
+  siteFaith,
   saveReligionCategoriesOn,
 } from './religion'
 import type { ReligionSite } from './types'
@@ -182,5 +183,21 @@ describe('loadReligionCategoriesOn / saveReligionCategoriesOn', () => {
     })
     expect(() => saveReligionCategoriesOn(ALL_RELIGION_CATEGORIES)).not.toThrow()
     expect([...loadReligionCategoriesOn()]).toEqual([...RELIGION_CATEGORY_ORDER])
+  })
+})
+
+describe('siteFaith', () => {
+  it('uses the faith the pipeline wrote', () => {
+    expect(siteFaith({ category: 'church', religion: 'catholic' })).toBe('catholic')
+    expect(siteFaith({ category: 'temple', religion: 'buddhist' })).toBe('buddhist')
+    expect(siteFaith({ category: 'tudigong', religion: 'folk' })).toBe('folk')
+  })
+
+  it('falls back by category for a file that predates the field', () => {
+    expect(siteFaith({ category: 'tudigong' })).toBe('folk')
+    expect(siteFaith({ category: 'temple' })).toBe('folk')
+    expect(siteFaith({ category: 'church' })).toBe('christian')
+    expect(siteFaith({ category: 'mosque' })).toBe('islam')
+    expect(siteFaith({ category: 'other' })).toBe('other')
   })
 })

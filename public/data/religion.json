@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "fetchedAtUtc": "2026-09-16T15:13:16.958045+00:00",
+  "fetchedAtUtc": "2026-09-16T15:47:26.864613+00:00",
   "layer": "religion",
   "categories": [
     {
@@ -57,6 +57,8 @@
     {
       "id": "ic-MM029",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "仁德堂公所（魯班師傅廟）",
@@ -86,6 +88,8 @@
     {
       "id": "mm-p0003801",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "𠜎雞街的土地公神壇",
@@ -120,6 +124,8 @@
     {
       "id": "mm-p0003802",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "盧九街土地公神壇",
@@ -154,6 +160,8 @@
     {
       "id": "mm-p0003804",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "三街會館土地公神壇",
@@ -188,6 +196,8 @@
     {
       "id": "mm-p0003805",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "大三巴哪咤廟土地公神壇",
@@ -222,6 +232,8 @@
     {
       "id": "mm-p0003806",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "大纜巷土地公神壇",
@@ -256,6 +268,8 @@
     {
       "id": "mm-p0003807",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "大纜巷土地公神壇",
@@ -290,6 +304,8 @@
     {
       "id": "mm-p0003808",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "大碼頭街土地公神壇",
@@ -324,6 +340,8 @@
     {
       "id": "mm-p0003809",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "小新巷土地公神壇",
@@ -358,6 +376,8 @@
     {
       "id": "mm-p0003814",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "氹仔飛能便度街土地公神壇",
@@ -392,6 +412,8 @@
     {
       "id": "mm-p0003815",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "氹仔連理街土地公神壇",
@@ -426,6 +448,8 @@
     {
       "id": "mm-p0003819",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "老人圍土地公神壇",
@@ -460,6 +484,8 @@
     {
       "id": "mm-p0003820",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "何林圍土地公神壇",
@@ -494,6 +520,8 @@
     {
       "id": "mm-p0003821",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "孝思墳場土地公神壇",
@@ -528,6 +556,8 @@
     {
       "id": "mm-p0003823",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "沙梨頭街土地公神壇",
@@ -562,6 +592,8 @@
     {
       "id": "mm-p0003827",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "卓家村關帝廟土地公神壇",
@@ -596,6 +628,8 @@
     {
       "id": "mm-p0003828",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "玫瑰里土地公神壇",
@@ -630,6 +664,8 @@
     {
       "id": "mm-p0003831",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "叢慶南街福德祠",
@@ -664,6 +700,8 @@
     {
       "id": "mm-p0003832",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "柴船尾街土地公神壇",
@@ -698,6 +736,8 @@
     {
       "id": "mm-p0003834",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "桔仔街土地公神壇",
@@ -730,6 +770,8 @@
     {
       "id": "mm-p0003840",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "偶像圍土地公神壇",
@@ -764,6 +806,8 @@
     {
       "id": "mm-p0003842",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "眼鏡里土地公神壇",
@@ -801,6 +845,8 @@
     {
       "id": "mm-p0003847",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "陳家圍土地公神壇",
@@ -835,6 +881,8 @@
     {
       "id": "mm-p0003851",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "黑沙村土地公神壇",
@@ -867,6 +915,8 @@
     {
       "id": "mm-p0003852",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "新里土地公神壇",
@@ -901,6 +951,8 @@
     {
       "id": "mm-p0003856",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "筷子基土地公神壇",
@@ -937,6 +989,8 @@
     {
       "id": "mm-p0003858",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "義字街土地公神壇",
@@ -975,6 +1029,8 @@
     {
       "id": "mm-p0003861",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "路環三聖宮土地公神壇",
@@ -1013,6 +1069,8 @@
     {
       "id": "mm-p0003864",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "路環天后古廟土地公神壇",
@@ -1047,6 +1105,8 @@
     {
       "id": "mm-p0003865",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "路環水泉公地土地公神壇",
@@ -1081,6 +1141,8 @@
     {
       "id": "mm-p0003866",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "路環水鴨街土地公神壇",
@@ -1115,6 +1177,8 @@
     {
       "id": "mm-p0003867",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "路環譚公廟土地公神壇",
@@ -1149,6 +1213,8 @@
     {
       "id": "mm-p0003868",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "路環觀音古廟土地公神壇",
@@ -1183,6 +1249,8 @@
     {
       "id": "mm-p0003870",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "漁翁街天后古廟土地公神壇",
@@ -1217,6 +1285,8 @@
     {
       "id": "mm-p0003871",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "漁翁街天后古廟福德祠",
@@ -1251,6 +1321,8 @@
     {
       "id": "mm-p0003872",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "漁翁街天后古廟福德祠",
@@ -1285,6 +1357,8 @@
     {
       "id": "mm-p0003881",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "銅鑼圍土地公神壇",
@@ -1319,6 +1393,8 @@
     {
       "id": "mm-p0003884",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "龍安圍土地公神壇",
@@ -1353,6 +1429,8 @@
     {
       "id": "mm-p0003885",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "鏡湖殯儀館土地公神壇",
@@ -1387,6 +1465,8 @@
     {
       "id": "mm-p0003889",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "觀音堂土地公神壇",
@@ -1421,6 +1501,8 @@
     {
       "id": "mm-p0003890",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "趙家巷福德祠",
@@ -1455,6 +1537,8 @@
     {
       "id": "mm-p0020476",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "蓮環社稷神壇",
@@ -1489,6 +1573,8 @@
     {
       "id": "osm-node-11162879363",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "蓮環社稷神位",
@@ -1511,6 +1597,8 @@
     {
       "id": "osm-node-11162879372",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本坊威靈土地財神",
@@ -1544,6 +1632,8 @@
     {
       "id": "osm-node-11162879375",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "井泉龍王神",
@@ -1566,6 +1656,8 @@
     {
       "id": "osm-node-11166808326",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "土地公",
@@ -1588,6 +1680,8 @@
     {
       "id": "osm-node-11166808327",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本坊土地公",
@@ -1610,6 +1704,8 @@
     {
       "id": "osm-node-11166808328",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "永安社土地福德神",
@@ -1632,6 +1728,8 @@
     {
       "id": "osm-node-11166808329",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "沙龍社",
@@ -1665,6 +1763,8 @@
     {
       "id": "osm-node-11166808330",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "土地公",
@@ -1698,6 +1798,8 @@
     {
       "id": "osm-node-11166808331",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "土地公",
@@ -1720,6 +1822,8 @@
     {
       "id": "osm-node-11166808332",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "龍母娘娘福德正神",
@@ -1742,6 +1846,8 @@
     {
       "id": "osm-node-11166808333",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "永樂社社稷土地神位",
@@ -1778,6 +1884,8 @@
     {
       "id": "osm-node-11166808334",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "城隍行臺",
@@ -1800,6 +1908,8 @@
     {
       "id": "osm-node-11166808335",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "龍新社福德祠",
@@ -1822,6 +1932,8 @@
     {
       "id": "osm-node-11166808336",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "鍾秀本坊社稷",
@@ -1855,6 +1967,8 @@
     {
       "id": "osm-node-11166808337",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "居仁社稷之神",
@@ -1877,6 +1991,8 @@
     {
       "id": "osm-node-11166808338",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "啟明社稷之神",
@@ -1899,6 +2015,8 @@
     {
       "id": "osm-node-11166808339",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "定安社",
@@ -1932,6 +2050,8 @@
     {
       "id": "osm-node-11166808342",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "銀龍社稷土地財神",
@@ -1965,6 +2085,8 @@
     {
       "id": "osm-node-11166808343",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "福德正神",
@@ -1998,6 +2120,8 @@
     {
       "id": "osm-node-11166808344",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "土地公",
@@ -2020,6 +2144,8 @@
     {
       "id": "osm-node-11166808345",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本坊土地福德正神",
@@ -2063,6 +2189,8 @@
     {
       "id": "osm-node-11166808346",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "社稷土地 泰山石敢當神位",
@@ -2085,6 +2213,8 @@
     {
       "id": "osm-node-11166808348",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本街土地",
@@ -2121,6 +2251,8 @@
     {
       "id": "osm-node-11166808349",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本坊土地福德正神位",
@@ -2154,6 +2286,8 @@
     {
       "id": "osm-node-11166808350",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -2176,6 +2310,8 @@
     {
       "id": "osm-node-11166808351",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "土地廟",
@@ -2198,6 +2334,8 @@
     {
       "id": "osm-node-11166808352",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "包公老爺 城隍老爺",
@@ -2220,6 +2358,8 @@
     {
       "id": "osm-node-11166808353",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "平安社",
@@ -2251,6 +2391,8 @@
     {
       "id": "osm-node-11166808354",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "包相府",
@@ -2273,6 +2415,8 @@
     {
       "id": "osm-node-11166808355",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "天安土地神位",
@@ -2306,6 +2450,8 @@
     {
       "id": "osm-node-11166808356",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "土地公",
@@ -2328,6 +2474,8 @@
     {
       "id": "osm-node-11166808357",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "迎龍社土地福神位",
@@ -2350,6 +2498,8 @@
     {
       "id": "osm-node-11166808358",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -2386,6 +2536,8 @@
     {
       "id": "osm-node-11166808359",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "土地公",
@@ -2408,6 +2560,8 @@
     {
       "id": "osm-node-11166808360",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本村土地",
@@ -2430,6 +2584,8 @@
     {
       "id": "osm-node-11166808361",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "旺相本坊土地福德正神",
@@ -2463,6 +2619,8 @@
     {
       "id": "osm-node-11166808362",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "土地公公",
@@ -2485,6 +2643,8 @@
     {
       "id": "osm-node-11166808363",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -2507,6 +2667,8 @@
     {
       "id": "osm-node-11166808364",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "土地福德財神",
@@ -2529,6 +2691,8 @@
     {
       "id": "osm-node-11166808365",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本街土地爺爺",
@@ -2551,6 +2715,8 @@
     {
       "id": "osm-node-11166808366",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "定福社稷和本坊土地社稷福德之神",
@@ -2573,6 +2739,8 @@
     {
       "id": "osm-node-11166808367",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "黑沙環區社稷之神",
@@ -2595,6 +2763,8 @@
     {
       "id": "osm-node-11166808368",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -2628,6 +2798,8 @@
     {
       "id": "osm-node-11166808369",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "永安坊土地財神",
@@ -2650,6 +2822,8 @@
     {
       "id": "osm-node-11166808370",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -2681,6 +2855,8 @@
     {
       "id": "osm-node-11166808371",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "蓮花村本坊土地社稷福神",
@@ -2714,6 +2890,8 @@
     {
       "id": "osm-node-11166808372",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本圍土地福德正神",
@@ -2747,6 +2925,8 @@
     {
       "id": "osm-node-11166808374",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "德香社",
@@ -2780,6 +2960,8 @@
     {
       "id": "osm-node-11166808375",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "宏隆坊 本坊社稷土地之神",
@@ -2813,6 +2995,8 @@
     {
       "id": "osm-node-11166808376",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "旺丁社",
@@ -2846,6 +3030,8 @@
     {
       "id": "osm-node-11166808377",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -2868,6 +3054,8 @@
     {
       "id": "osm-node-11166808378",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "土地公",
@@ -2890,6 +3078,8 @@
     {
       "id": "osm-node-11166808379",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "埠寧社稷之神",
@@ -2923,6 +3113,8 @@
     {
       "id": "osm-node-11166808380",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本境社官水仙尊王",
@@ -2945,6 +3137,8 @@
     {
       "id": "osm-node-11166808381",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "啟德星君爺爺",
@@ -2967,6 +3161,8 @@
     {
       "id": "osm-node-11166808382",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -2989,6 +3185,8 @@
     {
       "id": "osm-node-11166808383",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "本坊土地福德正神",
@@ -3011,6 +3209,8 @@
     {
       "id": "osm-node-11953665243",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "廣華土地公",
@@ -3033,6 +3233,8 @@
     {
       "id": "osm-node-12846316167",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "城隍廟",
@@ -3055,6 +3257,8 @@
     {
       "id": "osm-node-3100104704",
       "category": "other",
+      "religion": "hindu",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "四面佛",
@@ -3077,6 +3281,8 @@
     {
       "id": "osm-node-3124646751",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "三聖宮廟",
@@ -3107,6 +3313,8 @@
     {
       "id": "osm-node-4416593989",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "三街會館",
@@ -3129,6 +3337,8 @@
     {
       "id": "osm-node-4416596892",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "望德聖母堂",
@@ -3159,6 +3369,8 @@
     {
       "id": "osm-node-4694461592",
       "category": "church",
+      "religion": "protestant",
+      "denomination": "浸信會",
       "kind": "church",
       "name": {
         "zh": "澳門浸信會",
@@ -3181,6 +3393,8 @@
     {
       "id": "osm-node-5256972401",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "筷子基坊眾永和堂花炮會海口土地公",
@@ -3203,6 +3417,8 @@
     {
       "id": "osm-node-9097161101",
       "category": "church",
+      "religion": "protestant",
+      "denomination": "聖公會",
       "kind": "church",
       "name": {
         "zh": "聖公會澳門聖士提反堂",
@@ -3225,6 +3441,8 @@
     {
       "id": "osm-node-9097245903",
       "category": "church",
+      "religion": "protestant",
+      "denomination": "聖公會",
       "kind": "church",
       "name": {
         "zh": "聖公會澳門聖保羅堂",
@@ -3247,6 +3465,8 @@
     {
       "id": "osm-node-9097263228",
       "category": "church",
+      "religion": "protestant",
+      "denomination": "聖公會",
       "kind": "church",
       "name": {
         "zh": "聖公會澳門聖馬可堂",
@@ -3269,6 +3489,8 @@
     {
       "id": "osm-relation-5828699",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖若瑟修院及聖堂",
@@ -3299,6 +3521,8 @@
     {
       "id": "osm-way-1001795463",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖保祿學院天主之母教堂遺址",
@@ -3329,6 +3553,8 @@
     {
       "id": "osm-way-1106143922",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "九澳土地廟",
@@ -3351,6 +3577,8 @@
     {
       "id": "osm-way-1216391899",
       "category": "church",
+      "religion": "christian",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "教堂",
@@ -3373,6 +3601,8 @@
     {
       "id": "osm-way-1288411741",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "三聖廟",
@@ -3403,6 +3633,8 @@
     {
       "id": "osm-way-1288411745",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "大王廟",
@@ -3433,6 +3665,8 @@
     {
       "id": "osm-way-192187333",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "媽閣廟",
@@ -3463,6 +3697,8 @@
     {
       "id": "osm-way-192573688",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "玫瑰聖母堂",
@@ -3493,6 +3729,8 @@
     {
       "id": "osm-way-206105309",
       "category": "temple",
+      "religion": "taoist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "北帝廟",
@@ -3523,6 +3761,8 @@
     {
       "id": "osm-way-206824034",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖若瑟勞工主保堂",
@@ -3545,6 +3785,8 @@
     {
       "id": "osm-way-229184934",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "路環聖方濟各聖堂",
@@ -3575,6 +3817,8 @@
     {
       "id": "osm-way-229191940",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "媽祖文化村",
@@ -3597,6 +3841,8 @@
     {
       "id": "osm-way-229205163",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "竹灣聖若瑟靜院",
@@ -3619,6 +3865,8 @@
     {
       "id": "osm-way-229290411",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "九澳七苦聖母小堂",
@@ -3649,6 +3897,8 @@
     {
       "id": "osm-way-230576209",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖母雪地殿教堂",
@@ -3671,6 +3921,8 @@
     {
       "id": "osm-way-241618736",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "青洲避靜院",
@@ -3693,6 +3945,8 @@
     {
       "id": "osm-way-265429440",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "普濟禪院 (觀音堂)",
@@ -3723,6 +3977,8 @@
     {
       "id": "osm-way-279952093",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖老楞佐堂",
@@ -3753,6 +4009,8 @@
     {
       "id": "osm-way-319660135",
       "category": "church",
+      "religion": "protestant",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "馬禮遜教堂",
@@ -3775,6 +4033,8 @@
     {
       "id": "osm-way-319660137",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖安多尼堂 (花王堂)",
@@ -3805,6 +4065,8 @@
     {
       "id": "osm-way-322228650",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "三婆廟",
@@ -3835,6 +4097,8 @@
     {
       "id": "osm-way-322228684",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "觀音堂",
@@ -3865,6 +4129,8 @@
     {
       "id": "osm-way-322228685",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "醫靈廟",
@@ -3895,6 +4161,8 @@
     {
       "id": "osm-way-322228686",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "關帝廟",
@@ -3925,6 +4193,8 @@
     {
       "id": "osm-way-330368426",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "主教座堂 (大堂/聖母誕辰主教座堂)",
@@ -3955,6 +4225,8 @@
     {
       "id": "osm-way-331666100",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "嘉模聖母堂",
@@ -3985,6 +4257,8 @@
     {
       "id": "osm-way-333975736",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "天后古廟",
@@ -4015,6 +4289,8 @@
     {
       "id": "osm-way-347303893",
       "category": "mosque",
+      "religion": "islam",
+      "denomination": null,
       "kind": "mosque",
       "name": {
         "zh": "澳門伊斯蘭清真寺及墳場",
@@ -4037,6 +4313,8 @@
     {
       "id": "osm-way-367209085",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖依撒伯爾靜修院",
@@ -4059,6 +4337,8 @@
     {
       "id": "osm-way-389129453",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖奧斯定教堂",
@@ -4089,6 +4369,8 @@
     {
       "id": "osm-way-391342663",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "蓮溪廟",
@@ -4119,6 +4401,8 @@
     {
       "id": "osm-way-395117862",
       "category": "temple",
+      "religion": "taoist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "康真君廟",
@@ -4149,6 +4433,8 @@
     {
       "id": "osm-way-427220571",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "花地瑪聖母堂",
@@ -4171,6 +4457,8 @@
     {
       "id": "osm-way-436071586",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "土地廟",
@@ -4193,6 +4481,8 @@
     {
       "id": "osm-way-456596099",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "望廈聖方濟各堂",
@@ -4215,6 +4505,8 @@
     {
       "id": "osm-way-461192545",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "竹林寺",
@@ -4237,6 +4529,8 @@
     {
       "id": "osm-way-461196163",
       "category": "church",
+      "religion": "protestant",
+      "denomination": "基督教會",
       "kind": "church",
       "name": {
         "zh": "澳門基督教會宣道堂",
@@ -4259,6 +4553,8 @@
     {
       "id": "osm-way-461365084",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "觀音古廟",
@@ -4289,6 +4585,8 @@
     {
       "id": "osm-way-490954721",
       "category": "church",
+      "religion": "protestant",
+      "denomination": "浸信會",
       "kind": "church",
       "name": {
         "zh": "二龍喉浸信會",
@@ -4311,6 +4609,8 @@
     {
       "id": "osm-way-503082489",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -4333,6 +4633,8 @@
     {
       "id": "osm-way-542809864",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "天后宮",
@@ -4363,6 +4665,8 @@
     {
       "id": "osm-way-544062672",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "澳門佛學社",
@@ -4385,6 +4689,8 @@
     {
       "id": "osm-way-544082912",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "天后廟",
@@ -4415,6 +4721,8 @@
     {
       "id": "osm-way-544093058",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "菩提堂",
@@ -4437,6 +4745,8 @@
     {
       "id": "osm-way-544331876",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "觀音廟（九澳）",
@@ -4467,6 +4777,8 @@
     {
       "id": "osm-way-544588485",
       "category": "temple",
+      "religion": "taoist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "康真君廟",
@@ -4489,6 +4801,8 @@
     {
       "id": "osm-way-546745854",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖彌額爾小堂",
@@ -4511,6 +4825,8 @@
     {
       "id": "osm-way-605315654",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "慈悲者聖母小堂",
@@ -4533,6 +4849,8 @@
     {
       "id": "osm-way-635377712",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "聖十字架小堂",
@@ -4555,6 +4873,8 @@
     {
       "id": "osm-way-655138584",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "大三巴哪吒廟",
@@ -4585,6 +4905,8 @@
     {
       "id": "osm-way-655240802",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "主教山教堂",
@@ -4615,6 +4937,8 @@
     {
       "id": "osm-way-659329439",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "悅城龍母 (女媧廟)",
@@ -4637,6 +4961,8 @@
     {
       "id": "osm-way-659929154",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "觀音古廟",
@@ -4667,6 +4993,8 @@
     {
       "id": "osm-way-661735906",
       "category": "church",
+      "religion": "protestant",
+      "denomination": "基督教會",
       "kind": "church",
       "name": {
         "zh": "中華基督教會志道堂",
@@ -4689,6 +5017,8 @@
     {
       "id": "osm-way-664699722",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "先鋒廟",
@@ -4719,6 +5049,8 @@
     {
       "id": "osm-way-664890999",
       "category": "church",
+      "religion": "catholic",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "瑪利亞方濟各傳教修會 聖嘉俾厄爾修院",
@@ -4741,6 +5073,8 @@
     {
       "id": "osm-way-673644890",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "福和社",
@@ -4763,6 +5097,8 @@
     {
       "id": "osm-way-679973157",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "菩提園",
@@ -4785,6 +5121,8 @@
     {
       "id": "osm-way-680830775",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "譚僊聖廟 (譚公廟)",
@@ -4815,6 +5153,8 @@
     {
       "id": "osm-way-681663121",
       "category": "temple",
+      "religion": "buddhist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "觀音岩",
@@ -4837,6 +5177,8 @@
     {
       "id": "osm-way-693561337",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "哪咤古廟",
@@ -4867,6 +5209,8 @@
     {
       "id": "osm-way-702054446",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "石敢當行臺",
@@ -4897,6 +5241,8 @@
     {
       "id": "osm-way-702056328",
       "category": "church",
+      "religion": "protestant",
+      "denomination": null,
       "kind": "church",
       "name": {
         "zh": "新橋宣道堂",
@@ -4919,6 +5265,8 @@
     {
       "id": "osm-way-704605667",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "南山廟,包公廟,醫靈廟",
@@ -4949,6 +5297,8 @@
     {
       "id": "osm-way-704605668",
       "category": "temple",
+      "religion": "taoist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "呂祖仙院",
@@ -4971,6 +5321,8 @@
     {
       "id": "osm-way-718157866",
       "category": "temple",
+      "religion": "taoist",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "黃曹二仙廟",
@@ -4993,6 +5345,8 @@
     {
       "id": "osm-way-734421388",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -5034,6 +5388,8 @@
     {
       "id": "osm-way-740768095",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "雀仔園福德祠",
@@ -5074,6 +5430,8 @@
     {
       "id": "osm-way-747034203",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -5107,6 +5465,8 @@
     {
       "id": "osm-way-778305617",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "天后宮",
@@ -5129,6 +5489,8 @@
     {
       "id": "osm-way-798057863",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -5159,6 +5521,8 @@
     {
       "id": "osm-way-819176920",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "shrine",
       "name": {
         "zh": "中和社",
@@ -5181,6 +5545,8 @@
     {
       "id": "osm-way-823695024",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "沙梨頭土地廟",
@@ -5225,6 +5591,8 @@
     {
       "id": "osm-way-824733411",
       "category": "temple",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "蓮峰廟",
@@ -5255,6 +5623,8 @@
     {
       "id": "osm-way-825459219",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠",
@@ -5288,6 +5658,8 @@
     {
       "id": "osm-way-828868454",
       "category": "tudigong",
+      "religion": "folk",
+      "denomination": null,
       "kind": "temple",
       "name": {
         "zh": "福德祠 (大碼頭街)",
@@ -5320,7 +5692,7 @@
     "osm": {
       "name": "OpenStreetMap contributors (ODbL)",
       "url": "https://www.openstreetmap.org/copyright",
-      "queriedAt": "2026-09-16T15:12:56.498973+00:00"
+      "queriedAt": "2026-09-16T15:47:11.655837+00:00"
     },
     "ic": {
       "name": "文化局 文化遺產資料 (data.gov.mo)",
@@ -5349,6 +5721,17 @@
       "church": 33,
       "mosque": 1,
       "other": 1
+    },
+    "byReligion": {
+      "folk": 136,
+      "taoist": 5,
+      "buddhist": 10,
+      "catholic": 23,
+      "protestant": 9,
+      "christian": 1,
+      "islam": 1,
+      "hindu": 1,
+      "other": 0
     }
   }
 }

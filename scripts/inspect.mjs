@@ -1424,6 +1424,24 @@ function cmdReligion() {
     console.log(`  ${c.id.padEnd(10)} ${JSON.stringify(kinds)}`)
   }
 
+  const byReligion = {}
+  for (const s of sites) byReligion[s.religion] = (byReligion[s.religion] || 0) + 1
+  console.log('\nby religion:', byReligion)
+
+  console.log('\nby category x religion:')
+  for (const c of categories) {
+    const inCat = sites.filter((s) => s.category === c.id)
+    const rel = {}
+    for (const s of inCat) rel[s.religion] = (rel[s.religion] || 0) + 1
+    console.log(`  ${c.id.padEnd(10)} ${JSON.stringify(rel)}`)
+  }
+
+  const withDenom = sites.filter((s) => s.denomination).sort((a, b) => a.denomination.localeCompare(b.denomination, 'zh'))
+  const denomCounts = {}
+  for (const s of withDenom) denomCounts[s.denomination] = (denomCounts[s.denomination] || 0) + 1
+  console.log(`\ndenominations found (${Object.keys(denomCounts).length}, ${withDenom.length} sites):`, denomCounts)
+  for (const s of withDenom) console.log(`  ${s.denomination.padEnd(8)} ${s.id.padEnd(22)} ${s.name.zh}`)
+
   const approx = sites.filter((s) => s.approximate)
   console.log(`\napproximate: ${approx.length}`)
 

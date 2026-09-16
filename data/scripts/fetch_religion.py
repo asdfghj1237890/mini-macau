@@ -287,6 +287,8 @@ def build_osm_site(el: dict) -> dict | None:
     return {
         "id": f"osm-{el['type']}-{el['id']}",
         "category": "tudigong",
+        "religion": "folk",
+        "denomination": None,
         "kind": kind,
         "name": {"zh": name_zh, "en": clean(tags.get("name:en")) or None, "pt": name_pt},
         "coordinates": [round(float(lon), 6), round(float(lat), 6)],
@@ -450,6 +452,8 @@ def attach_heritage(sites: dict[str, dict], rows: list[dict]) -> None:
             sites[new_id] = {
                 "id": new_id,
                 "category": "tudigong",
+                "religion": "folk",
+                "denomination": None,
                 "kind": "shrine" if h["code"] == "MM049" else "temple",
                 "name": {"zh": h["zh_name"], "en": h["en_name"], "pt": h["pt_name"]},
                 "coordinates": [round(hlon, 6), round(hlat, 6)],
@@ -659,6 +663,8 @@ def merge_mymaps(sites: dict[str, dict], mymaps_sites: list[dict], entry_by_reco
             sites[new_id] = {
                 "id": new_id,
                 "category": "tudigong",
+                "religion": "folk",
+                "denomination": None,
                 "kind": "temple" if MYMAPS_TEMPLE_RE.search(s["name"]) else "shrine",
                 "name": {"zh": s["name"], "en": None, "pt": None},
                 "coordinates": [round(s["lon"], 6), round(s["lat"], 6)],
@@ -883,11 +889,103 @@ def classify_new_category(tags: dict, zh: str, combined: str, confirmed: bool) -
     return None, None
 
 
+RELIGION_ENUM = ("folk", "taoist", "buddhist", "catholic", "protestant", "christian", "islam", "hindu", "other")
+
+# church: denomination extraction, shared between the OSM-tag branch (a
+# generic evangelical/pentecostal/protestant tag) and the no-tag branch —
+# both fall back to reading the specific body's Chinese short name out of
+# the site's own name.
+DENOMINATION_RE = re.compile(r"聖公會|浸信會|宣道會|信義會|循道|基督教會|志道堂")
+CHURCH_DENOM_TAG_MAP = {
+    "catholic": ("catholic", None),
+    "roman_catholic": ("catholic", None),
+    "anglican": ("protestant", "聖公會"),
+    "baptist": ("protestant", "浸信會"),
+    "lutheran": ("protestant", "信義會"),
+    "methodist": ("protestant", "循道衛理"),
+}
+# A denomination tag that already says "protestant family" without naming a
+# specific body — evangelical/pentecostal/protestant (the last one is what
+# 馬禮遜教堂 carries) — is still decisive on its own: protestant, denomination
+# read from the name if recognisable. Only a MISSING or truly unmapped tag
+# value falls through further, to deciding protestant-vs-catholic by name.
+CHURCH_GENERIC_PROTESTANT_TAGS = {"evangelical", "pentecostal", "protestant"}
+# Broader than DENOMINATION_RE on purpose — this only decides IS it
+# protestant (福音|Evangel|Cristo|Christ catch generic evangelical names with
+# no denomination of their own), not which specific body.
+CHURCH_NAME_PROTESTANT_RE = re.compile(r"聖公會|浸信|宣道|信義|循道|福音|基督教會|志道|Baptist|Anglican|Evangel|Cristo|Christ")
+CHURCH_NAME_CATHOLIC_RE = re.compile(
+    r"聖母|主教|修院|靜院|靜修院|避靜院|修會|天主教|牌坊|遺址|小堂|聖堂|七苦|雪地殿|慈悲者|聖十字架|聖彌額爾|"
+    r"玫瑰|望德|花地瑪|嘉模|聖老楞佐|聖安多尼|聖奧斯定|聖若瑟|聖方濟各|聖保祿|Igreja|Capela|Ermida"
+)
+
+# temple: by NAME first — OSM's own religion tag on a Chinese temple is
+# unreliable (媽閣廟 is tagged buddhist but reads, and is generally treated,
+# as a folk/Taoist-adjacent Tin Hau-lineage temple by name).
+TEMPLE_BUDDHIST_RE = re.compile(r"禪院|寺|庵|觀音|菩提|佛")
+TEMPLE_TAOIST_RE = re.compile(r"呂祖|仙院|二仙|真君|北帝|玄天|三清|道")
+TEMPLE_FOLK_RE = re.compile(
+    r"媽閣|媽祖|天后|關帝|譚公|康公|哪咤|哪吒|包公|城隍|龍母|女媧|三聖|大王|醫靈|三婆|先鋒|"
+    r"蓮峯|蓮峰|蓮溪|會館|龍王|水仙|星君|社稷|石敢當|社$"
+)
+
+
+def classify_religion(category: str, name_zh: str, combined: str, osm_denomination: str | None, osm_religion: str | None) -> tuple[str, str | None]:
+    """(religion, denomination) for a temple/church/mosque/other site.
+    `combined` (name+pt+en, or the IC row's zh/pt/en for a standalone site)
+    carries the English/Portuguese words some of the name regexes need
+    (Baptist, Anglican, Igreja, ...); denomination is always extracted from
+    `name_zh` alone so it comes out as a clean Chinese string.
+    osm_denomination/osm_religion are None for an IC standalone site (no OSM
+    tags exist), which correctly skips straight to the name-based rules —
+    the only information a heritage-only record has anyway."""
+    if category == "mosque":
+        return "islam", None
+    if category == "other":
+        return ("hindu", None) if osm_religion == "hindu" else ("other", None)
+    if category == "church":
+        denom_tag = (osm_denomination or "").lower()
+        if denom_tag in CHURCH_DENOM_TAG_MAP:
+            return CHURCH_DENOM_TAG_MAP[denom_tag]
+        if denom_tag in CHURCH_GENERIC_PROTESTANT_TAGS:
+            # A tag that already says which family it is (e.g. 馬禮遜教堂's
+            # denomination=protestant) is decisive on its own — it must NOT
+            # fall through to CHURCH_NAME_CATHOLIC_RE below, which a generic
+            # word like "Capela" (its own pt name is "Capela Protestante de
+            # Macau") would otherwise wrongly match.
+            m = DENOMINATION_RE.search(name_zh)
+            return "protestant", (m.group(0) if m else None)
+        # No denomination tag at all (or an unmapped value): read the name.
+        if CHURCH_NAME_PROTESTANT_RE.search(combined):
+            m = DENOMINATION_RE.search(name_zh)
+            return "protestant", (m.group(0) if m else None)
+        if CHURCH_NAME_CATHOLIC_RE.search(combined):
+            return "catholic", None
+        return "christian", None
+    if category == "temple":
+        if TEMPLE_BUDDHIST_RE.search(name_zh):
+            return "buddhist", None
+        if TEMPLE_TAOIST_RE.search(name_zh):
+            return "taoist", None
+        if TEMPLE_FOLK_RE.search(name_zh):
+            return "folk", None
+        if osm_religion == "taoist":
+            return "taoist", None
+        if osm_religion == "buddhist":
+            return "buddhist", None
+        return "folk", None
+    return "other", None  # unreachable: every category above is handled
+
+
 def build_new_site(el: dict, category: str, kind: str, name_zh: str, name_pt: str | None, tags: dict) -> dict:
     lat, lon = osm_pos(el)
+    combined = f"{tags.get('name', '')} {tags.get('name:pt', '')} {tags.get('name:en', '')}"
+    religion, denomination = classify_religion(category, name_zh, combined, tags.get("denomination"), tags.get("religion"))
     return {
         "id": f"osm-{el['type']}-{el['id']}",
         "category": category,
+        "religion": religion,
+        "denomination": denomination,
         "kind": kind,
         "name": {"zh": name_zh, "en": clean(tags.get("name:en")) or None, "pt": name_pt},
         "coordinates": [round(float(lon), 6), round(float(lat), 6)],
@@ -1179,9 +1277,17 @@ def attach_new_heritage(sites: dict[str, dict], rows: list[dict]) -> None:
             print(f"  heritage {h['code']} {h['zh_name']} -> {best_id} ({best_d:.1f} m, lcs={best_lcs})")
         else:
             new_id = f"ic-{h['code']}"
+            # No OSM element (and so no OSM tags) exists for a standalone IC
+            # site — classify_religion's tag-based branches naturally no-op
+            # and fall through to its name-based rules, the only information
+            # a heritage-only record has anyway.
+            ic_combined = f"{h['zh_name']} {h['pt_name'] or ''} {h['en_name'] or ''}"
+            religion, denomination = classify_religion(h["category"], h["zh_name"], ic_combined, None, None)
             sites[new_id] = {
                 "id": new_id,
                 "category": h["category"],
+                "religion": religion,
+                "denomination": denomination,
                 "kind": h["kind"],
                 "name": {"zh": h["zh_name"], "en": h["en_name"], "pt": h["pt_name"]},
                 "coordinates": [round(hlon, 6), round(hlat, 6)],
@@ -1274,6 +1380,7 @@ def run() -> int:
         "approximate": sum(1 for s in site_list if s["approximate"]),
         "bySource": {src: sum(1 for s in site_list if src in s["sources"]) for src in ("osm", "ic", "macaumemory")},
         "byCategory": {cid: sum(1 for s in site_list if s["category"] == cid) for cid in category_ids},
+        "byReligion": {r: sum(1 for s in site_list if s["religion"] == r) for r in RELIGION_ENUM},
     }
 
     output = {
@@ -1296,6 +1403,7 @@ def run() -> int:
 
     print(
         f"\nDone. {stats['total']} sites; byCategory={stats['byCategory']}; "
+        f"byReligion={stats['byReligion']}; "
         f"kinds (temple={stats['temples']}, shrine={stats['shrines']}); "
         f"approximate={stats['approximate']}; bySource={stats['bySource']}"
     )

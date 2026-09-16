@@ -9,7 +9,7 @@
 // mosque) and carries the icon SHAPE. The overlay is time-independent —
 // nothing here takes a clock.
 import type { Lang, Translations } from './i18n'
-import type { ReligionCategory, ReligionCategoryId, ReligionKind, ReligionSite, ReligionText } from './types'
+import type { ReligionCategory, ReligionCategoryId, ReligionFaith, ReligionKind, ReligionSite, ReligionText } from './types'
 
 // Legend order for the categories (also the order religion.json lists them).
 export const RELIGION_CATEGORY_ORDER: readonly ReligionCategoryId[] = [
@@ -97,6 +97,34 @@ export function religionKindLabel(t: Translations, kind: ReligionKind): string {
     case 'shrine': return t.religionKindShrine
     case 'church': return t.religionKindChurch
     case 'mosque': return t.religionKindMosque
+  }
+}
+
+// The faith on the panel's signboard. The pipeline writes `religion` on every
+// site; the fallback by category only covers an older religion.json.
+export function siteFaith(site: Pick<ReligionSite, 'category' | 'religion'>): ReligionFaith {
+  if (site.religion) return site.religion
+  switch (site.category) {
+    case 'tudigong': return 'folk'
+    case 'temple': return 'folk'
+    case 'church': return 'christian'
+    case 'mosque': return 'islam'
+    case 'other': return 'other'
+  }
+}
+
+// UI label for a faith.
+export function religionFaithLabel(t: Translations, faith: ReligionFaith): string {
+  switch (faith) {
+    case 'folk': return t.religionFaithFolk
+    case 'taoist': return t.religionFaithTaoist
+    case 'buddhist': return t.religionFaithBuddhist
+    case 'catholic': return t.religionFaithCatholic
+    case 'protestant': return t.religionFaithProtestant
+    case 'christian': return t.religionFaithChristian
+    case 'islam': return t.religionFaithIslam
+    case 'hindu': return t.religionFaithHindu
+    case 'other': return t.religionFaithOther
   }
 }
 

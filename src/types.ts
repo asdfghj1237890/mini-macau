@@ -374,6 +374,12 @@ export type ReligionKind = 'temple' | 'shrine' | 'church' | 'mosque'
 // faiths (四面佛). religion.json lists them in this order.
 export type ReligionCategoryId = 'tudigong' | 'temple' | 'church' | 'mosque' | 'other'
 export type ReligionSource = 'osm' | 'ic' | 'macaumemory'
+// The faith a site belongs to — what the panel's signboard says. Decided by
+// the pipeline from OSM's religion/denomination tags and the name (Chinese
+// temples' OSM tags are unreliable, so deity names win there); `folk` is
+// Chinese folk religion (土地公, 媽祖, 關帝 …), `christian` a church whose
+// denomination the data does not give.
+export type ReligionFaith = 'folk' | 'taoist' | 'buddhist' | 'catholic' | 'protestant' | 'christian' | 'islam' | 'hindu' | 'other'
 
 // A category of the overlay with the dataset's own trilingual name. The
 // optional official counts (tudigong only) are the IC's published totals the
@@ -394,6 +400,11 @@ export interface ReligionSite {
   id: string // 'osm-way-823695024' | 'ic-MM032' | 'mm-p0003801'
   category: ReligionCategoryId
   kind: ReligionKind
+  // Optional only while an older religion.json is on disk; the pipeline
+  // always writes both. `denomination` is the church body's Chinese short
+  // name (聖公會, 浸信會 …) when known.
+  religion?: ReligionFaith
+  denomination?: string | null
   name: ReligionText
   coordinates: [number, number] // [lng, lat]
   approximate: boolean

@@ -410,6 +410,8 @@ export const ReligionFileSchema = z.object({
       id: z.string(),
       category: religionCategoryId,
       kind: z.enum(['temple', 'shrine', 'church', 'mosque']),
+      religion: z.enum(['folk', 'taoist', 'buddhist', 'catholic', 'protestant', 'christian', 'islam', 'hindu', 'other']).optional(),
+      denomination: z.string().nullable().optional(),
       name: religionText,
       coordinates: lngLat,
       approximate: z.boolean(),
