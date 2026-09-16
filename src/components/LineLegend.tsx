@@ -463,6 +463,15 @@ const TOILET_ICON_16 = (
     <path d="M8 2.25v11.5" strokeWidth="1" opacity="0.5" />
   </svg>
 )
+const RELIGION_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M2.25 6.75 8 2.75l5.75 4" />
+    <path d="M3.75 6.75v6.5M12.25 6.75v6.5" />
+    <path d="M2.25 13.25h11.5" />
+    <rect x="6.5" y="8.5" width="3" height="4.75" fill="currentColor" stroke="none" />
+  </svg>
+)
 const CAR_PARK_ICON_16 = (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -571,6 +580,9 @@ interface Props {
   // Public toilets. Like schools this layer is opt-in, so it defaults to off
   // here too — the count shown is the whole register, which never changes.
   toiletsOn?: boolean
+  // Tou Tei temples and street shrines — opt-in like the toilets; the count is
+  // the whole register (temples + shrines) and never moves.
+  religionOn?: boolean
   // Public car parks — opt-in like the toilets; the count is the whole
   // register, which only changes when the daily workflow lands a new file.
   carParksOn?: boolean
@@ -603,6 +615,7 @@ interface Props {
   onTogglePublicHousingType?: (type: PublicHousingType) => void
   onToggleParishes?: () => void
   onToggleToilets?: () => void
+  onToggleReligion?: () => void
   onToggleCarParks?: () => void
   onToggleWaste?: () => void
   onToggleWasteType?: (type: WasteLayerType) => void
@@ -617,7 +630,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = MobileLayerCategory | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | null
+type MobilePanel = MobileLayerCategory | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'religion' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | null
 
 export function LineLegend({
   cityDataStatus,
@@ -640,6 +653,7 @@ export function LineLegend({
   publicHousingTypeCounts,
   parishesOn = false,
   toiletsOn = false,
+  religionOn = false,
   carParksOn = false,
   wasteOn = false,
   wasteHiddenTypes,
@@ -658,6 +672,7 @@ export function LineLegend({
   onTogglePublicHousingType,
   onToggleParishes,
   onToggleToilets,
+  onToggleReligion,
   onToggleCarParks,
   onToggleWaste,
   onToggleWasteType,
@@ -834,6 +849,9 @@ export function LineLegend({
   // Toilets are static and unfiltered: the row always shows the full register,
   // and the master switch is the only thing that empties transitData.toilets.
   const toiletCount = cityCount('toilets', allTransitData?.toilets.length ?? transitData.toilets.length)
+  // Same for the Tou Tei sites: temples + shrines, static until the manual
+  // pipeline run regenerates religion.json.
+  const religionCount = cityCount('religion', allTransitData?.religion.length ?? transitData.religion.length)
   // Same for the car parks: the row always shows the full register.
   const carParkCount = cityCount('carparks', allTransitData?.carParks.length ?? transitData.carParks.length)
   // The number of AREAS, from the unfiltered data — eight, and only ever eight
@@ -886,6 +904,11 @@ export function LineLegend({
       panel: 'toilets' as const, focus: false, label: t.toilets, code: 'PUBLIC TOILETS', accent: 'teal', description: t.toiletsCount(toiletCount), icon: TOILET_ICON_16, on: toiletsOn,
       count: String(toiletCount),
       toggle: onToggleToilets,
+    } : null,
+    religionCount > 0 ? {
+      panel: 'religion' as const, focus: false, label: t.religion, code: 'RELIGION', accent: 'red', description: t.religionNote, icon: RELIGION_ICON_16, on: religionOn,
+      count: String(religionCount),
+      toggle: onToggleReligion,
     } : null,
     schoolCount > 0 ? {
       panel: 'schools' as const, focus: false, label: t.schools, code: 'EDUCATION', accent: 'violet', description: t.schoolsRampHint, icon: MORTARBOARD_ICON_16, on: schoolsOn,

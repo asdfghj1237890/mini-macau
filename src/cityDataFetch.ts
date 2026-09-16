@@ -1,4 +1,4 @@
-import type { TransitData, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile } from './types'
+import type { TransitData, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, ReligionCategory, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile } from './types'
 import type { CityDataset } from './cityData'
 import type { z } from 'zod'
 
@@ -8,6 +8,7 @@ import {
   PublicHousingFileSchema,
   ParishesFileSchema,
   ToiletsFileSchema,
+  ReligionFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
   DspaStatsFileSchema,
@@ -60,6 +61,16 @@ interface ToiletsFile {
   updatedAt: string | null
   sources: Record<string, string>
   toilets: Toilet[]
+}
+
+// religion.json — the same envelope: `sites` and `categories` reach
+// TransitData; `sources` and `stats` stay provenance metadata (the panel
+// links each site to its own sources, the sidebar carries a static label).
+interface ReligionFile {
+  version: 1
+  fetchedAtUtc: string
+  categories: ReligionCategory[]
+  sites: ReligionSite[]
 }
 
 // car-parks.json — the static half of the car-park overlay. The live vacancy
@@ -130,6 +141,10 @@ export async function loadCityDataset(id: CityDataset): Promise<Partial<TransitD
     case 'housing': return { publicHousing: (await read<PublicHousingFile>('public-housing', PublicHousingFileSchema)).estates }
     case 'parishes': return { parishes: (await read<ParishesFile>('parishes', ParishesFileSchema)).parishes }
     case 'toilets': return { toilets: (await read<ToiletsFile>('toilets', ToiletsFileSchema)).toilets }
+    case 'religion': {
+      const file = await read<ReligionFile>('religion', ReligionFileSchema)
+      return { religion: file.sites, religionCategories: file.categories }
+    }
     case 'carparks': return { carParks: (await read<CarParksFile>('car-parks', CarParksFileSchema)).carParks }
     case 'waste': {
       const file = await read<WasteFile>('waste', WasteFileSchema)

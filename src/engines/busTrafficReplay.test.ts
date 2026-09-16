@@ -13,7 +13,7 @@ const data: TransitData = {
   busRoutes: JSON.parse(readFileSync(new URL('../../public/data/bus-routes.json', import.meta.url), 'utf8')),
   busStops: JSON.parse(readFileSync(new URL('../../public/data/bus-stops.json', import.meta.url), 'utf8')),
   lrtLines: [], stations: [], trips: [], flights: [], ferries: [], roadWorks: [],
-  schools: [], publicHousing: [], parishes: [], toilets: [], carParks: [], waste: [],
+  schools: [], publicHousing: [], parishes: [], toilets: [], religion: [], religionCategories: [], carParks: [], waste: [],
   wasteSources: [], wasteFacilities: [], wasteEcoStations: [], dspaStats: null,
   waterFacilities: [], waterNetwork: null, waterFacts: null,
   powerFacilities: [], powerNetwork: null, powerFacts: null,

@@ -41,6 +41,7 @@
 //   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt, treatment facilities incl. wwtp buildings + statsKey, eco stations)
 //   node scripts/inspect.mjs dspa-stats              # dspa-stats.json summary (DSPA monthly stats: incinerator/hazardous/landfill/4x wwtp series, latest values, incinerator facts)
 //   node scripts/inspect.mjs grand-prix [--kinks]   # grand-prix.json summary (Guia Circuit: official vs measured length, corner table with rules, pit lane, sources); --kinks lists the stitched line's sideways jogs (seams between OSM ways)
+//   node scripts/inspect.mjs religion               # religion.json summary (by kind/source, approximate count, heritage sites, My Maps-only count, top 10 by macaumemory.names length)
 // bucket = weekday | sat | sun (default weekday)
 
 import { readFileSync, statSync } from 'node:fs'
@@ -1385,6 +1386,43 @@ function cmdGrandPrixKinks(track, corners, minTurnDeg = 35, maxSegM = 25) {
   console.log(`turns ≥ 60° (${sharp.length}): ${sharp.join('  ')}`)
 }
 
+// religion.json: RELIGION overlay, category tudigong (土地公 / Tou Tei) — OSM
+// worship/社壇 candidates, 文化局 heritage-listed sites attached (not kept as
+// separate points), and 澳門記憶 / Google My Maps 澳門的土地信仰 sites (attached
+// onto an existing site, accumulating into macaumemory.names/records/entries,
+// or added as new approximate street-level sites) — see fetch_religion.py.
+function cmdReligion() {
+  const { fetchedAtUtc, sites, stats } = load('public/data/religion.json')
+  const bytes = statSync(join(ROOT, 'public/data/religion.json')).size
+
+  console.log(`total sites: ${sites.length}   fetchedAtUtc: ${fetchedAtUtc}   file size: ${(bytes / 1024).toFixed(1)} KiB`)
+  console.log('stats:', stats)
+
+  const byKind = {}
+  for (const s of sites) byKind[s.kind] = (byKind[s.kind] || 0) + 1
+  console.log('\nby kind:', byKind)
+
+  const bySource = {}
+  for (const s of sites) for (const src of s.sources) bySource[src] = (bySource[src] || 0) + 1
+  console.log('by source:', bySource)
+
+  const approx = sites.filter((s) => s.approximate)
+  console.log(`\napproximate: ${approx.length}`)
+
+  const heritage = sites.filter((s) => s.heritage)
+  console.log(`\nheritage sites (${heritage.length}):`)
+  for (const s of heritage) console.log(`  ${s.heritage.code.padEnd(6)} ${s.id.padEnd(16)} ${s.name.zh}`)
+
+  const mmOnly = sites.filter((s) => s.id.startsWith('mm-'))
+  console.log(`\nMy Maps-only sites (id starts 'mm-'): ${mmOnly.length}`)
+
+  const withMm = sites.filter((s) => s.macaumemory).sort((a, b) => b.macaumemory.names.length - a.macaumemory.names.length)
+  console.log(`\ntop 10 sites by macaumemory.names length (${withMm.length} sites carry macaumemory):`)
+  for (const s of withMm.slice(0, 10)) {
+    console.log(`  ${s.id.padEnd(22)} names=${String(s.macaumemory.names.length).padStart(2)}  ${s.name.zh}  [${s.macaumemory.names.join(' / ')}]`)
+  }
+}
+
 function fail(msg) {
   console.error(`error: ${msg}`)
   process.exit(1)
@@ -1542,7 +1580,8 @@ switch (cmd) {
   case 'waste': cmdWaste(); break
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
+  case 'religion': cmdReligion(); break
   default:
-    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | bus-route-match [route-id…] [--threshold=30] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix')
+    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | bus-route-match [route-id…] [--threshold=30] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix | religion')
     if (cmd) process.exit(1)
 }

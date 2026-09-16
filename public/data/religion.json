@@ -1,0 +1,3278 @@
+{
+  "version": 1,
+  "fetchedAtUtc": "2026-09-16T08:14:46.670896+00:00",
+  "layer": "religion",
+  "categories": [
+    {
+      "id": "tudigong",
+      "name": {
+        "zh": "土地公",
+        "en": "Tou Tei (Earth God)",
+        "pt": "Tou Tei (Deus da Terra)"
+      },
+      "officialCounts": {
+        "temples": "近10所",
+        "publicShrines": "160多個",
+        "source": "https://www.culturalheritage.mo/detail/101974"
+      }
+    }
+  ],
+  "sites": [
+    {
+      "id": "mm-p0003801",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "𠜎雞街的土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.542729,
+        22.20116
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門𠜎雞街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "𠜎雞街的土地公神壇"
+        ],
+        "records": [
+          "p0003801"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_24102f5c2632436f91a89038fdfd1471"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003802",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "盧九街土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.54457,
+        22.203246
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門盧九街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "盧九街土地公神壇"
+        ],
+        "records": [
+          "p0003802"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_c26a5bb78699427f9df5367d08c005f8"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003804",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "三街會館土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.539382,
+        22.194039
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門三街會館(關帝古廟)"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "三街會館土地公神壇"
+        ],
+        "records": [
+          "p0003804"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_28ebc3b6a75645cd84a4bb7636cc657e"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003805",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "大三巴哪咤廟土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540648,
+        22.197723
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門哪咤廟(大三巴)"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "大三巴哪咤廟土地公神壇"
+        ],
+        "records": [
+          "p0003805"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_f40a53fcb1be4235a3071a17a7b860c9"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003806",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "大纜巷土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.543729,
+        22.202223
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門大纜巷"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "大纜巷土地公神壇"
+        ],
+        "records": [
+          "p0003806"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_cdbd3fd3102c440d91bf10fc9aec2e9c"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003807",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "大纜巷土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.542552,
+        22.20174
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門大纜巷"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "大纜巷土地公神壇"
+        ],
+        "records": [
+          "p0003807"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_1e1ce524bdf2422c9d3c3f552da46526"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003808",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "大碼頭街土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538072,
+        22.197385
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門大碼頭街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "大碼頭街土地公神壇"
+        ],
+        "records": [
+          "p0003808"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_9499a8ec91944e889ed2cff211feacd0"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003809",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "小新巷土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.539535,
+        22.195557
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門小新巷"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "小新巷土地公神壇"
+        ],
+        "records": [
+          "p0003809"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_47881ddd590348f3b6faeab29786c25d"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003814",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "氹仔飛能便度街土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.559416,
+        22.155664
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "氹仔飛能便度街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "氹仔飛能便度街土地公神壇"
+        ],
+        "records": [
+          "p0003814"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_92cc75b7608e400d96e72d18d2f1a8e7"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003815",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "氹仔連理街土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.556901,
+        22.153037
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "氹仔連理街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "氹仔連理街土地公神壇"
+        ],
+        "records": [
+          "p0003815"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_c0a02e6642bc4a43aaa0b6c582b82de3"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003819",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "老人圍土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538063,
+        22.196107
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門老人圍"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "老人圍土地公神壇"
+        ],
+        "records": [
+          "p0003819"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_d4001c70743e45a6a6c6225cba6b6460"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003820",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "何林圍土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538609,
+        22.199694
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門何林圍"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "何林圍土地公神壇"
+        ],
+        "records": [
+          "p0003820"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_4909e424ede8496496979e16b85beef4"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003821",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "孝思墳場土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.568232,
+        22.161412
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "氹仔孝思墳場"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "孝思墳場土地公神壇"
+        ],
+        "records": [
+          "p0003821"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_783557c08b7a467d8ada8b06ed3dbe0d"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003823",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "沙梨頭街土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540364,
+        22.200521
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門沙梨頭街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "沙梨頭街土地公神壇"
+        ],
+        "records": [
+          "p0003823"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_8b7a7e3ee16b4892bf442ed4e570ff22"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003827",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "卓家村關帝廟土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.558465,
+        22.162015
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門卓家村關帝廟"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "卓家村關帝廟土地公神壇"
+        ],
+        "records": [
+          "p0003827"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_500d4e5a4cd54278b3c8dd32a5a7576f"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003828",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "玫瑰里土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.539152,
+        22.196738
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門玫瑰里"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "玫瑰里土地公神壇"
+        ],
+        "records": [
+          "p0003828"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_f706df24275e4a4ba5c927d957852a90"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003831",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "叢慶南街福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.537596,
+        22.199679
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門叢慶南街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "叢慶南街福德祠"
+        ],
+        "records": [
+          "p0003831"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_6c39ea2533704db098b6cda023e7e0af"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003832",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "柴船尾街土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.537812,
+        22.19472
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門柴船尾街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "柴船尾街土地公神壇"
+        ],
+        "records": [
+          "p0003832"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_e6657d47dfba4f07959f877205364b87"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003834",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "桔仔街土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538262,
+        22.194451
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門桔仔街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "桔仔街土地公神壇"
+        ],
+        "records": [
+          "p0003834"
+        ],
+        "entries": []
+      }
+    },
+    {
+      "id": "mm-p0003840",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "偶像圍土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.533558,
+        22.18969
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門下環舊巷20號"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "偶像圍土地公神壇"
+        ],
+        "records": [
+          "p0003840"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_4a044f7d217a419a96adbe081bef9bf4"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003842",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "眼鏡里土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538368,
+        22.200599
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門眼鏡里"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "眼鏡里土地公神壇"
+        ],
+        "records": [
+          "p0003842",
+          "p0003843",
+          "p0003844"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_03040d1c1c2b4e25bb1fbe4b5ee1deb5",
+          "https://www.macaumemory.mo/entries_674eda6821ea4b53a2191539d28e955b"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003847",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "陳家圍土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.5391,
+        22.196104
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門陳家圍"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "陳家圍土地公神壇"
+        ],
+        "records": [
+          "p0003847"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_b14add4874de42adb7b09300521c57e7"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003851",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "黑沙村土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.567396,
+        22.119787
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門黑沙村"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "黑沙村土地公神壇"
+        ],
+        "records": [
+          "p0003851"
+        ],
+        "entries": []
+      }
+    },
+    {
+      "id": "mm-p0003852",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "新里土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.543228,
+        22.195807
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門新里"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "新里土地公神壇"
+        ],
+        "records": [
+          "p0003852"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_d076651e2673404ebb344492d9c6b67b"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003856",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "筷子基土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540448,
+        22.207308
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "22.207361, 113.540459"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "筷子基土地公神壇"
+        ],
+        "records": [
+          "p0003856",
+          "p0003857"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_dfb2ea22e5d141eca76d0232a3de5b6a",
+          "https://www.macaumemory.mo/entries_8bad67d0e8844749b0be86775c50f175"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003858",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "義字街土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.544387,
+        22.203337
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門義字街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "義字街土地公神壇"
+        ],
+        "records": [
+          "p0003858",
+          "p0003859",
+          "p0003860"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_a131848876b54f77bcc18dc2e4e27324",
+          "https://www.macaumemory.mo/entries_0ec1cbef7f8b4b9da28abda23f657992",
+          "https://www.macaumemory.mo/entries_bde343ffd382488dbc29044da6e86f0f"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003861",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "路環三聖宮土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.550926,
+        22.118796
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "路環三聖宮"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "路環三聖宮土地公神壇"
+        ],
+        "records": [
+          "p0003861",
+          "p0003862",
+          "p0003863"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_0edbb124ccb348b0b2c1291926fbc5c1",
+          "https://www.macaumemory.mo/entries_d2b79102681747c9ac772fbdb39b6cb0",
+          "https://www.macaumemory.mo/entries_21454db377d147a191c7cfb9280742ad"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003864",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "路環天后古廟土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.551988,
+        22.115294
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "路環天后古廟"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "路環天后古廟土地公神壇"
+        ],
+        "records": [
+          "p0003864"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_e5b42cbe1dd24b21b3068320e2c98646"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003865",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "路環水泉公地土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.551493,
+        22.116274
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "路環水泉公地"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "路環水泉公地土地公神壇"
+        ],
+        "records": [
+          "p0003865"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_8ba9cf19888a4400a8301b0e80f57b18"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003866",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "路環水鴨街土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.551417,
+        22.118379
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "路環水鴨街"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "路環水鴨街土地公神壇"
+        ],
+        "records": [
+          "p0003866"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_b20e2f135ac94724bc5e2ba737ffc97c"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003867",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "路環譚公廟土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.550136,
+        22.114153
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "路環譚公廟"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "路環譚公廟土地公神壇"
+        ],
+        "records": [
+          "p0003867"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_dac81879e1ed4caeb89905d3d43286a9"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003868",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "路環觀音古廟土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.55202,
+        22.115279
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "路環觀音古廟"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "路環觀音古廟土地公神壇"
+        ],
+        "records": [
+          "p0003868"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_03b212b96ecb46bab028f5870677d12e"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003870",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "漁翁街天后古廟土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.558823,
+        22.204402
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "22.204272579284872, 113.55839414173823"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "漁翁街天后古廟土地公神壇"
+        ],
+        "records": [
+          "p0003870"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_19b6a8ff58c24928ab90817543dce4dc"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003871",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "漁翁街天后古廟福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.558088,
+        22.204148
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "22.204272579284872, 113.55839414173823"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "漁翁街天后古廟福德祠"
+        ],
+        "records": [
+          "p0003871"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_5b14623480a34aba85185bfb4320786a"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003872",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "漁翁街天后古廟福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.558426,
+        22.204436
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "22.204272579284872, 113.55839414173823"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "漁翁街天后古廟福德祠"
+        ],
+        "records": [
+          "p0003872"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_650d1fb437a64cfc9588106127da7f13"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003881",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "銅鑼圍土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540724,
+        22.195405
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門銅鑼圍"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "銅鑼圍土地公神壇"
+        ],
+        "records": [
+          "p0003881"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_54a18f1b3f4e4cddb3028b49a3177d6a"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003884",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "龍安圍土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.542833,
+        22.194589
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門龍安圍"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "龍安圍土地公神壇"
+        ],
+        "records": [
+          "p0003884"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_0bb1c17d80d74b97bd036affffdde697"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003885",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "鏡湖殯儀館土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.546647,
+        22.208121
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門鏡湖殯儀館"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "鏡湖殯儀館土地公神壇"
+        ],
+        "records": [
+          "p0003885"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_c13e54df450046d58635797f719c199b"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003889",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "觀音堂土地公神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.550278,
+        22.204444
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門普濟禪院(觀音堂)"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "觀音堂土地公神壇"
+        ],
+        "records": [
+          "p0003889"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_faa76b4b584c48218fa32a0cfe549cd1"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0003890",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "趙家巷福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538891,
+        22.195046
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門趙家巷"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "趙家巷福德祠"
+        ],
+        "records": [
+          "p0003890"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_876db316599f49ce9553c6cf2d5b611f"
+        ]
+      }
+    },
+    {
+      "id": "mm-p0020476",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "蓮環社稷神壇",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.548171,
+        22.212122
+      ],
+      "approximate": true,
+      "address": {
+        "zh": "澳門台山平民新邨休憩區"
+      },
+      "heritage": null,
+      "sources": [
+        "macaumemory"
+      ],
+      "osm": null,
+      "macaumemory": {
+        "names": [
+          "蓮環社稷神壇"
+        ],
+        "records": [
+          "p0020476"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_73cf0e49c5984b869d0199a285a8420e"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11162879363",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "蓮環社稷神位",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.547861,
+        22.212039
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11162879363",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11162879372",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "本坊威靈土地財神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.543013,
+        22.193762
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11162879372",
+      "macaumemory": {
+        "names": [
+          "善慶圍土地公神壇"
+        ],
+        "records": [
+          "p0003850"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_3b0f80c121d54aa09c29957087098fb5"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808326",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.537086,
+        22.187926
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808326",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808327",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "本坊土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.536519,
+        22.1911
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808327",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808328",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "永安社土地福德神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.552328,
+        22.116384
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808328",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808329",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "沙龍社",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.543213,
+        22.203156
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808329",
+      "macaumemory": {
+        "names": [
+          "銅錢巷土地公神壇"
+        ],
+        "records": [
+          "p0003846"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_0ab6691818a54715a438acaad7216af2"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808330",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.535522,
+        22.189727
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808330",
+      "macaumemory": {
+        "names": [
+          "六屋圍土地公神壇"
+        ],
+        "records": [
+          "p0003811"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_db81ca3eef5a4858ab3b95b2db73e1b6"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808331",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.558576,
+        22.154054
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808331",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808332",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "龍母娘娘福德正神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.552447,
+        22.214513
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808332",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808333",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "永樂社社稷土地神位",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538583,
+        22.198384
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808333",
+      "macaumemory": {
+        "names": [
+          "永樂里土地公神壇",
+          "沙梨頭沙欄仔里土地公神壇"
+        ],
+        "records": [
+          "p0003813",
+          "p0003822"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_792d3a8535284a11b3ce83ec0876f4cb",
+          "https://www.macaumemory.mo/entries_ba2d494f23fa44fa8e307493ee249641"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808335",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "龍新社福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538599,
+        22.191562
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808335",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808336",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "鍾秀本坊社稷",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.557563,
+        22.153125
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808336",
+      "macaumemory": {
+        "names": [
+          "氹仔蟻圍土地公神壇"
+        ],
+        "records": [
+          "p0003816"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_ffc7bbf6ffd640cd9952f62afc391e19"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808337",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "居仁社稷之神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.550225,
+        22.203955
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808337",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808338",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "啟明社稷之神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.550244,
+        22.203975
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808338",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808339",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "定安社",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.542298,
+        22.199945
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808339",
+      "macaumemory": {
+        "names": [
+          "涼水井土地公神壇"
+        ],
+        "records": [
+          "p0003841"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_ae136a3476a940e9b82cbc408a3becf1"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808342",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "銀龍社稷土地財神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540113,
+        22.201964
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808342",
+      "macaumemory": {
+        "names": [
+          "銀針圍土地公神壇"
+        ],
+        "records": [
+          "p0003880"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_ccac5cbc70d94b5eb179614703a33ef7"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808343",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "福德正神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.53462,
+        22.188015
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808343",
+      "macaumemory": {
+        "names": [
+          "亞婆井圍土地公神壇"
+        ],
+        "records": [
+          "p0003818"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_1dd49cfaa7b44dc6a62564028b11a5b7"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808344",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.581344,
+        22.131685
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808344",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808345",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "本坊土地福德正神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.539624,
+        22.19702
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808345",
+      "macaumemory": {
+        "names": [
+          "山蔴雀圍土地公神壇",
+          "聚龍社土地公神壇",
+          "聚龍舊社土地公神壇"
+        ],
+        "records": [
+          "p0003810",
+          "p0003876",
+          "p0003877",
+          "p0003878",
+          "p0003879"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_c00296d54b6546ddb08d119382fb57f2",
+          "https://www.macaumemory.mo/entries_637ed80d1f53467a995126944946dc43",
+          "https://www.macaumemory.mo/entries_24102f5c2632436f91a89038fdfd1471",
+          "https://www.macaumemory.mo/entries_046cedbaf13840b8918d498ac133b88b",
+          "https://www.macaumemory.mo/entries_a82261837fee4d71bb0de0925e26a120"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808346",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "社稷土地 泰山石敢當神位",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538962,
+        22.196991
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808346",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808348",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "本街土地",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540041,
+        22.196581
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808348",
+      "macaumemory": {
+        "names": [
+          "顯榮里福德祠",
+          "顯榮里土地公神壇"
+        ],
+        "records": [
+          "p0003887",
+          "p0003888"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_21a426eed27c418fb5340d4ca023d849",
+          "https://www.macaumemory.mo/entries_6ef34f106aec4e6fadd93ea5d047c239"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808349",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "本坊土地福德正神位",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.537724,
+        22.193912
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808349",
+      "macaumemory": {
+        "names": [
+          "福榮里土地公神壇"
+        ],
+        "records": [
+          "p0003874"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_1d97d286d9ba4a13b65fa46d7242dc17"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808350",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538482,
+        22.190916
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808350",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808351",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "土地廟",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.566779,
+        22.116121
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808351",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808353",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "平安社",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538257,
+        22.200936
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808353",
+      "macaumemory": {
+        "names": [
+          "加義體育會土地公神壇"
+        ],
+        "records": [
+          "p0003812"
+        ],
+        "entries": []
+      }
+    },
+    {
+      "id": "osm-node-11166808355",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "天安土地神位",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.544355,
+        22.204875
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808355",
+      "macaumemory": {
+        "names": [
+          "道咩卑利士里土地公神壇"
+        ],
+        "records": [
+          "p0003869"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_6ce8c19456034cacaf37d70f36ce556b"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808356",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.533893,
+        22.18935
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808356",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808357",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "迎龍社土地福神位",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540331,
+        22.201553
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808357",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808358",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.542487,
+        22.207558
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808358",
+      "macaumemory": {
+        "names": [
+          "筷子基福德祠"
+        ],
+        "records": [
+          "p0003853",
+          "p0003854",
+          "p0003855"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_bd1518862b4c4df084a7724e7b4fd141",
+          "https://www.macaumemory.mo/entries_40e33393c36e4811819c5d714078e0c5"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808359",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.537919,
+        22.200107
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808359",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808360",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "本村土地",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.562034,
+        22.158482
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808360",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808361",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "旺相本坊土地福德正神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.534215,
+        22.189924
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808361",
+      "macaumemory": {
+        "names": [
+          "桂和里土地公神壇"
+        ],
+        "records": [
+          "p0003833"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_3749a0f2d4c3472f84fdb4b2d6e48358"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808362",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "土地公公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.541085,
+        22.195788
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808362",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808363",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.542396,
+        22.195475
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808363",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808364",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "土地福德財神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.533484,
+        22.190126
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808364",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808365",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "本街土地爺爺",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.533984,
+        22.190338
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808365",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808366",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "定福社稷和本坊土地社稷福德之神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.537286,
+        22.18805
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808366",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808367",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "黑沙環區社稷之神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.551046,
+        22.208917
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808367",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808368",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.53585,
+        22.190096
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808368",
+      "macaumemory": {
+        "names": [
+          "福德街土地公神壇"
+        ],
+        "records": [
+          "p0003875"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_9499a8ec91944e889ed2cff211feacd0"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808369",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "永安坊土地財神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.542134,
+        22.195194
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808369",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808370",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540737,
+        22.199324
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808370",
+      "macaumemory": {
+        "names": [
+          "連勝街三巴門土地公神壇"
+        ],
+        "records": [
+          "p0003845"
+        ],
+        "entries": []
+      }
+    },
+    {
+      "id": "osm-node-11166808371",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "蓮花村本坊土地社稷福神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.545512,
+        22.214006
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808371",
+      "macaumemory": {
+        "names": [
+          "菜園涌北街土地公神壇"
+        ],
+        "records": [
+          "p0020435"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_164945bcdcb341c0a4651700e749f291"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808372",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "本圍土地福德正神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540967,
+        22.195116
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808372",
+      "macaumemory": {
+        "names": [
+          "草地圍土地公神壇"
+        ],
+        "records": [
+          "p0003836"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_ad4ef3823102477d90fde90d48dc5c15"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808374",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "德香社",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.541493,
+        22.194746
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808374",
+      "macaumemory": {
+        "names": [
+          "德香里土地公神壇"
+        ],
+        "records": [
+          "p0003882"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_71fce468ae024cbfbbd57d449cef8856"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808375",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "宏隆坊 本坊社稷土地之神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538374,
+        22.194141
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808375",
+      "macaumemory": {
+        "names": [
+          "桔仔街土地公神壇"
+        ],
+        "records": [
+          "p0003835"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_c6241a8ad0a944109caf73324560f9c2"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808376",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "旺丁社",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.539188,
+        22.195332
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808376",
+      "macaumemory": {
+        "names": [
+          "十八間土地公神壇"
+        ],
+        "records": [
+          "p0003803"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_b14add4874de42adb7b09300521c57e7"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808377",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.539798,
+        22.196069
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808377",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808378",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.539063,
+        22.201945
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808378",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808379",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "埠寧社稷之神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.538632,
+        22.197126
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "node/11166808379",
+      "macaumemory": {
+        "names": [
+          "蠔里土地公神壇"
+        ],
+        "records": [
+          "p0003886"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_e95011253c064f4ca454719bd9cc7836"
+        ]
+      }
+    },
+    {
+      "id": "osm-node-11166808382",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.537839,
+        22.193079
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808382",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11166808383",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "本坊土地福德正神",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.533286,
+        22.189481
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11166808383",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-11953665243",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "廣華土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.556926,
+        22.206681
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/11953665243",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-node-5256972401",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "筷子基坊眾永和堂花炮會海口土地公",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.540117,
+        22.207303
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "node/5256972401",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-1106143922",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "九澳土地廟",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.581124,
+        22.134066
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/1106143922",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-436071586",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "土地廟",
+        "en": null,
+        "pt": "Templo Tou Tei"
+      },
+      "coordinates": [
+        113.539813,
+        22.201951
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/436071586",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-503082489",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.542955,
+        22.211349
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/503082489",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-673644890",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "福和社",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.548228,
+        22.205645
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/673644890",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-702054446",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "石敢當行臺",
+        "en": "Seak Kam Tong Hang Toi Temple",
+        "pt": "Pagode de Seak Kam Tong Hang Toi"
+      },
+      "coordinates": [
+        113.541544,
+        22.202054
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM049",
+        "description": {
+          "zh": "石敢當，是設置於三岔路口、橋樑公路，或住宅門前，用以驅邪、鎮宅、保平安的石碑或石頭。中國沿海地區以漁業為主，石敢當除被認為可擋煞鎮宅外，還兼能定風防災，由於澳門地處中國東南沿海，石敢當信俗在此流傳，本地居民立石敢當於街巷、橋道要沖，以擋煞鎮宅、定風防災。 昔日在蓮溪邊、新橋旁有一石敢當神位，石敢當行臺除用於祀奉辟邪擋煞、保護平民的石敢當外，也是新橋坊眾聚集議事的公所。根據石敢當行臺內《創建石敢當公所碑記》所載，行臺由“香山澳門新橋街眾”倡建於清光緒十一年（1885年），經多年集資而興建於清光緒二十年（1894年）。根據石敢當行臺大門左側對面的“橋頭土地公公”神龕推測，行臺興建位置與“新橋”相鄰，加上其內《創建石敢當公所碑記》碑文中有“此地路接蓮溪，門襟鏡海”的位置描述，行臺前應有蓮溪經過，並且在橋頭位置，選址符合一般石敢當設置的特性。其落成至今將近120年，是中國境內罕有以石敢當為主神供奉的廟宇，見證了中國傳統民間信俗在澳門的傳承延續。 石敢當行臺位於澳門半島西面，屬花王堂區內的一所小型廟宇，現存規模保留前門和主殿兩部分並由連廊相連接，中間圍合一小天井。廟宇主要以磚木結構為主，牆體主要由水磨青磚以全順方式對縫砌就，地台以朱紅燒土大階磚及青條麻石鋪砌，木雕封檐板及檐下壁上繪有各式吉祥花卉及傳說神獸。入口之山牆墀頭上覆木雕作裝飾，門頭兩側各置一具石獅。屏門與兩側簷廊樑枋上設置之透光板及封檐板上通體鏤刻各式祥瑞圖案，如蝙蝠及銅錢等。石敢當行臺正殿供奉的石敢當神像為姜太公，左右兩側分別供奉觀音菩薩及太歲大神，廟內亦供有西山金聖侯王、紫薇正神、伏虎神壇趙元帥、財帛星君、關帝等道佛兩教尊神。石敢當行臺之供奉佈局、廟宇形制、結構及裝飾手法等均反映嶺南傳統道教地方廟宇特色。",
+          "en": "Seak Kam Tong refers to stone tablets or stones installed at three-way junctions on bridges and roads or at the entrance of residences to ward off evil spirits, safeguard the households and protect people’s safety. In the coastal areas of China where fishing is the major industry, Seak Kam Tong is believed to be able to subdue the weather and prevent disasters in addition to dispelling ominous forces and protecting the households. In Macao, which is located on the southeast coast of China, the beliefs and customs of Seak Kam Tong were widely upheld, and Seak Kam Tong stone tablets were erected by local residents at prominent spots in streets and alleys and on roads and bridges for the aforementioned purposes. In the olden days, a shrine dedicated to Seak Kam Tong was built next to the former Lin Kai (Lotus Stream) and San Kio bridge. The Seak Kam Tong Hang Toi Temple was not only dedicated to enshrining Seak Kam Tong, who is believed to be able to protect the public from evil spirits and ominous forces, but also served as the communal hall where residents of the San Kio neighbourhood assembled and convened meetings. According to the Inscription on the Establishment of Seak Kam Tong Communal Hall inside the temple, the temple was proposed to be built by ‘residents of the San Kio neighbourhood in Macao, Xiangshan County’ in 1885, the 11 th year of Emperor Guangxu’s reign in the Qing dynasty, and was built in 1894, the 20 th year of the same emperor’s reign, after years of fundraising efforts. It is inferred from the ‘Earth God at the Head of Bridge’ shrine opposite to the left of the temple’s entrance door that the temple was constructed adjacent to ‘San Kio’, and it is also written in the said inscription that ‘this place leads to Lin Kai and faces the sea’, suggesting that the stream was likely to have passed in front of the temple, which was situated at the head of the bridge. That is to say, the location of the temple shares the same characteristics as those where the Seak Kam Tong stone tablets are normally erected. Having a history spanning almost 120 years, the Seak Kam Tong Hang Toi Temple is a rarity in China for its worship of Seak Kam Tong as the main deity, serving as a testimony of the continuation of Chinese traditional folk beliefs and customs in Macao. The Seak Kam Tong Hang Toi Temple is a small temple located in the west of the Macao Peninsula and in the Parish of Santo António. At present, only the front door and the main hall of the temple are preserved and are connected with a corridor, and in the middle is a small atrium. The temple is mainly made of brick and wood. The walls are mostly built from polished grey brick laid with the running method, and the floors paved with large vermillion clay tiles and grey granite blocks. The wooden soffits and the walls underneath are adorned with various auspicious floral and mythical beast motifs, and the gable corbels at the entrance are covered with ornamental woodcarvings. On both sides of the door is a pair of stone lions. Various auspicious motifs, such as bats and coins, are carved fully on the screen door and on the translucent panels and fascia boards installed at the beams and purlins on the side corridors. The Seak Kam Tong Hong Toi Temple enshrines the Seak Kam Tong statue of the historical figure Jiang Ziya inside the main hall with the goddess Kun Iam and the Tai Sui deities erected on both sides. A number of other Taoist and Buddhist deities are also worshipped in the temple, including the Monkey King, Ziwei Emperor, Great Marshal Zhao Gongming, Choi Bak (God of Wealth), and Kuan Tai (General Guan Yu). The Seak Kam Tong Hang Toi Temple embodies the features of traditional Taoist temples in the Lingnan region in terms of the line-up of deities, architectural layout, structure and decorative techniques.",
+          "pt": "Seak Kam Tong, em chinês, é a designação de uma estela ou pedra habitualmente colocada junto a pontes, cruzamentos de vias, ou em frente de habitações, que se acredita expulsar os maus espíritos, mantendo as casas e as pessoas em segurança. Nas regiões do litoral da China, onde a pesca é a principal actividade económica, acredita-se que as pedras de Seak Kam Tong têm o poder de desviar os tufões, para além das funções já referidas. Devido à localização de Macau na costa sudeste da China, região habitada por antigas comunidades piscatórias, também aqui as tradições e crenças de Seak Kam Tong se tornaram populares, pelo que podem ser encontradas estas pedras nas ruas, pontes e cruzamentos, acreditando-se que mantêm a cidade a salvo dos espíritos malignos e previnem os desastres causados pelos tufões. Outrora, existia uma pedra de Seak Kam Tong junto à ponte do regato de Lin Kai, e, de acordo com as inscrições nas estelas patentes no interior do actual edifício, a comunidade local do Bairro de San Kio decidiu, no 11.º ano do reinado do imperador Guangxu da Dinastia Qing (1885), construir um pagode para albergar esta pedra, iniciando uma angariação de fundos, a qual durou vários anos. A obra de construção do Pagode de Seak Kam Tong Hang Toi foi finalmente iniciada no 20.º ano do reinado do imperador Guangxu (1894), passando a funcionar como local de culto a Seak Kam Tong, protector do povo, e como um centro comunitário para reuniões cívicas e de negócios. Considerando a localização do altar de Tou Tei (Deus da Terra), na Travessa da Ponte, em frente ao Pagode de Seak Kam Tong Hang Toi, bem como as inscrições nas estelas patentes no interior do pagode, referindo a sua construção junto à \"nova ponte\" e defronte do regato de Lin Kai, a escolha do local para a implantação do edifício corresponde às tradições de Seak Kam Tong. Com cerca de 120 anos de história, este é um dos raros templos na China dedicados ao culto de Seak Kam Tong, testemunhando assim a continuidade das crenças e costumes populares chineses em Macau ao longo de várias gerações. O Pagode de Seak Kam Tong Hang Toi é um pequeno templo localizado na zona oeste da península de Macau. A estrutura conservada inclui a fachada e o pavilhão principal, ao qual se acede através de um corredor. O pavilhão principal tem uma disposição simétrica e é dividido em duas áreas por um pequeno pátio central. O edifício foi construído com uma estrutura tradicional de tijolo e madeira, com paredes de tijolo cinzento e pavimento em ladrilho cerâmico e lajes de granito. Os beirados e o friso superior da fachada principal são decorados com símbolos florais e mitológicos auspiciosos. O topo frontal das paredes estruturais apresenta decorações em baixo-relevo de madeira e, em frente à entrada principal, podem ver-se dois leões de pedra, um de cada lado da porta. Nos painéis do guarda-vento da entrada principal e nos beirados do pátio interior, podem ver-se vários símbolos auspiciosos em baixo-relevo, como morcegos e moedas. O altar principal do Pagode de Seak Kam Tong Hang Toi é dedicado ao Grande Duque Keong (Jiang Tai Gong), sendo os altares laterais dedicados à deusa Kun lam (Guan Yin, ou Deusa da Misericórdia) e ao deus Tai Soi (Tai Sui, ou Deus do Tempo). Vários outros deuses e deusas budistas e taoistas estão igualmente consagrados no interior do pagode, incluindo o Santo Rei Dourado da Montanha Ocidental (Xi Shan Jin Sheng Hou Wang), o Legítimo Deus do Empíreo Púrpura (Zi Wei Zheng Shen), o Marechal Zhao do Altar do Arhat Subjugador do Tigre (Fu Hu Shen Tan Zhao Yuan Shuai), o Deus da Riqueza (Cai Bo Xing Jun) e o Deus da Guerra (Kuan Tai/ Guan Di). Tanto a configuração do espaço, como o formato, a estrutura e a decoração do Pagode de Seak Kam Tong Hang Toi reflectem as características dos templos taoistas tradicionais na região de Lingnan."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/702054446",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-734421388",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": "Foc Tac Temple (Rua do Almirante Sérgio)",
+        "pt": "Templo de Foc Tac (Rua do Almirante Sérgio)"
+      },
+      "coordinates": [
+        113.533945,
+        22.19084
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM040",
+        "description": {
+          "zh": "福德祠（河邊新街）建於清同治七年（1868年），曾於同治十年（1871年）及民國甲寅年（1914年）重修。福德祠內主神龕供奉福德正神，兩側神龕分別供奉北帝及天后，並保存有歷年由下環坊眾捐贈的大量匾額、對聯、木幡及香案。 建築特色： 福德祠（河邊新街）是澳門唯一一座設有騎樓的中式廟宇建築。",
+          "en": "The Temple of Fok Tak (Rua do Almirante Sérgio) was constructed in 1868 and rebuilt in 1871, respectively during the 7th and 10th years of the reign of Emperor Tongzhi in the Qing dynasty. In 1914, in the period of the Republic of China, it was again restored. The main altar of the temple is dedicated to Fok Tak (Earth God), while the side altars are dedicated to the Northern Emperor (\"Pak Tai\" in Cantonese) and to the A-Ma Goddess (\"Tin Hau\" in Cantonese). Furthermore, the temple also houses a large number of tablets, couplets, wooden panels and altar tables that were donated by the people from the local neighbourhood over the years. Architectural characteristics: The Temple of Fok Tak (Rua do Almirante Sérgio) is the only temple in Macao that is integrated alongside a sequence of street arcades.",
+          "pt": "O templo Foc Tac Chi (Rua do Almirante Sérgio) foi construído em 1868, e reconstruído em 1871, respectivamente no 7o. e 10o. anos do reinado do Imperador Tongzhi, na Dinastia Qing. Em 1914 foi novamente restaurado, correspondendo ao período após a instauração da República da China. mesas de altar que foram doados pela comunidade do bairro ao longo dos anos. Características Arquitectónicas: O templo Foc Tac Chi (Rua do Almirante Sérgio) é o único templo de Macau que se encontra integrado num sistema de arcadas de rua."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic",
+        "macaumemory"
+      ],
+      "osm": "way/734421388",
+      "macaumemory": {
+        "names": [
+          "青洲坊福德祠"
+        ],
+        "records": [
+          "p0003829"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_bd1518862b4c4df084a7724e7b4fd141"
+        ]
+      }
+    },
+    {
+      "id": "osm-way-740768095",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "雀仔園福德祠",
+        "en": "Foc Tac Temple (Horta da Mitra neighbourhood)",
+        "pt": "Templo de Foc Tac (Bairro da Horta da Mitra)"
+      },
+      "coordinates": [
+        113.544814,
+        22.194785
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM037",
+        "description": {
+          "zh": "雀仔園福德祠建於清光緒十二年（1886年），曾於1986年重修。祠內供奉福德正神、媽祖、財帛星君、玄壇及太歲等神祇，並保存了多個歷年由雀仔園坊眾捐贈的匾額、對聯、香案及香爐等器物。此外，祠內更存有由雀仔園坊眾所立、澳門唯一中葡文對照的廟宇碑記。 建築特色: 雀仔園福德祠以磚木結構為主，圍牆頂部以中式寶瓶及西式花線配搭，混合了中西的建築元素。",
+          "en": "The current Foc Tac Temple, at Horta da Mitra neighbourbood, was built in 1886, during the 12th year of the reign of Emperor Guangxu of the Qing Dynasty. Renovated in March 1986, the temple houses deities such as \"Foc Tac Cheng San\" (Earth God), \"A-Ma\" (Goddess of Fisherman and Sailors), \"Choi Ba Seng Guan\" (God of Wealth), \"Yun Tan\"(God of Wealth) and \"Tai Soi\" (God of Time, which changes annually), along with objects such as plaques, couplets, altar tables and incense burners donated by devotees believers from Horta da Mitra neighbourhood over the years. Moreover, inside the temple, one can see the only temple inscription in Macao written in both Chinese and Portuguese. Architectural characteristics: This Foc Tac Temple is primarily a Lingnan-style building, with the upper part of the walls surrounding the entrance patio being decorated with green glazed ceramic balusters and floral ornaments, typical of the Western architecture in Macao., It reflects a fusion of Chinese and Western architectural elements.",
+          "pt": "O actual Templo Foc Tac Chi, localizado no Bairro da Horta da Mitra, foi construído em 1886, durante o 12o ano do reinado de Guangxu da dinastia Qing. Restaurado em Março de 1986, o templo é dedicado a \"Foc Tac Chen San\" (Deus da Terra), à Deusa de \"A-Má\"(Deusa dos Pescadores e Marinheiros) , a \"Choi BaSeng Guan\" (Deus da Fortuna) , a \" Yun Tan\" (Deus da Fortuna), e a \" Tai Soi\" (Deus do Tempo), tendo no seu interior várias placas, distícos, mesas para incenso e defumadores doados pela comunidade do Bairro da Horta da Mita. Em aditamento, encontra-se dentro deste templo o único painel que se conhece, de entre todos os templos de Macau, que tem uma inscrição bilingue, simultaneamente em Chinês e Português. Características Arquitectónicas: A estrutura deste templo Foc Tac é essencialmente de estilo Lingnan, com o limite superior das paredes que circundam o pátio da entrada encimado por balaustradas verdes vidradas e ornamentos florais típicos da arquitectura ocidental de Macau, reflectindo bem a fusão entre elementos Chineses e Ocidentais."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic",
+        "macaumemory"
+      ],
+      "osm": "way/740768095",
+      "macaumemory": {
+        "names": [
+          "雀仔園福德祠"
+        ],
+        "records": [
+          "p0003848",
+          "p0003849"
+        ],
+        "entries": []
+      }
+    },
+    {
+      "id": "osm-way-747034203",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.537935,
+        22.193664
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "way/747034203",
+      "macaumemory": {
+        "names": [
+          "福寧里福德祠"
+        ],
+        "records": [
+          "p0003873"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_1baf4cb4e2d9497bb975d5f5e4afccb9"
+        ]
+      }
+    },
+    {
+      "id": "osm-way-798057863",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": "Foc Tac Temple (Rua do Patane)",
+        "pt": "Templo de Foc Tac (Rua do Patane)"
+      },
+      "coordinates": [
+        113.540502,
+        22.200244
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM039",
+        "description": {
+          "zh": "福德祠（石牆街）位處的沙梨頭街又名石牆街，古稱“石牆村”，根據祠內匾額可知，福德祠（石牆街）興建年份不晚於同治十三年（1874年），是石牆村現存最古老的建築。",
+          "en": "This temple of Fok Tak is located in Rua do Patane, originally known as \"Stone Wall Village\". Based on an inscription on a tablet inside the temple, it is possible to infer that it was constructed no later than 1874, corresponding to the 13th year of the reign of Emperor Tongzhi, during the Qing Dinasty, making it the oldest building in this street.",
+          "pt": "Este templo Foc Tac Chi está localizado na Rua do Patane, conhecida originalmente como \"Rua do Muro de Pedra\". Com base num painel em madeira que se encontra dentro do templo, pode-se deduzir que terá sido construído antes de 1874, correspondendo ao 13o. ano do reinado do Imperador Tongzhi, durante a Dinastia Qing, sendo este o edifício mais antigo desta rua."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/798057863",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-819176920",
+      "category": "tudigong",
+      "kind": "shrine",
+      "name": {
+        "zh": "中和社",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.531334,
+        22.185735
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm"
+      ],
+      "osm": "way/819176920",
+      "macaumemory": null
+    },
+    {
+      "id": "osm-way-823695024",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "沙梨頭土地廟",
+        "en": "Tou Tei Temple (Patane)",
+        "pt": "Templo de Tou Tei (Patane)"
+      },
+      "coordinates": [
+        113.539789,
+        22.201898
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM032",
+        "description": {
+          "zh": "沙梨頭土地廟主要供奉土地、觀音、佛祖等神祗，由以下建築物構成：永福古社土地廟，聖母先鋒殿，水月宮（觀音巖）以及醫靈殿。整座廟宇依山而建，多間殿室的分佈成一字排開。據殿側牆上乾隆五十四年（1789年）石碑，可知該廟始建於清乾隆年間（1736～1795年）。後經過多次重修擴建，才奠定今日的規模。 建築特色: 該廟依山而建，多間殿室，分佈成一字排開。自1996年起，政府開始對該土地廟進行分階段維修，除整復各殿建築及文物外，並拆除不協調的僭建物，以回復原來面貌。",
+          "en": "Tou Tei Temple primarily welcomes people to enshrine and worship Chinese deities such as Tou Tei (the God of the Earth), Kun Iam (the Goddess of Mercy) and Buddha. It is comprised by a series of architecture including Tou Tei Temple, the Lei San Sheng Mu Hall, the Soi Ut Temple (Kun Iam Grotto) and the I Leng Temple. The various buildings that make up the temple complex were built and aligned in a linear formation along the footstep of the hill. The stone tablet on the side wall of the temple dates from the 54 th year of the reign of Emperor Qianlong (1789), which leads to believe that the temple was built in his reign (1736-1795). Nevertheless, the complex previously underwent several refurbishments and expansion works, and eventually formed its current appearance nowadays. Architectural characteristics: The temple was constructed on a hill with several chambers that line up horizontally. In order to recover its original appearance, the government has been renovating the temple since 1996",
+          "pt": "O Templo de Tou Tei é dedicado principalmente a Tou Tei (Deus da Terra), à Deusa Kun Iam (Deusa da Misericórdia) e a Buda. É composto pelo Templo de Tou Tei, Salão de Lei San Sheng Mu, Templo de Soi Ut (Gruta de Kun Iam) e Templo de I Leng. Os diversos edifícios que constituem este templo foram construídos ao longo da colina e encontram-se alinhados horizontalmente. A laje de pedra que se encontra na parede lateral do templo data do 54.o ano do reinado do Imperador Qianlong (1789), pelo que se pode presumir que tenha sido erigido durante o seu reinado (1736-1795). O aspecto que hoje apresenta resulta de uma série de reconstruções e ampliações. Características arquitectónicas: O templo foi construído numa colina com diversos átrios alinhados horizontalmente. Para recuperar a sua aparência original, o Governo tem vindo, desde 1996, a recuperar o templo e a remover as estruturas ilegais entretanto adicionadas."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic",
+        "macaumemory"
+      ],
+      "osm": "way/823695024",
+      "macaumemory": {
+        "names": [
+          "沙梨頭土地廟"
+        ],
+        "records": [
+          "p0003824",
+          "p0003825",
+          "p0003826"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_3af6e831f93441899ae639ebd6582da4",
+          "https://www.macaumemory.mo/entries_08d20dd0c39e4f0c848c93e3d5a2cdc4"
+        ]
+      }
+    },
+    {
+      "id": "osm-way-825459219",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠",
+        "en": null,
+        "pt": null
+      },
+      "coordinates": [
+        113.547649,
+        22.21246
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": null,
+      "sources": [
+        "osm",
+        "macaumemory"
+      ],
+      "osm": "way/825459219",
+      "macaumemory": {
+        "names": [
+          "巴波沙福德祠"
+        ],
+        "records": [
+          "p0020471"
+        ],
+        "entries": [
+          "https://www.macaumemory.mo/entries_b2ef3516f2344e3ca1d15fa1efe31001"
+        ]
+      }
+    },
+    {
+      "id": "osm-way-828868454",
+      "category": "tudigong",
+      "kind": "temple",
+      "name": {
+        "zh": "福德祠 (大碼頭街)",
+        "en": "Foc Tac Temple (Rua do Teatro)",
+        "pt": "Templo de Foc Tac (Rua do Teatro)"
+      },
+      "coordinates": [
+        113.538538,
+        22.197451
+      ],
+      "approximate": false,
+      "address": null,
+      "heritage": {
+        "code": "MM038",
+        "description": {
+          "zh": "福德祠（大碼頭街）創建於清嘉慶（1796年）之前，是大碼頭坊的守護廟宇，其後分別於清光緒七年（1881年）及宣統元年（1909年）重修。祠內主神龕供奉土地公，另設側神龕供奉土地婆，在澳門十分罕見。 建築特色： 從建築制式及室內擺設推斷，福德祠（大碼頭街）應以“廟宇”格局作為祭祀土地神的建築物，與分佈於本澳其他以“社壇”為始，及後加上上蓋的福德祠發展方式不同。",
+          "en": "The Foc Tac Temple in Rua do Teatro was built before the year 1796, in the Qing Dynasty, being renovated in 1881 and in 1909, respectively in the Guangxu and Xuantong periods. The main altar is dedicated to \"Tou Tei Kung\", the Earth God, while a side altar has been consecrated to \"Tou Tei Po\", the Earth Goddess, which is very rare situation in Macao. Architectural characteristics: The architectural style and interior design of the Foc Tac Temple reveals that the building was originally planned as a place for worshipping the Earth God and conducting ceremonies in his honour. Given its initial purpose, this temple differs from other Foc Tac Temples in Macao, which began as outdoor shrines, and gradually became more complete worshipping places.",
+          "pt": "O templo Foc Tac localizado na Rua do Teatro foi construído antes de 1796, na Dinastia Qing, sendo mais tarde restaurado em 1881 e em 1909, respectivamente nos reinados de Guangxu e Xuantong. O altar principal está dedicado a \"Tou Tei Kung\" (Deus da Terra), e um X altar lateral está dedicado a \"Tou Tei Po\" (Deusa da Terra), sendo uma situação bastante rara em Macau. Características Arquitectónicas: O estilo arquitectónico e a decoração interior do Templo Foc Tac revelam que este edifício estava originalmente programado para servir de local de culto do Deus da Terra e para a celebração de cerimónias em sua honra. Em virtude da sua função original, este Templo distingue-se de outros Templos Foc Tac Chi em Macau, que na maioria dos casos começaram por ser simples \"altares\" de rua, e que só posteriormente se foram consolidando como locais de culto mais completos."
+        }
+      },
+      "sources": [
+        "osm",
+        "ic"
+      ],
+      "osm": "way/828868454",
+      "macaumemory": null
+    }
+  ],
+  "sources": {
+    "osm": {
+      "name": "OpenStreetMap contributors (ODbL)",
+      "url": "https://www.openstreetmap.org/copyright",
+      "queriedAt": "2026-09-16T08:14:32.735175+00:00"
+    },
+    "ic": {
+      "name": "文化局 文化遺產資料 (data.gov.mo)",
+      "url": "https://data.gov.mo/Detail?id=7e1eca8e-6ffe-4f74-8c81-25c25beb45b2"
+    },
+    "macaumemory": {
+      "name": "澳門記憶 網上展覽《社區守護神》/ Google My Maps 澳門的土地信仰",
+      "url": "https://www.macaumemory.mo/exhibitions/showexhibition!toSep?id=8c35d71325374eeda344f11a351a27d7",
+      "mapId": "1rDU1yLGprtVVOVTVkxiAMzyqz9c746PL",
+      "note": "positions are Google geocodes of the address field (street-level); names and record ids only, no photos or descriptions copied"
+    }
+  },
+  "stats": {
+    "total": 107,
+    "temples": 23,
+    "shrines": 84,
+    "approximate": 41,
+    "bySource": {
+      "osm": 66,
+      "ic": 6,
+      "macaumemory": 69
+    }
+  }
+}

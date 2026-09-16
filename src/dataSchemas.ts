@@ -393,6 +393,41 @@ export const ToiletsFileSchema = z.object({
   ),
 })
 
+// religion.json — the RELIGION overlay's site register (first category: 土地公 /
+// Tou Tei temples and street shrines merged from OSM, the IC heritage API and
+// the Macau Memory map). Mirrors `v_religion` in data/scripts/validate_output.py.
+// Only `name.zh` is guaranteed; `en`/`pt` are null except on the IC-classified
+// sites. `approximate` marks a street-level geocode (Macau Memory-only sites).
+const religionText = z.object({ zh: z.string(), en: z.string().nullable(), pt: z.string().nullable() })
+
+export const ReligionFileSchema = z.object({
+  version: z.literal(1),
+  fetchedAtUtc: z.string(),
+  categories: z.array(z.object({ id: z.string(), name: religionText })).min(1),
+  sites: z.array(
+    z.object({
+      id: z.string(),
+      category: z.string(),
+      kind: z.enum(['temple', 'shrine']),
+      name: religionText,
+      coordinates: lngLat,
+      approximate: z.boolean(),
+      address: z.object({ zh: z.string() }).nullable(),
+      heritage: z.object({
+        code: z.string(),
+        description: z.object({ zh: z.string(), en: z.string(), pt: z.string() }),
+      }).nullable(),
+      sources: z.array(z.enum(['osm', 'ic', 'macaumemory'])).min(1),
+      osm: z.string().nullable(),
+      macaumemory: z.object({
+        names: z.array(z.string()),
+        records: z.array(z.string()),
+        entries: z.array(z.string()),
+      }).nullable(),
+    }),
+  ),
+})
+
 // car-parks.json — the DSAT public car-park register (car_park_detail). The
 // live vacancy feed is NOT in this file: the browser polls it directly (see
 // src/carParks.ts). Mirrors the `car-parks` block in

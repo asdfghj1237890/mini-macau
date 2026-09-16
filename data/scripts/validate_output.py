@@ -2789,6 +2789,192 @@ def v_grand_prix(data: object) -> list[str]:
     return errs
 
 
+# Bilingual (zh/en/pt) `sites[].name`, a `sources` list drawn from these three
+# keys IN THIS ORDER (mirrors fetch_religion.py's append order: OSM sites
+# start with ["osm"], an IC heritage match appends "ic", a My Maps match
+# appends "macaumemory" last), and a degenerate-fetch guard mirroring
+# fetch_religion.py's own RELIGION_MIN_SITES.
+RELIGION_SOURCE_KINDS = ("osm", "ic", "macaumemory")
+RELIGION_MIN_SITES = 60
+RELIGION_IC_CODE_RE = re.compile(r"^[A-Z]{2}\d{3}$")
+
+
+def v_religion(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(
+        errs, "religion", data,
+        ("version", "fetchedAtUtc", "layer", "categories", "sites", "sources", "stats"),
+    ):
+        return errs
+
+    if data.get("version") != 1:
+        errs.append(f"religion: version must be 1, got {data.get('version')!r}")
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("religion: fetchedAtUtc must be a string")
+    if data.get("layer") != "religion":
+        errs.append(f"religion: layer must be 'religion', got {data.get('layer')!r}")
+
+    category_ids: set[str] = set()
+    if not require_nonempty_list(errs, "religion.categories", data["categories"]):
+        return errs
+    for i, c in enumerate(data["categories"]):
+        ctx = f"religion.categories[{i}]"
+        if not require_fields(errs, ctx, c, ("id", "name", "officialCounts")):
+            continue
+        cid = c["id"]
+        if not (isinstance(cid, str) and cid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        else:
+            category_ids.add(cid)
+        name = c["name"]
+        if require_fields(errs, f"{ctx}.name", name, ("zh", "en", "pt")):
+            for lang in ("zh", "en", "pt"):
+                if not (isinstance(name[lang], str) and name[lang]):
+                    errs.append(f"{ctx}.name.{lang} must be a non-empty string")
+        oc = c["officialCounts"]
+        if require_fields(errs, f"{ctx}.officialCounts", oc, ("temples", "publicShrines", "source")):
+            for key in ("temples", "publicShrines", "source"):
+                if not isinstance(oc[key], str):
+                    errs.append(f"{ctx}.officialCounts.{key} must be a string")
+
+    sources = data["sources"]
+    if require_fields(errs, "religion.sources", sources, RELIGION_SOURCE_KINDS):
+        for key in RELIGION_SOURCE_KINDS:
+            block = sources[key]
+            if not require_fields(errs, f"religion.sources.{key}", block, ("name", "url")):
+                continue
+            for f in ("name", "url"):
+                if not (isinstance(block[f], str) and block[f]):
+                    errs.append(f"religion.sources.{key}.{f} must be a non-empty string")
+
+    if not require_nonempty_list(errs, "religion.sites", data["sites"]):
+        return errs
+
+    sites = data["sites"]
+    seen_ids: set[str] = set()
+    n_temples = n_shrines = n_approx = 0
+    by_source = {k: 0 for k in RELIGION_SOURCE_KINDS}
+    for i, s in enumerate(sites):
+        ctx = f"religion.sites[{i}]"
+        if not require_fields(
+            errs, ctx, s,
+            ("id", "category", "kind", "name", "coordinates", "approximate",
+             "address", "heritage", "sources", "osm", "macaumemory"),
+        ):
+            continue
+        sid = s["id"]
+        if not (isinstance(sid, str) and sid):
+            errs.append(f"{ctx}: id must be a non-empty string")
+        elif sid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{sid}'")
+        else:
+            seen_ids.add(sid)
+        label = f"{ctx} ({sid if isinstance(sid, str) and sid else '?'})"
+
+        if s["category"] not in category_ids:
+            errs.append(f"{label}: category '{s['category']}' is not in categories")
+
+        kind = s["kind"]
+        if kind not in ("temple", "shrine"):
+            errs.append(f"{label}: kind must be 'temple' or 'shrine', got {kind!r}")
+        elif kind == "temple":
+            n_temples += 1
+        else:
+            n_shrines += 1
+
+        name = s["name"]
+        if require_fields(errs, f"{label}.name", name, ("zh", "en", "pt")):
+            if not (isinstance(name.get("zh"), str) and name["zh"]):
+                errs.append(f"{label}.name.zh must be a non-empty string")
+            for lang in ("en", "pt"):
+                if not (name[lang] is None or isinstance(name[lang], str)):
+                    errs.append(f"{label}.name.{lang} must be null or a string")
+
+        check_coords(errs, label, s["coordinates"])
+
+        approximate = s["approximate"]
+        if not isinstance(approximate, bool):
+            errs.append(f"{label}: approximate must be a boolean")
+        elif approximate:
+            n_approx += 1
+
+        address = s["address"]
+        if not (address is None or (isinstance(address, dict) and isinstance(address.get("zh"), str) and address["zh"])):
+            errs.append(f"{label}.address must be null or an object with a non-empty 'zh' string")
+
+        src_list = s["sources"]
+        if not (isinstance(src_list, list) and src_list):
+            errs.append(f"{label}.sources must be a non-empty list")
+            src_list = []
+        else:
+            if any(x not in RELIGION_SOURCE_KINDS for x in src_list):
+                errs.append(f"{label}.sources must be a subset of {RELIGION_SOURCE_KINDS}, got {src_list}")
+            if len(set(src_list)) != len(src_list):
+                errs.append(f"{label}.sources has duplicate entries: {src_list}")
+            ordered = [k for k in RELIGION_SOURCE_KINDS if k in src_list]
+            if ordered != src_list:
+                errs.append(f"{label}.sources must be ordered osm, ic, macaumemory — got {src_list}")
+            for k in src_list:
+                if k in by_source:
+                    by_source[k] += 1
+
+        osm = s["osm"]
+        if "osm" in src_list:
+            if not (isinstance(osm, str) and re.match(r"^(way|node|relation)/\d+$", osm)):
+                errs.append(f"{label}.osm must be a 'way/<id>' or 'node/<id>' string when 'osm' is a source")
+        elif osm is not None:
+            errs.append(f"{label}.osm must be null when 'osm' is not a source")
+
+        heritage = s["heritage"]
+        if "ic" in src_list:
+            if require_fields(errs, f"{label}.heritage", heritage, ("code", "description")):
+                if not (isinstance(heritage["code"], str) and RELIGION_IC_CODE_RE.match(heritage["code"])):
+                    errs.append(f"{label}.heritage.code must match ^[A-Z]{{2}}\\d{{3}}$, got {heritage['code']!r}")
+                desc = heritage["description"]
+                if require_fields(errs, f"{label}.heritage.description", desc, ("zh", "en", "pt")):
+                    for lang in ("zh", "en", "pt"):
+                        if not isinstance(desc[lang], str):
+                            errs.append(f"{label}.heritage.description.{lang} must be a string")
+        elif heritage is not None:
+            errs.append(f"{label}.heritage must be null when 'ic' is not a source")
+
+        mm = s["macaumemory"]
+        if "macaumemory" in src_list:
+            if require_fields(errs, f"{label}.macaumemory", mm, ("names", "records", "entries")):
+                if not (isinstance(mm["names"], list) and mm["names"] and all(isinstance(x, str) and x for x in mm["names"])):
+                    errs.append(f"{label}.macaumemory.names must be a non-empty list of non-empty strings")
+                if not (isinstance(mm["records"], list) and all(isinstance(x, str) for x in mm["records"])):
+                    errs.append(f"{label}.macaumemory.records must be a list of strings")
+                entries = mm["entries"]
+                if not (isinstance(entries, list) and all(
+                    isinstance(x, str) and x.startswith("https://") and "macaumemory.mo" in x for x in entries
+                )):
+                    errs.append(f"{label}.macaumemory.entries must be a list of https URLs on macaumemory.mo")
+        elif mm is not None:
+            errs.append(f"{label}.macaumemory must be null when 'macaumemory' is not a source")
+
+        if approximate is True and src_list != ["macaumemory"]:
+            errs.append(f"{label}: an approximate site must have 'macaumemory' as its only source, got {src_list}")
+
+    if len(sites) < RELIGION_MIN_SITES:
+        errs.append(f"religion: only {len(sites)} sites (< {RELIGION_MIN_SITES}) — looks like a degenerate run")
+
+    stats = data["stats"]
+    if require_fields(errs, "religion.stats", stats, ("total", "temples", "shrines", "approximate", "bySource")):
+        for key, expected in (("total", len(sites)), ("temples", n_temples), ("shrines", n_shrines), ("approximate", n_approx)):
+            if stats.get(key) != expected:
+                errs.append(f"religion.stats.{key} is {stats.get(key)!r}, expected {expected} (recomputed)")
+        by_source_stats = stats["bySource"]
+        if not isinstance(by_source_stats, dict):
+            errs.append("religion.stats.bySource must be an object")
+        else:
+            for k in RELIGION_SOURCE_KINDS:
+                if by_source_stats.get(k) != by_source[k]:
+                    errs.append(f"religion.stats.bySource.{k} is {by_source_stats.get(k)!r}, expected {by_source[k]} (recomputed)")
+
+    return errs
+
+
 # name -> (absolute path, validator)
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
@@ -2815,6 +3001,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "waste": (PUBLIC / "data/waste.json", v_waste),
     "dspa-stats": (PUBLIC / "data/dspa-stats.json", v_dspa_stats),
     "grand-prix": (PUBLIC / "data/grand-prix.json", v_grand_prix),
+    "religion": (PUBLIC / "data/religion.json", v_religion),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.

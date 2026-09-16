@@ -178,6 +178,9 @@ const translations = {
     parishesTransitNote: 'Hides the LRT lines and bus routes while on',
     toilets: 'Public toilets',
     toiletsCount: (n: number) => `${n} toilets`,
+    religion: 'Religion',
+    religionCount: (n: number) => `${n} sites`,
+    religionNote: 'Tou Tei temples and street shrines',
     cityLayers: 'City layers',
     layerPanelTitle: 'Map layers',
     layerPanelSubtitle: 'Choose what the city reveals.',
@@ -264,6 +267,7 @@ const translations = {
     dataSourcePublicHousingLabel: 'Public housing',
     dataSourceParishesLabel: 'Parishes',
     dataSourceToiletsLabel: 'Public toilets',
+    dataSourceReligionLabel: 'Religion',
     dataSourceCarParksLabel: 'Car parks',
     dataSourceWaterLabel: 'Water supply',
     dataSourcePowerLabel: 'Electricity',
@@ -420,6 +424,22 @@ const translations = {
     toiletCode: 'IAM CODE',
     toiletPhoto: 'Photo',
     toiletSource: 'SOURCE',
+    // ---- ReligionInfoPanel ----
+    religionLabel: 'RELIGION',
+    religionCategoryTudigong: 'Tou Tei (Earth God)',
+    religionKindTemple: 'Tou Tei temple (土地廟 / 福德祠)',
+    religionKindShrine: 'Street shrine (土地神壇)',
+    religionKind: 'TYPE',
+    religionAddress: 'ADDRESS',
+    religionHeritage: 'HERITAGE',
+    religionHeritageValue: (code: string) => `Classified immovable property ${code}`,
+    religionApproximate: 'Approximate position — the source gives a street, not a point',
+    religionSources: 'SOURCES',
+    religionSourceOsm: 'OpenStreetMap',
+    religionSourceIc: 'Cultural Affairs Bureau (IC)',
+    religionSourceMacauMemory: 'Macau Memory',
+    religionMacauMemoryEntry: 'Macau Memory entry',
+    religionCoverageNote: 'The Cultural Affairs Bureau counts about 10 temples and over 160 public shrines; this layer maps the ones with a known location.',
     // ---- CarParkInfoPanel ----
     carParkLabel: 'CAR PARK',
     carParkLocation: 'LOCATION',
@@ -718,6 +738,9 @@ const translations = {
     parishesTransitNote: '開啟時隱藏輕軌與巴士路線',
     toilets: '公廁',
     toiletsCount: (n: number) => `${n} 間公廁`,
+    religion: '宗教',
+    religionCount: (n: number) => `${n} 處`,
+    religionNote: '土地廟、福德祠與街頭土地神壇',
     cityLayers: '城市資料',
     layerPanelTitle: '地圖圖層',
     layerPanelSubtitle: '選擇你想看見的澳門。',
@@ -802,6 +825,7 @@ const translations = {
     dataSourcePublicHousingLabel: '公共房屋',
     dataSourceParishesLabel: '堂區',
     dataSourceToiletsLabel: '公廁',
+    dataSourceReligionLabel: '宗教',
     dataSourceCarParksLabel: '停車場',
     dataSourceWaterLabel: '供水設施',
     dataSourcePowerLabel: '電力',
@@ -950,6 +974,22 @@ const translations = {
     toiletCode: '編號',
     toiletPhoto: '相片',
     toiletSource: '來源',
+    // ---- ReligionInfoPanel ----
+    religionLabel: '宗教',
+    religionCategoryTudigong: '土地公',
+    religionKindTemple: '土地廟／福德祠',
+    religionKindShrine: '街頭土地神壇',
+    religionKind: '類型',
+    religionAddress: '地址',
+    religionHeritage: '文物',
+    religionHeritageValue: (code: string) => `被評定的不動產 ${code}`,
+    religionApproximate: '位置為街道級估計，來源只記到街名',
+    religionSources: '來源',
+    religionSourceOsm: 'OpenStreetMap',
+    religionSourceIc: '文化局',
+    religionSourceMacauMemory: '澳門記憶',
+    religionMacauMemoryEntry: '澳門記憶條目',
+    religionCoverageNote: '文化局統計全澳有近 10 所土地廟、160 多個公共土地神壇；本圖層只標出有位置紀錄的。',
     carParkLabel: '停車場',
     carParkLocation: '位置',
     carParkEntrance: '出入口',
@@ -1203,6 +1243,9 @@ const translations = {
     parishesTransitNote: 'Oculta as linhas do metro ligeiro e dos autocarros enquanto activo',
     toilets: 'Sanitários públicos',
     toiletsCount: (n: number) => `${n} sanitários`,
+    religion: 'Religião',
+    religionCount: (n: number) => `${n} locais`,
+    religionNote: 'Templos de Tou Tei e altares de rua',
     cityLayers: 'Camadas urbanas',
     layerPanelTitle: 'Camadas do mapa',
     layerPanelSubtitle: 'Escolha o que a cidade revela.',
@@ -1287,6 +1330,7 @@ const translations = {
     dataSourcePublicHousingLabel: 'Habitação pública',
     dataSourceParishesLabel: 'Freguesias',
     dataSourceToiletsLabel: 'Sanitários',
+    dataSourceReligionLabel: 'Religião',
     dataSourceCarParksLabel: 'Estacionamentos',
     dataSourceWaterLabel: 'Abastecimento de água',
     dataSourcePowerLabel: 'Electricidade',
@@ -1433,6 +1477,22 @@ const translations = {
     toiletCode: 'CÓDIGO',
     toiletPhoto: 'Foto',
     toiletSource: 'FONTE',
+    // ---- ReligionInfoPanel ----
+    religionLabel: 'RELIGIÃO',
+    religionCategoryTudigong: 'Tou Tei (Deus da Terra)',
+    religionKindTemple: 'Templo de Tou Tei (土地廟 / 福德祠)',
+    religionKindShrine: 'Altar de rua (土地神壇)',
+    religionKind: 'TIPO',
+    religionAddress: 'MORADA',
+    religionHeritage: 'PATRIMÓNIO',
+    religionHeritageValue: (code: string) => `Bem imóvel classificado ${code}`,
+    religionApproximate: 'Posição aproximada — a fonte indica a rua, não o ponto',
+    religionSources: 'FONTES',
+    religionSourceOsm: 'OpenStreetMap',
+    religionSourceIc: 'Instituto Cultural (IC)',
+    religionSourceMacauMemory: 'Memória de Macau',
+    religionMacauMemoryEntry: 'Entrada na Memória de Macau',
+    religionCoverageNote: 'O Instituto Cultural conta cerca de 10 templos e mais de 160 altares públicos; esta camada mostra os que têm localização conhecida.',
     carParkLabel: 'ESTACIONAMENTO',
     carParkLocation: 'LOCALIZAÇÃO',
     carParkEntrance: 'ENTRADA',
@@ -1688,6 +1748,9 @@ export interface Translations {
   parishesTransitNote: string
   toilets: string
   toiletsCount: (n: number) => string
+  religion: string
+  religionCount: (n: number) => string
+  religionNote: string
   cityLayers: string
   layerPanelTitle: string
   layerPanelSubtitle: string
@@ -1772,6 +1835,7 @@ export interface Translations {
   dataSourcePublicHousingLabel: string
   dataSourceParishesLabel: string
   dataSourceToiletsLabel: string
+  dataSourceReligionLabel: string
   dataSourceCarParksLabel: string
   dataSourceWaterLabel: string
   dataSourcePowerLabel: string
@@ -1914,6 +1978,21 @@ export interface Translations {
   toiletCode: string
   toiletPhoto: string
   toiletSource: string
+  religionLabel: string
+  religionCategoryTudigong: string
+  religionKindTemple: string
+  religionKindShrine: string
+  religionKind: string
+  religionAddress: string
+  religionHeritage: string
+  religionHeritageValue: (code: string) => string
+  religionApproximate: string
+  religionSources: string
+  religionSourceOsm: string
+  religionSourceIc: string
+  religionSourceMacauMemory: string
+  religionMacauMemoryEntry: string
+  religionCoverageNote: string
   carParkLabel: string
   carParkLocation: string
   carParkEntrance: string

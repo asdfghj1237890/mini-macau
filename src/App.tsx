@@ -68,7 +68,7 @@ import { useCarParkVacancy } from './hooks/useCarParkVacancy'
 import { useWaterDistribution } from './hooks/useWaterDistribution'
 import { usePowerDistribution } from './hooks/usePowerDistribution'
 import { ignoreClockShortcut } from './timeControls'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -87,6 +87,7 @@ const SchoolInfoPanel = lazy(() => import('./components/SchoolInfoPanel').then(m
 const PublicHousingInfoPanel = lazy(() => import('./components/PublicHousingInfoPanel').then(m => ({ default: m.PublicHousingInfoPanel })))
 const ParishInfoPanel = lazy(() => import('./components/ParishInfoPanel').then(m => ({ default: m.ParishInfoPanel })))
 const ToiletInfoPanel = lazy(() => import('./components/ToiletInfoPanel').then(m => ({ default: m.ToiletInfoPanel })))
+const ReligionInfoPanel = lazy(() => import('./components/ReligionInfoPanel').then(m => ({ default: m.ReligionInfoPanel })))
 const CarParkInfoPanel = lazy(() => import('./components/CarParkInfoPanel').then(m => ({ default: m.CarParkInfoPanel })))
 const WasteSiteInfoPanel = lazy(() => import('./components/WasteSiteInfoPanel').then(m => ({ default: m.WasteSiteInfoPanel })))
 // The incineration plant's variant lives in the same module, so this resolves
@@ -154,6 +155,7 @@ const LS_SCHOOLS_KEY = 'mini-macau-schools-on'
 const LS_PUBLIC_HOUSING_KEY = 'mini-macau-public-housing-on'
 const LS_PARISHES_KEY = 'mini-macau-parishes-on'
 const LS_TOILETS_KEY = 'mini-macau-toilets-on'
+const LS_RELIGION_KEY = 'mini-macau-religion-on'
 const LS_CARPARKS_KEY = 'mini-macau-carparks-on'
 const LS_WASTE_KEY = 'mini-macau-waste-on'
 const LS_WATER_KEY = 'mini-macau-water-on'
@@ -176,6 +178,8 @@ const NO_ROAD_WORKS: RoadWorkNotice[] = []
 // Same reasoning for the toilet markers, which MapView also pushes on array
 // identity (the data is time-independent, so it never goes through the tick).
 const NO_TOILETS: Toilet[] = []
+// And for the Tou Tei markers, pushed on array identity like the toilets.
+const NO_RELIGION: ReligionSite[] = []
 // Ditto for the "P" markers.
 const NO_CAR_PARKS: CarPark[] = []
 // And for the ~1,100 waste and recycling pins, pushed on array identity too.
@@ -229,6 +233,7 @@ export default function App() {
   // unlike the schools and estates there is no sub-feature to name.
   const [selectedParish, setSelectedParish] = useState<Parish | null>(null)
   const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null)
+  const [selectedReligion, setSelectedReligion] = useState<ReligionSite | null>(null)
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null)
   // Either kind of waste mark — a collection point or the incineration plant.
   // One slot, because the two share a marker layer, a highlight and the
@@ -286,6 +291,9 @@ export default function App() {
   // Toilets are opt-in for the same reason as schools — 197 pins over the
   // peninsula are noise until someone actually wants them, so `=== '1'`.
   const [toiletsOn, setToiletsOn] = useState(() => localStorage.getItem(LS_TOILETS_KEY) === '1')
+  // Tou Tei temples and shrines are opt-in like the toilets — a hundred-odd
+  // pins over the old town are noise until someone asks for them.
+  const [religionOn, setReligionOn] = useState(() => localStorage.getItem(LS_RELIGION_KEY) === '1')
   // Car parks are opt-in as well — 88 "P" plates over the peninsula, and the
   // layer is the only thing that starts the live-vacancy polling.
   const [carParksOn, setCarParksOn] = useState(() => localStorage.getItem(LS_CARPARKS_KEY) === '1')
@@ -324,7 +332,7 @@ export default function App() {
   useEffect(() => {
     const enabled: Record<CityLayer, boolean> = {
       works: roadWorksOn, schools: schoolsOn, housing: publicHousingOn,
-      parishes: parishesOn, toilets: toiletsOn, carparks: carParksOn,
+      parishes: parishesOn, toilets: toiletsOn, religion: religionOn, carparks: carParksOn,
       waste: wasteOn, water: waterOn, power: powerOn, grandprix: grandPrixOn,
     }
     for (const layer of Object.keys(enabled) as CityLayer[]) {
@@ -332,7 +340,7 @@ export default function App() {
     }
     requestedCityLayers.current = enabled
   }, [ensureCityLayerLoaded, roadWorksOn, schoolsOn, publicHousingOn, parishesOn,
-    toiletsOn, carParksOn, wasteOn, waterOn, powerOn, grandPrixOn])
+    toiletsOn, religionOn, carParksOn, wasteOn, waterOn, powerOn, grandPrixOn])
   // Which of the five teaching stages are drawn. Independent of `schoolsOn`,
   // which is the master switch for the whole layer.
   const [schoolLevelsOn, setSchoolLevelsOn] = useState<SchoolLevelSet>(loadSchoolLevelsOn)
@@ -391,6 +399,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_PUBLIC_HOUSING_KEY, publicHousingOn ? '1' : '0') }, [publicHousingOn])
   useEffect(() => { localStorage.setItem(LS_PARISHES_KEY, parishesOn ? '1' : '0') }, [parishesOn])
   useEffect(() => { localStorage.setItem(LS_TOILETS_KEY, toiletsOn ? '1' : '0') }, [toiletsOn])
+  useEffect(() => { localStorage.setItem(LS_RELIGION_KEY, religionOn ? '1' : '0') }, [religionOn])
   useEffect(() => { localStorage.setItem(LS_CARPARKS_KEY, carParksOn ? '1' : '0') }, [carParksOn])
   useEffect(() => { localStorage.setItem(LS_WASTE_KEY, wasteOn ? '1' : '0') }, [wasteOn])
   useEffect(() => { saveHiddenWasteTypes(wasteHiddenTypes) }, [wasteHiddenTypes])
@@ -406,6 +415,7 @@ export default function App() {
   useEffect(() => { if (!publicHousingOn) setSelectedPublicHousing(null) }, [publicHousingOn])
   useEffect(() => { if (!parishesOn) setSelectedParish(null) }, [parishesOn])
   useEffect(() => { if (!toiletsOn) setSelectedToilet(null) }, [toiletsOn])
+  useEffect(() => { if (!religionOn) setSelectedReligion(null) }, [religionOn])
   useEffect(() => { if (!carParksOn) setSelectedCarPark(null) }, [carParksOn])
   useEffect(() => { if (!wasteOn) setSelectedWasteSite(null) }, [wasteOn])
   // Same rule one level down: hiding a site type removes those markers, so a
@@ -583,6 +593,7 @@ export default function App() {
     publicHousing: visiblePublicHousing,
     parishes: visibleParishes,
     toilets: toiletsOn ? transitData.toilets : NO_TOILETS,
+    religion: religionOn ? transitData.religion : NO_RELIGION,
     carParks: carParksOn ? transitData.carParks : NO_CAR_PARKS,
     waste: visibleWaste,
     waterFacilities: waterOn ? transitData.waterFacilities : NO_WATER_FACILITIES,
@@ -595,7 +606,7 @@ export default function App() {
     // And for the circuit: null empties the track, the corners, the pulse and
     // takes the car off.
     grandPrix: grandPrixOn ? transitData.grandPrix : null,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, visiblePublicHousing, visibleParishes, toiletsOn, carParksOn, visibleWaste, waterOn, powerOn, grandPrixOn])
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, visiblePublicHousing, visibleParishes, toiletsOn, religionOn, carParksOn, visibleWaste, waterOn, powerOn, grandPrixOn])
 
   // Macau's streets, for the thin distribution pipes. Fetched the first time
   // WATER goes on and kept for the session — the hook ignores later toggles, so
@@ -723,6 +734,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -745,6 +757,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -765,6 +778,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -782,6 +796,7 @@ export default function App() {
     setSelectedRoadWork(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -800,6 +815,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -827,6 +843,25 @@ export default function App() {
     setTrackedVehicleId(null)
   }, [])
 
+  // Tou Tei markers, likewise.
+  const onReligionClick = useCallback((site: ReligionSite | null) => {
+    setSelectedReligion(site)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
+    setSelectedPublicHousing(null)
+    setSelectedParish(null)
+    setSelectedToilet(null)
+    setSelectedCarPark(null)
+    setSelectedWasteSite(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
+    setSelectedPowerFacility(null)
+    setSelectedPowerNode(null)
+    setTrackedVehicleId(null)
+  }, [])
+
   // Car-park markers, same exclusivity rule.
   const onCarParkClick = useCallback((carPark: CarPark | null) => {
     setSelectedCarPark(carPark)
@@ -837,6 +872,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
@@ -855,6 +891,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
@@ -875,6 +912,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedPowerFacility(null)
@@ -894,6 +932,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedPowerFacility(null)
@@ -913,6 +952,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -932,6 +972,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -951,6 +992,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -969,6 +1011,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -989,6 +1032,7 @@ export default function App() {
     setSelectedSchool(null)
     setSelectedPublicHousing(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -1007,6 +1051,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedParish(null)
     setSelectedToilet(null)
+    setSelectedReligion(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -1048,6 +1093,10 @@ export default function App() {
     ga.layerToggled('toilets', !v)
     return !v
   }), [])
+  const toggleReligion = useCallback(() => setReligionOn(v => {
+    ga.layerToggled('religion', !v)
+    return !v
+  }), [])
   const toggleCarParks = useCallback(() => setCarParksOn(v => {
     ga.layerToggled('carparks', !v)
     return !v
@@ -1083,6 +1132,7 @@ export default function App() {
     setSchools: setSchoolsOn,
     setPublicHousing: setPublicHousingOn,
     setToilets: setToiletsOn,
+    setReligion: setReligionOn,
     setCarParks: setCarParksOn,
     setParishes: setParishesOn,
   }), [])
@@ -1100,9 +1150,10 @@ export default function App() {
     schools: schoolsOn,
     publicHousing: publicHousingOn,
     toilets: toiletsOn,
+    religion: religionOn,
     carParks: carParksOn,
     parishes: parishesOn,
-  }), [lrtOn, isAutoMode, visibleRoutes, flightsOn, ferriesOn, roadWorksOn, schoolsOn, publicHousingOn, toiletsOn, carParksOn, parishesOn])
+  }), [lrtOn, isAutoMode, visibleRoutes, flightsOn, ferriesOn, roadWorksOn, schoolsOn, publicHousingOn, toiletsOn, religionOn, carParksOn, parishesOn])
 
   // PARISHES is not a focus mode — the tint stacks with every city overlay —
   // but it is exclusive with the transit lines: the boundaries are read
@@ -1268,6 +1319,7 @@ export default function App() {
             onPublicHousingClick={onPublicHousingClick}
             onParishClick={onParishClick}
             onToiletClick={onToiletClick}
+            onReligionClick={onReligionClick}
             onCarParkClick={onCarParkClick}
             onWasteSiteClick={onWasteSiteClick}
             wasteFocus={wasteOn}
@@ -1292,6 +1344,7 @@ export default function App() {
             selectedPublicHousingId={selectedPublicHousing?.estate.id ?? null}
             selectedParishId={selectedParish?.id ?? null}
             selectedToiletId={selectedToilet?.id ?? null}
+            selectedReligionId={selectedReligion?.id ?? null}
             selectedCarParkId={selectedCarPark?.id ?? null}
             selectedWasteSiteId={wasteSelectionId(selectedWasteSite)}
             selectedWaterFacilityId={selectedWaterFacility?.id ?? null}
@@ -1343,6 +1396,7 @@ export default function App() {
         publicHousingTypesOn={publicHousingTypesOn}
         publicHousingTypeCounts={publicHousingTypeCounts}
         toiletsOn={toiletsOn}
+        religionOn={religionOn}
         carParksOn={carParksOn}
         wasteOn={wasteOn}
         wasteHiddenTypes={wasteHiddenTypes}
@@ -1361,6 +1415,7 @@ export default function App() {
         onToggleParishes={toggleParishes}
         onTogglePublicHousingType={togglePublicHousingType}
         onToggleToilets={toggleToilets}
+        onToggleReligion={toggleReligion}
         onToggleCarParks={toggleCarParks}
         onToggleWaste={toggleWaste}
         onToggleWasteType={toggleWasteType}
@@ -1437,6 +1492,13 @@ export default function App() {
         {selectedToilet && (
           <ToiletInfoPanel
             toilet={selectedToilet}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedReligion && (
+          <ReligionInfoPanel
+            site={selectedReligion}
+            categories={transitData.religionCategories}
             onClose={clearSelection}
           />
         )}

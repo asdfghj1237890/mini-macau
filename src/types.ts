@@ -354,6 +354,49 @@ export interface Toilet {
   coordinates: [number, number] // [lng, lat]
 }
 
+// RELIGION overlay (religion.json). Only the Chinese name is guaranteed: OSM and
+// Macau Memory record the inscription on the tablet, and just the six sites the
+// Cultural Affairs Bureau (IC) has classified carry official en/pt names, so
+// `pickReligionText` in religion.ts falls back to zh rather than translating.
+export interface ReligionText {
+  zh: string
+  en: string | null
+  pt: string | null
+}
+
+// temple = 土地廟 / 福德祠 (a building), shrine = 土地神壇 (a street tablet,
+// niche or altar, or one attached to another temple).
+export type ReligionKind = 'temple' | 'shrine'
+export type ReligionSource = 'osm' | 'ic' | 'macaumemory'
+
+// A category of the overlay — so far only 'tudigong' (土地公 / Tou Tei). The
+// optional official counts are the IC's published totals the panel quotes.
+export interface ReligionCategory {
+  id: string
+  name: ReligionText
+  officialCounts?: { temples: string; publicShrines: string; source: string }
+}
+
+// One site, from public/data/religion.json. `coordinates` is [lng, lat].
+// `approximate` is true for a site known only from the Macau Memory map,
+// whose positions are Google geocodes of a STREET name — the marker is dimmed
+// and the panel says so. `heritage` is set for the IC-classified sites
+// (MM032 沙梨頭土地古廟, the four 福德祠, 石敢當行臺) with the IC's own trilingual
+// description; `macaumemory` links the site to its photo entries there.
+export interface ReligionSite {
+  id: string // 'osm-way-823695024' | 'ic-MM032' | 'mm-p0003801'
+  category: string // ReligionCategory.id
+  kind: ReligionKind
+  name: ReligionText
+  coordinates: [number, number] // [lng, lat]
+  approximate: boolean
+  address: { zh: string } | null // street-level, Macau Memory sites only
+  heritage: { code: string; description: { zh: string; en: string; pt: string } } | null
+  sources: ReligionSource[] // non-empty, in osm → ic → macaumemory order
+  osm: string | null // 'way/123' | 'node/123'
+  macaumemory: { names: string[]; records: string[]; entries: string[] } | null
+}
+
 // Trilingual free text from the DSAT car-park feed. Same shape as ToiletText
 // but a separate name on purpose: DSAT publishes no real English names, so the
 // `en` side is usually a copy of the Portuguese one (see `pickCarParkText`).
@@ -1025,6 +1068,10 @@ export interface TransitData {
   publicHousing: PublicHousingEstate[]
   parishes: Parish[]
   toilets: Toilet[]
+  // Tou Tei temples and street shrines (the RELIGION overlay), and the
+  // category list that names them. Static like the toilets.
+  religion: ReligionSite[]
+  religionCategories: ReligionCategory[]
   carParks: CarPark[]
   // Refuse rooms, compacting bins and the four recycling-point kinds. The
   // per-type toggles narrow this array in App, exactly like the schools.

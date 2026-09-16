@@ -293,6 +293,8 @@ export function useTransitData(clock: SimulationClock): UseTransitDataResult {
     publicHousing: [],
     parishes: [],
     toilets: [],
+    religion: [],
+    religionCategories: [],
     carParks: [],
     waste: [],
     wasteSources: [],

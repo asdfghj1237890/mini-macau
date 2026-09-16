@@ -10,7 +10,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { addBusTerminal, BUS_TERMINAL_LAYERS } from '../layers/busTerminal'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
-import type { SimulationClock, TransitData, VehiclePosition, Station, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, ReligionSite, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer, ALL_BUS_3D_LAYERS } from '../layers/Bus3DLayer'
 import { LRT3DLayer, ALL_LRT_3D_LAYERS } from '../layers/LRT3DLayer'
@@ -40,6 +40,7 @@ import {
   buildParishLabelFeatures,
 } from '../parishes'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
+import { RELIGION_APPROXIMATE_OPACITY, RELIGION_COLORS, RELIGION_KIND_ORDER, buildReligionFeatures, religionIconName } from '../religion'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import {
   WASTE_AREA_FILL_OPACITY,
@@ -347,6 +348,55 @@ function drawToiletIcon(color: string): ImageData | null {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillText('WC', size / 2, size / 2 + 1)
+
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// ---- Tou Tei temples and street shrines (RELIGION) overlay -----------------
+const RELIGION_SOURCE_ID = 'religion'
+const RELIGION_ICON_LAYER_ID = 'religion-icon'
+const RELIGION_SELECTED_LAYER_ID = 'religion-selected'
+
+// A round marker in the kind colour with a white rim: a temple carries a
+// white roof-and-hall silhouette, a street shrine a smaller disc with a white
+// tablet. Drawn with paths rather than a CJK glyph so no font is needed, and
+// so the two read apart from the lettered WC / P squares at a glance. Same
+// canvas contract as drawToiletIcon (null when the 2D context is missing).
+function drawReligionIcon(color: string, kind: 'temple' | 'shrine'): ImageData | null {
+  const size = TOILET_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+
+  const border = 3 // 1.5 CSS px at pixelRatio 2
+  const c = size / 2
+  const r = kind === 'temple' ? c - border / 2 - 1 : c - border / 2 - 5
+  ctx.beginPath()
+  ctx.arc(c, c, r, 0, Math.PI * 2)
+  ctx.closePath()
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.lineWidth = border
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+
+  ctx.fillStyle = '#ffffff'
+  if (kind === 'temple') {
+    // Roof …
+    ctx.beginPath()
+    ctx.moveTo(c, c - 9)
+    ctx.lineTo(c - 10, c)
+    ctx.lineTo(c + 10, c)
+    ctx.closePath()
+    ctx.fill()
+    // … and hall.
+    ctx.fillRect(c - 6, c + 2, 12, 7)
+  } else {
+    // The tablet.
+    ctx.fillRect(c - 3, c - 5, 6, 10)
+  }
 
   return ctx.getImageData(0, 0, size, size)
 }
@@ -1893,6 +1943,7 @@ export interface MapViewProps {
   // school (see the click handler).
   onParishClick?: (parish: Parish) => void
   onToiletClick?: (toilet: Toilet | null) => void
+  onReligionClick?: (site: ReligionSite | null) => void
   onCarParkClick?: (carPark: CarPark | null) => void
   onWasteSiteClick?: (selection: WasteSelection | null) => void
   // WASTE is the third focus mode, and behaves exactly like the two below: App
@@ -1954,6 +2005,7 @@ export interface MapViewProps {
   selectedPublicHousingId?: string | null
   selectedParishId?: string | null
   selectedToiletId?: string | null
+  selectedReligionId?: string | null
   selectedCarParkId?: string | null
   selectedWasteSiteId?: string | null
   selectedWaterFacilityId?: string | null
@@ -1967,7 +2019,7 @@ export interface MapViewProps {
 }
 
 export function MapView(props: MapViewProps) {
-  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, transitHidden = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
+  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onReligionClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, transitHidden = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedReligionId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapThemeRef = useRef<boolean | null>(null)
@@ -2066,6 +2118,9 @@ export function MapView(props: MapViewProps) {
   // filter on the marker source, so addCustomLayers needs the current id.
   const selectedToiletIdRef = useRef<string | null>(selectedToiletId ?? null)
   selectedToiletIdRef.current = selectedToiletId ?? null
+  // Same contract for the Tou Tei markers.
+  const selectedReligionIdRef = useRef<string | null>(selectedReligionId ?? null)
+  selectedReligionIdRef.current = selectedReligionId ?? null
   // Same for the car parks, plus the live vacancy map — addCustomLayers seeds
   // the source with whatever numbers are already in hand after a style swap.
   const selectedCarParkIdRef = useRef<string | null>(selectedCarParkId ?? null)
@@ -3311,6 +3366,49 @@ export function MapView(props: MapViewProps) {
         },
       })
 
+      // Tou Tei temples and street shrines. Same image contract as the toilets
+      // (hasImage guard, seeded from transitRef, refreshed only by the
+      // [transitData.religion] effect below).
+      for (const kind of RELIGION_KIND_ORDER) {
+        const name = religionIconName(kind)
+        if (m.hasImage(name)) continue
+        const img = drawReligionIcon(RELIGION_COLORS[kind], kind)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      m.addSource(RELIGION_SOURCE_ID, {
+        type: 'geojson',
+        data: buildReligionFeatures(transitRef.current.religion),
+      })
+      m.addLayer({
+        id: RELIGION_SELECTED_LAYER_ID, type: 'circle', source: RELIGION_SOURCE_ID,
+        filter: ['==', ['get', 'id'], selectedReligionIdRef.current ?? ''],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      })
+      m.addLayer({
+        id: RELIGION_ICON_LAYER_ID, type: 'symbol', source: RELIGION_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          // Shrines sit metres apart in the old town, so collision-hiding
+          // would silently drop them — overlap, like the toilets.
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          // Temples above shrines, exact points above street-level guesses.
+          'symbol-sort-key': ['get', 'rank'],
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.5, 15, 0.95],
+        },
+        paint: {
+          // A street-level geocode reads as "somewhere on this street".
+          'icon-opacity': ['case', ['get', 'approximate'], RELIGION_APPROXIMATE_OPACITY, 1],
+        },
+      })
+
       // Public car parks. Same contract as the toilets: the image is redrawn
       // here on every style load under a hasImage guard, and the source is
       // seeded from transitRef + the vacancy ref so a theme swap keeps both
@@ -3938,6 +4036,18 @@ export function MapView(props: MapViewProps) {
       m.on('mouseenter', TOILETS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', TOILETS_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
 
+      // Tou Tei pins, same rule as the toilets.
+      m.on('click', RELIGION_ICON_LAYER_ID, (e) => {
+        const feature = e.features?.[0]
+        if (feature) {
+          const sid = feature.properties?.id
+          const site = transitRef.current.religion.find(x => x.id === sid)
+          if (site) { onReligionClick?.(site); e.preventDefault() }
+        }
+      })
+      m.on('mouseenter', RELIGION_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
+      m.on('mouseleave', RELIGION_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
+
       // Car-park pins, registered before the vehicle handlers for the same
       // reason: a bus passing over a "P" should not steal the click.
       m.on('click', CAR_PARKS_ICON_LAYER_ID, (e) => {
@@ -4086,7 +4196,7 @@ export function MapView(props: MapViewProps) {
 
       // Every layer that owns a click EXCEPT the parish tint, which is context
       // and deliberately the bottom-most target.
-      const clickTargetLayers = ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, PUBLIC_HOUSING_LAYER_ID, TOILETS_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers]
+      const clickTargetLayers = ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, PUBLIC_HOUSING_LAYER_ID, TOILETS_ICON_LAYER_ID, RELIGION_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers]
 
       // Parishes. The one handler registered AFTER the vehicles rather than
       // before them: the tint spans the whole city, so it must never take a
@@ -4279,6 +4389,22 @@ export function MapView(props: MapViewProps) {
     if (!map || !map.getLayer(TOILETS_SELECTED_LAYER_ID)) return
     map.setFilter(TOILETS_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedToiletId ?? ''])
   }, [selectedToiletId])
+
+  // Tou Tei markers: pushed on array identity like the toilets (the file
+  // arriving, or the legend toggle swapping in the empty array).
+  useEffect(() => {
+    const map = mapRef.current
+    const src = map?.getSource(RELIGION_SOURCE_ID) as unknown as
+      { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    src?.setData?.(buildReligionFeatures(transitData.religion))
+  }, [transitData.religion])
+
+  // Selected Tou Tei site highlight — the same filter swap as the toilets.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.getLayer(RELIGION_SELECTED_LAYER_ID)) return
+    map.setFilter(RELIGION_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedReligionId ?? ''])
+  }, [selectedReligionId])
 
   // Car-park markers. Pushed on array identity (the file arriving, the legend
   // toggle swapping in the empty array) AND on vacancy-map identity, which
@@ -5297,6 +5423,31 @@ export function MapView(props: MapViewProps) {
                       rel="noopener noreferrer"
                       className="hover:text-(--mm-amber-1) transition-colors"
                     >data.gov.mo</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceReligionLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                    <a
+                      href="https://www.openstreetmap.org/copyright"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >OSM</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://data.gov.mo/Detail?id=7e1eca8e-6ffe-4f74-8c81-25c25beb45b2"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >IC</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.macaumemory.mo/exhibitions/showexhibition!toSep?id=8c35d71325374eeda344f11a351a27d7"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >澳門記憶</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">

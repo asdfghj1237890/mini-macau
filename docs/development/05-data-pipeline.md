@@ -37,6 +37,7 @@ data/scripts/
 ├── road_network.py            # 上面兩支 *_distribution 共用：道路底稿 + 多源 Dijkstra 流向場
 ├── osm_footprints.py          # 學校／供水／供電共用：Overpass 存取 + basemap tile 足跡重切
 ├── fetch_toilets.py           # data.gov.mo (IAM) → toilets.json
+├── fetch_religion.py          # OSM + 文化局 API + 澳門記憶 → religion.json
 ├── fetch_car_parks.py         # data.gov.mo (DSAT) → car-parks.json
 ├── fetch_waste.py             # data.gov.mo (IAM+DSPA) → waste.json
 └── fetch_service_status.py    # 每天 scrape 巴士停駛公告 → service-status.json
@@ -280,6 +281,10 @@ cd data && uv run python scripts/cem_operation.py              # 只印頁面讀
 從 data.gov.mo 抓 IAM（市政署）兩個 dataset：「公共廁所」（~198 筆，名稱/地址/電話/開放時間都有 zh/pt/en 欄位，另帶 `hasDwc`／`hasFwc`／`tempClose`，座標放在 `location`，是 `"lat,lng"` 字串）與「無障礙公廁」（前者的子集，只用來交叉驗證 `accessible`）。跟 `fetch_road_works.py` 一樣，下載端點回的是免 token 的 ZIP，偶爾會回 `{"msg":"內部錯誤"}` 而不是 ZIP，因此也帶重試。
 
 名稱前面掛的 IAM 編號（例如「AM01 食品資訊站」）會被拆出來當 `id`（同編號多筆時加 `-2` 後綴；少數沒編號的退回用名稱 slug），顯示用的 `name` 則把編號剝掉；`location` 的 `"lat,lng"` 字串解析後改成 GeoJSON 慣例的 `[lng, lat]` 順序存進 `coordinates`。產出 `public/data/toilets.json`，跑完要過 `validate_output.py toilets`。
+
+### 宗教（土地公）— `fetch_religion.py`
+
+三個來源合併成 `public/data/religion.json`，第一個類別是土地公：土地廟／福德祠（`kind: "temple"`）與街頭土地神壇（`kind: "shrine"`）。**OSM**：relation 1867188 範圍內名稱含 土地／福德／社稷／伯公／石敢當／「…社」的 `amenity=place_of_worship`、`building=temple` 或帶 historic 標籤的物件（`building=yes` 只有名稱不是街道、或含 廟／祠 時才算），沒名字的節點不收；同名且 15 m 內的點／面視為同一處，留面。**文化局**：`POST https://ic.apigateway.data.gov.mo/culturalheritage_prod/ICH/{CN,EN,PT}/`（跟停車場同一把 `DATAGOVMO_APPCODE`；**尾斜線必加**，dataset 頁面印的寫法會 404），回裸 JSON 陣列，`Name` 是「MM032-土地古廟（沙梨頭）」這種帶編號的字串，`GPS` 是 `"lat, lng"`；取名稱含 土地／福德祠／石敢當 的六筆（MM032、MM037–MM040、MM049），各自接到 50 m 內最近的 OSM 地點，補上 `heritage`（編號＋去標籤的三語簡介）與官方英葡名。**澳門記憶**：《社區守護神》展覽嵌的 Google My Maps（mid `1rDU1yLGprtVVOVTVkxiAMzyqz9c746PL`）——`maps/d/kml?mid=…&forcekml=1` 拿得到 87 個 Placemark，但只有 `<address>`（多半是街名）沒有座標；座標從檢視頁 `_pageData` 字串裡 Google 的 geocode 結果讀（順序與 KML 相同，逐筆對齊），同名 5 m 內合併成 73 處，30 m 內有 OSM／文化局點的併過去（記進 `macaumemory`），其餘新增並標 `approximate: true`（街道級）；六個堂區子頁提供每筆照片紀錄對應的 `entries_…` 條目網址。只取名稱、街名與紀錄編號，照片與簡介一律不抄（照片是陳顯耀授權澳門基金會使用）。跑完要過 `validate_output.py religion`；`node scripts/inspect.mjs religion` 看摘要。文化局自己的數字是「近 10 所廟宇、160 多個公共土地神壇」，面板照引，圖層不宣稱完整。
 
 ### 停車場 — `fetch_car_parks.py`
 

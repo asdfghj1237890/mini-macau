@@ -67,7 +67,7 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 
 ### Info panel 互斥
 
-五個新圖層各自有面板，由 [`App.tsx`](../../src/App.tsx) lazy import：`RoadWorkInfoPanel` / `SchoolInfoPanel` / `ToiletInfoPanel` / `CarParkInfoPanel`，以及 WASTE 的四個——`WasteSiteInfoPanel` / `WasteIncineratorInfoPanel` / `WasteEcoStationInfoPanel` / `WasteFacilityInfoPanel`，全部從同一個檔案 [`WasteSiteInfoPanel.tsx`](../../src/components/WasteSiteInfoPanel.tsx) 各自 `lazy()` 匯出（一個 chunk，四個具名 export）。WASTE 仍只佔一個 selection slot：`selectedWasteSite` 存的是 `WasteSelection`（`{kind:'site'|'incinerator'|'ecoStation'|'facility'}` 的 tagged union），點哪一種就存哪一種、開對應的面板，但對外仍是「一個 selection」。點地圖上任一 marker/block，對應的 `on*Click` handler 會把其餘六種 selection（vehicle、station、road-work、school、toilet、car-park、waste）全部清空——同一時間只有一個 info panel 開著。關掉某個城市圖層也連帶清掉它的 selection（`useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])` 這個 pattern 五層各一個，SCHOOLS 多一層 `schoolLevelsOn` 版本），因為對應的 marker 已經從地圖上消失了。
+五個新圖層各自有面板，由 [`App.tsx`](../../src/App.tsx) lazy import：`RoadWorkInfoPanel` / `SchoolInfoPanel` / `ToiletInfoPanel` / `ReligionInfoPanel` / `CarParkInfoPanel`，以及 WASTE 的四個——`WasteSiteInfoPanel` / `WasteIncineratorInfoPanel` / `WasteEcoStationInfoPanel` / `WasteFacilityInfoPanel`，全部從同一個檔案 [`WasteSiteInfoPanel.tsx`](../../src/components/WasteSiteInfoPanel.tsx) 各自 `lazy()` 匯出（一個 chunk，四個具名 export）。WASTE 仍只佔一個 selection slot：`selectedWasteSite` 存的是 `WasteSelection`（`{kind:'site'|'incinerator'|'ecoStation'|'facility'}` 的 tagged union），點哪一種就存哪一種、開對應的面板，但對外仍是「一個 selection」。點地圖上任一 marker/block，對應的 `on*Click` handler 會把其餘六種 selection（vehicle、station、road-work、school、toilet、car-park、waste）全部清空——同一時間只有一個 info panel 開著。關掉某個城市圖層也連帶清掉它的 selection（`useEffect(() => { if (!roadWorksOn) setSelectedRoadWork(null) }, [roadWorksOn])` 這個 pattern 五層各一個，SCHOOLS 多一層 `schoolLevelsOn` 版本），因為對應的 marker 已經從地圖上消失了。
 
 ### localStorage key
 
@@ -86,6 +86,7 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-schools-on` | SCHOOLS 總開關 | 關 |
 | `mini-macau-school-levels-on` | 五個教育階段個別開關 | 全開 |
 | `mini-macau-toilets-on` | WC 總開關 | 關 |
+| `mini-macau-religion-on` | RELIGION（土地公）總開關 | 關 |
 | `mini-macau-carparks-on` | P 總開關 | 關 |
 | `mini-macau-waste-on` | WASTE 總開關（專注模式） | 關 |
 | `mini-macau-waste-focus-snapshot` | WASTE 開啟前其他圖層的可見狀態快照（JSON） | 無 |

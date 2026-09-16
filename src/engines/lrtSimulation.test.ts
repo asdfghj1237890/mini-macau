@@ -17,7 +17,7 @@ function fixture(trips?: Trip[]): TransitData {
       { stationId: 'C', arrivalMinutes: 605 },
     ] }],
     busRoutes: [], busStops: [], flights: [], ferries: [], roadWorks: [], schools: [], publicHousing: [],
-    parishes: [], toilets: [], carParks: [], waste: [], wasteSources: [], wasteFacilities: [], wasteEcoStations: [],
+    parishes: [], toilets: [], religion: [], religionCategories: [], carParks: [], waste: [], wasteSources: [], wasteFacilities: [], wasteEcoStations: [],
     dspaStats: null, waterFacilities: [], waterNetwork: null, waterFacts: null, powerFacilities: [], powerNetwork: null,
     powerFacts: null, grandPrix: null, grandPrixSources: [], loading: false,
   }
