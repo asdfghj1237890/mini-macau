@@ -23,6 +23,7 @@ import {
 } from '../parishes'
 import { schoolColor } from '../schools'
 import { religionColor } from '../religion'
+import { OLD_MAPS_DEFAULT_OPACITY } from '../oldMaps'
 
 type Props = MapViewProps & {
   initialCamera: { center: [number, number]; zoom: number } | null
@@ -39,7 +40,7 @@ export default function RasterMapFallback(props: Props) {
   const live = useRef(props)
   const { lang, t } = useI18n()
   const minute = useClockMinute(props.clock)
-  const { transitData, wasteExtras } = props
+  const { transitData, wasteExtras, oldMapsOpacity = OLD_MAPS_DEFAULT_OPACITY } = props
   useLayoutEffect(() => {
     live.current = props
   }, [props])
@@ -153,6 +154,12 @@ export default function RasterMapFallback(props: Props) {
       L.polyline(coords.map(latLng), { color, weight, opacity: 0.7 }).addTo(group)
     const name = (value: { zh: string; en?: string; pt?: string }) =>
       (lang === 'zh' ? value.zh : lang === 'pt' ? value.pt : value.en) || value.pt || value.zh
+    // The georeferenced scans go in lowest of all — under even the parish
+    // tint — so the plate reads as the ground the 2D map is drawn on.
+    for (const plate of data.oldMaps) {
+      const { west, south, east, north } = plate.bounds
+      L.imageOverlay(plate.image, [[south, west], [north, east]], { opacity: oldMapsOpacity, interactive: false, alt: plate.title.en }).addTo(group)
+    }
     // The parish tint goes in FIRST, so every route, marker and label added
     // below paints over it — the 2D twin of the WebGL map, where the fill is
     // anchored under the basemap's roads. Leaflet takes the whole MultiPolygon
@@ -214,7 +221,7 @@ export default function RasterMapFallback(props: Props) {
       for (const corner of circuit.corners) point([corner.lng, corner.lat], name(corner.name), '#f43f5e', () => live.current.onGrandPrixCornerClick?.(corner))
     }
     return () => { group.remove() }
-  }, [transitData, wasteExtras, lang, minute])
+  }, [transitData, wasteExtras, oldMapsOpacity, lang, minute])
 
   return <>
     <div ref={host} className="mm-raster-map absolute inset-0 z-0" aria-label={t.mapFallbackTitle} />

@@ -89,6 +89,10 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-religion-on` | RELIGION 總開關 | 關 |
 | `mini-macau-religion-categories-on` | 五個宗教類別（土地公／廟宇／教堂／清真寺／其他）個別開關 | 全開 |
 | `mm-religion-legend-open` | RELIGION 圖例子列展開 | 開 |
+| `mini-macau-oldmaps-on` | HISTORICAL MAPS（古地圖）總開關 | 關 |
+| `mini-macau-oldmaps-hidden` | 個別關掉的古地圖 id（JSON 陣列） | 無（全開） |
+| `mini-macau-oldmaps-opacity` | 古地圖不透明度（0.2–1） | 0.85 |
+| `mm-oldmaps-legend-open` | HISTORICAL MAPS 圖例子列展開 | 開 |
 | `mini-macau-carparks-on` | P 總開關 | 關 |
 | `mini-macau-waste-on` | WASTE 總開關（專注模式） | 關 |
 | `mini-macau-waste-focus-snapshot` | WASTE 開啟前其他圖層的可見狀態快照（JSON） | 無 |

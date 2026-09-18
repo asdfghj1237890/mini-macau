@@ -45,6 +45,7 @@ export interface LayerVisibilityState {
   publicHousing: boolean // ditto: the per-type set is left alone
   toilets: boolean
   religion: boolean // the Tou Tei markers, opt-in like the toilets
+  oldMaps: boolean // the georeferenced scans, opt-in like the toilets
   carParks: boolean
   parishes: boolean // the parish tint is context, but it is still a layer: focus hides it
 }
@@ -62,6 +63,7 @@ export interface LayerVisibilityApply {
   setPublicHousing: (on: boolean) => void
   setToilets: (on: boolean) => void
   setReligion: (on: boolean) => void
+  setOldMaps: (on: boolean) => void
   setCarParks: (on: boolean) => void
   setParishes: (on: boolean) => void
 }
@@ -116,6 +118,7 @@ export function captureLayerSnapshot(state: LayerVisibilityState): LayerVisibili
     publicHousing: !!state.publicHousing,
     toilets: !!state.toilets,
     religion: !!state.religion,
+    oldMaps: !!state.oldMaps,
     carParks: !!state.carParks,
     parishes: !!state.parishes,
   }
@@ -135,6 +138,7 @@ export function applyFocusMode(apply: LayerVisibilityApply, layer?: FocusLayer):
   if (!keep.has('publicHousing')) apply.setPublicHousing(false)
   if (!keep.has('toilets')) apply.setToilets(false)
   if (!keep.has('religion')) apply.setReligion(false)
+  if (!keep.has('oldMaps')) apply.setOldMaps(false)
   if (!keep.has('carParks')) apply.setCarParks(false)
   if (!keep.has('parishes')) apply.setParishes(false)
 }
@@ -158,6 +162,7 @@ export function applyLayerSnapshot(
   if (!keep.has('publicHousing')) apply.setPublicHousing(snapshot.publicHousing)
   if (!keep.has('toilets')) apply.setToilets(snapshot.toilets)
   if (!keep.has('religion')) apply.setReligion(snapshot.religion)
+  if (!keep.has('oldMaps')) apply.setOldMaps(snapshot.oldMaps)
   if (!keep.has('carParks')) apply.setCarParks(snapshot.carParks)
   if (!keep.has('parishes')) apply.setParishes(snapshot.parishes)
 }
@@ -183,6 +188,7 @@ export function applyKeptOnHandoff(
   if (keep.has('schools')) apply.setSchools(snapshot.schools)
   if (keep.has('toilets')) apply.setToilets(snapshot.toilets)
   if (keep.has('religion')) apply.setReligion(snapshot.religion)
+  if (keep.has('oldMaps')) apply.setOldMaps(snapshot.oldMaps)
   if (keep.has('carParks')) apply.setCarParks(snapshot.carParks)
   if (keep.has('parishes')) apply.setParishes(snapshot.parishes)
 }
@@ -250,6 +256,7 @@ export function loadFocusSnapshot(layer: FocusLayer): LayerVisibilityState | nul
       publicHousing: o.publicHousing === true,
       toilets: o.toilets === true,
       religion: o.religion === true,
+      oldMaps: o.oldMaps === true,
       carParks: o.carParks === true,
       parishes: o.parishes === true,
     })

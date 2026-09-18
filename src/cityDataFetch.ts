@@ -1,4 +1,4 @@
-import type { TransitData, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, ReligionCategory, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile } from './types'
+import type { TransitData, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, ReligionCategory, OldMap, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile } from './types'
 import type { CityDataset } from './cityData'
 import type { z } from 'zod'
 
@@ -9,6 +9,7 @@ import {
   ParishesFileSchema,
   ToiletsFileSchema,
   ReligionFileSchema,
+  OldMapsFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
   DspaStatsFileSchema,
@@ -71,6 +72,15 @@ interface ReligionFile {
   fetchedAtUtc: string
   categories: ReligionCategory[]
   sites: ReligionSite[]
+}
+
+// old-maps.json — the HISTORICAL MAPS overlay. `maps` is the whole payload:
+// each map carries its own bounds, control points and attribution, so
+// nothing stays behind as metadata.
+interface OldMapsFile {
+  version: 1
+  generatedAt: string
+  maps: OldMap[]
 }
 
 // car-parks.json — the static half of the car-park overlay. The live vacancy
@@ -145,6 +155,7 @@ export async function loadCityDataset(id: CityDataset): Promise<Partial<TransitD
       const file = await read<ReligionFile>('religion', ReligionFileSchema)
       return { religion: file.sites, religionCategories: file.categories }
     }
+    case 'oldmaps': return { oldMaps: (await read<OldMapsFile>('old-maps', OldMapsFileSchema)).maps }
     case 'carparks': return { carParks: (await read<CarParksFile>('car-parks', CarParksFileSchema)).carParks }
     case 'waste': {
       const file = await read<WasteFile>('waste', WasteFileSchema)

@@ -5,13 +5,13 @@ import type { CityCatalog } from '../src/cityCatalog'
 
 const files = [
   'parishes', 'road-works', 'car-parks', 'toilets', 'schools',
-  'public-housing', 'water-facilities', 'power-facilities', 'waste', 'grand-prix', 'religion',
+  'public-housing', 'water-facilities', 'power-facilities', 'waste', 'grand-prix', 'religion', 'old-maps',
 ] as const
 
 // This runs in Node at build time. Only counts and aggregated notice date
 // windows enter the virtual module; full facility files stay separate assets.
 export async function buildCityCatalog(directory: string): Promise<CityCatalog> {
-  const [parishes, works, parking, toilets, schools, housing, water, power, waste, gp, religion] =
+  const [parishes, works, parking, toilets, schools, housing, water, power, waste, gp, religion, oldMaps] =
     await Promise.all(files.map(async file => JSON.parse(await readFile(resolve(directory, `${file}.json`), 'utf8'))))
   function countBy<K extends string>(items: Record<string, string>[], field: string, keys: K[]): Record<K, number> {
     const counts = Object.fromEntries(keys.map(key => [key, 0])) as Record<K, number>
@@ -40,7 +40,7 @@ export async function buildCityCatalog(directory: string): Promise<CityCatalog> 
       schools: schools.schools.length, housing: housing.estates.length,
       water: water.facilities.length, power: power.facilities.length,
       waste: Object.values(wasteTypes).reduce((a, b) => a + b, 0), grandprix: gp.circuit.corners.length,
-      religion: religion.sites.length,
+      religion: religion.sites.length, oldmaps: oldMaps.maps.length,
     },
     schoolLevels: countBy(schools.schools, 'level', ['kindergarten', 'primary', 'secondary', 'university', 'all_through']),
     housingTypes: countBy(housing.estates, 'type', ['social', 'economic', 'other']),

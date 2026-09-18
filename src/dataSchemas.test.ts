@@ -17,6 +17,7 @@ import {
   ParishesFileSchema,
   ToiletsFileSchema,
   ReligionFileSchema,
+  OldMapsFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
   DspaStatsFileSchema,
@@ -78,6 +79,7 @@ describe('committed data files satisfy their schemas', () => {
   it('parishes.json', () => expectValid(ParishesFileSchema, 'parishes.json'))
   it('toilets.json', () => expectValid(ToiletsFileSchema, 'toilets.json'))
   it('religion.json', () => expectValid(ReligionFileSchema, 'religion.json'))
+  it('old-maps.json', () => expectValid(OldMapsFileSchema, 'old-maps.json'))
   it('car-parks.json', () => expectValid(CarParksFileSchema, 'car-parks.json'))
   it('waste.json', () => expectValid(WasteFileSchema, 'waste.json'))
   it('dspa-stats.json', () => expectValid(DspaStatsFileSchema, 'dspa-stats.json'))

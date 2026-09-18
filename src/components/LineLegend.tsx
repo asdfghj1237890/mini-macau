@@ -21,6 +21,16 @@ import {
   type ReligionCategorySet,
 } from '../religion'
 import {
+  OLD_MAPS_DEFAULT_OPACITY,
+  OLD_MAPS_MIN_OPACITY,
+  OLD_MAP_SWATCH_COLOR,
+  oldMapName,
+  oldMapNotes,
+  oldMapTitle,
+  oldMapYears,
+  type OldMapSet,
+} from '../oldMaps'
+import {
   PUBLIC_HOUSING_DECADES,
   PUBLIC_HOUSING_TYPE_COLOR,
   PUBLIC_HOUSING_TYPE_ORDER,
@@ -479,6 +489,13 @@ const RELIGION_ICON_16 = (
     <rect x="6.5" y="8.5" width="3" height="4.75" fill="currentColor" stroke="none" />
   </svg>
 )
+const OLD_MAP_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M2.25 4.25 6 2.75l4 1.5 3.75-1.5v9l-3.75 1.5-4-1.5-3.75 1.5z" />
+    <path d="M6 2.75v10.5M10 4.25v10.5" opacity="0.6" />
+  </svg>
+)
 const CAR_PARK_ICON_16 = (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -541,6 +558,7 @@ const LS_SCHOOLS_LEGEND_OPEN = 'mm-schools-legend-open'
 const LS_PUBLIC_HOUSING_LEGEND_OPEN = 'mm-public-housing-legend-open'
 const LS_WASTE_LEGEND_OPEN = 'mm-waste-legend-open'
 const LS_RELIGION_LEGEND_OPEN = 'mm-religion-legend-open'
+const LS_OLDMAPS_LEGEND_OPEN = 'mm-oldmaps-legend-open'
 // Stable "nothing hidden" fallback for a legend rendered without the prop, so
 // the `??` below cannot hand a fresh Set to the render on every pass.
 const EMPTY_WASTE_TYPES: WasteTypeSet = new Set<WasteLayerType>()
@@ -593,6 +611,12 @@ interface Props {
   religionOn?: boolean
   religionCategoriesOn?: ReligionCategorySet
   religionCategoryCounts?: Record<ReligionCategoryId, number>
+  // Georeferenced historical maps — opt-in like the toilets. `oldMapsHidden`
+  // is the set of map ids switched OFF and `oldMapsOpacity` the plates'
+  // shared opacity (0.2–1); both are independent of the master switch.
+  oldMapsOn?: boolean
+  oldMapsHidden?: OldMapSet
+  oldMapsOpacity?: number
   // Public car parks — opt-in like the toilets; the count is the whole
   // register, which only changes when the daily workflow lands a new file.
   carParksOn?: boolean
@@ -627,6 +651,9 @@ interface Props {
   onToggleToilets?: () => void
   onToggleReligion?: () => void
   onToggleReligionCategory?: (category: ReligionCategoryId) => void
+  onToggleOldMaps?: () => void
+  onToggleOldMap?: (id: string) => void
+  onChangeOldMapsOpacity?: (value: number) => void
   onToggleCarParks?: () => void
   onToggleWaste?: () => void
   onToggleWasteType?: (type: WasteLayerType) => void
@@ -641,7 +668,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = MobileLayerCategory | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'religion' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | null
+type MobilePanel = MobileLayerCategory | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'religion' | 'oldmaps' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | null
 
 export function LineLegend({
   cityDataStatus,
@@ -667,6 +694,9 @@ export function LineLegend({
   religionOn = false,
   religionCategoriesOn,
   religionCategoryCounts,
+  oldMapsOn = false,
+  oldMapsHidden,
+  oldMapsOpacity = OLD_MAPS_DEFAULT_OPACITY,
   carParksOn = false,
   wasteOn = false,
   wasteHiddenTypes,
@@ -687,6 +717,9 @@ export function LineLegend({
   onToggleToilets,
   onToggleReligion,
   onToggleReligionCategory,
+  onToggleOldMaps,
+  onToggleOldMap,
+  onChangeOldMapsOpacity,
   onToggleCarParks,
   onToggleWaste,
   onToggleWasteType,
@@ -717,6 +750,9 @@ export function LineLegend({
   const [religionLegendOpen, setReligionLegendOpen] = useState(() => {
     try { return localStorage.getItem(LS_RELIGION_LEGEND_OPEN) !== '0' } catch { return true }
   })
+  const [oldMapsLegendOpen, setOldMapsLegendOpen] = useState(() => {
+    try { return localStorage.getItem(LS_OLDMAPS_LEGEND_OPEN) !== '0' } catch { return true }
+  })
   const [layersTab, setLayersTab] = useState<LayersTab>(() => {
     try { return localStorage.getItem(LS_LAYERS_TAB) === 'city' ? 'city' : 'transit' } catch { return 'transit' }
   })
@@ -745,6 +781,9 @@ export function LineLegend({
   useEffect(() => {
     localStorage.setItem(LS_RELIGION_LEGEND_OPEN, religionLegendOpen ? '1' : '0')
   }, [religionLegendOpen])
+  useEffect(() => {
+    localStorage.setItem(LS_OLDMAPS_LEGEND_OPEN, oldMapsLegendOpen ? '1' : '0')
+  }, [oldMapsLegendOpen])
   useEffect(() => {
     localStorage.setItem(LS_DESKTOP_COLLAPSED_GROUPS, JSON.stringify([...collapsedGroups]))
   }, [collapsedGroups])
@@ -882,6 +921,15 @@ export function LineLegend({
   const religionEnabledCount = RELIGION_CATEGORY_ORDER.reduce(
     (sum, category) => (isReligionCategoryOn(category) ? sum + (religionCategoryTotals[category] ?? 0) : sum), 0
   )
+  // The georeferenced scans: the register is the file, the per-map switches
+  // narrow it — enabled/total like the rows above. From the UNFILTERED data
+  // (App swaps in the empty array while the layer is off).
+  const oldMapsAll = allTransitData?.oldMaps ?? transitData.oldMaps
+  const oldMapsCount = cityCount('oldmaps', oldMapsAll.length)
+  const isOldMapOn = (id: string) => !(oldMapsHidden?.has(id) ?? false)
+  const oldMapsAllOn = oldMapsAll.every(map => isOldMapOn(map.id))
+  const oldMapsEnabledCount = oldMapsAll.filter(map => isOldMapOn(map.id)).length
+  const oldMapsOpacityPct = Math.round(oldMapsOpacity * 100)
   // Same for the car parks: the row always shows the full register.
   const carParkCount = cityCount('carparks', allTransitData?.carParks.length ?? transitData.carParks.length)
   // The number of AREAS, from the unfiltered data — eight, and only ever eight
@@ -939,6 +987,11 @@ export function LineLegend({
       panel: 'religion' as const, focus: false, label: t.religion, code: 'RELIGION', accent: 'red', description: t.religionNote, icon: RELIGION_ICON_16, on: religionOn,
       count: religionCategoriesAllOn ? String(religionCount) : `${religionEnabledCount}/${religionCount}`,
       toggle: onToggleReligion,
+    } : null,
+    oldMapsCount > 0 ? {
+      panel: 'oldmaps' as const, focus: false, label: t.oldMaps, code: 'HISTORICAL MAPS', accent: 'amber', description: t.oldMapsNote, icon: OLD_MAP_ICON_16, on: oldMapsOn,
+      count: oldMapsAllOn ? String(oldMapsCount) : `${oldMapsEnabledCount}/${oldMapsCount}`,
+      toggle: onToggleOldMaps,
     } : null,
     schoolCount > 0 ? {
       panel: 'schools' as const, focus: false, label: t.schools, code: 'EDUCATION', accent: 'violet', description: t.schoolsRampHint, icon: MORTARBOARD_ICON_16, on: schoolsOn,
@@ -1094,6 +1147,79 @@ export function LineLegend({
         <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
           <span className="normal-case tracking-normal mm-han">{t.religionCategoriesHint}</span>
         </div>
+      </div>
+    ) },
+    oldmaps: { expanded: oldMapsLegendOpen, onExpand: () => setOldMapsLegendOpen(v => !v), content: (
+      <div className={`pb-1 bg-(--mm-amber-2)/[0.05] ${oldMapsOn ? '' : 'opacity-40 light:opacity-100'}`}>
+        {oldMapsAll.map(map => {
+          const on = isOldMapOn(map.id)
+          // "Lit" = actually drawn on the map: the plate is on AND the
+          // master switch is on.
+          const lit = oldMapsOn && on
+          return (
+            <button
+              key={map.id}
+              type="button"
+              onClick={() => onToggleOldMap?.(map.id)}
+              disabled={!onToggleOldMap}
+              aria-pressed={on}
+              title={`${oldMapTitle(map, lang)}\n\n${oldMapNotes(map, lang)}\n\n${map.attribution}`}
+              className={`mm-layer-filter w-full flex items-center gap-2 py-1 pl-8 pr-3
+                          hover:bg-(--mm-fg)/[0.04] transition
+                          ${onToggleOldMap ? '' : 'cursor-default'}`}
+            >
+              {/* A parchment swatch while the plate is drawn, a hollow box
+                  while it is off — the same 22px strip as the rows above. */}
+              <span
+                className="inline-block w-[22px] h-[7px] shrink-0"
+                style={on
+                  ? { backgroundColor: OLD_MAP_SWATCH_COLOR }
+                  : { boxShadow: `inset 0 0 0 1px ${OLD_MAP_SWATCH_COLOR}99` }}
+              />
+              <span className={`mm-layer-filter-label text-ui-10 leading-[1.2] flex-1 min-w-0 text-left truncate
+                                ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
+                {oldMapName(map, lang)}
+              </span>
+              <span
+                className={`mm-mono mm-tabular text-ui-9 shrink-0
+                            ${lit ? '' : 'text-(--mm-fg)/25'}`}
+                style={lit ? { color: OLD_MAP_SWATCH_COLOR } : undefined}
+              >
+                {oldMapYears(map)}
+              </span>
+              <span className={`mm-layer-state mm-mono text-ui-8 tracking-[0.2em] w-[20px] text-right shrink-0
+                                ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {on ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )
+        })}
+        {/* One opacity for every plate, 20–100 %. A range input so it works
+            from the keyboard too. */}
+        <label className="mm-layer-filter w-full flex items-center gap-2 py-1 pl-8 pr-3">
+          <span className="mm-layer-filter-label text-ui-10 leading-[1.2] shrink-0 text-(--mm-fg)/75">{t.oldMapsOpacity}</span>
+          <input
+            type="range"
+            min={OLD_MAPS_MIN_OPACITY * 100}
+            max={100}
+            step={5}
+            value={oldMapsOpacityPct}
+            disabled={!onChangeOldMapsOpacity}
+            aria-valuetext={`${oldMapsOpacityPct}%`}
+            onChange={event => onChangeOldMapsOpacity?.(Number(event.target.value) / 100)}
+            className="flex-1 min-w-0 accent-(--mm-amber)"
+          />
+          <span className="mm-mono mm-tabular text-ui-9 w-[34px] text-right shrink-0 text-(--mm-fg)/60">{oldMapsOpacityPct}%</span>
+        </label>
+        {/* Where each scan came from and how well it fits, said once per map. */}
+        {oldMapsAll.map(map => (
+          <div key={map.id} className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+            <span className="normal-case tracking-normal mm-han">
+              {map.georef.rmsM < 0.5 ? t.oldMapsGeorefExactNote(map.georef.controlPoints) : t.oldMapsGeorefNote(map.georef.controlPoints, Math.round(map.georef.rmsM))} · {t.oldMapsScan}:{' '}
+              <a href={map.scan.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-(--mm-fg)/70">{map.scan.holder}</a>
+            </span>
+          </div>
+        ))}
       </div>
     ) },
     housing: { expanded: publicHousingLegendOpen, onExpand: () => setPublicHousingLegendOpen(v => !v), content: (

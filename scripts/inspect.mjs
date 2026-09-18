@@ -42,9 +42,10 @@
 //   node scripts/inspect.mjs dspa-stats              # dspa-stats.json summary (DSPA monthly stats: incinerator/hazardous/landfill/4x wwtp series, latest values, incinerator facts)
 //   node scripts/inspect.mjs grand-prix [--kinks]   # grand-prix.json summary (Guia Circuit: official vs measured length, corner table with rules, pit lane, sources); --kinks lists the stitched line's sideways jogs (seams between OSM ways)
 //   node scripts/inspect.mjs religion               # religion.json summary (by kind/source, approximate count, heritage sites, My Maps-only count, top 10 by macaumemory.names length)
+//   node scripts/inspect.mjs old-maps               # old-maps.json summary (per map: title, years, raster size + bounds, georef method / control points / RMS, worst residuals, scan source)
 // bucket = weekday | sat | sun (default weekday)
 
-import { readFileSync, statSync } from 'node:fs'
+import { existsSync, readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { gzipSync } from 'node:zlib'
@@ -1386,6 +1387,29 @@ function cmdGrandPrixKinks(track, corners, minTurnDeg = 35, maxSegM = 25) {
   console.log(`turns ≥ 60° (${sharp.length}): ${sharp.join('  ')}`)
 }
 
+// old-maps.json: HISTORICAL MAPS overlay — georeferenced scans built by
+// scripts/build-old-maps.mjs (Node + sharp, not the Python pipeline). Per
+// map: title, years, raster size and bounds, how it was georeferenced
+// (method, control points, RMS), the worst residuals and the scan source.
+function cmdOldMaps() {
+  const { generatedAt, maps } = load('public/data/old-maps.json')
+  console.log(`old-maps.json: ${maps.length} map(s), generated ${generatedAt}`)
+  for (const m of maps) {
+    const file = join(ROOT, 'public', m.image.replace(/^\//, ''))
+    const kb = existsSync(file) ? `${(statSync(file).size / 1024).toFixed(0)} KB` : 'MISSING'
+    console.log(`\n${m.id}: ${m.title.zh}`)
+    console.log(`  ${m.title.en}`)
+    console.log(`  drawn ${m.year}${m.published ? `, published ${m.published}` : ''} — ${m.author}`)
+    console.log(`  raster ${m.width}x${m.height} px @ ${m.georef.metresPerPixel} m/px, ${kb}; bounds W ${m.bounds.west} E ${m.bounds.east} N ${m.bounds.north} S ${m.bounds.south}`)
+    console.log(`  georef: ${m.georef.method}${m.georef.lambda != null ? ` (λ ${m.georef.lambda})` : ''}, ${m.georef.controlPoints} control points, RMS ${m.georef.rmsM} m`)
+    const snap = m.georef.coastSnap
+    if (snap) console.log(`  coast snap: ${snap.pairs} dense pairs onto the reference shoreline in ${snap.steps} steps (radius ${snap.radiusM} m, largest step gradient ${snap.maxStepGradient}); spline alone median ${snap.splineMedianM} m / p90 ${snap.splineP90M} m / max ${snap.splineMaxM} m off, after the snap median ${snap.leftMedianM} m / max ${snap.leftMaxM} m`)
+    const worst = [...m.georef.gcps].sort((a, b) => b.residualM - a.residualM).slice(0, 5)
+    for (const p of worst) console.log(`    ${String(p.residualM).padStart(6)} m  ${p.name}`)
+    console.log(`  scan: ${m.scan.holder} via ${m.scan.via} (${m.scan.identifier}, leaves ${m.scan.leaves.join('+')}) — ${m.scan.license}`)
+    for (const r of m.references) console.log(`  ref: ${r.name} — ${r.url}`)
+  }
+}
 // religion.json: RELIGION overlay — five categories (tudigong 土地公, temple
 // 廟宇, church 教堂, mosque 清真寺, other 其他信仰). tudigong is OSM worship/社壇
 // candidates plus 澳門記憶 / Google My Maps 澳門的土地信仰 sites (attached onto an
@@ -1621,7 +1645,8 @@ switch (cmd) {
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   case 'religion': cmdReligion(); break
+  case 'old-maps': cmdOldMaps(); break
   default:
-    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | bus-route-match [route-id…] [--threshold=30] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix | religion')
+    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | bus-route-match [route-id…] [--threshold=30] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix | religion | old-maps')
     if (cmd) process.exit(1)
 }

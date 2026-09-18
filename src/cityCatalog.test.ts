@@ -23,7 +23,7 @@ it('builds compact counts matching the full city data and existing filters', asy
   // Every interval boundary, including inclusive ends, plus out-of-range dates.
   const dates = ['1900-01-01', '2100-01-01', ...works.notices.flatMap((n: RoadWorkNotice) => [n.startDate, n.endDate])]
   for (const day of dates) expect(catalogActiveRoadWorks(catalog, day)).toBe(countActiveRoadWorks(works.notices, day))
-  expect(Object.keys(catalog.counts)).toHaveLength(11)
+  expect(Object.keys(catalog.counts)).toHaveLength(12)
   expect(Object.values(catalog.counts).every(n => n > 0)).toBe(true)
   const json = JSON.stringify(catalog)
   expect(json).not.toMatch(/coordinates|geometry|notices|schoolName|estateName/)

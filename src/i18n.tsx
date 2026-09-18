@@ -181,6 +181,12 @@ const translations = {
     religion: 'Religion',
     religionCount: (n: number) => `${n} sites`,
     religionNote: 'Temples, churches, the mosque and Tou Tei street shrines',
+    oldMaps: 'Historical maps',
+    oldMapsNote: 'Old plans of the city, georeferenced onto today’s streets',
+    oldMapsOpacity: 'Opacity',
+    oldMapsScan: 'Scan',
+    oldMapsGeorefNote: (points: number, rms: number) => `Fitted on ${points} control points, RMS ${rms} m`,
+    oldMapsGeorefExactNote: (points: number) => `Pinned exactly at ${points} control points`,
     cityLayers: 'City layers',
     layerPanelTitle: 'Map layers',
     layerPanelSubtitle: 'Choose what the city reveals.',
@@ -268,6 +274,7 @@ const translations = {
     dataSourceParishesLabel: 'Parishes',
     dataSourceToiletsLabel: 'Public toilets',
     dataSourceReligionLabel: 'Religion',
+    dataSourceOldMapsLabel: 'Historical maps',
     dataSourceCarParksLabel: 'Car parks',
     dataSourceWaterLabel: 'Water supply',
     dataSourcePowerLabel: 'Electricity',
@@ -757,6 +764,12 @@ const translations = {
     religion: '宗教',
     religionCount: (n: number) => `${n} 處`,
     religionNote: '廟宇、教堂、清真寺與街頭土地神壇',
+    oldMaps: '古地圖',
+    oldMapsNote: '舊城市平面圖，配準到今日街道上',
+    oldMapsOpacity: '不透明度',
+    oldMapsScan: '掃描',
+    oldMapsGeorefNote: (points: number, rms: number) => `以 ${points} 個控制點配準，均方根誤差 ${rms} 公尺`,
+    oldMapsGeorefExactNote: (points: number) => `${points} 個控制點全部釘準`,
     cityLayers: '城市資料',
     layerPanelTitle: '地圖圖層',
     layerPanelSubtitle: '選擇你想看見的澳門。',
@@ -842,6 +855,7 @@ const translations = {
     dataSourceParishesLabel: '堂區',
     dataSourceToiletsLabel: '公廁',
     dataSourceReligionLabel: '宗教',
+    dataSourceOldMapsLabel: '古地圖',
     dataSourceCarParksLabel: '停車場',
     dataSourceWaterLabel: '供水設施',
     dataSourcePowerLabel: '電力',
@@ -1278,6 +1292,12 @@ const translations = {
     religion: 'Religião',
     religionCount: (n: number) => `${n} locais`,
     religionNote: 'Templos, igrejas, a mesquita e altares de Tou Tei',
+    oldMaps: 'Mapas antigos',
+    oldMapsNote: 'Plantas antigas da cidade, georreferenciadas sobre as ruas de hoje',
+    oldMapsOpacity: 'Opacidade',
+    oldMapsScan: 'Digitalização',
+    oldMapsGeorefNote: (points: number, rms: number) => `Ajustado com ${points} pontos de controlo, erro RMS de ${rms} m`,
+    oldMapsGeorefExactNote: (points: number) => `Fixado exactamente em ${points} pontos de controlo`,
     cityLayers: 'Camadas urbanas',
     layerPanelTitle: 'Camadas do mapa',
     layerPanelSubtitle: 'Escolha o que a cidade revela.',
@@ -1363,6 +1383,7 @@ const translations = {
     dataSourceParishesLabel: 'Freguesias',
     dataSourceToiletsLabel: 'Sanitários',
     dataSourceReligionLabel: 'Religião',
+    dataSourceOldMapsLabel: 'Mapas antigos',
     dataSourceCarParksLabel: 'Estacionamentos',
     dataSourceWaterLabel: 'Abastecimento de água',
     dataSourcePowerLabel: 'Electricidade',
@@ -1799,6 +1820,12 @@ export interface Translations {
   religion: string
   religionCount: (n: number) => string
   religionNote: string
+  oldMaps: string
+  oldMapsNote: string
+  oldMapsOpacity: string
+  oldMapsScan: string
+  oldMapsGeorefNote: (points: number, rms: number) => string
+  oldMapsGeorefExactNote: (points: number) => string
   cityLayers: string
   layerPanelTitle: string
   layerPanelSubtitle: string
@@ -1884,6 +1911,7 @@ export interface Translations {
   dataSourceParishesLabel: string
   dataSourceToiletsLabel: string
   dataSourceReligionLabel: string
+  dataSourceOldMapsLabel: string
   dataSourceCarParksLabel: string
   dataSourceWaterLabel: string
   dataSourcePowerLabel: string

@@ -10,7 +10,7 @@ import nearestPointOnLine from '@turf/nearest-point-on-line'
 import { addBusTerminal, BUS_TERMINAL_LAYERS } from '../layers/busTerminal'
 
 maplibregl.setWorkerUrl(maplibreWorkerUrl)
-import type { SimulationClock, TransitData, VehiclePosition, Station, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, ReligionSite, ReligionKind, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner } from '../types'
+import type { SimulationClock, TransitData, VehiclePosition, Station, BusRoute, RoadWorkNotice, RoadWorkRestriction, School, PublicHousingEstate, Parish, Toilet, ReligionSite, ReligionKind, OldMap, CarPark, CarParkVacancy, WasteSiteType, WaterFacility, WaterFacilityType, WaterNetworkNode, WaterDistributionRoad, PowerFacility, PowerFacilityType, PowerNetworkNode, PowerDistributionRoad, GrandPrixCircuit, GrandPrixCorner } from '../types'
 import { addVehicleLayers, updateVehicleData, updateVehicleLabelLang } from '../layers/VehicleLayer'
 import { Bus3DLayer, ALL_BUS_3D_LAYERS } from '../layers/Bus3DLayer'
 import { LRT3DLayer, ALL_LRT_3D_LAYERS } from '../layers/LRT3DLayer'
@@ -41,6 +41,7 @@ import {
 } from '../parishes'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { RELIGION_APPROXIMATE_OPACITY, RELIGION_CATEGORY_COLORS, RELIGION_ICON_VARIANTS, buildReligionFeatures, religionIconName } from '../religion'
+import { OLD_MAPS_DEFAULT_OPACITY, oldMapIdFromLayer, oldMapLayerId, oldMapSourceId } from '../oldMaps'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import {
   WASTE_AREA_FILL_OPACITY,
@@ -1938,6 +1939,35 @@ const STYLES = {
   light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
 }
 
+// HISTORICAL MAPS. Adds, removes and restyles the image sources so the map
+// holds exactly `maps`: one `image` source + one `raster` layer per map, both
+// inserted under `beforeId`; a map already present only gets its opacity set.
+// Called from addCustomLayers (seeding, and again after a restyle) and from
+// the [transitData.oldMaps, oldMapsOpacity] effect.
+function syncOldMapLayers(m: maplibregl.Map, maps: OldMap[], opacity: number, beforeId: string | undefined): void {
+  const wanted = new Set(maps.map(map => map.id))
+  for (const layer of m.getStyle().layers ?? []) {
+    const id = oldMapIdFromLayer(layer.id)
+    if (id === null || wanted.has(id)) continue
+    m.removeLayer(layer.id)
+    if (m.getSource(oldMapSourceId(id))) m.removeSource(oldMapSourceId(id))
+  }
+  const anchor = beforeId && m.getLayer(beforeId) ? beforeId : undefined
+  for (const map of maps) {
+    const sourceId = oldMapSourceId(map.id)
+    const layerId = oldMapLayerId(map.id)
+    if (!m.getSource(sourceId)) m.addSource(sourceId, { type: 'image', url: map.image, coordinates: map.coordinates })
+    if (m.getLayer(layerId)) {
+      m.setPaintProperty(layerId, 'raster-opacity', opacity)
+      continue
+    }
+    m.addLayer({
+      id: layerId, type: 'raster', source: sourceId,
+      paint: { 'raster-opacity': opacity, 'raster-fade-duration': 0 },
+    }, anchor)
+  }
+}
+
 export interface MapViewProps {
   clock: SimulationClock
   transitData: TransitData
@@ -1958,6 +1988,9 @@ export interface MapViewProps {
   onParishClick?: (parish: Parish) => void
   onToiletClick?: (toilet: Toilet | null) => void
   onReligionClick?: (site: ReligionSite | null) => void
+  // HISTORICAL MAPS: how opaque the georeferenced scans are drawn. The maps
+  // themselves arrive through transitData.oldMaps like every other overlay.
+  oldMapsOpacity?: number
   onCarParkClick?: (carPark: CarPark | null) => void
   onWasteSiteClick?: (selection: WasteSelection | null) => void
   // WASTE is the third focus mode, and behaves exactly like the two below: App
@@ -2033,7 +2066,7 @@ export interface MapViewProps {
 }
 
 export function MapView(props: MapViewProps) {
-  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onReligionClick, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, transitHidden = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedReligionId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
+  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onReligionClick, oldMapsOpacity = OLD_MAPS_DEFAULT_OPACITY, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, transitHidden = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedReligionId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapThemeRef = useRef<boolean | null>(null)
@@ -2135,6 +2168,11 @@ export function MapView(props: MapViewProps) {
   // Same contract for the Tou Tei markers.
   const selectedReligionIdRef = useRef<string | null>(selectedReligionId ?? null)
   selectedReligionIdRef.current = selectedReligionId ?? null
+  const oldMapsOpacityRef = useRef(oldMapsOpacity)
+  oldMapsOpacityRef.current = oldMapsOpacity
+  // Where the historical maps are inserted, remembered from addCustomLayers
+  // for the [transitData.oldMaps] effect.
+  const oldMapAnchorRef = useRef<string | undefined>(undefined)
   // Same for the car parks, plus the live vacancy map — addCustomLayers seeds
   // the source with whatever numbers are already in hand after a style swap.
   const selectedCarParkIdRef = useRef<string | null>(selectedCarParkId ?? null)
@@ -2631,6 +2669,18 @@ export function MapView(props: MapViewProps) {
           },
         }, firstSymbolId)
       } catch { /* building tiles may fail */ }
+
+      // Historical maps. A georeferenced scan is GROUND like the parish tint,
+      // but the plate is opaque enough to hide the roads, so it goes just
+      // under the 3D buildings — which then stand on the old plan — and above
+      // every basemap fill: before `3d-buildings` when the tiles loaded, else
+      // the firstSymbolId slot the buildings would have taken. Everything
+      // added at firstSymbolId below draws over it. Seeded from transitRef
+      // like the other overlays so a theme swap redraws it.
+      oldMapAnchorRef.current = m.getLayer(BUILDINGS_LAYER_ID) ? BUILDINGS_LAYER_ID : firstSymbolId
+      try {
+        syncOldMapLayers(m, transitRef.current.oldMaps, oldMapsOpacityRef.current, oldMapAnchorRef.current)
+      } catch (err) { debugLog(`[map] old maps: ${String(err)}`) }
 
       // Parishes. The only CITY layer that is context rather than data, so it
       // goes in FIRST and lowest: the tint at `parishAnchorId` (under the
@@ -4413,6 +4463,19 @@ export function MapView(props: MapViewProps) {
     src?.setData?.(buildReligionFeatures(transitData.religion))
   }, [transitData.religion])
 
+  // Historical maps: image sources added and removed on array identity (the
+  // file arriving, a map's own switch, or the master switch swapping in the
+  // empty array), the opacity pushed as a paint property. Before the first
+  // addCustomLayers there is nothing to add to; that call seeds from
+  // transitRef instead.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !layersAddedRef.current) return
+    try {
+      syncOldMapLayers(map, transitData.oldMaps, oldMapsOpacity, oldMapAnchorRef.current)
+    } catch (err) { debugLog(`[map] old maps: ${String(err)}`) }
+  }, [transitData.oldMaps, oldMapsOpacity])
+
   // Selected Tou Tei site highlight — the same filter swap as the toilets.
   useEffect(() => {
     const map = mapRef.current
@@ -5462,6 +5525,38 @@ export function MapView(props: MapViewProps) {
                       rel="noopener noreferrer"
                       className="hover:text-(--mm-amber-1) transition-colors"
                     >澳門記憶</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceOldMapsLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                    <a
+                      href="https://archive.org/details/gri_33125008481232"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >Getty / IA</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.loc.gov/item/2002628198/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >LoC</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://digitarq.arquivos.pt/documentDetails/d1726557bef843a39756d7945439d6ba"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >AHU</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://nla.gov.au/nla.obj-229837650"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >NLA</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">

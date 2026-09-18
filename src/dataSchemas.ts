@@ -431,6 +431,68 @@ export const ReligionFileSchema = z.object({
   ),
 })
 
+// old-maps.json — the HISTORICAL MAPS overlay: georeferenced scans, one
+// north-up WebP with alpha per map plus its bounds, control points and
+// attribution. Mirrors `v_old_maps` in data/scripts/validate_output.py.
+const oldMapText = z.object({ zh: z.string(), en: z.string(), pt: z.string() })
+
+export const OldMapsFileSchema = z.object({
+  version: z.literal(1),
+  generatedAt: z.string(),
+  maps: z.array(
+    z.object({
+      id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+      name: oldMapText,
+      title: oldMapText,
+      author: z.string(),
+      year: z.number().int(),
+      published: z.number().int().nullable(),
+      work: z.string().nullable(),
+      image: z.string().startsWith('/data/old-maps/'),
+      width: z.number().int().positive(),
+      height: z.number().int().positive(),
+      bounds: z.object({ west: z.number(), east: z.number(), north: z.number(), south: z.number() }),
+      coordinates: z.tuple([lngLat, lngLat, lngLat, lngLat]),
+      georef: z.object({
+        method: z.string(),
+        lambda: z.number().nullable(),
+        metresPerPixel: z.number().positive(),
+        controlPoints: z.number().int().min(4),
+        rmsM: z.number().nonnegative(),
+        gcps: z.array(z.object({
+          name: z.string(),
+          platePixel: z.tuple([z.number(), z.number()]),
+          lngLat,
+          residualM: z.number(),
+          note: z.string(),
+        })),
+        // Only on the plates whose drawn coast is walked onto the reference shoreline after the
+        // spline (buildCoastSnap in scripts/build-old-maps.mjs): how many dense pairs, in how
+        // many steps, how far off the spline alone left the coast and what is left now. A step
+        // gradient of 1 or more could fold the paper, so the schema refuses it.
+        coastSnap: z.object({
+          pairs: z.number().int().positive(),
+          steps: z.number().int().positive(),
+          radiusM: z.number().positive(),
+          maxStepGradient: z.number().nonnegative().lt(1),
+          splineMedianM: z.number().nonnegative(),
+          splineP90M: z.number().nonnegative(),
+          splineMaxM: z.number().nonnegative(),
+          leftMedianM: z.number().nonnegative(),
+          leftMaxM: z.number().nonnegative(),
+        }).optional(),
+      }),
+      scan: z.object({
+        holder: z.string(), via: z.string(), identifier: z.string(), url: z.string(),
+        leaves: z.array(z.string()), license: z.string(),
+      }),
+      references: z.array(z.object({ name: z.string(), url: z.string() })),
+      notes: oldMapText,
+      attribution: z.string(),
+    }),
+  ).min(1),
+})
+
 // car-parks.json — the DSAT public car-park register (car_park_detail). The
 // live vacancy feed is NOT in this file: the browser polls it directly (see
 // src/carParks.ts). Mirrors the `car-parks` block in

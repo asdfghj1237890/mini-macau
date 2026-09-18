@@ -29,6 +29,7 @@ function state(over: Partial<LayerVisibilityState> = {}): LayerVisibilityState {
     publicHousing: false,
     toilets: false,
     religion: false,
+    oldMaps: false,
     carParks: false,
     parishes: false,
     ...over,
@@ -49,6 +50,7 @@ function recorder() {
     setPublicHousing: on => { calls.publicHousing = on },
     setToilets: on => { calls.toilets = on },
     setReligion: on => { calls.religion = on },
+    setOldMaps: on => { calls.oldMaps = on },
     setCarParks: on => { calls.carParks = on },
     setParishes: on => { calls.parishes = on },
   }
@@ -178,6 +180,7 @@ describe('applyFocusMode', () => {
       publicHousing: false,
       toilets: false,
       religion: false,
+      oldMaps: false,
       carParks: false,
       parishes: false,
     })
@@ -196,6 +199,7 @@ describe('applyFocusMode — HOUSING keeps the schools', () => {
       roadWorks: false,
       toilets: false,
       religion: false,
+      oldMaps: false,
       carParks: false,
       parishes: false,
     })
@@ -330,7 +334,7 @@ describe('load / saveFocusSnapshot', () => {
     })
     expect(loadFocusSnapshot('power')).toEqual({
       lrt: ['a'], busAuto: false, busRoutes: [], flights: false, ferries: false,
-      roadWorks: false, schools: false, publicHousing: false, toilets: false, religion: false, carParks: false,
+      roadWorks: false, schools: false, publicHousing: false, toilets: false, religion: false, oldMaps: false, carParks: false,
       parishes: false,
     })
   })

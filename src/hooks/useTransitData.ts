@@ -295,6 +295,7 @@ export function useTransitData(clock: SimulationClock): UseTransitDataResult {
     toilets: [],
     religion: [],
     religionCategories: [],
+    oldMaps: [],
     carParks: [],
     waste: [],
     wasteSources: [],

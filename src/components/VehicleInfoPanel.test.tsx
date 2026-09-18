@@ -18,7 +18,7 @@ const data: TransitData = {
     { stationId: 'A', arrivalMinutes: 600 }, { stationId: 'B', arrivalMinutes: 602 }, { stationId: 'C', arrivalMinutes: 604 },
   ] }],
   busRoutes: [], busStops: [], flights: [], ferries: [], roadWorks: [], schools: [], publicHousing: [],
-  parishes: [], toilets: [], religion: [], religionCategories: [], carParks: [], waste: [], wasteSources: [], wasteFacilities: [], wasteEcoStations: [],
+  parishes: [], toilets: [], religion: [], religionCategories: [], oldMaps: [], carParks: [], waste: [], wasteSources: [], wasteFacilities: [], wasteEcoStations: [],
   dspaStats: null, waterFacilities: [], waterNetwork: null, waterFacts: null, powerFacilities: [], powerNetwork: null,
   powerFacts: null, grandPrix: null, grandPrixSources: [], loading: false,
 }

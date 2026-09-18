@@ -3044,6 +3044,193 @@ def v_religion(data: object) -> list[str]:
 
 
 # name -> (absolute path, validator)
+# old-maps.json: the HISTORICAL MAPS overlay — georeferenced scans written by
+# scripts/build-old-maps.mjs (Node, not this pipeline: it needs sharp). Mirrors
+# OldMapsFileSchema in src/dataSchemas.ts. Every map's WebP must exist under
+# public/data/old-maps/, its bounds must be a sane box inside Macau, the four
+# corners must be that box in TL/TR/BR/BL order, and the control-point table
+# the legend quotes must agree with the RMS it quotes.
+OLD_MAPS_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+OLD_MAPS_MAX_RMS_M = 150.0
+
+
+def _is_year(value: object) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool) and 1500 <= value <= 2100
+
+
+def _is_num(value: object) -> bool:
+    return isinstance(value, (int, float)) and not isinstance(value, bool)
+
+
+def _check_old_map_text(errs: list[str], ctx: str, value: object) -> None:
+    if not isinstance(value, dict):
+        errs.append(f"{ctx}: must be an object with zh/en/pt")
+        return
+    for lang in ("zh", "en", "pt"):
+        if not (isinstance(value.get(lang), str) and value[lang].strip()):
+            errs.append(f"{ctx}.{lang}: must be a non-empty string")
+
+
+# The coast snap (buildCoastSnap in scripts/build-old-maps.mjs) is optional: only the plates whose
+# drawn coast is walked onto the reference shoreline carry it. Every step has to stay one-to-one
+# (gradient < 1, or the paper could fold) and the snap has to have closed the gap it reports.
+OLD_MAPS_SNAP_MAX_LEFT_M = 5.0
+
+
+def _check_old_map_coast_snap(errs: list[str], ctx: str, s: object) -> None:
+    metres = ("splineMedianM", "splineP90M", "splineMaxM", "leftMedianM", "leftMaxM")
+    if not require_fields(errs, ctx, s, ("pairs", "steps", "radiusM", "maxStepGradient", *metres)):
+        return
+    for key in ("pairs", "steps"):
+        if not (isinstance(s[key], int) and not isinstance(s[key], bool) and s[key] > 0):
+            errs.append(f"{ctx}.{key}: must be a positive integer")
+    if not (_is_num(s["radiusM"]) and s["radiusM"] > 0):
+        errs.append(f"{ctx}.radiusM: must be > 0")
+    grad = s["maxStepGradient"]
+    if not (_is_num(grad) and 0 <= grad < 1):
+        errs.append(f"{ctx}.maxStepGradient: must be within 0..1 (a step of 1 or more can fold the paper), got {grad!r}")
+    for key in metres:
+        if not (_is_num(s[key]) and s[key] >= 0):
+            errs.append(f"{ctx}.{key}: must be >= 0")
+    left = s["leftMaxM"]
+    if _is_num(left) and left > OLD_MAPS_SNAP_MAX_LEFT_M:
+        errs.append(f"{ctx}.leftMaxM: {left} m left after the snap (max {OLD_MAPS_SNAP_MAX_LEFT_M:g} m)")
+
+
+def _check_old_map_georef(errs: list[str], ctx: str, g: object) -> None:
+    if not require_fields(errs, ctx, g, ("method", "lambda", "metresPerPixel", "controlPoints", "rmsM", "gcps")):
+        return
+    if not (isinstance(g["method"], str) and g["method"]):
+        errs.append(f"{ctx}.method: must be a non-empty string")
+    if g["lambda"] is not None and not _is_num(g["lambda"]):
+        errs.append(f"{ctx}.lambda: must be null or a number")
+    if not (_is_num(g["metresPerPixel"]) and g["metresPerPixel"] > 0):
+        errs.append(f"{ctx}.metresPerPixel: must be > 0")
+    rms = g["rmsM"]
+    if not (_is_num(rms) and 0 <= rms <= OLD_MAPS_MAX_RMS_M):
+        errs.append(f"{ctx}.rmsM: must be a number within 0..{OLD_MAPS_MAX_RMS_M:g} m, got {rms!r}")
+    gcps = g["gcps"]
+    if not (isinstance(gcps, list) and len(gcps) >= 4):
+        errs.append(f"{ctx}.gcps: need at least 4 control points")
+        return
+    if g["controlPoints"] != len(gcps):
+        errs.append(f"{ctx}.controlPoints: {g['controlPoints']!r} != len(gcps) {len(gcps)}")
+    residuals: list[float] = []
+    for j, p in enumerate(gcps):
+        pctx = f"{ctx}.gcps[{j}]"
+        if not require_fields(errs, pctx, p, ("name", "platePixel", "lngLat", "residualM", "note")):
+            continue
+        if not (isinstance(p["name"], str) and p["name"]):
+            errs.append(f"{pctx}.name: must be a non-empty string")
+        px = p["platePixel"]
+        if not (isinstance(px, list) and len(px) == 2 and all(_is_num(v) and v >= 0 for v in px)):
+            errs.append(f"{pctx}.platePixel: must be [x, y] >= 0")
+        ll = p["lngLat"]
+        if not (isinstance(ll, list) and len(ll) == 2 and all(_is_num(v) for v in ll) and in_macau(ll[0], ll[1])):
+            errs.append(f"{pctx}.lngLat: must be [lng, lat] inside Macau")
+        if not (_is_num(p["residualM"]) and p["residualM"] >= 0):
+            errs.append(f"{pctx}.residualM: must be >= 0")
+        else:
+            residuals.append(float(p["residualM"]))
+        if not isinstance(p["note"], str):
+            errs.append(f"{pctx}.note: must be a string")
+    if _is_num(rms) and len(residuals) == len(gcps):
+        recomputed = (sum(r * r for r in residuals) / len(residuals)) ** 0.5
+        if abs(recomputed - rms) > 1.0:
+            errs.append(f"{ctx}.rmsM: {rms} does not match the residuals (RMS {recomputed:.1f} m)")
+    if g.get("coastSnap") is not None:
+        _check_old_map_coast_snap(errs, f"{ctx}.coastSnap", g["coastSnap"])
+
+
+def v_old_maps(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(errs, "old-maps", data, ("version", "generatedAt", "maps")):
+        return errs
+    if data.get("version") != 1:
+        errs.append(f"old-maps: version must be 1, got {data.get('version')!r}")
+    if not isinstance(data["generatedAt"], str):
+        errs.append("old-maps: generatedAt must be a string")
+    if not require_nonempty_list(errs, "old-maps.maps", data["maps"]):
+        return errs
+
+    seen: set[str] = set()
+    last_year: int | None = None
+    fields = ("id", "name", "title", "author", "year", "published", "work", "image", "width", "height",
+              "bounds", "coordinates", "georef", "scan", "references", "notes", "attribution")
+    for i, m in enumerate(data["maps"]):
+        ctx = f"old-maps.maps[{i}]"
+        if not require_fields(errs, ctx, m, fields):
+            continue
+        mid = m["id"]
+        if not (isinstance(mid, str) and OLD_MAPS_ID_RE.match(mid)):
+            errs.append(f"{ctx}.id: must be a kebab-case slug, got {mid!r}")
+        elif mid in seen:
+            errs.append(f"{ctx}.id: duplicate {mid!r}")
+        else:
+            seen.add(mid)
+        _check_old_map_text(errs, f"{ctx}.name", m["name"])
+        _check_old_map_text(errs, f"{ctx}.title", m["title"])
+        _check_old_map_text(errs, f"{ctx}.notes", m["notes"])
+        for key in ("author", "attribution"):
+            if not (isinstance(m[key], str) and m[key].strip()):
+                errs.append(f"{ctx}.{key}: must be a non-empty string")
+        year = m["year"]
+        if not _is_year(year):
+            errs.append(f"{ctx}.year: must be an integer year, got {year!r}")
+        else:
+            if last_year is not None and year < last_year:
+                errs.append(f"{ctx}: maps must be sorted by year ({year} after {last_year})")
+            last_year = year
+        pub = m["published"]
+        if pub is not None and not (_is_year(pub) and _is_year(year) and pub >= year):
+            errs.append(f"{ctx}.published: must be null or an integer year >= year, got {pub!r}")
+        if m["work"] is not None and not isinstance(m["work"], str):
+            errs.append(f"{ctx}.work: must be null or a string")
+        image = m["image"]
+        if not (isinstance(image, str) and image.startswith("/data/old-maps/") and image.endswith(".webp")):
+            errs.append(f"{ctx}.image: must be '/data/old-maps/<file>.webp', got {image!r}")
+        elif not (PUBLIC / image.lstrip("/")).is_file():
+            errs.append(f"{ctx}.image: file not found at {PUBLIC / image.lstrip('/')}")
+        for key in ("width", "height"):
+            if not (isinstance(m[key], int) and not isinstance(m[key], bool) and m[key] > 0):
+                errs.append(f"{ctx}.{key}: must be a positive integer")
+        b = m["bounds"]
+        if not (isinstance(b, dict) and all(_is_num(b.get(k)) for k in ("west", "east", "north", "south"))):
+            errs.append(f"{ctx}.bounds: must have numeric west/east/north/south")
+        else:
+            if not (b["west"] < b["east"] and b["south"] < b["north"]):
+                errs.append(f"{ctx}.bounds: west < east and south < north required")
+            for lng, lat, corner in ((b["west"], b["north"], "NW"), (b["east"], b["south"], "SE")):
+                if not in_macau(lng, lat):
+                    errs.append(f"{ctx}.bounds: {corner} corner ({lng}, {lat}) is outside Macau")
+            expected = [[b["west"], b["north"]], [b["east"], b["north"]], [b["east"], b["south"]], [b["west"], b["south"]]]
+            coords = m["coordinates"]
+            if not (isinstance(coords, list) and len(coords) == 4
+                    and all(isinstance(c, list) and len(c) == 2 and all(_is_num(v) for v in c) for c in coords)):
+                errs.append(f"{ctx}.coordinates: must be four [lng, lat] corners")
+            elif any(abs(c[0] - e[0]) > 1e-9 or abs(c[1] - e[1]) > 1e-9 for c, e in zip(coords, expected)):
+                errs.append(f"{ctx}.coordinates: must be the bounds in TL/TR/BR/BL order")
+        _check_old_map_georef(errs, f"{ctx}.georef", m["georef"])
+        s = m["scan"]
+        if require_fields(errs, f"{ctx}.scan", s, ("holder", "via", "identifier", "url", "leaves", "license")):
+            for key in ("holder", "via", "identifier", "url", "license"):
+                if not (isinstance(s[key], str) and s[key].strip()):
+                    errs.append(f"{ctx}.scan.{key}: must be a non-empty string")
+            if not (isinstance(s["url"], str) and s["url"].startswith("https://")):
+                errs.append(f"{ctx}.scan.url: must be an https URL")
+            if not (isinstance(s["leaves"], list) and all(isinstance(v, str) for v in s["leaves"])):
+                errs.append(f"{ctx}.scan.leaves: must be a list of strings")
+        refs = m["references"]
+        if not isinstance(refs, list):
+            errs.append(f"{ctx}.references: must be a list")
+        else:
+            for j, ref in enumerate(refs):
+                if not (isinstance(ref, dict) and isinstance(ref.get("name"), str) and ref["name"]
+                        and isinstance(ref.get("url"), str) and ref["url"].startswith("https://")):
+                    errs.append(f"{ctx}.references[{j}]: must be {{name, url (https)}}")
+    return errs
+
+
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
     "stations": (PUBLIC / "data/stations.json", v_stations),
@@ -3070,6 +3257,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "dspa-stats": (PUBLIC / "data/dspa-stats.json", v_dspa_stats),
     "grand-prix": (PUBLIC / "data/grand-prix.json", v_grand_prix),
     "religion": (PUBLIC / "data/religion.json", v_religion),
+    "old-maps": (PUBLIC / "data/old-maps.json", v_old_maps),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.

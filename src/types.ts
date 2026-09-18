@@ -415,6 +415,67 @@ export interface ReligionSite {
   macaumemory: { names: string[]; records: string[]; entries: string[] } | null
 }
 
+// HISTORICAL MAPS overlay (old-maps.json): one georeferenced scan per entry,
+// drawn as a MapLibre `image` source between the basemap and our overlays.
+// `coordinates` are the raster's four corners in TL / TR / BR / BL order — the
+// WebP is already rubbersheeted north-up, so they are just the bounds.
+// `georef` keeps the control points and residuals the legend quotes.
+export interface OldMapText {
+  zh: string
+  en: string
+  pt: string
+}
+
+export interface OldMapControlPoint {
+  name: string
+  platePixel: [number, number] // in the stitched, neat-line-cropped plate
+  lngLat: [number, number]
+  residualM: number
+  note: string
+}
+
+// The second georeferencing stage of the two 18th-century plates (scripts/build-old-maps.mjs
+// buildCoastSnap): their drawn coast line walked onto the reference shoreline (the coast of 1794).
+export interface OldMapCoastSnap {
+  pairs: number // dense plate-pixel / shoreline pairs
+  steps: number
+  radiusM: number // nothing further than this from the coast moves
+  maxStepGradient: number // < 1: every step is one-to-one
+  splineMedianM: number // how far off the spline alone leaves the drawn coast
+  splineP90M: number
+  splineMaxM: number
+  leftMedianM: number // what is left after the snap
+  leftMaxM: number
+}
+
+export interface OldMap {
+  id: string // 'guignes-1792'
+  name: OldMapText // short, for the legend row
+  title: OldMapText // the plate's full title
+  author: string
+  year: number // drawn / surveyed
+  published: number | null
+  work: string | null
+  image: string // '/data/old-maps/<id>.webp'
+  width: number
+  height: number
+  bounds: { west: number; east: number; north: number; south: number }
+  coordinates: [[number, number], [number, number], [number, number], [number, number]]
+  georef: {
+    method: string
+    lambda: number | null
+    metresPerPixel: number
+    controlPoints: number
+    rmsM: number
+    gcps: OldMapControlPoint[]
+    coastSnap?: OldMapCoastSnap
+  }
+  scan: { holder: string; via: string; identifier: string; url: string; leaves: string[]; license: string }
+  references: { name: string; url: string }[]
+  notes: OldMapText
+  attribution: string
+}
+
 // Trilingual free text from the DSAT car-park feed. Same shape as ToiletText
 // but a separate name on purpose: DSAT publishes no real English names, so the
 // `en` side is usually a copy of the Portuguese one (see `pickCarParkText`).
@@ -1090,6 +1151,7 @@ export interface TransitData {
   // category list that names them. Static like the toilets.
   religion: ReligionSite[]
   religionCategories: ReligionCategory[]
+  oldMaps: OldMap[]
   carParks: CarPark[]
   // Refuse rooms, compacting bins and the four recycling-point kinds. The
   // per-type toggles narrow this array in App, exactly like the schools.

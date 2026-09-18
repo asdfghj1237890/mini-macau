@@ -1071,6 +1071,7 @@ const FULL: LayerVisibilityState = {
   publicHousing: false,
   toilets: true,
   religion: false,
+  oldMaps: false,
   carParks: false,
   parishes: false,
 }
@@ -1087,6 +1088,7 @@ function recorder() {
     setPublicHousing: on => calls.push(['publicHousing', on]),
     setToilets: on => calls.push(['toilets', on]),
     setReligion: on => calls.push(['religion', on]),
+    setOldMaps: on => calls.push(['oldMaps', on]),
     setCarParks: on => calls.push(['carParks', on]),
     setParishes: on => calls.push(['parishes', on]),
   }
@@ -1123,6 +1125,7 @@ describe('applyWaterFocus', () => {
       ['publicHousing', false],
       ['toilets', false],
       ['religion', false],
+      ['oldMaps', false],
       ['carParks', false],
       ['parishes', false],
     ])
@@ -1143,6 +1146,7 @@ describe('applyLayerSnapshot', () => {
       ['publicHousing', false],
       ['toilets', true],
       ['religion', false],
+      ['oldMaps', false],
       ['carParks', false],
       ['parishes', false],
     ])
@@ -1170,6 +1174,7 @@ describe('applyLayerSnapshot', () => {
       publicHousing: false,
       toilets: true,
       religion: false,
+      oldMaps: false,
       carParks: false,
       parishes: false,
     })
@@ -1223,7 +1228,7 @@ describe('loadWaterFocusSnapshot / saveWaterFocusSnapshot', () => {
       roadWorks: false,
       schools: false,
       publicHousing: false,
-      toilets: false, religion: false,
+      toilets: false, religion: false, oldMaps: false,
       carParks: false,
       parishes: false,
     })

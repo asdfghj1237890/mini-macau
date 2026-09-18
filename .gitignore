@@ -32,3 +32,6 @@ data/scripts/_ocr_batch.py
 data/scripts/_sync_taipa_dicts.py
 data/scripts/_win_ocr.ps1
 .wrangler/
+
+# Source scans for the HISTORICAL MAPS overlay (scripts/build-old-maps.mjs re-downloads them)
+.cache/
