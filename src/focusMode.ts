@@ -1,4 +1,5 @@
-// FOCUS MODES — the shared machinery behind HOUSING, WATER and POWER.
+// FOCUS MODES — the shared machinery behind HISTORICAL MAPS, HOUSING, WATER,
+// POWER, WASTE and GRAND PRIX.
 //
 // A focus layer is not just another overlay: switching it on clears every other
 // layer so its network is read against an empty city, and switching it off puts
@@ -6,29 +7,33 @@
 // starts and wins on restore even if the user poked other switches meanwhile,
 // so the two states can never drift apart.
 //
-// All five overlays (HOUSING, WATER, POWER, WASTE, GRAND PRIX) behave
-// identically, so the capture / apply / persist half lives here exactly once
-// and each overlay only supplies its own storage key. App owns the React
+// All six overlays (HISTORICAL MAPS, HOUSING, WATER, POWER, WASTE, GRAND PRIX)
+// behave identically, so the capture / apply / persist half lives here exactly
+// once and each overlay only supplies its own storage key. App owns the React
 // setters and passes them in, which is what makes this testable without a DOM.
 // (src/water.ts re-exports these under its historical names.)
 //
-// The five are MUTUALLY EXCLUSIVE: turning one on turns whichever other one is
+// The six are MUTUALLY EXCLUSIVE: turning one on turns whichever other one is
 // on off and hands its snapshot over — see `activeFocusPeer` and
 // `focusHandoffSnapshot`.
 //
-// One layer takes an EXEMPTION: HOUSING leaves the schools alone, because the
+// Two layers take an EXEMPTION. HOUSING leaves the schools alone, because the
 // two overlays are read together (which estates sit in which catchment) and
-// their colour families were chosen not to collide. That is the whole job of
-// FOCUS_KEEPS below — every other focus layer keeps nothing.
+// their colour families were chosen not to collide. HISTORICAL MAPS leaves the
+// RELIGION markers alone for the same kind of reason: the temples, churches
+// and street shrines are what an old plan is read against (most of its legend
+// IS those buildings). That is the whole job of FOCUS_KEEPS below — every
+// other focus layer keeps nothing.
 
 // Which focus layer a snapshot belongs to. Each gets its own storage key, so
 // no two can ever read each other's history.
-export type FocusLayer = 'housing' | 'water' | 'power' | 'waste' | 'grandprix'
+export type FocusLayer = 'oldmaps' | 'housing' | 'water' | 'power' | 'waste' | 'grandprix'
 
-// All five, in the order they appear in the CITY legend (HOUSING sits between
-// SCHOOLS and WC, above the four utility/circuit rows). Exported so a caller
-// can ask "which OTHER focus layer is on?" without hard-coding the list.
-export const FOCUS_LAYERS: readonly FocusLayer[] = ['housing', 'water', 'power', 'waste', 'grandprix'] as const
+// All six, in the order they appear in the FOCUS group of the CITY legend
+// (HISTORICAL MAPS first, then HOUSING and the four utility/circuit rows).
+// Exported so a caller can ask "which OTHER focus layer is on?" without
+// hard-coding the list.
+export const FOCUS_LAYERS: readonly FocusLayer[] = ['oldmaps', 'housing', 'water', 'power', 'waste', 'grandprix'] as const
 
 // Everything the focus mode has to put back. Bus visibility is TWO facts, not
 // one: `busAuto` records that the user was in auto-by-time mode, so restoring
@@ -45,7 +50,7 @@ export interface LayerVisibilityState {
   publicHousing: boolean // ditto: the per-type set is left alone
   toilets: boolean
   religion: boolean // the Tou Tei markers, opt-in like the toilets
-  oldMaps: boolean // the georeferenced scans, opt-in like the toilets
+  oldMaps: boolean // the georeferenced scans — this flag IS the HISTORICAL MAPS focus switch
   carParks: boolean
   parishes: boolean // the parish tint is context, but it is still a layer: focus hides it
 }
@@ -69,15 +74,22 @@ export interface LayerVisibilityApply {
 }
 
 // Which layers a focus mode leaves ALONE — neither hidden on the way in nor
-// restored on the way out, so the user keeps whatever they had. HOUSING is the
-// only layer with entries:
+// restored on the way out, so the user keeps whatever they had. Two layers
+// have entries:
+//   HOUSING
 //   • `schools`, because housing and schools are read together and their
 //     colour families are deliberately disjoint (see src/schools.ts);
 //   • `publicHousing`, because that flag IS the housing focus switch — hiding
 //     it here would switch the focus off in the act of switching it on.
+//   HISTORICAL MAPS
+//   • `religion`, because the places of worship are what an old plan is read
+//     against — the master switch and its per-category switches stay exactly
+//     as the user left them, in both directions;
+//   • `oldMaps`, its own focus switch, for the same reason as `publicHousing`.
 // Naming a key here means "never touch this setter for this layer". `lrt` and
 // `busRoutes` stand for the two vehicle setters; no layer keeps them today.
 export const FOCUS_KEEPS: Record<FocusLayer, ReadonlySet<keyof LayerVisibilityState>> = {
+  oldmaps: new Set(['religion', 'oldMaps']),
   housing: new Set(['schools', 'publicHousing']),
   water: new Set(),
   power: new Set(),
@@ -173,7 +185,8 @@ export function applyLayerSnapshot(
 // outgoing one. They come back now, from that snapshot: the user asked for
 // housing, not for the schools that water had switched off. Only the exempt
 // keys are touched — everything else stays hidden — and the incoming layer's
-// own switch (`publicHousing` for HOUSING) is the caller's to set.
+// own switch (`publicHousing` for HOUSING, `oldMaps` for HISTORICAL MAPS) is
+// the caller's to set, which is why neither key appears below.
 export function applyKeptOnHandoff(
   snapshot: LayerVisibilityState,
   apply: LayerVisibilityApply,
@@ -188,7 +201,6 @@ export function applyKeptOnHandoff(
   if (keep.has('schools')) apply.setSchools(snapshot.schools)
   if (keep.has('toilets')) apply.setToilets(snapshot.toilets)
   if (keep.has('religion')) apply.setReligion(snapshot.religion)
-  if (keep.has('oldMaps')) apply.setOldMaps(snapshot.oldMaps)
   if (keep.has('carParks')) apply.setCarParks(snapshot.carParks)
   if (keep.has('parishes')) apply.setParishes(snapshot.parishes)
 }

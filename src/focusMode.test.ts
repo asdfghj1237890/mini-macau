@@ -73,6 +73,7 @@ afterEach(() => { vi.unstubAllGlobals() })
 
 describe('focusSnapshotKey', () => {
   it('gives each focus layer its own key, so no two ever read each other', () => {
+    expect(focusSnapshotKey('oldmaps')).toBe('mini-macau-oldmaps-focus-snapshot')
     expect(focusSnapshotKey('housing')).toBe('mini-macau-housing-focus-snapshot')
     expect(focusSnapshotKey('water')).toBe('mini-macau-water-focus-snapshot')
     expect(focusSnapshotKey('power')).toBe('mini-macau-power-focus-snapshot')
@@ -81,17 +82,19 @@ describe('focusSnapshotKey', () => {
     expect(new Set(FOCUS_LAYERS.map(focusSnapshotKey)).size).toBe(FOCUS_LAYERS.length)
   })
 
-  it('knows all five focus layers, in legend order', () => {
-    expect([...FOCUS_LAYERS]).toEqual(['housing', 'water', 'power', 'waste', 'grandprix'])
+  it('knows all six focus layers, in legend order', () => {
+    expect([...FOCUS_LAYERS]).toEqual(['oldmaps', 'housing', 'water', 'power', 'waste', 'grandprix'])
   })
 })
 
-// The one asymmetry in the focus machinery: HOUSING leaves the schools alone.
+// The two asymmetries in the focus machinery: HOUSING leaves the schools
+// alone, HISTORICAL MAPS leaves the religion markers alone.
 describe('FOCUS_KEEPS — the per-layer exemptions', () => {
-  it('exempts only HOUSING, and only the schools and its own switch', () => {
+  it('exempts only HOUSING (schools) and HISTORICAL MAPS (religion), each with its own switch', () => {
     expect([...FOCUS_KEEPS.housing].sort()).toEqual(['publicHousing', 'schools'])
+    expect([...FOCUS_KEEPS.oldmaps].sort()).toEqual(['oldMaps', 'religion'])
     for (const layer of FOCUS_LAYERS) {
-      if (layer !== 'housing') expect(FOCUS_KEEPS[layer].size).toBe(0)
+      if (layer !== 'housing' && layer !== 'oldmaps') expect(FOCUS_KEEPS[layer].size).toBe(0)
     }
   })
 
@@ -113,7 +116,7 @@ describe('the snapshot covers only the non-focus layers', () => {
   })
 })
 
-describe('activeFocusPeer — the five focus layers are mutually exclusive', () => {
+describe('activeFocusPeer — the six focus layers are mutually exclusive', () => {
   const peer = (layer: FocusLayer, on: boolean): FocusPeer =>
     ({ layer, on, snapshot: on ? state({ flights: true }) : null })
 
@@ -122,7 +125,8 @@ describe('activeFocusPeer — the five focus layers are mutually exclusive', () 
     expect(activeFocusPeer([])).toBeNull()
   })
 
-  it('names the one that is on, whichever of the four it is', () => {
+  it('names the one that is on, whichever it is', () => {
+    expect(activeFocusPeer([peer('water', false), peer('oldmaps', true)])?.layer).toBe('oldmaps')
     expect(activeFocusPeer([peer('water', false), peer('power', true)])?.layer).toBe('power')
     expect(activeFocusPeer([peer('power', false), peer('waste', true)])?.layer).toBe('waste')
     expect(activeFocusPeer([peer('waste', false), peer('water', true)])?.layer).toBe('water')
@@ -133,6 +137,7 @@ describe('activeFocusPeer — the five focus layers are mutually exclusive', () 
     expect(activeFocusPeer([peer('waste', true), peer('water', true)])?.layer).toBe('water')
     expect(activeFocusPeer([peer('waste', true), peer('power', true)])?.layer).toBe('power')
     expect(activeFocusPeer([peer('grandprix', true), peer('waste', true)])?.layer).toBe('waste')
+    expect(activeFocusPeer([peer('housing', true), peer('oldmaps', true)])?.layer).toBe('oldmaps')
   })
 
   it('carries the snapshot the incoming layer must inherit', () => {
@@ -209,7 +214,7 @@ describe('applyFocusMode — HOUSING keeps the schools', () => {
     expect('publicHousing' in calls).toBe(false)
   })
 
-  it('still hides everything for the layers that keep nothing', () => {
+  it('still hides the schools and the housing for every other focus layer', () => {
     for (const layer of FOCUS_LAYERS.filter(l => l !== 'housing')) {
       const { apply, calls } = recorder()
       applyFocusMode(apply, layer)
@@ -226,6 +231,38 @@ describe('applyFocusMode — HOUSING keeps the schools', () => {
     applyFocusMode(apply, 'water')
     expect(calls.schools).toBe(false)
     expect(calls.publicHousing).toBe(false)
+  })
+})
+
+describe('applyFocusMode — HISTORICAL MAPS keeps the religion markers', () => {
+  it('hides every peer but never touches religion or its own switch', () => {
+    const { apply, calls } = recorder()
+    applyFocusMode(apply, 'oldmaps')
+    expect(calls).toEqual({
+      lrt: [],
+      bus: { routeIds: [], auto: false },
+      flights: false,
+      ferries: false,
+      roadWorks: false,
+      schools: false,
+      publicHousing: false,
+      toilets: false,
+      carParks: false,
+      parishes: false,
+    })
+    // Neither setter was called at all — the user's religion switch stays as it
+    // is, and the layer does not switch itself off on the way in.
+    expect('religion' in calls).toBe(false)
+    expect('oldMaps' in calls).toBe(false)
+  })
+
+  it('still hides religion and the old maps for every other focus layer', () => {
+    for (const layer of FOCUS_LAYERS.filter(l => l !== 'oldmaps')) {
+      const { apply, calls } = recorder()
+      applyFocusMode(apply, layer)
+      expect(calls.religion).toBe(false)
+      expect(calls.oldMaps).toBe(false)
+    }
   })
 })
 
@@ -247,10 +284,19 @@ describe('applyKeptOnHandoff', () => {
     expect(calls).toEqual({ schools: false })
   })
 
+  // Same handoff for HISTORICAL MAPS: WATER had hidden the religion markers, so
+  // they come back from water's snapshot — and the layer's own switch is not
+  // replayed from it (App sets that one).
+  it('restores just religion from the inherited snapshot for HISTORICAL MAPS', () => {
+    const { apply, calls } = recorder()
+    applyKeptOnHandoff(state({ religion: true, schools: true, oldMaps: false }), apply, 'oldmaps')
+    expect(calls).toEqual({ religion: true })
+  })
+
   it('touches nothing for the layers that keep nothing', () => {
-    for (const layer of FOCUS_LAYERS.filter(l => l !== 'housing')) {
+    for (const layer of FOCUS_LAYERS.filter(l => l !== 'housing' && l !== 'oldmaps')) {
       const { apply, calls } = recorder()
-      applyKeptOnHandoff(state({ schools: true }), apply, layer)
+      applyKeptOnHandoff(state({ schools: true, religion: true }), apply, layer)
       expect(calls).toEqual({})
     }
   })
@@ -281,6 +327,16 @@ describe('applyLayerSnapshot', () => {
     expect('schools' in calls).toBe(false)
     expect('publicHousing' in calls).toBe(false)
     expect(calls.roadWorks).toBe(true)
+    expect(calls.lrt).toEqual(['lrt-taipa'])
+  })
+
+  // Same for HISTORICAL MAPS and the religion switch.
+  it('leaves religion as the user has it NOW when HISTORICAL MAPS focus ends', () => {
+    const { apply, calls } = recorder()
+    applyLayerSnapshot(state({ religion: true, oldMaps: true, schools: true }), apply, 'oldmaps')
+    expect('religion' in calls).toBe(false)
+    expect('oldMaps' in calls).toBe(false)
+    expect(calls.schools).toBe(true)
     expect(calls.lrt).toEqual(['lrt-taipa'])
   })
 

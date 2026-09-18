@@ -182,7 +182,7 @@ const translations = {
     religionCount: (n: number) => `${n} sites`,
     religionNote: 'Temples, churches, the mosque and Tou Tei street shrines',
     oldMaps: 'Historical maps',
-    oldMapsNote: 'Old plans of the city, georeferenced onto today’s streets',
+    oldMapsFocusNote: 'Focus mode — every layer but religion is hidden while this is on',
     oldMapsOpacity: 'Opacity',
     oldMapsScan: 'Scan',
     oldMapsGeorefNote: (points: number, rms: number) => `Fitted on ${points} control points, RMS ${rms} m`,
@@ -765,7 +765,7 @@ const translations = {
     religionCount: (n: number) => `${n} 處`,
     religionNote: '廟宇、教堂、清真寺與街頭土地神壇',
     oldMaps: '古地圖',
-    oldMapsNote: '舊城市平面圖，配準到今日街道上',
+    oldMapsFocusNote: '專注模式 — 開啟時除宗教外其他圖層會隱藏',
     oldMapsOpacity: '不透明度',
     oldMapsScan: '掃描',
     oldMapsGeorefNote: (points: number, rms: number) => `以 ${points} 個控制點配準，均方根誤差 ${rms} 公尺`,
@@ -1293,7 +1293,7 @@ const translations = {
     religionCount: (n: number) => `${n} locais`,
     religionNote: 'Templos, igrejas, a mesquita e altares de Tou Tei',
     oldMaps: 'Mapas antigos',
-    oldMapsNote: 'Plantas antigas da cidade, georreferenciadas sobre as ruas de hoje',
+    oldMapsFocusNote: 'Modo de foco — todas as camadas ficam ocultas, exceto a religião',
     oldMapsOpacity: 'Opacidade',
     oldMapsScan: 'Digitalização',
     oldMapsGeorefNote: (points: number, rms: number) => `Ajustado com ${points} pontos de controlo, erro RMS de ${rms} m`,
@@ -1821,7 +1821,7 @@ export interface Translations {
   religionCount: (n: number) => string
   religionNote: string
   oldMaps: string
-  oldMapsNote: string
+  oldMapsFocusNote: string
   oldMapsOpacity: string
   oldMapsScan: string
   oldMapsGeorefNote: (points: number, rms: number) => string

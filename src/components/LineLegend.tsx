@@ -988,15 +988,18 @@ export function LineLegend({
       count: religionCategoriesAllOn ? String(religionCount) : `${religionEnabledCount}/${religionCount}`,
       toggle: onToggleReligion,
     } : null,
-    oldMapsCount > 0 ? {
-      panel: 'oldmaps' as const, focus: false, label: t.oldMaps, code: 'HISTORICAL MAPS', accent: 'amber', description: t.oldMapsNote, icon: OLD_MAP_ICON_16, on: oldMapsOn,
-      count: oldMapsAllOn ? String(oldMapsCount) : `${oldMapsEnabledCount}/${oldMapsCount}`,
-      toggle: onToggleOldMaps,
-    } : null,
     schoolCount > 0 ? {
       panel: 'schools' as const, focus: false, label: t.schools, code: 'EDUCATION', accent: 'violet', description: t.schoolsRampHint, icon: MORTARBOARD_ICON_16, on: schoolsOn,
       count: schoolLevelsAllOn ? String(schoolCount) : `${schoolEnabledCount}/${schoolCount}`,
       toggle: onToggleSchools,
+    } : null,
+    // HISTORICAL MAPS leads the FOCUS group: like HOUSING it is a focus mode with
+    // one exemption (RELIGION stays, see FOCUS_KEEPS), and it sits right under the
+    // daily rows it used to be among.
+    oldMapsCount > 0 ? {
+      panel: 'oldmaps' as const, focus: true, label: t.oldMaps, code: 'HISTORICAL MAPS', accent: 'amber', description: t.oldMapsFocusNote, icon: OLD_MAP_ICON_16, on: oldMapsOn,
+      count: oldMapsAllOn ? String(oldMapsCount) : `${oldMapsEnabledCount}/${oldMapsCount}`,
+      toggle: onToggleOldMaps,
     } : null,
     publicHousingCount > 0 ? {
       panel: 'housing' as const, focus: true, label: t.publicHousing, code: 'PUBLIC HOUSING', accent: 'lime', description: t.publicHousingFocusNote, icon: APARTMENT_ICON_16, on: publicHousingOn,
@@ -1220,6 +1223,10 @@ export function LineLegend({
             </span>
           </div>
         ))}
+        {/* Explain which other layer this focus mode preserves. */}
+        <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+          {t.oldMapsFocusNote}
+        </div>
       </div>
     ) },
     housing: { expanded: publicHousingLegendOpen, onExpand: () => setPublicHousingLegendOpen(v => !v), content: (

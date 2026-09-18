@@ -316,6 +316,12 @@ export default function App() {
   // The georeferenced scans are opt-in too: a whole 1792 plate over the old
   // town is a study aid, not a default.
   const [oldMapsOn, setOldMapsOn] = useState(() => localStorage.getItem(LS_OLDMAPS_KEY) === '1')
+  // HISTORICAL MAPS is a focus mode as well, with ONE exemption of its own: it
+  // hides every other layer except RELIGION, whose markers (and per-category
+  // switches) stay exactly as the user has them — the temples, churches and
+  // shrines are what an old plan is read against. Like HOUSING, the layer's
+  // visibility flag IS its focus flag. Own snapshot slot, own storage key.
+  const oldMapsFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('oldmaps'))
   // Car parks are opt-in as well — 88 "P" plates over the peninsula, and the
   // layer is the only thing that starts the live-vacancy polling.
   const [carParksOn, setCarParksOn] = useState(() => localStorage.getItem(LS_CARPARKS_KEY) === '1')
@@ -1159,10 +1165,8 @@ export default function App() {
     ga.layerToggled('religion', !v)
     return !v
   }), [])
-  const toggleOldMaps = useCallback(() => setOldMapsOn(v => {
-    ga.layerToggled('oldmaps', !v)
-    return !v
-  }), [])
+  // (toggleOldMaps lives with the other focus toggles below — HISTORICAL MAPS
+  // is a focus mode, so its switch goes through setFocus.)
   const toggleCarParks = useCallback(() => setCarParksOn(v => {
     ga.layerToggled('carparks', !v)
     return !v
@@ -1250,13 +1254,14 @@ export default function App() {
     setParishesOn(on)
   }, [parishesOn, lrtOn, isAutoMode, visibleRoutes, layerApply])
 
-  // HOUSING, WATER, POWER and WASTE are focus modes: switching one on snapshots
-  // every other layer and clears them, switching it off puts that exact snapshot
-  // back — even if the user flipped other switches in between. Each snapshot
-  // lives in a ref seeded from its own localStorage key, so a reload while a
-  // focus mode is on still restores correctly afterwards.
+  // HISTORICAL MAPS, HOUSING, WATER, POWER, WASTE and GRAND PRIX are focus
+  // modes: switching one on snapshots every other layer and clears them,
+  // switching it off puts that exact snapshot back — even if the user flipped
+  // other switches in between. Each snapshot lives in a ref seeded from its own
+  // localStorage key, so a reload while a focus mode is on still restores
+  // correctly afterwards.
   //
-  // All five are MUTUALLY EXCLUSIVE. Turning one on while another is focused
+  // All six are MUTUALLY EXCLUSIVE. Turning one on while another is focused
   // ends that focus (which would restore its snapshot) and immediately
   // re-hides everything, so what the new layer must remember is the OTHER
   // layer's snapshot — see focusHandoffSnapshot, which is that composition
@@ -1265,28 +1270,33 @@ export default function App() {
   //
   // `layer` is passed to applyFocusMode / applyLayerSnapshot so each can skip
   // that layer's exemptions (FOCUS_KEEPS): HOUSING never touches the schools
-  // switch in either direction, and never hides itself.
+  // switch in either direction, HISTORICAL MAPS never touches the religion
+  // switch, and neither hides itself.
   const setFocus = useCallback((layer: FocusLayer, on: boolean) => {
     const refFor = (l: FocusLayer) =>
-      l === 'housing' ? housingFocusSnapshotRef
-        : l === 'water' ? waterFocusSnapshotRef
-          : l === 'power' ? powerFocusSnapshotRef
-            : l === 'waste' ? wasteFocusSnapshotRef
-              : grandPrixFocusSnapshotRef
-    // HOUSING's "is the focus on?" flag is the layer's own visibility switch,
-    // not a separate one — the overlay IS what the focus mode shows.
+      l === 'oldmaps' ? oldMapsFocusSnapshotRef
+        : l === 'housing' ? housingFocusSnapshotRef
+          : l === 'water' ? waterFocusSnapshotRef
+            : l === 'power' ? powerFocusSnapshotRef
+              : l === 'waste' ? wasteFocusSnapshotRef
+                : grandPrixFocusSnapshotRef
+    // For HOUSING and HISTORICAL MAPS the "is the focus on?" flag is the
+    // layer's own visibility switch, not a separate one — the overlay IS what
+    // the focus mode shows.
     const setOnFor = (l: FocusLayer) =>
-      l === 'housing' ? setPublicHousingOn
-        : l === 'water' ? setWaterOn
-          : l === 'power' ? setPowerOn
-            : l === 'waste' ? setWasteOn
-              : setGrandPrixOn
+      l === 'oldmaps' ? setOldMapsOn
+        : l === 'housing' ? setPublicHousingOn
+          : l === 'water' ? setWaterOn
+            : l === 'power' ? setPowerOn
+              : l === 'waste' ? setWasteOn
+                : setGrandPrixOn
     const isOn = (l: FocusLayer) =>
-      l === 'housing' ? publicHousingOn
-        : l === 'water' ? waterOn
-          : l === 'power' ? powerOn
-            : l === 'waste' ? wasteOn
-              : grandPrixOn
+      l === 'oldmaps' ? oldMapsOn
+        : l === 'housing' ? publicHousingOn
+          : l === 'water' ? waterOn
+            : l === 'power' ? powerOn
+              : l === 'waste' ? wasteOn
+                : grandPrixOn
     const selfRef = refFor(layer)
     // The analytics event keeps the name the row has always reported under —
     // becoming a focus mode is not a new layer.
@@ -1316,8 +1326,9 @@ export default function App() {
       saveFocusSnapshot(layer, null)
     }
     setOnFor(layer)(on)
-  }, [liveLayerState, publicHousingOn, waterOn, powerOn, wasteOn, grandPrixOn, layerApply])
+  }, [liveLayerState, oldMapsOn, publicHousingOn, waterOn, powerOn, wasteOn, grandPrixOn, layerApply])
 
+  const toggleOldMaps = useCallback(() => setFocus('oldmaps', !oldMapsOn), [setFocus, oldMapsOn])
   const togglePublicHousing = useCallback(() => setFocus('housing', !publicHousingOn), [setFocus, publicHousingOn])
   const toggleWater = useCallback(() => setFocus('water', !waterOn), [setFocus, waterOn])
   const togglePower = useCallback(() => setFocus('power', !powerOn), [setFocus, powerOn])
@@ -1366,13 +1377,13 @@ export default function App() {
     return !v
   }), [])
 
-  // The utility focus modes — and HOUSING, whose estate blocks are just as
-  // static — take the clock UI off the screen (nothing on them has a time
-  // dimension), so they lock the keyboard shortcut and hide the time controls
-  // below. GRAND PRIX is the exception: the car laps on the simulation clock,
-  // and the speed buttons are how a two-minute lap becomes watchable — so that
-  // mode keeps the clock.
-  const clockHidden = publicHousingOn || waterOn || powerOn || wasteOn
+  // The utility focus modes — and HOUSING and HISTORICAL MAPS, whose estate
+  // blocks and scanned plates are just as static — take the clock UI off the
+  // screen (nothing on them has a time dimension), so they lock the keyboard
+  // shortcut and hide the time controls below. GRAND PRIX is the exception: the
+  // car laps on the simulation clock, and the speed buttons are how a
+  // two-minute lap becomes watchable — so that mode keeps the clock.
+  const clockHidden = oldMapsOn || publicHousingOn || waterOn || powerOn || wasteOn
 
   const { togglePause } = clock
   useEffect(() => {
@@ -1424,7 +1435,7 @@ export default function App() {
             onGrandPrixCornerClick={onGrandPrixCornerClick}
             onGrandPrixCircuitClick={onGrandPrixCircuitClick}
             grandPrixFocus={grandPrixOn}
-            transitHidden={parishesOn}
+            transitHidden={parishesOn || oldMapsOn}
             carParkVacancy={carParkVacancy.vacancy}
             onClearSelection={clearSelection}
             trackedVehicleId={trackedVehicleId}

@@ -89,7 +89,8 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-religion-on` | RELIGION 總開關 | 關 |
 | `mini-macau-religion-categories-on` | 五個宗教類別（土地公／廟宇／教堂／清真寺／其他）個別開關 | 全開 |
 | `mm-religion-legend-open` | RELIGION 圖例子列展開 | 開 |
-| `mini-macau-oldmaps-on` | HISTORICAL MAPS（古地圖）總開關 | 關 |
+| `mini-macau-oldmaps-on` | HISTORICAL MAPS（古地圖）總開關（專注模式，宗教除外） | 關 |
+| `mini-macau-oldmaps-focus-snapshot` | HISTORICAL MAPS 開啟前其他圖層的可見狀態快照（JSON） | 無 |
 | `mini-macau-oldmaps-hidden` | 個別關掉的古地圖 id（JSON 陣列） | 無（全開） |
 | `mini-macau-oldmaps-opacity` | 古地圖不透明度（0.2–1） | 0.85 |
 | `mm-oldmaps-legend-open` | HISTORICAL MAPS 圖例子列展開 | 開 |
@@ -106,6 +107,8 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 **WATER／POWER／WASTE 是同一套專注模式**（[`src/focusMode.ts`](../../src/focusMode.ts) 共用 capture／apply／persist 這一半：`FocusLayer = 'water' | 'power' | 'waste'`）：開啟其中一個時，先把其他所有圖層的可見狀態（LRT 線集合、巴士可見路線與自動模式旗標、AIR、SEA、WORKS、SCHOOLS、WC、P）存成快照，再全部關掉（連 LRT 路軌與巴士路線軌跡也不畫），地圖只剩該圖層自己的東西；關閉時原樣還原快照——中途手動改過的圖層也以快照為準——然後清掉快照。快照放 localStorage（`mini-macau-<layer>-focus-snapshot`），重新整理後再關閉仍能還原。專注模式期間時間控制整個消失（上方時鐘與下方的播放／暫停、倍速、時間軸、「現在」都不渲染，對應的鍵盤快捷鍵也不作用，判斷式是 `focusOn = waterOn || powerOn || wasteOn`）——這三層都沒有時間維度；模擬時鐘在背景照走，關閉任一個即原樣回來。
 
 **三者互斥**：開其中一個時會先把當時開著的另一個關掉並還原它的快照，再對其餘圖層重新做一次快照與隱藏——這個「交接」寫在 [`focusHandoffSnapshot`](../../src/focusMode.ts) 裡，直接把舊快照過戶給新的一層，不會真的走「先還原、再重新隱藏」兩次 render；`activeFocusPeer` 負責在三者裡找出當下唯一開著的那個（storage 萬一同時存了兩個 on，`FOCUS_LAYERS` 陣列順序 `water → power → waste` 的第一個贏）。三層各自的差異只在開啟後多畫什麼：WATER 多畫供水設施（色塊＋水面＋管線）、POWER 多畫電網（設施類型、220／110／66 kV 線路、配電網、廣東電網輸入口，標題「電網為示意」）、WASTE 沒有額外的街道網——`MapView.tsx` 的 `applyFocusVisibility(m, water, power, waste)` 對 WASTE 只用來湊隱藏 `bus-routes`／`stations-*` 那組共用旗標，垃圾點本身跟 WC／P 一樣是資料陣列清空即消失，見 [04-3d-layers.md](04-3d-layers.md)「垃圾回收」一節。
+
+**HISTORICAL MAPS（古地圖）也是專注模式，但有一個豁免**（2026-09-18，使用者要求「古地圖變成互斥 layer，宗教除外」）：`FocusLayer` 多了 `'oldmaps'`，排在 `FOCUS_LAYERS` 第一位，圖例列也移到「城市專題」（FOCUS）那一組的最上面。它的可見旗標就是專注旗標（`oldMapsOn`，和 HOUSING 的 `publicHousingOn` 同一種做法），`toggleOldMaps` 走 `setFocus('oldmaps', …)`。`FOCUS_KEEPS.oldmaps = {religion, oldMaps}`：開啟時 `applyFocusMode` 不碰 RELIGION 的總開關（五個類別開關本來就不在快照裡），關閉時 `applyLayerSnapshot` 也不還原它——使用者在專注期間怎麼切宗教就是怎樣；從別的專注圖層交接過來時，`applyKeptOnHandoff` 只把宗教從繼承的快照裡放回來（自己的 `oldMaps` 開關由 App 設，不從快照重播）。其他專注圖層照樣會把宗教和古地圖一起藏起來。古地圖沒有時間維度，所以 `clockHidden` 包含它；它也沒有自己的街道網，`MapView` 的 `transitHidden` 由 `parishesOn || oldMapsOn` 帶起來，用來藏 `bus-routes`／`stations-*`。圖例明細最後一行與卡片說明是 `t.oldMapsFocusNote`（「專注模式 — 開啟時除宗教外其他圖層會隱藏」）。
 
 WATER 開啟時列下方會展開一個靜態圖例（`WaterKey`，手機版在 WATER modal 內）：設施類型（水廠、水塘、高位水池、原水泵站、泵站、約略位置空心水滴）與管線（原水管深藍虛線、淨水管淺藍實線、示意直線灰虛線——只在資料有 `fallback` 管段時出現、配水管網細線、珠海原水輸入口圖示），標題註明「管網為示意」。它是獨立區塊，不影響上下各列的欄位對齊。面板會標示營運者：澳門自來水設施，或黑沙水庫的「政府原水水庫（海事及水務局）· 非自來水公司設施」，並列出該設施接了幾條示意管線；點珠海原水輸入口開的是 `WaterInletInfoPanel`。配水路網（`water-distribution.json`，約 550 KiB）由 `useWaterDistribution` 在第一次開 WATER 時才抓一次，之後開關不再重抓。
 

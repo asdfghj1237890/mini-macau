@@ -2037,7 +2037,8 @@ export interface MapViewProps {
   // PARISHES is exclusive with the transit lines: while it is on, App has
   // already emptied the LRT/bus arrays, and this hides the network that
   // survives an empty array (bus polylines, station pins) exactly as a focus
-  // mode does — without being one.
+  // mode does — without being one. HISTORICAL MAPS, which IS a focus mode but
+  // has no mesh of its own to show, raises the same flag.
   transitHidden?: boolean
   onGrandPrixCornerClick?: (corner: GrandPrixCorner | null) => void
   // A click on the racing line itself opens the circuit's own panel.
