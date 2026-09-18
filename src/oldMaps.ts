@@ -11,6 +11,25 @@ export const OLD_MAPS_MIN_OPACITY = 0.2
 // the category swatches, not chrome.
 export const OLD_MAP_SWATCH_COLOR = '#d2b27a'
 
+// The basemap's 3D buildings. On the ordinary map they are near-solid blocks in
+// the theme's grey; while a plate is drawn they stand ON the plate, and a dark
+// solid block hides exactly the part of an old plan that has the most on it —
+// the walled town. So over a plate they turn into a paper-toned, half-see-through
+// massing model: today's city stays readable as volume, and the streets and
+// shoreline engraved underneath show through it. One colour for both themes,
+// because what lies under the buildings is the same parchment either way.
+export interface BasemapBuildingsPaint {
+  color: string
+  opacity: number
+}
+
+export const OLD_MAP_BUILDINGS_PAINT: BasemapBuildingsPaint = { color: '#e9dfc8', opacity: 0.5 }
+
+export function basemapBuildingsPaint(dark: boolean, overOldMap: boolean): BasemapBuildingsPaint {
+  if (overOldMap) return OLD_MAP_BUILDINGS_PAINT
+  return { color: dark ? '#2a2d33' : '#d8d8dc', opacity: 0.85 }
+}
+
 const SOURCE_PREFIX = 'oldmap-'
 const LAYER_SUFFIX = '-raster'
 

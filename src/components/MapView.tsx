@@ -41,7 +41,7 @@ import {
 } from '../parishes'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { RELIGION_APPROXIMATE_OPACITY, RELIGION_CATEGORY_COLORS, RELIGION_ICON_VARIANTS, buildReligionFeatures, religionIconName } from '../religion'
-import { OLD_MAPS_DEFAULT_OPACITY, oldMapIdFromLayer, oldMapLayerId, oldMapSourceId } from '../oldMaps'
+import { OLD_MAPS_DEFAULT_OPACITY, basemapBuildingsPaint, oldMapIdFromLayer, oldMapLayerId, oldMapSourceId } from '../oldMaps'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import {
   WASTE_AREA_FILL_OPACITY,
@@ -1942,9 +1942,19 @@ const STYLES = {
 // HISTORICAL MAPS. Adds, removes and restyles the image sources so the map
 // holds exactly `maps`: one `image` source + one `raster` layer per map, both
 // inserted under `beforeId`; a map already present only gets its opacity set.
-// Called from addCustomLayers (seeding, and again after a restyle) and from
+// The basemap's 3D buildings follow: a paper-toned, half-see-through massing
+// model while any plate is drawn, the theme's own blocks otherwise (see
+// basemapBuildingsPaint). Called from addCustomLayers (seeding, and again after
+// a restyle — which is also how a theme change reaches the buildings) and from
 // the [transitData.oldMaps, oldMapsOpacity] effect.
-function syncOldMapLayers(m: maplibregl.Map, maps: OldMap[], opacity: number, beforeId: string | undefined): void {
+function syncOldMapLayers(
+  m: maplibregl.Map, maps: OldMap[], opacity: number, beforeId: string | undefined, dark: boolean,
+): void {
+  if (m.getLayer(BUILDINGS_LAYER_ID)) {
+    const paint = basemapBuildingsPaint(dark, maps.length > 0)
+    m.setPaintProperty(BUILDINGS_LAYER_ID, 'fill-extrusion-color', paint.color)
+    m.setPaintProperty(BUILDINGS_LAYER_ID, 'fill-extrusion-opacity', paint.opacity)
+  }
   const wanted = new Set(maps.map(map => map.id))
   for (const layer of m.getStyle().layers ?? []) {
     const id = oldMapIdFromLayer(layer.id)
@@ -2650,6 +2660,10 @@ export function MapView(props: MapViewProps) {
           parishAnchorId = buildingFill?.id ?? firstSymbolId
         }
 
+        // Seeded for the plates that are already on (a theme swap with
+        // HISTORICAL MAPS up), so the blocks never flash in the theme's grey;
+        // syncOldMapLayers keeps the two in step from here on.
+        const buildingsPaint = basemapBuildingsPaint(dark, transitRef.current.oldMaps.length > 0)
         m.addSource(BUILDINGS_SOURCE_ID, { type: 'vector', url: BUILDINGS_TILEJSON })
         m.addLayer({
           id: BUILDINGS_LAYER_ID,
@@ -2660,27 +2674,28 @@ export function MapView(props: MapViewProps) {
           filter: ['!=', ['get', 'hide_3d'], true],
           layout: { visibility: cur3D && curBuildings ? 'visible' : 'none' },
           paint: {
-            'fill-extrusion-color': dark ? '#2a2d33' : '#d8d8dc',
+            'fill-extrusion-color': buildingsPaint.color,
             'fill-extrusion-height': [
               'interpolate', ['linear'], ['zoom'],
               14, 0, 15.5, ['coalesce', ['get', 'render_height'], 0],
             ],
             'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
-            'fill-extrusion-opacity': 0.85,
+            'fill-extrusion-opacity': buildingsPaint.opacity,
           },
         }, firstSymbolId)
       } catch { /* building tiles may fail */ }
 
       // Historical maps. A georeferenced scan is GROUND like the parish tint,
       // but the plate is opaque enough to hide the roads, so it goes just
-      // under the 3D buildings — which then stand on the old plan — and above
+      // under the 3D buildings — which then stand on the old plan, as a
+      // paper-toned see-through model (basemapBuildingsPaint) — and above
       // every basemap fill: before `3d-buildings` when the tiles loaded, else
       // the firstSymbolId slot the buildings would have taken. Everything
       // added at firstSymbolId below draws over it. Seeded from transitRef
       // like the other overlays so a theme swap redraws it.
       oldMapAnchorRef.current = m.getLayer(BUILDINGS_LAYER_ID) ? BUILDINGS_LAYER_ID : firstSymbolId
       try {
-        syncOldMapLayers(m, transitRef.current.oldMaps, oldMapsOpacityRef.current, oldMapAnchorRef.current)
+        syncOldMapLayers(m, transitRef.current.oldMaps, oldMapsOpacityRef.current, oldMapAnchorRef.current, dark)
       } catch (err) { debugLog(`[map] old maps: ${String(err)}`) }
 
       // Parishes. The only CITY layer that is context rather than data, so it
@@ -4466,14 +4481,16 @@ export function MapView(props: MapViewProps) {
 
   // Historical maps: image sources added and removed on array identity (the
   // file arriving, a map's own switch, or the master switch swapping in the
-  // empty array), the opacity pushed as a paint property. Before the first
+  // empty array), the opacity pushed as a paint property, and the basemap's 3D
+  // buildings restyled for whether any plate is drawn. Before the first
   // addCustomLayers there is nothing to add to; that call seeds from
-  // transitRef instead.
+  // transitRef instead. The theme is read from the ref on purpose: a theme
+  // change is a full setStyle, and addCustomLayers re-seeds the buildings.
   useEffect(() => {
     const map = mapRef.current
     if (!map || !layersAddedRef.current) return
     try {
-      syncOldMapLayers(map, transitData.oldMaps, oldMapsOpacity, oldMapAnchorRef.current)
+      syncOldMapLayers(map, transitData.oldMaps, oldMapsOpacity, oldMapAnchorRef.current, isDarkRef.current)
     } catch (err) { debugLog(`[map] old maps: ${String(err)}`) }
   }, [transitData.oldMaps, oldMapsOpacity])
 

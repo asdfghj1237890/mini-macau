@@ -5,6 +5,8 @@ import {
   NO_HIDDEN_OLD_MAPS,
   OLD_MAPS_DEFAULT_OPACITY,
   OLD_MAPS_MIN_OPACITY,
+  OLD_MAP_BUILDINGS_PAINT,
+  basemapBuildingsPaint,
   clampOldMapsOpacity,
   filterOldMaps,
   loadHiddenOldMaps,
@@ -72,6 +74,20 @@ describe('names and years', () => {
     expect(oldMapYears(map())).toBe('1792 · 1808')
     expect(oldMapYears(map({ published: null }))).toBe('1792')
     expect(oldMapYears(map({ published: 1792 }))).toBe('1792')
+  })
+})
+
+describe('basemapBuildingsPaint — the 3D buildings over a plate', () => {
+  it('keeps the theme’s near-solid blocks while no plate is drawn', () => {
+    expect(basemapBuildingsPaint(true, false)).toEqual({ color: '#2a2d33', opacity: 0.85 })
+    expect(basemapBuildingsPaint(false, false)).toEqual({ color: '#d8d8dc', opacity: 0.85 })
+  })
+  it('turns them into the same paper-toned see-through model in both themes', () => {
+    expect(basemapBuildingsPaint(true, true)).toEqual(OLD_MAP_BUILDINGS_PAINT)
+    expect(basemapBuildingsPaint(false, true)).toEqual(OLD_MAP_BUILDINGS_PAINT)
+    // See-through enough to read the plate, solid enough to read the volume.
+    expect(OLD_MAP_BUILDINGS_PAINT.opacity).toBeGreaterThanOrEqual(0.3)
+    expect(OLD_MAP_BUILDINGS_PAINT.opacity).toBeLessThanOrEqual(0.6)
   })
 })
 
