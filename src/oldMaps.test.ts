@@ -16,6 +16,7 @@ import {
   oldMapName,
   oldMapNotes,
   oldMapSourceId,
+  oldMapSourceSpec,
   oldMapTitle,
   oldMapYears,
   saveHiddenOldMaps,
@@ -88,6 +89,30 @@ describe('basemapBuildingsPaint — the 3D buildings over a plate', () => {
     // See-through enough to read the plate, solid enough to read the volume.
     expect(OLD_MAP_BUILDINGS_PAINT.opacity).toBeGreaterThanOrEqual(0.3)
     expect(OLD_MAP_BUILDINGS_PAINT.opacity).toBeLessThanOrEqual(0.6)
+  })
+})
+
+describe('oldMapSourceSpec — single image or tile pyramid', () => {
+  it('draws a plate without tiles as its single image', () => {
+    const m = map()
+    expect(oldMapSourceSpec(m, 'https://example.test')).toEqual({ type: 'image', url: m.image, coordinates: m.coordinates })
+  })
+  it('draws a plate with tiles as a raster pyramid held to its bounds', () => {
+    const m = map({ tiles: { url: '/data/old-maps/guignes-1792/{z}/{x}/{y}.webp', tileSize: 512, minzoom: 9, maxzoom: 17, count: 278 } })
+    expect(oldMapSourceSpec(m, 'https://example.test')).toEqual({
+      type: 'raster',
+      tiles: ['https://example.test/data/old-maps/guignes-1792/{z}/{x}/{y}.webp'],
+      tileSize: 512,
+      minzoom: 9,
+      maxzoom: 17,
+      // west, south, east, north — MapLibre's order, not the JSON's
+      bounds: [113.5155, 22.1721, 113.5683, 22.2212],
+    })
+  })
+  it('keeps the {z}/{x}/{y} template intact and tolerates a trailing slash on the origin', () => {
+    const m = map({ tiles: { url: '/data/old-maps/a/{z}/{x}/{y}.webp', tileSize: 512, minzoom: 9, maxzoom: 16, count: 1 } })
+    const spec = oldMapSourceSpec(m, 'http://localhost:5173/')
+    expect(spec.type === 'raster' && spec.tiles[0]).toBe('http://localhost:5173/data/old-maps/a/{z}/{x}/{y}.webp')
   })
 })
 

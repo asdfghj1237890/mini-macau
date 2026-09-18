@@ -1,9 +1,11 @@
 import type { Lang } from './i18n'
 import type { OldMap, OldMapText } from './types'
 
-// HISTORICAL MAPS overlay helpers. The plates themselves are MapLibre `image`
-// sources (see `syncOldMapLayers` in MapView); this module is the pure part —
-// source/layer ids, names, the hidden set and the opacity, both persisted.
+// HISTORICAL MAPS overlay helpers. The plates themselves are MapLibre sources
+// (see `syncOldMapLayers` in MapView) — a raster tile pyramid where the plate
+// has one, its single image otherwise; this module is the pure part — the
+// source spec, source/layer ids, names, the hidden set and the opacity, both
+// persisted.
 
 export const OLD_MAPS_DEFAULT_OPACITY = 0.85
 export const OLD_MAPS_MIN_OPACITY = 0.2
@@ -39,6 +41,31 @@ export function oldMapSourceId(id: string): string {
 
 export function oldMapLayerId(id: string): string {
   return `${SOURCE_PREFIX}${id}${LAYER_SUFFIX}`
+}
+
+// What MapView hands to `addSource` for a plate. A plate that ships a tile
+// pyramid is a `raster` source — the map then loads only the tiles in view at
+// the zoom in view, so zooming in brings the scan's own resolution without one
+// huge texture — and `bounds` keeps it from asking for tiles the pyramid does
+// not have. Every other plate is its single north-up WebP as an `image` source.
+// The tile URL is made absolute with the page's origin: a template cannot go
+// through `new URL` (the braces would be escaped), and a root-relative one is
+// only safe where the request happens to be made from the main thread.
+export type OldMapSourceSpec =
+  | { type: 'raster'; tiles: [string]; tileSize: number; minzoom: number; maxzoom: number; bounds: [number, number, number, number] }
+  | { type: 'image'; url: string; coordinates: OldMap['coordinates'] }
+
+export function oldMapSourceSpec(map: OldMap, origin: string): OldMapSourceSpec {
+  if (!map.tiles) return { type: 'image', url: map.image, coordinates: map.coordinates }
+  const { west, south, east, north } = map.bounds
+  return {
+    type: 'raster',
+    tiles: [`${origin.replace(/\/+$/, '')}${map.tiles.url}`],
+    tileSize: map.tiles.tileSize,
+    minzoom: map.tiles.minzoom,
+    maxzoom: map.tiles.maxzoom,
+    bounds: [west, south, east, north],
+  }
 }
 
 // The map id a raster layer belongs to, or null for any other layer (the

@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-18T15:44:23.179Z",
+  "generatedAt": "2026-09-18T17:57:59.365Z",
   "maps": [
     {
       "id": "guignes-1792",
@@ -1631,6 +1631,13 @@
           22.156373
         ]
       ],
+      "tiles": {
+        "url": "/data/old-maps/baker-1796/{z}/{x}/{y}.webp",
+        "tileSize": 512,
+        "minzoom": 9,
+        "maxzoom": 16,
+        "count": 393
+      },
       "georef": {
         "method": "thin-plate spline",
         "lambda": 0,
@@ -3305,6 +3312,13 @@
           22.177977
         ]
       ],
+      "tiles": {
+        "url": "/data/old-maps/heitor-1889/{z}/{x}/{y}.webp",
+        "tileSize": 512,
+        "minzoom": 9,
+        "maxzoom": 17,
+        "count": 278
+      },
       "georef": {
         "method": "thin-plate spline",
         "lambda": 0,
@@ -5202,6 +5216,13 @@
           22.171653
         ]
       ],
+      "tiles": {
+        "url": "/data/old-maps/sauvage-1893/{z}/{x}/{y}.webp",
+        "tileSize": 512,
+        "minzoom": 9,
+        "maxzoom": 16,
+        "count": 212
+      },
       "georef": {
         "method": "thin-plate spline",
         "lambda": 0,

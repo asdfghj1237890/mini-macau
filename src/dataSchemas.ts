@@ -453,6 +453,15 @@ export const OldMapsFileSchema = z.object({
       height: z.number().int().positive(),
       bounds: z.object({ west: z.number(), east: z.number(), north: z.number(), south: z.number() }),
       coordinates: z.tuple([lngLat, lngLat, lngLat, lngLat]),
+      // Only on the plates that also ship a tile pyramid (buildTiles in
+      // scripts/build-old-maps.mjs). The validator checks the files on disk; here only the shape.
+      tiles: z.object({
+        url: z.string().regex(/^\/data\/old-maps\/[a-z0-9]+(?:-[a-z0-9]+)*\/\{z\}\/\{x\}\/\{y\}\.webp$/),
+        tileSize: z.literal(512),
+        minzoom: z.number().int().min(0).max(22),
+        maxzoom: z.number().int().min(0).max(22),
+        count: z.number().int().positive(),
+      }).refine(t => t.minzoom <= t.maxzoom, { message: 'minzoom must not exceed maxzoom' }).optional(),
       georef: z.object({
         method: z.string(),
         lambda: z.number().nullable(),

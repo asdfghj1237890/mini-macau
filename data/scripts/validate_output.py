@@ -3048,8 +3048,9 @@ def v_religion(data: object) -> list[str]:
 # scripts/build-old-maps.mjs (Node, not this pipeline: it needs sharp). Mirrors
 # OldMapsFileSchema in src/dataSchemas.ts. Every map's WebP must exist under
 # public/data/old-maps/, its bounds must be a sane box inside Macau, the four
-# corners must be that box in TL/TR/BR/BL order, and the control-point table
-# the legend quotes must agree with the RMS it quotes.
+# corners must be that box in TL/TR/BR/BL order, the control-point table the
+# legend quotes must agree with the RMS it quotes, and a plate that says it has
+# a tile pyramid must have every tile of it on disk.
 OLD_MAPS_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 OLD_MAPS_MAX_RMS_M = 150.0
 
@@ -3095,6 +3096,73 @@ def _check_old_map_coast_snap(errs: list[str], ctx: str, s: object) -> None:
     left = s["leftMaxM"]
     if _is_num(left) and left > OLD_MAPS_SNAP_MAX_LEFT_M:
         errs.append(f"{ctx}.leftMaxM: {left} m left after the snap (max {OLD_MAPS_SNAP_MAX_LEFT_M:g} m)")
+
+
+# The tile pyramid (buildTiles in scripts/build-old-maps.mjs) is optional: only the plates whose
+# scan has more in it than the single image keeps carry it. The map is told (by the source's
+# `bounds`) that every tile of the bounds' grid exists between the two zooms, so every one of them
+# has to be on disk — the builder writes the empty corners as blank tiles — and nothing else may
+# sit in the directory. The grid is recomputed here the way the builder computes it.
+OLD_MAPS_TILE_SIZE = 512
+OLD_MAPS_TILE_MAX_ZOOM = 22
+
+
+def _old_map_tile_range(b: dict, z: int) -> tuple[int, int, int, int]:
+    world = OLD_MAPS_TILE_SIZE * 2 ** z
+
+    def merc_x(lng: float) -> float:
+        return (lng + 180.0) / 360.0 * world
+
+    def merc_y(lat: float) -> float:
+        s = math.sin(math.radians(lat))
+        return (0.5 - math.log((1 + s) / (1 - s)) / (4 * math.pi)) * world
+
+    return (math.floor(merc_x(b["west"]) / OLD_MAPS_TILE_SIZE), math.floor(merc_x(b["east"]) / OLD_MAPS_TILE_SIZE),
+            math.floor(merc_y(b["north"]) / OLD_MAPS_TILE_SIZE), math.floor(merc_y(b["south"]) / OLD_MAPS_TILE_SIZE))
+
+
+def _check_old_map_tiles(errs: list[str], ctx: str, mid: str, tiles: object, bounds: object) -> None:
+    root = PUBLIC / "data" / "old-maps" / mid
+    if tiles is None:
+        if root.exists():
+            errs.append(f"{ctx}: {root} exists but the map has no tiles block (a pyramid left behind?)")
+        return
+    if not require_fields(errs, ctx, tiles, ("url", "tileSize", "minzoom", "maxzoom", "count")):
+        return
+    expected_url = f"/data/old-maps/{mid}/{{z}}/{{x}}/{{y}}.webp"
+    if tiles["url"] != expected_url:
+        errs.append(f"{ctx}.url: must be {expected_url!r}, got {tiles['url']!r}")
+    if tiles["tileSize"] != OLD_MAPS_TILE_SIZE:
+        errs.append(f"{ctx}.tileSize: must be {OLD_MAPS_TILE_SIZE}, got {tiles['tileSize']!r}")
+    zooms = [tiles["minzoom"], tiles["maxzoom"]]
+    if not all(isinstance(z, int) and not isinstance(z, bool) and 0 <= z <= OLD_MAPS_TILE_MAX_ZOOM for z in zooms):
+        errs.append(f"{ctx}: minzoom/maxzoom must be integers within 0..{OLD_MAPS_TILE_MAX_ZOOM}")
+        return
+    if zooms[0] > zooms[1]:
+        errs.append(f"{ctx}: minzoom {zooms[0]} exceeds maxzoom {zooms[1]}")
+        return
+    count = tiles["count"]
+    if not (isinstance(count, int) and not isinstance(count, bool) and count > 0):
+        errs.append(f"{ctx}.count: must be a positive integer")
+    if not (isinstance(bounds, dict) and all(_is_num(bounds.get(k)) for k in ("west", "east", "north", "south"))
+            and bounds["west"] < bounds["east"] and bounds["south"] < bounds["north"]):
+        return  # the bounds errors are reported where the bounds are checked
+    expected = 0
+    missing: list[str] = []
+    for z in range(zooms[0], zooms[1] + 1):
+        x0, x1, y0, y1 = _old_map_tile_range(bounds, z)
+        for x in range(x0, x1 + 1):
+            for y in range(y0, y1 + 1):
+                expected += 1
+                if not (root / str(z) / str(x) / f"{y}.webp").is_file():
+                    missing.append(f"{z}/{x}/{y}")
+    if missing:
+        errs.append(f"{ctx}: {len(missing)} of {expected} tiles of the bounds' grid are missing under {root} (first: {missing[0]})")
+    if count != expected:
+        errs.append(f"{ctx}.count: {count!r} but the bounds' grid has {expected} tiles for z{zooms[0]}..z{zooms[1]}")
+    on_disk = sum(1 for p in root.rglob("*") if p.is_file()) if root.is_dir() else 0
+    if on_disk != expected:
+        errs.append(f"{ctx}: {on_disk} files under {root}, expected exactly the {expected} tiles of the grid")
 
 
 def _check_old_map_georef(errs: list[str], ctx: str, g: object) -> None:
@@ -3210,6 +3278,8 @@ def v_old_maps(data: object) -> list[str]:
                 errs.append(f"{ctx}.coordinates: must be four [lng, lat] corners")
             elif any(abs(c[0] - e[0]) > 1e-9 or abs(c[1] - e[1]) > 1e-9 for c, e in zip(coords, expected)):
                 errs.append(f"{ctx}.coordinates: must be the bounds in TL/TR/BR/BL order")
+        if isinstance(mid, str) and OLD_MAPS_ID_RE.match(mid):
+            _check_old_map_tiles(errs, f"{ctx}.tiles", mid, m.get("tiles"), b)
         _check_old_map_georef(errs, f"{ctx}.georef", m["georef"])
         s = m["scan"]
         if require_fields(errs, f"{ctx}.scan", s, ("holder", "via", "identifier", "url", "leaves", "license")):

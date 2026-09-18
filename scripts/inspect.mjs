@@ -42,10 +42,10 @@
 //   node scripts/inspect.mjs dspa-stats              # dspa-stats.json summary (DSPA monthly stats: incinerator/hazardous/landfill/4x wwtp series, latest values, incinerator facts)
 //   node scripts/inspect.mjs grand-prix [--kinks]   # grand-prix.json summary (Guia Circuit: official vs measured length, corner table with rules, pit lane, sources); --kinks lists the stitched line's sideways jogs (seams between OSM ways)
 //   node scripts/inspect.mjs religion               # religion.json summary (by kind/source, approximate count, heritage sites, My Maps-only count, top 10 by macaumemory.names length)
-//   node scripts/inspect.mjs old-maps               # old-maps.json summary (per map: title, years, raster size + bounds, georef method / control points / RMS, worst residuals, scan source)
+//   node scripts/inspect.mjs old-maps               # old-maps.json summary (per map: title, years, raster size + bounds, tile pyramid zooms / files / MB on disk, georef method / control points / RMS, worst residuals, scan source)
 // bucket = weekday | sat | sun (default weekday)
 
-import { existsSync, readFileSync, statSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { gzipSync } from 'node:zlib'
@@ -1389,8 +1389,9 @@ function cmdGrandPrixKinks(track, corners, minTurnDeg = 35, maxSegM = 25) {
 
 // old-maps.json: HISTORICAL MAPS overlay — georeferenced scans built by
 // scripts/build-old-maps.mjs (Node + sharp, not the Python pipeline). Per
-// map: title, years, raster size and bounds, how it was georeferenced
-// (method, control points, RMS), the worst residuals and the scan source.
+// map: title, years, raster size and bounds, the tile pyramid on disk where
+// the plate has one, how it was georeferenced (method, control points, RMS),
+// the worst residuals and the scan source.
 function cmdOldMaps() {
   const { generatedAt, maps } = load('public/data/old-maps.json')
   console.log(`old-maps.json: ${maps.length} map(s), generated ${generatedAt}`)
@@ -1401,6 +1402,21 @@ function cmdOldMaps() {
     console.log(`  ${m.title.en}`)
     console.log(`  drawn ${m.year}${m.published ? `, published ${m.published}` : ''} — ${m.author}`)
     console.log(`  raster ${m.width}x${m.height} px @ ${m.georef.metresPerPixel} m/px, ${kb}; bounds W ${m.bounds.west} E ${m.bounds.east} N ${m.bounds.north} S ${m.bounds.south}`)
+    if (m.tiles) {
+      // the pyramid on disk, per zoom: what the repo pays for the plate staying sharp when zoomed in
+      const dir = join(ROOT, 'public', 'data', 'old-maps', m.id)
+      const perZoom = []
+      let files = 0, bytes = 0
+      for (let z = m.tiles.minzoom; z <= m.tiles.maxzoom; z++) {
+        let zFiles = 0, zBytes = 0
+        const zDir = join(dir, String(z))
+        for (const x of existsSync(zDir) ? readdirSync(zDir) : []) for (const y of readdirSync(join(zDir, x))) { zFiles++; zBytes += statSync(join(zDir, x, y)).size }
+        files += zFiles; bytes += zBytes
+        perZoom.push(`z${z} ${zFiles}`)
+      }
+      const mpp = 40075016.686 * Math.cos((m.bounds.north + m.bounds.south) / 2 * Math.PI / 180) / (m.tiles.tileSize * 2 ** m.tiles.maxzoom)
+      console.log(`  tiles z${m.tiles.minzoom}–z${m.tiles.maxzoom} (${m.tiles.tileSize} px, ${mpp.toFixed(2)} m/px at the top): ${files} files on disk${files === m.tiles.count ? '' : ` — the JSON says ${m.tiles.count}`}, ${(bytes / 1024 / 1024).toFixed(2)} MB (${perZoom.join(', ')})`)
+    } else console.log('  tiles: none (single image only)')
     console.log(`  georef: ${m.georef.method}${m.georef.lambda != null ? ` (λ ${m.georef.lambda})` : ''}, ${m.georef.controlPoints} control points, RMS ${m.georef.rmsM} m`)
     const snap = m.georef.coastSnap
     if (snap) console.log(`  coast snap: ${snap.pairs} dense pairs onto the reference shoreline in ${snap.steps} steps (radius ${snap.radiusM} m, largest step gradient ${snap.maxStepGradient}); spline alone median ${snap.splineMedianM} m / p90 ${snap.splineP90M} m / max ${snap.splineMaxM} m off, after the snap median ${snap.leftMedianM} m / max ${snap.leftMaxM} m`)

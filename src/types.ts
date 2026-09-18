@@ -416,10 +416,11 @@ export interface ReligionSite {
 }
 
 // HISTORICAL MAPS overlay (old-maps.json): one georeferenced scan per entry,
-// drawn as a MapLibre `image` source between the basemap and our overlays.
-// `coordinates` are the raster's four corners in TL / TR / BR / BL order — the
-// WebP is already rubbersheeted north-up, so they are just the bounds.
-// `georef` keeps the control points and residuals the legend quotes.
+// drawn between the basemap and our overlays — as a raster tile pyramid where
+// the entry has `tiles` (sharp when zoomed in), as one MapLibre `image` source
+// otherwise. `coordinates` are the single raster's four corners in TL / TR /
+// BR / BL order — the WebP is already rubbersheeted north-up, so they are just
+// the bounds. `georef` keeps the control points and residuals the legend quotes.
 export interface OldMapText {
   zh: string
   en: string
@@ -448,6 +449,18 @@ export interface OldMapCoastSnap {
   leftMaxM: number
 }
 
+// The plate again as a 512 px Web-Mercator XYZ pyramid, resampled from the
+// scan's own pixels (the single image is warped from a 3× shrunk plate). Only
+// on the plates whose scan has more in it than the single image keeps; every
+// tile of the bounds' grid between the two zooms exists, the empty ones blank.
+export interface OldMapTiles {
+  url: string // '/data/old-maps/<id>/{z}/{x}/{y}.webp'
+  tileSize: number // 512
+  minzoom: number
+  maxzoom: number // the last zoom the scan has detail for
+  count: number // files in the pyramid
+}
+
 export interface OldMap {
   id: string // 'guignes-1792'
   name: OldMapText // short, for the legend row
@@ -461,6 +474,7 @@ export interface OldMap {
   height: number
   bounds: { west: number; east: number; north: number; south: number }
   coordinates: [[number, number], [number, number], [number, number], [number, number]]
+  tiles?: OldMapTiles
   georef: {
     method: string
     lambda: number | null

@@ -41,7 +41,7 @@ import {
 } from '../parishes'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { RELIGION_APPROXIMATE_OPACITY, RELIGION_CATEGORY_COLORS, RELIGION_ICON_VARIANTS, buildReligionFeatures, religionIconName } from '../religion'
-import { OLD_MAPS_DEFAULT_OPACITY, basemapBuildingsPaint, oldMapIdFromLayer, oldMapLayerId, oldMapSourceId } from '../oldMaps'
+import { OLD_MAPS_DEFAULT_OPACITY, basemapBuildingsPaint, oldMapIdFromLayer, oldMapLayerId, oldMapSourceId, oldMapSourceSpec } from '../oldMaps'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import {
   WASTE_AREA_FILL_OPACITY,
@@ -1939,9 +1939,12 @@ const STYLES = {
   light: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
 }
 
-// HISTORICAL MAPS. Adds, removes and restyles the image sources so the map
-// holds exactly `maps`: one `image` source + one `raster` layer per map, both
-// inserted under `beforeId`; a map already present only gets its opacity set.
+// HISTORICAL MAPS. Adds, removes and restyles the plates' sources so the map
+// holds exactly `maps`: one source + one `raster` layer per map, both inserted
+// under `beforeId`; a map already present only gets its opacity set. The source
+// is the plate's tile pyramid where it ships one (sharp when zoomed in, and only
+// the tiles in view are ever on the GPU), its single image otherwise — see
+// oldMapSourceSpec.
 // The basemap's 3D buildings follow: a paper-toned, half-see-through massing
 // model while any plate is drawn, the theme's own blocks otherwise (see
 // basemapBuildingsPaint). Called from addCustomLayers (seeding, and again after
@@ -1966,7 +1969,7 @@ function syncOldMapLayers(
   for (const map of maps) {
     const sourceId = oldMapSourceId(map.id)
     const layerId = oldMapLayerId(map.id)
-    if (!m.getSource(sourceId)) m.addSource(sourceId, { type: 'image', url: map.image, coordinates: map.coordinates })
+    if (!m.getSource(sourceId)) m.addSource(sourceId, oldMapSourceSpec(map, window.location.origin))
     if (m.getLayer(layerId)) {
       m.setPaintProperty(layerId, 'raster-opacity', opacity)
       continue

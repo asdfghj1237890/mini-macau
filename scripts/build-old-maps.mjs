@@ -1,7 +1,9 @@
 // Build the HISTORICAL MAPS (古地圖) overlay: download the public-domain scans, straighten,
 // crop (and, for a plate bound across a fold, stitch) them, rubbersheet each plate onto modern
 // coordinates with a thin-plate spline over hand-picked control points, and write
-// public/data/old-maps/<id>.webp + public/data/old-maps.json.
+// public/data/old-maps/<id>.webp + public/data/old-maps.json — plus, for the plates whose scan
+// has more in it than the single image keeps (`tiles: { maxzoom }` in the table), a 512 px XYZ
+// tile pyramid under public/data/old-maps/<id>/ that the map loads when it is zoomed in.
 //
 //   node scripts/build-old-maps.mjs                    # all maps
 //   node scripts/build-old-maps.mjs guignes-1792       # one map (the JSON keeps the others)
@@ -282,6 +284,9 @@ const MAPS = [
     },
     lambda: 0,
     resM: 3,
+    // The tile pyramid stops at z16 (1.1 m/px); a scan pixel is 0.65–1.7 m on the ground here
+    // (the sketch's scale wanders), median 0.89 m.
+    tiles: { maxzoom: 16 },
     marginKm: 5,
     gcpSpace: 'sheet',
     // stage 2: snap the drawn coast onto the reference shoreline, the coast of 1794 (pairs in scripts/old-maps-coast/baker-1796.json)
@@ -450,11 +455,14 @@ const MAPS = [
       file: 'loc-2002624048.jpg',
       // Inside the double fillet (dark-line scan of the sheet edges).
       crop: { left: 118, top: 112, width: 6874, height: 10248 },
-      // 0.54 m/px at 1:5,000; box-shrink 3× before the 2 m/px warp.
+      // One scan pixel is 0.43 m on the ground (median over the landmark pins); box-shrink 3×
+      // before the 2 m/px warp.
       shrink: 3,
     },
     lambda: 0,
     resM: 2,
+    // The tile pyramid stops at z17 (0.55 m/px): z18 would be finer than the scan.
+    tiles: { maxzoom: 17 },
     marginKm: 2,
     gcpSpace: 'sheet',
     gcps: [
@@ -649,6 +657,8 @@ const MAPS = [
     },
     lambda: 0,
     resM: 2.5,
+    // The tile pyramid stops at z16 (1.1 m/px): z17 is finer than the scan and four times the files.
+    tiles: { maxzoom: 16 },
     marginKm: 4,
     gcpSpace: 'sheet',
     gcps: [
@@ -817,10 +827,29 @@ function fitTPS(points, lambda) {
     b[i] = points[i].val
   }
   const s = solve(A, b)
-  return (x, y) => {
+  const f = (x, y) => {
     let v = s[n] + s[n + 1] * x + s[n + 2] * y
     for (let i = 0; i < n; i++) { const dx = x - points[i].x, dy = y - points[i].y; v += s[i] * U(dx * dx + dy * dy) }
     return v
+  }
+  f.points = points; f.weights = s // for fuseTPS
+  return f
+}
+
+// Both splines of a map at once. They share their control points, so the kernel — the costly
+// part — is evaluated once per point instead of twice; the numbers are fu's and fv's to rounding.
+// The tile pyramid uses it (its lattice is millions of evaluations); the single image keeps the
+// two plain calls, so that file does not change by a rounding bit.
+function fuseTPS(fu, fv) {
+  const pts = fu.points, su = fu.weights, sv = fv.weights, n = pts.length
+  const X = Float64Array.from(pts, p => p.x), Y = Float64Array.from(pts, p => p.y)
+  return (x, y) => {
+    let u = su[n] + su[n + 1] * x + su[n + 2] * y, v = sv[n] + sv[n + 1] * x + sv[n + 2] * y
+    for (let i = 0; i < n; i++) {
+      const dx = x - X[i], dy = y - Y[i], r2 = dx * dx + dy * dy
+      if (r2 > 0) { const k = r2 * Math.log(r2) * 0.5; u += su[i] * k; v += sv[i] * k }
+    }
+    return [u, v]
   }
 }
 
@@ -839,7 +868,9 @@ function resolveGcp(map, [name, u, v, lngOrCode, lat, note]) {
 }
 
 // The plate as raw pixels: the neat-line-cropped scan, stitched across a fold when needed.
-async function buildPlate(map) {
+// `fullRes` skips the box-shrink of a 'sheet' source — the tile pyramid samples the scan's own
+// pixels — so one plate pixel of the warp is `shrink` pixels of that plate.
+async function buildPlate(map, fullRes = false) {
   const s = map.source
   if (s.kind === 'stitch') {
     const leaf = async (n) => {
@@ -861,7 +892,7 @@ async function buildPlate(map) {
   if (s.kind === 'sheet') {
     const file = await download(s.url, path.join(CACHE, s.file), s.manual === true)
     let img = sharp(file).extract({ left: s.crop.left, top: s.crop.top, width: s.crop.width, height: s.crop.height })
-    if (s.shrink && s.shrink > 1) img = img.resize({ width: Math.round(s.crop.width / s.shrink), kernel: 'lanczos3' })
+    if (s.shrink && s.shrink > 1 && !fullRes) img = img.resize({ width: Math.round(s.crop.width / s.shrink), kernel: 'lanczos3' })
     return img.removeAlpha().raw().toBuffer({ resolveWithObject: true })
   }
   throw new Error(`unknown source kind ${s.kind}`)
@@ -1077,6 +1108,9 @@ async function warp(map, plate) {
   const snap = buildCoastSnap(map, gcps, fu, fv)
   // ground (km) → plate px, through the coast snap when the map has one
   const F = snap ? (x, y) => { const [sx, sy] = snap.undo(x, y); return [fu(sx, sy), fv(sx, sy)] } : (x, y) => [fu(x, y), fv(x, y)]
+  // the same map for the tile pyramid, with the two splines fused (see fuseTPS)
+  const uv = fuseTPS(fu, fv)
+  const project = snap ? (x, y) => { const [sx, sy] = snap.undo(x, y); return uv(sx, sy) } : uv
   // Residual per control point in METRES: the pixel misfit mapped back through the local
   // Jacobian of the (metres → plate px) spline, so both plates are measured the same way.
   const residuals = gcps.map((g, i) => {
@@ -1153,7 +1187,115 @@ async function warp(map, plate) {
   }
   const file = path.join(OUT_DIR, `${map.id}.webp`)
   await img.webp({ quality: 82, alphaQuality: 50 }).toFile(file)
-  return { file, width: tw, height: th, bounds: { west: +west.toFixed(6), east: +east.toFixed(6), north: +north.toFixed(6), south: +south.toFixed(6) }, gcps, residuals, rms, lambda, coastSnap: snap?.stats ?? null }
+  return { file, width: tw, height: th, bounds: { west: +west.toFixed(6), east: +east.toFixed(6), north: +north.toFixed(6), south: +south.toFixed(6) }, gcps, residuals, rms, lambda, coastSnap: snap?.stats ?? null, project }
+}
+
+// ---------------------------------------------------------------------------
+// The tile pyramid (maps with `tiles: { maxzoom }`): the same georeference as the single WebP,
+// resampled from the scan's OWN pixels instead of the 3× shrunk plate, so the plate stays sharp
+// when the map is zoomed in. 512 px Web-Mercator XYZ tiles under public/data/old-maps/<id>/ —
+// MapLibre then loads only the tiles in view at the zoom in view (a phone never holds one big
+// texture), while the single WebP stays what the 2D fallback draws. The top level is warped
+// (ground → plate px on a 4 px lattice, bilinear in between: the map is smooth, and a lattice
+// is ~16× fewer spline evaluations than every pixel); each lower level is its four children
+// reduced 2×. Every tile of the bounds' grid is written, the empty corners as one shared
+// transparent tile, so no request the source's `bounds` allows can come back 404.
+// ---------------------------------------------------------------------------
+const TILE_SIZE = 512
+const TILE_MINZOOM = 9 // the plate is ~20 px wide here; below this the layer is not drawn
+const TILE_LATTICE = 4
+const worldPx = (z) => TILE_SIZE * 2 ** z
+const mercX = (lng, z) => (lng + 180) / 360 * worldPx(z)
+const mercY = (lat, z) => { const s = Math.sin(lat * Math.PI / 180); return (0.5 - Math.log((1 + s) / (1 - s)) / (4 * Math.PI)) * worldPx(z) }
+const lngOfX = (X, z) => X / worldPx(z) * 360 - 180
+const latOfY = (Y, z) => Math.atan(Math.sinh(Math.PI * (1 - 2 * Y / worldPx(z)))) * 180 / Math.PI
+// The tiles a box touches at zoom z. validate_output.py recomputes this grid from the JSON's
+// (rounded) bounds, so it is computed from those same numbers here.
+const tileRange = (b, z) => ({
+  x0: Math.floor(mercX(b.west, z) / TILE_SIZE), x1: Math.floor(mercX(b.east, z) / TILE_SIZE),
+  y0: Math.floor(mercY(b.north, z) / TILE_SIZE), y1: Math.floor(mercY(b.south, z) / TILE_SIZE),
+})
+
+async function buildTiles(map, bounds, project) {
+  const maxzoom = map.tiles.maxzoom, T = TILE_SIZE, L = TILE_LATTICE, n = T / L + 1
+  const plate = await buildPlate(map, true)
+  const k = map.source.kind === 'sheet' ? (map.source.shrink ?? 1) : 1 // full-resolution px per plate px of the warp
+  const SW = plate.info.width, SH = plate.info.height, CH = plate.info.channels, raw = plate.data
+  const dir = path.join(OUT_DIR, map.id)
+  if (path.dirname(dir) !== OUT_DIR) throw new Error(`${map.id}: refusing to clear ${dir}`)
+  fs.rmSync(dir, { recursive: true, force: true }) // the previous run's pyramid: bounds may have moved
+  const webp = (rgba) => sharp(rgba, { raw: { width: T, height: T, channels: 4 } }).webp({ quality: 80, alphaQuality: 50 }).toBuffer()
+  const blank = await webp(Buffer.alloc(T * T * 4, 0))
+  const stats = { count: 0, blank: 0, bytes: 0, perZoom: {} }
+  const write = (z, x, y, buf) => {
+    const file = path.join(dir, String(z), String(x), `${y}.webp`)
+    fs.mkdirSync(path.dirname(file), { recursive: true })
+    fs.writeFileSync(file, buf)
+    stats.count++; stats.bytes += buf.length
+    const pz = (stats.perZoom[z] ??= { count: 0, bytes: 0 }); pz.count++; pz.bytes += buf.length
+  }
+  // the bounds' edges in top-level pixels: the pyramid shows exactly what the single image shows
+  const Xw = mercX(bounds.west, maxzoom), Xe = mercX(bounds.east, maxzoom), Yn = mercY(bounds.north, maxzoom), Ys = mercY(bounds.south, maxzoom)
+  const LU = new Float64Array(n * n), LV = new Float64Array(n * n)
+  const warpTile = (tx, ty) => {
+    for (let j = 0; j < n; j++) {
+      const lat = latOfY(ty * T + j * L, maxzoom)
+      for (let i = 0; i < n; i++) {
+        const [x, y] = toXY(lngOfX(tx * T + i * L, maxzoom), lat)
+        const [u, v] = project(x, y)
+        LU[j * n + i] = u * k; LV[j * n + i] = v * k
+      }
+    }
+    const out = Buffer.alloc(T * T * 4, 0)
+    let any = false
+    for (let j = 0; j < T; j++) {
+      const Y = ty * T + j + 0.5
+      if (Y < Yn || Y >= Ys) continue
+      const fj = (j + 0.5) / L, j0 = Math.min(n - 2, Math.floor(fj)), wj = fj - j0
+      for (let i = 0; i < T; i++) {
+        const X = tx * T + i + 0.5
+        if (X < Xw || X >= Xe) continue
+        const fi = (i + 0.5) / L, i0 = Math.min(n - 2, Math.floor(fi)), wi = fi - i0, o00 = j0 * n + i0
+        const u = (LU[o00] * (1 - wi) + LU[o00 + 1] * wi) * (1 - wj) + (LU[o00 + n] * (1 - wi) + LU[o00 + n + 1] * wi) * wj
+        const v = (LV[o00] * (1 - wi) + LV[o00 + 1] * wi) * (1 - wj) + (LV[o00 + n] * (1 - wi) + LV[o00 + n + 1] * wi) * wj
+        const iu = Math.floor(u), iv = Math.floor(v)
+        if (iu < 0 || iv < 0 || iu >= SW - 1 || iv >= SH - 1) continue
+        const fx = u - iu, fy = v - iv
+        const i00 = (iv * SW + iu) * CH, i10 = i00 + CH, i01 = i00 + SW * CH, i11 = i01 + CH
+        const o = (j * T + i) * 4
+        for (let c = 0; c < 3; c++) out[o + c] = raw[i00 + c] * (1 - fx) * (1 - fy) + raw[i10 + c] * fx * (1 - fy) + raw[i01 + c] * (1 - fx) * fy + raw[i11 + c] * fx * fy
+        out[o + 3] = 255
+        any = true
+      }
+    }
+    return any ? out : null
+  }
+  // depth first, so only one branch of the pyramid is in memory; returns the tile's RGBA (null = empty)
+  const build = async (z, x, y) => {
+    const r = tileRange(bounds, z)
+    if (x < r.x0 || x > r.x1 || y < r.y0 || y > r.y1) return null
+    let rgba
+    if (z === maxzoom) rgba = warpTile(x, y)
+    else {
+      const kids = []
+      for (let dy = 0; dy < 2; dy++) for (let dx = 0; dx < 2; dx++) {
+        const kid = await build(z + 1, 2 * x + dx, 2 * y + dy)
+        if (kid) kids.push({ input: kid, raw: { width: T, height: T, channels: 4 }, left: dx * T, top: dy * T })
+      }
+      rgba = kids.length
+        ? await sharp(await sharp({ create: { width: 2 * T, height: 2 * T, channels: 4, background: { r: 0, g: 0, b: 0, alpha: 0 } } }).composite(kids).raw().toBuffer(), { raw: { width: 2 * T, height: 2 * T, channels: 4 } })
+          .resize(T, T, { kernel: 'lanczos3' }).raw().toBuffer()
+        : null
+    }
+    if (rgba) write(z, x, y, await webp(rgba))
+    else { write(z, x, y, blank); stats.blank++ }
+    return rgba
+  }
+  const top = tileRange(bounds, TILE_MINZOOM)
+  for (let y = top.y0; y <= top.y1; y++) for (let x = top.x0; x <= top.x1; x++) await build(TILE_MINZOOM, x, y)
+  const mpp = 40075016.686 * Math.cos((bounds.north + bounds.south) / 2 * Math.PI / 180) / worldPx(maxzoom)
+  console.log(`   tiles z${TILE_MINZOOM}–z${maxzoom} (${mpp.toFixed(2)} m/px at the top): ${stats.count} files (${stats.blank} empty), ${(stats.bytes / 1024 / 1024).toFixed(2)} MB — ${Object.entries(stats.perZoom).sort((a, b) => b[0] - a[0]).slice(0, 3).map(([z, s]) => `z${z} ${s.count} / ${(s.bytes / 1024).toFixed(0)} KB`).join(', ')}`)
+  return { url: `/data/old-maps/${map.id}/{z}/{x}/{y}.webp`, tileSize: T, minzoom: TILE_MINZOOM, maxzoom, count: stats.count }
 }
 
 const built = []
@@ -1170,11 +1312,14 @@ for (const map of MAPS) {
   if (w.preview) continue
   console.log(`   wrote ${path.relative(ROOT, w.file)} ${w.width}x${w.height} ${(fs.statSync(w.file).size / 1024).toFixed(0)} KB`)
   const b = w.bounds
+  const tiles = map.tiles ? await buildTiles(map, b, w.project) : null
+  if (!tiles) fs.rmSync(path.join(OUT_DIR, map.id), { recursive: true, force: true }) // a pyramid from before `tiles` was dropped
   built.push({
     id: map.id, name: map.name, title: map.title, author: map.author, year: map.year, published: map.published, work: map.work,
     image: `/data/old-maps/${map.id}.webp`, width: w.width, height: w.height,
     bounds: b,
     coordinates: [[b.west, b.north], [b.east, b.north], [b.east, b.south], [b.west, b.south]],
+    ...(tiles ? { tiles } : {}),
     georef: { method: 'thin-plate spline', lambda: w.lambda, metresPerPixel: map.resM, controlPoints: w.gcps.length, rmsM: w.rms,
       gcps: w.gcps.map((g, i) => ({ name: g.name, platePixel: [+g.u.toFixed(1), +g.v.toFixed(1)], lngLat: [g.lng, g.lat], residualM: w.residuals[i].m, note: g.note })),
       ...(w.coastSnap ? { coastSnap: w.coastSnap } : {}) },
