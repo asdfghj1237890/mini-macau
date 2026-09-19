@@ -4070,8 +4070,7 @@ export function MapView(props: MapViewProps) {
       const model3DLayers = [...ALL_BUS_3D_LAYERS,
         ...ALL_LRT_3D_LAYERS,
         ...ALL_FLIGHT_3D_LAYERS,
-        ...ALL_FERRY_3D_LAYERS,
-        'ferry-3d-upper-back', 'ferry-3d-wheel-visor']
+        ...ALL_FERRY_3D_LAYERS]
       for (const layerId of model3DLayers) {
         m.on('click', layerId, (e) => {
           const feature = e.features?.[0]
