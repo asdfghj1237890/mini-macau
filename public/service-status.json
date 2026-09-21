@@ -1,12 +1,21 @@
 {
-  "date": "2026-09-21",
-  "fetchedAtUtc": "2026-09-21T00:56:21.087199+00:00",
-  "dayOfWeek": 0,
+  "date": "2026-09-22",
+  "fetchedAtUtc": "2026-09-21T16:17:13.742325+00:00",
+  "dayOfWeek": 1,
   "dayCategory": "weekday",
   "isHoliday": false,
   "totalRoutes": 92,
   "inactive": [
     "15T"
   ],
-  "errors": []
+  "errors": [
+    {
+      "id": "26",
+      "error": "HTTPSConnectionPool(host='motransportinfo.com', port=443): Read timed out. (read timeout=15)"
+    },
+    {
+      "id": "26A",
+      "error": "HTTPSConnectionPool(host='motransportinfo.com', port=443): Read timed out. (read timeout=15)"
+    }
+  ]
 }
