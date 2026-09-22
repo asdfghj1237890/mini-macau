@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-09-21T22:26:50.454137+00:00",
+  "fetchedAtUtc": "2026-09-22T21:50:19.036783+00:00",
   "sources": {
     "name": "交通事務局 (DSAT) – 停車場資料",
     "dataset": "https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706",
@@ -5100,6 +5100,62 @@
       "coordinates": [
         113.555436,
         22.163373
+      ]
+    },
+    {
+      "id": "7100",
+      "name": {
+        "zh": "東民大廈公共停車場",
+        "pt": "Parque de Estacionamento Público do Edifício Tong Man",
+        "en": "Parque de Estacionamento Público do Edifício Tong Man"
+      },
+      "location": {
+        "zh": "位於東民大廈內並由地庫一層及地庫二層構成",
+        "pt": "Integrado no Edifício Tong Man e constituído pelas 1.ª e 2.ª caves do edifício.",
+        "en": "Located at Edifício Tong Man."
+      },
+      "entrance": {
+        "zh": "入口及出口均設於東城第二街",
+        "pt": "A entrada e saída no parque de estacionamento efectuam-se pela Rua Dois da Zona Este.",
+        "en": "The Entrance and Exit of carpark are located on the Dois da Zona Este road."
+      },
+      "phone": "--",
+      "heightLimitM": 2.0,
+      "fees": {
+        "light": {
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
+        },
+        "heavy": {
+          "zh": "",
+          "pt": "",
+          "en": ""
+        },
+        "moto": {
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
+        },
+        "remark": {
+          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前\n輕型汽車：日間普通票，每半小時或不足半小時為澳門幣3元。夜間普通票，每半小時或不足半小時為澳門幣1.5元。\n重型及輕型電單車：日間普通票，每半小時或不足半小時為澳門幣1元。夜間普通票，每半小時或不足半小時為澳門幣0.5元。",
+          "pt": "Diurno:Das 8,00 horas até antes das 20,00 horas.\nNocturno:Das 20,00 horas até antes das 8,00 horas do dia seguintes.\nAutomóveis ligeiros: Bilhete simples diurno - 3 patacas por cada meia hora ou fracção. O bilhete simples nocturno - Por cada hora ou fracção: 1,50 patacas.\nMotociclos e ciclomotores: Bilhete simples diurno - 1 pataca por cada meia hora ou fracção. O bilhete simples nocturno - Por cada hora ou fracção: 0,5 patacas.",
+          "en": "Day:From 8 a.m. to no later than 8 p.m..\nNight:From 8 p.m. to no later than 8 a.m. of the next day.\nLight Vehicles: Regular Fee(Day), every half an hour or part thereof MOP$3. Regular Fee (Night): every half an hour or part thereof MOP$1.5.\nLight and Heavy Motorcycles: Regular Fee (Day), every half an hour or part thereof MOP$1. Regular Fee(Night): every half an hour or part thereof MOP$0.5."
+        }
+      },
+      "zone": {
+        "zh": "澳門",
+        "pt": "Macau",
+        "en": "Macau"
+      },
+      "parish": {
+        "zh": "新城填海區",
+        "pt": "Novos Aterros Urbanos",
+        "en": "New Reclaimed Lands"
+      },
+      "coordinates": [
+        113.563735,
+        22.206587
       ]
     }
   ]
