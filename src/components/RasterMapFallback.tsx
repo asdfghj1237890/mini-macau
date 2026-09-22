@@ -158,7 +158,17 @@ export default function RasterMapFallback(props: Props) {
     // tint — so the plate reads as the ground the 2D map is drawn on.
     for (const plate of data.oldMaps) {
       const { west, south, east, north } = plate.bounds
-      L.imageOverlay(plate.image, [[south, west], [north, east]], { opacity: oldMapsOpacity, interactive: false, alt: plate.title.en }).addTo(group)
+      const bounds: L.LatLngBoundsExpression = [[south, west], [north, east]]
+      if (plate.remoteTiles) {
+        const tiles = plate.remoteTiles
+        L.tileLayer(tiles.url, {
+          bounds, tileSize: tiles.tileSize, minZoom: tiles.minzoom,
+          maxNativeZoom: tiles.maxzoom, maxZoom: 22, noWrap: true,
+          pane: 'overlayPane', opacity: oldMapsOpacity, attribution: plate.attribution,
+        }).addTo(group)
+      } else {
+        L.imageOverlay(plate.image, bounds, { opacity: oldMapsOpacity, interactive: false, alt: plate.title.en }).addTo(group)
+      }
     }
     // The parish tint goes in FIRST, so every route, marker and label added
     // below paints over it — the 2D twin of the WebGL map, where the fill is
@@ -236,6 +246,9 @@ export default function RasterMapFallback(props: Props) {
       }}>{t.mapRetry}</button>
       {/* Keep attribution visible even when the phone debug log covers the bottom. */}
       <p className="mt-2 text-ui-10">© <a className="underline" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a></p>
+      {transitData.oldMaps.filter(plate => plate.remoteTiles).map(plate => (
+        <p key={plate.id} className="mt-1 text-ui-10"><a className="underline" href={plate.scan.url} target="_blank" rel="noreferrer">{plate.attribution}</a></p>
+      ))}
     </div>
   </>
 }

@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import type { Plugin } from 'vite'
 import type { CityCatalog } from '../src/cityCatalog'
+import { oldMapSelectionId } from '../src/oldMapGroups'
 
 const files = [
   'parishes', 'road-works', 'car-parks', 'toilets', 'schools',
@@ -40,7 +41,7 @@ export async function buildCityCatalog(directory: string): Promise<CityCatalog> 
       schools: schools.schools.length, housing: housing.estates.length,
       water: water.facilities.length, power: power.facilities.length,
       waste: Object.values(wasteTypes).reduce((a, b) => a + b, 0), grandprix: gp.circuit.corners.length,
-      religion: religion.sites.length, oldmaps: oldMaps.maps.length,
+      religion: religion.sites.length, oldmaps: new Set(oldMaps.maps.map((map: { id: string }) => oldMapSelectionId(map.id))).size,
     },
     schoolLevels: countBy(schools.schools, 'level', ['kindergarten', 'primary', 'secondary', 'university', 'all_through']),
     housingTypes: countBy(housing.estates, 'type', ['social', 'economic', 'other']),

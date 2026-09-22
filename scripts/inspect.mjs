@@ -41,7 +41,7 @@
 //   node scripts/inspect.mjs waste                  # waste.json summary (by type, closed, per-source upstreamUpdatedAt, sites with empty en/pt, treatment facilities incl. wwtp buildings + statsKey, eco stations)
 //   node scripts/inspect.mjs dspa-stats              # dspa-stats.json summary (DSPA monthly stats: incinerator/hazardous/landfill/4x wwtp series, latest values, incinerator facts)
 //   node scripts/inspect.mjs grand-prix [--kinks]   # grand-prix.json summary (Guia Circuit: official vs measured length, corner table with rules, pit lane, sources); --kinks lists the stitched line's sideways jogs (seams between OSM ways)
-//   node scripts/inspect.mjs religion               # religion.json summary (by kind/source, approximate count, heritage sites, My Maps-only count, top 10 by macaumemory.names length)
+//   node scripts/inspect.mjs religion [query]       # summary; optional regex filters names, ids and heritage codes and prints coordinates/sources
 //   node scripts/inspect.mjs old-maps               # old-maps.json summary (per map: title, years, raster size + bounds, tile pyramid zooms / files / MB on disk, georef method / control points / RMS, worst residuals, scan source)
 // bucket = weekday | sat | sun (default weekday)
 
@@ -1396,11 +1396,20 @@ function cmdOldMaps() {
   const { generatedAt, maps } = load('public/data/old-maps.json')
   console.log(`old-maps.json: ${maps.length} map(s), generated ${generatedAt}`)
   for (const m of maps) {
+    if (m.remoteTiles) {
+      console.log('\n' + m.id + ': ' + m.title.zh)
+      console.log('  remote tiles: ' + m.remoteTiles.url)
+      console.log('  ' + m.remoteTiles.tileSize + ' px, z' + m.remoteTiles.minzoom + '–' + m.remoteTiles.maxzoom + '; provider-georeferenced, no local GCP/RMS claim')
+      console.log('  bounds W ' + m.bounds.west + ' E ' + m.bounds.east + ' N ' + m.bounds.north + ' S ' + m.bounds.south)
+      console.log('  source: ' + m.scan.url)
+      console.log('  licence: ' + m.scan.license)
+      continue
+    }
     const file = join(ROOT, 'public', m.image.replace(/^\//, ''))
     const kb = existsSync(file) ? `${(statSync(file).size / 1024).toFixed(0)} KB` : 'MISSING'
     console.log(`\n${m.id}: ${m.title.zh}`)
     console.log(`  ${m.title.en}`)
-    console.log(`  drawn ${m.year}${m.published ? `, published ${m.published}` : ''} — ${m.author}`)
+    console.log(`  date ${m.yearApproximate ? '≈ ' : ''}${m.year}${m.yearPrecision === 'decade' ? 's' : ''}${m.published ? `, published ${m.published}` : ''} — ${m.author}`)
     console.log(`  raster ${m.width}x${m.height} px @ ${m.georef.metresPerPixel} m/px, ${kb}; bounds W ${m.bounds.west} E ${m.bounds.east} N ${m.bounds.north} S ${m.bounds.south}`)
     if (m.tiles) {
       // the pyramid on disk, per zoom: what the repo pays for the plate staying sharp when zoomed in
@@ -1435,8 +1444,14 @@ function cmdOldMaps() {
 // to the nearest same-category site for both (not kept as separate points)
 // or, unmatched, become their own standalone `ic-<code>` site — see
 // fetch_religion.py.
-function cmdReligion() {
+function cmdReligion(query) {
   const { fetchedAtUtc, categories, sites, stats } = load('public/data/religion.json')
+  if (query) {
+    const pattern = new RegExp(query, 'i')
+    const matches = sites.filter(s => pattern.test(JSON.stringify([s.id, s.name, s.heritage])))
+    console.log(JSON.stringify(matches.map(({ id, name, coordinates, heritage, approximate, sources }) => ({ id, name, coordinates, heritage: heritage?.code, approximate, sources })), null, 2))
+    return
+  }
   const bytes = statSync(join(ROOT, 'public/data/religion.json')).size
 
   console.log(`total sites: ${sites.length}   fetchedAtUtc: ${fetchedAtUtc}   file size: ${(bytes / 1024).toFixed(1)} KiB`)
@@ -1660,9 +1675,9 @@ switch (cmd) {
   case 'waste': cmdWaste(); break
   case 'dspa-stats': cmdDspaStats(); break
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
-  case 'religion': cmdReligion(); break
+  case 'religion': cmdReligion(pos.join(' ')); break
   case 'old-maps': cmdOldMaps(); break
   default:
-    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | bus-route-match [route-id…] [--threshold=30] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix | religion | old-maps')
+    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | bus-route-match [route-id…] [--threshold=30] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix | religion [query] | old-maps')
     if (cmd) process.exit(1)
 }

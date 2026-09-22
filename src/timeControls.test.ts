@@ -3,9 +3,6 @@ import { ignoreClockShortcut } from './timeControls'
 
 describe('ignoreClockShortcut', () => {
   it('drops a clock key while the clock UI is off the screen', () => {
-    // WATER focus mode unmounts the clock and the timeline bar, so the keyboard
-    // is the one remaining way in — space would otherwise pause the simulation
-    // with no visible control to explain what just happened.
     expect(ignoreClockShortcut(true, false)).toBe(true)
   })
 

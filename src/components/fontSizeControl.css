@@ -1,13 +1,69 @@
-.mm-font-setting { padding: 12px 10px; border: 1px solid var(--mm-border); border-radius: 10px; background: var(--mm-inset); }
-.mm-font-setting-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: calc(11px * var(--mm-font-scale)); color: var(--mm-text-secondary); }
-.mm-font-setting-heading output { color: var(--mm-text-accent); font-size: calc(13px * var(--mm-font-scale)); }
-.mm-font-setting-controls { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
-.mm-font-setting-controls button { display: flex; align-items: center; justify-content: center; flex: 0 0 36px; height: 36px; border-radius: 8px; border: 1px solid var(--mm-border); color: var(--mm-fg); background: var(--mm-panel-3); cursor: pointer; }
-.mm-font-setting-controls input { flex: 1; min-width: 0; width: 100%; height: 36px; accent-color: var(--mm-amber); cursor: pointer; }
-.mm-font-setting-preview { margin-top: 8px; font-size: calc(15px * var(--mm-font-scale)); line-height: 1.5; color: var(--mm-fg); overflow-wrap: anywhere; }
-.mm-font-setting-preview span { color: var(--mm-text-secondary); }
-.mm-font-setting-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; column-gap: 8px; margin-top: 4px; font-size: calc(9px * var(--mm-font-scale)); line-height: 1.5; color: var(--mm-text-muted); }
-.mm-font-setting-footer > span { flex: 1 1 90px; }
-.mm-font-setting-footer button { min-height: 36px; text-align: right; color: var(--mm-text-accent); cursor: pointer; }
-.mm-font-setting button:disabled { opacity: .4; cursor: default; }
+.mm-font-setting {
+  padding: 12px 10px 10px;
+  border: 1px solid var(--mm-border);
+  border-top-color: color-mix(in srgb, var(--mm-amber) 40%, var(--mm-border));
+  border-radius: 3px;
+  background: var(--mm-panel-2);
+}
+.mm-font-setting-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mm-font-setting-heading label { font-size: calc(12px * var(--mm-font-scale)); font-weight: 600; color: var(--mm-fg); line-height: 1.35; }
+.mm-font-setting-heading output {
+  display: inline-flex; align-items: baseline; gap: 2px; flex-shrink: 0;
+  padding: 3px 6px; border: 1px solid color-mix(in srgb, var(--mm-amber) 22%, transparent);
+  background: color-mix(in srgb, var(--mm-amber) 7%, var(--mm-inset));
+  color: var(--mm-amber-1); font-size: calc(14px * var(--mm-font-scale)); line-height: 1.2;
+}
+.mm-font-setting-heading output span { font-size: .7em; }
+.mm-font-setting-hint { margin: 6px 0 10px; font-size: calc(10px * var(--mm-font-scale)); line-height: 1.5; color: var(--mm-text-secondary); }
+.mm-font-setting-presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--mm-border); background: var(--mm-inset); }
+.mm-font-setting-presets button {
+  position: relative; min-height: 36px; padding: 5px 2px; font-size: calc(10px * var(--mm-font-scale));
+  line-height: 1.35; font-weight: 600; color: var(--mm-text-secondary); cursor: pointer; overflow-wrap: anywhere;
+}
+.mm-font-setting-presets button + button { border-left: 1px solid var(--mm-border); }
+.mm-font-setting-presets button[aria-pressed="true"] {
+  background: color-mix(in srgb, var(--mm-amber) 10%, var(--mm-inset)); color: var(--mm-amber-1);
+  box-shadow: inset 0 -2px var(--mm-amber);
+}
+.mm-font-setting-controls { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.mm-font-setting-controls button {
+  display: flex; align-items: center; justify-content: center; flex: 0 0 36px; height: 36px;
+  border-radius: 2px; color: var(--mm-fg); background: transparent; cursor: pointer;
+}
+.mm-font-setting-controls input {
+  appearance: none; -webkit-appearance: none; flex: 1; min-width: 0; width: 100%; height: 36px;
+  margin: 0; background: transparent; cursor: pointer;
+}
+.mm-font-setting-controls input::-webkit-slider-runnable-track {
+  height: 3px; border-radius: 2px;
+  background: linear-gradient(to right, var(--mm-amber) var(--mm-font-progress), var(--mm-border) var(--mm-font-progress));
+}
+.mm-font-setting-controls input::-moz-range-track { height: 3px; border-radius: 2px; background: var(--mm-border); }
+.mm-font-setting-controls input::-moz-range-progress { height: 3px; border-radius: 2px; background: var(--mm-amber); }
+.mm-font-setting-controls input::-webkit-slider-thumb {
+  appearance: none; -webkit-appearance: none; width: 14px; height: 14px; margin-top: -5.5px;
+  border-radius: 50%; border: 2px solid var(--mm-panel-2); background: var(--mm-amber);
+  box-shadow: 0 0 0 1px var(--mm-amber);
+}
+.mm-font-setting-controls input::-moz-range-thumb {
+  width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--mm-panel-2);
+  background: var(--mm-amber); box-shadow: 0 0 0 1px var(--mm-amber);
+}
+.mm-font-setting-preview { margin-top: 6px; padding: 0 9px 9px; border: 1px solid var(--mm-border); border-radius: 2px; background: var(--mm-inset); }
+.mm-font-setting-preview-heading { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0 6px; }
+.mm-font-setting-preview-heading > span { font-size: calc(9px * var(--mm-font-scale)); color: var(--mm-text-secondary); line-height: 1.4; }
+.mm-font-setting-preview-heading button {
+  min-height: 32px; padding: 4px 0 4px 6px; font-size: calc(9px * var(--mm-font-scale));
+  line-height: 1.4; color: var(--mm-amber-1); cursor: pointer;
+}
+.mm-font-setting-sample { display: flex; align-items: baseline; flex-wrap: wrap; gap: 2px 7px; margin: 0; font-size: calc(18px * var(--mm-font-scale)); font-weight: 600; line-height: 1.45; color: var(--mm-fg); }
+.mm-font-setting-sample span { font-size: .78em; font-weight: 400; color: var(--mm-text-secondary); }
+.mm-font-setting-sample-detail { margin: 3px 0 0; font-size: calc(10px * var(--mm-font-scale)); line-height: 1.6; color: var(--mm-text-secondary); overflow-wrap: anywhere; }
+.mm-font-setting button:disabled { color: var(--mm-text-muted); cursor: default; }
+.mm-font-setting-controls button:disabled { opacity: .45; }
 .mm-font-setting button:enabled:hover { background: var(--mm-control-hover); }
+.mm-font-setting button:focus-visible, .mm-font-setting input:focus-visible { outline: 2px solid var(--mm-amber); outline-offset: 3px; }
+@media (forced-colors: active) {
+  .mm-font-setting-presets button[aria-pressed="true"] { outline: 2px solid Highlight; outline-offset: -3px; }
+  .mm-font-setting-controls input { appearance: auto; -webkit-appearance: auto; }
+}

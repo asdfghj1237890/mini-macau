@@ -1,7 +1,6 @@
 // THE PULSE — the machinery behind the bright wave that walks a supply chain
 // in order, shared by the WATER and POWER overlays (src/water.ts and
-// src/power.ts wrap it under their own names, the way both wrap
-// src/focusMode.ts).
+// src/power.ts wrap it under their own names).
 //
 // The per-edge dash and dot flows show which way each pipe or cable runs;
 // only a wave that starts somewhere and arrives somewhere shows what comes

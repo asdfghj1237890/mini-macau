@@ -1,0 +1,231 @@
+{
+  "id": "taipa-1912",
+  "reference": "DSSCU Macau Webmap, Evolution since the 20th century: YEAR=1912 land polygons, EVOL layer 0, OBJECTID 166 (Taipa Grande) and 169 (Taipa Pequena). Retrieved 2026-09-21. Used as a historical registration reference, not as surveyed shoreline truth.",
+  "sourceUrl": "https://webmap.gis.gov.mo/MapGIS/index.html",
+  "serviceUrl": "https://web.gis.gov.mo/arcgis/rest/services/ThematicMap/evol_v2/MapServer/0",
+  "coordinates": "Native Macao Grid (projection identical to EPSG:8433), transformed with EPSG:8438 Molodensky-Badekas to WGS84. Full rotation origin retained; parameters checked against the official February 2017 datum document. Do not use a datum-free WKT conversion.",
+  "method": "Corresponding mainland tips, flanks and broad coastal bends hand-read from the native BNP sheet. Compact local image corrections preserve the five existing landmark controls. Official historical polygons are generalised and have no published positional accuracy here; fine rock strokes and interpolated coast remain approximate.",
+  "exclusions": "No modern reclamation, beach waterline or detached rock matching. Omit the inconsistent coast around Kun Iam Rock and the old-town waterfront. Preserve the complete original sheet, original temple / fort / summit controls, and historical shore geometry between controls.",
+  "stretches": [
+    {
+      "name": "Taipa Pequena western and northern historical headlands",
+      "referenceFeature": 169,
+      "referenceVertices": [
+        56,
+        51,
+        47,
+        39,
+        35,
+        77,
+        85,
+        98,
+        103,
+        110,
+        120
+      ],
+      "landmarks": [
+        "Ponta Maria western tip",
+        "western rock flank",
+        "Hong Mou Au inlet",
+        "western shoulder south of inlet",
+        "southwestern rock flank",
+        "northernmost headland",
+        "northeastern coastal bend",
+        "eastern shoulder",
+        "eastern rock face",
+        "southeastern shoulder",
+        "southeastern coast bend"
+      ],
+      "samples": [
+        [
+          1940,
+          5080,
+          113.543974201,
+          22.163046672
+        ],
+        [
+          2100,
+          5030,
+          113.544178611,
+          22.161713845
+        ],
+        [
+          2250,
+          5020,
+          113.543959764,
+          22.160711467
+        ],
+        [
+          2400,
+          5290,
+          113.542118822,
+          22.159725928
+        ],
+        [
+          2540,
+          5240,
+          113.542497123,
+          22.158488952
+        ],
+        [
+          1775,
+          4670,
+          113.547463216,
+          22.164301515
+        ],
+        [
+          1810,
+          4320,
+          113.550071567,
+          22.16367588
+        ],
+        [
+          1940,
+          3990,
+          113.552660458,
+          22.162787588
+        ],
+        [
+          2090,
+          4000,
+          113.552383109,
+          22.161719894
+        ],
+        [
+          2220,
+          4100,
+          113.551180575,
+          22.16080091
+        ],
+        [
+          2410,
+          4280,
+          113.549551822,
+          22.159669809
+        ]
+      ]
+    },
+    {
+      "name": "Taipa Grande northern bay and Ponta Cabrita / eastern historical headlands",
+      "referenceFeature": 166,
+      "referenceVertices": [
+        74,
+        80,
+        93,
+        103,
+        109,
+        111,
+        122,
+        127,
+        136,
+        140,
+        149,
+        154,
+        160,
+        165
+      ],
+      "landmarks": [
+        "headland east of Praia de Pac On",
+        "eastern headland flank",
+        "northern coast bend",
+        "western shoulder of northern bay",
+        "northern bay head",
+        "Cabrita western neck",
+        "Cabrita northern tip",
+        "Cabrita eastern tip",
+        "Cabrita eastern neck",
+        "eastern coast concavity",
+        "southeastern headland eastern tip",
+        "southeastern headland southern tip",
+        "southern headland western shoulder",
+        "southern rock flank"
+      ],
+      "samples": [
+        [
+          1768,
+          2695,
+          113.564124306,
+          22.164509975
+        ],
+        [
+          1915,
+          2630,
+          113.565117076,
+          22.163236912
+        ],
+        [
+          2000,
+          2320,
+          113.567653657,
+          22.162660771
+        ],
+        [
+          2165,
+          2010,
+          113.569322029,
+          22.161374915
+        ],
+        [
+          2360,
+          1620,
+          113.571635416,
+          22.160309547
+        ],
+        [
+          2250,
+          1400,
+          113.573212023,
+          22.160456821
+        ],
+        [
+          2055,
+          1290,
+          113.575046853,
+          22.162481931
+        ],
+        [
+          2095,
+          1145,
+          113.575919999,
+          22.162016624
+        ],
+        [
+          2280,
+          1260,
+          113.57536382,
+          22.160755519
+        ],
+        [
+          2450,
+          1370,
+          113.574510438,
+          22.159281835
+        ],
+        [
+          2900,
+          1170,
+          113.576127943,
+          22.157148469
+        ],
+        [
+          3015,
+          1320,
+          113.574996575,
+          22.156261241
+        ],
+        [
+          2815,
+          1570,
+          113.573169225,
+          22.157204824
+        ],
+        [
+          2805,
+          1880,
+          113.570305976,
+          22.157118894
+        ]
+      ]
+    }
+  ]
+}

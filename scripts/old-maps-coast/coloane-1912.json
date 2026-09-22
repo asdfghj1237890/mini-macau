@@ -1,0 +1,342 @@
+{
+  "id": "coloane-1912",
+  "reference": "Existing surviving rock controls: OpenStreetMap coastline w1428329118, checked in aerial imagery. Additional northwestern / Lai Chi Vun controls: DSSCU Macau Webmap, Evolution since the 20th century, YEAR=1912 land polygon, EVOL layer 0, OBJECTID 162. Retrieved 2026-09-21; generalised historical reference, not surveyed shoreline truth.",
+  "method": "Retain the existing 32 rock-coast pairs and seven landmark controls. Add hand-read historical cape, flank and bay-bend correspondences only on the northwestern and Lai Chi Vun / northern-barracks coasts. Do not replace better-identified surviving rock edges with an inconsistent generalised historical polygon.",
+  "exclusions": "No modern reclamation, beach tide line, detached rock, pier or stilt-house edge matching. The official historical outline is not fitted around A Po Ioeng, Hac Sa or the already registered eastern/southeastern rocky capes: those references disagree and require more detailed historical evidence. Central village street alignment and complete sheet/inset are preserved.",
+  "stretches": [
+    {
+      "name": "Tai Tam Kok northern arc, eastern cape and southeastern rock cove",
+      "method": "Native coastline stroke re-read at full resolution. Explicit corresponding northern rock tip, eastern cape, cove and flanks replace the former nearest-point matches; the old cove is matched to the visible bedrock inlet, not skipped. Mainland coast checked in Esri World Imagery against OSM w1428329118. The nearby industrial quays and artificial narrow projection are not historical landmarks. Small-scale rock detail remains generalised.",
+      "samples": [
+        [
+          1006,
+          510,
+          113.5923251,
+          22.1313788
+        ],
+        [
+          1045,
+          431,
+          113.5924731,
+          22.1312149
+        ],
+        [
+          1110,
+          392,
+          113.5925342,
+          22.1306576
+        ],
+        [
+          1170,
+          396,
+          113.5924163,
+          22.1301939
+        ],
+        [
+          1243,
+          367,
+          113.5925728,
+          22.1295341
+        ],
+        [
+          1280,
+          438,
+          113.5922989,
+          22.1289491
+        ],
+        [
+          1350,
+          490,
+          113.5912723,
+          22.1288192
+        ],
+        [
+          1400,
+          548,
+          113.5908066,
+          22.1285486
+        ],
+        [
+          1448,
+          638,
+          113.5903101,
+          22.1282656
+        ],
+        [
+          1480,
+          554,
+          113.5906088,
+          22.1281708
+        ],
+        [
+          1550,
+          535,
+          113.5900635,
+          22.1273288
+        ],
+        [
+          1615,
+          581,
+          113.5893879,
+          22.1271142
+        ],
+        [
+          1650,
+          662,
+          113.5891053,
+          22.1270639
+        ],
+        [
+          1705,
+          760,
+          113.5882173,
+          22.1271551
+        ],
+        [
+          1690,
+          910,
+          113.5868152,
+          22.1275939
+        ],
+        [
+          1650,
+          1030,
+          113.585259,
+          22.1274214
+        ],
+        [
+          1654,
+          1180,
+          113.5846878,
+          22.1270417
+        ],
+        [
+          1690,
+          1320,
+          113.5840943,
+          22.126613
+        ]
+      ]
+    },
+    {
+      "name": "Ka Ho north surviving rock promontory east of the historical Baia de Caho",
+      "method": "Explicit corresponding tip and flanks, hand-read on the native scan and checked against Esri World Imagery and OSM coastline w1428329118. Targets follow the surviving mainland rock promontory, not the surrounding reclaimed industrial frontage or the sandy bay. Coast detail between these sparse corresponding features remains approximate.",
+      "samples": [
+        [
+          392,
+          1722,
+          113.5826825,
+          22.1367788
+        ],
+        [
+          448,
+          1676,
+          113.582919,
+          22.1363653
+        ],
+        [
+          514,
+          1639,
+          113.5829859,
+          22.1359009
+        ],
+        [
+          560,
+          1614,
+          113.5828609,
+          22.1354365
+        ],
+        [
+          408,
+          1743,
+          113.5824345,
+          22.1365456
+        ],
+        [
+          477,
+          1739,
+          113.5825085,
+          22.136148
+        ],
+        [
+          515,
+          1767,
+          113.5822157,
+          22.1355714
+        ]
+      ]
+    },
+    {
+      "name": "Long Chao Kok eastern rock face from below the northern frontage to the southern control",
+      "method": "Explicit hand-read main-map rock-edge correspondences along the whole eastern headland, checked in Esri World Imagery. Includes the east-facing rock bulge and the flank by the sea-view pavilion; holds the existing southern tip control. Do not pair detached boulders, the northern roundabout/seawall or beach waterline. Intermediate shoreline detail is approximate.",
+      "samples": [
+        [
+          3320,
+          2558,
+          113.5740308,
+          22.1155751
+        ],
+        [
+          3410,
+          2552,
+          113.574019,
+          22.1148898
+        ],
+        [
+          3505,
+          2558,
+          113.5742631,
+          22.1140737
+        ],
+        [
+          3560,
+          2600,
+          113.5736819,
+          22.113622
+        ],
+        [
+          3650,
+          2700,
+          113.573047,
+          22.1128771
+        ],
+        [
+          3745,
+          2768,
+          113.5720703,
+          22.1125453
+        ],
+        [
+          3820,
+          2845,
+          113.5711394,
+          22.1120774
+        ]
+      ]
+    },
+    {
+      "name": "Historical Siac Pai Van bay and northwestern shoulder",
+      "reference": "DSSCU EVOL 1912, OBJECTID 162; same-year land outline, not current waterline",
+      "referenceVertices": [
+        136,
+        138,
+        143,
+        145,
+        147,
+        148,
+        153
+      ],
+      "landmarks": [
+        "western cape at the old bay mouth",
+        "western bay flank",
+        "middle bay bend",
+        "eastern bay corner",
+        "eastern bay shoulder",
+        "rock shoulder north of bay",
+        "northwestern headland"
+      ],
+      "samples": [
+        [
+          1376,
+          4304,
+          113.560644787,
+          22.131095404
+        ],
+        [
+          1350,
+          4160,
+          113.562177309,
+          22.131073733
+        ],
+        [
+          1316,
+          3975,
+          113.563609465,
+          22.131120325
+        ],
+        [
+          1205,
+          3640,
+          113.566153695,
+          22.131776228
+        ],
+        [
+          1175,
+          3600,
+          113.566718311,
+          22.132275159
+        ],
+        [
+          1055,
+          3568,
+          113.56705701,
+          22.133114333
+        ],
+        [
+          764,
+          3410,
+          113.568392793,
+          22.135340729
+        ]
+      ]
+    },
+    {
+      "name": "Historical Lai Chi Vun coast and northern village barracks",
+      "reference": "DSSCU EVOL 1912, OBJECTID 162; same-year land outline, not current waterline",
+      "referenceVertices": [
+        117,
+        116,
+        114,
+        113,
+        112
+      ],
+      "landmarks": [
+        "southern Lai Chi Vun coastal flank",
+        "coast north of barracks",
+        "barracks northwestern coastal shoulder",
+        "barracks western rock flank",
+        "barracks western rock bend"
+      ],
+      "samples": [
+        [
+          2758,
+          5250,
+          113.552493062,
+          22.121219239
+        ],
+        [
+          2770,
+          5290,
+          113.551910959,
+          22.120923742
+        ],
+        [
+          2860,
+          5435,
+          113.550681661,
+          22.120475381
+        ],
+        [
+          2923,
+          5470,
+          113.55048352,
+          22.120165638
+        ],
+        [
+          2967,
+          5490,
+          113.55042348,
+          22.119881537
+        ]
+      ]
+    }
+  ],
+  "historicalReference": {
+    "url": "https://webmap.gis.gov.mo/MapGIS/index.html",
+    "serviceUrl": "https://web.gis.gov.mo/arcgis/rest/services/ThematicMap/evol_v2/MapServer/0",
+    "year": 1912,
+    "objectId": 162,
+    "coordinates": "Macao Grid EPSG:8433 to WGS84 via EPSG:8438 Molodensky-Badekas with full rotation origin. Parameters and worked example verified against the official February 2017 datum document during the Taipa review.",
+    "limitations": "Unknown positional accuracy of the official reconstruction. Hand-read native strokes and generalised polygon bends have correspondence uncertainty; agreement with this reference is not independent survey accuracy."
+  }
+}

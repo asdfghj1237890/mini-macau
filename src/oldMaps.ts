@@ -1,5 +1,6 @@
 import type { Lang } from './i18n'
 import type { OldMap, OldMapText } from './types'
+import { OLD_MAP_SELECTION_GROUPS as SELECTION_GROUPS, oldMapSelectionId } from './oldMapGroups'
 
 // HISTORICAL MAPS overlay helpers. The plates themselves are MapLibre sources
 // (see `syncOldMapLayers` in MapView) — a raster tile pyramid where the plate
@@ -52,10 +53,16 @@ export function oldMapLayerId(id: string): string {
 // through `new URL` (the braces would be escaped), and a root-relative one is
 // only safe where the request happens to be made from the main thread.
 export type OldMapSourceSpec =
-  | { type: 'raster'; tiles: [string]; tileSize: number; minzoom: number; maxzoom: number; bounds: [number, number, number, number] }
+  | { type: 'raster'; tiles: [string]; tileSize: number; minzoom: number; maxzoom: number; bounds: [number, number, number, number]; attribution?: string }
   | { type: 'image'; url: string; coordinates: OldMap['coordinates'] }
 
 export function oldMapSourceSpec(map: OldMap, origin: string): OldMapSourceSpec {
+  if (map.remoteTiles) {
+    const { url, tileSize, minzoom, maxzoom } = map.remoteTiles
+    const { west, south, east, north } = map.bounds
+    return { type: 'raster', tiles: [url], tileSize, minzoom, maxzoom,
+      bounds: [west, south, east, north], attribution: map.attribution }
+  }
   if (!map.tiles) return { type: 'image', url: map.image, coordinates: map.coordinates }
   const { west, south, east, north } = map.bounds
   return {
@@ -96,20 +103,145 @@ export function oldMapNotes(map: OldMap, lang: Lang): string {
   return pick(map.notes, lang)
 }
 
-// "1792", or "1792 · 1808" when the plate was published later than drawn.
+function oldMapDate(map: OldMap): string {
+  return `${map.yearApproximate ? '≈ ' : ''}${map.year}${map.yearPrecision === 'decade' ? 's' : ''}`
+}
+
+// "1780s", "1792", or "1792 · 1808" when published later than drawn.
 export function oldMapYears(map: OldMap): string {
-  return map.published && map.published !== map.year ? `${map.year} · ${map.published}` : String(map.year)
+  const year = oldMapDate(map)
+  return map.published && map.published !== map.year ? `${year} · ${map.published}` : year
+}
+
+// Reading labels, separate from the catalogue titles and provenance. Keep the
+// main date unambiguous; a later publication date belongs in the second line.
+const LEGEND_LABELS: Record<string, { title: OldMapText; detail: OldMapText }> = {
+  'bellin-1749': {
+    title: { zh: '貝林・澳門城廓與內港', en: 'Bellin · walled Macao and Inner Harbour', pt: 'Bellin · Macau muralhada e Porto Interior' },
+    detail: { zh: '法荷雙語銅版圖 · 近似定位', en: 'French–Dutch engraving · approximate position', pt: 'Gravura franco-neerlandesa · posição aproximada' },
+  },
+  'hogg-1780s': {
+    title: { zh: '霍格版・澳門與離島航道', en: 'Hogg edition · Macao and island channels', pt: 'Edição Hogg · Macau e canais das ilhas' },
+    detail: { zh: '1780 年代航海草圖 · 近似定位', en: '1780s navigation sketch · approximate position', pt: 'Esboço náutico da década de 1780 · posição aproximada' },
+  },
+  'guignes-1792': {
+    title: { zh: '小德金・清代澳門城廓', en: 'de Guignes · walled Macao', pt: 'de Guignes · Macau muralhada' },
+    detail: { zh: '城牆、炮台與聚落', en: 'Walls, forts and settlements', pt: 'Muralhas, fortalezas e povoações' },
+  },
+  'baker-1796': {
+    title: { zh: '貝克・澳門港灣海圖', en: 'Baker · Macao harbour chart', pt: 'Baker · carta do porto de Macau' },
+    detail: { zh: '內港與南灣水深', en: 'Inner Harbour and Praia Grande soundings', pt: 'Sondagens do Porto Interior e Praia Grande' },
+  },
+  'admiralty-1858': {
+    title: { zh: '英國海軍・澳門航道海圖', en: 'Admiralty · Macao navigation chart', pt: 'Almirantado · carta náutica de Macau' },
+    detail: { zh: '第 1290 號 · 1804 測繪、1858 修訂', en: 'No. 1290 · surveyed 1804, corrected 1858', pt: 'N.º 1290 · levantamento 1804, correcções 1858' },
+  },
+  'heitor-1889': {
+    title: { zh: '海托爾・澳門街道詳圖', en: 'Heitor · detailed street survey', pt: 'Heitor · levantamento das ruas' },
+    detail: { zh: '公物局測繪 · 1:5,000', en: 'Public Works survey · 1:5,000', pt: 'Obras Públicas · 1:5.000' },
+  },
+  'sauvage-1893': {
+    title: { zh: '索瓦熱・澳門測繪手稿', en: 'Sauvage · manuscript survey', pt: 'Sauvage · levantamento manuscrito' },
+    detail: { zh: '33 處地標圖例 · 1:10,000', en: 'Key to 33 landmarks · 1:10,000', pt: 'Legenda de 33 locais · 1:10.000' },
+  },
+  'atlas-1912': {
+    title: { zh: '《澳門地圖集》三地合覽', en: 'Macau Atlas · three sheets', pt: 'Atlas de Macau · três folhas' },
+    detail: { zh: '葡萄牙製圖委員會 · 半島、氹仔、路環', en: 'Cartography Commission · peninsula, Taipa, Coloane', pt: 'Comissão de Cartografia · península, Taipa e Coloane' },
+  },
+  'cartografia-1912': {
+    title: { zh: '澳門半島・街道與炮台', en: 'Macau peninsula · streets and forts', pt: 'Península de Macau · ruas e fortalezas' },
+    detail: { zh: '《澳門地圖集》半島篇 · 1:10,000', en: 'Macau Atlas, peninsula sheet · 1:10,000', pt: 'Atlas de Macau, folha da península · 1:10.000' },
+  },
+  'taipa-1912': {
+    title: { zh: '大氹與小氹・岸線與村落', en: 'Taipa Grande & Pequena · shores and villages', pt: 'Taipa Grande e Pequena · costas e aldeias' },
+    detail: { zh: '《澳門地圖集》氹仔篇 · 1:10,000', en: 'Macau Atlas, Taipa sheet · 1:10,000', pt: 'Atlas de Macau, folha da Taipa · 1:10.000' },
+  },
+  'coloane-1912': {
+    title: { zh: '路環全島・地形與聚落', en: 'Coloane · relief and settlements', pt: 'Coloane · relevo e povoações' },
+    detail: { zh: '《澳門地圖集》路環篇 · 含聚落附圖', en: 'Macau Atlas, Coloane sheet · settlement inset', pt: 'Atlas de Macau, folha de Coloane · inserção da povoação' },
+  },
+  'alves-1927': {
+    title: { zh: '澳門新港與填海規劃', en: 'Macau new harbour & reclamation plans', pt: 'Macau · novo porto e aterros projectados' },
+    detail: { zh: '阿爾維斯／皮雷斯 · 含擬建工程', en: 'Alves / Pires · includes proposed works', pt: 'Alves / Pires · inclui obras propostas' },
+  },
+  'aomen-1953': {
+    title: { zh: '《澳門市全圖》中文街道版', en: 'Aomen Shi quan tu · Chinese street map', pt: 'Aomen Shi quan tu · ruas em chinês' },
+    detail: { zh: '編目估年 · 1956 圖書館日期章', en: 'Catalogue estimate · library stamp dated 1956', pt: 'Data estimada no catálogo · carimbo de 1956' },
+  },
+  'lemos-1963': {
+    title: { zh: '澳門地質略圖・岩層與海岸', en: 'Macau geology · rocks and coastline', pt: 'Geologia de Macau · rochas e costa' },
+    detail: { zh: 'Lemos de Sousa · 1:25,000', en: 'Lemos de Sousa · 1:25,000', pt: 'Lemos de Sousa · 1:25.000' },
+  },
+  'macau-1996': {
+    title: { zh: '澳門全境・九十年代海岸', en: 'Macau territory · 1990s coastline', pt: 'Macau · costa dos anos 1990' },
+    detail: { zh: '半島與離島 · 1:20,000', en: 'Peninsula and islands · 1:20,000', pt: 'Península e ilhas · 1:20.000' },
+  },
+}
+
+export function oldMapLegendLabel(map: OldMap, lang: Lang): { year: string; title: string; detail: string } {
+  const label = LEGEND_LABELS[map.id]
+  const published = map.published && map.published !== map.year
+    ? (lang === 'zh' ? `${map.published} 年刊印` : lang === 'pt' ? `publicado em ${map.published}` : `published ${map.published}`)
+    : ''
+  return {
+    year: oldMapDate(map),
+    title: label ? pick(label.title, lang) : oldMapName(map, lang),
+    detail: [label ? pick(label.detail, lang) : map.author, published].filter(Boolean).join(' · '),
+  }
 }
 
 export type OldMapSet = ReadonlySet<string>
 export const NO_HIDDEN_OLD_MAPS: OldMapSet = new Set()
 
+export interface OldMapGroup { id: string; maps: OldMap[] }
+
+// One selector row may draw several separately registered sheets. Preserve
+// catalogue order and original records, including each sheet's source credit.
+export function groupOldMaps(maps: OldMap[]): OldMapGroup[] {
+  const groups = new Map<string, OldMapGroup>()
+  for (const map of maps) {
+    const id = oldMapSelectionId(map.id)
+    if (!groups.has(id)) groups.set(id, { id, maps: [] })
+    groups.get(id)!.maps.push(map)
+  }
+  return [...groups.values()]
+}
+
+export function oldMapGroupLabel(group: OldMapGroup, lang: Lang) {
+  return oldMapLegendLabel({ ...group.maps[0], id: group.id }, lang)
+}
+
+export function isOldMapHidden(hidden: OldMapSet, id: string): boolean {
+  const selection = oldMapSelectionId(id)
+  return hidden.has(selection) || (SELECTION_GROUPS[selection]?.every(member => hidden.has(member)) ?? false)
+}
+
+// Migrate old individual switches: an atlas with any sheet showing stays on;
+// an entirely hidden atlas stays off. Unrelated saved preferences survive.
+function normalizeHiddenOldMaps(hidden: OldMapSet): Set<string> {
+  const next = new Set(hidden)
+  for (const [id, members] of Object.entries(SELECTION_GROUPS)) {
+    const off = isOldMapHidden(hidden, id)
+    members.forEach(member => next.delete(member))
+    if (off) next.add(id)
+  }
+  return next
+}
+
+export function toggleOldMapSelection(hidden: OldMapSet, id: string): OldMapSet {
+  const next = normalizeHiddenOldMaps(hidden)
+  const selection = oldMapSelectionId(id)
+  if (next.has(selection)) next.delete(selection)
+  else next.add(selection)
+  return next
+}
+
 // The maps to draw. Same identity contract as the other overlays: when nothing
 // listed is hidden the input array comes back as is, so MapView's
 // array-identity effect does not re-add the sources.
 export function filterOldMaps(maps: OldMap[], hidden: OldMapSet): OldMap[] {
-  if (hidden.size === 0 || !maps.some(map => hidden.has(map.id))) return maps
-  return maps.filter(map => !hidden.has(map.id))
+  if (hidden.size === 0 || !maps.some(map => isOldMapHidden(hidden, map.id))) return maps
+  return maps.filter(map => !isOldMapHidden(hidden, map.id))
 }
 
 export const LS_OLD_MAPS_HIDDEN = 'mini-macau-oldmaps-hidden'
@@ -122,7 +254,7 @@ export function loadHiddenOldMaps(): OldMapSet {
     if (!raw) return NO_HIDDEN_OLD_MAPS
     const parsed: unknown = JSON.parse(raw)
     if (!Array.isArray(parsed)) return NO_HIDDEN_OLD_MAPS
-    return new Set(parsed.filter((v): v is string => typeof v === 'string' && v.length > 0))
+    return normalizeHiddenOldMaps(new Set(parsed.filter((v): v is string => typeof v === 'string' && v.length > 0)))
   } catch {
     return NO_HIDDEN_OLD_MAPS
   }

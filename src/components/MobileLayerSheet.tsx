@@ -163,9 +163,9 @@ export function MobileCityIndex({ rows, onInspect }: {
   return <div className="mm-mobile-city-index">
     {[false, true].map(focus => <section key={String(focus)} data-focus={focus}>
       <div className="mm-mobile-city-heading"><h3>{focus ? t.layerFocus : t.layerEveryday}</h3>
-        <span>{focus ? t.cityFocusOneAtATime : t.layerMix}</span></div>
+        <span>{t.layerMix}</span></div>
       <div className="mm-mobile-index-rows">
-        {rows.filter(row => row.focus === focus).map(row => <article key={row.panel}
+        {rows.filter(row => row.thematic === focus).map(row => <article key={row.panel}
           className="mm-mobile-index-row" data-active={row.on} data-layer={row.panel}
           aria-busy={row.on && row.loadStatus === 'loading'}
           style={{ '--index-accent': `var(--mm-${row.accent})` } as CSSProperties}>
@@ -209,6 +209,8 @@ export function MobileCityDetail({ row, children }: { row: CityLayerItem; childr
     </div>
     <p className="mm-mobile-detail-description">{row.description}</p>
     <MobileLayerToggle on={row.on} label={t.mobileLayersShow} onToggle={row.toggle} />
+    {row.isolate && <button type="button" className="mm-layer-isolate-mobile"
+      aria-label={t.layerShowOnly + ': ' + row.label} onClick={row.isolate}>{t.layerShowOnly}</button>}
     <CityLayerLoadState row={row} />
     {children && <div className="mm-mobile-detail-key">{children}</div>}
   </div>

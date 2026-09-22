@@ -6,7 +6,7 @@ import './layerPanel.css'
 
 export interface CityLayerItem {
   panel: string
-  focus: boolean
+  thematic: boolean
   label: string
   code: string
   description: string
@@ -15,6 +15,7 @@ export interface CityLayerItem {
   count: string
   accent: string
   toggle?: () => void
+  isolate?: () => void
   loadStatus?: CityLoadStatus
   retry?: () => void
 }
@@ -60,6 +61,8 @@ function CityLayerCard({ row, detail, onInspect }: {
       {row.on && (
         <div className="mm-layer-card-caption">
           <span>{row.description}</span>
+          {row.isolate && <button type="button" className="mm-layer-disclosure"
+            aria-label={t.layerShowOnly + ': ' + row.label} onClick={row.isolate}>{t.layerShowOnly}</button>}
           {(detail || onInspect) && (
             <button type="button" className="mm-layer-disclosure"
               aria-label={`${t.layerDetails}: ${row.label}`}
@@ -89,9 +92,9 @@ export function CityLayerList({ rows, details, onInspect }: {
           <div className="mm-layer-section-heading">
             <span className="mm-layer-section-index mm-mono" aria-hidden="true">{focus ? '02' : '01'}</span>
             <h3>{focus ? t.layerFocus : t.layerEveryday}</h3>
-            <span className="mm-layer-section-note">{focus ? t.cityFocusOneAtATime : t.layerMix}</span>
+            <span className="mm-layer-section-note">{t.layerMix}</span>
           </div>
-          {rows.filter(row => row.focus === focus).map(row => (
+          {rows.filter(row => row.thematic === focus).map(row => (
             <CityLayerCard key={row.panel} row={row} detail={details?.[row.panel]} onInspect={onInspect} />
           ))}
         </section>

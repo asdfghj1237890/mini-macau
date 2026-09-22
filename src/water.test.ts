@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import {
   WATER_COLORS,
   WATER_FEATURE_ID_PROPERTY,
@@ -18,8 +18,6 @@ import {
   WATER_PULSE_STEP_TICKS,
   WATER_PULSE_REST_STEPS,
   advanceWaterPulse,
-  applyLayerSnapshot,
-  applyWaterFocus,
   buildDashFlowSteps,
   buildWaterBuildingFeatures,
   buildWaterDistributionFeatures,
@@ -27,13 +25,10 @@ import {
   buildWaterPipeFeatures,
   buildWaterPulseFeatures,
   buildWaterSurfaceFeatures,
-  captureLayerSnapshot,
   countWaterFootprints,
   haversineM,
   initialWaterPulseState,
-  loadWaterFocusSnapshot,
   pickWaterText,
-  saveWaterFocusSnapshot,
   waterAnchorFacility,
   waterArrivalDistances,
   waterBadgeIconName,
@@ -49,8 +44,6 @@ import {
   waterPipeLengthM,
   waterStage,
   waterTypeLabel,
-  type LayerVisibilityApply,
-  type LayerVisibilityState,
   type WaterPulseCounts,
   type WaterPulseWrite,
 } from './water'
@@ -1055,193 +1048,5 @@ describe('countWaterFootprints', () => {
     expect(countWaterFootprints(facility({
       buildings: [building(), building({ osmId: 'w2', coordinates: [] })],
     }))).toBe(1)
-  })
-})
-
-// ---- Focus mode -----------------------------------------------------------
-
-const FULL: LayerVisibilityState = {
-  lrt: ['lrt-taipa', 'lrt-hengqin'],
-  busAuto: false,
-  busRoutes: ['1', '3', 'AP1'],
-  flights: true,
-  ferries: true,
-  roadWorks: true,
-  schools: false,
-  publicHousing: false,
-  toilets: true,
-  religion: false,
-  oldMaps: false,
-  carParks: false,
-  parishes: false,
-}
-
-function recorder() {
-  const calls: [string, unknown][] = []
-  const apply: LayerVisibilityApply = {
-    setLrt: ids => calls.push(['lrt', [...ids]]),
-    setBus: (routeIds, auto) => calls.push(['bus', [[...routeIds], auto]]),
-    setFlights: on => calls.push(['flights', on]),
-    setFerries: on => calls.push(['ferries', on]),
-    setRoadWorks: on => calls.push(['roadWorks', on]),
-    setSchools: on => calls.push(['schools', on]),
-    setPublicHousing: on => calls.push(['publicHousing', on]),
-    setToilets: on => calls.push(['toilets', on]),
-    setReligion: on => calls.push(['religion', on]),
-    setOldMaps: on => calls.push(['oldMaps', on]),
-    setCarParks: on => calls.push(['carParks', on]),
-    setParishes: on => calls.push(['parishes', on]),
-  }
-  return { calls, apply }
-}
-
-describe('captureLayerSnapshot', () => {
-  it('copies the arrays so a later mutation cannot rewrite history', () => {
-    const lrt = ['lrt-taipa']
-    const snap = captureLayerSnapshot({ ...FULL, lrt })
-    lrt.push('lrt-hengqin')
-    expect(snap.lrt).toEqual(['lrt-taipa'])
-  })
-
-  it('drops the route list in auto mode, so auto restores as auto', () => {
-    const snap = captureLayerSnapshot({ ...FULL, busAuto: true })
-    expect(snap.busAuto).toBe(true)
-    expect(snap.busRoutes).toEqual([])
-  })
-})
-
-describe('applyWaterFocus', () => {
-  it('turns every other layer off, and takes buses out of auto mode', () => {
-    const { calls, apply } = recorder()
-    applyWaterFocus(apply)
-    expect(calls).toEqual([
-      ['lrt', []],
-      // Leaving auto on would let the next clock tick refill the map.
-      ['bus', [[], false]],
-      ['flights', false],
-      ['ferries', false],
-      ['roadWorks', false],
-      ['schools', false],
-      ['publicHousing', false],
-      ['toilets', false],
-      ['religion', false],
-      ['oldMaps', false],
-      ['carParks', false],
-      ['parishes', false],
-    ])
-  })
-})
-
-describe('applyLayerSnapshot', () => {
-  it('puts an explicit selection back exactly', () => {
-    const { calls, apply } = recorder()
-    applyLayerSnapshot(captureLayerSnapshot(FULL), apply)
-    expect(calls).toEqual([
-      ['lrt', ['lrt-taipa', 'lrt-hengqin']],
-      ['bus', [['1', '3', 'AP1'], false]],
-      ['flights', true],
-      ['ferries', true],
-      ['roadWorks', true],
-      ['schools', false],
-      ['publicHousing', false],
-      ['toilets', true],
-      ['religion', false],
-      ['oldMaps', false],
-      ['carParks', false],
-      ['parishes', false],
-    ])
-  })
-
-  it('restores auto-by-time as auto rather than as a frozen route set', () => {
-    const { calls, apply } = recorder()
-    applyLayerSnapshot(captureLayerSnapshot({ ...FULL, busAuto: true }), apply)
-    expect(calls.find(c => c[0] === 'bus')?.[1]).toEqual([[], true])
-  })
-
-  it('round-trips: capture → focus → restore lands back on the original', () => {
-    const { calls, apply } = recorder()
-    const snap = captureLayerSnapshot(FULL)
-    applyWaterFocus(apply)
-    calls.length = 0
-    applyLayerSnapshot(snap, apply)
-    expect(Object.fromEntries(calls)).toEqual({
-      lrt: FULL.lrt,
-      bus: [FULL.busRoutes, false],
-      flights: true,
-      ferries: true,
-      roadWorks: true,
-      schools: false,
-      publicHousing: false,
-      toilets: true,
-      religion: false,
-      oldMaps: false,
-      carParks: false,
-      parishes: false,
-    })
-  })
-})
-
-describe('loadWaterFocusSnapshot / saveWaterFocusSnapshot', () => {
-  function stubStorage(initial: Record<string, string> = {}) {
-    const store = new Map(Object.entries(initial))
-    vi.stubGlobal('localStorage', {
-      getItem: (k: string) => store.get(k) ?? null,
-      setItem: (k: string, v: string) => { store.set(k, v) },
-      removeItem: (k: string) => { store.delete(k) },
-    })
-    return store
-  }
-
-  afterEach(() => { vi.unstubAllGlobals() })
-
-  it('round-trips a snapshot through storage', () => {
-    stubStorage()
-    saveWaterFocusSnapshot(captureLayerSnapshot(FULL))
-    expect(loadWaterFocusSnapshot()).toEqual(captureLayerSnapshot(FULL))
-  })
-
-  it('forgets the snapshot when saved as null', () => {
-    const store = stubStorage()
-    saveWaterFocusSnapshot(captureLayerSnapshot(FULL))
-    saveWaterFocusSnapshot(null)
-    expect(store.has('mini-macau-water-focus-snapshot')).toBe(false)
-    expect(loadWaterFocusSnapshot()).toBeNull()
-  })
-
-  it('reads nothing from missing, corrupt or wrongly-shaped storage', () => {
-    stubStorage()
-    expect(loadWaterFocusSnapshot()).toBeNull()
-    stubStorage({ 'mini-macau-water-focus-snapshot': 'not json' })
-    expect(loadWaterFocusSnapshot()).toBeNull()
-    stubStorage({ 'mini-macau-water-focus-snapshot': '["nope"]' })
-    expect(loadWaterFocusSnapshot()).toBeNull()
-  })
-
-  it('coerces a partial payload instead of trusting it', () => {
-    stubStorage({ 'mini-macau-water-focus-snapshot': '{"lrt":["a",7],"flights":"yes"}' })
-    expect(loadWaterFocusSnapshot()).toEqual({
-      lrt: ['a'],
-      busAuto: false,
-      busRoutes: [],
-      flights: false,
-      ferries: false,
-      roadWorks: false,
-      schools: false,
-      publicHousing: false,
-      toilets: false, religion: false, oldMaps: false,
-      carParks: false,
-      parishes: false,
-    })
-  })
-
-  it('survives storage that throws (private mode)', () => {
-    vi.stubGlobal('localStorage', {
-      getItem: () => { throw new Error('denied') },
-      setItem: () => { throw new Error('denied') },
-      removeItem: () => { throw new Error('denied') },
-    })
-    expect(loadWaterFocusSnapshot()).toBeNull()
-    expect(() => saveWaterFocusSnapshot(captureLayerSnapshot(FULL))).not.toThrow()
-    expect(() => saveWaterFocusSnapshot(null)).not.toThrow()
   })
 })

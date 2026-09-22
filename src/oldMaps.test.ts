@@ -9,10 +9,14 @@ import {
   basemapBuildingsPaint,
   clampOldMapsOpacity,
   filterOldMaps,
+  groupOldMaps,
+  isOldMapHidden,
   loadHiddenOldMaps,
   loadOldMapsOpacity,
   oldMapIdFromLayer,
   oldMapLayerId,
+  oldMapLegendLabel,
+  oldMapGroupLabel,
   oldMapName,
   oldMapNotes,
   oldMapSourceId,
@@ -21,10 +25,11 @@ import {
   oldMapYears,
   saveHiddenOldMaps,
   saveOldMapsOpacity,
+  toggleOldMapSelection,
 } from './oldMaps'
-import type { OldMap } from './types'
+import type { LocalOldMap } from './types'
 
-function map(over: Partial<OldMap> = {}): OldMap {
+function map(over: Partial<LocalOldMap> = {}): LocalOldMap {
   return {
     id: 'guignes-1792',
     name: { zh: '小德金《澳門城平面圖》', en: 'de Guignes, Plan de la Ville de Macao', pt: 'de Guignes, Plan de la Ville de Macao' },
@@ -75,6 +80,29 @@ describe('names and years', () => {
     expect(oldMapYears(map())).toBe('1792 · 1808')
     expect(oldMapYears(map({ published: null }))).toBe('1792')
     expect(oldMapYears(map({ published: 1792 }))).toBe('1792')
+    expect(oldMapYears(map({ year: 1953, published: null, yearApproximate: true }))).toBe('≈ 1953')
+  })
+  it('distinguishes the three 1912 sheets and identifies the corrected chart edition', () => {
+    for (const lang of ['zh', 'en', 'pt'] as const) {
+      const labels = ['cartografia-1912', 'taipa-1912', 'coloane-1912']
+        .map(id => oldMapLegendLabel(map({ id, year: 1912, published: 1912 }), lang))
+      expect(new Set(labels.map(label => label.title)).size).toBe(3)
+      expect(labels.every(label => label.year === '1912')).toBe(true)
+      const chart = oldMapLegendLabel(map({ id: 'admiralty-1858', year: 1858, published: null }), lang)
+      expect(chart.year).toBe('1858')
+      expect(chart.detail).toContain('1804')
+      expect(chart.detail).toContain('1858')
+    }
+  })
+  it('keeps a catalogued decade distinct from an exact year in the legend and source credit', () => {
+    const chart = map({ id: 'hogg-1780s', year: 1780, yearPrecision: 'decade', published: null })
+    expect(oldMapYears(chart)).toBe('1780s')
+    for (const lang of ['zh', 'en', 'pt'] as const) {
+      const label = oldMapLegendLabel(chart, lang)
+      expect(label.year).toBe('1780s')
+      expect(label.detail).toContain('1780')
+      expect(label.title).not.toBe(oldMapLegendLabel(map({ id: 'bellin-1749' }), lang).title)
+    }
   })
 })
 
@@ -127,6 +155,48 @@ describe('filterOldMaps', () => {
   })
 })
 
+describe('1912 atlas selection', () => {
+  const atlas = ['cartografia-1912', 'taipa-1912', 'coloane-1912']
+    .map(id => map({ id, year: 1912, published: 1912 }))
+  const maps = [map(), ...atlas, map({ id: 'unrelated-1912', year: 1912, published: 1912 })]
+
+  it('combines only the three atlas sheets and retains each source record in catalogue order', () => {
+    const groups = groupOldMaps(maps)
+    expect(groups.map(group => group.id)).toEqual(['guignes-1792', 'atlas-1912', 'unrelated-1912'])
+    expect(groups[1].maps).toEqual(atlas)
+    expect(groups[1].maps[0]).toBe(atlas[0])
+    for (const lang of ['zh', 'en', 'pt'] as const) {
+      const label = oldMapGroupLabel(groups[1], lang)
+      expect(label.year).toBe('1912')
+      expect(label.title).not.toBe(oldMapLegendLabel(atlas[0], lang).title)
+      expect(label.detail).toMatch(/半島|peninsula|península/)
+    }
+  })
+
+  it('switches all three raster records together without changing unrelated layers', () => {
+    const original = new Set(['guignes-1792', 'future-map'])
+    const hidden = toggleOldMapSelection(original, 'atlas-1912')
+    expect(filterOldMaps(maps, hidden).map(map => map.id)).toEqual(['unrelated-1912'])
+    expect(atlas.every(map => isOldMapHidden(hidden, map.id))).toBe(true)
+    const restored = toggleOldMapSelection(hidden, 'atlas-1912')
+    expect(restored).toEqual(original)
+    expect(filterOldMaps(maps, restored)).toEqual([...atlas, maps[4]])
+    expect(original).toEqual(new Set(['guignes-1792', 'future-map']))
+  })
+
+  it('keeps a partially enabled legacy atlas on, then lets one click hide the whole atlas', () => {
+    const legacy = new Set(['cartografia-1912', 'taipa-1912'])
+    expect(filterOldMaps(maps, legacy)).toBe(maps)
+    expect(toggleOldMapSelection(legacy, 'atlas-1912')).toEqual(new Set(['atlas-1912']))
+  })
+
+  it('keeps a fully disabled legacy atlas hidden', () => {
+    const legacy = new Set(atlas.map(map => map.id))
+    expect(filterOldMaps(maps, legacy)).toEqual([maps[0], maps[4]])
+    expect(toggleOldMapSelection(legacy, 'atlas-1912')).toEqual(new Set())
+  })
+})
+
 describe('persistence', () => {
   function stubStorage(initial: Record<string, string> = {}, { throwOnSet = false } = {}) {
     const store = new Map(Object.entries(initial))
@@ -153,6 +223,15 @@ describe('persistence', () => {
     expect([...loadHiddenOldMaps()]).toEqual(['ok'])
     stubStorage({ [LS_OLD_MAPS_HIDDEN]: '"x"' })
     expect(loadHiddenOldMaps().size).toBe(0)
+  })
+  it('migrates the three saved atlas switches into one persistent selection', () => {
+    const store = stubStorage({ [LS_OLD_MAPS_HIDDEN]: '["cartografia-1912","taipa-1912","coloane-1912","guignes-1792"]' })
+    const hidden = loadHiddenOldMaps()
+    expect(hidden).toEqual(new Set(['atlas-1912', 'guignes-1792']))
+    saveHiddenOldMaps(hidden)
+    expect(loadHiddenOldMaps()).toEqual(hidden)
+    store.set(LS_OLD_MAPS_HIDDEN, '["cartografia-1912","guignes-1792"]')
+    expect(loadHiddenOldMaps()).toEqual(new Set(['guignes-1792']))
   })
   it('clamps the opacity into its range and round-trips it', () => {
     const store = stubStorage()

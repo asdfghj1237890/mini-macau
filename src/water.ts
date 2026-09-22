@@ -16,8 +16,6 @@
 //     drawn hollow at the facility they are co-located with (`anchor`).
 //
 // The overlay is time-independent: nothing here takes a clock.
-import { focusSnapshotKey, loadFocusSnapshot, saveFocusSnapshot } from './focusMode'
-import type { LayerVisibilityState } from './focusMode'
 import {
   PULSE_BUCKET_M, PULSE_REST_STEPS, PULSE_STEP_TICKS, PULSE_TAIL,
   advancePulse, arrivalDistances, buildPulseFeatures, distanceBucket,
@@ -341,35 +339,6 @@ export function waterPipeCount(
     if (pipe.from === nodeId || pipe.to === nodeId) count++
   }
   return count
-}
-
-// ---------------------------------------------------------------------------
-// WATER is a FOCUS mode, not just another overlay: switching it on clears every
-// other layer so the supply network is read against an empty city, and
-// switching it off puts the map back exactly as it was.
-//
-// POWER works exactly the same way, so the machinery now lives in
-// src/focusMode.ts and both overlays share it — one implementation, one storage
-// convention, no way for the two to drift. What stays here is WATER's own names
-// for it, so every existing caller (and the water tests) keep reading the same
-// module they always did.
-// ---------------------------------------------------------------------------
-export type { LayerVisibilityApply, LayerVisibilityState } from './focusMode'
-export {
-  applyLayerSnapshot,
-  captureLayerSnapshot,
-  // WATER's storage key, spelled by the shared convention.
-  applyFocusMode as applyWaterFocus,
-} from './focusMode'
-
-export const WATER_FOCUS_SNAPSHOT_KEY = focusSnapshotKey('water')
-
-export function loadWaterFocusSnapshot(): LayerVisibilityState | null {
-  return loadFocusSnapshot('water')
-}
-
-export function saveWaterFocusSnapshot(snapshot: LayerVisibilityState | null): void {
-  saveFocusSnapshot('water', snapshot)
 }
 
 // One Polygon feature per building footprint, coloured by its facility's type.

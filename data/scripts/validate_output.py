@@ -3047,12 +3047,17 @@ def v_religion(data: object) -> list[str]:
 # old-maps.json: the HISTORICAL MAPS overlay — georeferenced scans written by
 # scripts/build-old-maps.mjs (Node, not this pipeline: it needs sharp). Mirrors
 # OldMapsFileSchema in src/dataSchemas.ts. Every map's WebP must exist under
-# public/data/old-maps/, its bounds must be a sane box inside Macau, the four
+# public/data/old-maps/, its bounds must be a sane box around Macau, the four
 # corners must be that box in TL/TR/BR/BL order, the control-point table the
 # legend quotes must agree with the RMS it quotes, and a plate that says it has
 # a tile pyramid must have every tile of it on disk.
 OLD_MAPS_ID_RE = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 OLD_MAPS_MAX_RMS_M = 150.0
+# Complete early charts include titles and cartouches beyond the mapped area.
+# Allow 0.05 degrees of north/south paper margin beyond the normal region.
+# Only raster extents get this allowance; GCPs still use strict Macau bounds.
+OLD_MAPS_SHEET_LAT_MIN = LAT_MIN - 0.05
+OLD_MAPS_SHEET_LAT_MAX = LAT_MAX + 0.05
 
 
 def _is_year(value: object) -> bool:
@@ -3210,6 +3215,21 @@ def _check_old_map_georef(errs: list[str], ctx: str, g: object) -> None:
         _check_old_map_coast_snap(errs, f"{ctx}.coastSnap", g["coastSnap"])
 
 
+def _check_remote_old_map(errs: list[str], ctx: str, m: dict) -> None:
+    # Public service metadata mirrors RemoteOldMapSchema; never invent local GCPs.
+    expected = {
+        "url": "https://gis.sinica.edu.tw/macau/file-exists.php?img=Macau_20K_1996-png-{z}-{x}-{y}",
+        "tileSize": 256, "minzoom": 0, "maxzoom": 17,
+    }
+    tiles = m.get("remoteTiles")
+    if not isinstance(tiles, dict) or any(tiles.get(k) != v or type(tiles.get(k)) is not type(v)
+                                         for k, v in expected.items()):
+        errs.append(f"{ctx}.remoteTiles: must match the reviewed Academia Sinica service metadata")
+    for key in ("image", "width", "height", "tiles", "georef"):
+        if key in m:
+            errs.append(f"{ctx}.{key}: remote maps must not declare local raster or GCP metadata")
+
+
 def v_old_maps(data: object) -> list[str]:
     errs: list[str] = []
     if not require_fields(errs, "old-maps", data, ("version", "generatedAt", "maps")):
@@ -3223,8 +3243,8 @@ def v_old_maps(data: object) -> list[str]:
 
     seen: set[str] = set()
     last_year: int | None = None
-    fields = ("id", "name", "title", "author", "year", "published", "work", "image", "width", "height",
-              "bounds", "coordinates", "georef", "scan", "references", "notes", "attribution")
+    fields = ("id", "name", "title", "author", "year", "published", "work",
+              "bounds", "coordinates", "scan", "references", "notes", "attribution")
     for i, m in enumerate(data["maps"]):
         ctx = f"old-maps.maps[{i}]"
         if not require_fields(errs, ctx, m, fields):
@@ -3249,19 +3269,27 @@ def v_old_maps(data: object) -> list[str]:
             if last_year is not None and year < last_year:
                 errs.append(f"{ctx}: maps must be sorted by year ({year} after {last_year})")
             last_year = year
+        if "yearApproximate" in m and not isinstance(m["yearApproximate"], bool):
+            errs.append(f"{ctx}.yearApproximate: must be a boolean")
+        if "yearPrecision" in m and m["yearPrecision"] != "decade":
+            errs.append(f"{ctx}.yearPrecision: must be 'decade'")
         pub = m["published"]
         if pub is not None and not (_is_year(pub) and _is_year(year) and pub >= year):
             errs.append(f"{ctx}.published: must be null or an integer year >= year, got {pub!r}")
         if m["work"] is not None and not isinstance(m["work"], str):
             errs.append(f"{ctx}.work: must be null or a string")
-        image = m["image"]
-        if not (isinstance(image, str) and image.startswith("/data/old-maps/") and image.endswith(".webp")):
-            errs.append(f"{ctx}.image: must be '/data/old-maps/<file>.webp', got {image!r}")
-        elif not (PUBLIC / image.lstrip("/")).is_file():
-            errs.append(f"{ctx}.image: file not found at {PUBLIC / image.lstrip('/')}")
-        for key in ("width", "height"):
-            if not (isinstance(m[key], int) and not isinstance(m[key], bool) and m[key] > 0):
-                errs.append(f"{ctx}.{key}: must be a positive integer")
+        remote = "remoteTiles" in m
+        if remote:
+            _check_remote_old_map(errs, ctx, m)
+        elif require_fields(errs, ctx, m, ("image", "width", "height", "georef")):
+            image = m["image"]
+            if not (isinstance(image, str) and image.startswith("/data/old-maps/") and image.endswith(".webp")):
+                errs.append(f"{ctx}.image: must be '/data/old-maps/<file>.webp', got {image!r}")
+            elif not (PUBLIC / image.lstrip("/")).is_file():
+                errs.append(f"{ctx}.image: file not found at {PUBLIC / image.lstrip('/')}")
+            for key in ("width", "height"):
+                if not (isinstance(m[key], int) and not isinstance(m[key], bool) and m[key] > 0):
+                    errs.append(f"{ctx}.{key}: must be a positive integer")
         b = m["bounds"]
         if not (isinstance(b, dict) and all(_is_num(b.get(k)) for k in ("west", "east", "north", "south"))):
             errs.append(f"{ctx}.bounds: must have numeric west/east/north/south")
@@ -3269,8 +3297,8 @@ def v_old_maps(data: object) -> list[str]:
             if not (b["west"] < b["east"] and b["south"] < b["north"]):
                 errs.append(f"{ctx}.bounds: west < east and south < north required")
             for lng, lat, corner in ((b["west"], b["north"], "NW"), (b["east"], b["south"], "SE")):
-                if not in_macau(lng, lat):
-                    errs.append(f"{ctx}.bounds: {corner} corner ({lng}, {lat}) is outside Macau")
+                if not (LNG_MIN <= lng <= LNG_MAX and OLD_MAPS_SHEET_LAT_MIN <= lat <= OLD_MAPS_SHEET_LAT_MAX):
+                    errs.append(f"{ctx}.bounds: {corner} corner ({lng}, {lat}) is outside the Macau sheet extent")
             expected = [[b["west"], b["north"]], [b["east"], b["north"]], [b["east"], b["south"]], [b["west"], b["south"]]]
             coords = m["coordinates"]
             if not (isinstance(coords, list) and len(coords) == 4
@@ -3280,7 +3308,8 @@ def v_old_maps(data: object) -> list[str]:
                 errs.append(f"{ctx}.coordinates: must be the bounds in TL/TR/BR/BL order")
         if isinstance(mid, str) and OLD_MAPS_ID_RE.match(mid):
             _check_old_map_tiles(errs, f"{ctx}.tiles", mid, m.get("tiles"), b)
-        _check_old_map_georef(errs, f"{ctx}.georef", m["georef"])
+        if not remote and "georef" in m:
+            _check_old_map_georef(errs, f"{ctx}.georef", m["georef"])
         s = m["scan"]
         if require_fields(errs, f"{ctx}.scan", s, ("holder", "via", "identifier", "url", "leaves", "license")):
             for key in ("holder", "via", "identifier", "url", "license"):

@@ -1,5 +1,5 @@
-// Build the HISTORICAL MAPS (古地圖) overlay: download the public-domain scans, straighten,
-// crop (and, for a plate bound across a fold, stitch) them, rubbersheet each plate onto modern
+// Build the HISTORICAL MAPS (古地圖) overlay: download the licensed scans, straighten,
+// retain the full sheets (stitching across a fold when needed), map each plate onto modern
 // coordinates with a thin-plate spline over hand-picked control points, and write
 // public/data/old-maps/<id>.webp + public/data/old-maps.json — plus, for the plates whose scan
 // has more in it than the single image keeps (`tiles: { maxzoom }` in the table), a 512 px XYZ
@@ -42,15 +42,20 @@
 //     writes .cache/old-maps/snap-debug-<id>.json (target / spline / snapped per pair).
 //   - guignes-1792: the Getty Research Institute copy of the atlas on the Internet Archive
 //     (gri_33125008481232), leaves n141 (north half) and n142 (south half) — the plate is
-//     bound sideways across a fold, so each leaf is rotated 90° clockwise, cropped to the
-//     neat line and stacked with a 68 px GAP: the binding hides a strip of the plate in the
+//     bound sideways across a fold, so each complete leaf is rotated 90° clockwise
+//     and stacked with a 68 px GAP: the binding hides a strip of the plate in the
 //     gutter (see the source block), which is left blank.
 //   - baker-1796: the Library of Congress sheet (loc.gov/item/2002628198, mirrored on
-//     Wikimedia Commons), one scan, cropped to the inner fillet of the double border.
+//     Wikimedia Commons), retaining the full scan and its double border.
 import { createRequire } from 'node:module'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { downloadIiifSheet, fullSheetPlate, locateSheetEdges, fitAffine, enhanceSheet, groundMetresPerSourcePixel } from './old-maps-source.mjs'
+import { REMOTE_OLD_MAPS } from './old-maps-remote.mjs'
+import { LEMOS_1963 } from './old-maps-lemos.mjs'
+import { ISLAND_OLD_MAPS } from './old-maps-islands.mjs'
+import { EARLY_OLD_MAPS } from './old-maps-early.mjs'
 const require = createRequire(import.meta.url)
 const sharp = require('sharp')
 
@@ -71,8 +76,9 @@ const PREVIEW_DIR = process.env.OLD_MAPS_PREVIEW_DIR || CACHE
 
 // ---------------------------------------------------------------------------
 // The maps, oldest first. `gcps` are [name, plate x, plate y, lng | IC code, lat | null, note]
-// in the pixel space `gcpSpace` names: 'plate' = the cropped/stitched plate, 'sheet' = the
-// downloaded scan before cropping (handy when the points were read off the raw scan).
+// in the pixel space `gcpSpace` names: 'plate' = the legacy stitched registration frame,
+// 'sheet' = the downloaded scan. registrationOrigin preserves the former crop's origin
+// solely for registration; no source pixels are cropped or masked from the output.
 // ---------------------------------------------------------------------------
 const MAPS = [
   {
@@ -113,7 +119,7 @@ const MAPS = [
       // landmark pins on either side of the seam and the east coast, which leaves the north leaf at
       // x 1897 and enters the south leaf at x 1792, both put the south leaf about 100 px lower than
       // a butt joint with the old 32 px overlap did.
-      crop: { left: 224, right: 2756, northTop: 470, southBottom: 1610 }, gapPx: 68,
+      registrationOrigin: [224, 470], gapPx: 68,
     },
     lambda: 0,
     resM: 2.5,
@@ -276,8 +282,7 @@ const MAPS = [
       kind: 'sheet',
       url: 'https://upload.wikimedia.org/wikipedia/commons/4/45/A_Plan_of_the_city_and_harbour_of_Macao_-_a_colony_of_the_Portugueze%2C_situated_at_the_southern_extremity_of_the_Chinese_Empire_in_Lat._22_%E2%81%B012%CA%B944%CA%BA_N.%2C_long._113%E2%81%B035%CA%B90%CA%BA_east_of_Greenwich_LOC_2002628198.jpg',
       file: 'loc-2002628198.jpg',
-      // Inside the inner fillet of the double border (dark-line scan of the sheet edges).
-      crop: { left: 27, top: 51, width: 6305, height: 8276 },
+      registrationOrigin: [27, 51],
       // The scan is 0.845 m/px (1500 yards = 1623 px on its own scale bar); box-shrink it
       // before the warp so the 3 m/px output is a proper minification, not point sampling.
       shrink: 3,
@@ -453,8 +458,7 @@ const MAPS = [
       kind: 'sheet',
       url: 'https://upload.wikimedia.org/wikipedia/commons/5/5a/Planta_da_peninsula_de_Macau._LOC_2002624048.jpg',
       file: 'loc-2002624048.jpg',
-      // Inside the double fillet (dark-line scan of the sheet edges).
-      crop: { left: 118, top: 112, width: 6874, height: 10248 },
+      registrationOrigin: [118, 112],
       // One scan pixel is 0.43 m on the ground (median over the landmark pins); box-shrink 3×
       // before the 2 m/px warp.
       shrink: 3,
@@ -650,8 +654,7 @@ const MAPS = [
       kind: 'sheet',
       url: 'https://digitarq.arquivos.pt/rdigital/dissemination?fileId=89816416',
       file: 'ahu-01433-89816416.jpg',
-      // Inside the drawn double border (the cloth around it is scanned against black).
-      crop: { left: 500, top: 665, width: 7610, height: 5950 },
+      registrationOrigin: [500, 665],
       // ~0.85 m/px at 1:10,000; box-shrink 3× before the 2.5 m/px warp.
       shrink: 3,
     },
@@ -694,85 +697,236 @@ const MAPS = [
     },
   },
   {
-    id: 'lacerda-1922',
+    id: 'cartografia-1912',
     name: {
-      zh: '港務局《澳門及鄰近地區平面圖》（1922）',
-      en: 'Harbour Authority, Planta de Macau e Territorios Visinhos (1922)',
-      pt: 'Capitania dos Portos, Planta de Macau e Territorios Visinhos (1922)',
+      zh: '製圖委員會《澳門城市圖》',
+      en: 'Comissão de Cartografia, City Plan of Macau',
+      pt: 'Comissão de Cartografia, Planta da Cidade de Macau',
     },
     title: {
-      zh: '澳門及鄰近地區平面圖，附半島與氹仔島工程計劃 1:80,000（澳門港務局，1922 年，載於 Hugo de Lacerda《Macau e seu futuro porto》）',
-      en: 'Planta de Macau e Territorios Visinhos com a Indicação do Projecto de Obras na Peninsula e Ilha da Taipa, 1:80,000 (Macau Harbour Authority, 1922, for Hugo de Lacerda’s Macau e seu futuro porto)',
-      pt: 'Planta de Macau e Territorios Visinhos com a Indicação do Projecto de Obras na Peninsula e Ilha da Taipa, 1:80.000 (Capitania dos Portos de Macau, 1922, para Macau e seu futuro porto de Hugo de Lacerda)',
+      zh: '澳門城市圖（1912，1:10,000）',
+      en: 'Planta da Cidade de Macau (1912, 1:10,000)',
+      pt: 'Planta da Cidade de Macau (1912, 1:10.000)',
     },
-    author: 'Capitania dos Portos de Macau (Macau Harbour Authority), under its captain Hugo de Lacerda (1860–1945); printed for Macau e seu futuro porto (Macau: Tip. Mercantil de N. T. Fernandes e Filhos, 1922)',
-    year: 1922,
-    published: 1922,
-    work: 'Hugo de Lacerda (coord.), Macau e seu futuro porto (Macau, 1922) — folding plate, coloured print, 29 × 26 cm: reclamation carried out (hatched) and projected (dashed), the projected outer harbour and its channel',
+    author: 'Comissão de Cartografia, Ministério das Colónias',
+    year: 1912,
+    published: 1912,
+    work: 'Atlas de Macau — peninsula sheet, Planta da Cidade de Macau, 1:10,000',
     scan: {
-      holder: 'National Library of Australia',
-      via: 'Trove / nla.gov.au',
-      identifier: 'nla.obj-229837650 (MAP Braga Collection Col./66, J. M. Braga special map collection)',
-      url: 'https://nla.gov.au/nla.obj-229837650',
-      leaves: [],
-      license: 'Out of copyright (NLA copyright status: created/published 1922, no government copyright ownership)',
+      holder: 'Biblioteca Nacional de Portugal',
+      via: 'Biblioteca Nacional Digital',
+      identifier: 'ca-88-a / catalogue 280142 / purl.pt/27811',
+      url: 'https://purl.pt/27811',
+      leaves: ['3'],
+      license: 'Public domain — Biblioteca Nacional de Portugal marks the digitised content freely reusable, Public Domain Mark 1.0.',
     },
     references: [
-      { name: 'HathiTrust record of the book (search only outside the US)', url: 'https://catalog.hathitrust.org/Record/100579352' },
-      { name: 'MUST Library, Global Mapping of Macao (description of this plate)', url: 'https://libspc.must.edu.mo/fullRead/000051/991002943749705076' },
+      { name: 'BNP — Atlas de Macau, peninsula sheet on viewer page 3', url: 'https://permalinkbnd.bnportugal.gov.pt/en/records/item/14533-atlas-de-macau' },
     ],
     source: {
       kind: 'sheet',
-      // nla.gov.au sits behind an Anubis proof-of-work check: fetch this URL in a browser (the
-      // "Download 41Mb" TIFF on the object page) and save it under .cache/old-maps/ by hand.
-      url: 'https://nla.gov.au/tarkine/nla.obj-229837650/m',
-      file: 'nla-obj-229837650.tif',
-      manual: true,
-      // Inside the graticule border (the inner line of the double fillet).
-      crop: { left: 265, top: 219, width: 3124, height: 3422 },
+      url: 'https://permalinkbnd.bnportugal.gov.pt/i/?IIIF=/c1/e7/80/ba/c1e780ba-5760-4e90-b758-d8b9c56db9c7/iiif/ca-88-a_0000_capa-capa_t24-C-R0150_000003.tif',
+      file: 'bnp-1912.png',
+      iiif: { width: 4606, height: 6018 },
+      registrationOrigin: [290, 415],
+      shrink: 2,
     },
-    // Landmarks scatter ±300 m on this 1:80,000 sketch; pinned exactly like the others, the
-    // paper between the pins carries that scatter.
     lambda: 0,
-    resM: 8,
-    marginKm: 1,
+    resM: 2.5,
+    tiles: { maxzoom: 16 },
+    marginKm: 2,
     gcpSpace: 'sheet',
     gcps: [
-      ['Portas do Cerco 關閘', 2245, 1035, 113.54921, 22.21594, 'the gate on the isthmus, approximate'],
-      ['I. Verde 青洲山頂', 2040, 1088, 113.53764, 22.21143, 'island summit (OSM peak)'],
-      ['F.te de Mong-ha 望廈炮台', 2207, 1152, 113.54767, 22.20797, 'OSM fort'],
-      ['F.te D. Maria 馬交石炮台', 2320, 1240, 113.55562, 22.20340, 'OSM fort, approximate'],
-      ['Guia Farol 東望洋燈塔', 2285, 1288, 113.54971, 22.19644, 'the hill symbol\u2019s centre (OSM lighthouse)'],
-      ['Penha 西望洋', 1975, 1500, 'AM002', null, 'IC heritage GPS'],
-      ['F.te S. Tiago da Barra 聖地牙哥炮台', 1990, 1572, 113.53071, 22.18268, 'Pousada de São Tiago'],
-      ['I. Malau-chau 大馬騮洲', 1682, 1760, 113.51339, 22.17110, 'island hill (OSM peak)'],
-      ['Coloane 路環市區', 2325, 2655, 'MC001', null, 'St Francis Xavier church; IC heritage GPS'],
-      ['Hac-Sá 黑沙村', 2520, 2612, 113.56669, 22.11915, 'village (OSM)'],
-      ['Cahó 九澳村', 2745, 2350, 113.58136, 22.13250, 'village (OSM)'],
-      ['Vila da Taipa 氹仔舊城區', 2346, 1995, 113.55662, 22.15349, 'the reclaimed village block and dock; quarter centroid (OSM), approximate'],
-      ['Taipa Pequena 小潭山', 2243, 1916, 113.54755, 22.16128, 'innermost hachure ring of the western island (OSM peak), approximate'],
-      ['Taipa Grande 大潭山', 2492, 1922, 113.56580, 22.15889, 'innermost hachure ring of the eastern island (OSM peak), approximate'],
-      ['Alto de Coloane 疊石塘山', 2420, 2507, 113.56130, 22.12065, 'innermost hachure ring NE of Coloane village (OSM peak), approximate'],
-      ['Van Chai 灣仔', 1890, 1340, 113.5292, 22.1962, 'the village houses on the Lapa shore (approximate)'],
-      // The sheet's own graticule, corrected by the mean landmark offset (its longitudes run
-      // 1.07′ ≈ 1.8 km too far east, its latitudes 0.11′ ≈ 200 m too far north), to hold the
-      // parts of the sheet — Zhuhai, Hengqin, the sea — that have no landmark of their own.
-      ['graticule NW', 300, 260, 113.42270, 22.26284, 'graticule anchor, shifted by the mean landmark offset'],
-      ['graticule N', 1800, 260, 113.52060, 22.26262, 'graticule anchor, shifted by the mean landmark offset'],
-      ['graticule NE', 3350, 260, 113.62176, 22.26239, 'graticule anchor, shifted by the mean landmark offset'],
-      ['graticule W', 300, 1900, 113.42221, 22.16162, 'graticule anchor, shifted by the mean landmark offset'],
-      ['graticule E', 3350, 1900, 113.62165, 22.16243, 'graticule anchor, shifted by the mean landmark offset'],
-      ['graticule SW', 300, 3600, 113.42171, 22.05670, 'graticule anchor, shifted by the mean landmark offset'],
-      ['graticule S', 1800, 3600, 113.51998, 22.05774, 'graticule anchor, shifted by the mean landmark offset'],
-      ['graticule SE', 3350, 3600, 113.62153, 22.05881, 'graticule anchor, shifted by the mean landmark offset'],
+      ['Portas do Cerco 關閘', 3135, 960, 113.54921, 22.21594, 'gate crossing the isthmus road; OSM'],
+      ['Ilha Verde 青洲山頂', 1706, 1457, 113.53764, 22.21143, 'summit within the hill hachures; OSM'],
+      ['Lin Fong 蓮峯廟', 2898, 1724, 'MM024', null, 'centre of the temple enclosure; IC heritage GPS'],
+      ['Fortaleza de Monghá 望廈炮台', 2896, 2009, 113.54767, 22.20797, 'fort enclosure, not the barracks to its east'],
+      ['Fortaleza de D. Maria II 馬交石炮台', 3863, 2597, 113.55562, 22.20340, 'fort enclosure; OSM'],
+      ['Fortaleza do Monte 大炮台', 2213, 3390, 113.54237, 22.19703, 'centre of the fort enclosure'],
+      ['Guia Farol 東望洋燈塔', 3118, 3490, 113.54971, 22.19644, 'lighthouse circle within the fort; OSM'],
+      ['Cemitério de S. Miguel 聖味基墳場', 2625, 3217, 113.54553, 22.19864, 'centre of the cemetery enclosure; OSM'],
+      ['Santo António 聖安多尼堂', 1907, 3138, 'MM002', null, 'hatched church building; IC heritage GPS'],
+      ['São Lázaro 望德堂', 2595, 3375, 'MM004', null, 'hatched church building; IC heritage GPS'],
+      ['São Domingos 玫瑰堂', 1974, 3679, 'MM003', null, 'hatched church building; IC heritage GPS'],
+      ['Sé 主教座堂', 2102, 3868, 'MM006', null, 'hatched cathedral building; IC heritage GPS'],
+      ['Santo Agostinho 聖奧斯定堂', 1734, 4017, 'MM001', null, 'hatched church building; IC heritage GPS'],
+      ['São Lourenço 聖老楞佐堂', 1528, 4214, 'MM005', null, 'hatched church building; IC heritage GPS'],
+      ['Penha 西望洋聖堂', 1323, 4705, 'AM002', null, 'church on the hilltop; IC heritage GPS'],
+      // The Barra temple is too generalised to identify a matching building pixel.
+      // Penha and São Tiago constrain this area without bending it around a guess.
+      ['Fortaleza de S. Tiago 聖地牙哥炮台', 746, 5223, 113.53071, 22.18268, 'centre of the fort enclosure; OSM'],
     ],
     notes: {
-      zh: '港務局為 Hugo de Lacerda《澳門與其未來港口》一書所印的區域圖，1:80,000，涵蓋半島、氹仔、路環、對面山、橫琴與前山：斜線為已填海、虛線為擬填海，東望洋以南標出擬建的人工港與航道。圖上經緯網比今日座標偏東約 1.8 公里，配準以 16 個地物為準、全部釘準，四周用校正後的經緯網固定；這是小比例尺草圖，釘與釘之間的誤差以百公尺計。',
-      en: 'The Harbour Authority’s regional map for Hugo de Lacerda’s book Macau e seu futuro porto, 1:80,000, covering the peninsula, Taipa, Coloane, Lapa, Hengqin and Qianshan: hatching for reclamation already done, dashed lines for reclamation planned, and the projected artificial harbour and channel south of Guia. The sheet’s own graticule runs about 1.8 km east of today’s coordinates; the plate is pinned exactly at 16 landmarks, with the corrected graticule holding the edges. A small-scale sketch — between the pins expect errors of a few hundred metres.',
-      pt: 'O mapa regional da Capitania dos Portos para o livro Macau e seu futuro porto de Hugo de Lacerda, 1:80.000, com a península, a Taipa, Coloane, a Lapa, Hengqin e Qianshan: tracejado para os aterros já feitos, linhas a tracinhos para os projectados, e o porto artificial e o canal projectados a sul da Guia. A graticula da própria folha fica cerca de 1,8 km a leste das coordenadas actuais; a folha está fixada exactamente em 16 marcos, com a graticula corrigida a segurar as margens. Um esboço de pequena escala — entre os pontos, erros de algumas centenas de metros.',
+      zh: '《澳門地圖集》的半島城市圖，比例尺 1:10,000，並非同冊 1:80,000 的區域圖。以葡萄牙國家圖書館 4606×6018 原尺寸掃描製作，街廓、教堂、炮台與地形可放大查看。按現存地標配準，保留當時岸線；控制點之間及圖邊仍有製圖與配準偏差。',
+      en: 'The 1:10,000 peninsula sheet from Atlas de Macau, rather than its 1:80,000 regional map. Uses the BNP native 4606×6018 scan, with zoomable blocks, churches, forts and terrain. Georeferenced at surviving landmarks while retaining the historical shoreline; cartographic and alignment errors remain between control points and near the edges.',
+      pt: 'Folha da península à escala 1:10.000 do Atlas de Macau, distinta da carta regional a 1:80.000. Usa a digitalização original da BNP de 4606×6018 píxeis, com quarteirões, igrejas, fortalezas e relevo ampliáveis. Georreferenciada por marcos existentes, mantendo a costa histórica; subsistem desvios entre pontos de controlo e junto às margens.',
+    },
+  },
+  {
+    id: 'alves-1927',
+    name: {
+      zh: '《城市與新港圖》（含規劃）',
+      en: 'City and New Harbour (includes proposals)',
+      pt: 'Cidade e Novo Porto (inclui projectos)',
+    },
+    title: {
+      zh: '澳門城市與新港總圖（1927，1:4,000，含規劃）',
+      en: 'Planta Geral da Cidade e Novo Porto de Macau (1927, 1:4,000; includes proposals)',
+      pt: 'Planta Geral da Cidade e Novo Porto de Macau (1927, 1:4.000; inclui projectos)',
+    },
+    author: 'João Carlos Alves and João Barbosa Pires',
+    year: 1927,
+    published: 1927,
+    work: 'Planta Geral da Cidade e Novo Porto de Macau — Tipografia Mercantil, Macau',
+    scan: {
+      holder: 'Biblioteca Nacional de Portugal',
+      via: 'Biblioteca Nacional Digital',
+      identifier: 'C.C. 217 R. / catalogue 500498 / purl.pt/11434',
+      url: 'https://purl.pt/11434',
+      leaves: ['1'],
+      license: 'Public domain — Biblioteca Nacional de Portugal marks the digitised content freely reusable, Public Domain Mark 1.0.',
+    },
+    references: [
+      { name: 'BNP — catalogue and original scan', url: 'https://permalinkbnd.bnportugal.gov.pt/records/item/15421-planta-geral-da-cidade-e-novo-porto-de-macau' },
+      { name: 'Revista de Cultura — discussion of proposed and executed harbour works', url: 'https://www.icm.gov.mo/rc/viewer/30038/2055' },
+    ],
+    source: {
+      kind: 'sheet',
+      url: 'https://permalinkbnd.bnportugal.gov.pt/i/?IIIF=/2c/66/0b/6b/2c660b6b-9ba1-4fab-b3df-da246108ba98/iiif/cc-217-r_0000_000001.tif',
+      file: 'bnp-1927.png',
+      iiif: { width: 12484, height: 16318 },
+      registrationOrigin: [510, 560],
+      shrink: 5,
+    },
+    lambda: 0,
+    resM: 2.5,
+    tiles: { maxzoom: 17 },
+    marginKm: 2,
+    gcpSpace: 'sheet',
+    gcps: [
+      ['Portas do Cerco 關閘', 5080, 1050, 113.54921, 22.21594, 'gate on the isthmus road; OSM'],
+      ['Ilha Verde 青洲山頂', 1640, 2980, 113.53764, 22.21143, 'innermost summit contour; OSM'],
+      ['Lin Fong 蓮峯廟', 4865, 3058, 'MM024', null, 'temple enclosure east of the blue reservoir; IC heritage GPS'],
+      ['Fortaleza de Monghá 望廈炮台', 5010, 3750, 113.54767, 22.20797, 'fort enclosure on the hilltop'],
+      ['Fortaleza de D. Maria II 馬交石炮台', 7645, 4900, 113.55562, 22.20340, 'fort enclosure; OSM'],
+      ['Fortaleza do Monte 大炮台', 3915, 7680, 113.54237, 22.19703, 'centre of the fort enclosure'],
+      ['Guia Farol 東望洋燈塔', 6240, 7525, 113.54971, 22.19644, 'lighthouse circle at the centre of the red light rays; OSM'],
+      ['Cemitério de S. Miguel 聖味基墳場', 4780, 7030, 113.54553, 22.19864, 'centre of the cemetery enclosure; OSM'],
+      ['Santo António 聖安多尼堂', 2840, 7112, 'MM002', null, 'church building; IC heritage GPS'],
+      ['São Lázaro 望德堂', 4892, 7382, 'MM004', null, 'church building south of the cemetery; IC heritage GPS'],
+      ['São Domingos 玫瑰堂', 3425, 8504, 'MM003', null, 'church building; IC heritage GPS'],
+      ['Sé 主教座堂', 3890, 8900, 'MM006', null, 'cathedral building; IC heritage GPS'],
+      ['Santo Agostinho 聖奧斯定堂', 2974, 9441, 'MM001', null, 'church building; IC heritage GPS'],
+      ['São Lourenço 聖老楞佐堂', 2570, 10095, 'MM005', null, 'church building; IC heritage GPS'],
+      ['Penha 西望洋聖堂', 2255, 11474, 'AM002', null, 'church on the hilltop; IC heritage GPS'],
+      ['A-Ma 媽閣廟', 1100, 11820, 'MM020', null, 'temple complex; IC heritage GPS'],
+      ['Fortaleza de S. Tiago 聖地牙哥炮台', 1060, 13110, 113.53071, 22.18268, 'centre of the fort enclosure; OSM'],
+    ],
+    notes: {
+      zh: '1:4,000 彩色城市與新港圖，採用葡萄牙國家圖書館 12484×16318 原尺寸掃描。圖上同時有既有街道與填海、港口等規劃，不能把所有地塊視為 1927 年已建成。依教堂、炮台、關閘等地物配準。下方 1840 年及區域小插圖、全景畫完整保留；插圖依原版排放，不對應所在位置的現代底圖。',
+      en: 'Colour city and new-harbour plan at 1:4,000, using the BNP native 12484×16318 scan. Existing streets appear alongside reclamation and harbour proposals; not every block was built in 1927. Georeferenced at churches, forts and the Barrier Gate. The 1840 and regional inset maps and the panorama are retained in their original page layout; inset positions do not correspond to the modern basemap beneath them.',
+      pt: 'Planta colorida da cidade e novo porto a 1:4.000, a partir da digitalização original da BNP de 12484×16318 píxeis. Mostra ruas existentes e projectos de aterros e obras portuárias; nem todos os quarteirões estavam construídos em 1927. Georreferenciada por igrejas, fortalezas e Portas do Cerco. As plantas inseridas de 1840 e da região e o panorama mantêm a disposição original da folha; a posição das inserções não corresponde ao mapa moderno por baixo.',
+    },
+  },
+  {
+    id: 'aomen-1953',
+    name: {
+      zh: '《澳門市全圖》',
+      en: 'Aomen Shi quan tu — City Plan of Macau',
+      pt: 'Aomen Shi quan tu — Planta da Cidade de Macau',
+    },
+    title: {
+      zh: '澳門市全圖，約 1:10,000（美國國會圖書館編目：約 1953 年）',
+      en: 'Aomen Shi quan tu, approximately 1:10,000 (Library of Congress catalogue: circa 1953)',
+      pt: 'Aomen Shi quan tu, cerca de 1:10.000 (catálogo da Library of Congress: cerca de 1953)',
+    },
+    author: 'Unknown cartographer; lithographed by 省澳華南銘記',
+    // A catalogue estimate, not a surveyed year printed on the sheet. MUST dates the
+    // geography to 1938–1941; LoC describes a duplicate of the 1952–53 yearbook plan.
+    year: 1953,
+    yearApproximate: true,
+    published: null,
+    work: 'Library of Congress: duplicate of the Macau city plan in the 1952–53 Commercial and Industrial Yearbook; G7823.M2G45 1953 .A5',
+    scan: {
+      holder: 'Library of Congress, Geography and Map Division',
+      via: 'Wikimedia Commons',
+      identifier: '2002626773 / g7823m.ct000572',
+      url: 'https://www.loc.gov/item/2002626773/',
+      leaves: [],
+      license: 'Library of Congress Geography and Map Division: free to use and reuse; no item-specific Rights Advisory listed. Credit: Library of Congress, Geography and Map Division.',
+    },
+    attribution: 'Aomen Shi quan tu, circa 1953 (LoC catalogue). Library of Congress, Geography and Map Division, via Wikimedia Commons. Georeferenced by mini-macau.',
+    references: [
+      { name: 'Wikimedia Commons — original 4,270 × 5,241 px scan', url: 'https://commons.wikimedia.org/wiki/File:Aomen_Shi_quan_tu._LOC_2002626773.jpg' },
+      { name: 'MUST Library — alternative dating of the geography to 1938–1941', url: 'https://libspc.must.edu.mo/fullRead/000051/991000429929705076' },
+      { name: 'OpenStreetMap — Main Storage Reservoir dam reference (r10266785)', url: 'https://www.openstreetmap.org/relation/10266785' },
+      { name: 'OpenStreetMap — Avenida da República road alignment (w131607372)', url: 'https://www.openstreetmap.org/way/131607372' },
+      { name: 'IC — 2017 Historic Centre protection plan, Avenida da República historic waterfront', url: 'https://edocs.icm.gov.mo/Survey/sgchm2017/bookC.pdf' },
+    ],
+    source: {
+      kind: 'sheet',
+      url: 'https://upload.wikimedia.org/wikipedia/commons/7/75/Aomen_Shi_quan_tu._LOC_2002626773.jpg',
+      file: 'loc-2002626773.jpg',
+      // Inside the frame; keep the original title, scale and symbols with the map.
+      registrationOrigin: [115, 92],
+      shrink: 2,
+    },
+    lambda: 0,
+    resM: 2.5,
+    tiles: { maxzoom: 16 },
+    marginKm: 2,
+    gcpSpace: 'sheet',
+    gcps: [
+      ['Portas do Cerco 關閘', 2618, 333, 113.54921, 22.21594, 'base of the illustrated arch'],
+      ['Ilha Verde 青洲山頂', 1224, 870, 113.53764, 22.21143, 'centre of the innermost hill hachures; OSM peak'],
+      ['Fortaleza de Monghá 望廈炮台', 2450, 1404, 113.54767, 22.20797, 'fort enclosure within the hill'],
+      ['Fortaleza do Monte 大炮台', 1678, 2815, 113.54237, 22.19703, 'centre of the fort enclosure'],
+      ['Guia Farol 東望洋燈塔', 2820, 2787, 113.54971, 22.19644, 'base of the illustrated lighthouse; OSM'],
+      ['Cemitério de S. Miguel 聖味基墳場', 2080, 2650, 113.54553, 22.19864, 'centre of the cemetery enclosure; OSM'],
+      ['Santo António 聖安多尼堂', 1363, 2605, 'MM002', null, 'church cross; IC heritage GPS'],
+      ['São Lázaro 望德堂', 2063, 2827, 'MM004', null, 'church cross south of the cemetery; IC heritage GPS'],
+      ['São Domingos 玫瑰堂', 1445, 3117, 'MM003', null, 'church cross beside the square; IC heritage GPS'],
+      ['Sé 主教座堂', 1583, 3308, 'MM006', null, 'church cross beside 大堂街; IC heritage GPS'],
+      ['Santo Agostinho 聖奧斯定堂', 1208, 3465, 'MM001', null, 'church cross on the 崗頂 block; IC heritage GPS'],
+      ['São Lourenço 聖老楞佐堂', 946, 3663, 'MM005', null, 'church cross off 風順堂街; IC heritage GPS'],
+      ['Penha 西望洋聖堂', 780, 4198, 'AM002', null, 'church cross on the hilltop enclosure; IC heritage GPS'],
+      // Sai Van's waterfront road was outside the landmark hull as well. Pin
+      // the road centre at surviving junctions / distinctive bends, not the
+      // modern lake edge or the later Avenida Panoramica reclamation road.
+      // OSM ways 192187342, 131607372 and 206830699; the historic waterfront
+      // along Avenida da Republica is documented by IC's 2017 protection plan.
+      ['Sai Van NE 西灣街海旁轉角', 995, 4258, 113.5372212, 22.1861441, 'centre of the rounded waterfront-road bend; OSM w192187342'],
+      ['Calcada da Praia 衣灣斜巷口', 717, 4332, 113.5350394, 22.1852118, 'junction of the diagonal lane and waterfront road; OSM w131607372 / w206110374'],
+      ['Republica east 民國大馬路東側折角', 664, 4468, 113.5348464, 22.1843632, 'centre of the distinct bend south of Calcada da Praia; OSM w131607372'],
+      ['Republica bay 民國大馬路灣內轉角', 511, 4590, 113.5333984, 22.1834691, 'centre of the bend into the north-south road stretch; OSM w131607372'],
+      ['Republica south 民國大馬路南端', 390, 4842, 113.5323988, 22.1814313, 'southernmost road-centre bend around the Barra hill; OSM w131607372'],
+      ['Sao Tiago junction 媽閣上街路口', 132, 4744, 113.5303201, 22.1822395, 'small round junction where the waterfront road meets Rua de S. Tiago da Barra; OSM w131607372 / w192187344'],
+      // The reservoir was outside the landmark hull and drifted south-west.
+      // Match identifiable water-side dam corners, not the outer road edge.
+      // OSM relation 10266785, from water-facilities.json res-main. The western
+      // shore and northern waterworks changed later: do not snap those shores.
+      ['Reservoir NE 大水塘東北堤角', 3974, 1969, 113.560456, 22.204279, 'water-side bend of the north/east dams; OSM r10266785'],
+      ['Reservoir SE 大水塘東南堤角', 4119, 2545, 113.561683, 22.199913, 'water-side bend of the east/south dams; OSM r10266785'],
+      ['Reservoir south 大水塘南堤轉折', 3549, 2693, 113.557742, 22.198725, 'water-side turn from the straight southern dam into the southern bay; OSM r10266785'],
+      // A-Ma and São Tiago are not unambiguously drawn. The labelled waterfront
+      // rectangle is 海軍船塢 (naval dockyard), NOT the temple: do not pin it to A-Ma.
+    ],
+    notes: {
+      zh: '中文街名與半島街廓圖，約 1:10,000。採用美國國會圖書館的無水印掃描；館方編目為約 1953 年，並註明與 1952–53 年工商年鑑內的城市圖相同；科大依圖面地貌判為 1938–1941 年，不能把 1953 當成確定測繪年。右下角蓋有「Map Division / 5–JUL 1956 / Library of Congress」日期章，屬美國國會圖書館地圖部的館方標記；單憑此章不能判定出版或測繪年份，也未確認其具體登記用途。以教堂、炮台、關閘等地物配準，另以大水塘東北、東南堤角及南堤轉折校準東側位置；保留水塘舊圖西岸及北側設施的形狀。西灣以民國大馬路的舊道路轉角、衣灣斜巷口及媽閣上街路口補充定位，未將舊岸線套到後來填海形成的西灣湖景大馬路。圖上建築符號及街廓有概括化，控制點以外仍有偏差；外港虛線區為圖上的規劃街道。',
+      en: 'Chinese street names and peninsula blocks, approximately 1:10,000. Watermark-free Library of Congress scan, catalogued circa 1953 and described as a duplicate of the 1952–53 Commercial and Industrial Yearbook plan. MUST dates the depicted geography to 1938–1941; 1953 is not a confirmed survey year. The lower-right stamp reads “Map Division / 5–JUL 1956 / Library of Congress”. It is a Library of Congress Map Division date stamp; it does not establish the publication or survey date, and its specific registration purpose has not been confirmed. Georeferenced at churches, forts and the Barrier Gate, with the Main Storage Reservoir’s northeast and southeast dam corners and southern dam bend anchoring the east side. The reservoir’s western shore and northern facilities retain their historical shapes. Sai Van is additionally anchored at surviving Avenida da República road bends and its junctions with Calçada da Praia and Rua de S. Tiago da Barra, not the later reclaimed Avenida Panorâmica shoreline. Symbols and blocks are generalised and alignment between landmarks remains approximate. Dashed outer-harbour streets are planned streets on the original.',
+      pt: 'Ruas em chinês e quarteirões da península, cerca de 1:10.000. Digitalização sem marca de água da Library of Congress, catalogada cerca de 1953 e descrita como duplicado da planta do anuário comercial e industrial de 1952–53. A MUST data a geografia representada de 1938–1941; 1953 não é uma data de levantamento confirmada. O carimbo no canto inferior direito diz «Map Division / 5–JUL 1956 / Library of Congress». É um carimbo datado da divisão de mapas da Library of Congress; não determina a data de publicação ou levantamento, nem foi confirmada a sua finalidade específica de registo. Georreferenciada por igrejas, fortalezas e Portas do Cerco, com os cantos nordeste e sudeste dos diques e a curva do dique sul do Reservatório Principal a fixar o lado leste. A margem oeste e as instalações a norte do reservatório mantêm as formas históricas. Sai Van tem pontos adicionais nas curvas da Avenida da República e nos cruzamentos com a Calçada da Praia e a Rua de S. Tiago da Barra, sem ajustar a costa antiga aos aterros posteriores da Avenida Panorâmica. Os símbolos são generalizados e o alinhamento entre marcos continua aproximado. As ruas a tracejado no Porto Exterior são projectadas.',
     },
   },
 ]
+
+MAPS.push(LEMOS_1963, ...ISLAND_OLD_MAPS, ...EARLY_OLD_MAPS)
+for (const map of MAPS) {
+  map.notes = {
+    zh: `完整顯示來源圖版，保留紙邊、標題、圖例及插圖。${map.notes.zh}`,
+    en: `The complete source sheet is shown, including margins, titles, legends and insets. ${map.notes.en}`,
+    pt: `A folha original é apresentada por inteiro, com margens, títulos, legendas e inserções. ${map.notes.pt}`,
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -858,7 +1012,7 @@ const religion = JSON.parse(fs.readFileSync(path.join(ROOT, 'public', 'data', 'r
 function resolveGcp(map, [name, u, v, lngOrCode, lat, note]) {
   const shrink = map.source.shrink ?? 1
   let px = u, py = v
-  if (map.gcpSpace === 'sheet') { px = (u - map.source.crop.left) / shrink; py = (v - map.source.crop.top) / shrink }
+  if (map.gcpSpace === 'sheet') { px = (u - map.source.registrationOrigin[0]) / shrink; py = (v - map.source.registrationOrigin[1]) / shrink }
   if (typeof lngOrCode === 'string') {
     const site = religion.sites.find(s => s.heritage && s.heritage.code === lngOrCode)
     if (!site) throw new Error(`GCP ${name}: no religion.json site with heritage code ${lngOrCode}`)
@@ -867,9 +1021,8 @@ function resolveGcp(map, [name, u, v, lngOrCode, lat, note]) {
   return { name, u: px, v: py, lng: lngOrCode, lat, note }
 }
 
-// The plate as raw pixels: the neat-line-cropped scan, stitched across a fold when needed.
-// `fullRes` skips the box-shrink of a 'sheet' source — the tile pyramid samples the scan's own
-// pixels — so one plate pixel of the warp is `shrink` pixels of that plate.
+// Complete sheets, including paper edges and insets. Sampling offsets retain the
+// original registration frame; fullRes gives the tile pyramid native scan pixels.
 async function buildPlate(map, fullRes = false) {
   const s = map.source
   if (s.kind === 'stitch') {
@@ -877,23 +1030,20 @@ async function buildPlate(map, fullRes = false) {
       const file = await download(s.urlFor(n), path.join(CACHE, s.fileFor(n)))
       return sharp(file).rotate(s.rotate).png().toBuffer()
     }
-    const { crop } = s
-    const overlapPx = s.gapPx !== undefined ? -s.gapPx : (s.overlapPx ?? 0) // a gap is a negative overlap
     const northLeaf = await leaf(s.leaves.north)
-    const northLeafHeight = (await sharp(northLeaf).metadata()).height
-    const northBuf = await sharp(northLeaf).extract({ left: crop.left, top: crop.northTop, width: crop.right - crop.left, height: northLeafHeight - crop.northTop }).png().toBuffer()
-    const southBuf = await sharp(await leaf(s.leaves.south)).extract({ left: crop.left, top: 0, width: crop.right - crop.left, height: crop.southBottom }).png().toBuffer()
-    const nh = (await sharp(northBuf).metadata()).height, sh = (await sharp(southBuf).metadata()).height
-    const W = crop.right - crop.left, H = nh + sh - overlapPx
-    return sharp({ create: { width: W, height: H, channels: 3, background: '#f2ecdc' } })
-      .composite([{ input: southBuf, left: 0, top: nh - overlapPx }, { input: northBuf, left: 0, top: 0 }])
-      .raw().toBuffer({ resolveWithObject: true })
+    const southLeaf = await leaf(s.leaves.south)
+    const north = await sharp(northLeaf).metadata(), south = await sharp(southLeaf).metadata()
+    const full = await sharp({ create: { width: Math.max(north.width, south.width), height: north.height + s.gapPx + south.height, channels: 3, background: '#f2ecdc' } })
+      .composite([{ input: northLeaf, left: 0, top: 0 }, { input: southLeaf, left: 0, top: north.height + s.gapPx }])
+      .png().toBuffer()
+    return fullSheetPlate(full, s, fullRes)
   }
   if (s.kind === 'sheet') {
-    const file = await download(s.url, path.join(CACHE, s.file), s.manual === true)
-    let img = sharp(file).extract({ left: s.crop.left, top: s.crop.top, width: s.crop.width, height: s.crop.height })
-    if (s.shrink && s.shrink > 1 && !fullRes) img = img.resize({ width: Math.round(s.crop.width / s.shrink), kernel: 'lanczos3' })
-    return img.removeAlpha().raw().toBuffer({ resolveWithObject: true })
+    const original = s.iiif
+      ? await downloadIiifSheet(s, CACHE, download)
+      : await download(s.url, path.join(CACHE, s.originalFile ?? s.file), s.manual === true)
+    const file = s.enhance ? await enhanceSheet(s, CACHE, original) : original
+    return fullSheetPlate(file, s, fullRes)
   }
   throw new Error(`unknown source kind ${s.kind}`)
 }
@@ -913,8 +1063,8 @@ async function gcpSheet(map, plate) {
   const WIN = 150, OUT = 300, COLS = 5, PAD = 6, LABEL = 22
   const tiles = []
   for (let i = 0; i < gcps.length; i++) {
-    const cx = fromSheet ? map.gcps[i][1] : gcps[i].u
-    const cy = fromSheet ? map.gcps[i][2] : gcps[i].v
+    const cx = fromSheet ? map.gcps[i][1] : gcps[i].u * plate.scale + plate.offset[0]
+    const cy = fromSheet ? map.gcps[i][2] : gcps[i].v * plate.scale + plate.offset[1]
     const left = Math.max(0, Math.min(meta.width - WIN, Math.round(cx - WIN / 2)))
     const top = Math.max(0, Math.min(meta.height - WIN, Math.round(cy - WIN / 2)))
     const px = (cx - left) * (OUT / WIN), py = (cy - top) * (OUT / WIN)
@@ -986,7 +1136,7 @@ function buildCoastSnap(map, gcps, fu, fv) {
   const cfg = { steps: 16, radiusM: 250, cellM: 4, minGapM: 3, ...map.coastSnap }
   const data = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts', 'old-maps-coast', `${map.id}.json`), 'utf8'))
   const shrink = map.source.shrink ?? 1
-  const toPlate = map.gcpSpace === 'sheet' ? (u, v) => [(u - map.source.crop.left) / shrink, (v - map.source.crop.top) / shrink] : (u, v) => [u, v]
+  const toPlate = map.gcpSpace === 'sheet' ? (u, v) => [(u - map.source.registrationOrigin[0]) / shrink, (v - map.source.registrationOrigin[1]) / shrink] : (u, v) => [u, v]
   const inverse = (u, v, x, y) => { // Newton on the spline, started at the target
     for (let it = 0; it < 60; it++) {
       const h = 0.002, eu = fu(x, y) - u, ev = fv(x, y) - v
@@ -1051,8 +1201,11 @@ function buildCoastSnap(map, gcps, fu, fv) {
     }
     const wx = solveChol(nodes.map(p => p.ex)), wy = solveChol(nodes.map(p => p.ey))
     // the field, tabulated on a lattice and read back bilinearly
-    const minX = Math.min(...all.map(s => s.qx)) - R, maxX = Math.max(...all.map(s => s.qx)) + R
-    const minY = Math.min(...all.map(s => s.qy)) - R, maxY = Math.max(...all.map(s => s.qy)) + R
+    // Fixed landmarks also carry kernel weights. Include their full support:
+    // cutting the lattice at the coast extent would abruptly truncate those
+    // weights and leave a discontinuity where the field switches back to zero.
+    const minX = Math.min(...nodes.map(n => n.x)) - R, maxX = Math.max(...nodes.map(n => n.x)) + R
+    const minY = Math.min(...nodes.map(n => n.y)) - R, maxY = Math.max(...nodes.map(n => n.y)) + R
     const bw = Math.ceil((maxX - minX) / R), bh = Math.ceil((maxY - minY) / R)
     const buckets = Array.from({ length: bw * bh }, () => [])
     nodes.forEach((p, i) => { const bx = Math.floor((p.x - minX) / R), by = Math.floor((p.y - minY) / R); if (bx >= 0 && by >= 0 && bx < bw && by < bh) buckets[by * bw + bx].push(i) })
@@ -1099,11 +1252,13 @@ function buildCoastSnap(map, gcps, fu, fv) {
 }
 
 async function warp(map, plate) {
-  const lambda = LAMBDA_OVERRIDE ?? map.lambda
+  const affine = map.projection === 'affine'
+  const lambda = affine ? null : LAMBDA_OVERRIDE ?? map.lambda
   const gcps = map.gcps.map(g => resolveGcp(map, g))
   const pts = gcps.map(g => { const [x, y] = toXY(g.lng, g.lat); return { x, y, u: g.u, v: g.v } })
-  const fu = fitTPS(pts.map(q => ({ x: q.x, y: q.y, val: q.u })), lambda)
-  const fv = fitTPS(pts.map(q => ({ x: q.x, y: q.y, val: q.v })), lambda)
+  const fit = affine ? fitAffine : points => fitTPS(points, lambda)
+  const fu = fit(pts.map(q => ({ x: q.x, y: q.y, val: q.u })))
+  const fv = fit(pts.map(q => ({ x: q.x, y: q.y, val: q.v })))
   const SW = plate.info.width, SH = plate.info.height, CH = plate.info.channels, raw = plate.data
   const snap = buildCoastSnap(map, gcps, fu, fv)
   // ground (km) → plate px, through the coast snap when the map has one
@@ -1123,12 +1278,21 @@ async function warp(map, plate) {
     return { name: g.name, m: +(Math.hypot(dx, dy) * 1000).toFixed(1) }
   })
   const rms = +Math.sqrt(residuals.reduce((s, r) => s + r.m * r.m, 0) / residuals.length).toFixed(1)
-  // Target bounds: the control points' box widened by the map's margin; trimmed to content after.
+  // Cover the complete sheet perimeter while keeping the prior geographic pixel
+  // grid's origin. A paper title or legend may extend beyond the old fixed margin.
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity
   for (const g of gcps) { const [x, y] = toXY(g.lng, g.lat); minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y) }
   const m = map.marginKm
   minX -= m; maxX += m; minY -= m; maxY += m
   const RES = map.resM
+  const seedX = fitAffine(pts.map(p => ({ x: p.u, y: p.v, val: p.x })))
+  const seedY = fitAffine(pts.map(p => ({ x: p.u, y: p.v, val: p.y })))
+  const edges = locateSheetEdges(project, plate.frame, (u, v) => [seedX(u, v), seedY(u, v)])
+  const step = RES / 1000, gridX = minX, gridY = maxY
+  minX = gridX + (Math.floor((Math.min(...edges.map(p => p[0])) - gridX) / step) - 4) * step
+  maxX = gridX + (Math.ceil((Math.max(...edges.map(p => p[0])) - gridX) / step) + 4) * step
+  minY = gridY + (Math.floor((Math.min(...edges.map(p => p[1])) - gridY) / step) - 4) * step
+  maxY = gridY + (Math.ceil((Math.max(...edges.map(p => p[1])) - gridY) / step) + 4) * step
   const W = Math.round((maxX - minX) * 1000 / RES), H = Math.round((maxY - minY) * 1000 / RES)
   const out = Buffer.alloc(W * H * 4, 0)
   let x0f = W, x1f = 0, y0f = H, y1f = 0
@@ -1136,7 +1300,8 @@ async function warp(map, plate) {
     const y = maxY - (j + 0.5) * RES / 1000
     for (let i = 0; i < W; i++) {
       const x = minX + (i + 0.5) * RES / 1000
-      const [u, v] = F(x, y)
+      const [pu, pv] = F(x, y)
+      const u = pu * plate.scale + plate.offset[0], v = pv * plate.scale + plate.offset[1]
       const iu = Math.floor(u), iv = Math.floor(v)
       if (iu < 0 || iv < 0 || iu >= SW - 1 || iv >= SH - 1) continue
       const fx = u - iu, fy = v - iv
@@ -1147,6 +1312,7 @@ async function warp(map, plate) {
       if (i < x0f) x0f = i; if (i > x1f) x1f = i; if (j < y0f) y0f = j; if (j > y1f) y1f = j
     }
   }
+  if (x0f < 2 || y0f < 2 || x1f > W - 3 || y1f > H - 3) throw new Error(`${map.id}: full sheet touches output edge`)
   const tx0 = Math.max(0, x0f - 2), ty0 = Math.max(0, y0f - 2), tw = Math.min(W, x1f + 3) - tx0, th = Math.min(H, y1f + 3) - ty0
 
   // Fold check: the sign of the inverse map's Jacobian over the content area. A sign flip means
@@ -1155,18 +1321,32 @@ async function warp(map, plate) {
   {
     // north-up metres -> y-down plate px: the right way up is a NEGATIVE determinant
     const ups = [], downs = []
+    const distortionChecks = (map.distortionChecks ?? []).map(check => ({ ...check, maximum: 0, samples: 0 }))
     for (let j = ty0; j < ty0 + th; j += 8) for (let i = tx0; i < tx0 + tw; i += 8) {
       if (out[(j * W + i) * 4 + 3] === 0) continue
       const x = minX + (i + 0.5) * RES / 1000, y = maxY - (j + 0.5) * RES / 1000, h = RES / 1000
       const e1 = F(x + h, y), e0 = F(x - h, y), n1 = F(x, y + h), n0 = F(x, y - h)
       const a = e1[0] - e0[0], b = n1[0] - n0[0], c = e1[1] - e0[1], d = n1[1] - n0[1]
       ;(a * d - b * c < 0 ? downs : ups).push([x, y])
+      if (distortionChecks.length) {
+        const [su, sv] = F(x, y)
+        for (const check of distortionChecks) {
+          const [left, top, right, bottom] = check.sourceBounds
+          if (su < left || su > right || sv < top || sv > bottom) continue
+          check.samples++
+          check.maximum = Math.max(check.maximum, groundMetresPerSourcePixel(a / (2000 * h), b / (2000 * h), c / (2000 * h), d / (2000 * h)))
+        }
+      }
     }
     const bad = ups.length <= downs.length ? ups : downs, flipped = bad.length, total = ups.length + downs.length
     let fx0 = Infinity, fx1 = -Infinity, fy0 = Infinity, fy1 = -Infinity
     for (const [x, y] of bad) { fx0 = Math.min(fx0, x); fx1 = Math.max(fx1, x); fy0 = Math.min(fy0, y); fy1 = Math.max(fy1, y) }
     if (flipped && process.env.OLD_MAPS_SNAP_DEBUG) for (const [x, y] of bad.slice(0, 30)) console.log('      flipped at ' + toLL(x, y).map(v => v.toFixed(5)).join(', '))
     console.log(`   fold check: ${flipped === 0 ? 'none' : `${flipped} of ${total} samples flipped (${(100 * flipped / total).toFixed(2)} %) << flipped box lng ${toLL(fx0, 0)[0].toFixed(5)}..${toLL(fx1, 0)[0].toFixed(5)} lat ${toLL(0, fy0)[1].toFixed(5)}..${toLL(0, fy1)[1].toFixed(5)}`}`)
+    for (const check of distortionChecks) {
+      if (!check.samples || check.maximum > check.maxMetresPerPixel) throw new Error(`${map.id}: ${check.name} stretch check failed (${check.maximum.toFixed(1)} m/source pixel across ${check.samples} samples; limit ${check.maxMetresPerPixel})`)
+      console.log(`   ${check.name}: ${check.maximum.toFixed(1)} m/source pixel maximum, ${check.samples} samples (limit ${check.maxMetresPerPixel})`)
+    }
   }
   const west = toLL(minX + tx0 * RES / 1000, 0)[0], east = toLL(minX + (tx0 + tw) * RES / 1000, 0)[0]
   const north = toLL(0, maxY - ty0 * RES / 1000)[1], south = toLL(0, maxY - (ty0 + th) * RES / 1000)[1]
@@ -1219,7 +1399,6 @@ const tileRange = (b, z) => ({
 async function buildTiles(map, bounds, project) {
   const maxzoom = map.tiles.maxzoom, T = TILE_SIZE, L = TILE_LATTICE, n = T / L + 1
   const plate = await buildPlate(map, true)
-  const k = map.source.kind === 'sheet' ? (map.source.shrink ?? 1) : 1 // full-resolution px per plate px of the warp
   const SW = plate.info.width, SH = plate.info.height, CH = plate.info.channels, raw = plate.data
   const dir = path.join(OUT_DIR, map.id)
   if (path.dirname(dir) !== OUT_DIR) throw new Error(`${map.id}: refusing to clear ${dir}`)
@@ -1243,7 +1422,7 @@ async function buildTiles(map, bounds, project) {
       for (let i = 0; i < n; i++) {
         const [x, y] = toXY(lngOfX(tx * T + i * L, maxzoom), lat)
         const [u, v] = project(x, y)
-        LU[j * n + i] = u * k; LV[j * n + i] = v * k
+        LU[j * n + i] = u * plate.scale + plate.offset[0]; LV[j * n + i] = v * plate.scale + plate.offset[1]
       }
     }
     const out = Buffer.alloc(T * T * 4, 0)
@@ -1298,7 +1477,9 @@ async function buildTiles(map, bounds, project) {
   return { url: `/data/old-maps/${map.id}/{z}/{x}/{y}.webp`, tileSize: T, minzoom: TILE_MINZOOM, maxzoom, count: stats.count }
 }
 
-const built = []
+if (only && ![...MAPS, ...REMOTE_OLD_MAPS].some(map => map.id === only)) throw new Error('Unknown map: ' + only)
+const built = REMOTE_OLD_MAPS.filter(map => !only || map.id === only)
+for (const map of built) console.log('== ' + map.id + ': provider-georeferenced WMTS; no local scan or GCP fit')
 for (const map of MAPS) {
   if (only && map.id !== only) continue
   console.log(`== ${map.id}`)
@@ -1316,19 +1497,21 @@ for (const map of MAPS) {
   if (!tiles) fs.rmSync(path.join(OUT_DIR, map.id), { recursive: true, force: true }) // a pyramid from before `tiles` was dropped
   built.push({
     id: map.id, name: map.name, title: map.title, author: map.author, year: map.year, published: map.published, work: map.work,
+    ...(map.yearPrecision ? { yearPrecision: map.yearPrecision } : {}),
+    ...(map.yearApproximate ? { yearApproximate: true } : {}),
     image: `/data/old-maps/${map.id}.webp`, width: w.width, height: w.height,
     bounds: b,
     coordinates: [[b.west, b.north], [b.east, b.north], [b.east, b.south], [b.west, b.south]],
     ...(tiles ? { tiles } : {}),
-    georef: { method: 'thin-plate spline', lambda: w.lambda, metresPerPixel: map.resM, controlPoints: w.gcps.length, rmsM: w.rms,
+    georef: { method: map.projection === 'affine' ? 'affine least squares' : 'thin-plate spline', lambda: w.lambda, metresPerPixel: map.resM, controlPoints: w.gcps.length, rmsM: w.rms,
       gcps: w.gcps.map((g, i) => ({ name: g.name, platePixel: [+g.u.toFixed(1), +g.v.toFixed(1)], lngLat: [g.lng, g.lat], residualM: w.residuals[i].m, note: g.note })),
       ...(w.coastSnap ? { coastSnap: w.coastSnap } : {}) },
     scan: map.scan, references: map.references, notes: map.notes,
-    attribution: `${map.author.split(';')[0]}, ${map.year}${map.published && map.published !== map.year ? `/${map.published}` : ''}. Scan: ${map.scan.holder} via ${map.scan.via}, public domain. Georeferenced by mini-macau.`,
+    attribution: map.attribution ?? `${map.author.split(';')[0]}, ${map.year}${map.published && map.published !== map.year ? `/${map.published}` : ''}. Scan: ${map.scan.holder} via ${map.scan.via}, public domain. Georeferenced by mini-macau.`,
   })
 }
 if (PREVIEW || GCPS || CHECK) process.exit(0)
 const existing = fs.existsSync(OUT_JSON) ? JSON.parse(fs.readFileSync(OUT_JSON, 'utf8')) : { maps: [] }
-const merged = only ? [...existing.maps.filter(m => !built.some(n => n.id === m.id)), ...built].sort((a, b) => a.year - b.year) : built
+const merged = only ? [...existing.maps.filter(m => !built.some(n => n.id === m.id)), ...built].sort((a, b) => a.year - b.year) : [...built].sort((a, b) => a.year - b.year)
 fs.writeFileSync(OUT_JSON, JSON.stringify({ version: 1, generatedAt: new Date().toISOString(), maps: merged }, null, 2) + '\n')
 console.log(`wrote ${path.relative(ROOT, OUT_JSON)} (${merged.length} map${merged.length === 1 ? '' : 's'})`)

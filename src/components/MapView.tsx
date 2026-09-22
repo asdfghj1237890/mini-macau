@@ -1,3 +1,4 @@
+import { applyOverlayVisibility, applyLrtVisibility } from '../layerVisibility'
 import { lazy, Suspense, useRef, useEffect, useCallback, useState, useSyncExternalStore } from 'react'
 // v6 ships ESM only: the namespace import replaces the v5 default export,
 // and a bundler has to hand MapLibre its worker URL once — `?worker&url`
@@ -42,6 +43,7 @@ import {
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { RELIGION_APPROXIMATE_OPACITY, RELIGION_CATEGORY_COLORS, RELIGION_ICON_VARIANTS, buildReligionFeatures, religionIconName } from '../religion'
 import { OLD_MAPS_DEFAULT_OPACITY, basemapBuildingsPaint, oldMapIdFromLayer, oldMapLayerId, oldMapSourceId, oldMapSourceSpec } from '../oldMaps'
+import { OldMapLabels } from '../oldMapLabels'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
 import {
   WASTE_AREA_FILL_OPACITY,
@@ -1125,7 +1127,7 @@ function addPhaseLayers(
   })
 }
 
-// Every phase layer of a group, for the focus-visibility sweep and for removal.
+// Every phase layer of a group, for visibility updates and removal.
 function phaseLayerIds(prefix: string, count: number): string[] {
   return Array.from({ length: count }, (_, k) => phaseLayerId(prefix, k))
 }
@@ -1463,8 +1465,8 @@ function drawChequeredFlagIcon(): ImageData | null {
 const WATER_PIPE_DASH_STEPS: number[][] = buildDashFlowSteps(2, 1.5, WATER_TRUNK_PHASES)
 const WATER_PIPE_FLOW_STEPS: number[][] = buildDashFlowSteps(2.2, 5.5, WATER_TRUNK_PHASES)
 const WATER_DISTRIBUTION_FLOW_STEPS: number[][] = buildDashFlowSteps(1.2, 7, WATER_MESH_PHASES)
-// The period of the ONE interval that drives every phase group of BOTH focus
-// overlays. They are mutually exclusive, so only one set is ever advancing.
+// The period of the ONE interval that drives every phase group of BOTH utility
+// overlays. Each enabled network advances on the shared interval.
 const FLOW_TICK_MS = 70
 // Opacity of the ONE opaque phase in each trunk group.
 const WATER_PIPES_DASHED_OPACITY = 1
@@ -1700,76 +1702,32 @@ const POWER_DISTRIBUTION_FLOW_STEPS: number[][] = buildDashFlowSteps(1.2, 7, POW
 // shares the promoted feature id, so one setFeatureState whitens the site.
 const POWER_SELECTED_COLOR = '#ffffff'
 
-// The layers that survive an empty `transitData` because they are built from
-// `allTransitData`: the bus route polylines (one shared source, dimmed by
-// feature-state rather than filtered) and the LRT station pins. EITHER focus
-// mode hides them by layout visibility for as long as it is on — nothing else
-// touches these two properties, so there is no state to fight over.
-const FOCUS_HIDDEN_LAYERS = [
-  'bus-routes', 'bus-routes-highlighted', 'stations-circle', 'stations-label',
-  ...BUS_TERMINAL_LAYERS,
-] as const
-
-// The mirror image: layers that exist ONLY for focus mode. The distribution
-// network is drawn from the basemap's own tiles, so there is no data array to
-// empty when the layer goes off — visibility is the whole mechanism.
-const WATER_FOCUS_SHOWN_LAYERS: readonly string[] = [
+// Utility street meshes use layout visibility because they have shared sources.
+// Their cached data remains loaded while off; layout visibility hides it.
+const WATER_NETWORK_LAYERS: readonly string[] = [
   WATER_DISTRIBUTION_GLOW_LAYER_ID, WATER_DISTRIBUTION_LAYER_ID,
   // Every phase layer of the mesh flow. None of them may exist (narrow
   // viewport) — the loop skips missing layers. Visibility and opacity are
-  // orthogonal here: focus mode shows them all, and exactly one is opaque.
+  // orthogonal here: enabling the network shows them all, and exactly one is opaque.
   ...phaseLayerIds(WATER_DISTRIBUTION_FLOW_PREFIX, WATER_MESH_PHASES),
   // And every bucket layer of the mesh half of the pulse, on the same terms.
   ...phaseLayerIds(WATER_PULSE_MESH_PREFIX, WATER_MESH_PULSE_BUCKETS),
 ]
 
 // The electricity overlay's mirror image of the list above.
-const POWER_FOCUS_SHOWN_LAYERS: readonly string[] = [
+const POWER_NETWORK_LAYERS: readonly string[] = [
   POWER_DISTRIBUTION_GLOW_LAYER_ID, POWER_DISTRIBUTION_LAYER_ID,
   ...phaseLayerIds(POWER_DISTRIBUTION_FLOW_PREFIX, POWER_MESH_PHASES),
   ...phaseLayerIds(POWER_PULSE_MESH_PREFIX, POWER_MESH_PULSE_BUCKETS),
 ]
 
-// WATER and POWER are mutually exclusive focus modes, so this takes both flags
-// and is the single place layout visibility is decided: the city hides for
-// either, and each overlay's own street mesh shows only for its own.
-function applyFocusVisibility(
-  m: maplibregl.Map, water: boolean, power: boolean, waste: boolean, grandPrix: boolean,
-  transitHidden = false,
-): void {
-  // `transitHidden` (PARISHES) hides the same network a focus mode does but
-  // shows no mesh of its own, so it only joins the first decision.
-  const focus = water || power || waste || grandPrix || transitHidden
-  for (const id of FOCUS_HIDDEN_LAYERS) {
-    if (!m.getLayer(id)) continue
-    m.setLayoutProperty(id, 'visibility', focus ? 'none' : 'visible')
-  }
-  for (const id of WATER_FOCUS_SHOWN_LAYERS) {
-    if (!m.getLayer(id)) continue
-    m.setLayoutProperty(id, 'visibility', water ? 'visible' : 'none')
-  }
-  for (const id of POWER_FOCUS_SHOWN_LAYERS) {
-    if (!m.getLayer(id)) continue
-    m.setLayoutProperty(id, 'visibility', power ? 'visible' : 'none')
-  }
-  // The LRT track + viaduct layers are per-line, and their visibility belongs
-  // to the [transitData.lrtLines] effect below — which restores them the moment
-  // focus ends (its deps change as the line array refills). So focus only ever
-  // forces them OFF, and never claims to restore them. This also covers the
-  // style swap, which re-adds every layer visible: addCustomLayers calls this
-  // last, before the LRT effect has had any chance to re-run.
-  if (!focus) return
-  // getStyle() is undefined (or throws) until the style has loaded — this
-  // effect can fire on mount, before addCustomLayers has run. That is a no-op
-  // by definition: the LRT layers do not exist yet, and addCustomLayers calls
-  // this again once they do.
-  let layers: { id: string }[] = []
-  try { layers = m.getStyle()?.layers ?? [] } catch { return }
-  for (const layer of layers) {
-    if (/^lrt-(line|viaduct)-/.test(layer.id)) {
-      m.setLayoutProperty(layer.id, 'visibility', 'none')
-    }
-  }
+// Shared sources follow only their own layer selection, never a city mode.
+function applyNetworkVisibility(m: maplibregl.Map, water: boolean, power: boolean, data: TransitData): void {
+  applyOverlayVisibility(m, { water, power, buses: data.busRoutes.length > 0, lrt: data.lrtLines.length > 0 }, {
+    water: WATER_NETWORK_LAYERS, power: POWER_NETWORK_LAYERS,
+    buses: ['bus-routes', 'bus-routes-highlighted', ...BUS_TERMINAL_LAYERS],
+    lrt: ['stations-circle', 'stations-label'],
+  })
 }
 
 // Every (type, approximate) combination the marker layer can ask for. Both
@@ -1952,7 +1910,9 @@ const STYLES = {
 // the [transitData.oldMaps, oldMapsOpacity] effect.
 function syncOldMapLayers(
   m: maplibregl.Map, maps: OldMap[], opacity: number, beforeId: string | undefined, dark: boolean,
+  labels: OldMapLabels | null,
 ): void {
+  labels?.sync(m, maps.length > 0)
   if (m.getLayer(BUILDINGS_LAYER_ID)) {
     const paint = basemapBuildingsPaint(dark, maps.length > 0)
     m.setPaintProperty(BUILDINGS_LAYER_ID, 'fill-extrusion-color', paint.color)
@@ -2006,10 +1966,6 @@ export interface MapViewProps {
   oldMapsOpacity?: number
   onCarParkClick?: (carPark: CarPark | null) => void
   onWasteSiteClick?: (selection: WasteSelection | null) => void
-  // WASTE is the third focus mode, and behaves exactly like the two below: App
-  // empties every other layer's data while it is on, and this flag hides the
-  // two things drawn from `allTransitData` that would otherwise survive.
-  wasteFocus?: boolean
   // Everything the WASTE overlay draws besides the collection points: the
   // incineration plant (from the POWER dataset — see src/waste.ts), the ten eco
   // stations and the treatment facilities. App empties whichever of them the
@@ -2020,13 +1976,8 @@ export interface MapViewProps {
   // The extra network nodes (today: the Zhuhai inlet) share the facility marker
   // layer but are NOT facilities, so they open their own panel variant.
   onWaterNodeClick?: (node: WaterNetworkNode | null) => void
-  // WATER is a focus mode: while it is on, App has already emptied every other
-  // layer's data. That hides the vehicles, the LRT tracks and every overlay,
-  // but NOT the bus route polylines or the station pins — those are drawn from
-  // `allTransitData` on purpose (the dimming is a feature-state, so the lines
-  // stay put while routes go in and out of service). This flag hides them for
-  // the duration, so focus mode really does leave only the water network.
-  waterFocus?: boolean
+  // Shows and animates the water network independently of other overlays.
+  waterVisible?: boolean
   // Macau's streets, drawn as the thin distribution pipes. Null until the lazy
   // fetch lands (see useWaterDistribution) — the rest of the water overlay
   // renders immediately and this fills in behind it.
@@ -2035,24 +1986,13 @@ export interface MapViewProps {
   // The extra network nodes (the three Guangdong import points) share the
   // facility marker layer but are NOT facilities, so they open their own panel.
   onPowerNodeClick?: (node: PowerNetworkNode | null) => void
-  // POWER is the second focus mode, mutually exclusive with WATER: App empties
-  // every other layer's data while it is on, and this flag hides the two things
-  // drawn from `allTransitData` that would otherwise survive.
-  powerFocus?: boolean
+  // Shows and animates the power network independently of other overlays.
+  powerVisible?: boolean
   // Macau's streets, drawn as the thin distribution feeders. Null until the
   // lazy fetch lands (see usePowerDistribution).
   powerDistributionRoads?: PowerDistributionRoad[] | null
-  // GRAND PRIX is the fourth focus mode, on the contract of the three flags
-  // above. Its own layers are data-driven (App nulls `transitData.grandPrix`
-  // while it is off), so the flag only feeds the "hide the city" half and
-  // the car's per-tick update.
-  grandPrixFocus?: boolean
-  // PARISHES is exclusive with the transit lines: while it is on, App has
-  // already emptied the LRT/bus arrays, and this hides the network that
-  // survives an empty array (bus polylines, station pins) exactly as a focus
-  // mode does — without being one. HISTORICAL MAPS, which IS a focus mode but
-  // has no mesh of its own to show, raises the same flag.
-  transitHidden?: boolean
+  // Enables the circuit and its animated car.
+  grandPrixVisible?: boolean
   onGrandPrixCornerClick?: (corner: GrandPrixCorner | null) => void
   // A click on the racing line itself opens the circuit's own panel.
   onGrandPrixCircuitClick?: (circuit: GrandPrixCircuit) => void
@@ -2080,7 +2020,7 @@ export interface MapViewProps {
 }
 
 export function MapView(props: MapViewProps) {
-  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onReligionClick, oldMapsOpacity = OLD_MAPS_DEFAULT_OPACITY, onCarParkClick, onWasteSiteClick, wasteFocus = false, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterFocus = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerFocus = false, powerDistributionRoads = null, grandPrixFocus = false, transitHidden = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedReligionId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
+  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onReligionClick, oldMapsOpacity = OLD_MAPS_DEFAULT_OPACITY, onCarParkClick, onWasteSiteClick, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterVisible = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerVisible = false, powerDistributionRoads = null, grandPrixVisible = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedReligionId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapThemeRef = useRef<boolean | null>(null)
@@ -2187,6 +2127,7 @@ export function MapView(props: MapViewProps) {
   // Where the historical maps are inserted, remembered from addCustomLayers
   // for the [transitData.oldMaps] effect.
   const oldMapAnchorRef = useRef<string | undefined>(undefined)
+  const oldMapLabelsRef = useRef<OldMapLabels | null>(null)
   // Same for the car parks, plus the live vacancy map — addCustomLayers seeds
   // the source with whatever numbers are already in hand after a style swap.
   const selectedCarParkIdRef = useRef<string | null>(selectedCarParkId ?? null)
@@ -2210,31 +2151,24 @@ export function MapView(props: MapViewProps) {
   // — one id from each side, at most one of them non-null at a time.
   const selectedWaterNodeIdRef = useRef<string | null>(selectedWaterNodeId ?? null)
   selectedWaterNodeIdRef.current = selectedWaterNodeId ?? null
-  // Focus mode is a layout-visibility flag, so a style swap (which re-adds
-  // every layer at its default visibility) has to re-apply it from here.
-  const waterFocusRef = useRef(waterFocus)
-  waterFocusRef.current = waterFocus
+  // Reapply network visibility from these refs after a style swap.
+  const waterVisibleRef = useRef(waterVisible)
+  waterVisibleRef.current = waterVisible
   // The electricity overlay carries the identical set: two selection ids (a
-  // marker-ring filter and a block feature-state) and the focus flag, all read
+  // marker-ring filter and a block feature-state) and the visibility flag, all read
   // by addCustomLayers after a style swap.
   const selectedPowerFacilityIdRef = useRef<string | null>(selectedPowerFacilityId ?? null)
   selectedPowerFacilityIdRef.current = selectedPowerFacilityId ?? null
   const powerStateIdRef = useRef<string | null>(null)
   const selectedPowerNodeIdRef = useRef<string | null>(selectedPowerNodeId ?? null)
   selectedPowerNodeIdRef.current = selectedPowerNodeId ?? null
-  const powerFocusRef = useRef(powerFocus)
-  powerFocusRef.current = powerFocus
-  // WASTE has no layers of its own to reveal (its markers are data-driven), so
-  // its focus flag only ever feeds applyFocusVisibility's "hide the city" half.
-  const wasteFocusRef = useRef(wasteFocus)
-  wasteFocusRef.current = wasteFocus
-  // GRAND PRIX: the focus flag (read by the RAF tick for the car and by
+  const powerVisibleRef = useRef(powerVisible)
+  powerVisibleRef.current = powerVisible
+  // GRAND PRIX: the visibility flag (read by the RAF tick for the car and by
   // addCustomLayers after a style swap) and the selected corner's id (the
   // ring filter is re-applied on a fresh style).
-  const grandPrixFocusRef = useRef(grandPrixFocus)
-  grandPrixFocusRef.current = grandPrixFocus
-  const transitHiddenRef = useRef(transitHidden)
-  transitHiddenRef.current = transitHidden
+  const grandPrixVisibleRef = useRef(grandPrixVisible)
+  grandPrixVisibleRef.current = grandPrixVisible
   // The basemap suburb-label filter as it was before PARISHES overrode it
   // (undefined = not overridden on this style). See applyParishBasemapLabels.
   const savedSuburbFilterRef = useRef<maplibregl.FilterSpecification | null | undefined>(undefined)
@@ -2607,6 +2541,7 @@ export function MapView(props: MapViewProps) {
         return
       }
       const dark = isDarkRef.current
+      oldMapLabelsRef.current = new OldMapLabels(m.getStyle().layers ?? [])
       // The overlays' own map colours differ per theme (white dots vanish on the light basemap,
       // Positron); everything below that moves or glows takes them from here.
       const waterMotion = waterMotionColors(dark)
@@ -2618,9 +2553,6 @@ export function MapView(props: MapViewProps) {
       // Hoisted out of the try below so the schools layer can reuse it as its
       // beforeId even if the building tiles fail to load.
       let firstSymbolId: string | undefined
-      // The anchor for the parish TINT, which has to sit under everything the
-      // map draws on the ground. See the comment where it is computed.
-      let parishAnchorId: string | undefined
 
       try {
         // Anchor the extrusions below the labels but ABOVE the basemap's own
@@ -2643,24 +2575,6 @@ export function MapView(props: MapViewProps) {
           for (const l of styleLayers) {
             if (l.type === 'symbol') { firstSymbolId = l.id; break }
           }
-        }
-
-        // Anchor for the parish tint. Unlike every other overlay this one is
-        // CONTEXT: it must read as the ground the city is drawn on, so roads,
-        // building fills, our own extrusions and every marker have to paint
-        // over it. The earliest sensible anchor is the basemap's first
-        // TRANSPORTATION layer (OpenMapTiles' road casings — `source-layer`
-        // rather than the id, since Positron and Dark Matter name their road
-        // layers differently), which leaves only background, landcover and
-        // water below the wash. Falling back to the first `building` fill and
-        // finally to firstSymbolId keeps the layer working (just higher up) on
-        // a style that names nothing we recognise.
-        for (const l of styleLayers) {
-          if ('source-layer' in l && l['source-layer'] === 'transportation') { parishAnchorId = l.id; break }
-        }
-        if (!parishAnchorId) {
-          const buildingFill = styleLayers.find(l => l.type === 'fill' && /^building/.test(l.id))
-          parishAnchorId = buildingFill?.id ?? firstSymbolId
         }
 
         // Seeded for the plates that are already on (a theme swap with
@@ -2698,12 +2612,12 @@ export function MapView(props: MapViewProps) {
       // like the other overlays so a theme swap redraws it.
       oldMapAnchorRef.current = m.getLayer(BUILDINGS_LAYER_ID) ? BUILDINGS_LAYER_ID : firstSymbolId
       try {
-        syncOldMapLayers(m, transitRef.current.oldMaps, oldMapsOpacityRef.current, oldMapAnchorRef.current, dark)
+        syncOldMapLayers(m, transitRef.current.oldMaps, oldMapsOpacityRef.current, oldMapAnchorRef.current, dark, oldMapLabelsRef.current)
       } catch (err) { debugLog(`[map] old maps: ${String(err)}`) }
 
       // Parishes. The only CITY layer that is context rather than data, so it
-      // goes in FIRST and lowest: the tint at `parishAnchorId` (under the
-      // roads, see above), the outline and the name at `firstSymbolId` like
+      // keeps its tint above historical paper and below buildings; its
+      // outline and name use `firstSymbolId` like
       // every other overlay. Same seeding rule as the schools below — from
       // transitRef, not a closure, so a theme swap long after parishes.json
       // landed still redraws it.
@@ -2730,7 +2644,8 @@ export function MapView(props: MapViewProps) {
           'fill-color': ['get', 'color'],
           'fill-opacity': PARISH_FILL_OPACITY,
         },
-      }, parishAnchorId)
+      }, oldMapAnchorRef.current)
+      oldMapAnchorRef.current = PARISHES_FILL_LAYER_ID
       m.addLayer({
         id: PARISHES_LINE_LAYER_ID, type: 'line', source: PARISHES_SOURCE_ID,
         layout: { 'line-join': 'round', 'line-cap': 'round' },
@@ -2879,10 +2794,10 @@ export function MapView(props: MapViewProps) {
       // draw over it. Seeded from the ref, which is empty until the lazy fetch
       // lands — the source is created regardless so the layers exist, and the
       // [waterDistributionRoads] effect fills them in when the file arrives.
-      // Visibility is seeded from the focus flag: unlike the other water layers
+      // Visibility is seeded from the layer flag: unlike the other water layers
       // this data is CACHED once fetched, so emptying it is not the "off"
-      // mechanism — layout visibility is (see applyWaterFocusVisibility).
-      const roadVisibility = waterFocusRef.current ? 'visible' : 'none'
+      // mechanism — layout visibility is (see applyNetworkVisibility).
+      const roadVisibility = waterVisibleRef.current ? 'visible' : 'none'
       m.addSource(WATER_DISTRIBUTION_SOURCE_ID, {
         type: 'geojson',
         data: buildWaterDistributionFeatures(waterDistributionRef.current),
@@ -2911,13 +2826,13 @@ export function MapView(props: MapViewProps) {
       // style there is no `water-pipes-glow` to sit under yet — hence the
       // firstSymbolId fallback, which lands it in the same slot.
       if (isDesktopRef.current) {
-        addDistributionFlowLayer(m, waterFocusRef.current, dark, firstSymbolId)
+        addDistributionFlowLayer(m, waterVisibleRef.current, dark, firstSymbolId)
       }
       // The mesh half of the pulse, on every viewport: plain (undashed) lines
       // partitioned by bucket cost one extra copy of the mesh, not the dash
       // textures that keep the dots desktop-only. Seeded from the ref like the
       // source above — empty until the lazy fetch lands.
-      addDistributionPulseLayers(m, waterFocusRef.current, dark, firstSymbolId)
+      addDistributionPulseLayers(m, waterVisibleRef.current, dark, firstSymbolId)
       waterPulseCountsRef.current.mesh = waterDistributionBucketCount(waterDistributionRef.current)
 
       // The pipe network, between the reservoir fills and the facility blocks:
@@ -3063,7 +2978,7 @@ export function MapView(props: MapViewProps) {
       // power-facilities.json landed still redraws it), and the same layer
       // order: the street mesh first, then the HV corridors over it, then the
       // facility blocks — which are the thing a user clicks — on top.
-      const powerRoadVisibility = powerFocusRef.current ? 'visible' : 'none'
+      const powerRoadVisibility = powerVisibleRef.current ? 'visible' : 'none'
       m.addSource(POWER_DISTRIBUTION_SOURCE_ID, {
         type: 'geojson',
         data: buildPowerDistributionFeatures(powerDistributionRef.current),
@@ -3092,10 +3007,10 @@ export function MapView(props: MapViewProps) {
       // there is no `power-lines-glow` to sit under yet — hence the
       // firstSymbolId fallback, which lands it in the same slot.
       if (isDesktopRef.current) {
-        addPowerDistributionFlowLayer(m, powerFocusRef.current, dark, firstSymbolId)
+        addPowerDistributionFlowLayer(m, powerVisibleRef.current, dark, firstSymbolId)
       }
       // The mesh half of the pulse, on every viewport (see the water twin).
-      addPowerDistributionPulseLayers(m, powerFocusRef.current, dark, firstSymbolId)
+      addPowerDistributionPulseLayers(m, powerVisibleRef.current, dark, firstSymbolId)
       powerPulseCountsRef.current.mesh = powerDistributionBucketCount(powerDistributionRef.current)
 
       // The HV network: a glow, a solid core whose colour and width come from
@@ -3994,7 +3909,7 @@ export function MapView(props: MapViewProps) {
       // style was up and left the flight to this point. Once per switch-on
       // (the ref), so a theme swap — which comes through here too — stays put.
       const gpCircuit = transitRef.current.grandPrix
-      if (grandPrixFocusRef.current && gpCircuit && !grandPrixFlownRef.current) {
+      if (grandPrixVisibleRef.current && gpCircuit && !grandPrixFlownRef.current) {
         grandPrixFlownRef.current = true
         flyToGrandPrix(m, gpCircuit, isDesktopRef.current)
       }
@@ -4022,11 +3937,9 @@ export function MapView(props: MapViewProps) {
       waterPulseRef.current = initialWaterPulseState()
       powerPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
       powerPulseRef.current = initialPulseState()
-      // A style swap re-adds every layer visible; re-assert focus mode.
-      applyFocusVisibility(
-        m, waterFocusRef.current, powerFocusRef.current, wasteFocusRef.current, grandPrixFocusRef.current,
-        transitHiddenRef.current,
-      )
+      // A style swap re-applies each utility's independent visibility.
+      applyNetworkVisibility(m, waterVisibleRef.current, powerVisibleRef.current, transitRef.current)
+      applyLrtVisibility(m, allTransitData.lrtLines.map(line => line.id), transitRef.current.lrtLines.map(line => line.id), cur3D)
     }
 
     addCustomLayersRef.current = addCustomLayers
@@ -4493,7 +4406,7 @@ export function MapView(props: MapViewProps) {
     const map = mapRef.current
     if (!map || !layersAddedRef.current) return
     try {
-      syncOldMapLayers(map, transitData.oldMaps, oldMapsOpacity, oldMapAnchorRef.current, isDarkRef.current)
+      syncOldMapLayers(map, transitData.oldMaps, oldMapsOpacity, oldMapAnchorRef.current, isDarkRef.current, oldMapLabelsRef.current)
     } catch (err) { debugLog(`[map] old maps: ${String(err)}`) }
   }, [transitData.oldMaps, oldMapsOpacity])
 
@@ -4626,7 +4539,7 @@ export function MapView(props: MapViewProps) {
   // only when both the map and the file are there (a reload with the layer
   // already on flies when the file lands; a theme swap does not fly again).
   useEffect(() => {
-    if (!grandPrixFocus) {
+    if (!grandPrixVisible) {
       grandPrixFlownRef.current = false
       return
     }
@@ -4640,7 +4553,7 @@ export function MapView(props: MapViewProps) {
     if (!layersAddedRef.current) return
     grandPrixFlownRef.current = true
     flyToGrandPrix(map, circuit, isDesktopRef.current)
-  }, [grandPrixFocus, transitData.grandPrix])
+  }, [grandPrixVisible, transitData.grandPrix])
 
   // Selected corner ring — a filter swap, same as the utilities' markers.
   useEffect(() => {
@@ -4708,7 +4621,7 @@ export function MapView(props: MapViewProps) {
     const map = mapRef.current
     if (!map || !map.getSource(WATER_DISTRIBUTION_SOURCE_ID)) return
     if (isDesktop) {
-      addDistributionFlowLayer(map, waterFocusRef.current, isDarkRef.current)
+      addDistributionFlowLayer(map, waterVisibleRef.current, isDarkRef.current)
       // Freshly added layers have phase 0 opaque; keep the animation's idea of
       // "current" in step with that or it would clear the wrong one next tick.
       waterPhaseRef.current.mesh = 0
@@ -4725,7 +4638,7 @@ export function MapView(props: MapViewProps) {
     const map = mapRef.current
     if (!map || !map.getSource(POWER_DISTRIBUTION_SOURCE_ID)) return
     if (isDesktop) {
-      addPowerDistributionFlowLayer(map, powerFocusRef.current, isDarkRef.current)
+      addPowerDistributionFlowLayer(map, powerVisibleRef.current, isDarkRef.current)
       powerPhaseRef.current.mesh = 0
     } else {
       for (const id of phaseLayerIds(POWER_DISTRIBUTION_FLOW_PREFIX, POWER_MESH_PHASES)) {
@@ -4745,7 +4658,7 @@ export function MapView(props: MapViewProps) {
   // pipe, from its `from` end to its `to` end; for a road, away from the source
   // feeding it.
   useEffect(() => {
-    if (!waterFocus && !powerFocus) return
+    if (!waterVisible && !powerVisible) return
     const timer = window.setInterval(() => {
       const map = mapRef.current
       if (!map) return
@@ -4758,7 +4671,7 @@ export function MapView(props: MapViewProps) {
         if (map.getLayer(hide)) map.setPaintProperty(hide, 'line-opacity', 0)
         if (map.getLayer(show)) map.setPaintProperty(show, 'line-opacity', opacity)
       }
-      if (waterFocus) {
+      if (waterVisible) {
         const st = waterPhaseRef.current
         st.tick++
         const nextTrunk = (st.trunk + 1) % WATER_TRUNK_PHASES
@@ -4788,10 +4701,8 @@ export function MapView(props: MapViewProps) {
         }
       }
       // The electricity overlay, on the same tick and the same every-second
-      // rule for its mesh. Mutually exclusive with water, so at most one of
-      // these two branches ever runs — the cost stays at most FOUR
-      // line-opacity writes per 70 ms tick.
-      if (powerFocus) {
+      // rule for its mesh. Both branches run when both networks are enabled.
+      if (powerVisible) {
         const st = powerPhaseRef.current
         st.tick++
         const nextTrunk = (st.trunk + 1) % POWER_TRUNK_PHASES
@@ -4820,32 +4731,17 @@ export function MapView(props: MapViewProps) {
       // tick rewrites with the car, so it needs nothing from this interval.)
     }, FLOW_TICK_MS)
     return () => window.clearInterval(timer)
-  }, [waterFocus, powerFocus])
+  }, [waterVisible, powerVisible])
 
-  // Focus mode. App has already emptied every other layer's data; this hides
-  // the two things that are drawn from `allTransitData` and so would otherwise
-  // survive — the bus route polylines and the station pins — and shows exactly
-  // one overlay's street mesh.
   useEffect(() => {
     const map = mapRef.current
-    if (map) applyFocusVisibility(map, waterFocus, powerFocus, wasteFocus, grandPrixFocus, transitHidden)
-  }, [waterFocus, powerFocus, wasteFocus, grandPrixFocus, transitHidden])
+    if (map) applyNetworkVisibility(map, waterVisible, powerVisible, transitData)
+  }, [waterVisible, powerVisible, transitData])
 
   useEffect(() => {
     const map = mapRef.current
     if (!map) return
-    const visibleIds = new Set(transitData.lrtLines.map(l => l.id))
-    for (const line of allTransitData.lrtLines) {
-      const visible = visibleIds.has(line.id)
-      const lineLayer = `lrt-line-${line.id}`
-      const viaductLayer = `lrt-viaduct-${line.id}`
-      if (map.getLayer(lineLayer)) {
-        map.setLayoutProperty(lineLayer, 'visibility', visible ? 'visible' : 'none')
-      }
-      if (map.getLayer(viaductLayer)) {
-        map.setLayoutProperty(viaductLayer, 'visibility', visible && is3D ? 'visible' : 'none')
-      }
-    }
+    applyLrtVisibility(map, allTransitData.lrtLines.map(line => line.id), transitData.lrtLines.map(line => line.id), is3D)
   }, [transitData.lrtLines, allTransitData.lrtLines, is3D])
 
   const transitRef = useRef(transitData)
@@ -4963,8 +4859,8 @@ export function MapView(props: MapViewProps) {
           flight3DRef.current?.setVehicles(frame.flights)
           updateVehicleData(map, frame.vehicles)
         }
-        if (frame.upload || (isDesktopRef.current && frame.surfaceUpdated) || lastRaceFocus !== grandPrixFocusRef.current) {
-          lastRaceFocus = grandPrixFocusRef.current
+        if (frame.upload || (isDesktopRef.current && frame.surfaceUpdated) || lastRaceFocus !== grandPrixVisibleRef.current) {
+          lastRaceFocus = grandPrixVisibleRef.current
           if (lastRaceFocus && td.grandPrix) {
             const state = grandPrixCarState(td.grandPrix, simMs, map.getZoom())
             raceCarRef.current?.setPose(state?.pose ?? null)
@@ -5379,7 +5275,7 @@ export function MapView(props: MapViewProps) {
                 <span>{t.dataSources}</span>
                 <span className="flex-1 h-px bg-gradient-to-r from-(--mm-amber)/20 to-transparent" />
               </div>
-              <ul className="space-y-[6px]">
+              <ul className="mm-data-sources space-y-[6px]">
                 <li className="flex items-baseline justify-between gap-2">
                   <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceBusLabel}</span>
                   <span className="flex flex-wrap justify-end gap-x-1.5 gap-y-1">
@@ -5573,11 +5469,20 @@ export function MapView(props: MapViewProps) {
                     >AHU</a>
                     <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
                     <a
-                      href="https://nla.gov.au/nla.obj-229837650"
+                      href="https://purl.pt/27811"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:text-(--mm-amber-1) transition-colors"
-                    >NLA</a>
+                    >BNP</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a href="https://www.mindat.org/photo-695342.html" target="_blank" rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors">Mindat</a>
+                    <span> / </span>
+                    <a href="https://gis.sinica.edu.tw/macau/" target="_blank" rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors">Sinica</a>
+                    <span> / </span>
+                    <a href="https://library.harvard.edu/libraries/harvard-map-collection" target="_blank" rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors">Harvard</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">

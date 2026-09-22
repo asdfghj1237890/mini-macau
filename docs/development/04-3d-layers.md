@@ -1,69 +1,75 @@
 # 04 · 3D Layers
 
-四種交通工具（巴士、輕軌、航班、渡輪）都用 **MapLibre 原生的 `fill-extrusion` layer** 畫，不引入 Three.js / deck.gl。每台「車」就是一組薄薄的 polygon、各自被 extrude 到不同高度，靠不同 `kind` filter 分到不同 layer。
+四種交通工具（巴士、輕軌、航班、渡輪）的**可見模型**都由 TypeScript 程式化產生 triangle mesh，再由 MapLibre custom 3D layer 在地圖既有的 WebGL2 context 裡做 instanced rendering。不引入 Three.js / deck.gl，也不載入 glTF、OBJ 或貼圖檔；車窗反光、輪拱、車門、燈具、船艙和引擎等細節都是幾何或頂點材質。
 
-這個取捨換來：
+每種車型只有一份 immutable mesh。每台車每次更新只傳位置、方向、比例和塗裝顏色；同一車型的整批車輛由 `drawArraysInstanced` 畫出。這個取捨換來：
 
-- bundle 不多一個 GL 框架（vendor-maplibre 已經是 1 MB）
-- 完全沿用 maplibre 的相機、光照、render order
-- camera underneath / 上方建築遮擋 maplibre 自然處理
-- 代價：每台車要重算多個 polygon，而且每一次 `setData()` 都會讓 worker 重切該 source 畫面內的所有 tile——所以上傳有節奏（桌機 33 ms、手機 100 ms、地圖移動中 160 ms），車輛 source 也只切到 z15（見 [08-performance-notes.md](08-performance-notes.md) 第 3 節）
+- bundle 不多一個 GL 框架或模型 loader（`vendor-maplibre` 本身已經很大）
+- 沿用 MapLibre 的相機、projection、depth buffer 與 render order；建築物可以正常遮擋車輛
+- 同一份高細節 mesh 可以重用在整個車隊，不需要為每台車重建幾何或 GPU vertex buffer
+- 代價是自行維護 shader、buffer lifecycle、Mercator 精度與 context rebuild
+
+舊有的 GeoJSON 幾何沒有完全刪掉：每台車仍有少量、`fill-extrusion-opacity: 0` 的粗略 volume，專門讓 `queryRenderedFeatures`、delegated click／hover 和 selection 繼續工作。它們是**透明 picking volumes**，不是畫面上看見的模型。唯一仍以可見 `fill-extrusion` 組裝的移動車型是 GRAND PRIX 的單一賽車。
 
 ## 共同模式
 
-每個 `*3DLayer` class 大致長這樣：
+[`InstancedVehicleModelLayer.ts`](../../src/layers/InstancedVehicleModelLayer.ts) 是四種交通工具共用的 renderer。mesh 的 interleaved vertex format 是：
+
+```text
+position.xyz + normal.xyz + material.rgb + liveryWeight
+```
+
+LRT 多一個 `frontWeight`，讓同一個 vertex 在前後車廂 transform 之間選擇或漸變。各 `*Mesh.ts` 用 `tri`、`quad`、`face`、`box`、`cylinder`、`loft` 等小 helper 直接產生 `Float32Array`；材質 alpha 通道不是透明度，而是「混入路線／營運商顏色的權重」，負值代表不受光照衰減的車燈。
+
+每個 `*3DLayer` wrapper 大致長這樣：
 
 ```ts
 class XLayer {
-  attach(map): void              // 一次性 addSource + 多個 addLayer
-  setVehicles(vehicles): void    // 重建 feature collection、source.setData；已經是空的就不再重送空集合
-  detach(map): void
+  attach(map): void              // transparent picking source/layers + custom model layer
+  setVehicles(vehicles): void    // instance buffer + low-detail picking volumes
+  detach(): void
 }
 ```
 
-幾何模式都一樣：
+共同 renderer 的工作：
 
-1. 給定 `(lng, lat, bearing)`，先用 `rectanglePolygon()` 算出車身在「以 bearing 為 y 軸的 local 平面」上的四個角，再投影回 lng/lat。
-2. 用 `METERS_PER_DEG_LAT = 111320` 換算南北、用 `cos(lat)` 修正東西。每個 layer 自己 const 一份這個常數。
-3. 各個小零件（窗、輪、尾翼、機翼）用 `offsetInBus()` 之類在 local 座標系裡先位移再投影。
+1. `vehicleInstances()` 用 `MercatorCoordinate.fromLngLat` 把 `VehiclePosition` 轉成 instance offset、`cos/sin(bearing)`、map scale 與 RGB livery。
+2. 座標先相對澳門附近的固定 origin 表示；matrix 在 CPU 端把 origin 折回去，避免把絕對 Mercator 座標塞進 32-bit float 後讓靜止車輛抖動。
+3. vertex shader 旋轉、縮放和定位共享 mesh；LRT 另套用前／後車廂 transform。fragment shader 用法線算簡單的方向光與天光。
+4. mesh vertex buffer 使用 `STATIC_DRAW`。車隊 instance buffer 只在容量增長時重新 `bufferData`，其餘 pose 用 `bufferSubData` 覆寫；一般車隊與 tracked 航班最多兩個 instanced draw。
+5. renderer 使用 MapLibre 已有的 WebGL2 context 和 depth buffer，不建立額外 canvas 或 context。
 
-## [`Bus3DLayer.ts`](../../src/layers/Bus3DLayer.ts) — 5 種 polygon
+## [`Bus3DLayer.ts`](../../src/layers/Bus3DLayer.ts) + [`busMesh.ts`](../../src/layers/busMesh.ts)
 
-| `kind` | 內容 | base / height (m) | filter |
-|--------|------|-------------------|--------|
-| `wheel` | 4 顆輪子（前後兩軸 × 左右） | 0 → 2.0 | 黑色 |
-| `body` | 主車身矩形 | 1.8 → 6.5 | 線路顏色 |
-| `roof` | 略小的車頂 | 6.5 → 7.0 | 線路顏色 |
-| `window` | 兩側帶狀車窗 | 3.2 → 5.8 | 暗藍灰 |
-| `windshield` | 前擋風 | 0 → 6.5 | 同 window |
+巴士是參考澳門三門中通 11.3 m 輪廓手工建出的 triangle mesh：圓角車頂、斜前擋、真正挖開的輪拱、12 段圓柱輪胎與輪圈、左側三道車門、分片車窗、倒後鏡、頭尾燈、目的地燈點和車頂 HVAC 都是幾何。固定材質負責白色車身、玻璃、橡膠與金屬；路線顏色只混進指定的 livery surface，所以不用為每條線建立另一份 mesh。
 
-單一 source `bus-3d-source` + 5 layers，全部用 `kind` 篩。`MIN_ZOOM` 行動裝置 16 / 桌面 16.9，zoom 不夠就完全不畫（節省繪圖成本，遠的時候反正也看不到）。
+mesh 以 2× 尺寸編寫，simulation 的 `BUS_MAP_SCALE = 0.5` 還原到道路尺度。`Bus3DLayer` 只把 viewport 附近的巴士送進 instance batch；移動鏡頭時每 100 ms 至多重算一次可見集合，pause 時平移地圖仍能顯示剛進入畫面的巴士。`bus-3d-source` 現在每台車只留一個透明 body envelope 作 picking。可見模型的 `MIN_ZOOM` 是行動裝置 16、桌面 16.9。
 
-## [`LRT3DLayer.ts`](../../src/layers/LRT3DLayer.ts) — 雙節列車 (~57 m)
+## [`LRT3DLayer.ts`](../../src/layers/LRT3DLayer.ts) + [`lrtMesh.ts`](../../src/layers/lrtMesh.ts) — 有關節的雙節列車
 
-7 個 layer：bogie（轉向架）、body、gangway（兩節間連結）、window、windshield、roof。`bearing` 來自 `interpolateOnLineSmooth` 的平滑值（見 [03-simulation-engine.md](03-simulation-engine.md)），避免 LRT 過彎時車身在 segment 邊界 snap。
+兩節車廂、風琴位、圓角車殼、駕駛室玻璃、滑門、窗柱、轉向架、輪胎、屋頂設備、燈光和固定的銀／銅飾線都在同一份 mesh。列車以 `LRT_VIADUCT_TOP_M = 7.2` 為預設地面高度。
 
-## [`Flight3DLayer.ts`](../../src/layers/Flight3DLayer.ts) — 7 種 polygon × 2 sources
+[`lrtArticulation.ts`](../../src/layers/lrtArticulation.ts) 不只使用車身中心的一個 bearing：它沿目前方向的軌道取樣兩節車廂各自的 bogie 位置，求出 front／rear rigid transform；車廂頂點的 weight 固定為 0 或 1，中間風琴位則沿長度從 0 漸變到 1。vertex shader 因此能在彎道上保持兩節車廂剛性，同時讓接縫連續；很急的彎再只增加必要的縱向 clearance，避免內側白色車角互相穿插。透明 picking volumes 使用同一套 articulation transform。
 
-7 layer：fuselage、wing、tail、engine、vtail、window、nose。
+## [`Flight3DLayer.ts`](../../src/layers/Flight3DLayer.ts) + [`aircraftMesh.ts`](../../src/layers/aircraftMesh.ts)
 
-**為什麼有 tracked + 普通 兩套**：被 user 點 follow 的航班需要 `setData` 的觸發頻率高（每 RAF 一次），其他航班則跟上傳節奏走（桌機 33 ms、手機 100 ms、地圖移動中 160 ms）。把 tracked 拉到自己的 source `flight-3d-tracked-source`，就只 redraw 那一台，省掉重建整個 FeatureCollection 的成本。所以 layer ID 有 `FLIGHT_3D_*` 跟 `FLIGHT_3D_TRACKED_*` 兩組。
+飛機機身由一串圓形截面 `loft` 出來，再加入有厚度的後掠翼、水平尾翼、垂直尾翼、翼尖、引擎 nacelle／內凹進氣口／spinner、沿圓筒貼合的窗列，以及細分後貼合機鼻曲面的 cockpit 玻璃。每班航班的顏色經 livery weight 混到翼尖與尾翼等指定表面；模型在 simulation 端以 `scale: 0.25` 顯示。
 
-Window 用 `windowDots()` 算法分布：根據機身長度沿著 fuselage 長軸排列小點，模擬機窗。
+**為什麼仍有 tracked + 普通兩套**：普通航班使用 fleet instance batch；正在 follow 的航班移到獨立 tracked batch，能跟 camera target 同步更新而不重送整個機隊。兩個 GeoJSON source 只保存低細節透明 picking volumes；tracked source 可以較高頻率更新自己的小集合。
 
-## [`Ferry3DLayer.ts`](../../src/layers/Ferry3DLayer.ts) — 噴射船 8 layers
+## [`Ferry3DLayer.ts`](../../src/layers/Ferry3DLayer.ts) + [`ferryMesh.ts`](../../src/layers/ferryMesh.ts)
 
-8 layer：hull、hull_red（船腹紅帶）、white_band（TurboJET 白帶）、cabin、window、upper、wheelhouse、roof。船型是基於 jetfoil 的剖面分層 extrude。bearing 從 `interpolatePath` 拿，arrival 會把 bearing 加 180° 因為走的是反方向。
+渡輪是程式化的高速雙體船：兩條獨立刀形船體保留真正的中央水道，上方有連續斜面船艙、分片側窗、上層客艙、環繞駕駛台、登船平台與欄杆、排氣罩、屋頂設備、雷達桅杆和紅／綠航行燈。營運商顏色由 instance livery 套到指定船身表面。GeoJSON picking geometry 只用幾個分離的船體／船艙 volume，不會用一個高方盒遮住中央空隙。arrival 沿反向 path 行駛，所以 simulation 仍將 path bearing 加 180°。
 
 ## [`RaceCar3DLayer.ts`](../../src/layers/RaceCar3DLayer.ts) — 大賽車的車（12 個方塊，差異更新）
 
-GRAND PRIX 焦點模式的單一賽車：body、nose、兩個 sidepod、airbox、cockpit、前後翼、四個輪子共 12 個 fill-extrusion 方塊，顏色／底高／高度都是 feature property，整台車一個 source。位置由 [`grandPrix.ts`](../../src/grandPrix.ts) 的 `grandPrixCarState` 依模擬時鐘與速度曲線算出，`grandPrixCarScale` 隨 zoom 放大。跟其他車輛層不同的是 `setPose()`：車出現時整包 `setData` 一次，之後每個 feature 用固定 id（0–11）走 `updateData` 差異更新，MapLibre 只重載車碰到的一兩片 tile；尾跡（`grandprix-wake`，`lineMetrics` + `line-gradient`）與時速標籤（`grandprix-car-label`）在 `MapView` 裡用同樣的模式。
+GRAND PRIX 圖層的單一賽車：body、nose、兩個 sidepod、airbox、cockpit、前後翼、四個輪子共 12 個 fill-extrusion 方塊，顏色／底高／高度都是 feature property，整台車一個 source。位置由 [`grandPrix.ts`](../../src/grandPrix.ts) 的 `grandPrixCarState` 依模擬時鐘與速度曲線算出，`grandPrixCarScale` 隨 zoom 放大。跟其他車輛層不同的是 `setPose()`：車出現時整包 `setData` 一次，之後每個 feature 用固定 id（0–11）走 `updateData` 差異更新，MapLibre 只重載車碰到的一兩片 tile；尾跡（`grandprix-wake`，`lineMetrics` + `line-gradient`）與時速標籤（`grandprix-car-label`）在 `MapView` 裡用同樣的模式。
 
 ## [`VehicleLayer.ts`](../../src/layers/VehicleLayer.ts) — 2D circle fallback
 
-縮太遠看不到 3D 細節時、或 zoom 低於 `MIN_ZOOM` 時，由 2D circle layer 接手。每台車一個 circle + 一個 text label（route ID）。
+縮太遠看不到 3D 細節時、或 zoom 低於各模型的 `MIN_ZOOM` 時，由 2D circle layer 接手。每台車一個 circle + 一個 text label（route ID）。
 
-`addVehicleLayers(map, lang)` 一次性註冊，`updateVehicleData(map, vehicles)` 在上傳節奏（桌機 33 ms、手機 100 ms、地圖移動中 160 ms）餵新的 FeatureCollection——不是每個 RAF frame。source 的 `maxzoom` 是 `VEHICLE_SOURCE_MAXZOOM`（15），巴士／輕軌／渡輪的 3D source 也共用這個值。`updateVehicleLabelLang(map, lang)` 切語言時更新 label 的 `text-field` 表達式。
+`addVehicleLayers(map, lang)` 一次性註冊，`updateVehicleData(map, vehicles)` 在上傳節奏（桌機 33 ms、手機 100 ms、地圖移動中 160 ms）餵新的 FeatureCollection——不是每個 RAF frame。source 的 `maxzoom` 是 `VEHICLE_SOURCE_MAXZOOM`（15）；巴士／輕軌／渡輪的**透明 picking source** 也共用這個值。`updateVehicleLabelLang(map, lang)` 切語言時更新 label 的 `text-field` 表達式。
 
 ## 城市資料層（非車輛）── 學校 / 道路工程 / 公廁 / 停車場 / 供水 / 垃圾回收
 
@@ -133,11 +139,13 @@ POWER 一層完全照供水那套：`power-buildings`（路環發電廠、焚化
 
 ## Layer 順序疑問
 
-3D layer 依序在 `MapView.tsx` attach。底建築物（OpenFreeMap `BUILDINGS_LAYER_ID`）通常在所有車輛 layer 之下；車輛 layer 之間的順序是 wheel → body → roof → window → windshield，這樣大致符合「下方部件先畫、上方覆蓋」的視覺直覺，雖然 fill-extrusion 本身有 z-buffer，順序問題其實不大。
+3D layer 依序在 `MapView.tsx` attach。底建築物（OpenFreeMap `BUILDINGS_LAYER_ID`）通常在車輛 custom layers 之下；每個 model layer 宣告 `renderingMode: '3d'`，開啟 MapLibre 共用的 depth test，因此三角形和建築的前後關係由 depth buffer 決定，不靠 wheel／body／roof 的 layer 排序。透明 picking layers 的排序只影響 delegated event 命中，不提供可見外觀。航班 label 在 model attach 後再 `moveLayer` 到最上方，避免機身蓋住自己的航班號。
 
 ## 加新車型的工作量
 
-1. 寫一份 `XGeometry.ts`（或直接寫死在 layer 檔），定義零件大小常數、`buildXFeatures(vehicles)` 把 `VehiclePosition[]` 轉成 `Feature<Polygon>[]`，每個 feature 帶 `kind` 屬性。
-2. 寫 `XLayer` class：`attach()` 註冊一個 source 跟 N 個 fill-extrusion layer，每層按 `kind` filter；`setData()` 餵新 FeatureCollection。
-3. 在 `MapView.tsx` attach、把 sim engine 出來的對應 `vehicle.type` filter 給它。
-4. 加 `vehicle.type` 到 `VehiclePosition['type']` union。
+1. 寫 `xMesh.ts`：以公尺為 local unit，用 triangle helpers 產生 position／normal／material 的 interleaved `Float32Array`；決定哪些 surface 接受 instance livery。
+2. 寫 `xGeometry.ts`：只建立足以點擊的低細節 polygon envelope，帶 `vehicleId`、`baseM`、`heightM`；不要把可見細節重複放進 GeoJSON。
+3. 寫 `X3DLayer` wrapper：attach 透明 picking source/layer，再建立一個 `InstancedVehicleModelLayer`；zoom、viewport culling 和 empty-update guard 在這層處理。
+4. 若車體有關節，為 mesh 增加 blend weight，並透過 `ModelArticulation` 傳 front／rear transform；不要為每節車廂各開一個完整 draw path。
+5. 在 `MapView.tsx` attach、detach，並把 simulation engine 的對應 `vehicle.type` 送入 `setVehicles()`。
+6. 加 `vehicle.type` 到 `VehiclePosition['type']` union，並為 mesh geometry、picking geometry、instance data 和 wrapper lifecycle 加 targeted tests；最後仍需在真實 MapLibre camera 下做視覺 QA。

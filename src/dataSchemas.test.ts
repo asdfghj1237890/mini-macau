@@ -3,6 +3,7 @@ import { describe, it, expect } from 'vitest'
 import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { z } from 'zod'
+import { oldMapSourceSpec, oldMapLegendLabel } from './oldMaps'
 import {
   LRTLinesSchema,
   StationsSchema,
@@ -88,6 +89,50 @@ describe('committed data files satisfy their schemas', () => {
   it('power-facilities.json', () => expectValid(PowerFacilitiesFileSchema, 'power-facilities.json'))
   it('power-distribution.json', () => expectValid(PowerDistributionFileSchema, 'power-distribution.json'))
   it('grand-prix.json', () => expectValid(GrandPrixFileSchema, 'grand-prix.json'))
+})
+
+describe('provider-hosted historical maps', () => {
+  const file = OldMapsFileSchema.parse(load('old-maps.json'))
+  const remote = file.maps.find(map => map.id === 'macau-1996')!
+  const local = file.maps.find(map => map.id === 'aomen-1953')!
+  const valid = (map: unknown) => OldMapsFileSchema.safeParse({ ...file, maps: [map] }).success
+
+  it('preserves decade precision when loading a local historical chart', () => {
+    const chart = { ...local, year: 1780, yearPrecision: 'decade', published: null, yearApproximate: false }
+    const parsed = OldMapsFileSchema.parse({ ...file, maps: [chart] }).maps[0]
+    expect(parsed.yearPrecision).toBe('decade')
+    expect(oldMapLegendLabel(parsed, 'zh').year).toBe('1780s')
+    expect(valid({ ...chart, yearPrecision: 'exact' })).toBe(false)
+  })
+
+  it('keeps the provider URL, extent, zoom ceiling and credit in the rendering source', () => {
+    const spec = oldMapSourceSpec(remote, 'https://mini-map-macau.app')
+    expect(spec).toEqual({
+      type: 'raster',
+      tiles: ['https://gis.sinica.edu.tw/macau/file-exists.php?img=Macau_20K_1996-png-{z}-{x}-{y}'],
+      tileSize: 256, minzoom: 0, maxzoom: 17,
+      bounds: [113.499818, 22.0808828, 113.6164622, 22.2329483],
+      attribution: remote.attribution,
+    })
+    expect(remote.attribution).toContain('Academia Sinica')
+    expect(remote.scan.license).toContain('commercial use requires permission')
+    expect(oldMapLegendLabel(remote, 'zh').detail).toContain('1:20,000')
+  })
+
+  it('rejects an unreviewed tile endpoint and native zoom / tile size changes', () => {
+    expect(valid({ ...remote, remoteTiles: { ...remote.remoteTiles, url: 'https://other.test/{z}/{x}/{y}.png' } })).toBe(false)
+    expect(valid({ ...remote, remoteTiles: { ...remote.remoteTiles, tileSize: 512 } })).toBe(false)
+    expect(valid({ ...remote, remoteTiles: { ...remote.remoteTiles, maxzoom: 22 } })).toBe(false)
+  })
+
+  it('cannot mistake a local plate for a remote service or invent a local fit for it', () => {
+    expect(valid({ ...remote, georef: local.georef })).toBe(false)
+    expect(valid({ ...local, remoteTiles: remote.remoteTiles })).toBe(false)
+    expect(valid({ ...local, georef: undefined })).toBe(false)
+    expect(valid({ ...remote, remoteTiles: undefined })).toBe(false)
+    expect(remote).not.toHaveProperty('image')
+    expect(remote).not.toHaveProperty('georef')
+  })
 })
 
 // water-distribution.json is loaded lazily and best-effort, so its schema is

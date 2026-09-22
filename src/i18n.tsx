@@ -170,21 +170,22 @@ const translations = {
     publicHousingExpandTitle: 'Show or hide housing types',
     publicHousingToggleAllTitle: 'Toggle the whole layer',
     publicHousingRampHint: 'Shade = decade first occupied',
-    cityFocusOneAtATime: 'one at a time',
-    publicHousingFocusNote: 'Focus mode — every layer but the schools is hidden while this is on',
+    publicHousingLayerNote: 'Housing types and the decade first occupied',
     parishes: 'Parishes',
     parishesCount: (n: number) => `${n} areas`,
     parishesTitle: 'Seven parishes and the Cotai reclamation zone',
-    parishesTransitNote: 'Hides the LRT lines and bus routes while on',
+    parishesLayerNote: 'Area boundaries, combinable with city and transport layers',
     toilets: 'Public toilets',
     toiletsCount: (n: number) => `${n} toilets`,
     religion: 'Religion',
     religionCount: (n: number) => `${n} sites`,
     religionNote: 'Temples, churches, the mosque and Tou Tei street shrines',
     oldMaps: 'Historical maps',
-    oldMapsFocusNote: 'Focus mode — every layer but religion is hidden while this is on',
+    oldMapsLayerNote: 'Compare periods, with city and transport layers',
     oldMapsOpacity: 'Opacity',
     oldMapsScan: 'Scan',
+    oldMapsDetails: 'Map notes & source',
+    layerShowOnly: 'Show only',
     oldMapsGeorefNote: (points: number, rms: number) => `Fitted on ${points} control points, RMS ${rms} m`,
     oldMapsGeorefExactNote: (points: number) => `Pinned exactly at ${points} control points`,
     cityLayers: 'City layers',
@@ -222,7 +223,7 @@ const translations = {
     mobileAirCount: 'Flight records',
     mobileSeaCount: 'Ferry sailings',
     layerEveryday: 'Everyday city',
-    layerFocus: 'Focus journeys',
+    layerFocus: 'City themes',
     layerMix: 'mix & explore',
     layerDetails: 'Legend',
     layerClose: 'Close layers panel',
@@ -250,6 +251,11 @@ const translations = {
     fontSizeIncrease: 'Increase text size',
     fontSizeReset: 'Reset',
     fontSizeHint: 'Menus, panels and information',
+    fontSizeStandard: 'Default',
+    fontSizeLarger: 'Larger',
+    fontSizeLargest: 'Largest',
+    fontSizePreview: 'Live preview',
+    fontSizeSample: 'Every journey through the city.',
     plan2D: '2D Plan',
     terrain3D: '3D Terrain',
     buildings: 'Buildings',
@@ -655,7 +661,7 @@ const translations = {
     wasteTypesHint: 'Tap a type to show or hide it',
     // WASTE is a focus mode like WATER and POWER: the row's tooltip and the
     // key's caption both carry what that means for the rest of the map.
-    wasteFocusNote: 'Focus mode — every other layer is hidden while this is on',
+    wasteLayerNote: 'Collection points, recycling and treatment facilities',
     wasteExpandTitle: 'Show or hide the collection types',
     wasteToggleAllTitle: 'Toggle the whole layer',
     wasteClosed: 'Temporarily out of use',
@@ -753,21 +759,22 @@ const translations = {
     publicHousingExpandTitle: '展開／收合房屋類型',
     publicHousingToggleAllTitle: '開關整層',
     publicHousingRampHint: '深淺＝首次入伙年代',
-    cityFocusOneAtATime: '一次只開一個',
-    publicHousingFocusNote: '專注模式 — 開啟時除學校外其他圖層會隱藏',
+    publicHousingLayerNote: '房屋類型與落成年代，可搭配其他圖層',
     parishes: '堂區',
     parishesCount: (n: number) => `${n} 個區`,
     parishesTitle: '七個堂區及路氹填海區',
-    parishesTransitNote: '開啟時隱藏輕軌與巴士路線',
+    parishesLayerNote: '區域邊界，可搭配城市與交通圖層',
     toilets: '公廁',
     toiletsCount: (n: number) => `${n} 間公廁`,
     religion: '宗教',
     religionCount: (n: number) => `${n} 處`,
     religionNote: '廟宇、教堂、清真寺與街頭土地神壇',
     oldMaps: '古地圖',
-    oldMapsFocusNote: '專注模式 — 開啟時除宗教外其他圖層會隱藏',
+    oldMapsLayerNote: '對照不同年代，可疊加城市與交通圖層',
     oldMapsOpacity: '不透明度',
     oldMapsScan: '掃描',
+    oldMapsDetails: '圖說與來源',
+    layerShowOnly: '單獨顯示',
     oldMapsGeorefNote: (points: number, rms: number) => `以 ${points} 個控制點配準，均方根誤差 ${rms} 公尺`,
     oldMapsGeorefExactNote: (points: number) => `${points} 個控制點全部釘準`,
     cityLayers: '城市資料',
@@ -832,6 +839,11 @@ const translations = {
     fontSizeIncrease: '放大字型',
     fontSizeReset: '恢復預設',
     fontSizeHint: '選單、面板與資訊文字',
+    fontSizeStandard: '標準',
+    fontSizeLarger: '較大',
+    fontSizeLargest: '最大',
+    fontSizePreview: '即時預覽',
+    fontSizeSample: '輕鬆閱讀城市的每一程。',
     plan2D: '2D 平面',
     terrain3D: '3D 立體',
     buildings: '建築群',
@@ -1185,7 +1197,7 @@ const translations = {
     wasteOperatorDspa: '環境保護局 (DSPA) 設施',
     wasteOperator: '營運',
     wasteTypesHint: '點擊類別以顯示或隱藏',
-    wasteFocusNote: '專注模式 — 開啟時其他圖層會隱藏',
+    wasteLayerNote: '收集點、回收及處理設施，可搭配其他圖層',
     wasteExpandTitle: '顯示或隱藏回收類別',
     wasteToggleAllTitle: '開關整個圖層',
     wasteClosed: '暫停使用',
@@ -1281,21 +1293,22 @@ const translations = {
     publicHousingExpandTitle: 'Mostrar ou ocultar tipos de habitação',
     publicHousingToggleAllTitle: 'Ligar ou desligar a camada',
     publicHousingRampHint: 'Tom = década da primeira ocupação',
-    cityFocusOneAtATime: 'um de cada vez',
-    publicHousingFocusNote: 'Modo de foco — todas as camadas ficam ocultas, exceto as escolas',
+    publicHousingLayerNote: 'Tipos de habitação e década de ocupação',
     parishes: 'Freguesias',
     parishesCount: (n: number) => `${n} áreas`,
     parishesTitle: 'Sete freguesias e a zona de aterros do Cotai',
-    parishesTransitNote: 'Oculta as linhas do metro ligeiro e dos autocarros enquanto activo',
+    parishesLayerNote: 'Limites territoriais combináveis com outras camadas',
     toilets: 'Sanitários públicos',
     toiletsCount: (n: number) => `${n} sanitários`,
     religion: 'Religião',
     religionCount: (n: number) => `${n} locais`,
     religionNote: 'Templos, igrejas, a mesquita e altares de Tou Tei',
     oldMaps: 'Mapas antigos',
-    oldMapsFocusNote: 'Modo de foco — todas as camadas ficam ocultas, exceto a religião',
+    oldMapsLayerNote: 'Compare épocas com camadas urbanas e de transportes',
     oldMapsOpacity: 'Opacidade',
     oldMapsScan: 'Digitalização',
+    oldMapsDetails: 'Notas e fonte',
+    layerShowOnly: 'Mostrar só esta',
     oldMapsGeorefNote: (points: number, rms: number) => `Ajustado com ${points} pontos de controlo, erro RMS de ${rms} m`,
     oldMapsGeorefExactNote: (points: number) => `Fixado exactamente em ${points} pontos de controlo`,
     cityLayers: 'Camadas urbanas',
@@ -1333,7 +1346,7 @@ const translations = {
     mobileAirCount: 'Registos de voos',
     mobileSeaCount: 'Viagens de ferry',
     layerEveryday: 'Vida na cidade',
-    layerFocus: 'Explorar em foco',
+    layerFocus: 'Temas urbanos',
     layerMix: 'combinar',
     layerDetails: 'Legenda',
     layerClose: 'Fechar painel de camadas',
@@ -1360,6 +1373,11 @@ const translations = {
     fontSizeIncrease: 'Aumentar texto',
     fontSizeReset: 'Repor',
     fontSizeHint: 'Menus, painéis e informações',
+    fontSizeStandard: 'Padrão',
+    fontSizeLarger: 'Maior',
+    fontSizeLargest: 'Máximo',
+    fontSizePreview: 'Pré-visualização',
+    fontSizeSample: 'Cada viagem pela cidade.',
     plan2D: '2D Plano',
     terrain3D: '3D Relevo',
     buildings: 'Edifícios',
@@ -1711,7 +1729,7 @@ const translations = {
     wasteOperatorDspa: 'Instalação da Direcção dos Serviços de Protecção Ambiental (DSPA)',
     wasteOperator: 'OPERADOR',
     wasteTypesHint: 'Toque num tipo para mostrar ou esconder',
-    wasteFocusNote: 'Modo de foco — as outras camadas ficam ocultas',
+    wasteLayerNote: 'Pontos de recolha, reciclagem e tratamento',
     wasteExpandTitle: 'Mostrar ou esconder os tipos de recolha',
     wasteToggleAllTitle: 'Ligar ou desligar toda a camada',
     wasteClosed: 'Temporariamente fora de serviço',
@@ -1809,21 +1827,22 @@ export interface Translations {
   publicHousingExpandTitle: string
   publicHousingToggleAllTitle: string
   publicHousingRampHint: string
-  cityFocusOneAtATime: string
-  publicHousingFocusNote: string
+  publicHousingLayerNote: string
   parishes: string
   parishesCount: (n: number) => string
   parishesTitle: string
-  parishesTransitNote: string
+  parishesLayerNote: string
   toilets: string
   toiletsCount: (n: number) => string
   religion: string
   religionCount: (n: number) => string
   religionNote: string
   oldMaps: string
-  oldMapsFocusNote: string
+  oldMapsLayerNote: string
   oldMapsOpacity: string
   oldMapsScan: string
+  oldMapsDetails: string
+  layerShowOnly: string
   oldMapsGeorefNote: (points: number, rms: number) => string
   oldMapsGeorefExactNote: (points: number) => string
   cityLayers: string
@@ -1888,6 +1907,11 @@ export interface Translations {
   fontSizeIncrease: string
   fontSizeReset: string
   fontSizeHint: string
+  fontSizeStandard: string
+  fontSizeLarger: string
+  fontSizeLargest: string
+  fontSizePreview: string
+  fontSizeSample: string
   plan2D: string
   terrain3D: string
   buildings: string
@@ -2226,7 +2250,7 @@ export interface Translations {
   wasteOperatorDspa: string
   wasteOperator: string
   wasteTypesHint: string
-  wasteFocusNote: string
+  wasteLayerNote: string
   wasteExpandTitle: string
   wasteToggleAllTitle: string
   wasteClosed: string

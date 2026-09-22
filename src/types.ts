@@ -420,7 +420,8 @@ export interface ReligionSite {
 // the entry has `tiles` (sharp when zoomed in), as one MapLibre `image` source
 // otherwise. `coordinates` are the single raster's four corners in TL / TR /
 // BR / BL order — the WebP is already rubbersheeted north-up, so they are just
-// the bounds. `georef` keeps the control points and residuals the legend quotes.
+// the bounds. Provider-hosted services instead use remoteTiles, without local
+// scan dimensions or a claimed control-point fit.
 export interface OldMapText {
   zh: string
   en: string
@@ -461,19 +462,29 @@ export interface OldMapTiles {
   count: number // files in the pyramid
 }
 
-export interface OldMap {
+interface OldMapBase {
   id: string // 'guignes-1792'
   name: OldMapText // short, for the legend row
   title: OldMapText // the plate's full title
   author: string
-  year: number // drawn / surveyed
+  year: number // drawn / surveyed, or the catalogue date when explicitly approximate
+  yearApproximate?: boolean
+  yearPrecision?: 'decade' // year is the first year of the catalogued decade
   published: number | null
   work: string | null
+  bounds: { west: number; east: number; north: number; south: number }
+  coordinates: [[number, number], [number, number], [number, number], [number, number]]
+  scan: { holder: string; via: string; identifier: string; url: string; leaves: string[]; license: string }
+  references: { name: string; url: string }[]
+  notes: OldMapText
+  attribution: string
+}
+
+export interface LocalOldMap extends OldMapBase {
   image: string // '/data/old-maps/<id>.webp'
   width: number
   height: number
-  bounds: { west: number; east: number; north: number; south: number }
-  coordinates: [[number, number], [number, number], [number, number], [number, number]]
+  remoteTiles?: never
   tiles?: OldMapTiles
   georef: {
     method: string
@@ -484,11 +495,20 @@ export interface OldMap {
     gcps: OldMapControlPoint[]
     coastSnap?: OldMapCoastSnap
   }
-  scan: { holder: string; via: string; identifier: string; url: string; leaves: string[]; license: string }
-  references: { name: string; url: string }[]
-  notes: OldMapText
-  attribution: string
 }
+
+// Provider-georeferenced services have no local scan dimensions, GCPs or RMS.
+// Their imagery remains on the provider's service under its own terms.
+export interface RemoteOldMap extends OldMapBase {
+  remoteTiles: { url: string; tileSize: number; minzoom: number; maxzoom: number }
+  image?: never
+  width?: never
+  height?: never
+  tiles?: never
+  georef?: never
+}
+
+export type OldMap = LocalOldMap | RemoteOldMap
 
 // Trilingual free text from the DSAT car-park feed. Same shape as ToiletText
 // but a separate name on purpose: DSAT publishes no real English names, so the

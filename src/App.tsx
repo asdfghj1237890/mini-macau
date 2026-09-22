@@ -31,10 +31,12 @@ import {
 } from './religion'
 import {
   filterOldMaps,
+  isOldMapHidden,
   loadHiddenOldMaps,
   loadOldMapsOpacity,
   saveHiddenOldMaps,
   saveOldMapsOpacity,
+  toggleOldMapSelection,
   type OldMapSet,
 } from './oldMaps'
 import {
@@ -44,25 +46,6 @@ import {
   savePublicHousingTypesOn,
   type PublicHousingTypeSet,
 } from './publicHousing'
-import {
-  captureTransitForParishes,
-  loadParishTransitSnapshot,
-  saveParishTransitSnapshot,
-  type ParishTransitSnapshot,
-} from './parishes'
-import {
-  FOCUS_LAYERS,
-  activeFocusPeer,
-  applyFocusMode,
-  applyKeptOnHandoff,
-  applyLayerSnapshot,
-  focusHandoffSnapshot,
-  loadFocusSnapshot,
-  saveFocusSnapshot,
-  type FocusLayer,
-  type LayerVisibilityApply,
-  type LayerVisibilityState,
-} from './focusMode'
 import {
   countWasteByType,
   loadHiddenWasteTypes,
@@ -83,6 +66,7 @@ import { useCarParkVacancy } from './hooks/useCarParkVacancy'
 import { useWaterDistribution } from './hooks/useWaterDistribution'
 import { usePowerDistribution } from './hooks/usePowerDistribution'
 import { ignoreClockShortcut } from './timeControls'
+import { showOnlyCityLayer } from './layerVisibility'
 import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, ReligionCategoryId, OldMap, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
@@ -281,32 +265,9 @@ export default function App() {
   // Public housing is opt-in for the same reason as the schools it mirrors —
   // the estate blocks recolour a good part of the peninsula, so `=== '1'`.
   const [publicHousingOn, setPublicHousingOn] = useState(() => localStorage.getItem(LS_PUBLIC_HOUSING_KEY) === '1')
-  // HOUSING is a focus mode too, with ONE exemption: it hides every other
-  // layer except the schools, which stay switched on and freely toggleable
-  // while it runs (the two overlays are read together — which estates sit in
-  // which catchment — and their colour families were picked not to collide).
-  // Its own snapshot slot, seeded from its own storage key like the others.
-  const housingFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('housing'))
   // The parish tint is opt-in too: it washes the whole territory, so it stays
-  // off until asked for (`=== '1'`). Unlike housing it is NOT a focus mode —
-  // it is context, meant to be read under every other layer.
+  // off until asked for (`=== '1'`), and can accompany every other layer.
   const [parishesOn, setParishesOn] = useState(() => localStorage.getItem(LS_PARISHES_KEY) === '1')
-  // What PARISHES took away when it came on — the LRT lines and bus routes to
-  // put back when it goes off (see toggleParishes). Seeded from localStorage so
-  // a reload with the tint up can still restore them.
-  const parishesTransitRef = useRef<ParishTransitSnapshot | null>(loadParishTransitSnapshot())
-  const parishesOnRef = useRef(parishesOn)
-  parishesOnRef.current = parishesOn
-  // The reverse half of the PARISHES ↔ transit exclusion: a user switching an
-  // LRT line or bus route ON while the tint is up has chosen transit, so the
-  // tint goes and its stash is dropped rather than replayed over that choice.
-  const leaveParishesForTransit = useCallback(() => {
-    if (!parishesOnRef.current) return
-    parishesTransitRef.current = null
-    saveParishTransitSnapshot(null)
-    ga.layerToggled('parishes', false)
-    setParishesOn(false)
-  }, [])
   // Toilets are opt-in for the same reason as schools — 197 pins over the
   // peninsula are noise until someone actually wants them, so `=== '1'`.
   const [toiletsOn, setToiletsOn] = useState(() => localStorage.getItem(LS_TOILETS_KEY) === '1')
@@ -316,21 +277,12 @@ export default function App() {
   // The georeferenced scans are opt-in too: a whole 1792 plate over the old
   // town is a study aid, not a default.
   const [oldMapsOn, setOldMapsOn] = useState(() => localStorage.getItem(LS_OLDMAPS_KEY) === '1')
-  // HISTORICAL MAPS is a focus mode as well, with ONE exemption of its own: it
-  // hides every other layer except RELIGION, whose markers (and per-category
-  // switches) stay exactly as the user has them — the temples, churches and
-  // shrines are what an old plan is read against. Like HOUSING, the layer's
-  // visibility flag IS its focus flag. Own snapshot slot, own storage key.
-  const oldMapsFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('oldmaps'))
   // Car parks are opt-in as well — 88 "P" plates over the peninsula, and the
   // layer is the only thing that starts the live-vacancy polling.
   const [carParksOn, setCarParksOn] = useState(() => localStorage.getItem(LS_CARPARKS_KEY) === '1')
   // Waste and recycling points — opt-in like every other CITY overlay, and the
   // most so: ~1,100 pins would bury the map until someone asks for them.
   const [wasteOn, setWasteOn] = useState(() => localStorage.getItem(LS_WASTE_KEY) === '1')
-  // WASTE is the THIRD focus mode, mutually exclusive with water and power: it
-  // gets its own snapshot slot, seeded from its own storage key like theirs.
-  const wasteFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('waste'))
   // Which of the six site types are HIDDEN. Independent of `wasteOn`, which is
   // the master switch for the whole layer. Stored as the hidden set so a type
   // added later shows up by default (see src/waste.ts).
@@ -338,24 +290,12 @@ export default function App() {
   // Water facilities are opt-in like the rest of the CITY page: 22 markers plus
   // three reservoir fills are infrastructure trivia until asked for, so `=== '1'`.
   const [waterOn, setWaterOn] = useState(() => localStorage.getItem(LS_WATER_KEY) === '1')
-  // The layer state to put back when water focus ends. Seeded from storage so a
-  // reload with water already on (nothing to snapshot at that point — every
-  // other layer is already off) still restores the pre-focus map later.
-  const waterFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('water'))
-  // Electricity is the second focus mode, and MUTUALLY EXCLUSIVE with water:
-  // turning either on takes the other off (handing the snapshot over) so the
-  // map only ever hides the city for one of them. Same opt-in default, same
-  // `=== '1'`, and its own snapshot slot seeded from its own storage key.
+  // Utility networks and the circuit can be combined with every other layer.
   const [powerOn, setPowerOn] = useState(() => localStorage.getItem(LS_POWER_KEY) === '1')
-  const powerFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('power'))
-  // The Guia Circuit is the FOURTH focus mode, on exactly the terms of the
-  // three above: opt-in, its own key, its own snapshot slot, and mutually
-  // exclusive with them.
   const [grandPrixOn, setGrandPrixOn] = useState(() => localStorage.getItem(LS_GRANDPRIX_KEY) === '1')
-  const grandPrixFocusSnapshotRef = useRef<LayerVisibilityState | null>(loadFocusSnapshot('grandprix'))
   const requestedCityLayers = useRef<Partial<Record<CityLayer, boolean>>>({})
-  // Visibility is the loading intent, including restored preferences and focus
-  // mode hand-offs. Status changes are deliberately not dependencies: failures
+  // Visibility is the loading intent, including restored preferences.
+  // Status changes are deliberately not dependencies: failures
   // wait for explicit retry or a toggle instead of creating a retry loop.
   useEffect(() => {
     const enabled: Record<CityLayer, boolean> = {
@@ -415,6 +355,13 @@ export default function App() {
   const [lrtOn, setLrtOn] = useState<Set<string>>(() =>
     lrtSavedRef.current ? new Set(lrtSavedRef.current) : new Set()
   )
+  // Use layer intent, not the current vehicle count: an enabled service may
+  // have no departures at this hour, and still needs the time controls.
+  const hasTransport = lrtOn.size > 0 || visibleRoutes.size > 0 || isAutoMode || flightsOn || ferriesOn
+  const { speed, setSpeed } = clock
+  useEffect(() => {
+    if (!hasTransport && speed !== 1) setSpeed(1)
+  }, [hasTransport, speed, setSpeed])
   const lrtInitedRef = useRef(false)
   const initedRef = useRef(false)
 
@@ -710,7 +657,6 @@ export default function App() {
 
   const onToggleRoute = useCallback((routeId: string) => {
     if (inactiveRoutes.has(routeId)) return
-    if (!visibleRoutes.has(routeId)) leaveParishesForTransit()
     setVisibleRoutes(prev => {
       const next = new Set(prev)
       if (next.has(routeId)) next.delete(routeId)
@@ -719,11 +665,10 @@ export default function App() {
       return next
     })
     setIsAutoMode(false)
-  }, [inactiveRoutes, visibleRoutes, leaveParishesForTransit])
+  }, [inactiveRoutes])
 
   const onToggleAll = useCallback(() => {
     const eligible = transitData.busRoutes.filter(r => !inactiveRoutes.has(r.id))
-    if (visibleRoutes.size !== eligible.length) leaveParishesForTransit()
     setVisibleRoutes(prev => {
       const next = prev.size === eligible.length
         ? new Set<string>()
@@ -732,17 +677,16 @@ export default function App() {
       return next
     })
     setIsAutoMode(false)
-  }, [transitData.busRoutes, inactiveRoutes, visibleRoutes, leaveParishesForTransit])
+  }, [transitData.busRoutes, inactiveRoutes])
 
   const onShowAll = useCallback(() => {
-    leaveParishesForTransit()
     const next = new Set(
       transitData.busRoutes.filter(r => !inactiveRoutes.has(r.id)).map(r => r.id)
     )
     saveRoutes(next)
     setVisibleRoutes(next)
     setIsAutoMode(false)
-  }, [transitData.busRoutes, inactiveRoutes, leaveParishesForTransit])
+  }, [transitData.busRoutes, inactiveRoutes])
 
   const onHideAll = useCallback(() => {
     const next = new Set<string>()
@@ -762,7 +706,6 @@ export default function App() {
         .map(r => r.id)
     )
     const anyOn = groupRoutes.some(r => visibleRoutes.has(r.id))
-    if (!anyOn) leaveParishesForTransit()
     const next = new Set(visibleRoutes)
     if (anyOn) {
       for (const r of groupRoutes) next.delete(r.id)
@@ -786,13 +729,12 @@ export default function App() {
       setIsAutoMode(false)
     }
     ga.layerToggled(`bus_group_${groupKey}`, !anyOn)
-  }, [transitData.busRoutes, inactiveRoutes, simTime, visibleRoutes, leaveParishesForTransit])
+  }, [transitData.busRoutes, inactiveRoutes, simTime, visibleRoutes])
 
   const onResetAuto = useCallback(() => {
-    leaveParishesForTransit()
     clearSavedRoutes()
     setIsAutoMode(true)
-  }, [leaveParishesForTransit])
+  }, [])
 
   const onVehicleClick = useCallback((vehicle: VehiclePosition | null) => {
     setSelectedVehicle(vehicle)
@@ -1048,7 +990,7 @@ export default function App() {
     setTrackedVehicleId(null)
   }, [])
 
-  // The circuit's corners and the racing line. GRAND PRIX is a focus mode, so
+  // The circuit's corners and the racing line.
   // nothing else is on the map while it is on — the other panels are cleared
   // all the same, for the one-panel rule every handler above keeps.
   const onGrandPrixCornerClick = useCallback((corner: GrandPrixCorner | null) => {
@@ -1131,7 +1073,6 @@ export default function App() {
   }, [])
 
   const toggleLrt = useCallback((id: string) => {
-    if (!lrtOn.has(id)) leaveParishesForTransit()
     setLrtOn(prev => {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
@@ -1139,7 +1080,7 @@ export default function App() {
       ga.layerToggled(`lrt_${id}`, next.has(id))
       return next
     })
-  }, [lrtOn, leaveParishesForTransit])
+  }, [])
 
   const toggleFlights = useCallback(() => setFlightsOn(v => {
     ga.layerToggled('flights', !v)
@@ -1165,8 +1106,6 @@ export default function App() {
     ga.layerToggled('religion', !v)
     return !v
   }), [])
-  // (toggleOldMaps lives with the other focus toggles below — HISTORICAL MAPS
-  // is a focus mode, so its switch goes through setFocus.)
   const toggleCarParks = useCallback(() => setCarParksOn(v => {
     ga.layerToggled('carparks', !v)
     return !v
@@ -1183,157 +1122,54 @@ export default function App() {
     })
   }, [])
 
-  // The setters the water focus mode drives. Bus visibility is set as one
-  // operation (routes + mode) and mirrored into its own localStorage key the
-  // same way the manual controls do it, so a reload during focus mode reads a
-  // consistent "buses off" — the snapshot is what restores it, not that key.
-  const layerApply = useMemo<LayerVisibilityApply>(() => ({
-    setLrt: ids => setLrtOn(new Set(ids)),
-    setBus: (routeIds, auto) => {
-      const next = new Set(routeIds)
-      if (auto) clearSavedRoutes()
-      else saveRoutes(next)
-      setVisibleRoutes(next)
-      setIsAutoMode(auto)
-    },
-    setFlights: setFlightsOn,
-    setFerries: setFerriesOn,
-    setRoadWorks: setRoadWorksOn,
-    setSchools: setSchoolsOn,
-    setPublicHousing: setPublicHousingOn,
-    setToilets: setToiletsOn,
-    setReligion: setReligionOn,
-    setOldMaps: setOldMapsOn,
-    setCarParks: setCarParksOn,
-    setParishes: setParishesOn,
+  // Each switch changes only its own layer. Old focus snapshots are no longer
+  // read or restored, so a later toggle cannot overwrite the user's additions.
+  const toggleParishes = useCallback(() => setParishesOn(on => {
+    ga.layerToggled('parishes', !on)
+    return !on
   }), [])
-
-  // Everything a focus mode has to remember, as it stands right now. Read only
-  // at click time (never rendered), so this is just the one place the live
-  // switches are collected into the shape focusMode.ts speaks.
-  const liveLayerState = useMemo<LayerVisibilityState>(() => ({
-    lrt: [...lrtOn],
-    busAuto: isAutoMode,
-    busRoutes: [...visibleRoutes],
-    flights: flightsOn,
-    ferries: ferriesOn,
-    roadWorks: roadWorksOn,
-    schools: schoolsOn,
-    publicHousing: publicHousingOn,
-    toilets: toiletsOn,
-    religion: religionOn,
-    oldMaps: oldMapsOn,
-    carParks: carParksOn,
-    parishes: parishesOn,
-  }), [lrtOn, isAutoMode, visibleRoutes, flightsOn, ferriesOn, roadWorksOn, schoolsOn, publicHousingOn, toiletsOn, religionOn, oldMapsOn, carParksOn, parishesOn])
-
-  // PARISHES is not a focus mode — the tint stacks with every city overlay —
-  // but it is exclusive with the transit lines: the boundaries are read
-  // against the city, not under the LRT and bus routes. Switching it on stashes
-  // those and clears them through the same setters the focus modes use;
-  // switching it off puts the stash back. The other direction (a line switched
-  // on while the tint is up) is leaveParishesForTransit, above.
-  const toggleParishes = useCallback(() => {
-    const on = !parishesOn
-    ga.layerToggled('parishes', on)
-    if (on) {
-      const snapshot = captureTransitForParishes(lrtOn, isAutoMode, visibleRoutes)
-      parishesTransitRef.current = snapshot
-      saveParishTransitSnapshot(snapshot)
-      layerApply.setLrt([])
-      layerApply.setBus([], false)
-    } else {
-      const snapshot = parishesTransitRef.current
-      parishesTransitRef.current = null
-      saveParishTransitSnapshot(null)
-      if (snapshot) {
-        layerApply.setLrt(snapshot.lrt)
-        layerApply.setBus(snapshot.busAuto ? [] : snapshot.busRoutes, snapshot.busAuto)
-      }
-    }
-    setParishesOn(on)
-  }, [parishesOn, lrtOn, isAutoMode, visibleRoutes, layerApply])
-
-  // HISTORICAL MAPS, HOUSING, WATER, POWER, WASTE and GRAND PRIX are focus
-  // modes: switching one on snapshots every other layer and clears them,
-  // switching it off puts that exact snapshot back — even if the user flipped
-  // other switches in between. Each snapshot lives in a ref seeded from its own
-  // localStorage key, so a reload while a focus mode is on still restores
-  // correctly afterwards.
-  //
-  // All six are MUTUALLY EXCLUSIVE. Turning one on while another is focused
-  // ends that focus (which would restore its snapshot) and immediately
-  // re-hides everything, so what the new layer must remember is the OTHER
-  // layer's snapshot — see focusHandoffSnapshot, which is that composition
-  // written down once instead of pushed through a React render, and
-  // activeFocusPeer, which names the at-most-one layer it applies to.
-  //
-  // `layer` is passed to applyFocusMode / applyLayerSnapshot so each can skip
-  // that layer's exemptions (FOCUS_KEEPS): HOUSING never touches the schools
-  // switch in either direction, HISTORICAL MAPS never touches the religion
-  // switch, and neither hides itself.
-  const setFocus = useCallback((layer: FocusLayer, on: boolean) => {
-    const refFor = (l: FocusLayer) =>
-      l === 'oldmaps' ? oldMapsFocusSnapshotRef
-        : l === 'housing' ? housingFocusSnapshotRef
-          : l === 'water' ? waterFocusSnapshotRef
-            : l === 'power' ? powerFocusSnapshotRef
-              : l === 'waste' ? wasteFocusSnapshotRef
-                : grandPrixFocusSnapshotRef
-    // For HOUSING and HISTORICAL MAPS the "is the focus on?" flag is the
-    // layer's own visibility switch, not a separate one — the overlay IS what
-    // the focus mode shows.
-    const setOnFor = (l: FocusLayer) =>
-      l === 'oldmaps' ? setOldMapsOn
-        : l === 'housing' ? setPublicHousingOn
-          : l === 'water' ? setWaterOn
-            : l === 'power' ? setPowerOn
-              : l === 'waste' ? setWasteOn
-                : setGrandPrixOn
-    const isOn = (l: FocusLayer) =>
-      l === 'oldmaps' ? oldMapsOn
-        : l === 'housing' ? publicHousingOn
-          : l === 'water' ? waterOn
-            : l === 'power' ? powerOn
-              : l === 'waste' ? wasteOn
-                : grandPrixOn
-    const selfRef = refFor(layer)
-    // The analytics event keeps the name the row has always reported under —
-    // becoming a focus mode is not a new layer.
-    ga.layerToggled(layer === 'housing' ? 'public_housing' : layer, on)
-    if (on) {
-      const peer = activeFocusPeer(
-        FOCUS_LAYERS.filter(l => l !== layer).map(l => ({
-          layer: l, on: isOn(l), snapshot: refFor(l).current,
-        }))
-      )
-      const snapshot = focusHandoffSnapshot(liveLayerState, peer?.snapshot ?? null, !!peer)
-      if (peer) {
-        refFor(peer.layer).current = null
-        saveFocusSnapshot(peer.layer, null)
-        setOnFor(peer.layer)(false)
-      }
-      selfRef.current = snapshot
-      saveFocusSnapshot(layer, snapshot)
-      applyFocusMode(layerApply, layer)
-      // Inherited from a peer: the layers this mode leaves alone were hidden
-      // by that peer, so bring them back from its snapshot (HOUSING → schools).
-      if (peer) applyKeptOnHandoff(snapshot, layerApply, layer)
-    } else {
-      const snapshot = selfRef.current
-      if (snapshot) applyLayerSnapshot(snapshot, layerApply, layer)
-      selfRef.current = null
-      saveFocusSnapshot(layer, null)
-    }
-    setOnFor(layer)(on)
-  }, [liveLayerState, oldMapsOn, publicHousingOn, waterOn, powerOn, wasteOn, grandPrixOn, layerApply])
-
-  const toggleOldMaps = useCallback(() => setFocus('oldmaps', !oldMapsOn), [setFocus, oldMapsOn])
-  const togglePublicHousing = useCallback(() => setFocus('housing', !publicHousingOn), [setFocus, publicHousingOn])
-  const toggleWater = useCallback(() => setFocus('water', !waterOn), [setFocus, waterOn])
-  const togglePower = useCallback(() => setFocus('power', !powerOn), [setFocus, powerOn])
-  const toggleWaste = useCallback(() => setFocus('waste', !wasteOn), [setFocus, wasteOn])
-  const toggleGrandPrix = useCallback(() => setFocus('grandprix', !grandPrixOn), [setFocus, grandPrixOn])
+  const toggleOldMaps = useCallback(() => setOldMapsOn(on => {
+    ga.layerToggled('oldmaps', !on)
+    return !on
+  }), [])
+  const togglePublicHousing = useCallback(() => setPublicHousingOn(on => {
+    ga.layerToggled('public_housing', !on)
+    return !on
+  }), [])
+  const toggleWater = useCallback(() => setWaterOn(on => {
+    ga.layerToggled('water', !on)
+    return !on
+  }), [])
+  const togglePower = useCallback(() => setPowerOn(on => {
+    ga.layerToggled('power', !on)
+    return !on
+  }), [])
+  const toggleWaste = useCallback(() => setWasteOn(on => {
+    ga.layerToggled('waste', !on)
+    return !on
+  }), [])
+  const toggleGrandPrix = useCallback(() => setGrandPrixOn(on => {
+    ga.layerToggled('grandprix', !on)
+    return !on
+  }), [])
+  const isolateCityLayer = useCallback((layer: CityLayer) => {
+    showOnlyCityLayer(layer, {
+      transit: () => {
+        setLrtOn(new Set())
+        setVisibleRoutes(new Set())
+        saveRoutes(new Set())
+        setIsAutoMode(false)
+        setFlightsOn(false)
+        setFerriesOn(false)
+      },
+      city: {
+        works: setRoadWorksOn, schools: setSchoolsOn, housing: setPublicHousingOn,
+        parishes: setParishesOn, toilets: setToiletsOn, religion: setReligionOn,
+        oldmaps: setOldMapsOn, carparks: setCarParksOn, waste: setWasteOn,
+        water: setWaterOn, power: setPowerOn, grandprix: setGrandPrixOn,
+      },
+    })
+  }, [])
   const toggleSchoolLevel = useCallback((level: SchoolLevel) => {
     setSchoolLevelsOn(prev => {
       const next = new Set(prev)
@@ -1352,14 +1188,12 @@ export default function App() {
       return next
     })
   }, [])
-  // One plate of the HISTORICAL MAPS layer. Stored as the HIDDEN set, so
-  // "toggle" adds or removes the id there — see src/oldMaps.ts.
+  // One historical-map selection; the 1912 atlas switches all three sheets.
+  // Persist the canonical selection id in the hidden set.
   const toggleOldMap = useCallback((id: string) => {
     setOldMapsHidden(prev => {
-      const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      ga.layerToggled(`oldmaps_${id}`, !next.has(id))
+      const next = toggleOldMapSelection(prev, id)
+      ga.layerToggled(`oldmaps_${id}`, !isOldMapHidden(next, id))
       return next
     })
   }, [])
@@ -1377,22 +1211,13 @@ export default function App() {
     return !v
   }), [])
 
-  // The utility focus modes — and HOUSING and HISTORICAL MAPS, whose estate
-  // blocks and scanned plates are just as static — take the clock UI off the
-  // screen (nothing on them has a time dimension), so they lock the keyboard
-  // shortcut and hide the time controls below. GRAND PRIX is the exception: the
-  // car laps on the simulation clock, and the speed buttons are how a
-  // two-minute lap becomes watchable — so that mode keeps the clock.
-  const clockHidden = oldMapsOn || publicHousingOn || waterOn || powerOn || wasteOn
-
+  // Hidden clock controls must not respond to background keyboard shortcuts.
   const { togglePause } = clock
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       const ownsKeyboard = e.target instanceof HTMLElement &&
         e.target.closest('input, textarea, select, button, a[href], [contenteditable="true"]') !== null
-      // Locked during a focus mode, exactly like the buttons — otherwise the
-      // one control that ISN'T dimmed would still pause the clock.
-      if (ignoreClockShortcut(clockHidden, ownsKeyboard)) return
+      if (ignoreClockShortcut(!hasTransport, ownsKeyboard)) return
       if (e.code === 'Space') {
         e.preventDefault()
         togglePause()
@@ -1400,7 +1225,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [togglePause, clockHidden])
+  }, [togglePause, hasTransport])
 
   return (
     <div className="relative w-full h-full">
@@ -1422,20 +1247,18 @@ export default function App() {
             oldMapsOpacity={oldMapsOpacity}
             onCarParkClick={onCarParkClick}
             onWasteSiteClick={onWasteSiteClick}
-            wasteFocus={wasteOn}
             wasteExtras={wasteExtras}
             onWaterFacilityClick={onWaterFacilityClick}
             onWaterNodeClick={onWaterNodeClick}
-            waterFocus={waterOn}
+            waterVisible={waterOn}
             waterDistributionRoads={waterDistribution?.roads ?? null}
             onPowerFacilityClick={onPowerFacilityClick}
             onPowerNodeClick={onPowerNodeClick}
-            powerFocus={powerOn}
+            powerVisible={powerOn}
             powerDistributionRoads={powerDistribution?.roads ?? null}
             onGrandPrixCornerClick={onGrandPrixCornerClick}
             onGrandPrixCircuitClick={onGrandPrixCircuitClick}
-            grandPrixFocus={grandPrixOn}
-            transitHidden={parishesOn || oldMapsOn}
+            grandPrixVisible={grandPrixOn}
             carParkVacancy={carParkVacancy.vacancy}
             onClearSelection={clearSelection}
             trackedVehicleId={trackedVehicleId}
@@ -1453,28 +1276,20 @@ export default function App() {
             selectedPowerNodeId={selectedPowerNode?.id ?? null}
             selectedGrandPrixCornerId={selectedGrandPrix?.kind === 'corner' ? selectedGrandPrix.corner.id : null}
             onVehicleCount={onVehicleCount}
-            showTimeBar={showTimeBar}
-            onToggleTimeBar={toggleTimeBar}
+            showTimeBar={hasTransport && showTimeBar}
+            onToggleTimeBar={hasTransport ? toggleTimeBar : undefined}
           />
         </Suspense>
       ) : (
         <MapSplash />
       )}
-      {/* Either focus mode takes the clock UI OFF the screen. Neither the
-          supply network nor the grid has a time dimension — nothing on them
-          moves, nothing about them differs between 03:00 and 18:00 — so a clock
-          and a scrubber would only invite the user to drive something that
-          changes nothing they can see. Unmounted rather than hidden, and the
-          state that matters survives it: the clock itself lives in this
-          component and keeps ticking, and the bar's expanded/collapsed choice
-          is persisted (`mm_tl_expanded`), so both come back exactly as they
-          were when the focus mode goes off. */}
-      {showTimeBar && !clockHidden && (
+      {hasTransport && showTimeBar && (
         <TimeDisplay clock={clock} vehicleCount={vehicleCount} />
       )}
       <LineLegend
         cityDataStatus={cityDataStatus}
         onRequestCityLayer={ensureCityLayerLoaded}
+        onIsolateCityLayer={isolateCityLayer}
         transitData={filteredTransitData}
         // Pass the date-aware total here too so the "active / total"
         // flight count tracks the picker; using raw `transitData` would
@@ -1538,7 +1353,7 @@ export default function App() {
         onToggleGroup={onToggleGroup}
         onResetAuto={onResetAuto}
       />
-      {!clockHidden && <ControlPanel clock={clock} />}
+      {hasTransport && <ControlPanel clock={clock} />}
       <PwaInstallPrompt />
       <Suspense>
         {selectedVehicle && selectedVehicle.type === 'flight' && (

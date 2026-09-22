@@ -1,4 +1,5 @@
 import cityCatalog from 'virtual:city-catalog'
+import { OldMapControls } from './OldMapControls'
 import { cityLayerStatus, type CityLayer, type CityDataStatus } from '../cityData'
 import { useState, useMemo, useEffect, type ReactNode } from 'react'
 import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType, ReligionCategoryId } from '../types'
@@ -22,12 +23,9 @@ import {
 } from '../religion'
 import {
   OLD_MAPS_DEFAULT_OPACITY,
-  OLD_MAPS_MIN_OPACITY,
-  OLD_MAP_SWATCH_COLOR,
-  oldMapName,
-  oldMapNotes,
-  oldMapTitle,
-  oldMapYears,
+  NO_HIDDEN_OLD_MAPS,
+  groupOldMaps,
+  isOldMapHidden,
   type OldMapSet,
 } from '../oldMaps'
 import {
@@ -573,6 +571,7 @@ type LayersTab = typeof LAYERS_TABS[number]
 interface Props {
   cityDataStatus?: CityDataStatus
   onRequestCityLayer?: (layer: CityLayer) => void
+  onIsolateCityLayer?: (layer: CityLayer) => void
 
   transitData: TransitData
   allTransitData?: TransitData
@@ -599,9 +598,7 @@ interface Props {
   publicHousingOn?: boolean
   publicHousingTypesOn?: PublicHousingTypeSet
   publicHousingTypeCounts?: Record<PublicHousingType, number>
-  // The parish tint. Opt-in like the rows below it, but the one CITY layer
-  // that is CONTEXT rather than data — it is NOT a focus mode, and it has no
-  // per-area toggles, so a single switch is the whole control.
+  // The parish tint has no per-area toggles, so one switch controls the layer.
   parishesOn?: boolean
   // Public toilets. Like schools this layer is opt-in, so it defaults to off
   // here too — the count shown is the whole register, which never changes.
@@ -612,7 +609,7 @@ interface Props {
   religionCategoriesOn?: ReligionCategorySet
   religionCategoryCounts?: Record<ReligionCategoryId, number>
   // Georeferenced historical maps — opt-in like the toilets. `oldMapsHidden`
-  // is the set of map ids switched OFF and `oldMapsOpacity` the plates'
+  // is the set of selection ids switched OFF and `oldMapsOpacity` the plates'
   // shared opacity (0.2–1); both are independent of the master switch.
   oldMapsOn?: boolean
   oldMapsHidden?: OldMapSet
@@ -627,16 +624,11 @@ interface Props {
   wasteOn?: boolean
   wasteHiddenTypes?: WasteTypeSet
   wasteTypeCounts?: Record<WasteLayerType, number>
-  // Macao Water supply facilities. Also opt-in, but unlike its neighbours this
-  // one is a FOCUS mode: App clears every other layer while it is on and puts
-  // them back when it goes off (see toggleWater), so the row's ON state also
-  // means "everything else is off".
+  // Independent water network overlay.
   waterOn?: boolean
-  // CEM's electricity network — the SECOND focus mode, and mutually exclusive
-  // with WATER: turning this on takes water off (and vice versa), so at most
-  // one of the two rows can read ON.
+  // Independent electricity network overlay.
   powerOn?: boolean
-  // The Guia Circuit — the FOURTH focus mode, exclusive with the three above.
+  // The Guia Circuit and its animated car.
   grandPrixOn?: boolean
   clock?: SimulationClock
   onToggleLrt?: (id: string) => void
@@ -673,6 +665,7 @@ type MobilePanel = MobileLayerCategory | 'parishes' | 'works' | 'schools' | 'hou
 export function LineLegend({
   cityDataStatus,
   onRequestCityLayer,
+  onIsolateCityLayer,
   transitData,
   allTransitData,
   visibleRoutes,
@@ -924,15 +917,15 @@ export function LineLegend({
   const religionEnabledCount = RELIGION_CATEGORY_ORDER.reduce(
     (sum, category) => (isReligionCategoryOn(category) ? sum + (religionCategoryTotals[category] ?? 0) : sum), 0
   )
-  // The georeferenced scans: the register is the file, the per-map switches
-  // narrow it — enabled/total like the rows above. From the UNFILTERED data
+  // Count selectable groups, including the three-sheet 1912 atlas as one.
+  // Enabled/total comes from the UNFILTERED data
   // (App swaps in the empty array while the layer is off).
   const oldMapsAll = allTransitData?.oldMaps ?? transitData.oldMaps
-  const oldMapsCount = cityCount('oldmaps', oldMapsAll.length)
-  const isOldMapOn = (id: string) => !(oldMapsHidden?.has(id) ?? false)
-  const oldMapsAllOn = oldMapsAll.every(map => isOldMapOn(map.id))
-  const oldMapsEnabledCount = oldMapsAll.filter(map => isOldMapOn(map.id)).length
-  const oldMapsOpacityPct = Math.round(oldMapsOpacity * 100)
+  const oldMapGroups = groupOldMaps(oldMapsAll)
+  const oldMapsCount = cityCount('oldmaps', oldMapGroups.length)
+  const isOldMapOn = (id: string) => !isOldMapHidden(oldMapsHidden ?? NO_HIDDEN_OLD_MAPS, id)
+  const oldMapsAllOn = oldMapGroups.every(group => isOldMapOn(group.id))
+  const oldMapsEnabledCount = oldMapGroups.filter(group => isOldMapOn(group.id)).length
   // Same for the car parks: the row always shows the full register.
   const carParkCount = cityCount('carparks', allTransitData?.carParks.length ?? transitData.carParks.length)
   // The number of AREAS, from the unfiltered data — eight, and only ever eight
@@ -962,76 +955,75 @@ export function LineLegend({
   const grandPrixCount = cityCount('grandprix', grandPrix?.corners.length ?? 0)
 
   // Shared city data; desktop uses cards and mobile uses a numbered index.
-  // Counts always use unfiltered data, including when a focus layer is active.
+  // Counts always use unfiltered data, regardless of which layers are active.
   const cityLayerRows = [
     // PARISHES first: it is the ground the other rows are read against, and the
     // only one that is context rather than data.
     parishCount > 0 ? {
-      panel: 'parishes' as const, focus: false, label: t.parishes, code: 'PARISHES', accent: 'slate', description: t.parishesTransitNote, icon: REGION_ICON_16, on: parishesOn,
+      panel: 'parishes' as const, thematic: false, label: t.parishes, code: 'PARISHES', accent: 'slate', description: t.parishesLayerNote, icon: REGION_ICON_16, on: parishesOn,
       count: String(parishCount),
       toggle: onToggleParishes,
     } : null,
     totalRoadWorkCount > 0 ? {
-      panel: 'works' as const, focus: false, label: t.roadWorks, code: 'ROAD WORKS', accent: 'amber', description: t.roadWorksActive(activeRoadWorksCount), icon: WORKS_ICON_16, on: roadWorksOn,
+      panel: 'works' as const, thematic: false, label: t.roadWorks, code: 'ROAD WORKS', accent: 'amber', description: t.roadWorksActive(activeRoadWorksCount), icon: WORKS_ICON_16, on: roadWorksOn,
       count: String(activeRoadWorksCount),
       toggle: onToggleRoadWorks,
     } : null,
     carParkCount > 0 ? {
-      panel: 'carparks' as const, focus: false, label: t.carParks, code: 'PARKING', accent: 'blue', description: t.carParksCount(carParkCount), icon: CAR_PARK_ICON_16, on: carParksOn,
+      panel: 'carparks' as const, thematic: false, label: t.carParks, code: 'PARKING', accent: 'blue', description: t.carParksCount(carParkCount), icon: CAR_PARK_ICON_16, on: carParksOn,
       count: String(carParkCount),
       toggle: onToggleCarParks,
     } : null,
     toiletCount > 0 ? {
-      panel: 'toilets' as const, focus: false, label: t.toilets, code: 'PUBLIC TOILETS', accent: 'teal', description: t.toiletsCount(toiletCount), icon: TOILET_ICON_16, on: toiletsOn,
+      panel: 'toilets' as const, thematic: false, label: t.toilets, code: 'PUBLIC TOILETS', accent: 'teal', description: t.toiletsCount(toiletCount), icon: TOILET_ICON_16, on: toiletsOn,
       count: String(toiletCount),
       toggle: onToggleToilets,
     } : null,
     religionCount > 0 ? {
-      panel: 'religion' as const, focus: false, label: t.religion, code: 'RELIGION', accent: 'red', description: t.religionNote, icon: RELIGION_ICON_16, on: religionOn,
+      panel: 'religion' as const, thematic: false, label: t.religion, code: 'RELIGION', accent: 'red', description: t.religionNote, icon: RELIGION_ICON_16, on: religionOn,
       count: religionCategoriesAllOn ? String(religionCount) : `${religionEnabledCount}/${religionCount}`,
       toggle: onToggleReligion,
     } : null,
     schoolCount > 0 ? {
-      panel: 'schools' as const, focus: false, label: t.schools, code: 'EDUCATION', accent: 'violet', description: t.schoolsRampHint, icon: MORTARBOARD_ICON_16, on: schoolsOn,
+      panel: 'schools' as const, thematic: false, label: t.schools, code: 'EDUCATION', accent: 'violet', description: t.schoolsRampHint, icon: MORTARBOARD_ICON_16, on: schoolsOn,
       count: schoolLevelsAllOn ? String(schoolCount) : `${schoolEnabledCount}/${schoolCount}`,
       toggle: onToggleSchools,
     } : null,
-    // HISTORICAL MAPS leads the FOCUS group: like HOUSING it is a focus mode with
-    // one exemption (RELIGION stays, see FOCUS_KEEPS), and it sits right under the
-    // daily rows it used to be among.
+    // Historical maps lead the thematic group.
     oldMapsCount > 0 ? {
-      panel: 'oldmaps' as const, focus: true, label: t.oldMaps, code: 'HISTORICAL MAPS', accent: 'amber', description: t.oldMapsFocusNote, icon: OLD_MAP_ICON_16, on: oldMapsOn,
+      panel: 'oldmaps' as const, thematic: true, label: t.oldMaps, code: 'HISTORICAL MAPS', accent: 'amber', description: t.oldMapsLayerNote, icon: OLD_MAP_ICON_16, on: oldMapsOn,
       count: oldMapsAllOn ? String(oldMapsCount) : `${oldMapsEnabledCount}/${oldMapsCount}`,
       toggle: onToggleOldMaps,
     } : null,
     publicHousingCount > 0 ? {
-      panel: 'housing' as const, focus: true, label: t.publicHousing, code: 'PUBLIC HOUSING', accent: 'lime', description: t.publicHousingFocusNote, icon: APARTMENT_ICON_16, on: publicHousingOn,
+      panel: 'housing' as const, thematic: true, label: t.publicHousing, code: 'PUBLIC HOUSING', accent: 'lime', description: t.publicHousingLayerNote, icon: APARTMENT_ICON_16, on: publicHousingOn,
       count: publicHousingTypesAllOn ? String(publicHousingCount) : `${publicHousingEnabledCount}/${publicHousingCount}`,
       toggle: onTogglePublicHousing,
     } : null,
     waterCount > 0 ? {
-      panel: 'water' as const, focus: true, label: t.water, code: 'WATER SUPPLY', accent: 'sky', description: t.waterNetworkNote, icon: WATER_ICON_16, on: waterOn,
+      panel: 'water' as const, thematic: true, label: t.water, code: 'WATER SUPPLY', accent: 'sky', description: t.waterNetworkNote, icon: WATER_ICON_16, on: waterOn,
       count: String(waterCount),
       toggle: onToggleWater,
     } : null,
     powerCount > 0 ? {
-      panel: 'power' as const, focus: true, label: t.power, code: 'ELECTRICITY', accent: 'amber', description: t.powerNetworkNote, icon: POWER_ICON_16, on: powerOn,
+      panel: 'power' as const, thematic: true, label: t.power, code: 'ELECTRICITY', accent: 'amber', description: t.powerNetworkNote, icon: POWER_ICON_16, on: powerOn,
       count: String(powerCount),
       toggle: onTogglePower,
     } : null,
     wasteTotal > 0 ? {
-      panel: 'waste' as const, focus: true, label: t.waste, code: 'WASTE & RECYCLING', accent: 'green', description: t.wasteFocusNote, icon: WASTE_ICON_16, on: wasteOn,
+      panel: 'waste' as const, thematic: true, label: t.waste, code: 'WASTE & RECYCLING', accent: 'green', description: t.wasteLayerNote, icon: WASTE_ICON_16, on: wasteOn,
       count: wasteTypesAllOn ? String(wasteTotal) : `${wasteVisibleCount}/${wasteTotal}`,
       toggle: onToggleWaste,
     } : null,
     grandPrixCount > 0 ? {
-      panel: 'grandprix' as const, focus: true, label: t.grandPrix, code: 'GRAND PRIX', accent: 'red', description: t.grandPrixNote, icon: GRAND_PRIX_ICON_16, on: grandPrixOn,
+      panel: 'grandprix' as const, thematic: true, label: t.grandPrix, code: 'GRAND PRIX', accent: 'red', description: t.grandPrixNote, icon: GRAND_PRIX_ICON_16, on: grandPrixOn,
       count: String(grandPrixCount),
       toggle: onToggleGrandPrix,
     } : null,
   ].filter((row): row is NonNullable<typeof row> => row !== null).map(row => ({
     ...row,
     loadStatus: cityDataStatus ? cityLayerStatus(cityDataStatus, row.panel) : undefined,
+    isolate: onIsolateCityLayer ? () => onIsolateCityLayer(row.panel) : undefined,
     retry: onRequestCityLayer ? () => onRequestCityLayer(row.panel) : undefined,
   }))
   const cityLayerTotal = cityLayerRows.length
@@ -1156,81 +1148,8 @@ export function LineLegend({
       </div>
     ) },
     oldmaps: { expanded: oldMapsLegendOpen, onExpand: () => setOldMapsLegendOpen(v => !v), content: (
-      <div className={`pb-1 bg-(--mm-amber-2)/[0.05] ${oldMapsOn ? '' : 'opacity-40 light:opacity-100'}`}>
-        {oldMapsAll.map(map => {
-          const on = isOldMapOn(map.id)
-          // "Lit" = actually drawn on the map: the plate is on AND the
-          // master switch is on.
-          const lit = oldMapsOn && on
-          return (
-            <button
-              key={map.id}
-              type="button"
-              onClick={() => onToggleOldMap?.(map.id)}
-              disabled={!onToggleOldMap}
-              aria-pressed={on}
-              title={`${oldMapTitle(map, lang)}\n\n${oldMapNotes(map, lang)}\n\n${map.attribution}`}
-              className={`mm-layer-filter w-full flex items-center gap-2 py-1 pl-8 pr-3
-                          hover:bg-(--mm-fg)/[0.04] transition
-                          ${onToggleOldMap ? '' : 'cursor-default'}`}
-            >
-              {/* A parchment swatch while the plate is drawn, a hollow box
-                  while it is off — the same 22px strip as the rows above. */}
-              <span
-                className="inline-block w-[22px] h-[7px] shrink-0"
-                style={on
-                  ? { backgroundColor: OLD_MAP_SWATCH_COLOR }
-                  : { boxShadow: `inset 0 0 0 1px ${OLD_MAP_SWATCH_COLOR}99` }}
-              />
-              <span className={`mm-layer-filter-label text-ui-10 leading-[1.2] flex-1 min-w-0 text-left truncate
-                                ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
-                {oldMapName(map, lang)}
-              </span>
-              <span
-                className={`mm-mono mm-tabular text-ui-9 shrink-0
-                            ${lit ? '' : 'text-(--mm-fg)/25'}`}
-                style={lit ? { color: OLD_MAP_SWATCH_COLOR } : undefined}
-              >
-                {oldMapYears(map)}
-              </span>
-              <span className={`mm-layer-state mm-mono text-ui-8 tracking-[0.2em] w-[20px] text-right shrink-0
-                                ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
-                {on ? 'ON' : 'OFF'}
-              </span>
-            </button>
-          )
-        })}
-        {/* One opacity for every plate, 20–100 %. A range input so it works
-            from the keyboard too. */}
-        <label className="mm-layer-filter w-full flex items-center gap-2 py-1 pl-8 pr-3">
-          <span className="mm-layer-filter-label text-ui-10 leading-[1.2] shrink-0 text-(--mm-fg)/75">{t.oldMapsOpacity}</span>
-          <input
-            type="range"
-            min={OLD_MAPS_MIN_OPACITY * 100}
-            max={100}
-            step={5}
-            value={oldMapsOpacityPct}
-            disabled={!onChangeOldMapsOpacity}
-            aria-valuetext={`${oldMapsOpacityPct}%`}
-            onChange={event => onChangeOldMapsOpacity?.(Number(event.target.value) / 100)}
-            className="flex-1 min-w-0 accent-(--mm-amber)"
-          />
-          <span className="mm-mono mm-tabular text-ui-9 w-[34px] text-right shrink-0 text-(--mm-fg)/60">{oldMapsOpacityPct}%</span>
-        </label>
-        {/* Where each scan came from and how well it fits, said once per map. */}
-        {oldMapsAll.map(map => (
-          <div key={map.id} className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-            <span className="normal-case tracking-normal mm-han">
-              {map.georef.rmsM < 0.5 ? t.oldMapsGeorefExactNote(map.georef.controlPoints) : t.oldMapsGeorefNote(map.georef.controlPoints, Math.round(map.georef.rmsM))} · {t.oldMapsScan}:{' '}
-              <a href={map.scan.url} target="_blank" rel="noopener noreferrer" className="underline decoration-dotted hover:text-(--mm-fg)/70">{map.scan.holder}</a>
-            </span>
-          </div>
-        ))}
-        {/* Explain which other layer this focus mode preserves. */}
-        <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-          {t.oldMapsFocusNote}
-        </div>
-      </div>
+      <OldMapControls maps={oldMapsAll} hidden={oldMapsHidden} enabled={oldMapsOn}
+        opacity={oldMapsOpacity} onToggle={onToggleOldMap} onOpacity={onChangeOldMapsOpacity} />
     ) },
     housing: { expanded: publicHousingLegendOpen, onExpand: () => setPublicHousingLegendOpen(v => !v), content: (
       <div className={`pb-1 bg-(--mm-lime-2)/[0.05] ${publicHousingOn ? '' : 'opacity-40 light:opacity-100'}`}>
@@ -1290,9 +1209,9 @@ export function LineLegend({
             {t.publicHousingRampHint}
           </span>
         </div>
-        {/* Explain which other layers this focus mode preserves. */}
+        {/* Describe the layer contents. */}
         <div className="mm-layer-detail-note pl-8 pr-3 mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-          {t.publicHousingFocusNote}
+          {t.publicHousingLayerNote}
         </div>
       </div>
     ) },
@@ -1339,7 +1258,7 @@ export function LineLegend({
           {t.wasteTypesHint}
         </div>
         <div className="mm-layer-detail-note pl-8 pr-3 mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
-          {t.wasteFocusNote}
+          {t.wasteLayerNote}
         </div>
       </div>
     ) },

@@ -3,8 +3,12 @@
    default is N px, including responsive variants such as max-sm:text-ui-9. */
 :root { --mm-font-scale: 1; }
 body { font-size: calc(16px * var(--mm-font-scale)); }
-[data-large-text="true"] .mm-settings-drawer ul > li { flex-wrap: wrap; }
-[data-large-text="true"] .mm-settings-drawer ul > li > span:first-child { flex-basis: 100%; }
+/* Let a long source group move below its label instead of squeezing the label. */
+.mm-data-sources > li { flex-wrap: wrap; row-gap: 3px; }
+.mm-data-sources > li > span:first-child { flex-shrink: 0; max-width: 100%; word-break: keep-all; }
+.mm-data-sources > li > :last-child { max-width: 100%; margin-left: auto; text-align: right; }
+.mm-data-sources a { display: inline-block; white-space: nowrap; }
+[data-large-text="true"] .mm-data-sources > li > span:first-child { flex-basis: 100%; }
 
 @theme inline {
   --text-ui-6: calc(6px * var(--mm-font-scale));

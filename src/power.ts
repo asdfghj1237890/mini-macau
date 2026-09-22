@@ -6,8 +6,8 @@
 // Deliberately the same shape as src/water.ts — same `buildings[]` contract
 // (see src/schools.ts for why we draw our own blocks instead of tinting the
 // basemap: OpenFreeMap merges same-height buildings into one feature), same
-// hollow-marker rule for facilities we could only place approximately, same
-// focus-mode machinery (now shared, in src/focusMode.ts).
+// hollow-marker rule for facilities we could only place approximately, independent
+// visibility alongside city and transport overlays.
 //
 // WHAT IS AND IS NOT REAL HERE. The facilities are real: CEM publishes its
 // station list and OSM has most of them. The NETWORK is not surveyed — CEM's

@@ -14,7 +14,7 @@ npm run test:watch  # 互動模式
 這個專案的「核心」分兩半：
 
 - **算術層**（`simulationEngine.ts`）— deterministic、純函數、容易構造小 fixture、邊界情況多（跨午夜、循環 vs 雙向、cycle wrap、staggered 車輛）。值得測。
-- **視覺層**（`*3DLayer.ts`、MapView render loop、UI panel）— 主要驗證是「看起來對不對」、「巴士有沒有從橋上掉下去」。寫單元測試成本高、訊息密度低，肉眼開 dev server 看反而更可靠。
+- **視覺層**（`*3DLayer.ts`、`*Mesh.ts`、MapView render loop、UI panel）— mesh／picking geometry／instance data／attach lifecycle 有 targeted unit tests；最終 shader 輸出、光照、遮擋與「看起來對不對」仍要用真實 MapLibre camera 做視覺驗證。
 
 所以 testing 範圍刻意縮在算術層，不追求覆蓋率數字。
 
@@ -58,7 +58,7 @@ npm run test:watch  # 互動模式
 - **Orchestrator `computeVehiclePositions`** — 需要構造完整 `TransitData`，整合測試成本高。
 - **`computeFlightVehicles`** — 大量 hard-coded waypoint（apron stand、taxi route、landing route、holding center），測下去基本上是把座標常數重抄一遍。
 - **`computeFerryVehicles`** — 同樣理由：泊位 + 海上航線 waypoint hard-coded。
-- **`*3DLayer.ts`** — 視覺驗證為主。
+- **WebGL shader 的最終像素與跨 layer depth/render order** — pure mesh、geometry、instance buffer 與 wrapper plumbing 有測試，但實際 GPU 畫面仍以視覺驗證為主。
 - **`useSimulationClock` / `useTransitData` 的 hook 本體** — 要 jsdom + `@testing-library/react`，目前不值得加依賴（`useTransitData.test.ts` 測的是它匯出的 pure helper——`buildFlightIndex`、`ymdMacau`、`weekdayOf`——不是 hook 本身）。
 
 ## 測試 fixture pattern

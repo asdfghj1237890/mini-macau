@@ -36,7 +36,7 @@ const HTML_LANG_TAG = { zh: 'zh-Hant', pt: 'pt-PT', en: 'en' }
 
 行動裝置（`(max-width: 639px)`）有專屬處理：
 
-- **3D layer minzoom 行動 16，桌面 16.9**（[`Bus3DLayer.ts:30`](../../src/layers/Bus3DLayer.ts) 的 `IS_MOBILE`）：手機螢幕窄，得早一點看到 3D 細節。
+- **3D model minzoom 行動 16，桌面 16.9**（[`Bus3DLayer.ts`](../../src/layers/Bus3DLayer.ts) 的 `IS_MOBILE`／`MIN_ZOOM`）：手機螢幕窄，得早一點看到 instanced mesh 細節；透明 picking layer 使用同一門檻。
 - **漢堡選單**：`<MapView>` 自帶 `<HamburgerMenu>`，集中放控制項。
 - **LineLegend** 桌面是右上角固定面板（TRANSIT/CITY 兩頁）、行動是右側 chip 疊 + CITY chip 開 modal；細節見下一節。
 - **safe-area inset**：用 `env(safe-area-inset-*)` 處理 iPhone notch / home indicator。

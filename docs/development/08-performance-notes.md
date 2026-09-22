@@ -1,6 +1,6 @@
 # 08 · Performance Notes
 
-模擬 300–400 台同時移動的車輛、每秒重算 30 次、加上 MapLibre 不停 redraw 3D fill-extrusion，是這個專案最容易卡頓的地方。下面是幾個明確的優化點。
+模擬 300–400 台同時移動的車輛、每秒重算 30 次、更新 instanced WebGL2 車輛模型，再同步 MapLibre 的 2D 標記與透明 picking sources，是這個專案最容易卡頓的地方。下面是幾個明確的優化點。
 
 每一節最後都標註：**屬於哪一個檔案 / 哪一條 sim path**，方便日後 profile 對得上。
 
@@ -61,29 +61,31 @@ vs 舊寫法 `setPaintProperty('bus-route-${id}', 'line-opacity', x)`。
 
 > Source: 邏輯散在 [`MapView.tsx`](../../src/components/MapView.tsx)（搜 `setFeatureState`、`bus-routes`）。Cross-link [04-3d-layers.md](04-3d-layers.md)。
 
-## 3. 上傳節奏：GPU 付的是每一次 `setData`，不是每一次位置計算
+## 3. 上傳節奏：GeoJSON `setData` 會重切 tiles，instance buffer 不會
 
-**問題**：把 300+ 台巴士當 3D fill-extrusion polygon 畫很重（每台車 5 個矩形 × 4 個角的 lat/lng 數學）。但真正貴的不是算位置，而是 GeoJSON source 的每一次 `setData`：worker 會把該 source 畫面內的每一片 tile 重切一次，main thread 再把 buffer 全部重新上傳。2D 標記 source 曾經每個 RAF frame 寫一次——每秒 60 次重切一個每 33 ms 才變一次的 source——在 iPhone X 上是每秒 450 次 tile 重載，最後 WebGL context 直接 lost。
+**問題**：早期版本把可見車身做成 3D fill-extrusion polygon；目前巴士、LRT、飛機與渡輪已改成共享的程式化 triangle mesh，由 `InstancedVehicleModelLayer` 直接更新 instance buffer。這拿掉了可見模型的 GeoJSON re-tiling，但 MapLibre 仍有兩類會動的 GeoJSON：低 zoom 的 2D marker，以及高 zoom 給 click／hover 用的透明 picking volume。它們每次 `setData` 都會讓 worker 把該 source 畫面內的每一片 tile 重切，再把 buffer 傳回 main thread。2D 標記 source 曾經每個 RAF frame 寫一次——每秒 60 次重切一個每 33 ms 才變一次的 source——在 iPhone X 上是每秒 450 次 tile 重載，最後 WebGL context 直接 lost。
 
 **Fix**：位置照 30 Hz 算，但所有上傳共用一個節奏：
 
-```
-SIM_TICK_MS          = 33   // 30 Hz：位置計算；桌機的上傳也用這個
-HEAVY_TICK_MS_PHONE  = 100  // 手機（viewport < 640 px）：3D 車輛、2D 標記、大賽車三個 source 的上傳節奏
-HEAVY_TICK_MS_BUSY   = 160  // 地圖移動中（movestart / moveend 設 mapBusyRef）：所有上傳退到這個
+```text
+simulation / desktop upload = 33 ms   // 約 30 Hz
+phone upload                = 100 ms  // viewport < 640 px
+map-moving upload           = 160 ms  // movestart → moveend 期間
 ```
 
-pinch zoom 中上傳退到約 6 Hz，把 main thread 讓給 MapLibre 的 zoom 渲染；zoom 結束立刻回到原節奏。航班的 3D 模型也在這個節奏上傳，2D 的航班點在同一次上傳裡合併進去，所以兩者不會分離。
+pinch zoom 中上傳退到約 6 Hz，把 main thread 讓給 MapLibre 的 zoom 渲染；zoom 結束立刻回到原節奏。四種 3D model 的 instance buffer、透明 picking volumes 和 2D marker 在同一個 upload frame 更新，所以兩種表示不會分離。唯一例外是正在追蹤的航班：它使用獨立 tracked instance batch，能跟 camera target 同步更新；自己的小 picking source 仍按需要／upload cadence 更新。
 
 **再往下一層：每次 `setData` 重切幾片 tile。** 節奏修好後 iPhone X 仍是每秒 450 次，`?debug=1` 面板把最忙的 source 列出來才看見原因：pitch 45 的 zoom 16 畫面裡每個 source 約有 20 片 z16 tile，成本是「tile 數 × source 數 × 節奏」。於是：
 
-- 2D 標記與巴士／輕軌／渡輪的 3D source 只切到 z15（[`VehicleLayer.ts`](../../src/layers/VehicleLayer.ts) 的 `VEHICLE_SOURCE_MAXZOOM`）：zoom 16 的畫面變成約 5 片，每再放大一級再少 4 倍；座標量化約 0.14 m，zoom 18 時半個像素。
+- 2D 標記與巴士／輕軌／渡輪的透明 picking source 只切到 z15（[`VehicleLayer.ts`](../../src/layers/VehicleLayer.ts) 的 `VEHICLE_SOURCE_MAXZOOM`）：zoom 16 的畫面變成約 5 片，每再放大一級再少 4 倍；座標量化約 0.14 m，zoom 18 時半個像素。可見 triangle mesh 不經 MapLibre GeoJSON tiler。
+- [`InstancedVehicleModelLayer.ts`](../../src/layers/InstancedVehicleModelLayer.ts) 每種車型只上傳一次 immutable mesh；CPU instance array 長度相同時原地重用，GPU storage 只有 batch 變大時 `bufferData`，其餘 pose 走 `bufferSubData`。一般 fleet 一個 draw；航班至多再加一個 tracked draw。context removal 會把 capacity 歸零，重建時重新配置。
+- 巴士 model 只送 viewport 附近的 instance；鏡頭移動但可見車輛 identity 沒變時，mesh 和 picking source 都不重送。pause 時 camera move 仍會觸發這個可見集合更新。
 - 大賽車的車（12 個方塊，id 0–11）、尾跡（id `wake`）、時速標籤（id `label`）出現時整包寫一次，之後用 `GeoJSONSource.updateData` 差異更新：MapLibre 只重載被舊／新幾何碰到的一兩片 tile（`shouldReloadTile` / `affectedBounds`）。
 - MapLibre 6 的 `zoomLevelsToOverscale` 預設 4，會把向量 source 超過 maxzoom 的 z14 tile 切成子 tile 一路到 z18；同一畫面量到 44 次 tile 載入對 8 次、存活的 GPU buffer 2.3 倍。`MapView` 傳 `undefined`（官方的關閉值，即 v5 行為）。
 
 先前單次 iPhone X 測試記錄為每秒 457 → 110 次 tile 重載、60 fps，當次沒有 shader 失敗；這不是持續穩定的保證。2026-09-08 同一裝置連 v5／v6 純底圖、DPR 1 都會 context lost，故不再把上述負載調整當成此故障的修正。失敗復原與 2D 備援見 [11-webgl-recovery.md](11-webgl-recovery.md)。
 
-> Source: [`MapView.tsx`](../../src/components/MapView.tsx) 的 `mapBusyRef`、`SIM_TICK_MS` / `HEAVY_TICK_MS_PHONE` / `HEAVY_TICK_MS_BUSY`、`writeGrandPrixWake` / `writeGrandPrixCarLabel`、`zoomLevelsToOverscale`；[`RaceCar3DLayer.ts`](../../src/layers/RaceCar3DLayer.ts) 的 `setPose`。量測工具見 [01-getting-started.md](01-getting-started.md) 的「在裝置上診斷」。
+> Source: [`MapView.tsx`](../../src/components/MapView.tsx) 傳入 `VehicleFrame` 的 `uploadInterval`、`mapBusyRef`、`writeGrandPrixWake` / `writeGrandPrixCarLabel`、`zoomLevelsToOverscale`；[`InstancedVehicleModelLayer.ts`](../../src/layers/InstancedVehicleModelLayer.ts) 的 batch upload／draw；[`Bus3DLayer.ts`](../../src/layers/Bus3DLayer.ts) 的 viewport filtering；[`RaceCar3DLayer.ts`](../../src/layers/RaceCar3DLayer.ts) 的 `setPose`。量測工具見 [01-getting-started.md](01-getting-started.md) 的「在裝置上診斷」。
 
 ## 4. Decouple zoom HUD from React re-renders
 

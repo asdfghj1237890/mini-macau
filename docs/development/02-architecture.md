@@ -64,7 +64,7 @@
 | DSEDJ + OSM Overpass | 學校清單（核准級別）與校舍建築足跡 | `fetch_schools.py`（手動執行，name matching） |
 | data.gov.mo | IAM 公共廁所 / 無障礙公廁名單 | `fetch_toilets.py`（下載 ZIP 內 JSON，含重試） |
 | data.gov.mo + OSM + 澳門記憶 | 文化局「文化遺產資料」API（被評定的不動產，端點尾斜線必加）＋ OSM 的土地廟／福德祠／土地神壇＋澳門記憶《社區守護神》展覽嵌的 Google My Maps | `fetch_religion.py`（手動；My Maps 的 KML 只有街名沒座標，改讀檢視頁 `_pageData` 的 geocode，標 `approximate`） |
-| Internet Archive（Getty Research Institute 的掃描）+ 美國國會圖書館（經 Wikimedia Commons 鏡像）+ 里斯本海外歷史檔案館 DigitArq（CC BY-SA 4.0）+ 澳洲國家圖書館 Trove（Braga 特藏） | 小德金 1792 年繪、1808 年刊的《Plan de la Ville de Macao》（圖冊版畫 94）兩葉掃描；貝克 1796 年為斯當東使華記刻的《A Plan of the City and Harbour of Macao》單張掃描；公物局 1889 年 Heitor 縮繪的 1:5,000 石印《Planta da Peninsula de Macau》；公物局 1893 年 Sauvage 簽署的 1:10,000 手稿版；港務局 1922 年為 Lacerda《Macau e seu futuro porto》印的 1:80,000 區域圖 | `scripts/build-old-maps.mjs`（Node + sharp，手動；轉正、裁切、拼接後以薄板樣條配準 11–24 個控制點，輸出 `old-maps.json` 與 `public/data/old-maps/*.webp`） |
+| Internet Archive（Getty Research Institute 的掃描）+ 美國國會圖書館（經 Wikimedia Commons 鏡像）+ 里斯本海外歷史檔案館 DigitArq（CC BY-SA 4.0）+ 葡萄牙國家圖書館 BNP（Public Domain Mark 1.0） | 小德金 1792 年繪、1808 年刊的《Plan de la Ville de Macao》（圖冊版畫 94）兩葉掃描；貝克 1796 年為斯當東使華記刻的《A Plan of the City and Harbour of Macao》單張掃描；公物局 1889 年 Heitor 縮繪的 1:5,000 石印《Planta da Peninsula de Macau》；公物局 1893 年 Sauvage 簽署的 1:10,000 手稿版；製圖委員會 1912 年 1:10,000 半島圖；Alves／Pires 1927 年 1:4,000 城市與新港圖（含規劃）；LoC 編目約 1953 年的 1:10,000《澳門市全圖》（年代未定，無水印掃描經 Commons） | `scripts/build-old-maps.mjs`（Node + sharp，手動；轉正、裁切、拼接後以薄板樣條配準地標及岸線控制點，輸出 `old-maps.json` 與 `public/data/old-maps/*.webp`） |
 | data.gov.mo | DSAT 停車場資料（車位詳情 + 即時空位） | `fetch_car_parks.py`（API gateway，APPCODE header，含重試） |
 | data.gov.mo + IAM 自家頁面 + OSM Overpass | IAM 垃圾房 / 壓縮式垃圾收集點 / 垃圾站 + IAM 環境資訊網（玻璃樽／衣物回收點，非 data.gov.mo）+ DSPA 智能回收機 / 三色資源回收點 / 電腦及通訊設備回收點 / 光管回收點 / 電池回收點（八個 dataset + 1 個 IAM 自家 JSON），另加手放的環保加Fun站 10 個、特殊和危險廢物處理站、兩個堆填區的 OSM 輪廓，以及五座污水處理廠（OSM 足跡，比照水／電廠房切圖磚，機場廠除外沒有 buildings 的以 statsKey 帶月度數字）；焚化中心本身的座標/建築借 `power-facilities.json` 現成的 | `fetch_waste.py`（IAM 四個走 ZIP／API gateway／自家 JSON，DSPA 六個走 API gateway，OSM 兩個 way 走 Overpass，APPCODE header 都含重試） |
 | data.gov.mo（4 個 dataset）+ DSPA GIS 頁面（3 個，無 dataset id） | 垃圾焚化中心／特殊和危險廢物處理站／建築廢料堆填區／四座污水處理廠（機場廠沒有公開數字）的月度統計：收/處理量、發電量、回收金屬、堆埋體積、處理水量 | `fetch_dspa_stats.py`（API gateway，APPCODE header，含重試；每條 series 各自 best-effort，單一端點失敗只讓那個 series 存 null，不中止整個 run） |
@@ -89,10 +89,10 @@ App.tsx
 ├─ useServiceStatus        ─ 從 service-status.json 拿當天停駛清單
 └─ MapView.tsx             ─ 包 maplibre-gl 6；GPU 失敗重建一次，仍失敗則 lazy-load Leaflet 2D 相容地圖（見 11-webgl-recovery）
    ├─ simulationEngine     ─ 純函數：(transitData, time) → VehiclePosition[]
-   ├─ Bus3DLayer           ─ fill-extrusion 巴士車身（5 種 polygon）
-   ├─ LRT3DLayer           ─ fill-extrusion 雙節列車
-   ├─ Flight3DLayer        ─ fill-extrusion 機身/機翼/尾翼
-   ├─ Ferry3DLayer         ─ fill-extrusion 噴射船（8 種 polygon）
+   ├─ Bus3DLayer           ─ 程式化 triangle mesh + instanced WebGL2 巴士
+   ├─ LRT3DLayer           ─ instanced 雙節列車（GPU articulation）
+   ├─ Flight3DLayer        ─ instanced 機身／機翼／引擎，tracked 獨立 batch
+   ├─ Ferry3DLayer         ─ instanced 高速雙體船 mesh
    ├─ RaceCar3DLayer       ─ fill-extrusion 大賽車（12 個方塊，差異更新）
    └─ VehicleLayer         ─ 2D circle layer（zoom out 時 fallback）
 ```
@@ -101,7 +101,7 @@ App.tsx
 
 - **simulation engine 是 pure function**：給它 `(TransitData, Date)`，它回 `VehiclePosition[]`。沒有副作用，方便單元測試（[10-testing.md](10-testing.md)）。
 - **時鐘是 offset-based 而非 RAF-summed**：背景分頁 RAF 被 throttle 仍能保持時間正確。[`useSimulationClock.ts:11`](../../src/hooks/useSimulationClock.ts) 的 docstring 有完整論證。
-- **3D 車輛全部用 fill-extrusion**：不引入 Three.js 或 deck.gl。每台車就是 5–8 個小 polygon，用 maplibre 原生 layer 畫。詳見 [04-3d-layers.md](04-3d-layers.md)。
+- **主要 3D 車輛使用共享的程式化 instanced mesh**：不引入 Three.js、deck.gl、glTF 或貼圖。巴士、輕軌、航班與渡輪各自共享一份 triangle mesh，instance buffer 只帶 pose 與塗裝；透明 `fill-extrusion` volume 只負責 MapLibre picking。GRAND PRIX 賽車是仍以 12 個可見 extrusion 方塊組裝的例外。詳見 [04-3d-layers.md](04-3d-layers.md)。
 
 ## 目錄結構（runtime）
 
@@ -126,7 +126,7 @@ src/
 │   ├── useSimulationClock.ts
 │   ├── useTransitData.ts
 │   └── useServiceStatus.ts
-├── layers/                  # MapLibre 自訂 fill-extrusion 層
+├── layers/                  # MapLibre custom WebGL2 車輛 mesh、picking geometry 與靜態 extrusion 層
 │   ├── Bus3DLayer.ts
 │   ├── LRT3DLayer.ts
 │   ├── Flight3DLayer.ts
@@ -176,3 +176,7 @@ data/
 ├── bus_reference/           # 從 motransportinfo.com 抓的 reference JSON
 └── raw/                     # extract_*.py 的中間產物
 ```
+
+### Layer composition
+
+City and transport switches are independent. `App.tsx` changes only the selected layer; the explicit **Show only** action calls `showOnlyCityLayer` in `layerVisibility.ts` to clear the others once, without snapshot restoration. `MapView` applies each utility mesh, bus overlay and LRT line visibility independently, including after style reloads. The clock panel, playback controls and clock shortcuts are available only while a transport layer is enabled (including automatic bus selection); with all transport off, playback speed returns to 1×. This follows layer selection, not the instantaneous vehicle count. Historical rasters sit below the parish tint, buildings and data overlays. `OldMapControls` shares the year-first list and expandable map notes between desktop and mobile.

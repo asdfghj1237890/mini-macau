@@ -432,74 +432,91 @@ export const ReligionFileSchema = z.object({
 })
 
 // old-maps.json — the HISTORICAL MAPS overlay: georeferenced scans, one
-// north-up WebP with alpha per map plus its bounds, control points and
-// attribution. Mirrors `v_old_maps` in data/scripts/validate_output.py.
+// north-up WebP with alpha plus local control points, or a provider-hosted
+// tile service with its original extent and attribution. Mirrors `v_old_maps` in data/scripts/validate_output.py.
 const oldMapText = z.object({ zh: z.string(), en: z.string(), pt: z.string() })
+
+const LocalOldMapSchema = z.object({
+  remoteTiles: z.never().optional(),
+  id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  name: oldMapText,
+  title: oldMapText,
+  author: z.string(),
+  year: z.number().int(),
+  yearApproximate: z.boolean().optional(),
+  yearPrecision: z.literal('decade').optional(),
+  published: z.number().int().nullable(),
+  work: z.string().nullable(),
+  image: z.string().startsWith('/data/old-maps/'),
+  width: z.number().int().positive(),
+  height: z.number().int().positive(),
+  bounds: z.object({ west: z.number(), east: z.number(), north: z.number(), south: z.number() }),
+  coordinates: z.tuple([lngLat, lngLat, lngLat, lngLat]),
+  // Only on the plates that also ship a tile pyramid (buildTiles in
+  // scripts/build-old-maps.mjs). The validator checks the files on disk; here only the shape.
+  tiles: z.object({
+    url: z.string().regex(/^\/data\/old-maps\/[a-z0-9]+(?:-[a-z0-9]+)*\/\{z\}\/\{x\}\/\{y\}\.webp$/),
+    tileSize: z.literal(512),
+    minzoom: z.number().int().min(0).max(22),
+    maxzoom: z.number().int().min(0).max(22),
+    count: z.number().int().positive(),
+  }).refine(t => t.minzoom <= t.maxzoom, { message: 'minzoom must not exceed maxzoom' }).optional(),
+  georef: z.object({
+    method: z.string(),
+    lambda: z.number().nullable(),
+    metresPerPixel: z.number().positive(),
+    controlPoints: z.number().int().min(4),
+    rmsM: z.number().nonnegative(),
+    gcps: z.array(z.object({
+      name: z.string(),
+      platePixel: z.tuple([z.number(), z.number()]),
+      lngLat,
+      residualM: z.number(),
+      note: z.string(),
+    })),
+    // Only on the plates whose drawn coast is walked onto the reference shoreline after the
+    // spline (buildCoastSnap in scripts/build-old-maps.mjs): how many dense pairs, in how
+    // many steps, how far off the spline alone left the coast and what is left now. A step
+    // gradient of 1 or more could fold the paper, so the schema refuses it.
+    coastSnap: z.object({
+      pairs: z.number().int().positive(),
+      steps: z.number().int().positive(),
+      radiusM: z.number().positive(),
+      maxStepGradient: z.number().nonnegative().lt(1),
+      splineMedianM: z.number().nonnegative(),
+      splineP90M: z.number().nonnegative(),
+      splineMaxM: z.number().nonnegative(),
+      leftMedianM: z.number().nonnegative(),
+      leftMaxM: z.number().nonnegative(),
+    }).optional(),
+  }),
+  scan: z.object({
+    holder: z.string(), via: z.string(), identifier: z.string(), url: z.string(),
+    leaves: z.array(z.string()), license: z.string(),
+  }),
+  references: z.array(z.object({ name: z.string(), url: z.string() })),
+  notes: oldMapText,
+  attribution: z.string(),
+})
+
+const RemoteOldMapSchema = LocalOldMapSchema.omit({
+  image: true, width: true, height: true, tiles: true, georef: true, remoteTiles: true,
+}).extend({
+  image: z.never().optional(), width: z.never().optional(), height: z.never().optional(),
+  tiles: z.never().optional(), georef: z.never().optional(),
+  // Only the reviewed public service, without copying its imagery into the repo.
+  remoteTiles: z.object({
+    url: z.literal('https://gis.sinica.edu.tw/macau/file-exists.php?img=Macau_20K_1996-png-{z}-{x}-{y}'),
+    tileSize: z.literal(256),
+    minzoom: z.literal(0),
+    maxzoom: z.literal(17),
+  }),
+})
 
 export const OldMapsFileSchema = z.object({
   version: z.literal(1),
   generatedAt: z.string(),
-  maps: z.array(
-    z.object({
-      id: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-      name: oldMapText,
-      title: oldMapText,
-      author: z.string(),
-      year: z.number().int(),
-      published: z.number().int().nullable(),
-      work: z.string().nullable(),
-      image: z.string().startsWith('/data/old-maps/'),
-      width: z.number().int().positive(),
-      height: z.number().int().positive(),
-      bounds: z.object({ west: z.number(), east: z.number(), north: z.number(), south: z.number() }),
-      coordinates: z.tuple([lngLat, lngLat, lngLat, lngLat]),
-      // Only on the plates that also ship a tile pyramid (buildTiles in
-      // scripts/build-old-maps.mjs). The validator checks the files on disk; here only the shape.
-      tiles: z.object({
-        url: z.string().regex(/^\/data\/old-maps\/[a-z0-9]+(?:-[a-z0-9]+)*\/\{z\}\/\{x\}\/\{y\}\.webp$/),
-        tileSize: z.literal(512),
-        minzoom: z.number().int().min(0).max(22),
-        maxzoom: z.number().int().min(0).max(22),
-        count: z.number().int().positive(),
-      }).refine(t => t.minzoom <= t.maxzoom, { message: 'minzoom must not exceed maxzoom' }).optional(),
-      georef: z.object({
-        method: z.string(),
-        lambda: z.number().nullable(),
-        metresPerPixel: z.number().positive(),
-        controlPoints: z.number().int().min(4),
-        rmsM: z.number().nonnegative(),
-        gcps: z.array(z.object({
-          name: z.string(),
-          platePixel: z.tuple([z.number(), z.number()]),
-          lngLat,
-          residualM: z.number(),
-          note: z.string(),
-        })),
-        // Only on the plates whose drawn coast is walked onto the reference shoreline after the
-        // spline (buildCoastSnap in scripts/build-old-maps.mjs): how many dense pairs, in how
-        // many steps, how far off the spline alone left the coast and what is left now. A step
-        // gradient of 1 or more could fold the paper, so the schema refuses it.
-        coastSnap: z.object({
-          pairs: z.number().int().positive(),
-          steps: z.number().int().positive(),
-          radiusM: z.number().positive(),
-          maxStepGradient: z.number().nonnegative().lt(1),
-          splineMedianM: z.number().nonnegative(),
-          splineP90M: z.number().nonnegative(),
-          splineMaxM: z.number().nonnegative(),
-          leftMedianM: z.number().nonnegative(),
-          leftMaxM: z.number().nonnegative(),
-        }).optional(),
-      }),
-      scan: z.object({
-        holder: z.string(), via: z.string(), identifier: z.string(), url: z.string(),
-        leaves: z.array(z.string()), license: z.string(),
-      }),
-      references: z.array(z.object({ name: z.string(), url: z.string() })),
-      notes: oldMapText,
-      attribution: z.string(),
-    }),
-  ).min(1),
+  maps: z.array(z.union([LocalOldMapSchema, RemoteOldMapSchema])).min(1),
 })
 
 // car-parks.json — the DSAT public car-park register (car_park_detail). The

@@ -1,13 +1,8 @@
 // GRAND PRIX — the Guia Circuit as a map layer.
 //
-// The fourth focus mode, on the same terms as WATER, POWER and WASTE: while it
-// is on the city is cleared so the one thing left is the 6.2 km street circuit
-// of the Macau Grand Prix — the racing line with its direction chevrons, the
-// pit lane, the officially named corners in race order, and a single
-// open-wheel car lapping in the record time on the simulation clock, with a
-// fading wake behind it and its speed beside it. Unlike the utilities this
-// mode keeps the clock controls: the car is the one thing on it with a time
-// dimension, and 10× is how a two-minute lap becomes watchable.
+// An independent overlay of the 6.2 km street circuit, named corners, pit
+// lane and a car running on the simulation clock. It can accompany transport
+// and other city layers; 10× turns a two-minute lap into twelve seconds.
 //
 // What is real and what is ours (the panel and the legend say the same):
 // - the LINE is OpenStreetMap's `Circuito da Guia` relation, stitched by the
