@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-09-21T22:02:56.514699+00:00",
-  "exportedAt": "2026-09-22T00:30:26+0800",
+  "fetchedAtUtc": "2026-09-22T21:54:04.617586+00:00",
+  "exportedAt": "2026-09-23T00:30:29+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -3208,46 +3208,6 @@
       "previousNotice": null
     },
     {
-      "id": "2627/2026",
-      "restriction": "no_parking",
-      "restrictionText": {
-        "zh": "禁止泊車",
-        "pt": "Ficará proibido ao estacionamento"
-      },
-      "location": {
-        "zh": "多處道路",
-        "pt": "Vários arruamentos"
-      },
-      "reason": {
-        "zh": "設置標線及標誌工作",
-        "pt": "Trabalhos de Instalação de Sinalização Horizontal e Vertical"
-      },
-      "principal": {
-        "zh": "交通事務局",
-        "pt": "DSAT"
-      },
-      "contractor": {
-        "zh": "新宏達建材裝飾工程有限公司",
-        "pt": "Xin Hong Da Building & Decoration Co Ltd"
-      },
-      "details": {
-        "zh": "因進行設置標線及標誌工作，禁止車輛停泊在相關道路︰\n於本年9月14日至19日\n花地瑪教會街編號2271 (1-9)之咪錶泊車位；\n青洲新巷編號2285 (1-7)、2286 (8-12)之咪錶泊車位。\n於本年9月17日至22日\n蘇沙醫生街編號2283 (1-4)、2284 (6-9)之咪錶泊車位及上落客貨位；\n台山中街編號2278 (1-6)之咪錶泊車位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de instalação de sinalização horizontal e vertical, será proibido o estacionamento nas seguintes vias:\nnos dias 14 a 19/09/2026\nnos lugares-parque com parquímetros n.os 2271 (01-09) na Rua da Missão de Fátima;\nnos lugares-parque com parquímetros n.os 2285 (01-07), 2286 (08-12) na Travessa do Conselheiro Borja.\nnos dias 17 a 22/09/2026\nnos lugares-parque com parquímetros n.os 2283 (01-04), 2284 (06-09) e na zona de carga-descarga e tomada-largada de passageiros na Rua do Dr. Ricardo de Sousa;\nnos lugares-parque com parquímetros n.os 2278 (01-06) na Rua Central de T'oi Sán.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 8,
-        "hours": 9
-      },
-      "startDate": "2026-09-14",
-      "endDate": "2026-09-22",
-      "onlineDate": "2026-09-12",
-      "coordinates": [
-        113.546832,
-        22.210908
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "2639/2026",
       "restriction": "closed",
       "restrictionText": {
@@ -3284,46 +3244,6 @@
       "coordinates": [
         113.531536,
         22.185222
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2643/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "多處道路",
-        "pt": "Vários arruamentos"
-      },
-      "reason": {
-        "zh": "設置標線及標誌工作",
-        "pt": "Trabalhos de Instalação de Sinalização Horizontal e Vertical"
-      },
-      "principal": {
-        "zh": "交通事務局",
-        "pt": "DSAT"
-      },
-      "contractor": {
-        "zh": "新宏達建材裝飾工程有限公司,蔣國良建築商,安穠建築工程有限公司",
-        "pt": "Civil Cheong Kuok Leong,Xin Hong Da Building & Decoration Co Ltd,Sociedade de Construção Civil On Nong Limitada"
-      },
-      "details": {
-        "zh": "因進行設置標線及標誌工作，於本年9月14日至21日，每日上午9時30分至下午4時30分及晚上10時至翌日上午6時，相關道路將在警方協助下實施有限度通車︰\n介乎馬萬祺博士大馬路與東城第一街之間的一段及介乎東城中大馬路與東城第六街之間的一段澳門橋大馬路；\n介乎馬萬祺博士大馬路與鏡海大馬路之間的一段東城第一街；\n介乎東城第一街與東城第二街之間的一段鏡海大馬路；\n介乎鏡海大馬路與澳門橋大馬路之間的一段東城第二街；\n東城中大馬路；\n東城第六街；\n濠江大馬路。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de instalação de sinalização horizontal e vertical, as seguintes vias ficarão com condicionamentos ao trânsito e com apoio policial, das 09H30 às 16H30 e das 22H00 às 06H00, nos dias 14 a 21/09/2026:\nos troços da Avenida da Ponte Macau entre a Avenida Doutor Ma Man Kei e a Rua Um da Zona Este e entre a Avenida Central da Zona Este e a Rua Seis da Zona Este;\no troço da Rua Um da Zona Este entre a Avenida Doutor Ma Man Kei e a Avenida do Mar de Espelho;\no troço da Avenida do Mar de Espelho entre a Rua Um da Zona Este e a Rua Dois da Zona Este;\no troço da Rua Dois da Zona Este entre a Avenida do Mar de Espelho e a Avenida da Ponte Macau;\na Avenida Central da Zona Este;\na Rua Seis da Zona Este;\na Avenida Hou Kong.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 7,
-        "hours": 21
-      },
-      "startDate": "2026-09-14",
-      "endDate": "2026-09-22",
-      "onlineDate": "2026-09-12",
-      "coordinates": [
-        113.563969,
-        22.210258
       ],
       "previousNotice": null
     },
@@ -4204,46 +4124,6 @@
       "coordinates": [
         113.538953,
         22.183494
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2710/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "西灣大橋",
-        "pt": "Ponte de Sai Van"
-      },
-      "reason": {
-        "zh": "大橋結構檢測工作",
-        "pt": "Trabalhos de Inspecção da Estrutura da Ponte"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "中鐵大橋勘測設計院集團有限公司澳門分公司",
-        "pt": ""
-      },
-      "details": {
-        "zh": "因進行結構檢測工作，每日晚上10時至翌日凌晨6時，西灣大橋將實施有限度通車，另准許編號MU-48-69之車輛於工作期間，在警方協助及設置適當交通標誌條件下於工作地點附近短暫停泊：\n於本年9月20日\n澳門旅遊塔往氹仔方向之引橋入口；\n澳門往氹仔方向之車行道。\n於本年9月21日\n氹仔往澳門旅遊塔 / 媽閣方向之引橋出口；\n媽閣引橋入口往氹仔方向之車行道；\n氹仔往媽閣方向之車行道。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de inspecção da estrutura, a Ponte de Sai Van ficará com condicionamentos ao trânsito, estando a viatura nº. MU-48-69 autorizada a estacionar momentaneamente, na referida Ponte, durante a realização dos trabalhos, devendo estar devidamente sinalizados e com apoio policial, das 22H00 às 06H00:\nNo dia 20/09/2026\nAcesso ao viaduto de acesso da Torre de Macau em direcção à Taipa,\nas faixas de rodagem no sentido Macau – Taipa.\nNo dia 21/09/2026\nSaída do viaduto de acesso da Taipa em direcção à Torre de Macau / Barra,\nFaixa de rodagem da entrada do viaduto de acesso da Barra em direcção à Taipa,\nFaixa de rodagem da Taipa em direcção à Barra.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 1,
-        "hours": 8
-      },
-      "startDate": "2026-09-20",
-      "endDate": "2026-09-22",
-      "onlineDate": "2026-09-18",
-      "coordinates": [
-        113.539565,
-        22.16536
       ],
       "previousNotice": null
     },
@@ -5288,6 +5168,46 @@
       "previousNotice": null
     },
     {
+      "id": "2819/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "拱形馬路 / 關閘橫路,製造廠巷",
+        "pt": "Estrada do Arco,Travessa da Fábrica"
+      },
+      "reason": {
+        "zh": "行人路重整工程",
+        "pt": "Obra de Reordenamento de Passeio"
+      },
+      "principal": {
+        "zh": "公共建設局",
+        "pt": "DSOP"
+      },
+      "contractor": {
+        "zh": "成龍工程有限公司",
+        "pt": "Companhia de Construção & Engenharia Shing Lung,Limitada"
+      },
+      "details": {
+        "zh": "為進行行人路重整工程，於9月23日至30日、10月8日至17日，以下道路將實施有限度通車：\n製造廠巷近同善堂第五托兒所的一段；\n拱形馬路近翠怡花園的一段及近維多利亞酒店的一段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido à obra de reordenamento de passeio, as seguintes vias ficarão com condicionamentos ao trânsito, nos dias 23 a 30/09/2026 e 08 a 17/10/2026:\no troço da Travessa da Fábrica junto do Creche Tung Sin Tong V;\nos troços da Estrada do Arco junto do Edf. Chui Yi e junto do The Victoria Hotel.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 24,
+        "hours": 9
+      },
+      "startDate": "2026-09-23",
+      "endDate": "2026-10-17",
+      "onlineDate": "2026-09-21",
+      "coordinates": [
+        113.54753,
+        22.21033
+      ],
+      "previousNotice": null
+    },
+    {
       "id": "2738/2026",
       "restriction": "no_parking",
       "restrictionText": {
@@ -5488,6 +5408,46 @@
       "previousNotice": null
     },
     {
+      "id": "2816/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "鮑思高街、虔信街、纜廠巷",
+        "pt": "Rua de São João Bosco Rua da Piedade Travessa da Cordoaria"
+      },
+      "reason": {
+        "zh": "電纜穿線工作",
+        "pt": "Trabalhos de Lançamento de Cabos"
+      },
+      "principal": {
+        "zh": "澳門電力股份有限公司",
+        "pt": "CEM"
+      },
+      "contractor": {
+        "zh": "長江建築有限公司、景銘建築工程有限公司",
+        "pt": "Cheong Kong Construction Co. Ltd., Companhia de Construcao e Obras Ken Meng Limitada"
+      },
+      "details": {
+        "zh": "因進行電纜穿線工作，相關道路將實施以下臨時交通管制措施：\n有限度通車(警方協助下)\n本年9月24日至25日每日晚上9時至翌日凌晨5時\n鮑思高街近虔信街的路段。\n虔信街。\n本年9月29日至30日每日上午9時30分至下午4時30分\n纜廠巷近新馬路的路段。\n禁止車輛停泊\n本年9月24日至25日\n虔信街的上落客貨區。\n本年9月29日至30日\n纜廠巷近新馬路的上落客貨區。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido aos trabalhos de lançamento de cabos, serão introduzidas alterações provisórias ao trânsito nas seguintes vias:\nFicarão com condicionamentos ao trânsito e com apoio policial\nDas 21H00 às 05H00, nos dias 24 a 25/09/2026\no troço da Rua de São João Bosco junto da Rua da Piedade.\na Rua da Piedade.\nDas 09H30 às 16H30, nos dias 29 a 30/09/2026\no troço da Travessa da Cordoaria junto da Avenida de Almeida Ribeiro.\nFicarão proibidos de estacionar\nDos dias 24 a 25/09/2026\nna zona de carga-descarga e tomada-largada de passageiros da Rua da Piedade.\nDos dias 29 a 30/09/2026\nna zona de carga-descarga e tomada-largada de passageiros da Travessa da Cordoaria junto da Avenida de Almeida Ribeiro.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 5,
+        "hours": 0
+      },
+      "startDate": "2026-09-24",
+      "endDate": "2026-09-30",
+      "onlineDate": "2026-09-22",
+      "coordinates": [
+        113.537524,
+        22.195786
+      ],
+      "previousNotice": null
+    },
+    {
       "id": "2749/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -5524,6 +5484,46 @@
       "coordinates": [
         113.540711,
         22.189445
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "2815/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "西灣湖廣場",
+        "pt": "Praça do Lago Sai Van"
+      },
+      "reason": {
+        "zh": "搬運及起卸設備工作",
+        "pt": "Trabalhos de Transporte e Carregamento de Equipamento"
+      },
+      "principal": {
+        "zh": "澳門電力股份有限公司",
+        "pt": "CEM"
+      },
+      "contractor": {
+        "zh": "鴻運工程有限公司",
+        "pt": "E & E Empresa de Instalaçòes e Engenharia Lda."
+      },
+      "details": {
+        "zh": "因進行搬運及起卸設備工作，本年9月25日上午10時至11時，西灣湖廣場近燈柱編號11E08的路段將實施有限度通車，另准許編號MM-49-88之工作車輛，在設置適當交通標誌以及警方協助的條件下，於工作時在該處停泊。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido aos trabalhos de carregamento e transporte de equipamento, o troço da Praça do Lago Sai Van junto da iluminação pública n.o 11E08 ficará com condicionamentos ao trânsito, sendo permitido o estacionamento do veículo com a matrícula n.o MM-49-88 no local durante a execução dos trabalhos, que deverá estar devidamente sinalizado e com apoio policial, das 10H00 às 11H00 do dia 25/09/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 0,
+        "hours": 1
+      },
+      "startDate": "2026-09-25",
+      "endDate": "2026-09-25",
+      "onlineDate": "2026-09-23",
+      "coordinates": [
+        113.536596,
+        22.181165
       ],
       "previousNotice": null
     },
@@ -5644,6 +5644,46 @@
       "coordinates": [
         113.545969,
         22.193768
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "2810/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "蓮花大橋",
+        "pt": "Ponte Flor de Lótus"
+      },
+      "reason": {
+        "zh": "維修保養氣象設備工作",
+        "pt": "Trabalhos de Manutenção e Reparação de Equipamento de Meteorológico"
+      },
+      "principal": {
+        "zh": "能信工程(澳門)有限公司",
+        "pt": "Sociedade de Obras Neng Son (Macau) Limitada"
+      },
+      "contractor": {
+        "zh": "",
+        "pt": ""
+      },
+      "details": {
+        "zh": "因進行維修保養氣象設備工作，於本年9月29日至30日，每日上午9時30分至中午12時30分，蓮花大橋近燈柱編號913C10的路段及近燈柱編號913C11的路段將在警方協助下實施有限度通車，另准許編號AB-39-60、MO-46-65、MT-83-46或MY-61-78之其中一部工作車輛，在設置適當交通標誌的條件下，於該處短暫停泊及進行工作。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido aos trabalhos de manutenção e reparação de equipamento de meteorológico, os troços da Ponte Flor de Lótus junto da iluminação pública n.o 913C10 e junto da iluminação pública n.o 913C11 ficarão com condicionamentos ao trânsito e com apoio policial, sendo permitido o estacionamento momentânea dos veículos com as matrículas n.os AB-39-60, MO-46-65, MT-83-46 ou MY-61-78 no local, apenas um de cada vez, durante a execução dos trabalhos, que deverá estar devidamente sinalizado, das 09H30 às 12H30, nos dias 29 a 30/09/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 1,
+        "hours": 3
+      },
+      "startDate": "2026-09-29",
+      "endDate": "2026-09-30",
+      "onlineDate": "2026-09-27",
+      "coordinates": [
+        113.548946,
+        22.13988
       ],
       "previousNotice": null
     },
