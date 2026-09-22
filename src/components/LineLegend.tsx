@@ -876,6 +876,9 @@ export function LineLegend({
 
   const activeRoutes = transitData.busRoutes.length
   const totalRoutes = allTransitData?.busRoutes.length ?? activeRoutes
+  // Layer intent, not the vehicle count (same rule as hasTransport in App):
+  // AUTO with nothing in service at this hour still means BUS is on.
+  const busLayerOn = Boolean(isAutoMode) || activeRoutes > 0
   const lrtActive = lrtOn?.size ?? allLrtLines.length
   const lrtTotal = allLrtLines.length
   const flightCount = transitData.flights.length
@@ -1705,7 +1708,9 @@ export function LineLegend({
                      border transition shadow-[0_8px_24px_var(--mm-shadow)]
                      ${mobilePanel === 'bus'
                        ? 'border-(--mm-emerald)/60 text-(--mm-emerald-1)'
-                       : 'border-(--mm-emerald)/25 text-(--mm-emerald-1)/80 hover:border-(--mm-emerald)/50 active:scale-95'}`}
+                       : busLayerOn
+                         ? 'border-(--mm-emerald)/25 text-(--mm-emerald-1)/80 hover:border-(--mm-emerald)/50 active:scale-95'
+                         : 'border-(--mm-fg)/10 text-(--mm-text-muted) hover:border-(--mm-fg)/25'}`}
         >
           <BusIcon />
         </button>
