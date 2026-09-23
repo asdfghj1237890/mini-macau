@@ -24,8 +24,8 @@ it('builds compact counts matching the full city data and existing filters', asy
   const dates = ['1900-01-01', '2100-01-01', ...works.notices.flatMap((n: RoadWorkNotice) => [n.startDate, n.endDate])]
   for (const day of dates) expect(catalogActiveRoadWorks(catalog, day)).toBe(countActiveRoadWorks(works.notices, day))
   expect(Object.keys(catalog.counts)).toHaveLength(12)
-  // Fourteen source sheets, twelve selectable layers: the 1912 atlas counts once.
-  expect(catalog.counts.oldmaps).toBe(12)
+  // Fifteen source sheets, thirteen selectable layers: the 1912 atlas counts once.
+  expect(catalog.counts.oldmaps).toBe(13)
   expect(Object.values(catalog.counts).every(n => n > 0)).toBe(true)
   const json = JSON.stringify(catalog)
   expect(json).not.toMatch(/coordinates|geometry|notices|schoolName|estateName/)

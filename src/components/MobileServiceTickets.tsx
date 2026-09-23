@@ -51,7 +51,7 @@ function ServiceTicket({ kind, count, on, onToggle }: ServiceTicketProps) {
   </article>
 }
 
-export function MobileServiceTickets({ flightCount, ferryCount, showFlights, showFerries, flightsOn, ferriesOn, onToggleFlights, onToggleFerries }: {
+export function MobileServiceTickets({ flightCount, ferryCount, showFlights, showFerries, flightsOn, ferriesOn, onToggleFlights, onToggleFerries, onShowAll, onHideAll }: {
   flightCount: number
   ferryCount: number
   showFlights: boolean
@@ -60,12 +60,18 @@ export function MobileServiceTickets({ flightCount, ferryCount, showFlights, sho
   ferriesOn: boolean
   onToggleFlights?: () => void
   onToggleFerries?: () => void
+  onShowAll?: () => void
+  onHideAll?: () => void
 }) {
   const { t } = useI18n()
   return <div className="mm-mobile-service-tickets">
     <div className="mm-service-tickets-heading">
       <h3>{t.mobileAirSeaTitle}</h3>
       <p>{t.mobileAirSeaHint}</p>
+    </div>
+    <div className="mm-mobile-all-actions">
+      <button type="button" onClick={onShowAll} disabled={!onShowAll}>{t.mobileShowAll}</button>
+      <button type="button" onClick={onHideAll} disabled={!onHideAll}>{t.mobileHideAll}</button>
     </div>
     {showFlights && <ServiceTicket kind="air" count={flightCount} on={flightsOn} onToggle={onToggleFlights} />}
     {showFerries && <ServiceTicket kind="sea" count={ferryCount} on={ferriesOn} onToggle={onToggleFerries} />}

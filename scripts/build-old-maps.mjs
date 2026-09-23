@@ -1,4 +1,4 @@
-// Build the HISTORICAL MAPS (古地圖) overlay: download the licensed scans, straighten,
+// Build the HISTORICAL MAPS (歷史地圖) overlay: download the licensed scans, straighten,
 // retain the full sheets (stitching across a fold when needed), map each plate onto modern
 // coordinates with a thin-plate spline over hand-picked control points, and write
 // public/data/old-maps/<id>.webp + public/data/old-maps.json — plus, for the plates whose scan
@@ -56,6 +56,7 @@ import { REMOTE_OLD_MAPS } from './old-maps-remote.mjs'
 import { LEMOS_1963 } from './old-maps-lemos.mjs'
 import { ISLAND_OLD_MAPS } from './old-maps-islands.mjs'
 import { EARLY_OLD_MAPS } from './old-maps-early.mjs'
+import { DSCC_OLD_MAPS } from './old-maps-dscc.mjs'
 const require = createRequire(import.meta.url)
 const sharp = require('sharp')
 
@@ -617,7 +618,7 @@ const MAPS = [
       ['coast hold 5100m', 3982, 6824, 113.54541, 22.19138, 'rest of the east shore held where the landmark pins put it, so that the north-east correction stays local'],
     ],
     notes: {
-      zh: '公物局 1:5,000 實測圖的縮繪石印版：街巷齊全且多數有名，官署、教堂、軍事建築塗紅，青洲仍是離島（上有水泥廠），半島東北角還是田野。二十二個地物控制點跨全島、全部釘準；圖本身畫得準，所以釘與釘之間的街道也對得上，是這批古地圖裡最可靠的一張。東北海岸（關閘到黑沙環灣南端）另外每約 30 公尺一針釘在 1893 年手稿的岸線上，兩張圖在這一段重合；其餘東岸用固定針留在原位，讓這項修正只影響東北角。',
+      zh: '公物局 1:5,000 實測圖的縮繪石印版：街巷齊全且多數有名，官署、教堂、軍事建築塗紅，青洲仍是離島（上有水泥廠），半島東北角還是田野。二十二個地物控制點跨全島、全部釘準；圖本身畫得準，所以釘與釘之間的街道也對得上，是這批歷史地圖裡最可靠的一張。東北海岸（關閘到黑沙環灣南端）另外每約 30 公尺一針釘在 1893 年手稿的岸線上，兩張圖在這一段重合；其餘東岸用固定針留在原位，讓這項修正只影響東北角。',
       en: 'A reduced lithograph of the Public Works Department’s 1:5,000 survey: every street and lane, most of them named, with government, church and military buildings in red; Ilha Verde is still an island (with its cement works) and the north-east of the peninsula still fields. Pinned exactly at twenty-two landmarks across the whole peninsula, and because the survey itself is accurate the streets between the pins line up too — the most reliable plate in this set. Its north-east shore (Barrier Gate to the south end of the Cacilhas bay) is additionally pinned about every 30 m to the shoreline of the 1893 manuscript, so the two plates coincide along that stretch; hold pins keep the rest of the east shore where the landmarks put it, so that the correction stays in the north-east.',
       pt: 'Litografia reduzida do levantamento 1:5.000 das Obras Públicas: todas as ruas e travessas, quase todas com nome, com edifícios do governo, igrejas e quartéis a vermelho; a Ilha Verde ainda é uma ilha (com a fábrica de cimento) e o nordeste da península ainda campos. Fixada exactamente em vinte e dois pontos de referência por toda a península e, como o levantamento é rigoroso, as ruas entre os pontos também coincidem — a planta mais fiável deste conjunto. A costa nordeste (das Portas do Cerco ao extremo sul da baía de Cacilhas) está ainda fixada, de cerca de 30 em 30 m, à linha de costa do manuscrito de 1893, pelo que as duas plantas coincidem nesse troço; pontos de retenção mantêm o resto da costa leste onde os pontos de referência a colocam, para que a correcção fique pelo nordeste.',
     },
@@ -919,7 +920,7 @@ const MAPS = [
   },
 ]
 
-MAPS.push(LEMOS_1963, ...ISLAND_OLD_MAPS, ...EARLY_OLD_MAPS)
+MAPS.push(LEMOS_1963, ...ISLAND_OLD_MAPS, ...EARLY_OLD_MAPS, ...DSCC_OLD_MAPS)
 for (const map of MAPS) {
   map.notes = {
     zh: `完整顯示來源圖版，保留紙邊、標題、圖例及插圖。${map.notes.zh}`,

@@ -50,8 +50,8 @@ export function MobileBusRegister({ grouped, visibleRoutes, inactiveRoutes, sele
         onClick={onResetAuto} disabled={!onResetAuto}>
         <MobileLayerIcon name="clock" size={17} /><span>{t.autoByTime}</span>
       </button>
-      <button type="button" onClick={onShowAll} disabled={!onShowAll}>{t.mobileBusShowAll}</button>
-      <button type="button" onClick={onHideAll} disabled={!onHideAll}>{t.mobileBusHideAll}</button>
+      <button type="button" onClick={onShowAll} disabled={!onShowAll}>{t.mobileShowAll}</button>
+      <button type="button" onClick={onHideAll} disabled={!onHideAll}>{t.mobileHideAll}</button>
     </div>
     <div className="mm-bus-regions" role="tablist" aria-label={t.mobileBusRegions}>
       {groups.map((key, index) => {

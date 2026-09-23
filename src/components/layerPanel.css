@@ -162,4 +162,3 @@
 
 .mm-layer-card-caption { flex-wrap: wrap; }
 .mm-layer-card-caption > span { flex-basis: 100%; }
-.mm-layer-isolate-mobile { display: block; min-height: 44px; margin: 8px 0; padding: 8px 12px; border: 1px solid var(--mm-border); border-radius: 8px; color: var(--mm-text-secondary); cursor: pointer; }

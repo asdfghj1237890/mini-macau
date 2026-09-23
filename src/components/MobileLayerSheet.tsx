@@ -199,18 +199,38 @@ export function MobileCityIndex({ rows, onInspect }: {
   </div>
 }
 
-export function MobileCityDetail({ row, children }: { row: CityLayerItem; children?: ReactNode }) {
+// `current` swaps the big count for a compact header naming what is drawn now
+// (the historical map on screen), which leaves the sheet's height to the list.
+export function MobileCityDetail({ row, current, children }: {
+  row: CityLayerItem
+  current?: { value: string; label: string }
+  children?: ReactNode
+}) {
   const { t } = useI18n()
   return <div className="mm-mobile-city-detail"
     style={{ '--sheet-accent': `var(--mm-${row.accent})` } as CSSProperties}>
-    <div className="mm-mobile-detail-hero">
-      <span aria-hidden="true">{row.icon}</span>
-      <div><small className="mm-mono">{row.code}</small><strong className="mm-mono">{row.count}</strong></div>
+    {current
+      ? <div className="mm-mobile-detail-hero" data-compact="true" title={row.description}>
+        <span aria-hidden="true">{row.icon}</span>
+        <div><small className="mm-mono">{row.code}</small>
+          <p className="mm-mobile-detail-current"><b className="mm-mono mm-tabular">{current.value}</b><span>{current.label}</span></p></div>
+      </div>
+      : <>
+        <div className="mm-mobile-detail-hero">
+          <span aria-hidden="true">{row.icon}</span>
+          <div><small className="mm-mono">{row.code}</small><strong className="mm-mono">{row.count}</strong></div>
+        </div>
+        <p className="mm-mobile-detail-description">{row.description}</p>
+      </>}
+    {/* The layer's two map actions share one card: the switch, then the
+        one-shot "show only" that turns every other layer off. */}
+    <div className="mm-mobile-layer-actions">
+      <MobileLayerToggle on={row.on} label={t.mobileLayersShow} onToggle={row.toggle} />
+      {row.isolate && <button type="button" className="mm-mobile-layer-isolate"
+        aria-label={t.layerShowOnly + ': ' + row.label} onClick={row.isolate}>
+        <span>{t.layerShowOnly}</span><small>{t.layerShowOnlyHint}</small>
+      </button>}
     </div>
-    <p className="mm-mobile-detail-description">{row.description}</p>
-    <MobileLayerToggle on={row.on} label={t.mobileLayersShow} onToggle={row.toggle} />
-    {row.isolate && <button type="button" className="mm-layer-isolate-mobile"
-      aria-label={t.layerShowOnly + ': ' + row.label} onClick={row.isolate}>{t.layerShowOnly}</button>}
     <CityLayerLoadState row={row} />
     {children && <div className="mm-mobile-detail-key">{children}</div>}
   </div>

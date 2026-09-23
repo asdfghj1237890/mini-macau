@@ -1,0 +1,24 @@
+.mm-old-map-switcher {
+  position: absolute; z-index: 12; left: 12px; right: 12px; max-width: 420px; margin: 0 auto;
+  display: flex; align-items: stretch; height: 48px; overflow: hidden;
+  border: 1px solid var(--mm-border); border-radius: 16px; background: var(--mm-panel); color: var(--mm-fg);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--mm-shadow) 60%, transparent);
+}
+/* Where the time bar sits when no transport layer is on; under the top row
+   (menu, compact clock) and clear of the zoom stack while it is. */
+.mm-old-map-switcher[data-dock="bottom"] { bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
+.mm-old-map-switcher[data-dock="top"] { top: 64px; right: 64px; }
+.mm-old-map-switcher-step {
+  display: flex; align-items: center; justify-content: center; flex: 0 0 48px; cursor: pointer; color: var(--mm-amber);
+}
+.mm-old-map-switcher-step:disabled { color: var(--mm-text-muted); opacity: .45; cursor: default; }
+.mm-old-map-switcher-current {
+  display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-width: 0; padding: 0 4px;
+  border-left: 1px solid var(--mm-border); border-right: 1px solid var(--mm-border); cursor: pointer;
+}
+.mm-old-map-switcher-current b { flex: 0 0 auto; font-size: calc(15px * var(--mm-font-scale)); font-weight: 500; color: var(--mm-amber); }
+.mm-old-map-switcher-current span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: calc(13px * var(--mm-font-scale)); }
+.mm-old-map-switcher button:focus-visible { outline: 2px solid var(--mm-amber); outline-offset: -3px; }
+@media (hover: hover) {
+  .mm-old-map-switcher-step:not(:disabled):hover, .mm-old-map-switcher-current:hover { background: var(--mm-panel-3); }
+}

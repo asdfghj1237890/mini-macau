@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "generatedAt": "2026-09-22T13:49:51.687Z",
+  "generatedAt": "2026-09-23T03:23:48.562Z",
   "maps": [
     {
       "id": "bellin-1749",
@@ -5804,7 +5804,7 @@
         }
       ],
       "notes": {
-        "zh": "完整顯示來源圖版，保留紙邊、標題、圖例及插圖。公物局 1:5,000 實測圖的縮繪石印版：街巷齊全且多數有名，官署、教堂、軍事建築塗紅，青洲仍是離島（上有水泥廠），半島東北角還是田野。二十二個地物控制點跨全島、全部釘準；圖本身畫得準，所以釘與釘之間的街道也對得上，是這批古地圖裡最可靠的一張。東北海岸（關閘到黑沙環灣南端）另外每約 30 公尺一針釘在 1893 年手稿的岸線上，兩張圖在這一段重合；其餘東岸用固定針留在原位，讓這項修正只影響東北角。",
+        "zh": "完整顯示來源圖版，保留紙邊、標題、圖例及插圖。公物局 1:5,000 實測圖的縮繪石印版：街巷齊全且多數有名，官署、教堂、軍事建築塗紅，青洲仍是離島（上有水泥廠），半島東北角還是田野。二十二個地物控制點跨全島、全部釘準；圖本身畫得準，所以釘與釘之間的街道也對得上，是這批歷史地圖裡最可靠的一張。東北海岸（關閘到黑沙環灣南端）另外每約 30 公尺一針釘在 1893 年手稿的岸線上，兩張圖在這一段重合；其餘東岸用固定針留在原位，讓這項修正只影響東北角。",
         "en": "The complete source sheet is shown, including margins, titles, legends and insets. A reduced lithograph of the Public Works Department’s 1:5,000 survey: every street and lane, most of them named, with government, church and military buildings in red; Ilha Verde is still an island (with its cement works) and the north-east of the peninsula still fields. Pinned exactly at twenty-two landmarks across the whole peninsula, and because the survey itself is accurate the streets between the pins line up too — the most reliable plate in this set. Its north-east shore (Barrier Gate to the south end of the Cacilhas bay) is additionally pinned about every 30 m to the shoreline of the 1893 manuscript, so the two plates coincide along that stretch; hold pins keep the rest of the east shore where the landmarks put it, so that the correction stays in the north-east.",
         "pt": "A folha original é apresentada por inteiro, com margens, títulos, legendas e inserções. Litografia reduzida do levantamento 1:5.000 das Obras Públicas: todas as ruas e travessas, quase todas com nome, com edifícios do governo, igrejas e quartéis a vermelho; a Ilha Verde ainda é uma ilha (com a fábrica de cimento) e o nordeste da península ainda campos. Fixada exactamente em vinte e dois pontos de referência por toda a península e, como o levantamento é rigoroso, as ruas entre os pontos também coincidem — a planta mais fiável deste conjunto. A costa nordeste (das Portas do Cerco ao extremo sul da baía de Cacilhas) está ainda fixada, de cerca de 30 em 30 m, à linha de costa do manuscrito de 1893, pelo que as duas plantas coincidem nesse troço; pontos de retenção mantêm o resto da costa leste onde os pontos de referência a colocam, para que a correcção fique pelo nordeste."
       },
@@ -7742,75 +7742,1168 @@
       "attribution": "M. J. Lemos de Sousa, 1963. Scan: Rui Nunes / Mindat.org, photo 695342 (marked public domain by provider). Approximate georeferencing: mini-macau; reference coordinates © OpenStreetMap contributors."
     },
     {
-      "id": "macau-1996",
+      "id": "dscc-1990",
       "name": {
-        "zh": "澳門地區全圖",
-        "en": "Territory of Macau",
-        "pt": "Território de Macau"
+        "zh": "《澳門》1:5,000",
+        "en": "Macau, 1:5,000",
+        "pt": "Macau, escala 1:5000"
       },
       "title": {
-        "zh": "澳門地區（1996，1:20,000）",
-        "en": "Territorio de Macau (1996, 1:20,000)",
-        "pt": "Território de Macau (1996, 1:20.000)"
+        "zh": "澳門（地圖繪製暨地籍司，1990，1:5,000）",
+        "en": "Macau, escala 1:5000 (Direcção dos Serviços de Cartografia e Cadastro, 1990)",
+        "pt": "Macau, escala 1:5000 (Direcção dos Serviços de Cartografia e Cadastro, 1990)"
       },
-      "author": "Not identified in the WMTS catalogue",
-      "year": 1996,
-      "published": 1996,
-      "work": null,
+      "author": "Direcção dos Serviços de Cartografia e Cadastro, Macau",
+      "year": 1990,
+      "published": 1990,
+      "work": "Macau, escala 1:5000 = [Ao-men, pi li] 1:5000; Library of Congress G7823.M2 1990 .M3 MLC",
+      "image": "/data/old-maps/dscc-1990.webp",
+      "width": 2184,
+      "height": 2373,
       "bounds": {
-        "west": 113.499818,
-        "east": 113.6164622,
-        "north": 22.2329483,
-        "south": 22.0808828
+        "west": 113.527897,
+        "east": 113.570277,
+        "north": 22.218953,
+        "south": 22.176319
       },
       "coordinates": [
         [
-          113.499818,
-          22.2329483
+          113.527897,
+          22.218953
         ],
         [
-          113.6164622,
-          22.2329483
+          113.570277,
+          22.218953
         ],
         [
-          113.6164622,
-          22.0808828
+          113.570277,
+          22.176319
         ],
         [
-          113.499818,
-          22.0808828
+          113.527897,
+          22.176319
         ]
       ],
-      "remoteTiles": {
-        "url": "https://gis.sinica.edu.tw/macau/file-exists.php?img=Macau_20K_1996-png-{z}-{x}-{y}",
-        "tileSize": 256,
-        "minzoom": 0,
-        "maxzoom": 17
+      "tiles": {
+        "url": "/data/old-maps/dscc-1990/{z}/{x}/{y}.webp",
+        "tileSize": 512,
+        "minzoom": 9,
+        "maxzoom": 17,
+        "count": 420
+      },
+      "georef": {
+        "method": "affine least squares",
+        "lambda": null,
+        "metresPerPixel": 2,
+        "controlPoints": 55,
+        "rmsM": 2,
+        "gcps": [
+          {
+            "name": "grid E19000 N20500",
+            "platePixel": [
+              141.9,
+              284.6
+            ],
+            "lngLat": [
+              113.529775,
+              22.2157188
+            ],
+            "residualM": 3.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19500 N20500",
+            "platePixel": [
+              547.1,
+              285.3
+            ],
+            "lngLat": [
+              113.5346244,
+              22.215717
+            ],
+            "residualM": 2.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E20000 N20500",
+            "platePixel": [
+              951.8,
+              285.8
+            ],
+            "lngLat": [
+              113.5394739,
+              22.215715
+            ],
+            "residualM": 1.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E20500 N20500",
+            "platePixel": [
+              1356.6,
+              285.7
+            ],
+            "lngLat": [
+              113.5443233,
+              22.2157129
+            ],
+            "residualM": 1.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21500 N20500",
+            "platePixel": [
+              2166.3,
+              285.8
+            ],
+            "lngLat": [
+              113.5540222,
+              22.2157082
+            ],
+            "residualM": 1.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22000 N20500",
+            "platePixel": [
+              2571.3,
+              285.3
+            ],
+            "lngLat": [
+              113.5588717,
+              22.2157057
+            ],
+            "residualM": 1.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22500 N20500",
+            "platePixel": [
+              2975.4,
+              285.5
+            ],
+            "lngLat": [
+              113.5637211,
+              22.215703
+            ],
+            "residualM": 1.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N20500",
+            "platePixel": [
+              3380.5,
+              285
+            ],
+            "lngLat": [
+              113.5685706,
+              22.2157001
+            ],
+            "residualM": 2.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N20000",
+            "platePixel": [
+              143.4,
+              691.1
+            ],
+            "lngLat": [
+              113.5297731,
+              22.2112034
+            ],
+            "residualM": 1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19500 N20000",
+            "platePixel": [
+              549,
+              691.7
+            ],
+            "lngLat": [
+              113.5346224,
+              22.2112016
+            ],
+            "residualM": 0.7,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21500 N20000",
+            "platePixel": [
+              2166.9,
+              692.5
+            ],
+            "lngLat": [
+              113.5540196,
+              22.2111928
+            ],
+            "residualM": 1.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22000 N20000",
+            "platePixel": [
+              2571.8,
+              691.8
+            ],
+            "lngLat": [
+              113.5588689,
+              22.2111903
+            ],
+            "residualM": 0.7,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N20000",
+            "platePixel": [
+              3381,
+              691.3
+            ],
+            "lngLat": [
+              113.5685674,
+              22.2111847
+            ],
+            "residualM": 0,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N19500",
+            "platePixel": [
+              145.1,
+              1097
+            ],
+            "lngLat": [
+              113.5297712,
+              22.2066881
+            ],
+            "residualM": 0.7,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19500 N19500",
+            "platePixel": [
+              550.7,
+              1097.4
+            ],
+            "lngLat": [
+              113.5346204,
+              22.2066862
+            ],
+            "residualM": 1.9,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E20500 N19500",
+            "platePixel": [
+              1358.9,
+              1097.8
+            ],
+            "lngLat": [
+              113.5443186,
+              22.2066821
+            ],
+            "residualM": 2.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21000 N19500",
+            "platePixel": [
+              1763.3,
+              1098.3
+            ],
+            "lngLat": [
+              113.5491678,
+              22.2066799
+            ],
+            "residualM": 2.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22000 N19500",
+            "platePixel": [
+              2572.5,
+              1098
+            ],
+            "lngLat": [
+              113.558866,
+              22.2066749
+            ],
+            "residualM": 2.5,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22500 N19500",
+            "platePixel": [
+              2976.7,
+              1097.7
+            ],
+            "lngLat": [
+              113.5637152,
+              22.2066722
+            ],
+            "residualM": 2.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N19500",
+            "platePixel": [
+              3381,
+              1097.4
+            ],
+            "lngLat": [
+              113.5685643,
+              22.2066693
+            ],
+            "residualM": 2.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N19000",
+            "platePixel": [
+              146,
+              1502.7
+            ],
+            "lngLat": [
+              113.5297693,
+              22.2021727
+            ],
+            "residualM": 2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19500 N19000",
+            "platePixel": [
+              551.3,
+              1502.7
+            ],
+            "lngLat": [
+              113.5346183,
+              22.2021708
+            ],
+            "residualM": 2.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21000 N19000",
+            "platePixel": [
+              1764.4,
+              1503
+            ],
+            "lngLat": [
+              113.5491652,
+              22.2021645
+            ],
+            "residualM": 2.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21500 N19000",
+            "platePixel": [
+              2169.1,
+              1502.9
+            ],
+            "lngLat": [
+              113.5540142,
+              22.202162
+            ],
+            "residualM": 2.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22000 N19000",
+            "platePixel": [
+              2573.9,
+              1502.9
+            ],
+            "lngLat": [
+              113.5588632,
+              22.2021595
+            ],
+            "residualM": 2.9,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22500 N19000",
+            "platePixel": [
+              2978.8,
+              1502.8
+            ],
+            "lngLat": [
+              113.5637122,
+              22.2021568
+            ],
+            "residualM": 2.7,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N19000",
+            "platePixel": [
+              3383.3,
+              1502.5
+            ],
+            "lngLat": [
+              113.5685612,
+              22.2021539
+            ],
+            "residualM": 2.3,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N18000",
+            "platePixel": [
+              148.1,
+              2308.7
+            ],
+            "lngLat": [
+              113.5297655,
+              22.1931419
+            ],
+            "residualM": 2.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22000 N18000",
+            "platePixel": [
+              2576,
+              2307.3
+            ],
+            "lngLat": [
+              113.5588576,
+              22.1931287
+            ],
+            "residualM": 3.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22500 N18000",
+            "platePixel": [
+              2980.6,
+              2306.9
+            ],
+            "lngLat": [
+              113.5637062,
+              22.193126
+            ],
+            "residualM": 3.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N18000",
+            "platePixel": [
+              3385.3,
+              2307.3
+            ],
+            "lngLat": [
+              113.5685549,
+              22.1931232
+            ],
+            "residualM": 3.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N17500",
+            "platePixel": [
+              150.7,
+              2713.7
+            ],
+            "lngLat": [
+              113.5297637,
+              22.1886265
+            ],
+            "residualM": 2.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E20000 N17500",
+            "platePixel": [
+              959.5,
+              2713.4
+            ],
+            "lngLat": [
+              113.5394607,
+              22.1886226
+            ],
+            "residualM": 2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E20500 N17500",
+            "platePixel": [
+              1363.8,
+              2713.4
+            ],
+            "lngLat": [
+              113.5443092,
+              22.1886205
+            ],
+            "residualM": 1.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21000 N17500",
+            "platePixel": [
+              1768,
+              2713.5
+            ],
+            "lngLat": [
+              113.5491577,
+              22.1886183
+            ],
+            "residualM": 1.6,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21500 N17500",
+            "platePixel": [
+              2172.1,
+              2713
+            ],
+            "lngLat": [
+              113.5540062,
+              22.1886159
+            ],
+            "residualM": 2.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22000 N17500",
+            "platePixel": [
+              2576,
+              2713
+            ],
+            "lngLat": [
+              113.5588547,
+              22.1886133
+            ],
+            "residualM": 2.5,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22500 N17500",
+            "platePixel": [
+              2981,
+              2713.1
+            ],
+            "lngLat": [
+              113.5637033,
+              22.1886106
+            ],
+            "residualM": 2.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N17500",
+            "platePixel": [
+              3385.1,
+              2713.1
+            ],
+            "lngLat": [
+              113.5685518,
+              22.1886078
+            ],
+            "residualM": 2.5,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N17000",
+            "platePixel": [
+              150.8,
+              3119.8
+            ],
+            "lngLat": [
+              113.5297618,
+              22.1841111
+            ],
+            "residualM": 0.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19500 N17000",
+            "platePixel": [
+              556.1,
+              3118.7
+            ],
+            "lngLat": [
+              113.5346101,
+              22.1841092
+            ],
+            "residualM": 1.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E20000 N17000",
+            "platePixel": [
+              960.2,
+              3119.2
+            ],
+            "lngLat": [
+              113.5394585,
+              22.1841072
+            ],
+            "residualM": 0.6,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E20500 N17000",
+            "platePixel": [
+              1364.5,
+              3119.8
+            ],
+            "lngLat": [
+              113.5443068,
+              22.1841051
+            ],
+            "residualM": 0.5,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21000 N17000",
+            "platePixel": [
+              1769.1,
+              3119.7
+            ],
+            "lngLat": [
+              113.5491552,
+              22.1841029
+            ],
+            "residualM": 0.3,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21500 N17000",
+            "platePixel": [
+              2174,
+              3119.4
+            ],
+            "lngLat": [
+              113.5540036,
+              22.1841004
+            ],
+            "residualM": 0.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22000 N17000",
+            "platePixel": [
+              2578.2,
+              3119.2
+            ],
+            "lngLat": [
+              113.5588519,
+              22.1840979
+            ],
+            "residualM": 0.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22500 N17000",
+            "platePixel": [
+              2983.2,
+              3119.2
+            ],
+            "lngLat": [
+              113.5637003,
+              22.1840952
+            ],
+            "residualM": 0.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N17000",
+            "platePixel": [
+              3387.2,
+              3118.7
+            ],
+            "lngLat": [
+              113.5685486,
+              22.1840924
+            ],
+            "residualM": 0.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N16500",
+            "platePixel": [
+              150.5,
+              3526.3
+            ],
+            "lngLat": [
+              113.5297599,
+              22.1795956
+            ],
+            "residualM": 3.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E20000 N16500",
+            "platePixel": [
+              960.9,
+              3525.4
+            ],
+            "lngLat": [
+              113.5394563,
+              22.1795918
+            ],
+            "residualM": 1.5,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E20500 N16500",
+            "platePixel": [
+              1365.5,
+              3526.3
+            ],
+            "lngLat": [
+              113.5443045,
+              22.1795897
+            ],
+            "residualM": 2.7,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21500 N16500",
+            "platePixel": [
+              2175.3,
+              3524.9
+            ],
+            "lngLat": [
+              113.5540009,
+              22.179585
+            ],
+            "residualM": 1.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22000 N16500",
+            "platePixel": [
+              2580.1,
+              3524.9
+            ],
+            "lngLat": [
+              113.5588491,
+              22.1795825
+            ],
+            "residualM": 1.5,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E22500 N16500",
+            "platePixel": [
+              2985.1,
+              3525
+            ],
+            "lngLat": [
+              113.5636973,
+              22.1795798
+            ],
+            "residualM": 1.9,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N16500",
+            "platePixel": [
+              3389.4,
+              3524.1
+            ],
+            "lngLat": [
+              113.5685455,
+              22.1795769
+            ],
+            "residualM": 1.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          }
+        ]
       },
       "scan": {
-        "holder": "Academia Sinica / 中央研究院",
-        "via": "Macau historical maps WMTS",
-        "identifier": "Macau_20K_1996",
-        "url": "https://gis.sinica.edu.tw/showwmts/index.php?l=Macau_20K_1996&s=macau",
+        "holder": "Library of Congress, Geography and Map Division",
+        "via": "Wikimedia Commons",
+        "identifier": "92684644 / g7823m.ct000641",
+        "url": "https://www.loc.gov/item/92684644/",
         "leaves": [],
-        "license": "中央研究院版權所有，非經允許，不得作為商業使用。 / Copyright Academia Sinica; commercial use requires permission. Imagery is served by the provider and is not covered by this repository’s MIT licence."
+        "license": "Library of Congress, Geography and Map Division: no known copyright restrictions (Wikimedia Commons licence “Library of Congress – no known copyright restrictions”). Credit: Library of Congress, Geography and Map Division."
       },
       "references": [
         {
-          "name": "Academia Sinica Macau WMTS catalogue",
-          "url": "https://gis.sinica.edu.tw/macau/"
+          "name": "Wikimedia Commons — original 10,555 × 11,442 px scan",
+          "url": "https://commons.wikimedia.org/wiki/File:Macau,_escala_1-5000_%3D_(Ao-men,_pi_li)_1-5000._LOC_92684644.jpg"
         },
         {
-          "name": "WMTS capabilities (bounds, tile template and matrix)",
-          "url": "https://gis.sinica.edu.tw/macau/wmts"
+          "name": "EPSG:8433 — Macao 1920 / Macao Grid (the printed grid)",
+          "url": "https://epsg.io/8433"
+        },
+        {
+          "name": "EPSG:8438 — Macao 1920 to WGS 84 transformation",
+          "url": "https://epsg.io/8438"
         }
       ],
       "notes": {
-        "zh": "涵蓋澳門半島、氹仔、路環與機場，可比較九十年代的海岸與路氹變化。沿用中研院的配準，未提供控制點或精度數據；細小街名清晰度有限。圖中圍合或規劃範圍不代表當年全部已填成陸地。線上圖源需連網，商業使用須先取得中研院許可。",
-        "en": "Covers the peninsula, Taipa, Coloane and the airport, for comparing 1990s coastlines and Cotai. Uses the provider’s georeferencing; control points and accuracy figures are not supplied. Small street labels are soft. Enclosed or planned areas do not establish completed reclamation. Requires an internet connection; commercial use requires Academia Sinica’s permission.",
-        "pt": "Abrange a península, a Taipa, Coloane e o aeroporto, permitindo comparar a costa e o Cotai nos anos 1990. Usa a georreferenciação do fornecedor, sem pontos de controlo ou dados de precisão publicados. As legendas pequenas têm nitidez limitada. Áreas delimitadas ou planeadas não comprovam aterros concluídos. Requer ligação à Internet; o uso comercial exige autorização da Academia Sinica."
+        "zh": "完整顯示來源圖版，保留紙邊、標題、圖例及插圖。地圖繪製暨地籍司 1990 年出版的澳門半島 1:5,000 地圖，逐棟繪出建築、街道及 10 米等高線，外港可見新口岸一帶填海工程的範圍線；圖上的範圍線不代表當時已全部成陸。以圖上印製的澳門座標格網配準：每 500 米一個十字，共用 55 個，按官方澳門 1920 基準至 WGS 84 轉換（EPSG:8438）換算，單一仿射擬合均方根 2.0 米，留一驗證最大 3.9 米。另把東望洋燈塔測量點、關閘、大炮台，以及文化局的聖老楞佐堂、西望洋聖堂、聖奧斯定堂座標反投到原圖，均落在對應地物上或其十米之內。以上是對圖面格網的擬合與抽查，不等於原圖本身的測繪精度。掃描為美國國會圖書館藏本，館方列明無已知版權限制。",
+        "en": "The complete source sheet is shown, including margins, titles, legends and insets. The 1990 Macau peninsula sheet at 1:5,000 by the Direcção dos Serviços de Cartografia e Cadastro, drawing individual buildings, streets and 10 m contours; outlines in the Outer Harbour mark the reclamation works around NAPE and do not establish completed land. Registered on the printed Macau grid: 55 grid crosses at 500 m spacing, converted with the official Macao 1920 to WGS 84 transformation (EPSG:8438), one affine fit with 2.0 m RMS and a worst leave-one-out residual of 3.9 m. Modern coordinates of the Guia lighthouse survey mark, Portas do Cerco, Monte fortress and the IC heritage points of São Lourenço, Penha and Santo Agostinho, projected back onto the scan, land on those buildings or within ten metres of them. These are fit diagnostics against the sheet’s own grid and spot checks, not the survey accuracy of the original. Library of Congress copy, listed by the Library with no known copyright restrictions.",
+        "pt": "A folha original é apresentada por inteiro, com margens, títulos, legendas e inserções. Folha da península de Macau na escala 1:5000, publicada em 1990 pela Direcção dos Serviços de Cartografia e Cadastro, com edifícios, ruas e curvas de nível de 10 m; os contornos no Porto Exterior assinalam as obras de aterro junto ao NAPE e não comprovam terreno concluído. Georreferenciada pela quadrícula de Macau impressa: 55 cruzes a cada 500 m, convertidas com a transformação oficial Macau 1920 para WGS 84 (EPSG:8438), um único ajuste afim com EMQ de 2,0 m e resíduo máximo de 3,9 m por validação deixando um de fora. As coordenadas actuais do marco geodésico do farol da Guia, das Portas do Cerco, da Fortaleza do Monte e os pontos do IC de São Lourenço, Penha e Santo Agostinho, projectados na digitalização, caem sobre esses edifícios ou a menos de dez metros deles. São diagnósticos do ajuste à quadrícula da própria folha e verificações pontuais, não a precisão do levantamento original. Exemplar da Library of Congress, que não indica restrições de direitos de autor conhecidas."
       },
-      "attribution": "© Academia Sinica · Macau 1996. Commercial use requires permission."
+      "attribution": "Macau 1:5000, Direcção dos Serviços de Cartografia e Cadastro, 1990. Scan: Library of Congress, Geography and Map Division, via Wikimedia Commons. Georeferenced on the printed Macau grid by mini-macau."
+    },
+    {
+      "id": "dscc-1991",
+      "name": {
+        "zh": "《澳門地區》1:20,000",
+        "en": "Território de Macau, 1:20,000",
+        "pt": "Território de Macau, escala 1:20 000"
+      },
+      "title": {
+        "zh": "澳門地區（地圖繪製暨地籍司，1991，1:20,000）",
+        "en": "Território de Macau, escala 1:20 000 (Direcção dos Serviços de Cartografia e Cadastro, 1991)",
+        "pt": "Território de Macau, escala 1:20 000 (Direcção dos Serviços de Cartografia e Cadastro, 1991)"
+      },
+      "author": "Direcção dos Serviços de Cartografia e Cadastro, Macau",
+      "year": 1991,
+      "published": 1991,
+      "work": "Território de Macau, escala 1:20 000 = [Ao-men ti chʻü, pi li] 1:20 000; Library of Congress G7823.M2 1991 .M3 MLC",
+      "image": "/data/old-maps/dscc-1991.webp",
+      "width": 3485,
+      "height": 4819,
+      "bounds": {
+        "west": 113.508153,
+        "east": 113.609591,
+        "north": 22.222016,
+        "south": 22.092148
+      },
+      "coordinates": [
+        [
+          113.508153,
+          22.222016
+        ],
+        [
+          113.609591,
+          22.222016
+        ],
+        [
+          113.609591,
+          22.092148
+        ],
+        [
+          113.508153,
+          22.092148
+        ]
+      ],
+      "tiles": {
+        "url": "/data/old-maps/dscc-1991/{z}/{x}/{y}.webp",
+        "tileSize": 512,
+        "minzoom": 9,
+        "maxzoom": 16,
+        "count": 705
+      },
+      "georef": {
+        "method": "affine least squares",
+        "lambda": null,
+        "metresPerPixel": 3,
+        "controlPoints": 21,
+        "rmsM": 2.9,
+        "gcps": [
+          {
+            "name": "grid E19000 N19000",
+            "platePixel": [
+              1336.1,
+              1287.3
+            ],
+            "lngLat": [
+              113.5297693,
+              22.2021727
+            ],
+            "residualM": 3.5,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N19000",
+            "platePixel": [
+              3766.3,
+              1310.8
+            ],
+            "lngLat": [
+              113.5685612,
+              22.2021539
+            ],
+            "residualM": 2.3,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N17000",
+            "platePixel": [
+              1323.8,
+              2500.3
+            ],
+            "lngLat": [
+              113.5297618,
+              22.1841111
+            ],
+            "residualM": 2.7,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21000 N17000",
+            "platePixel": [
+              2539.2,
+              2512.2
+            ],
+            "lngLat": [
+              113.5491552,
+              22.1841029
+            ],
+            "residualM": 2.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N17000",
+            "platePixel": [
+              3753.7,
+              2522.6
+            ],
+            "lngLat": [
+              113.5685486,
+              22.1840924
+            ],
+            "residualM": 2.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E25000 N17000",
+            "platePixel": [
+              4965.2,
+              2533.7
+            ],
+            "lngLat": [
+              113.5879421,
+              22.1840795
+            ],
+            "residualM": 3.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N15000",
+            "platePixel": [
+              1308.9,
+              3713.4
+            ],
+            "lngLat": [
+              113.5297542,
+              22.1660494
+            ],
+            "residualM": 2.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21000 N15000",
+            "platePixel": [
+              2525.6,
+              3724.3
+            ],
+            "lngLat": [
+              113.5491452,
+              22.1660412
+            ],
+            "residualM": 1.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N15000",
+            "platePixel": [
+              3740.2,
+              3734.8
+            ],
+            "lngLat": [
+              113.5685361,
+              22.1660307
+            ],
+            "residualM": 1.6,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E25000 N15000",
+            "platePixel": [
+              4951.7,
+              3745.7
+            ],
+            "lngLat": [
+              113.5879271,
+              22.1660179
+            ],
+            "residualM": 3.7,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N13000",
+            "platePixel": [
+              1296,
+              4926.4
+            ],
+            "lngLat": [
+              113.5297466,
+              22.1479877
+            ],
+            "residualM": 2.6,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21000 N13000",
+            "platePixel": [
+              2512.7,
+              4937
+            ],
+            "lngLat": [
+              113.5491351,
+              22.1479795
+            ],
+            "residualM": 1.6,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N13000",
+            "platePixel": [
+              3726.6,
+              4946
+            ],
+            "lngLat": [
+              113.5685236,
+              22.147969
+            ],
+            "residualM": 1.5,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E25000 N13000",
+            "platePixel": [
+              4939,
+              4956.8
+            ],
+            "lngLat": [
+              113.5879121,
+              22.1479562
+            ],
+            "residualM": 2.4,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N11000",
+            "platePixel": [
+              1283.2,
+              6140.1
+            ],
+            "lngLat": [
+              113.5297391,
+              22.129926
+            ],
+            "residualM": 3.1,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21000 N11000",
+            "platePixel": [
+              2500.1,
+              6149.4
+            ],
+            "lngLat": [
+              113.5491251,
+              22.1299178
+            ],
+            "residualM": 2.2,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N11000",
+            "platePixel": [
+              3715.2,
+              6158.7
+            ],
+            "lngLat": [
+              113.5685111,
+              22.1299073
+            ],
+            "residualM": 3.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E19000 N9000",
+            "platePixel": [
+              1270.6,
+              7353.2
+            ],
+            "lngLat": [
+              113.5297315,
+              22.1118642
+            ],
+            "residualM": 3.6,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E21000 N9000",
+            "platePixel": [
+              2486.4,
+              7363
+            ],
+            "lngLat": [
+              113.5491151,
+              22.1118561
+            ],
+            "residualM": 2.9,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E23000 N9000",
+            "platePixel": [
+              3700.7,
+              7370.1
+            ],
+            "lngLat": [
+              113.5684986,
+              22.1118456
+            ],
+            "residualM": 2.8,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          },
+          {
+            "name": "grid E25000 N9000",
+            "platePixel": [
+              4913.3,
+              7379.1
+            ],
+            "lngLat": [
+              113.5878822,
+              22.1118328
+            ],
+            "residualM": 4.7,
+            "note": "printed Macau-grid cross; EPSG:8433 → WGS 84 (EPSG:8438)"
+          }
+        ]
+      },
+      "scan": {
+        "holder": "Library of Congress, Geography and Map Division",
+        "via": "Wikimedia Commons",
+        "identifier": "92684636 / g7823m.ct000642",
+        "url": "https://www.loc.gov/item/92684636/",
+        "leaves": [],
+        "license": "Library of Congress, Geography and Map Division: no known copyright restrictions (Wikimedia Commons licence “Library of Congress – no known copyright restrictions”). Credit: Library of Congress, Geography and Map Division."
+      },
+      "references": [
+        {
+          "name": "Wikimedia Commons — original 6,258 × 8,663 px scan",
+          "url": "https://commons.wikimedia.org/wiki/File:Territ%C3%B3rio_de_Macau,_escala_1-20_000_%3D_(Ao-men_ti_ch%CA%BB%C3%BC,_pi_li)_1-20_000._LOC_92684636.jpg"
+        },
+        {
+          "name": "EPSG:8433 — Macao 1920 / Macao Grid (the printed grid)",
+          "url": "https://epsg.io/8433"
+        },
+        {
+          "name": "EPSG:8438 — Macao 1920 to WGS 84 transformation",
+          "url": "https://epsg.io/8438"
+        }
+      ],
+      "notes": {
+        "zh": "完整顯示來源圖版，保留紙邊、標題、圖例及插圖。地圖繪製暨地籍司 1991 年出版的全澳 1:20,000 地圖，涵蓋半島、氹仔與路環，以及嘉樂庇總督大橋，氹仔至路環的連貫公路橫越仍是海面的水域；10 米等高線。海上的範圍線標示進行中或規劃的工程，不代表當時已成陸。以圖上印製的澳門座標格網配準：每 2 公里一個十字，共用 21 個，按官方澳門 1920 基準至 WGS 84 轉換（EPSG:8438）換算，單一仿射擬合均方根 2.8 米，留一驗證最大 6.4 米。另把東望洋、關閘及西望洋的現代座標反投到原圖，均落在對應地物上。以上是對圖面格網的擬合與抽查，不等於原圖本身的測繪精度。掃描為美國國會圖書館藏本，館方列明無已知版權限制。",
+        "en": "The complete source sheet is shown, including margins, titles, legends and insets. The 1991 1:20,000 map of the whole territory by the Direcção dos Serviços de Cartografia e Cadastro: the peninsula, Taipa and Coloane with the Governor Nobre de Carvalho Bridge and the Taipa–Coloane causeway across still-open water, and 10 m contours. Outlines in the water mark works under way or planned, not completed land. Registered on the printed Macau grid: 21 grid crosses at 2 km spacing, converted with the official Macao 1920 to WGS 84 transformation (EPSG:8438), one affine fit with 2.8 m RMS and a worst leave-one-out residual of 6.4 m. Modern coordinates of Guia, Portas do Cerco and Penha, projected back onto the scan, land on those features. These are fit diagnostics against the sheet’s own grid and spot checks, not the survey accuracy of the original. Library of Congress copy, listed by the Library with no known copyright restrictions.",
+        "pt": "A folha original é apresentada por inteiro, com margens, títulos, legendas e inserções. Mapa de todo o território na escala 1:20 000, publicado em 1991 pela Direcção dos Serviços de Cartografia e Cadastro: a península, a Taipa e Coloane, com a Ponte Governador Nobre de Carvalho e o istmo Taipa–Coloane a atravessar mar ainda aberto, e curvas de nível de 10 m. Os contornos no mar assinalam obras em curso ou projectadas, não terreno concluído. Georreferenciado pela quadrícula de Macau impressa: 21 cruzes a cada 2 km, convertidas com a transformação oficial Macau 1920 para WGS 84 (EPSG:8438), um único ajuste afim com EMQ de 2,8 m e resíduo máximo de 6,4 m por validação deixando um de fora. As coordenadas actuais da Guia, das Portas do Cerco e da Penha, projectadas na digitalização, caem sobre esses elementos. São diagnósticos do ajuste à quadrícula da própria folha e verificações pontuais, não a precisão do levantamento original. Exemplar da Library of Congress, que não indica restrições de direitos de autor conhecidas."
+      },
+      "attribution": "Território de Macau 1:20 000, Direcção dos Serviços de Cartografia e Cadastro, 1991. Scan: Library of Congress, Geography and Map Division, via Wikimedia Commons. Georeferenced on the printed Macau grid by mini-macau."
     }
   ]
 }

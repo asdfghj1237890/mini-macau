@@ -1,18 +1,21 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
+  DEFAULT_OLD_MAP_SELECTION,
   LS_OLD_MAPS_HIDDEN,
   LS_OLD_MAPS_OPACITY,
+  LS_OLD_MAPS_SELECTED,
   NO_HIDDEN_OLD_MAPS,
   OLD_MAPS_DEFAULT_OPACITY,
   OLD_MAPS_MIN_OPACITY,
   OLD_MAP_BUILDINGS_PAINT,
   basemapBuildingsPaint,
   clampOldMapsOpacity,
-  filterOldMaps,
   groupOldMaps,
+  groupOldMapsByCentury,
   isOldMapHidden,
   loadHiddenOldMaps,
   loadOldMapsOpacity,
+  loadSelectedOldMap,
   oldMapIdFromLayer,
   oldMapLayerId,
   oldMapLegendLabel,
@@ -23,9 +26,10 @@ import {
   oldMapSourceSpec,
   oldMapTitle,
   oldMapYears,
-  saveHiddenOldMaps,
+  resolveOldMapSelection,
   saveOldMapsOpacity,
-  toggleOldMapSelection,
+  saveSelectedOldMap,
+  selectOldMaps,
 } from './oldMaps'
 import type { LocalOldMap } from './types'
 
@@ -144,14 +148,39 @@ describe('oldMapSourceSpec — single image or tile pyramid', () => {
   })
 })
 
-describe('filterOldMaps', () => {
-  const maps = [map(), map({ id: 'later-1889', year: 1889, published: null })]
-  it('keeps the array identity when nothing listed is hidden', () => {
-    expect(filterOldMaps(maps, NO_HIDDEN_OLD_MAPS)).toBe(maps)
-    expect(filterOldMaps(maps, new Set(['unknown']))).toBe(maps)
+describe('single selection', () => {
+  const ids = ['bellin-1749', 'guignes-1792', 'heitor-1889', 'atlas-1912', 'dscc-1991']
+
+  it('keeps a saved choice that the catalogue still has', () => {
+    expect(resolveOldMapSelection(ids, 'guignes-1792', NO_HIDDEN_OLD_MAPS)).toBe('guignes-1792')
+    // A sheet id saved by hand still means its whole atlas row.
+    expect(resolveOldMapSelection(ids, 'taipa-1912', NO_HIDDEN_OLD_MAPS)).toBe('atlas-1912')
   })
-  it('drops the hidden maps otherwise', () => {
-    expect(filterOldMaps(maps, new Set(['guignes-1792'])).map(m => m.id)).toEqual(['later-1889'])
+
+  it('starts a first visit on the 1889 survey, or on the first row without it', () => {
+    expect(DEFAULT_OLD_MAP_SELECTION).toBe('heitor-1889')
+    expect(resolveOldMapSelection(ids, null, NO_HIDDEN_OLD_MAPS)).toBe('heitor-1889')
+    expect(resolveOldMapSelection(ids, 'removed-map', NO_HIDDEN_OLD_MAPS)).toBe('heitor-1889')
+    expect(resolveOldMapSelection(['bellin-1749', 'dscc-1991'], null, NO_HIDDEN_OLD_MAPS)).toBe('bellin-1749')
+    expect(resolveOldMapSelection([], null, NO_HIDDEN_OLD_MAPS)).toBeNull()
+  })
+
+  it('carries over the first row the former multi-select left visible', () => {
+    const hidden = new Set(['bellin-1749', 'guignes-1792', 'heitor-1889', 'dscc-1991'])
+    expect(resolveOldMapSelection(ids, null, hidden)).toBe('atlas-1912')
+    // A partially hidden legacy atlas still counts as visible; a fully hidden one does not.
+    expect(resolveOldMapSelection(ids, null, new Set([...hidden, 'cartografia-1912', 'taipa-1912']))).toBe('atlas-1912')
+    expect(resolveOldMapSelection(ids, null, new Set(['bellin-1749', 'cartografia-1912', 'taipa-1912', 'coloane-1912']))).toBe('guignes-1792')
+    // Everything hidden falls back to the default; a saved choice beats the legacy set.
+    expect(resolveOldMapSelection(ids, null, new Set([...hidden, 'atlas-1912']))).toBe('heitor-1889')
+    expect(resolveOldMapSelection(ids, 'dscc-1991', hidden)).toBe('dscc-1991')
+  })
+
+  it('draws every sheet of the chosen row and nothing else', () => {
+    const maps = [map({ id: 'bellin-1749', year: 1749 }), map(), map({ id: 'heitor-1889', year: 1889 })]
+    expect(selectOldMaps(maps, 'guignes-1792')).toEqual([maps[1]])
+    expect(selectOldMaps(maps, null)).toEqual([])
+    expect(selectOldMaps(maps, 'unknown')).toEqual([])
   })
 })
 
@@ -173,27 +202,27 @@ describe('1912 atlas selection', () => {
     }
   })
 
-  it('switches all three raster records together without changing unrelated layers', () => {
-    const original = new Set(['guignes-1792', 'future-map'])
-    const hidden = toggleOldMapSelection(original, 'atlas-1912')
-    expect(filterOldMaps(maps, hidden).map(map => map.id)).toEqual(['unrelated-1912'])
-    expect(atlas.every(map => isOldMapHidden(hidden, map.id))).toBe(true)
-    const restored = toggleOldMapSelection(hidden, 'atlas-1912')
-    expect(restored).toEqual(original)
-    expect(filterOldMaps(maps, restored)).toEqual([...atlas, maps[4]])
-    expect(original).toEqual(new Set(['guignes-1792', 'future-map']))
+  it('draws all three raster records together without the unrelated sheet', () => {
+    expect(selectOldMaps(maps, 'atlas-1912')).toEqual(atlas)
+    expect(atlas.every(sheet => isOldMapHidden(new Set(['atlas-1912']), sheet.id))).toBe(true)
   })
 
-  it('keeps a partially enabled legacy atlas on, then lets one click hide the whole atlas', () => {
-    const legacy = new Set(['cartografia-1912', 'taipa-1912'])
-    expect(filterOldMaps(maps, legacy)).toBe(maps)
-    expect(toggleOldMapSelection(legacy, 'atlas-1912')).toEqual(new Set(['atlas-1912']))
+  it('files rows by century in catalogue order', () => {
+    const groups = groupOldMaps([map({ id: 'bellin-1749', year: 1749 }), map({ id: 'hogg-1780s', year: 1780 }), map(), map({ id: 'heitor-1889', year: 1889 }), ...atlas, map({ id: 'dscc-1991', year: 1991 })])
+    expect(groupOldMapsByCentury(groups).map(({ century, groups }) => [century, groups.map(group => group.id)])).toEqual([
+      [18, ['bellin-1749', 'hogg-1780s', 'guignes-1792']],
+      [19, ['heitor-1889']],
+      [20, ['atlas-1912', 'dscc-1991']],
+    ])
   })
 
-  it('keeps a fully disabled legacy atlas hidden', () => {
-    const legacy = new Set(atlas.map(map => map.id))
-    expect(filterOldMaps(maps, legacy)).toEqual([maps[0], maps[4]])
-    expect(toggleOldMapSelection(legacy, 'atlas-1912')).toEqual(new Set())
+  it('keeps one heading per century when a later entry is out of date order', () => {
+    const groups = groupOldMaps([map({ id: 'heitor-1889', year: 1889 }), map({ id: 'dscc-1991', year: 1991 }), map({ id: 'sauvage-1893', year: 1893 }), map()])
+    expect(groupOldMapsByCentury(groups).map(({ century, groups }) => [century, groups.map(group => group.id)])).toEqual([
+      [18, ['guignes-1792']],
+      [19, ['heitor-1889', 'sauvage-1893']],
+      [20, ['dscc-1991']],
+    ])
   })
 })
 
@@ -209,14 +238,18 @@ describe('persistence', () => {
   }
   afterEach(() => { vi.unstubAllGlobals() })
 
-  it('hides nothing by default and round-trips the hidden set', () => {
+  it('saves the chosen row and reads nothing when nothing was chosen', () => {
     const store = stubStorage()
-    expect(loadHiddenOldMaps().size).toBe(0)
-    saveHiddenOldMaps(new Set(['guignes-1792']))
-    expect(store.get(LS_OLD_MAPS_HIDDEN)).toBe('["guignes-1792"]')
-    expect([...loadHiddenOldMaps()]).toEqual(['guignes-1792'])
+    expect(loadSelectedOldMap()).toBeNull()
+    saveSelectedOldMap('guignes-1792')
+    expect(store.get(LS_OLD_MAPS_SELECTED)).toBe('guignes-1792')
+    expect(loadSelectedOldMap()).toBe('guignes-1792')
+    store.set(LS_OLD_MAPS_SELECTED, 'coloane-1912')
+    expect(loadSelectedOldMap()).toBe('atlas-1912')
   })
-  it('tolerates bad stored data', () => {
+  it('reads the former hidden set and tolerates bad stored data', () => {
+    stubStorage({ [LS_OLD_MAPS_HIDDEN]: '["guignes-1792"]' })
+    expect([...loadHiddenOldMaps()]).toEqual(['guignes-1792'])
     stubStorage({ [LS_OLD_MAPS_HIDDEN]: '{not json' })
     expect(loadHiddenOldMaps().size).toBe(0)
     stubStorage({ [LS_OLD_MAPS_HIDDEN]: '[1, "", "ok", null]' })
@@ -224,13 +257,10 @@ describe('persistence', () => {
     stubStorage({ [LS_OLD_MAPS_HIDDEN]: '"x"' })
     expect(loadHiddenOldMaps().size).toBe(0)
   })
-  it('migrates the three saved atlas switches into one persistent selection', () => {
-    const store = stubStorage({ [LS_OLD_MAPS_HIDDEN]: '["cartografia-1912","taipa-1912","coloane-1912","guignes-1792"]' })
-    const hidden = loadHiddenOldMaps()
-    expect(hidden).toEqual(new Set(['atlas-1912', 'guignes-1792']))
-    saveHiddenOldMaps(hidden)
-    expect(loadHiddenOldMaps()).toEqual(hidden)
-    store.set(LS_OLD_MAPS_HIDDEN, '["cartografia-1912","guignes-1792"]')
+  it('migrates the three saved atlas switches into one atlas row', () => {
+    stubStorage({ [LS_OLD_MAPS_HIDDEN]: '["cartografia-1912","taipa-1912","coloane-1912","guignes-1792"]' })
+    expect(loadHiddenOldMaps()).toEqual(new Set(['atlas-1912', 'guignes-1792']))
+    stubStorage({ [LS_OLD_MAPS_HIDDEN]: '["cartografia-1912","guignes-1792"]' })
     expect(loadHiddenOldMaps()).toEqual(new Set(['guignes-1792']))
   })
   it('clamps the opacity into its range and round-trips it', () => {
@@ -247,7 +277,7 @@ describe('persistence', () => {
   })
   it('never throws when storage does', () => {
     stubStorage({}, { throwOnSet: true })
-    expect(() => saveHiddenOldMaps(new Set(['a']))).not.toThrow()
+    expect(() => saveSelectedOldMap('a')).not.toThrow()
     expect(() => saveOldMapsOpacity(0.5)).not.toThrow()
   })
 })

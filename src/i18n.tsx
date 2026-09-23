@@ -38,6 +38,17 @@ function readSavedLang(): Lang {
   return 'zh'
 }
 
+// Portuguese writes centuries in Roman numerals ("Século XVIII").
+function romanNumeral(value: number): string {
+  const steps: [number, string][] = [[10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']]
+  let rest = value
+  let out = ''
+  for (const [size, glyph] of steps) {
+    while (rest >= size) { out += glyph; rest -= size }
+  }
+  return out
+}
+
 // The add-to-home-screen card's one sentence per browser (see
 // `pwaInstall.ts` for how the key is chosen). Menu item names follow each
 // browser's own UI wording.
@@ -185,7 +196,12 @@ const translations = {
     oldMapsOpacity: 'Opacity',
     oldMapsScan: 'Scan',
     oldMapsDetails: 'Map notes & source',
+    oldMapsPrevious: 'Previous map',
+    oldMapsNext: 'Next map',
+    oldMapsChoose: 'Choose a historical map',
+    oldMapsCentury: (century: number) => `${century}${century % 10 === 1 && century % 100 !== 11 ? 'st' : century % 10 === 2 && century % 100 !== 12 ? 'nd' : century % 10 === 3 && century % 100 !== 13 ? 'rd' : 'th'} century`,
     layerShowOnly: 'Show only',
+    layerShowOnlyHint: 'Turns other layers off',
     oldMapsGeorefNote: (points: number, rms: number) => `Fitted on ${points} control points, RMS ${rms} m`,
     oldMapsGeorefExactNote: (points: number) => `Pinned exactly at ${points} control points`,
     cityLayers: 'City layers',
@@ -212,8 +228,8 @@ const translations = {
     mobileBusHidden: 'Hidden',
     mobileBusScroll: 'Scroll for more routes',
     mobileBusRegions: 'Route regions',
-    mobileBusShowAll: 'Show all',
-    mobileBusHideAll: 'Hide all',
+    mobileShowAll: 'Show all',
+    mobileHideAll: 'Hide all',
     mobileBusGroups: { peninsula: 'Macau', crossHarbour: 'Harbour', taipaCotai: 'Taipa', night: 'Night', special: 'Special' },
     mobileLayersAirSea: 'Air / Sea',
     mobileAirSeaTitle: 'Air & sea journeys',
@@ -769,12 +785,17 @@ const translations = {
     religion: '宗教',
     religionCount: (n: number) => `${n} 處`,
     religionNote: '廟宇、教堂、清真寺與街頭土地神壇',
-    oldMaps: '古地圖',
+    oldMaps: '歷史地圖',
     oldMapsLayerNote: '對照不同年代，可疊加城市與交通圖層',
     oldMapsOpacity: '不透明度',
     oldMapsScan: '掃描',
     oldMapsDetails: '圖說與來源',
+    oldMapsPrevious: '上一張地圖',
+    oldMapsNext: '下一張地圖',
+    oldMapsChoose: '選擇歷史地圖',
+    oldMapsCentury: (century: number) => `${century} 世紀`,
     layerShowOnly: '單獨顯示',
+    layerShowOnlyHint: '關閉其他圖層',
     oldMapsGeorefNote: (points: number, rms: number) => `以 ${points} 個控制點配準，均方根誤差 ${rms} 公尺`,
     oldMapsGeorefExactNote: (points: number) => `${points} 個控制點全部釘準`,
     cityLayers: '城市資料',
@@ -801,8 +822,8 @@ const translations = {
     mobileBusHidden: '未顯示',
     mobileBusScroll: '向下瀏覽更多路線',
     mobileBusRegions: '路線區域',
-    mobileBusShowAll: '全部顯示',
-    mobileBusHideAll: '全部隱藏',
+    mobileShowAll: '全部顯示',
+    mobileHideAll: '全部隱藏',
     mobileBusGroups: { peninsula: '半島', crossHarbour: '跨海', taipaCotai: '氹仔', night: '夜間', special: '特別' },
     mobileLayersAirSea: '海空',
     mobileAirSeaTitle: '海空航程',
@@ -867,7 +888,7 @@ const translations = {
     dataSourceParishesLabel: '堂區',
     dataSourceToiletsLabel: '公廁',
     dataSourceReligionLabel: '宗教',
-    dataSourceOldMapsLabel: '古地圖',
+    dataSourceOldMapsLabel: '歷史地圖',
     dataSourceCarParksLabel: '停車場',
     dataSourceWaterLabel: '供水設施',
     dataSourcePowerLabel: '電力',
@@ -1303,12 +1324,17 @@ const translations = {
     religion: 'Religião',
     religionCount: (n: number) => `${n} locais`,
     religionNote: 'Templos, igrejas, a mesquita e altares de Tou Tei',
-    oldMaps: 'Mapas antigos',
+    oldMaps: 'Mapas históricos',
     oldMapsLayerNote: 'Compare épocas com camadas urbanas e de transportes',
     oldMapsOpacity: 'Opacidade',
     oldMapsScan: 'Digitalização',
     oldMapsDetails: 'Notas e fonte',
+    oldMapsPrevious: 'Mapa anterior',
+    oldMapsNext: 'Mapa seguinte',
+    oldMapsChoose: 'Escolher mapa histórico',
+    oldMapsCentury: (century: number) => `Século ${romanNumeral(century)}`,
     layerShowOnly: 'Mostrar só esta',
+    layerShowOnlyHint: 'Desliga as outras camadas',
     oldMapsGeorefNote: (points: number, rms: number) => `Ajustado com ${points} pontos de controlo, erro RMS de ${rms} m`,
     oldMapsGeorefExactNote: (points: number) => `Fixado exactamente em ${points} pontos de controlo`,
     cityLayers: 'Camadas urbanas',
@@ -1335,8 +1361,8 @@ const translations = {
     mobileBusHidden: 'Oculta',
     mobileBusScroll: 'Mais carreiras abaixo',
     mobileBusRegions: 'Regiões das carreiras',
-    mobileBusShowAll: 'Mostrar tudo',
-    mobileBusHideAll: 'Ocultar tudo',
+    mobileShowAll: 'Mostrar tudo',
+    mobileHideAll: 'Ocultar tudo',
     mobileBusGroups: { peninsula: 'Macau', crossHarbour: 'Pontes', taipaCotai: 'Taipa', night: 'Noite', special: 'Especial' },
     mobileLayersAirSea: 'Ar / Mar',
     mobileAirSeaTitle: 'Viagens por ar e mar',
@@ -1401,7 +1427,7 @@ const translations = {
     dataSourceParishesLabel: 'Freguesias',
     dataSourceToiletsLabel: 'Sanitários',
     dataSourceReligionLabel: 'Religião',
-    dataSourceOldMapsLabel: 'Mapas antigos',
+    dataSourceOldMapsLabel: 'Mapas históricos',
     dataSourceCarParksLabel: 'Estacionamentos',
     dataSourceWaterLabel: 'Abastecimento de água',
     dataSourcePowerLabel: 'Electricidade',
@@ -1842,7 +1868,12 @@ export interface Translations {
   oldMapsOpacity: string
   oldMapsScan: string
   oldMapsDetails: string
+  oldMapsPrevious: string
+  oldMapsNext: string
+  oldMapsChoose: string
+  oldMapsCentury: (century: number) => string
   layerShowOnly: string
+  layerShowOnlyHint: string
   oldMapsGeorefNote: (points: number, rms: number) => string
   oldMapsGeorefExactNote: (points: number) => string
   cityLayers: string
@@ -1869,8 +1900,8 @@ export interface Translations {
   mobileBusHidden: string
   mobileBusScroll: string
   mobileBusRegions: string
-  mobileBusShowAll: string
-  mobileBusHideAll: string
+  mobileShowAll: string
+  mobileHideAll: string
   mobileBusGroups: { peninsula: string; crossHarbour: string; taipaCotai: string; night: string; special: string }
   mobileLayersAirSea: string
   mobileAirSeaTitle: string

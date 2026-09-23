@@ -30,14 +30,14 @@ import {
   type ReligionCategorySet,
 } from './religion'
 import {
-  filterOldMaps,
-  isOldMapHidden,
+  groupOldMaps,
   loadHiddenOldMaps,
   loadOldMapsOpacity,
-  saveHiddenOldMaps,
+  loadSelectedOldMap,
+  resolveOldMapSelection,
   saveOldMapsOpacity,
-  toggleOldMapSelection,
-  type OldMapSet,
+  saveSelectedOldMap,
+  selectOldMaps,
 } from './oldMaps'
 import {
   countPublicHousingByType,
@@ -315,10 +315,11 @@ export default function App() {
   // Which of the five faith groups are drawn (土地公 / temples / churches / the
   // mosque / other). Independent of `religionOn`, the layer's master switch.
   const [religionCategoriesOn, setReligionCategoriesOn] = useState<ReligionCategorySet>(loadReligionCategoriesOn)
-  // Which scans are HIDDEN (stored as the hidden set so a map added later
-  // shows by default) and how opaque the plates are drawn. Independent of
-  // `oldMapsOn`, the layer's master switch.
-  const [oldMapsHidden, setOldMapsHidden] = useState<OldMapSet>(loadHiddenOldMaps)
+  // Which scan is drawn — one selector row at a time — and how opaque it is.
+  // Independent of `oldMapsOn`, the layer's master switch. The former
+  // multi-select's hidden set is read once, only to carry a choice over.
+  const [oldMapSelected, setOldMapSelected] = useState<string | null>(loadSelectedOldMap)
+  const [legacyHiddenOldMaps] = useState(loadHiddenOldMaps)
   const [oldMapsOpacity, setOldMapsOpacity] = useState<number>(loadOldMapsOpacity)
   // Which of the two housing types are drawn. Independent of `publicHousingOn`,
   // which is the master switch for the whole layer.
@@ -392,7 +393,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_GRANDPRIX_KEY, grandPrixOn ? '1' : '0') }, [grandPrixOn])
   useEffect(() => { saveSchoolLevelsOn(schoolLevelsOn) }, [schoolLevelsOn])
   useEffect(() => { saveReligionCategoriesOn(religionCategoriesOn) }, [religionCategoriesOn])
-  useEffect(() => { saveHiddenOldMaps(oldMapsHidden) }, [oldMapsHidden])
+  useEffect(() => { if (oldMapSelected !== null) saveSelectedOldMap(oldMapSelected) }, [oldMapSelected])
   useEffect(() => { saveOldMapsOpacity(oldMapsOpacity) }, [oldMapsOpacity])
   useEffect(() => { savePublicHousingTypesOn(publicHousingTypesOn) }, [publicHousingTypesOn])
   // Hiding the layer must also close its panel — the marker it describes is
@@ -522,11 +523,15 @@ export default function App() {
   )
 
   // The georeferenced scans on the same contract: the array identity moves
-  // only when the master switch, the hidden set or the data does, because
+  // only when the master switch, the selection or the data does, because
   // MapView adds and removes image sources on it.
+  const oldMapSelection = useMemo(
+    () => resolveOldMapSelection(groupOldMaps(transitData.oldMaps).map(group => group.id), oldMapSelected, legacyHiddenOldMaps),
+    [transitData.oldMaps, oldMapSelected, legacyHiddenOldMaps]
+  )
   const visibleOldMaps = useMemo(
-    () => (oldMapsOn ? filterOldMaps(transitData.oldMaps, oldMapsHidden) : NO_OLD_MAPS),
-    [transitData.oldMaps, oldMapsOn, oldMapsHidden]
+    () => (oldMapsOn ? selectOldMaps(transitData.oldMaps, oldMapSelection) : NO_OLD_MAPS),
+    [transitData.oldMaps, oldMapsOn, oldMapSelection]
   )
 
   // The housing estates on exactly the schools' contract above: memoised apart
@@ -1082,6 +1087,16 @@ export default function App() {
     })
   }, [])
 
+  // Every LRT line at once, or none; flights and ferries together.
+  const setAllLrt = useCallback((on: boolean) => {
+    ga.layerToggled('lrt_all', on)
+    setLrtOn(on ? new Set(transitData.lrtLines.map(line => line.id)) : new Set())
+  }, [transitData.lrtLines])
+  const setAirSea = useCallback((on: boolean) => {
+    ga.layerToggled('air_sea', on)
+    setFlightsOn(on)
+    setFerriesOn(on)
+  }, [])
   const toggleFlights = useCallback(() => setFlightsOn(v => {
     ga.layerToggled('flights', !v)
     return !v
@@ -1188,15 +1203,13 @@ export default function App() {
       return next
     })
   }, [])
-  // One historical-map selection; the 1912 atlas switches all three sheets.
-  // Persist the canonical selection id in the hidden set.
-  const toggleOldMap = useCallback((id: string) => {
-    setOldMapsHidden(prev => {
-      const next = toggleOldMapSelection(prev, id)
-      ga.layerToggled(`oldmaps_${id}`, !isOldMapHidden(next, id))
-      return next
-    })
-  }, [])
+  // Pick the one historical map to draw; the 1912 atlas row draws its three
+  // sheets. Choosing the map already drawn changes nothing.
+  const selectOldMap = useCallback((id: string) => {
+    if (id === oldMapSelection) return
+    ga.layerToggled(`oldmaps_${id}`, true)
+    setOldMapSelected(id)
+  }, [oldMapSelection])
   const togglePublicHousingType = useCallback((type: PublicHousingType) => {
     setPublicHousingTypesOn(prev => {
       const next = new Set(prev)
@@ -1315,7 +1328,8 @@ export default function App() {
         religionCategoriesOn={religionCategoriesOn}
         religionCategoryCounts={religionCategoryCounts}
         oldMapsOn={oldMapsOn}
-        oldMapsHidden={oldMapsHidden}
+        oldMapSelection={oldMapSelection}
+        timeBarShown={hasTransport}
         oldMapsOpacity={oldMapsOpacity}
         carParksOn={carParksOn}
         wasteOn={wasteOn}
@@ -1328,6 +1342,8 @@ export default function App() {
         onToggleLrt={toggleLrt}
         onToggleFlights={toggleFlights}
         onToggleFerries={toggleFerries}
+        onSetAllLrt={setAllLrt}
+        onSetAirSea={setAirSea}
         onToggleRoadWorks={toggleRoadWorks}
         onToggleSchools={toggleSchools}
         onToggleSchoolLevel={toggleSchoolLevel}
@@ -1338,7 +1354,7 @@ export default function App() {
         onToggleReligion={toggleReligion}
         onToggleReligionCategory={toggleReligionCategory}
         onToggleOldMaps={toggleOldMaps}
-        onToggleOldMap={toggleOldMap}
+        onSelectOldMap={selectOldMap}
         onChangeOldMapsOpacity={setOldMapsOpacity}
         onToggleCarParks={toggleCarParks}
         onToggleWaste={toggleWaste}

@@ -93,8 +93,20 @@ describe('committed data files satisfy their schemas', () => {
 
 describe('provider-hosted historical maps', () => {
   const file = OldMapsFileSchema.parse(load('old-maps.json'))
-  const remote = file.maps.find(map => map.id === 'macau-1996')!
   const local = file.maps.find(map => map.id === 'aomen-1953')!
+  // The catalogue no longer ships a provider-hosted plate (the Academia Sinica 1996 layer
+  // was removed on 2026-09-23); the reviewed-service path is still covered by this record.
+  const localOnly = new Set(['image', 'width', 'height', 'tiles', 'georef'])
+  const bounds = { west: 113.499818, east: 113.6164622, north: 22.2329483, south: 22.0808828 }
+  const remote = OldMapsFileSchema.parse({ ...file, maps: [{
+    ...Object.fromEntries(Object.entries(local).filter(([key]) => !localOnly.has(key))),
+    id: 'macau-1996', year: 1996, published: 1996, yearApproximate: false,
+    bounds,
+    coordinates: [[bounds.west, bounds.north], [bounds.east, bounds.north], [bounds.east, bounds.south], [bounds.west, bounds.south]],
+    remoteTiles: { url: 'https://gis.sinica.edu.tw/macau/file-exists.php?img=Macau_20K_1996-png-{z}-{x}-{y}', tileSize: 256, minzoom: 0, maxzoom: 17 },
+    scan: { ...local.scan, license: 'Copyright Academia Sinica; commercial use requires permission.' },
+    attribution: '© Academia Sinica · Macau 1996. Commercial use requires permission.',
+  }] }).maps[0]
   const valid = (map: unknown) => OldMapsFileSchema.safeParse({ ...file, maps: [map] }).success
 
   it('preserves decade precision when loading a local historical chart', () => {
@@ -116,7 +128,6 @@ describe('provider-hosted historical maps', () => {
     })
     expect(remote.attribution).toContain('Academia Sinica')
     expect(remote.scan.license).toContain('commercial use requires permission')
-    expect(oldMapLegendLabel(remote, 'zh').detail).toContain('1:20,000')
   })
 
   it('rejects an unreviewed tile endpoint and native zoom / tile size changes', () => {

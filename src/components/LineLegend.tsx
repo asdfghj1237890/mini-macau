@@ -1,5 +1,6 @@
 import cityCatalog from 'virtual:city-catalog'
 import { OldMapControls } from './OldMapControls'
+import { OldMapSwitcher } from './OldMapSwitcher'
 import { cityLayerStatus, type CityLayer, type CityDataStatus } from '../cityData'
 import { useState, useMemo, useEffect, type ReactNode } from 'react'
 import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType, ReligionCategoryId } from '../types'
@@ -23,10 +24,8 @@ import {
 } from '../religion'
 import {
   OLD_MAPS_DEFAULT_OPACITY,
-  NO_HIDDEN_OLD_MAPS,
   groupOldMaps,
-  isOldMapHidden,
-  type OldMapSet,
+  oldMapGroupLabel,
 } from '../oldMaps'
 import {
   PUBLIC_HOUSING_DECADES,
@@ -608,11 +607,14 @@ interface Props {
   religionOn?: boolean
   religionCategoriesOn?: ReligionCategorySet
   religionCategoryCounts?: Record<ReligionCategoryId, number>
-  // Georeferenced historical maps — opt-in like the toilets. `oldMapsHidden`
-  // is the set of selection ids switched OFF and `oldMapsOpacity` the plates'
-  // shared opacity (0.2–1); both are independent of the master switch.
+  // Georeferenced historical maps — opt-in like the toilets. `oldMapSelection`
+  // is the one selector row drawn and `oldMapsOpacity` the plate's opacity
+  // (0.2–1); both are independent of the master switch.
   oldMapsOn?: boolean
-  oldMapsHidden?: OldMapSet
+  oldMapSelection?: string | null
+  // Whether the time bar occupies the bottom of the phone screen (a transport
+  // layer is on); the historical-map stepper docks under the top row then.
+  timeBarShown?: boolean
   oldMapsOpacity?: number
   // Public car parks — opt-in like the toilets; the count is the whole
   // register, which only changes when the daily workflow lands a new file.
@@ -634,6 +636,9 @@ interface Props {
   onToggleLrt?: (id: string) => void
   onToggleFlights?: () => void
   onToggleFerries?: () => void
+  // One tap for every LRT line, or for flights and ferries together.
+  onSetAllLrt?: (on: boolean) => void
+  onSetAirSea?: (on: boolean) => void
   onToggleRoadWorks?: () => void
   onToggleSchools?: () => void
   onToggleSchoolLevel?: (level: SchoolLevel) => void
@@ -644,7 +649,7 @@ interface Props {
   onToggleReligion?: () => void
   onToggleReligionCategory?: (category: ReligionCategoryId) => void
   onToggleOldMaps?: () => void
-  onToggleOldMap?: (id: string) => void
+  onSelectOldMap?: (id: string) => void
   onChangeOldMapsOpacity?: (value: number) => void
   onToggleCarParks?: () => void
   onToggleWaste?: () => void
@@ -688,7 +693,8 @@ export function LineLegend({
   religionCategoriesOn,
   religionCategoryCounts,
   oldMapsOn = false,
-  oldMapsHidden,
+  oldMapSelection = null,
+  timeBarShown = false,
   oldMapsOpacity = OLD_MAPS_DEFAULT_OPACITY,
   carParksOn = false,
   wasteOn = false,
@@ -701,6 +707,8 @@ export function LineLegend({
   onToggleLrt,
   onToggleFlights,
   onToggleFerries,
+  onSetAllLrt,
+  onSetAirSea,
   onToggleRoadWorks,
   onToggleSchools,
   onToggleSchoolLevel,
@@ -711,7 +719,7 @@ export function LineLegend({
   onToggleReligion,
   onToggleReligionCategory,
   onToggleOldMaps,
-  onToggleOldMap,
+  onSelectOldMap,
   onChangeOldMapsOpacity,
   onToggleCarParks,
   onToggleWaste,
@@ -873,6 +881,10 @@ export function LineLegend({
   // AUTO with nothing in service at this hour still means BUS is on.
   const busLayerOn = Boolean(isAutoMode) || activeRoutes > 0
   const lrtActive = lrtOn?.size ?? allLrtLines.length
+  const showAllLrt = onSetAllLrt ? () => onSetAllLrt(true) : undefined
+  const hideAllLrt = onSetAllLrt ? () => onSetAllLrt(false) : undefined
+  const showAirSea = onSetAirSea ? () => onSetAirSea(true) : undefined
+  const hideAirSea = onSetAirSea ? () => onSetAirSea(false) : undefined
   const lrtTotal = allLrtLines.length
   const flightCount = transitData.flights.length
   const totalFlightCount = allTransitData?.flights.length ?? flightCount
@@ -923,9 +935,10 @@ export function LineLegend({
   const oldMapsAll = allTransitData?.oldMaps ?? transitData.oldMaps
   const oldMapGroups = groupOldMaps(oldMapsAll)
   const oldMapsCount = cityCount('oldmaps', oldMapGroups.length)
-  const isOldMapOn = (id: string) => !isOldMapHidden(oldMapsHidden ?? NO_HIDDEN_OLD_MAPS, id)
-  const oldMapsAllOn = oldMapGroups.every(group => isOldMapOn(group.id))
-  const oldMapsEnabledCount = oldMapGroups.filter(group => isOldMapOn(group.id)).length
+  const oldMapsEnabledCount = oldMapGroups.some(group => group.id === oldMapSelection) ? 1 : 0
+  // The phone detail header names the map on screen instead of the constant 1/N.
+  const selectedOldMapGroup = oldMapGroups.find(group => group.id === oldMapSelection)
+  const selectedOldMapLabel = selectedOldMapGroup ? oldMapGroupLabel(selectedOldMapGroup, lang) : null
   // Same for the car parks: the row always shows the full register.
   const carParkCount = cityCount('carparks', allTransitData?.carParks.length ?? transitData.carParks.length)
   // The number of AREAS, from the unfiltered data — eight, and only ever eight
@@ -992,7 +1005,7 @@ export function LineLegend({
     // Historical maps lead the thematic group.
     oldMapsCount > 0 ? {
       panel: 'oldmaps' as const, thematic: true, label: t.oldMaps, code: 'HISTORICAL MAPS', accent: 'amber', description: t.oldMapsLayerNote, icon: OLD_MAP_ICON_16, on: oldMapsOn,
-      count: oldMapsAllOn ? String(oldMapsCount) : `${oldMapsEnabledCount}/${oldMapsCount}`,
+      count: `${oldMapsEnabledCount}/${oldMapsCount}`,
       toggle: onToggleOldMaps,
     } : null,
     publicHousingCount > 0 ? {
@@ -1148,8 +1161,8 @@ export function LineLegend({
       </div>
     ) },
     oldmaps: { expanded: oldMapsLegendOpen, onExpand: () => setOldMapsLegendOpen(v => !v), content: (
-      <OldMapControls maps={oldMapsAll} hidden={oldMapsHidden} enabled={oldMapsOn}
-        opacity={oldMapsOpacity} onToggle={onToggleOldMap} onOpacity={onChangeOldMapsOpacity} />
+      <OldMapControls maps={oldMapsAll} selected={oldMapSelection} enabled={oldMapsOn}
+        opacity={oldMapsOpacity} onSelect={onSelectOldMap} onOpacity={onChangeOldMapsOpacity} />
     ) },
     housing: { expanded: publicHousingLegendOpen, onExpand: () => setPublicHousingLegendOpen(v => !v), content: (
       <div className={`pb-1 bg-(--mm-lime-2)/[0.05] ${publicHousingOn ? '' : 'opacity-40 light:opacity-100'}`}>
@@ -1340,6 +1353,26 @@ export function LineLegend({
                 {lrtActive}<span className="text-(--mm-fg)/20">/{lrtTotal}</span>
               </span>
             </div>
+            <div className="grid grid-cols-2 border-b border-(--mm-fg)/8">
+              <button
+                type="button"
+                onClick={showAllLrt}
+                disabled={!showAllLrt}
+                className="px-1 py-2 mm-mono text-ui-11 tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                           hover:bg-(--mm-fg)/5 transition-colors text-center"
+              >
+                {t.showAll}
+              </button>
+              <button
+                type="button"
+                onClick={hideAllLrt}
+                disabled={!hideAllLrt}
+                className="px-1 py-2 mm-mono text-ui-11 tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                           hover:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
+              >
+                {t.hideAll}
+              </button>
+            </div>
             <div className="py-0.5">
               {allLrtLines.map(line => {
                 const on = isLrtOn(line.id)
@@ -1505,6 +1538,36 @@ export function LineLegend({
               </div>
             </div>
           )}
+
+          {/* AIR + SEA — one heading and a show / hide pair for both services */}
+          {(totalFlightCount > 0 || totalFerryCount > 0) && (<>
+            <div className="px-3 py-2 flex items-center justify-between bg-(--mm-fg)/[0.015] border-y border-(--mm-fg)/5">
+              <span className="mm-mono text-ui-10 tracking-[0.25em] text-(--mm-text-muted)">AIR + SEA · 海空</span>
+              <span className="mm-mono mm-tabular text-ui-10 text-(--mm-text-subtle)">
+                {Number(flightsOn) + Number(ferriesOn)}<span className="text-(--mm-fg)/20">/2</span>
+              </span>
+            </div>
+            <div className="grid grid-cols-2 border-b border-(--mm-fg)/8">
+              <button
+                type="button"
+                onClick={showAirSea}
+                disabled={!showAirSea}
+                className="px-1 py-2 mm-mono text-ui-11 tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                           hover:bg-(--mm-fg)/5 transition-colors text-center"
+              >
+                {t.showAll}
+              </button>
+              <button
+                type="button"
+                onClick={hideAirSea}
+                disabled={!hideAirSea}
+                className="px-1 py-2 mm-mono text-ui-11 tracking-[0.15em] text-(--mm-text-muted) hover:text-(--mm-fg)
+                           hover:bg-(--mm-fg)/5 transition-colors text-center border-l border-(--mm-fg)/8"
+              >
+                {t.hideAll}
+              </button>
+            </div>
+          </>)}
 
           {/* AIR — toggleable */}
           {totalFlightCount > 0 && (
@@ -1681,6 +1744,13 @@ export function LineLegend({
       </div>
       </div>
 
+      {oldMapsOn && mobilePanel === null && selectedOldMapGroup && (
+        <div className="sm:hidden landscape:block">
+          <OldMapSwitcher maps={oldMapsAll} selected={oldMapSelection} dock={timeBarShown ? 'top' : 'bottom'}
+            onSelect={id => onSelectOldMap?.(id)} onOpen={() => setMobilePanel('oldmaps')} />
+        </div>
+      )}
+
       {mobilePanel !== null && (
         <MobileLayerSheet tabs={mobileTabs} category={mobileCategory} pageKey={mobilePanel}
           title={mobileCityRow?.label ?? t.mobileLayersTitle}
@@ -1691,13 +1761,15 @@ export function LineLegend({
               setMobilePanel(id as MobilePanel)
               onRequestCityLayer?.(id as CityLayer)
             }} />}
-          {mobileCityRow && <MobileCityDetail row={mobileCityRow}>
+          {mobileCityRow && <MobileCityDetail row={mobileCityRow}
+            current={mobileCityRow.panel === 'oldmaps' && selectedOldMapLabel ? { value: selectedOldMapLabel.year, label: selectedOldMapLabel.title } : undefined}>
             {mobileCityRow.panel === 'parishes' && <p>{t.parishesTitle}</p>}
             {cityDetails[mobileCityRow.panel]?.content}
           </MobileCityDetail>}
 
           {mobilePanel === 'lrt' && <MobileLrtConsole lines={allLrtLines}
-            stations={allTransitData?.stations ?? transitData.stations} enabled={lrtOn} onToggle={onToggleLrt} />}
+            stations={allTransitData?.stations ?? transitData.stations} enabled={lrtOn} onToggle={onToggleLrt}
+            onShowAll={showAllLrt} onHideAll={hideAllLrt} />}
 
           {mobilePanel === 'bus' && visibleRoutes && <MobileBusRegister
             grouped={grouped} visibleRoutes={visibleRoutes} inactiveRoutes={inactiveRoutes}
@@ -1708,7 +1780,8 @@ export function LineLegend({
           {mobilePanel === 'air-sea' && <MobileServiceTickets flightCount={flightCount} ferryCount={ferryCount}
             showFlights={totalFlightCount > 0} showFerries={totalFerryCount > 0}
             flightsOn={flightsOn} ferriesOn={ferriesOn}
-            onToggleFlights={onToggleFlights} onToggleFerries={onToggleFerries} />}
+            onToggleFlights={onToggleFlights} onToggleFerries={onToggleFerries}
+            onShowAll={showAirSea} onHideAll={hideAirSea} />}
         </MobileLayerSheet>
       )}
     </>

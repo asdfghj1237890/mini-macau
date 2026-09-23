@@ -4,7 +4,7 @@
 .mm-lrt-console-heading > span { color: var(--mm-text-secondary); font-size: calc(12px * var(--mm-font-scale)); text-align: right; }
 .mm-lrt-console-heading .mm-mono { white-space: nowrap; }
 .mm-lrt-channels { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); flex: 1; min-height: 0; }
-.mm-lrt-channel { --lrt-track-color: var(--lrt-color); display: grid; grid-template-rows: 84px minmax(210px, 1fr) 104px; min-width: 0; padding: 0 9px; }
+.mm-lrt-channel { --lrt-track-color: var(--lrt-color); display: grid; grid-template-rows: 84px minmax(170px, 1fr) 104px; min-width: 0; padding: 0 9px; }
 .mm-lrt-channel:first-child { padding-right: 21px; }
 .mm-lrt-channel:last-child { padding-left: 21px; }
 .mm-lrt-channel + .mm-lrt-channel { border-left: 1px solid var(--mm-border); }

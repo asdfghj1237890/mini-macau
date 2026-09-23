@@ -5478,9 +5478,6 @@ export function MapView(props: MapViewProps) {
                     <a href="https://www.mindat.org/photo-695342.html" target="_blank" rel="noopener noreferrer"
                       className="hover:text-(--mm-amber-1) transition-colors">Mindat</a>
                     <span> / </span>
-                    <a href="https://gis.sinica.edu.tw/macau/" target="_blank" rel="noopener noreferrer"
-                      className="hover:text-(--mm-amber-1) transition-colors">Sinica</a>
-                    <span> / </span>
                     <a href="https://library.harvard.edu/libraries/harvard-map-collection" target="_blank" rel="noopener noreferrer"
                       className="hover:text-(--mm-amber-1) transition-colors">Harvard</a>
                   </span>

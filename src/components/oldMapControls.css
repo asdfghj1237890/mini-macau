@@ -1,31 +1,56 @@
 .mm-old-map-controls { padding: 0 10px 4px; }
-.mm-old-map-list { display: grid; gap: 4px; }
-.mm-old-map-option {
-  display: grid; grid-template-columns: calc(50px * var(--mm-font-scale)) minmax(0, 1fr) 18px;
-  gap: 8px; align-items: center; width: 100%; min-height: 68px;
-  padding: 11px 8px; border: 1px solid transparent; border-radius: 7px;
-  text-align: left; cursor: pointer; color: var(--mm-text-secondary);
+.mm-old-map-opacity { display: flex; align-items: center; gap: 9px; padding: 2px 8px 12px; font-size: calc(11px * var(--mm-font-scale)); color: var(--mm-text-secondary); }
+.mm-old-map-opacity input { flex: 1; min-width: 0; accent-color: var(--mm-amber); }
+.mm-old-map-opacity > span:last-child { width: 36px; text-align: right; }
+.mm-old-map-list { display: grid; gap: 6px; }
+.mm-old-map-century { display: grid; gap: 2px; }
+.mm-old-map-century-heading {
+  padding: 9px 8px 5px; border-top: 1px solid var(--mm-border);
+  font-size: calc(10px * var(--mm-font-scale)); letter-spacing: .06em; color: var(--mm-text-muted);
 }
-.mm-old-map-option:hover { background: var(--mm-panel-3); }
-.mm-old-map-option:focus-visible { outline: 2px solid var(--mm-amber); outline-offset: 1px; }
-.mm-old-map-option[aria-pressed="true"] {
+.mm-old-map-item { border: 1px solid transparent; border-radius: 7px; }
+.mm-old-map-item[data-selected="true"] {
   border-color: color-mix(in srgb, var(--mm-amber) 30%, transparent);
   background: color-mix(in srgb, var(--mm-amber) 7%, transparent);
 }
+.mm-old-map-option {
+  position: relative; display: grid; grid-template-columns: calc(50px * var(--mm-font-scale)) minmax(0, 1fr) 16px;
+  gap: 8px; align-items: center; min-height: 40px; padding: 7px 8px; border-radius: 6px;
+  cursor: pointer; color: var(--mm-text-secondary);
+}
+/* Touch screens keep :hover on the last tapped row; only pointers that hover get it. */
+@media (hover: hover) { .mm-old-map-item[data-selected="false"] .mm-old-map-option:hover { background: var(--mm-panel-3); } }
+.mm-old-map-option:has(.mm-old-map-radio:focus-visible) { outline: 2px solid var(--mm-amber); outline-offset: 1px; }
+.mm-old-map-option:has(.mm-old-map-radio:disabled) { cursor: default; }
+.mm-old-map-radio { position: absolute; width: 1px; height: 1px; margin: 0; opacity: 0; pointer-events: none; }
 .mm-old-map-year { font-size: calc(12px * var(--mm-font-scale)); color: var(--mm-text-secondary); white-space: nowrap; }
 .mm-old-map-option[data-visible="true"] .mm-old-map-year { color: var(--mm-amber); }
-.mm-old-map-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.mm-old-map-title { font-size: calc(13px * var(--mm-font-scale)); font-weight: 600; line-height: 1.55; color: var(--mm-fg); overflow-wrap: break-word; text-wrap: pretty; }
-.mm-old-map-subtitle { font-size: calc(11px * var(--mm-font-scale)); line-height: 1.55; color: var(--mm-text-secondary); overflow-wrap: break-word; text-wrap: pretty; }
-.mm-old-map-check { display: flex; align-items: center; justify-content: center; width: 17px; height: 17px; border: 1px solid var(--mm-border); border-radius: 4px; font-size: 12px; }
-.mm-old-map-option[aria-pressed="true"] .mm-old-map-check { color: var(--mm-on-accent); background: var(--mm-amber); border-color: var(--mm-amber); }
-.mm-old-map-opacity { display: flex; align-items: center; gap: 9px; padding: 15px 4px 12px; font-size: calc(11px * var(--mm-font-scale)); color: var(--mm-text-secondary); }
-.mm-old-map-opacity input { flex: 1; min-width: 0; accent-color: var(--mm-amber); }
-.mm-old-map-opacity > span:last-child { width: 36px; text-align: right; }
-.mm-old-map-info { border-top: 1px solid var(--mm-border); padding: 0 4px; font-size: calc(11px * var(--mm-font-scale)); color: var(--mm-text-secondary); line-height: 1.65; }
-.mm-old-map-info summary { padding: 9px 0; cursor: pointer; color: var(--mm-text-secondary); }
+.mm-old-map-title { font-size: calc(13px * var(--mm-font-scale)); font-weight: 500; line-height: 1.5; color: var(--mm-fg); overflow-wrap: break-word; text-wrap: pretty; }
+.mm-old-map-item[data-selected="true"] .mm-old-map-title { font-weight: 600; }
+.mm-old-map-dot { width: 14px; height: 14px; border: 1px solid var(--mm-border); border-radius: 50%; }
+.mm-old-map-item[data-selected="true"] .mm-old-map-dot {
+  border-color: var(--mm-amber);
+  background: radial-gradient(circle, var(--mm-amber) 0 3.5px, transparent 4px);
+}
+/* The chosen row's second line and its notes toggle share one line; opened notes take the full width. */
+.mm-old-map-selected { display: flex; flex-wrap: wrap; align-items: center; column-gap: 10px; margin-top: -6px; padding: 0 8px 0 calc(16px + 50px * var(--mm-font-scale)); }
+.mm-old-map-info[open] { flex-basis: 100%; }
+.mm-old-map-subtitle { margin: 0; font-size: calc(11px * var(--mm-font-scale)); line-height: 1.55; color: var(--mm-text-secondary); overflow-wrap: break-word; text-wrap: pretty; }
+.mm-old-map-info { font-size: calc(11px * var(--mm-font-scale)); color: var(--mm-text-secondary); line-height: 1.65; }
+.mm-old-map-info summary {
+  display: inline-flex; align-items: center; gap: 5px; min-height: 44px;
+  list-style: none; cursor: pointer; color: var(--mm-amber);
+}
+.mm-old-map-info summary::-webkit-details-marker { display: none; }
+.mm-old-map-info summary::after {
+  content: ""; width: 5px; height: 5px; margin-top: -2px;
+  border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(45deg);
+}
+.mm-old-map-info[open] summary::after { margin-top: 3px; transform: rotate(-135deg); }
+.mm-old-map-info summary:focus-visible { outline: 2px solid var(--mm-amber); outline-offset: 2px; border-radius: 3px; }
 .mm-old-map-info p { margin: 0 0 10px; overflow-wrap: anywhere; }
 .mm-old-map-info-title { color: var(--mm-fg); }
-.mm-old-map-sheet + .mm-old-map-sheet { border-top: 1px solid var(--mm-border); margin-top: 14px; padding-top: 14px; }
+.mm-old-map-sheet { padding-top: 4px; }
+.mm-old-map-sheet + .mm-old-map-sheet { border-top: 1px solid var(--mm-border); margin-top: 4px; padding-top: 14px; }
 .mm-old-map-sheet h4 { color: var(--mm-fg); margin: 0 0 8px; font-size: inherit; }
 .mm-old-map-info a { text-decoration: underline; text-underline-offset: 3px; }

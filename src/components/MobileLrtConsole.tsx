@@ -4,11 +4,13 @@ import type { LRTLine, Station } from '../types'
 import { MobileLayerIcon } from './MobileLayerIcon'
 import './mobileLrtConsole.css'
 
-export function MobileLrtConsole({ lines, stations, enabled, onToggle }: {
+export function MobileLrtConsole({ lines, stations, enabled, onToggle, onShowAll, onHideAll }: {
   lines: LRTLine[]
   stations: Station[]
   enabled?: ReadonlySet<string>
   onToggle?: (id: string) => void
+  onShowAll?: () => void
+  onHideAll?: () => void
 }) {
   const { lang, t } = useI18n()
   const id = useId()
@@ -19,6 +21,10 @@ export function MobileLrtConsole({ lines, stations, enabled, onToggle }: {
     <div className="mm-lrt-console-heading">
       <h3>{t.mobileLrtTitle}</h3>
       <span><span className="mm-mono">{active} / {lines.length}</span> {t.mobileLrtShown}</span>
+    </div>
+    <div className="mm-mobile-all-actions">
+      <button type="button" onClick={onShowAll} disabled={!onShowAll}>{t.mobileShowAll}</button>
+      <button type="button" onClick={onHideAll} disabled={!onHideAll}>{t.mobileHideAll}</button>
     </div>
     <div className="mm-lrt-channels">
       {lines.map(line => {

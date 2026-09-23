@@ -172,9 +172,13 @@ const LEGEND_LABELS: Record<string, { title: OldMapText; detail: OldMapText }> =
     title: { zh: '澳門地質略圖・岩層與海岸', en: 'Macau geology · rocks and coastline', pt: 'Geologia de Macau · rochas e costa' },
     detail: { zh: 'Lemos de Sousa · 1:25,000', en: 'Lemos de Sousa · 1:25,000', pt: 'Lemos de Sousa · 1:25.000' },
   },
-  'macau-1996': {
-    title: { zh: '澳門全境・九十年代海岸', en: 'Macau territory · 1990s coastline', pt: 'Macau · costa dos anos 1990' },
-    detail: { zh: '半島與離島 · 1:20,000', en: 'Peninsula and islands · 1:20,000', pt: 'Península e ilhas · 1:20.000' },
+  'dscc-1990': {
+    title: { zh: '地圖繪製暨地籍司・半島建築詳圖', en: 'Cartography and Cadastre · peninsula buildings', pt: 'Cartografia e Cadastro · edifícios da península' },
+    detail: { zh: '澳門格網配準 · 1:5,000', en: 'Registered on the Macau grid · 1:5,000', pt: 'Quadrícula de Macau · 1:5000' },
+  },
+  'dscc-1991': {
+    title: { zh: '地圖繪製暨地籍司・澳門地區全圖', en: 'Cartography and Cadastre · Territory of Macau', pt: 'Cartografia e Cadastro · Território de Macau' },
+    detail: { zh: '澳門格網配準 · 1:20,000', en: 'Registered on the Macau grid · 1:20,000', pt: 'Quadrícula de Macau · 1:20 000' },
   },
 }
 
@@ -211,6 +215,17 @@ export function oldMapGroupLabel(group: OldMapGroup, lang: Lang) {
   return oldMapLegendLabel({ ...group.maps[0], id: group.id }, lang)
 }
 
+// The selector files its rows under the century of their main date
+// (1749 → 18th, 1996 → 20th): centuries in order, catalogue order within each.
+export function groupOldMapsByCentury(groups: OldMapGroup[]): { century: number; groups: OldMapGroup[] }[] {
+  const centuries = new Map<number, OldMapGroup[]>()
+  for (const group of groups) {
+    const century = Math.ceil(group.maps[0].year / 100)
+    centuries.set(century, [...(centuries.get(century) ?? []), group])
+  }
+  return [...centuries].sort(([a], [b]) => a - b).map(([century, rows]) => ({ century, groups: rows }))
+}
+
 export function isOldMapHidden(hidden: OldMapSet, id: string): boolean {
   const selection = oldMapSelectionId(id)
   return hidden.has(selection) || (SELECTION_GROUPS[selection]?.every(member => hidden.has(member)) ?? false)
@@ -228,26 +243,50 @@ function normalizeHiddenOldMaps(hidden: OldMapSet): Set<string> {
   return next
 }
 
-export function toggleOldMapSelection(hidden: OldMapSet, id: string): OldMapSet {
-  const next = normalizeHiddenOldMaps(hidden)
-  const selection = oldMapSelectionId(id)
-  if (next.has(selection)) next.delete(selection)
-  else next.add(selection)
-  return next
+// A first visit starts on the 1889 Public Works survey: the most reliable
+// registration in the catalogue, and the finest tiles.
+export const DEFAULT_OLD_MAP_SELECTION = 'heitor-1889'
+
+// One selector row is drawn at a time (the 1912 atlas row draws its three
+// sheets). The saved choice wins while the catalogue still has it; before
+// anything is saved, the first row the former multi-select left visible
+// carries over; otherwise the default, then the first row.
+export function resolveOldMapSelection(groupIds: readonly string[], saved: string | null, legacyHidden: OldMapSet): string | null {
+  const choice = saved === null ? null : oldMapSelectionId(saved)
+  if (choice !== null && groupIds.includes(choice)) return choice
+  if (legacyHidden.size > 0) {
+    const kept = groupIds.find(id => !isOldMapHidden(legacyHidden, id))
+    if (kept) return kept
+  }
+  if (groupIds.includes(DEFAULT_OLD_MAP_SELECTION)) return DEFAULT_OLD_MAP_SELECTION
+  return groupIds[0] ?? null
 }
 
-// The maps to draw. Same identity contract as the other overlays: when nothing
-// listed is hidden the input array comes back as is, so MapView's
-// array-identity effect does not re-add the sources.
-export function filterOldMaps(maps: OldMap[], hidden: OldMapSet): OldMap[] {
-  if (hidden.size === 0 || !maps.some(map => isOldMapHidden(hidden, map.id))) return maps
-  return maps.filter(map => !isOldMapHidden(hidden, map.id))
+// The maps to draw: every sheet of the selected row, in catalogue order.
+export function selectOldMaps(maps: OldMap[], selection: string | null): OldMap[] {
+  return selection === null ? [] : maps.filter(map => oldMapSelectionId(map.id) === selection)
 }
 
+export const LS_OLD_MAPS_SELECTED = 'mini-macau-oldmaps-selected'
+// The former multi-select's hidden set, read only to carry a choice over.
 export const LS_OLD_MAPS_HIDDEN = 'mini-macau-oldmaps-hidden'
 export const LS_OLD_MAPS_OPACITY = 'mini-macau-oldmaps-opacity'
 
-// Stored as the HIDDEN set so a map added to the file later shows by default.
+export function loadSelectedOldMap(): string | null {
+  try {
+    const raw = localStorage.getItem(LS_OLD_MAPS_SELECTED)
+    return raw ? oldMapSelectionId(raw) : null
+  } catch {
+    return null
+  }
+}
+
+export function saveSelectedOldMap(id: string): void {
+  try {
+    localStorage.setItem(LS_OLD_MAPS_SELECTED, id)
+  } catch { /* private mode */ }
+}
+
 export function loadHiddenOldMaps(): OldMapSet {
   try {
     const raw = localStorage.getItem(LS_OLD_MAPS_HIDDEN)
@@ -258,12 +297,6 @@ export function loadHiddenOldMaps(): OldMapSet {
   } catch {
     return NO_HIDDEN_OLD_MAPS
   }
-}
-
-export function saveHiddenOldMaps(hidden: OldMapSet): void {
-  try {
-    localStorage.setItem(LS_OLD_MAPS_HIDDEN, JSON.stringify([...hidden]))
-  } catch { /* private mode */ }
 }
 
 export function clampOldMapsOpacity(value: number): number {
