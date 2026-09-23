@@ -40,6 +40,10 @@ export function MobileLayerSheet({ tabs, category, pageKey, title, onCategory, o
     const dialog = dialogRef.current
     const opener = document.activeElement
     dialog?.showModal()
+    // showModal focuses the first control, the drag handle, and iOS then rings the
+    // top of the sheet in the accent colour. Start on the title instead — what a
+    // screen reader should announce first anyway.
+    headingRef.current?.focus({ preventScroll: true })
     return () => {
       dialog?.close()
       if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true })

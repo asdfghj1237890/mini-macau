@@ -18,6 +18,8 @@
 .mm-mobile-sheet-header { display: flex; align-items: center; gap: 10px; min-height: 48px; padding: 0 20px 4px; flex-shrink: 0; }
 .mm-mobile-sheet-header > div { flex: 1; min-width: 0; }
 .mm-mobile-sheet-eyebrow { display: block; margin-bottom: 4px; color: var(--mm-text-muted); font-size: calc(8px * var(--mm-font-scale)); font-weight: 600; line-height: 12px; letter-spacing: .15em; }
+/* The title takes focus only programmatically (tabindex -1, on open and page change): no ring. */
+.mm-mobile-sheet-header h2:focus { outline: none; }
 .mm-mobile-sheet-header h2 { margin: 0; font-size: calc(20px * var(--mm-font-scale)); font-weight: 700; line-height: 1.3; letter-spacing: -.025em; }
 .mm-mobile-sheet-close, .mm-mobile-sheet-back { display: flex; align-items: center; justify-content: center; flex: 0 0 44px; height: 44px; border-radius: 50%; cursor: pointer; }
 .mm-mobile-sheet-close { position: relative; color: var(--mm-fg); }
