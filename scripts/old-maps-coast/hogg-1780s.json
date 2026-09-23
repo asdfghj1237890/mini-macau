@@ -1,7 +1,7 @@
 {
   "version": 2,
   "reference": "Peninsula: existing late-eighteenth-century coast reconstruction (guignes-1792). Islands: DSSCU historical 1912 land polygons. Cross-date geometry is an approximate display reference, not the observed shoreline in 1749 or the 1780s. Modern reclamation is excluded.",
-  "interpretation": "Readability-constrained rubber-sheet registration. Peninsula and Barra controls remain as previously calibrated. Island shorelines use broad 200 m shape controls followed by sparse 100 m normal corrections at 60% strength. Original ink traces and DSSCU 1912 reference curves are unchanged; reduced local stretching takes priority over forcing every small bay to coincide. Fixed landmarks and the complete original sheet remain. Cross-date reference distances are geometric display diagnostics, not eighteenth-century survey accuracy.",
+  "interpretation": "Readability-constrained rubber-sheet registration. Peninsula and Barra controls remain as previously calibrated. Each former Taipa island is registered as one affine map (rotation, scale and one uniform stretch, no local warping) pinned at its summit control; Coloane uses broad 200 m shape controls followed by sparse 100 m normal corrections at 60% strength. Original ink traces and DSSCU 1912 reference curves are unchanged; reduced local stretching takes priority over forcing every small bay to coincide. Fixed landmarks and the complete original sheet remain. Cross-date reference distances are geometric display diagnostics, not eighteenth-century survey accuracy.",
   "sources": [
     {
       "name": "Peninsula reference lineage and coordinates",
@@ -788,126 +788,57 @@
           22.164301514577875
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1699,
           2288,
-          113.543974199,
-          22.163046666
+          113.546276394,
+          22.162546782
         ],
         [
           1708.5552828101295,
           2283.904878795659,
-          113.544501253,
-          22.163323742
+          113.546809113,
+          22.162823225
         ],
         [
           1718.5325358774624,
           2282.5532535877464,
-          113.545128705,
-          22.163540003
+          113.547290665,
+          22.1629562
         ],
         [
           1728.6788489915318,
           2281.3774717167053,
-          113.545876955,
-          22.163708035
+          113.547775301,
+          22.163080848
         ],
         [
           1735.4833976880764,
           2273.9616216183467,
-          113.546631938,
-          22.164073124
+          113.548269591,
+          22.163517245
         ],
         [
           1744,
           2268,
-          113.54746314,
-          22.164301509
+          113.548803447,
+          22.163886698
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1699,
-            2288,
-            113.54397419547068,
-            22.16304665670003
-          ],
-          [
-            1708.5552828101295,
-            2283.904878795659,
-            113.54451672808065,
-            22.16336919062874
-          ],
-          [
-            1718.5325358774624,
-            2282.5532535877464,
-            113.54512949452943,
-            22.16353518655305
-          ],
-          [
-            1728.6788489915318,
-            2281.3774717167053,
-            113.54587530746585,
-            22.16371031856935
-          ],
-          [
-            1735.4833976880764,
-            2273.9616216183467,
-            113.54661439050155,
-            22.164108045588456
-          ],
-          [
-            1744,
-            2268,
-            113.5474631361413,
-            22.164301524954745
-          ]
+      "islandAffine": {
+        "island": "Small Taipa",
+        "summitControl": "Taipa Pequena 小潭山",
+        "metresPerPixel": [
+          4.67,
+          6.48
         ],
-        "nearest": [
-          [
-            1699,
-            2288,
-            113.5439742008494,
-            22.16304667246607
-          ],
-          [
-            1708.5552828101295,
-            2283.904878795659,
-            113.5444909354723,
-            22.163293442796363
-          ],
-          [
-            1718.5325358774624,
-            2282.5532535877464,
-            113.5451281782695,
-            22.163543214566428
-          ],
-          [
-            1728.6788489915318,
-            2281.3774717167053,
-            113.54587805343371,
-            22.16370651306652
-          ],
-          [
-            1735.4833976880764,
-            2273.9616216183467,
-            113.54664363558938,
-            22.164049843196583
-          ],
-          [
-            1744,
-            2268,
-            113.54746314294736,
-            22.16430149851797
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": 8.39,
+        "outlineRmsM": 83.6,
+        "samples": 44,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -1096,180 +1027,75 @@
           22.16171989384606
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1744,
           2268,
-          113.547463184,
-          22.164301519
+          113.548803447,
+          22.163886698
         ],
         [
           1766.638515875281,
           2267.212838625094,
-          113.548376374,
-          22.164202991
+          113.549837867,
+          22.164067061
         ],
         [
           1789.3499875542784,
           2270.5166680495245,
-          113.549159716,
-          22.164117645
+          113.550771065,
+          22.164030087
         ],
         [
           1811.484745553668,
           2275.290847332201,
-          113.549947222,
-          22.163898461
+          113.551640868,
+          22.163911313
         ],
         [
           1827.8505589174888,
           2291.073377878648,
-          113.550769876,
-          22.163415814
+          113.551971022,
+          22.16317123
         ],
         [
           1847.8401065696469,
           2302.8982496352296,
-          113.551588058,
-          22.163166009
+          113.552564622,
+          22.162663994
         ],
         [
           1863.438720227453,
           2317.389696409415,
-          113.552325978,
-          22.162894103
+          113.552893378,
+          22.161987949
         ],
         [
           1879.176659464915,
           2333.445701939854,
-          113.552633415,
-          22.162491004
+          113.553188415,
+          22.161229467
         ],
         [
           1894,
           2350,
-          113.552383344,
-          22.161719823
+          113.553429747,
+          22.160438865
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1744,
-            2268,
-            113.5474631361413,
-            22.164301524954745
-          ],
-          [
-            1766.638515875281,
-            2267.212838625094,
-            113.54845839221417,
-            22.16425005980448
-          ],
-          [
-            1789.3499875542784,
-            2270.5166680495245,
-            113.54915972334568,
-            22.16411762745407
-          ],
-          [
-            1811.484745553668,
-            2275.290847332201,
-            113.55004795460363,
-            22.164010049840137
-          ],
-          [
-            1827.8505589174888,
-            2291.073377878648,
-            113.55076988580878,
-            22.163415823902827
-          ],
-          [
-            1847.8401065696469,
-            2302.8982496352296,
-            113.55175409823839,
-            22.163252240288482
-          ],
-          [
-            1863.438720227453,
-            2317.389696409415,
-            113.55232598324895,
-            22.16289407931804
-          ],
-          [
-            1879.176659464915,
-            2333.445701939854,
-            113.55239806580092,
-            22.162369466847828
-          ],
-          [
-            1894,
-            2350,
-            113.55238340070363,
-            22.16171963800683
-          ]
+      "islandAffine": {
+        "island": "Small Taipa",
+        "summitControl": "Taipa Pequena 小潭山",
+        "metresPerPixel": [
+          4.67,
+          6.48
         ],
-        "nearest": [
-          [
-            1744,
-            2268,
-            113.54746321571783,
-            22.164301514577875
-          ],
-          [
-            1766.638515875281,
-            2267.212838625094,
-            113.54832169477095,
-            22.164171611965326
-          ],
-          [
-            1789.3499875542784,
-            2270.5166680495245,
-            113.54915971078496,
-            22.1641176567053
-          ],
-          [
-            1811.484745553668,
-            2275.290847332201,
-            113.54988006773365,
-            22.16382406849952
-          ],
-          [
-            1827.8505589174888,
-            2291.073377878648,
-            113.5507698692693,
-            22.163415806866833
-          ],
-          [
-            1847.8401065696469,
-            2302.8982496352296,
-            113.55147736442204,
-            22.163108521181105
-          ],
-          [
-            1863.438720227453,
-            2317.389696409415,
-            113.55232597443228,
-            22.162894118600214
-          ],
-          [
-            1879.176659464915,
-            2333.445701939854,
-            113.55279031429501,
-            22.162572028091983
-          ],
-          [
-            1894,
-            2350,
-            113.55238330626638,
-            22.16171994580726
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": 8.39,
+        "outlineRmsM": 83.6,
+        "samples": 44,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -1494,198 +1320,81 @@
           22.15814501003485
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1894,
           2350,
-          113.55238323,
-          22.161719634
+          113.553429747,
+          22.160438865
         ],
         [
           1878.0453192805041,
           2348.3135957841514,
-          113.551723659,
-          22.16130683
+          113.552757974,
+          22.160431061
         ],
         [
           1862.6277026249406,
           2342.8138513124704,
-          113.551220721,
-          22.160844582
+          113.552207663,
+          22.160629543
         ],
         [
           1848.5411230434054,
           2337.164492173621,
-          113.550646244,
-          22.160277911
+          113.551720811,
+          22.16084413
         ],
         [
           1834.0051992855003,
           2335.10155978565,
-          113.550072511,
-          22.159774736
+          113.551122222,
+          22.160865047
         ],
         [
           1818.1122832810213,
           2334.9719291797446,
-          113.549562787,
-          22.159326422
+          113.550413454,
+          22.160774746
         ],
         [
           1803.1200645371841,
           2341.662829484064,
-          113.549112325,
-          22.158730207
+          113.549570832,
+          22.160326865
         ],
         [
           1792.4716466515488,
           2353.3962650113385,
-          113.548464777,
-          22.158121464
+          113.548794039,
+          22.159637113
         ],
         [
           1780.945003653592,
           2363.8462436062136,
-          113.54763876,
-          22.158125147
+          113.548010679,
+          22.159010314
         ],
         [
           1775,
           2379,
-          113.546986235,
-          22.158144976
+          113.54735726,
+          22.158167249
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1894,
-            2350,
-            113.55238340070363,
-            22.16171963800683
-          ],
-          [
-            1878.0453192805041,
-            2348.3135957841514,
-            113.55167670131557,
-            22.16146472450453
-          ],
-          [
-            1862.6277026249406,
-            2342.8138513124704,
-            113.55122560015336,
-            22.160841221356332
-          ],
-          [
-            1848.5411230434054,
-            2337.164492173621,
-            113.55063127042158,
-            22.160304693763063
-          ],
-          [
-            1834.0051992855003,
-            2335.10155978565,
-            113.55007922168015,
-            22.159710640559336
-          ],
-          [
-            1818.1122832810213,
-            2334.9719291797446,
-            113.54967970738879,
-            22.159326366364965
-          ],
-          [
-            1803.1200645371841,
-            2341.662829484064,
-            113.54920351452105,
-            22.158610079017564
-          ],
-          [
-            1792.4716466515488,
-            2353.3962650113385,
-            113.54853499015412,
-            22.158076059712634
-          ],
-          [
-            1780.945003653592,
-            2363.8462436062136,
-            113.5477279566844,
-            22.158249638221815
-          ],
-          [
-            1775,
-            2379,
-            113.54698624842534,
-            22.15814491504382
-          ]
+      "islandAffine": {
+        "island": "Small Taipa",
+        "summitControl": "Taipa Pequena 小潭山",
+        "metresPerPixel": [
+          4.67,
+          6.48
         ],
-        "nearest": [
-          [
-            1894,
-            2350,
-            113.55238311558395,
-            22.161719631594707
-          ],
-          [
-            1878.0453192805041,
-            2348.3135957841514,
-            113.55175496451584,
-            22.16120156636417
-          ],
-          [
-            1862.6277026249406,
-            2342.8138513124704,
-            113.55121746869409,
-            22.160846822609013
-          ],
-          [
-            1848.5411230434054,
-            2337.164492173621,
-            113.5506562257417,
-            22.16026005640171
-          ],
-          [
-            1834.0051992855003,
-            2335.10155978565,
-            113.55006803692636,
-            22.159817465838277
-          ],
-          [
-            1818.1122832810213,
-            2334.9719291797446,
-            113.54948484085396,
-            22.159326459597597
-          ],
-          [
-            1803.1200645371841,
-            2341.662829484064,
-            113.54905153193447,
-            22.158810293099123
-          ],
-          [
-            1792.4716466515488,
-            2353.3962650113385,
-            113.54841796784879,
-            22.15815173376126
-          ],
-          [
-            1780.945003653592,
-            2363.8462436062136,
-            113.54757929493698,
-            22.15804215357105
-          ],
-          [
-            1775,
-            2379,
-            113.54698622575981,
-            22.158145016492778
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": 8.39,
+        "outlineRmsM": 83.6,
+        "samples": 44,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -1834,144 +1543,63 @@
           22.157010288512325
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1775,
           2379,
-          113.546986205,
-          22.158144965
+          113.54735726,
+          22.158167249
         ],
         [
           1761.6616285993134,
           2381,
-          113.546504069,
-          22.158006808
+          113.546708553,
+          22.157979202
         ],
         [
           1748.3135017216061,
           2384.7372996556787,
-          113.545443139,
-          22.157718508
+          113.546015035,
+          22.15769861
         ],
         [
           1734.3618248298887,
           2383.484647203321,
-          113.544664017,
-          22.157499617
+          113.545421928,
+          22.157679965
         ],
         [
           1722.366719851914,
           2388.438880024681,
-          113.543692626,
-          22.157187177
+          113.544757949,
+          22.157342866
         ],
         [
           1709.6933920659255,
           2392.153303967037,
-          113.542897305,
-          22.157099213
+          113.54409525,
+          22.157067619
         ],
         [
           1698,
           2400,
-          113.542083516,
-          22.15701027
+          113.543370911,
+          22.156578385
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1775,
-            2379,
-            113.54698624842534,
-            22.15814491504382
-          ],
-          [
-            1761.6616285993134,
-            2381,
-            113.54628205820148,
-            22.15817299745923
-          ],
-          [
-            1748.3135017216061,
-            2384.7372996556787,
-            113.54544313926543,
-            22.15771850819204
-          ],
-          [
-            1734.3618248298887,
-            2383.484647203321,
-            113.54463433346467,
-            22.15752942674033
-          ],
-          [
-            1722.366719851914,
-            2388.438880024681,
-            113.54369261688691,
-            22.15718718741628
-          ],
-          [
-            1709.6933920659255,
-            2392.153303967037,
-            113.54290990251431,
-            22.157175394637505
-          ],
-          [
-            1698,
-            2400,
-            113.54208351266234,
-            22.15701026523868
-          ]
+      "islandAffine": {
+        "island": "Small Taipa",
+        "summitControl": "Taipa Pequena 小潭山",
+        "metresPerPixel": [
+          4.67,
+          6.48
         ],
-        "nearest": [
-          [
-            1775,
-            2379,
-            113.54698617614399,
-            22.158144998187904
-          ],
-          [
-            1761.6616285993134,
-            2381,
-            113.54665207695227,
-            22.157896014476584
-          ],
-          [
-            1748.3135017216061,
-            2384.7372996556787,
-            113.5454431392837,
-            22.157718508084212
-          ],
-          [
-            1734.3618248298887,
-            2383.484647203321,
-            113.54468380548747,
-            22.1574797435586
-          ],
-          [
-            1722.366719851914,
-            2388.438880024681,
-            113.54369263252367,
-            22.157187170132598
-          ],
-          [
-            1709.6933920659255,
-            2392.153303967037,
-            113.54288890614052,
-            22.157048424525208
-          ],
-          [
-            1698,
-            2400,
-            113.54208351883582,
-            22.157010273058667
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": 8.39,
+        "outlineRmsM": 83.6,
+        "samples": 44,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -2072,108 +1700,51 @@
           22.15972592832611
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1698,
           2400,
-          113.542083503,
-          22.157010279
+          113.543370911,
+          22.156578385
         ],
         [
           1687.2491041054607,
           2390.0071671563137,
-          113.542102687,
-          22.157551841
+          113.543144453,
+          22.157044597
         ],
         [
           1685.066328601145,
           2373.13265720229,
-          113.5424815,
-          22.158351306
+          113.543477659,
+          22.157929556
         ],
         [
           1676.3337877803713,
           2358.2503408352786,
-          113.542301545,
-          22.159034898
+          113.54346652,
+          22.158668402
         ],
         [
           1673,
           2341,
-          113.542118825,
-          22.159725933
+          113.543757754,
+          22.159566328
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1698,
-            2400,
-            113.54208351266234,
-            22.15701026523868
-          ],
-          [
-            1687.2491041054607,
-            2390.0071671563137,
-            113.541964799437,
-            22.157609986354547
-          ],
-          [
-            1685.066328601145,
-            2373.13265720229,
-            113.5424814490402,
-            22.158351311001685
-          ],
-          [
-            1676.3337877803713,
-            2358.2503408352786,
-            113.5422338864188,
-            22.15900827781967
-          ],
-          [
-            1673,
-            2341,
-            113.54211882885807,
-            22.159725940952907
-          ]
+      "islandAffine": {
+        "island": "Small Taipa",
+        "summitControl": "Taipa Pequena 小潭山",
+        "metresPerPixel": [
+          4.67,
+          6.48
         ],
-        "nearest": [
-          [
-            1698,
-            2400,
-            113.54208349600053,
-            22.157010288512325
-          ],
-          [
-            1687.2491041054607,
-            2390.0071671563137,
-            113.5421946116541,
-            22.1575130773128
-          ],
-          [
-            1685.066328601145,
-            2373.13265720229,
-            113.54248153329131,
-            22.158351302821675
-          ],
-          [
-            1676.3337877803713,
-            2358.2503408352786,
-            113.54234665121902,
-            22.159052645606867
-          ],
-          [
-            1673,
-            2341,
-            113.54211882167581,
-            22.15972592832611
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": 8.39,
+        "outlineRmsM": 83.6,
+        "samples": 44,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -2298,144 +1869,63 @@
           22.16304667246607
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1673,
           2341,
-          113.542118825,
-          22.159725941
+          113.543757754,
+          22.159566328
         ],
         [
           1681.1887080272636,
           2333.874194648491,
-          113.542698976,
-          22.160190199
+          113.544306654,
+          22.159995751
         ],
         [
           1689.069814273681,
           2326.3313660789495,
-          113.543419626,
-          22.160437717
+          113.544852423,
+          22.160445492
         ],
         [
           1696.4719972975963,
           2319.1680162144216,
-          113.544043772,
-          22.160829038
+          113.545367041,
+          22.160872102
         ],
         [
           1699.7796569203908,
           2308.898284601954,
-          113.544206068,
-          22.161555485
+          113.545777547,
+          22.161439038
         ],
         [
           1696.0988344602433,
           2298.6540793891486,
-          113.543951366,
-          22.162237974
+          113.545874284,
+          22.161961872
         ],
         [
           1699,
           2288,
-          113.5439742,
-          22.163046657
+          113.546276394,
+          22.162546782
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1673,
-            2341,
-            113.54211882885807,
-            22.159725940952907
-          ],
-          [
-            1681.1887080272636,
-            2333.874194648491,
-            113.54277235388969,
-            22.16003861412604
-          ],
-          [
-            1689.069814273681,
-            2326.3313660789495,
-            113.54341962322636,
-            22.1604377280136
-          ],
-          [
-            1696.4719972975963,
-            2319.1680162144216,
-            113.54399835901513,
-            22.160884019804275
-          ],
-          [
-            1699.7796569203908,
-            2308.898284601954,
-            113.54420607128938,
-            22.161555485245508
-          ],
-          [
-            1696.0988344602433,
-            2298.6540793891486,
-            113.5438712634914,
-            22.162253036794024
-          ],
-          [
-            1699,
-            2288,
-            113.54397419547068,
-            22.16304665670003
-          ]
+      "islandAffine": {
+        "island": "Small Taipa",
+        "summitControl": "Taipa Pequena 小潭山",
+        "metresPerPixel": [
+          4.67,
+          6.48
         ],
-        "nearest": [
-          [
-            1673,
-            2341,
-            113.5421188223421,
-            22.159725941241078
-          ],
-          [
-            1681.1887080272636,
-            2333.874194648491,
-            113.54265005699435,
-            22.160291255171984
-          ],
-          [
-            1689.069814273681,
-            2326.3313660789495,
-            113.54341962830186,
-            22.160437709313484
-          ],
-          [
-            1696.4719972975963,
-            2319.1680162144216,
-            113.54407404666861,
-            22.160792382971874
-          ],
-          [
-            1699.7796569203908,
-            2308.898284601954,
-            113.54420606595397,
-            22.161555484452556
-          ],
-          [
-            1696.0988344602433,
-            2298.6540793891486,
-            113.54400476843861,
-            22.162227931545896
-          ],
-          [
-            1699,
-            2288,
-            113.54397420273182,
-            22.163046657482
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": 8.39,
+        "outlineRmsM": 83.6,
+        "samples": 44,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -2548,144 +2038,63 @@
           22.16546422308348
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1879,
           2289,
-          113.555168681,
-          22.16263126
+          113.555615987,
+          22.162391799
         ],
         [
           1883.0666418009857,
           2279.0303256354673,
-          113.555425551,
-          22.163177816
+          113.555853608,
+          22.162913907
         ],
         [
           1891.1529714938617,
           2271.679116823762,
-          113.555808934,
-          22.1636701
+          113.556347077,
+          22.16329624
         ],
         [
           1899.7457367547104,
           2264.940697433967,
-          113.556288762,
-          22.164318085
+          113.556873256,
+          22.163646087
         ],
         [
           1908.4884228003666,
           2258.383682899725,
-          113.556940338,
-          22.164860593
+          113.557409117,
+          22.163986318
         ],
         [
           1914.1618429014297,
           2249.427750617142,
-          113.557586906,
-          22.165154952
+          113.557748952,
+          22.164454285
         ],
         [
           1923,
           2243,
-          113.558503614,
-          22.165464226
+          113.558291004,
+          22.16478767
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1879,
-            2289,
-            113.55516869385899,
-            22.162631302872594
-          ],
-          [
-            1883.0666418009857,
-            2279.0303256354673,
-            113.55543702395656,
-            22.163110070531207
-          ],
-          [
-            1891.1529714938617,
-            2271.679116823762,
-            113.55580893403636,
-            22.16367009949759
-          ],
-          [
-            1899.7457367547104,
-            2264.940697433967,
-            113.5562560124549,
-            22.16434127080597
-          ],
-          [
-            1908.4884228003666,
-            2258.383682899725,
-            113.55694035387293,
-            22.164860566121753
-          ],
-          [
-            1914.1618429014297,
-            2249.427750617142,
-            113.55756969571448,
-            22.16531408304852
-          ],
-          [
-            1923,
-            2243,
-            113.55850361165938,
-            22.165464229846293
-          ]
+      "islandAffine": {
+        "island": "Large Taipa",
+        "summitControl": "Taipa Grande 大潭山",
+        "metresPerPixel": [
+          6.45,
+          5.86
         ],
-        "nearest": [
-          [
-            1879,
-            2289,
-            113.55516867237291,
-            22.162631231919455
-          ],
-          [
-            1883.0666418009857,
-            2279.0303256354673,
-            113.55541790231325,
-            22.1632229804105
-          ],
-          [
-            1891.1529714938617,
-            2271.679116823762,
-            113.55580893374814,
-            22.16367010007655
-          ],
-          [
-            1899.7457367547104,
-            2264.940697433967,
-            113.5563105943387,
-            22.1643026276176
-          ],
-          [
-            1908.4884228003666,
-            2258.383682899725,
-            113.55694032718428,
-            22.164860610921064
-          ],
-          [
-            1914.1618429014297,
-            2249.427750617142,
-            113.55759837907435,
-            22.165048865084536
-          ],
-          [
-            1923,
-            2243,
-            113.55850361501307,
-            22.16546422308348
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": -0.51,
+        "outlineRmsM": 65.1,
+        "samples": 95,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -3138,504 +2547,183 @@
           22.16248193083456
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1923,
           2243,
-          113.558503614,
-          22.165464226
+          113.558291004,
+          22.16478767
         ],
         [
           1934.2688179439774,
           2248.302973150107,
-          113.559218546,
-          22.165043132
+          113.559004824,
+          22.164502966
         ],
         [
           1945.5568573684257,
           2253.564703400812,
-          113.559689457,
-          22.164532267
+          113.559719778,
+          22.16422042
         ],
         [
           1957.1620816291363,
           2257.891874634815,
-          113.560063871,
-          22.163828831
+          113.560453002,
+          22.163986851
         ],
         [
           1969.16520723027,
           2261.0189210495387,
-          113.560128143,
-          22.163288138
+          113.561209098,
+          22.163816179
         ],
         [
           1980.4340251742472,
           2266.3218941996456,
-          113.560622417,
-          22.16252534
+          113.561922919,
+          22.163531475
         ],
         [
           1992.4473948155776,
           2269.0559243519474,
-          113.561289183,
-          22.162355186
+          113.562678995,
+          22.163381463
         ],
         [
           2004.8261179081685,
           2270.4021764923473,
-          113.561899133,
-          22.162519132
+          113.563455592,
+          22.163304233
         ],
         [
           2017.0532690779332,
           2269.556208834876,
-          113.562448608,
-          22.163326852
+          113.564219022,
+          22.163342353
         ],
         [
           2029.1302237722011,
           2266.652197358644,
-          113.563401255,
-          22.164497313
+          113.564969596,
+          22.163488767
         ],
         [
           2033.1790191116195,
           2272.134264333715,
-          113.56359976,
-          22.164398719
+          113.56523208,
+          22.163198403
         ],
         [
           2040.5789818543929,
           2280,
-          113.564304231,
-          22.164217163
+          113.565708199,
+          22.162780957
         ],
         [
           2051.559016450393,
           2283.559016450393,
-          113.565023718,
-          22.163873427
+          113.566401023,
+          22.162588104
         ],
         [
           2058.1975735386427,
           2293.23830147705,
-          113.565477057,
-          22.163097289
+          113.566832563,
+          22.162075695
         ],
         [
           2069.141614402198,
           2298.276107626813,
-          113.566189032,
-          22.162889232
+          113.567525622,
+          22.161805103
         ],
         [
           2081.563938645168,
           2299.1563938645168,
-          113.567023885,
-          22.162767738
+          113.568304163,
+          22.161752351
         ],
         [
           2093.691707576315,
           2298.523316969474,
-          113.567886538,
-          22.162622149
+          113.569061734,
+          22.161779329
         ],
         [
           2104.8431163119753,
           2302.1064186422573,
-          113.568684467,
-          22.162182317
+          113.569765319,
+          22.16158512
         ],
         [
           2112.651130083289,
           2311.787328690413,
-          113.569281427,
-          22.161587078
+          113.570270015,
+          22.161072017
         ],
         [
           2121.4341180800884,
           2320.015508218222,
-          113.569829364,
-          22.160968219
+          113.570833257,
+          22.160634793
         ],
         [
           2133.201398775086,
           2323.650174846886,
-          113.57070797,
-          22.160607859
+          113.571575453,
+          22.160437553
         ],
         [
           2145.490940405436,
           2324.5030198648547,
-          113.571684018,
-          22.160310724
+          113.572345642,
+          22.160386314
         ],
         [
           2156.5977073484446,
           2319.2325328088887,
-          113.572546165,
-          22.160355202
+          113.573031549,
+          22.160657666
         ],
         [
           2166.5197068825173,
           2311.7165235186267,
-          113.5733446,
-          22.160569727
+          113.573639568,
+          22.161047709
         ],
         [
           2177.4699813193783,
           2305.7863721275553,
-          113.574139093,
-          22.161169044
+          113.574314577,
+          22.161353829
         ],
         [
           2188.864710395809,
           2301.199548552879,
-          113.574598742,
-          22.161923978
+          113.575019646,
+          22.161589084
         ],
         [
           2201,
           2304,
-          113.575046899,
-          22.162481923
+          113.57578346,
+          22.161435516
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1923,
-            2243,
-            113.55850361165938,
-            22.165464229846293
-          ],
-          [
-            1934.2688179439774,
-            2248.302973150107,
-            113.55925822492334,
-            22.16502775908473
-          ],
-          [
-            1945.5568573684257,
-            2253.564703400812,
-            113.55968942841137,
-            22.164532226536465
-          ],
-          [
-            1957.1620816291363,
-            2257.891874634815,
-            113.55988045162265,
-            22.163888447578465
-          ],
-          [
-            1969.16520723027,
-            2261.0189210495387,
-            113.56012815329807,
-            22.16328812856057
-          ],
-          [
-            1980.4340251742472,
-            2266.3218941996456,
-            113.56063331573199,
-            22.162559954912282
-          ],
-          [
-            1992.4473948155776,
-            2269.0559243519474,
-            113.56128918953846,
-            22.162355220720993
-          ],
-          [
-            2004.8261179081685,
-            2270.4021764923473,
-            113.56188158228294,
-            22.162553485373707
-          ],
-          [
-            2017.0532690779332,
-            2269.556208834876,
-            113.56244862668652,
-            22.163326850096468
-          ],
-          [
-            2029.1302237722011,
-            2266.652197358644,
-            113.5633260796949,
-            22.16471199288786
-          ],
-          [
-            2033.1790191116195,
-            2272.134264333715,
-            113.56359976853068,
-            22.164398694792194
-          ],
-          [
-            2040.5789818543929,
-            2280,
-            113.56418549148937,
-            22.163904437993775
-          ],
-          [
-            2051.559016450393,
-            2283.559016450393,
-            113.56502371523275,
-            22.163873426773723
-          ],
-          [
-            2058.1975735386427,
-            2293.23830147705,
-            113.5654745814504,
-            22.163136387109567
-          ],
-          [
-            2069.141614402198,
-            2298.276107626813,
-            113.56618902050575,
-            22.162889220461008
-          ],
-          [
-            2081.563938645168,
-            2299.1563938645168,
-            113.56703471699072,
-            22.162782801166664
-          ],
-          [
-            2093.691707576315,
-            2298.523316969474,
-            113.56788653922608,
-            22.162622149795695
-          ],
-          [
-            2104.8431163119753,
-            2302.1064186422573,
-            113.56869117206774,
-            22.162208130171397
-          ],
-          [
-            2112.651130083289,
-            2311.787328690413,
-            113.56928141904996,
-            22.16158707481785
-          ],
-          [
-            2121.4341180800884,
-            2320.015508218222,
-            113.56988582642893,
-            22.161029850162436
-          ],
-          [
-            2133.201398775086,
-            2323.650174846886,
-            113.57070797260704,
-            22.16060786591066
-          ],
-          [
-            2145.490940405436,
-            2324.5030198648547,
-            113.57168401920282,
-            22.160312534284483
-          ],
-          [
-            2156.5977073484446,
-            2319.2325328088887,
-            113.57254615664522,
-            22.160355246344352
-          ],
-          [
-            2166.5197068825173,
-            2311.7165235186267,
-            113.5733119290269,
-            22.160628212088838
-          ],
-          [
-            2177.4699813193783,
-            2305.7863721275553,
-            113.57413905811644,
-            22.161169073596735
-          ],
-          [
-            2188.864710395809,
-            2301.199548552879,
-            113.57457008922363,
-            22.161916463856453
-          ],
-          [
-            2201,
-            2304,
-            113.57504696742504,
-            22.162481912106102
-          ]
+      "islandAffine": {
+        "island": "Large Taipa",
+        "summitControl": "Taipa Grande 大潭山",
+        "metresPerPixel": [
+          6.45,
+          5.86
         ],
-        "nearest": [
-          [
-            1923,
-            2243,
-            113.55850361501307,
-            22.16546422308348
-          ],
-          [
-            1934.2688179439774,
-            2248.302973150107,
-            113.55919209281947,
-            22.16505338067295
-          ],
-          [
-            1945.5568573684257,
-            2253.564703400812,
-            113.55968947524404,
-            22.164532294614848
-          ],
-          [
-            1957.1620816291363,
-            2257.891874634815,
-            113.56018614980081,
-            22.163789085932642
-          ],
-          [
-            1969.16520723027,
-            2261.0189210495387,
-            113.56012813609763,
-            22.163288144004326
-          ],
-          [
-            1980.4340251742472,
-            2266.3218941996456,
-            113.56061515153155,
-            22.16250226348073
-          ],
-          [
-            1992.4473948155776,
-            2269.0559243519474,
-            113.56128917854467,
-            22.16235516362647
-          ],
-          [
-            2004.8261179081685,
-            2270.4021764923473,
-            113.56191083277871,
-            22.16249622979448
-          ],
-          [
-            2017.0532690779332,
-            2269.556208834876,
-            113.56244859567472,
-            22.163326853886566
-          ],
-          [
-            2029.1302237722011,
-            2266.652197358644,
-            113.56345137114872,
-            22.164354193705023
-          ],
-          [
-            2033.1790191116195,
-            2272.134264333715,
-            113.56359975429274,
-            22.164398735451986
-          ],
-          [
-            2040.5789818543929,
-            2280,
-            113.56438338995856,
-            22.164425646791383
-          ],
-          [
-            2051.559016450393,
-            2283.559016450393,
-            113.56502371943334,
-            22.1638734275711
-          ],
-          [
-            2058.1975735386427,
-            2293.23830147705,
-            113.5654787069755,
-            22.163071223266027
-          ],
-          [
-            2069.141614402198,
-            2298.276107626813,
-            113.56618903959318,
-            22.16288923944577
-          ],
-          [
-            2081.563938645168,
-            2299.1563938645168,
-            113.56701666310481,
-            22.162757696458687
-          ],
-          [
-            2093.691707576315,
-            2298.523316969474,
-            113.56788653758063,
-            22.162622147708873
-          ],
-          [
-            2104.8431163119753,
-            2302.1064186422573,
-            113.5686799970316,
-            22.1621651086894
-          ],
-          [
-            2112.651130083289,
-            2311.787328690413,
-            113.56928143276986,
-            22.16158708032553
-          ],
-          [
-            2121.4341180800884,
-            2320.015508218222,
-            113.56979172241047,
-            22.16092713113619
-          ],
-          [
-            2133.201398775086,
-            2323.650174846886,
-            113.57070796781184,
-            22.16060785381344
-          ],
-          [
-            2145.490940405436,
-            2324.5030198648547,
-            113.57168401701313,
-            22.160309516377186
-          ],
-          [
-            2156.5977073484446,
-            2319.2325328088887,
-            113.5725461697816,
-            22.160355172578424
-          ],
-          [
-            2166.5197068825173,
-            2311.7165235186267,
-            113.57336637999323,
-            22.16053073649431
-          ],
-          [
-            2177.4699813193783,
-            2305.7863721275553,
-            113.57413911606487,
-            22.16116902458048
-          ],
-          [
-            2188.864710395809,
-            2301.199548552879,
-            113.57461784336695,
-            22.161928987894576
-          ],
-          [
-            2201,
-            2304,
-            113.57504685266929,
-            22.16248193083456
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": -0.51,
+        "outlineRmsM": 65.1,
+        "samples": 95,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -3804,180 +2892,75 @@
           22.157148469429483
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           2201,
           2304,
-          113.575046968,
-          22.162481919
+          113.57578346,
+          22.161435516
         ],
         [
           2198.187982499342,
           2317.122748336404,
-          113.575726877,
-          22.162214953
+          113.575629622,
+          22.160746961
         ],
         [
           2191.053218820603,
           2328.4201717690958,
-          113.575623856,
-          22.161440965
+          113.575202312,
+          22.160156634
         ],
         [
           2198.6337880569986,
           2335.8048268652856,
-          113.575580262,
-          22.161109278
+          113.57568892,
+          22.15976439
         ],
         [
           2204.3080933738074,
           2347.080933738073,
-          113.574792572,
-          22.159934446
+          113.576062826,
+          22.159168519
         ],
         [
           2201.903225473937,
           2359.6774199644487,
-          113.574697754,
-          22.159142696
+          113.575933572,
+          22.158507423
         ],
         [
           2200.331402350708,
           2371.2662804701417,
-          113.575186487,
-          22.158516706
+          113.575854734,
+          22.157898877
         ],
         [
           2213.491436776246,
           2373.898287355249,
-          113.575606739,
-          22.158168956
+          113.576682366,
+          22.157753633
         ],
         [
           2220,
           2384,
-          113.57612796,
-          22.157148475
+          113.577106485,
+          22.15721908
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            2201,
-            2304,
-            113.57504696742504,
-            22.162481912106102
-          ],
-          [
-            2198.187982499342,
-            2317.122748336404,
-            113.57563295392133,
-            22.162169053879378
-          ],
-          [
-            2191.053218820603,
-            2328.4201717690958,
-            113.57562380218208,
-            22.161440968257075
-          ],
-          [
-            2198.6337880569986,
-            2335.8048268652856,
-            113.57568800547463,
-            22.16105751913716
-          ],
-          [
-            2204.3080933738074,
-            2347.080933738073,
-            113.57479270637431,
-            22.159934380266105
-          ],
-          [
-            2201.903225473937,
-            2359.6774199644487,
-            113.5747958747665,
-            22.15920042200234
-          ],
-          [
-            2200.331402350708,
-            2371.2662804701417,
-            113.57518645520929,
-            22.158516684987507
-          ],
-          [
-            2213.491436776246,
-            2373.898287355249,
-            113.57586566895353,
-            22.15826314249108
-          ],
-          [
-            2220,
-            2384,
-            113.576127985815,
-            22.157148483024855
-          ]
+      "islandAffine": {
+        "island": "Large Taipa",
+        "summitControl": "Taipa Grande 大潭山",
+        "metresPerPixel": [
+          6.45,
+          5.86
         ],
-        "nearest": [
-          [
-            2201,
-            2304,
-            113.57504696827819,
-            22.162481923241895
-          ],
-          [
-            2198.187982499342,
-            2317.122748336404,
-            113.57578949273392,
-            22.162245552377545
-          ],
-          [
-            2191.053218820603,
-            2328.4201717690958,
-            113.57562389221113,
-            22.161440962305445
-          ],
-          [
-            2198.6337880569986,
-            2335.8048268652856,
-            113.57550843286434,
-            22.16114378416367
-          ],
-          [
-            2204.3080933738074,
-            2347.080933738073,
-            113.57479248273812,
-            22.159934489298568
-          ],
-          [
-            2201.903225473937,
-            2359.6774199644487,
-            113.57463233960243,
-            22.159104211883804
-          ],
-          [
-            2200.331402350708,
-            2371.2662804701417,
-            113.57518650839052,
-            22.15851671957278
-          ],
-          [
-            2213.491436776246,
-            2373.898287355249,
-            113.57543411982489,
-            22.15810616469615
-          ],
-          [
-            2220,
-            2384,
-            113.57612794336359,
-            22.157148469429483
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": -0.51,
+        "outlineRmsM": 65.1,
+        "samples": 95,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -4222,324 +3205,123 @@
           22.151682365473977
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           2220,
           2384,
-          113.57612796,
-          22.157148475
+          113.577106485,
+          22.15721908
         ],
         [
           2205.913349728099,
           2392.7824138093915,
-          113.575371304,
-          22.156316617
+          113.57624008,
+          22.156764614
         ],
         [
           2190.0813907393185,
           2396.2547082897836,
-          113.574639637,
-          22.156339516
+          113.575255573,
+          22.156590272
         ],
         [
           2174.5412861282593,
           2402.0611618495655,
-          113.573933037,
-          22.15678331
+          113.574293246,
+          22.156293045
         ],
         [
           2158.099682367406,
           2404.3455122968353,
-          113.573017929,
-          22.157206259
+          113.573268605,
+          22.156181485
         ],
         [
           2141.716832210951,
           2405.5722774036503,
-          113.572113017,
-          22.157162741
+          113.572245862,
+          22.156125504
         ],
         [
           2125.6950879877677,
           2402,
-          113.571083774,
-          22.157189766
+          113.571237638,
+          22.156321678
         ],
         [
           2116.4238079829543,
           2414.5761920170457,
-          113.570192197,
-          22.15707775
+          113.570678831,
+          22.155665223
         ],
         [
           2104.9079189913496,
           2426.2730202521625,
-          113.56916216,
-          22.156972094
+          113.569978137,
+          22.155056174
         ],
         [
           2089.3362211263525,
           2431.8505683882877,
-          113.568224028,
-          22.156555615
+          113.56901345,
+          22.154770999
         ],
         [
           2072.957236531273,
           2430.5531013705454,
-          113.567604444,
-          22.155999473
+          113.567986704,
+          22.154847745
         ],
         [
           2058.313084619667,
           2432.4819758229523,
-          113.567124182,
-          22.155168946
+          113.567073903,
+          22.154753941
         ],
         [
           2042.7044583521947,
           2433.8831666558885,
-          113.566667384,
-          22.154496417
+          113.566099883,
+          22.154688386
         ],
         [
           2029.868043015857,
           2443.923698889001,
-          113.566077744,
-          22.153767864
+          113.565313801,
+          22.154167116
         ],
         [
           2021.9650046880618,
           2457.6899968746256,
-          113.565434585,
-          22.153163776
+          113.564842583,
+          22.15344737
         ],
         [
           2011.2966535496098,
           2469.4880314809366,
-          113.564971921,
-          22.152457668
+          113.564195076,
+          22.152832559
         ],
         [
           2001,
           2482,
-          113.564381328,
-          22.15168236
+          113.56357202,
+          22.152180014
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            2220,
-            2384,
-            113.576127985815,
-            22.157148483024855
-          ],
-          [
-            2205.913349728099,
-            2392.7824138093915,
-            113.57541282905332,
-            22.156254435506177
-          ],
-          [
-            2190.0813907393185,
-            2396.2547082897836,
-            113.57463964094076,
-            22.15633953353047
-          ],
-          [
-            2174.5412861282593,
-            2402.0611618495655,
-            113.5738646052659,
-            22.15670931994766
-          ],
-          [
-            2158.099682367406,
-            2404.3455122968353,
-            113.57301792905373,
-            22.157206147881713
-          ],
-          [
-            2141.716832210951,
-            2405.5722774036503,
-            113.57211403741049,
-            22.15712151698772
-          ],
-          [
-            2125.6950879877677,
-            2402,
-            113.57108377308691,
-            22.15718977682593
-          ],
-          [
-            2116.4238079829543,
-            2414.5761920170457,
-            113.57019775354587,
-            22.15703627143372
-          ],
-          [
-            2104.9079189913496,
-            2426.2730202521625,
-            113.56916217931533,
-            22.156972005034547
-          ],
-          [
-            2089.3362211263525,
-            2431.8505683882877,
-            113.56825648551145,
-            22.1565267003663
-          ],
-          [
-            2072.957236531273,
-            2430.5531013705454,
-            113.56760446433891,
-            22.155999455326096
-          ],
-          [
-            2058.313084619667,
-            2432.4819758229523,
-            113.56719773982053,
-            22.15515686090935
-          ],
-          [
-            2042.7044583521947,
-            2433.8831666558885,
-            113.56666733118149,
-            22.154496452389868
-          ],
-          [
-            2029.868043015857,
-            2443.923698889001,
-            113.56597733992893,
-            22.1538217793944
-          ],
-          [
-            2021.9650046880618,
-            2457.6899968746256,
-            113.56543460385555,
-            22.1531637582335
-          ],
-          [
-            2011.2966535496098,
-            2469.4880314809366,
-            113.56488695227426,
-            22.152493772870656
-          ],
-          [
-            2001,
-            2482,
-            113.56438132041302,
-            22.15168235225231
-          ]
+      "islandAffine": {
+        "island": "Large Taipa",
+        "summitControl": "Taipa Grande 大潭山",
+        "metresPerPixel": [
+          6.45,
+          5.86
         ],
-        "nearest": [
-          [
-            2220,
-            2384,
-            113.57612794336359,
-            22.157148469429483
-          ],
-          [
-            2205.913349728099,
-            2392.7824138093915,
-            113.57534361990704,
-            22.156358071278763
-          ],
-          [
-            2190.0813907393185,
-            2396.2547082897836,
-            113.57463963365468,
-            22.156339505044787
-          ],
-          [
-            2174.5412861282593,
-            2402.0611618495655,
-            113.57397865756825,
-            22.156832636235116
-          ],
-          [
-            2158.099682367406,
-            2404.3455122968353,
-            113.57301792851119,
-            22.157206333720303
-          ],
-          [
-            2141.716832210951,
-            2405.5722774036503,
-            113.57211233593237,
-            22.157190223391165
-          ],
-          [
-            2125.6950879877677,
-            2402,
-            113.57108377497356,
-            22.157189759074942
-          ],
-          [
-            2116.4238079829543,
-            2414.5761920170457,
-            113.57018849255627,
-            22.15710540192112
-          ],
-          [
-            2104.9079189913496,
-            2426.2730202521625,
-            113.5691621471898,
-            22.156972153189727
-          ],
-          [
-            2089.3362211263525,
-            2431.8505683882877,
-            113.56820238959428,
-            22.156574890973225
-          ],
-          [
-            2072.957236531273,
-            2430.5531013705454,
-            113.56760443059355,
-            22.15599948538769
-          ],
-          [
-            2058.313084619667,
-            2432.4819758229523,
-            113.56707514291053,
-            22.15517700353547
-          ],
-          [
-            2042.7044583521947,
-            2433.8831666558885,
-            113.56666741891833,
-            22.154496392981372
-          ],
-          [
-            2029.868043015857,
-            2443.923698889001,
-            113.56614468001962,
-            22.153731920055414
-          ],
-          [
-            2021.9650046880618,
-            2457.6899968746256,
-            113.565434573091,
-            22.153163788213288
-          ],
-          [
-            2011.2966535496098,
-            2469.4880314809366,
-            113.56502856682017,
-            22.15243359742319
-          ],
-          [
-            2001,
-            2482,
-            113.56438133255467,
-            22.151682365473977
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": -0.51,
+        "outlineRmsM": 65.1,
+        "samples": 95,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -4632,144 +3414,63 @@
           22.15416351437727
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           2001,
           2482,
-          113.564381318,
-          22.151682356
+          113.56357202,
+          22.152180014
         ],
         [
           1991.9526385881695,
           2475.124221741071,
-          113.563708258,
-          22.152016122
+          113.562994515,
+          22.152546263
         ],
         [
           1987.054048267154,
           2464.1441287124107,
-          113.563306772,
-          22.152739667
+          113.56266963,
+          22.153126166
         ],
         [
           1978.5638085203677,
           2458,
-          113.562853965,
-          22.153451619
+          113.562128204,
+          22.153453654
         ],
         [
           1974.6731879046727,
           2449.6078254856075,
-          113.562467934,
-          22.154042842
+          113.561870722,
+          22.153896955
         ],
         [
           1965.2254475308941,
           2444,
-          113.561679663,
-          22.15418033
+          113.561270303,
+          22.154196741
         ],
         [
           1954,
           2440,
-          113.560642858,
-          22.154163512
+          113.560561386,
+          22.15441291
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            2001,
-            2482,
-            113.56438132041302,
-            22.15168235225231
-          ],
-          [
-            1991.9526385881695,
-            2475.124221741071,
-            113.56370958922291,
-            22.15201671839386
-          ],
-          [
-            1987.054048267154,
-            2464.1441287124107,
-            113.56330678609913,
-            22.152739676986943
-          ],
-          [
-            1978.5638085203677,
-            2458,
-            113.56269814923024,
-            22.153346969741076
-          ],
-          [
-            1974.6731879046727,
-            2449.6078254856075,
-            113.56246792533882,
-            22.154042785976543
-          ],
-          [
-            1965.2254475308941,
-            2444,
-            113.56168376139357,
-            22.15426783677278
-          ],
-          [
-            1954,
-            2440,
-            113.56064285795438,
-            22.15416350928666
-          ]
+      "islandAffine": {
+        "island": "Large Taipa",
+        "summitControl": "Taipa Grande 大潭山",
+        "metresPerPixel": [
+          6.45,
+          5.86
         ],
-        "nearest": [
-          [
-            2001,
-            2482,
-            113.5643813171246,
-            22.15168235931758
-          ],
-          [
-            1991.9526385881695,
-            2475.124221741071,
-            113.56370737015686,
-            22.152015724952953
-          ],
-          [
-            1987.054048267154,
-            2464.1441287124107,
-            113.56330676334778,
-            22.15273966028258
-          ],
-          [
-            1978.5638085203677,
-            2458,
-            113.56295784208051,
-            22.153521385315877
-          ],
-          [
-            1974.6731879046727,
-            2449.6078254856075,
-            113.56246793983794,
-            22.15404287885003
-          ],
-          [
-            1965.2254475308941,
-            2444,
-            113.56167692993365,
-            22.15412199212368
-          ],
-          [
-            1954,
-            2440,
-            113.5606428581631,
-            22.154163513742734
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": -0.51,
+        "outlineRmsM": 65.1,
+        "samples": 95,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -4898,180 +3599,75 @@
           22.15105982150498
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1954,
           2440,
-          113.560642849,
-          22.154163512
+          113.560561386,
+          22.15441291
         ],
         [
           1946.4568584530498,
           2443.3525073542,
-          113.559890741,
-          22.153906445
+          113.560095172,
+          22.154240554
         ],
         [
           1938.3911055571443,
           2444.826111805357,
-          113.559105131,
-          22.153542886
+          113.559593108,
+          22.154167266
         ],
         [
           1933.016971925949,
           2450.576239303671,
-          113.55839754,
-          22.153109414
+          113.559266605,
+          22.15386771
         ],
         [
           1928.5523953764591,
           2457.5161673976654,
-          113.557638826,
-          22.152714254
+          113.558998998,
+          22.153505119
         ],
         [
           1924.045922851916,
           2464.431115722126,
-          113.556971693,
-          22.152099926
+          113.558728728,
+          22.153143863
         ],
         [
           1916.845480955494,
           2467.1829446416896,
-          113.556383649,
-          22.151676314
+          113.558282941,
+          22.153002913
         ],
         [
           1910.291736331831,
           2471.5623955022534,
-          113.555667032,
-          22.151353652
+          113.557880345,
+          22.152776044
         ],
         [
           1904,
           2476,
-          113.555370947,
-          22.151059817
+          113.557494235,
+          22.15254598
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1954,
-            2440,
-            113.56064285795438,
-            22.15416350928666
-          ],
-          [
-            1946.4568584530498,
-            2443.3525073542,
-            113.55992366092252,
-            22.153780028798767
-          ],
-          [
-            1938.3911055571443,
-            2444.826111805357,
-            113.559105122856,
-            22.153542892424532
-          ],
-          [
-            1933.016971925949,
-            2450.576239303671,
-            113.55836033165879,
-            22.153188906179764
-          ],
-          [
-            1928.5523953764591,
-            2457.5161673976654,
-            113.55763884201083,
-            22.152714223664965
-          ],
-          [
-            1924.045922851916,
-            2464.431115722126,
-            113.55704676725496,
-            22.152062409777965
-          ],
-          [
-            1916.845480955494,
-            2467.1829446416896,
-            113.55638364227327,
-            22.151676318785636
-          ],
-          [
-            1910.291736331831,
-            2471.5623955022534,
-            113.55583540271581,
-            22.1513353084944
-          ],
-          [
-            1904,
-            2476,
-            113.55537095878029,
-            22.151059810189096
-          ]
+      "islandAffine": {
+        "island": "Large Taipa",
+        "summitControl": "Taipa Grande 大潭山",
+        "metresPerPixel": [
+          6.45,
+          5.86
         ],
-        "nearest": [
-          [
-            1954,
-            2440,
-            113.56064284236038,
-            22.15416351437727
-          ],
-          [
-            1946.4568584530498,
-            2443.3525073542,
-            113.55986879454498,
-            22.15399072299818
-          ],
-          [
-            1938.3911055571443,
-            2444.826111805357,
-            113.55910513691958,
-            22.153542882365567
-          ],
-          [
-            1933.016971925949,
-            2450.576239303671,
-            113.55842234623816,
-            22.15305641869287
-          ],
-          [
-            1928.5523953764591,
-            2457.5161673976654,
-            113.55763881493554,
-            22.152714274699644
-          ],
-          [
-            1924.045922851916,
-            2464.431115722126,
-            113.55692164384642,
-            22.15212493682757
-          ],
-          [
-            1916.845480955494,
-            2467.1829446416896,
-            113.55638365268534,
-            22.151676310715978
-          ],
-          [
-            1910.291736331831,
-            2471.5623955022534,
-            113.55555478429905,
-            22.151365880562835
-          ],
-          [
-            1904,
-            2476,
-            113.5553709388679,
-            22.15105982150498
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": -0.51,
+        "outlineRmsM": 65.1,
+        "samples": 95,
+        "appliedOn": "2026-09-24"
       }
     },
     {
@@ -5336,360 +3932,135 @@
           22.162631191131577
         ]
       ],
-      "method": "Broad 200 m arc-length registration followed by sparse 100 m normal corrections, moving 60% toward the closest historical-reference shore. This retains tangential spacing and reduces relief/colour-wash smearing, allowing small shoreline gaps instead of forcing every bend. Explicit prior positions, nearest targets and final samples retained.",
+      "method": "Whole-island affine: the island’s drawn outline is registered by one linear map about its summit control (rotation, scale and a single uniform stretch), fitted by iterative closest point to the DSSCU 1912 outline, with no local shoreline warping, so relief and colour wash are not pulled apart. Shoreline gaps to the reference remain by design.",
       "samples": [
         [
           1904,
           2476,
-          113.555370947,
-          22.151059817
+          113.557494235,
+          22.15254598
         ],
         [
           1902.153637604146,
           2464.2291008331695,
-          113.555316376,
-          22.151801931
+          113.557358948,
+          22.153165877
         ],
         [
           1901.514995952238,
           2452.4550121432862,
-          113.5552966,
-          22.152543998
+          113.557299202,
+          22.153785313
         ],
         [
           1906.6946017483522,
           2442.46022757237,
-          113.555905567,
-          22.153291635
+          113.557606401,
+          22.154308162
         ],
         [
           1911.9848391050314,
           2433.10612626478,
-          113.556484445,
-          22.153889096
+          113.557921597,
+          22.154797265
         ],
         [
           1917.2434664928765,
           2423.878266753562,
-          113.556737811,
-          22.154461018
+          113.558235027,
+          22.155279747
         ],
         [
           1924.0106375496332,
           2414.893624503667,
-          113.557221197,
-          22.154919347
+          113.558643232,
+          22.155748655
         ],
         [
           1925.429444586164,
           2403.0674993622624,
-          113.55745944,
-          22.155554031
+          113.5587121,
+          22.156369757
         ],
         [
           1928.3455664055032,
           2391.5147786483226,
-          113.558320013,
-          22.156308528
+          113.55887509,
+          22.156975703
         ],
         [
           1927.8353192931063,
           2380.2275181149503,
-          113.558891423,
-          22.157003989
+          113.558824195,
+          22.157569474
         ],
         [
           1920.8658962105924,
           2370.7049716633032,
-          113.558580485,
-          22.157878201
+          113.558372222,
+          22.158073814
         ],
         [
           1915.9797027359484,
           2359.837621887588,
-          113.557791461,
-          22.158617412
+          113.558048301,
+          22.158647782
         ],
         [
           1912.5856028058977,
           2348.780803741197,
-          113.557265587,
-          22.159124673
+          113.557817398,
+          22.159230936
         ],
         [
           1905.084132138931,
           2339.5247224444925,
-          113.55569412,
-          22.159597291
+          113.557332592,
+          22.159721542
         ],
         [
           1900.8992470790056,
           2328.845106013536,
-          113.555496475,
-          22.159811553
+          113.557052856,
+          22.160285273
         ],
         [
           1896.0432190210083,
           2318.477964595438,
-          113.555681558,
-          22.160561742
+          113.556731664,
+          22.160832924
         ],
         [
           1890.4323353865673,
           2308.2052695411944,
-          113.55602807,
-          22.16117975
+          113.556363411,
+          22.161376001
         ],
         [
           1882.7375251284548,
           2299.203592967247,
-          113.555521842,
-          22.16206681
+          113.555866938,
+          22.16185333
         ],
         [
           1879,
           2289,
-          113.555168775,
-          22.162631236
+          113.555615987,
+          22.162391799
         ]
       ],
       "sourceReading": "Retraced on the native scan with a coordinate grid at 2x to 3x inspection scale, following the land boundary ink rather than the seaward colour wash or hatch strokes.",
-      "normalCorrection": {
-        "strength": 0.6,
-        "prior": [
-          [
-            1904,
-            2476,
-            113.55537095878029,
-            22.151059810189096
-          ],
-          [
-            1902.153637604146,
-            2464.2291008331695,
-            113.55523588580114,
-            22.15177811396565
-          ],
-          [
-            1901.514995952238,
-            2452.4550121432862,
-            113.55529660904335,
-            22.152543997010863
-          ],
-          [
-            1906.6946017483522,
-            2442.46022757237,
-            113.55593365994861,
-            22.153265793872333
-          ],
-          [
-            1911.9848391050314,
-            2433.10612626478,
-            113.55648443172399,
-            22.153889106805696
-          ],
-          [
-            1917.2434664928765,
-            2423.878266753562,
-            113.55677384039278,
-            22.154422969771467
-          ],
-          [
-            1924.0106375496332,
-            2414.893624503667,
-            113.55722121674086,
-            22.15491932861978
-          ],
-          [
-            1925.429444586164,
-            2403.0674993622624,
-            113.55741172651878,
-            22.155611514328005
-          ],
-          [
-            1928.3455664055032,
-            2391.5147786483226,
-            113.55832000739646,
-            22.156308533440672
-          ],
-          [
-            1927.8353192931063,
-            2380.2275181149503,
-            113.55904053944985,
-            22.157048117594478
-          ],
-          [
-            1920.8658962105924,
-            2370.7049716633032,
-            113.55858044825642,
-            22.157878196426058
-          ],
-          [
-            1915.9797027359484,
-            2359.837621887588,
-            113.55785951459897,
-            22.158666878531683
-          ],
-          [
-            1912.5856028058977,
-            2348.780803741197,
-            113.55726558174315,
-            22.159124665014517
-          ],
-          [
-            1905.084132138931,
-            2339.5247224444925,
-            113.55562014179431,
-            22.159388449146473
-          ],
-          [
-            1900.8992470790056,
-            2328.845106013536,
-            113.55549649475854,
-            22.159811609891033
-          ],
-          [
-            1896.0432190210083,
-            2318.477964595438,
-            113.55577364491799,
-            22.160407627701453
-          ],
-          [
-            1890.4323353865673,
-            2308.2052695411944,
-            113.55602806312969,
-            22.16117975254951
-          ],
-          [
-            1882.7375251284548,
-            2299.203592967247,
-            113.55544897762206,
-            22.162036307532297
-          ],
-          [
-            1879,
-            2289,
-            113.55516869385899,
-            22.162631302872594
-          ]
+      "islandAffine": {
+        "island": "Large Taipa",
+        "summitControl": "Taipa Grande 大潭山",
+        "metresPerPixel": [
+          6.45,
+          5.86
         ],
-        "nearest": [
-          [
-            1904,
-            2476,
-            113.5553709388679,
-            22.15105982150498
-          ],
-          [
-            1902.153637604146,
-            2464.2291008331695,
-            113.55537003616128,
-            22.151817808239617
-          ],
-          [
-            1901.514995952238,
-            2452.4550121432862,
-            113.55529659331181,
-            22.15254399841426
-          ],
-          [
-            1906.6946017483522,
-            2442.46022757237,
-            113.55588683762464,
-            22.1533088629121
-          ],
-          [
-            1911.9848391050314,
-            2433.10612626478,
-            113.55648445310223,
-            22.153889088153957
-          ],
-          [
-            1917.2434664928765,
-            2423.878266753562,
-            113.55671379123055,
-            22.154486383912236
-          ],
-          [
-            1924.0106375496332,
-            2414.893624503667,
-            113.5572211843784,
-            22.15491935926495
-          ],
-          [
-            1925.429444586164,
-            2403.0674993622624,
-            113.55749124947685,
-            22.155515709295646
-          ],
-          [
-            1928.3455664055032,
-            2391.5147786483226,
-            113.55832001756231,
-            22.156308524976296
-          ],
-          [
-            1927.8353192931063,
-            2380.2275181149503,
-            113.55879201248601,
-            22.156974570173723
-          ],
-          [
-            1920.8658962105924,
-            2370.7049716633032,
-            113.55858050994813,
-            22.15787820378924
-          ],
-          [
-            1915.9797027359484,
-            2359.837621887588,
-            113.55774609157473,
-            22.15858443441581
-          ],
-          [
-            1912.5856028058977,
-            2348.780803741197,
-            113.5572655912742,
-            22.159124678626572
-          ],
-          [
-            1905.084132138931,
-            2339.5247224444925,
-            113.55574343871604,
-            22.15973651844009
-          ],
-          [
-            1900.8992470790056,
-            2328.845106013536,
-            113.55549646132566,
-            22.159811515509443
-          ],
-          [
-            1896.0432190210083,
-            2318.477964595438,
-            113.55562016673856,
-            22.16066448451298
-          ],
-          [
-            1890.4323353865673,
-            2308.2052695411944,
-            113.55602807454169,
-            22.16117974884023
-          ],
-          [
-            1882.7375251284548,
-            2299.203592967247,
-            113.55557041905865,
-            22.16208714514684
-          ],
-          [
-            1879,
-            2289,
-            113.55516882949786,
-            22.162631191131577
-          ]
-        ],
-        "baseControlSpacingM": 200,
-        "refinementSpacingM": 100
+        "rotationDeg": -0.51,
+        "outlineRmsM": 65.1,
+        "samples": 95,
+        "appliedOn": "2026-09-24"
       }
     },
     {
