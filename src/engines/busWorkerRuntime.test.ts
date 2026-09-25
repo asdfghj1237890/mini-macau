@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { attachBusJunctions } from './busJunctions'
 import type { BusRoute, BusStop } from '../types'
 import { BusWorkerRuntime } from './busWorkerRuntime'
 import { BusTrafficController } from './busTraffic'
@@ -8,6 +9,7 @@ import { BusPlayback } from './busPlayback'
 import { busesConflict } from './busTraffic'
 
 const routes: BusRoute[] = JSON.parse(readFileSync(new URL('../../public/data/bus-routes.json', import.meta.url), 'utf8'))
+attachBusJunctions(routes, JSON.parse(readFileSync(new URL('../../public/data/bus-junctions.json', import.meta.url), 'utf8')))
 const stops: BusStop[] = JSON.parse(readFileSync(new URL('../../public/data/bus-stops.json', import.meta.url), 'utf8'))
 
 describe('bus worker replay', () => {

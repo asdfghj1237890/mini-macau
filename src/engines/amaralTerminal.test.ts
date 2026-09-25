@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { describe, expect, it } from 'vitest'
+import { attachBusJunctions } from './busJunctions'
 import type { BusRoute, BusStop, TransitData } from '../types'
 import { sampleBusPose, computeBusOnly } from './simulationEngine'
 import { BusTrafficController, busesConflict } from './busTraffic'
@@ -8,6 +9,7 @@ import { BusTraceRecorder } from './busMotionTrace'
 import { busLaneLayout } from './busLaneGeometry'
 
 const routes: BusRoute[] = JSON.parse(readFileSync(new URL('../../public/data/bus-routes.json', import.meta.url), 'utf8'))
+attachBusJunctions(routes, JSON.parse(readFileSync(new URL('../../public/data/bus-junctions.json', import.meta.url), 'utf8')))
 const stops: BusStop[] = JSON.parse(readFileSync(new URL('../../public/data/bus-stops.json', import.meta.url), 'utf8'))
 const mx = 111320 * Math.cos(22.19 * Math.PI / 180)
 const distance = (a: number[], b: number[]) => Math.hypot((a[0] - b[0]) * mx, (a[1] - b[1]) * 111320)

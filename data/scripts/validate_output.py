@@ -333,7 +333,12 @@ def check_bus_road_profile(errs, ctx, profile, coords):
             errs.append(f"{name}: invalid minLaneOffsetM")
     if previous != len(coords) - 1:
         errs.append(f"{ctx}: roadProfile does not cover the geometry")
-    junctions = profile.get("junctions", [])
+    if "junctions" in profile:
+        errs.append(f"{ctx}: junction spans belong in bus-junctions.json; run node scripts/build-bus-road-profile.mjs")
+
+
+def check_bus_junctions(errs, ctx, junctions):
+    """Mirrors busJunction in dataSchemas.ts."""
     if not isinstance(junctions, list):
         errs.append(f"{ctx}: invalid junctions")
         return
@@ -346,6 +351,38 @@ def check_bus_road_profile(errs, ctx, profile, coords):
             errs.append(f"{ctx}: invalid junction interval")
         if "bearing" in junction and (type(junction["bearing"]) not in (int, float) or not 0 <= junction["bearing"] <= 360):
             errs.append(f"{ctx}: invalid junction bearing")
+
+
+def v_bus_junctions(data: object) -> list[str]:
+    """public/data/bus-junctions.json: one entry per profiled route, matching
+    its geometryKey (mirrors BusJunctionsFileSchema; the key check needs bus-routes.json)."""
+    errs: list[str] = []
+    if not isinstance(data, dict) or data.get("version") != 1 or not isinstance(data.get("routes"), dict):
+        return ["bus-junctions: expected {version: 1, routes: {...}}"]
+    try:
+        routes = json.loads((PUBLIC / "data/bus-routes.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as e:
+        return [f"bus-junctions: cannot read bus-routes.json ({e})"]
+    profiles = {
+        r["id"]: r["roadProfile"]
+        for r in routes
+        if isinstance(r, dict) and isinstance(r.get("id"), str) and isinstance(r.get("roadProfile"), dict)
+    }
+    for rid, entry in data["routes"].items():
+        ctx = f"bus-junctions[{rid}]"
+        if rid not in profiles:
+            errs.append(f"{ctx}: no profiled route with this id in bus-routes.json")
+            continue
+        if not isinstance(entry, dict):
+            errs.append(f"{ctx}: expected {{geometryKey, junctions}}")
+            continue
+        if entry.get("geometryKey") != profiles[rid].get("geometryKey"):
+            errs.append(f"{ctx}: stale geometryKey; run node scripts/build-bus-road-profile.mjs")
+        check_bus_junctions(errs, ctx, entry.get("junctions"))
+    for rid in profiles:
+        if rid not in data["routes"]:
+            errs.append(f"bus-junctions: route {rid} has a roadProfile but no junction entry")
+    return errs
 
 
 def v_bus_routes(data: object) -> list[str]:
@@ -3337,6 +3374,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "trips-friday": (SRC_DATA / "trips-friday.json", v_trips),
     "trips-sat_sun": (SRC_DATA / "trips-sat_sun.json", v_trips),
     "bus-routes": (PUBLIC / "data/bus-routes.json", v_bus_routes),
+    "bus-junctions": (PUBLIC / "data/bus-junctions.json", v_bus_junctions),
     "bus-stops": (PUBLIC / "data/bus-stops.json", v_bus_stops),
     "flights": (PUBLIC / "data/flights.json", v_flights),
     "flights-timetable": (PUBLIC / "data/flights-timetable.json", v_flights_timetable),

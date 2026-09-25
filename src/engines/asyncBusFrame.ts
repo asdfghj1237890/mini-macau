@@ -1,4 +1,4 @@
-import type { BusRoute, TransitData, VehiclePosition } from '../types'
+import type { BusJunction, BusRoute, TransitData, VehiclePosition } from '../types'
 import { BusTrafficController } from './busTraffic'
 import { computeBusOnly } from './simulationEngine'
 import type { BusWorkerReply, BusWorkerRequest } from './busWorkerRuntime'
@@ -36,6 +36,8 @@ export class AsyncBusFrame {
   private pendingId: number | null = null
   private routeKeys = new WeakMap<BusRoute, number>()
   private nextRouteKey = 1
+  private junctionSpans = new WeakMap<BusRoute, BusJunction[] | undefined>()
+  private pendingJunctions: [number, BusJunction[]][] = []
   private sentRoutes: BusData['busRoutes'] | null = null
   private sentStops: BusData['busStops'] | null = null
   private data: BusData | null = null
@@ -96,6 +98,21 @@ export class AsyncBusFrame {
       this.playback.clear()
       this.playback.accept(this.vehicles, undefined, now, 0)
     }
+    // bus-junctions.json loads after the routes and is attached to the same
+    // objects in place, so sameRoutes cannot see it. Forward the spans of
+    // routes the worker already holds, and restart the queues as a seek does:
+    // no bus may stay inside a junction it never reserved.
+    let attached = false
+    for (const route of data.busRoutes) {
+      const spans = route.roadProfile?.junctions
+      // First sighting: the route itself carries whatever spans it has.
+      if (!this.junctionSpans.has(route)) { this.junctionSpans.set(route, spans); continue }
+      if (this.junctionSpans.get(route) === spans) continue
+      this.junctionSpans.set(route, spans)
+      const key = this.routeKeys.get(route)
+      if (spans && key !== undefined) { this.pendingJunctions.push([key, spans]); attached = true }
+    }
+    if (attached) this.reset = true
     this.data = data
     this.lastInputMs = simMs
     this.lastInputAt = now
@@ -131,6 +148,8 @@ export class AsyncBusFrame {
       this.completed = null
     }
     if (this.fallback) {
+      // The synchronous controller reads the attached spans directly.
+      this.pendingJunctions = []
       if (this.reset) { this.fallback = new BusTrafficController(); this.reset = false }
       if (this.requestedMs !== simMs) {
         this.vehicles = computeBusOnly(data, new Date(simMs), this.fallback)
@@ -174,6 +193,7 @@ export class AsyncBusFrame {
           })
           this.sentRoutes = data.busRoutes
         }
+        if (this.pendingJunctions.length) { request.junctions = this.pendingJunctions; this.pendingJunctions = [] }
         if (this.sentStops !== data.busStops) { request.stops = data.busStops; this.sentStops = data.busStops }
         this.pendingId = request.id
         this.requestedMs = targetMs

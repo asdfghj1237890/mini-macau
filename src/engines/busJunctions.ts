@@ -1,4 +1,19 @@
-import type { BusRoadProfile } from '../types'
+import type { BusJunctionFile, BusRoadProfile, BusRoute } from '../types'
+
+/** Attach the spans of bus-junctions.json to already-loaded routes, in place,
+ * so every cache keyed by the route object stays valid (a new route object
+ * would re-place every bus). Spans whose geometryKey no longer matches the
+ * route's profile are stale and skipped. Returns how many routes changed. */
+export function attachBusJunctions(routes: BusRoute[], file: BusJunctionFile): number {
+  let attached = 0
+  for (const route of routes) {
+    const entry = file.routes[route.id], profile = route.roadProfile
+    if (!entry || !profile || entry.geometryKey !== profile.geometryKey || profile.junctions === entry.junctions) continue
+    profile.junctions = entry.junctions
+    attached++
+  }
+  return attached
+}
 
 export interface BusPassage {
   keys: string[]; entryM: number; exitM: number; approaches?: Record<string, number>

@@ -6,6 +6,7 @@ import type { TransitData } from '../types'
 import { BusTrafficController, busesConflict } from './busTraffic'
 import { computeVehiclePositions } from './simulationEngine'
 import { progressWaitGroups } from './busWaitGroups'
+import { attachBusJunctions } from './busJunctions'
 import kerbTurn from './__fixtures__/bus-kerb-turn.json'
 
 // Public bus geometry only. These regressions need no timetable API or LRT data.
@@ -19,6 +20,7 @@ const data: TransitData = {
   powerFacilities: [], powerNetwork: null, powerFacts: null,
   grandPrix: null, grandPrixSources: [], loading: false,
 }
+attachBusJunctions(data.busRoutes, JSON.parse(readFileSync(new URL('../../public/data/bus-junctions.json', import.meta.url), 'utf8')))
 
 describe('citywide bus traffic replay', () => {
   it('clears a kerb-lane turn with closely queued followers without changing lanes', () => {

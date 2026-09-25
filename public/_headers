@@ -1,3 +1,8 @@
+# Vite writes every file here with a content hash in its name, so a changed
+# file always gets a new URL and a cached copy never needs revalidating.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
 /data/*
   X-Robots-Tag: noindex, nofollow
 

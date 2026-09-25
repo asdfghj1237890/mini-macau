@@ -85,33 +85,72 @@ const busRoadSection = z.object({
   if (section.kind === 'divided' && (!section.pairedWayId || section.evidence !== 'paired-geometry')) ctx.addIssue({ code: 'custom', message: 'Missing carriageway pair' })
 })
 
-export const BusRoutesSchema = z.array(
+const busJunction = z.object({ id: z.string().min(1), start: z.number().min(0).max(1), end: z.number().min(0).max(1), bearing: z.number().min(0).max(360).optional() })
+  .refine(j => j.end > j.start, 'Empty junction span')
+
+const busRoadProfileShape = {
+  version: z.literal(1), geometryKey: z.string().regex(/^\d+:[0-9a-f]{8}$/), fetchedAtUtc: z.iso.datetime(),
+}
+
+const busRouteShape = {
+  id: z.string(),
+  name: z.string(),
+  nameCn: z.string(),
+  namePt: z.string().optional(),
+  color: z.string(),
+  stopsForward: z.array(z.string()),
+  stopsBackward: z.array(z.string()),
+  stopOffsets: z.array(z.number().int().nonnegative()),
+  directionSplitIndex: z.number().int().nonnegative(),
+  geometry: lineFeature,
+  frequency: z.number(),
+  roadProfile: z.object({
+    ...busRoadProfileShape, sections: z.array(busRoadSection).nonempty(),
+    junctions: z.array(busJunction).optional(),
+  }).optional(),
+  serviceHoursStart: z.number().nullable(),
+  serviceHoursEnd: z.number().nullable(),
+  serviceHoursStartSat: z.number().nullable().optional(),
+  serviceHoursEndSat: z.number().nullable().optional(),
+  serviceHoursStartSun: z.number().nullable().optional(),
+  serviceHoursEndSun: z.number().nullable().optional(),
+  routeType: z.enum(['bilateral', 'circular']),
+}
+
+// The app's own load of bus-routes.json checks only the shape of its large
+// arrays. The full schema below visits every vertex and road section — 0.1–0.2 s
+// on a desktop and several times that on a phone — for a tripwire whose result
+// `parseData` only logs. The committed file already passes the full schema in
+// the unit tests and at build time (plugins/seo-content), and
+// validate_output.py in CI.
+export const BusRoutesRuntimeSchema = z.array(
   z.object({
-    id: z.string(),
-    name: z.string(),
-    nameCn: z.string(),
-    namePt: z.string().optional(),
-    color: z.string(),
-    stopsForward: z.array(z.string()),
-    stopsBackward: z.array(z.string()),
-    stopOffsets: z.array(z.number().int().nonnegative()),
-    directionSplitIndex: z.number().int().nonnegative(),
-    geometry: lineFeature,
-    frequency: z.number(),
+    ...busRouteShape,
+    geometry: z.object({
+      type: z.literal('Feature'),
+      geometry: z.object({ type: z.literal('LineString'), coordinates: z.array(z.unknown()).min(2) }),
+    }),
     roadProfile: z.object({
-      version: z.literal(1), geometryKey: z.string().regex(/^\d+:[0-9a-f]{8}$/),
-      fetchedAtUtc: z.iso.datetime(), sections: z.array(busRoadSection).nonempty(),
-      junctions: z.array(z.object({ id: z.string().min(1), start: z.number().min(0).max(1), end: z.number().min(0).max(1), bearing: z.number().min(0).max(360).optional() })
-        .refine(j => j.end > j.start, 'Empty junction span')).optional(),
+      ...busRoadProfileShape, sections: z.array(z.unknown()).nonempty(), junctions: z.array(z.unknown()).optional(),
     }).optional(),
-    serviceHoursStart: z.number().nullable(),
-    serviceHoursEnd: z.number().nullable(),
-    serviceHoursStartSat: z.number().nullable().optional(),
-    serviceHoursEndSat: z.number().nullable().optional(),
-    serviceHoursStartSun: z.number().nullable().optional(),
-    serviceHoursEndSun: z.number().nullable().optional(),
-    routeType: z.enum(['bilateral', 'circular']),
-  }).superRefine((route, ctx) => {
+  }),
+)
+
+// public/data/bus-junctions.json. Mirrors v_bus_junctions in validate_output.py,
+// which also checks each geometryKey against bus-routes.json.
+export const BusJunctionsFileSchema = z.object({
+  version: z.literal(1),
+  routes: z.record(z.string(), z.object({ geometryKey: z.string().regex(/^\d+:[0-9a-f]{8}$/), junctions: z.array(busJunction) })),
+})
+
+// The app's load of the same file: shape only, for the reason given above.
+export const BusJunctionsRuntimeSchema = z.object({
+  version: z.literal(1),
+  routes: z.record(z.string(), z.object({ geometryKey: z.string(), junctions: z.array(z.unknown()) })),
+})
+
+export const BusRoutesSchema = z.array(
+  z.object(busRouteShape).superRefine((route, ctx) => {
     const profile = route.roadProfile
     if (!profile) return
     let hash = 2166136261

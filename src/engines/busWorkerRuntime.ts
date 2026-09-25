@@ -1,4 +1,4 @@
-import type { BusRoute, BusStop, VehiclePosition } from '../types'
+import type { BusJunction, BusRoute, BusStop, VehiclePosition } from '../types'
 import { BusTrafficController } from './busTraffic'
 import { computeBusOnly } from './simulationEngine'
 import { BusTraceRecorder, type BusDetailView, type BusMotionTrace } from './busMotionTrace'
@@ -11,6 +11,8 @@ export type BusWorkerRequest = {
   reset: boolean
   hold?: boolean
   routes?: [number, BusRoute][]
+  // Junction spans attached on the main thread after the route was sent.
+  junctions?: [number, BusJunction[]][]
   routeKeys?: number[]
   stops?: BusStop[]
   view?: BusDetailView
@@ -39,6 +41,11 @@ export class BusWorkerRuntime {
     }
     for (const [key, route] of request.routes ?? []) {
       this.routes.set(key, route)
+    }
+    // In place, like the main thread, so the route's other caches survive.
+    for (const [key, junctions] of request.junctions ?? []) {
+      const profile = this.routes.get(key)?.roadProfile
+      if (profile) profile.junctions = junctions
     }
     if (request.routeKeys) this.data.busRoutes = request.routeKeys.map(key => {
       const route = this.routes.get(key)

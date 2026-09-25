@@ -468,6 +468,7 @@ mini-macau/
 │   │   ├── lrt-lines.json
 │   │   ├── stations.json
 │   │   ├── bus-routes.json
+│   │   ├── bus-junctions.json
 │   │   ├── bus-stops.json
 │   │   ├── flights.json          # MFM flight schedules (with localized names)
 │   │   ├── flights-timetable.json # Multi-day (7-day) MFM flight timetable, merged with flights.json
@@ -616,6 +617,20 @@ Once the cadence was fixed, that iPhone X still re-tiled ~450 tiles a second at 
 - **MapLibre 6's `zoomLevelsToOverscale` is switched off** (`undefined`, the v5 behaviour). Its default of 4 slices a vector source's z14 tiles into sub-tiles down to z18 instead of scaling the one parent tile; at zoom 16 / pitch 45 that was 44 tile loads instead of 8 and 2.3× the live GPU buffers for the same view.
 
 Measured on the same phone at the same view: 457 → 110 tile reloads a second, 60 fps, no shader failures in that run. Later device tests still lost context on pure basemaps at DPR 1; these load reductions are not a demonstrated fix for persistent context loss (see the recovery investigation above). See [`MapView.tsx`](src/components/MapView.tsx) (`HEAVY_TICK_MS_PHONE`, `writeGrandPrixWake`, `zoomLevelsToOverscale`) and [`RaceCar3DLayer.ts`](src/layers/RaceCar3DLayer.ts) (`setPose`).
+
+</details>
+
+<details>
+<summary><strong>A smaller startup download</strong></summary>
+
+`bus-routes.json` was the largest file on first load (about 1.1 MB compressed, more than MapLibre itself). The junction spans only matter for street-level bus traffic, so they now live in `bus-junctions.json`, which loads after the core data with low fetch priority and is attached to the already-loaded route objects in place (`attachBusJunctions`); the bus worker receives them in its next request and restarts its queues once. The startup file shrinks from about 1,001 KB to 642 KB compressed (brotli at the quality a CDN uses on the fly), and the junctions (about 309 KB) follow in the background. The app also checks this file's shape only at runtime (`BusRoutesRuntimeSchema`, about 12 ms instead of 150 ms on a desktop): the full schema still runs in the unit tests, at build time and in `validate_output.py`. Hashed files under `/assets/` are served `immutable` for a year.
+
+</details>
+
+<details>
+<summary><strong>Water and power layers are built on first use</strong></summary>
+
+Both utilities default to off, yet their ~180 style layers and 11 sources were created with every map style. They are now added the first time each overlay is switched on, under fixed neighbouring layers so the final order is identical whichever comes first; the default style drops from 319 layers to 151. With the other changes above, a phone-profile comparison of the old and new builds (4× CPU, same local files) measured startup main-thread blocking falling from about 3.2 s to 1.8 s, the JS heap from about 78 MB to 56 MB, and steady-state main-thread time falling 8–11%.
 
 </details>
 

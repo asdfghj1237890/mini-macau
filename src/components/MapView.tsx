@@ -1722,6 +1722,11 @@ const POWER_NETWORK_LAYERS: readonly string[] = [
 ]
 
 // Shared sources follow only their own layer selection, never a city mode.
+// The first of `ids` present in the style, or undefined (append on top).
+function firstExistingLayer(m: maplibregl.Map, ids: string[]): string | undefined {
+  return ids.find(id => m.getLayer(id))
+}
+
 function applyNetworkVisibility(m: maplibregl.Map, water: boolean, power: boolean, data: TransitData): void {
   applyOverlayVisibility(m, { water, power, buses: data.busRoutes.length > 0, lrt: data.lrtLines.length > 0 }, {
     water: WATER_NETWORK_LAYERS, power: POWER_NETWORK_LAYERS,
@@ -2315,6 +2320,8 @@ export function MapView(props: MapViewProps) {
   }, [])
 
   const addCustomLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
+  const addWaterLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
+  const addPowerLayersRef = useRef<((map: maplibregl.Map) => void) | null>(null)
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -2529,6 +2536,581 @@ export function MapView(props: MapViewProps) {
       }
     }
 
+    // WATER and POWER add their layers the first time each is switched on,
+    // not with every style: switched off, their ~180 layers and 11 sources
+    // were carried for nothing (on a phone profile, 2026-09-25, MapLibre spent
+    // about 11% less time per frame without them). Each group goes in under
+    // fixed neighbours, so the order is the same whichever overlay comes first:
+    // water under power, both under the waste areas, and both marker sets under
+    // the grand prix corners. Once added they stay; switched off, their data is
+    // emptied like any other overlay.
+    const addWaterLayers = (m: maplibregl.Map) => {
+      if (m.getSource(WATER_SURFACES_SOURCE_ID)) return
+      const dark = isDarkRef.current
+      const waterMotion = waterMotionColors(dark)
+      const currentLang = langRef.current
+      let before = firstExistingLayer(m, [POWER_DISTRIBUTION_GLOW_LAYER_ID, WASTE_AREAS_LAYER_ID])
+      // Macao Water. Seeded from transitRef, not a closure, so a theme swap
+      // long after water-facilities.json landed still redraws it. Order
+      // matters: the reservoir surfaces are a flat fill and go in FIRST, so the extruded
+      // blocks of a plant standing beside a reservoir draw over the water
+      // rather than under it.
+      m.addSource(WATER_SURFACES_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterSurfaceFeatures(transitRef.current.waterFacilities),
+      })
+      m.addLayer({
+        id: WATER_SURFACES_LAYER_ID, type: 'fill', source: WATER_SURFACES_SOURCE_ID,
+        paint: {
+          'fill-color': ['get', 'color'],
+          'fill-opacity': WATER_SURFACE_OPACITY,
+          // A reservoir reads as an area, not an object — a hairline rim is
+          // enough to separate it from the basemap's own water polygon.
+          'fill-outline-color': ['get', 'color'],
+        },
+      }, before)
+      // The distribution network, first of the pipe layers so the trunk mains
+      // draw over it. Seeded from the ref, which is empty until the lazy fetch
+      // lands — the source is created regardless so the layers exist, and the
+      // [waterDistributionRoads] effect fills them in when the file arrives.
+      // Visibility is seeded from the layer flag: unlike the other water layers
+      // this data is CACHED once fetched, so emptying it is not the "off"
+      // mechanism — layout visibility is (see applyNetworkVisibility).
+      const roadVisibility = waterVisibleRef.current ? 'visible' : 'none'
+      m.addSource(WATER_DISTRIBUTION_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterDistributionFeatures(waterDistributionRef.current),
+      })
+      m.addLayer({
+        id: WATER_DISTRIBUTION_GLOW_LAYER_ID, type: 'line',
+        source: WATER_DISTRIBUTION_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: roadVisibility },
+        paint: {
+          'line-color': waterMotion.glow,
+          'line-opacity': 0.12,
+          'line-width': distributionWidth(3, 5),
+        },
+      }, before)
+      m.addLayer({
+        id: WATER_DISTRIBUTION_LAYER_ID, type: 'line',
+        source: WATER_DISTRIBUTION_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: roadVisibility },
+        paint: {
+          'line-color': waterMotion.mesh,
+          'line-opacity': 0.7,
+          'line-width': distributionWidth(0.8, 1.6),
+        },
+      }, before)
+      // Desktop only. The trunk layers are added after this, so on a fresh
+      // style there is no `water-pipes-glow` to sit under yet — hence the
+      // group anchor as the fallback, which lands it in the same slot.
+      if (isDesktopRef.current) {
+        addDistributionFlowLayer(m, waterVisibleRef.current, dark, before)
+      }
+      // The mesh half of the pulse, on every viewport: plain (undashed) lines
+      // partitioned by bucket cost one extra copy of the mesh, not the dash
+      // textures that keep the dots desktop-only. Seeded from the ref like the
+      // source above — empty until the lazy fetch lands.
+      addDistributionPulseLayers(m, waterVisibleRef.current, dark, before)
+      waterPulseCountsRef.current.mesh = waterDistributionBucketCount(waterDistributionRef.current)
+
+      // The pipe network, between the reservoir fills and the facility blocks:
+      // over the water (so a pipe crossing a reservoir stays readable) and under
+      // every block and marker, which are the things a user clicks. Four layers,
+      // glow first — see the WATER_PIPES_* constants for why the dashed core
+      // cannot just be a paint expression on the solid one, and why the treated
+      // core needs a separate layer to show its flow.
+      m.addSource(WATER_PIPES_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterPipeFeatures(transitRef.current.waterNetwork),
+      })
+      m.addLayer({
+        id: WATER_PIPES_GLOW_LAYER_ID, type: 'line', source: WATER_PIPES_SOURCE_ID,
+        layout: {
+          'line-cap': 'round', 'line-join': 'round',
+          // Treated water over raw where the two share a street.
+          'line-sort-key': ['get', 'sortKey'],
+        },
+        paint: {
+          'line-color': waterMotion.glow,
+          'line-opacity': WATER_PIPE_GLOW_OPACITY,
+          'line-width': WATER_TRUNK_GLOW_WIDTH,
+        },
+      }, before)
+      // Raw water, plus any pipe whose OSRM lookup fell back to a straight
+      // line — a stand-in geometry should never look like a surveyed route.
+      // One layer per dash phase; the animation swaps which is opaque.
+      addPhaseLayers(m, {
+        prefix: WATER_PIPES_DASHED_PREFIX,
+        source: WATER_PIPES_SOURCE_ID,
+        filter: ['any', ['==', ['get', 'kind'], 'raw'], ['==', ['get', 'fallback'], true]],
+        color: [
+          'case', ['get', 'fallback'], WATER_PIPE_FALLBACK_COLOR, WATER_PIPE_COLORS.raw,
+        ],
+        width: WATER_TRUNK_WIDTH,
+        opacity: WATER_PIPES_DASHED_OPACITY,
+        steps: WATER_PIPE_DASH_STEPS,
+      }, true, before)
+      m.addLayer({
+        id: WATER_PIPES_LAYER_ID, type: 'line', source: WATER_PIPES_SOURCE_ID,
+        filter: ['all', ['==', ['get', 'kind'], 'treated'], ['!=', ['get', 'fallback'], true]],
+        layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['get', 'sortKey'] },
+        paint: {
+          'line-color': waterMotion.treated,
+          'line-width': WATER_TRUNK_WIDTH,
+        },
+      }, before)
+      // The dots that travel along the treated mains — their own group above
+      // the solid core, because one line layer carries one dash pattern and the
+      // core has to stay solid. Every treated pipe gets dots, including a
+      // fallback one: the flow is a statement about direction, not about how
+      // trustworthy the geometry is (the grey dashes below already say that).
+      addPhaseLayers(m, {
+        prefix: WATER_PIPES_FLOW_PREFIX,
+        source: WATER_PIPES_SOURCE_ID,
+        filter: ['==', ['get', 'kind'], 'treated'],
+        color: waterMotion.flow,
+        width: WATER_TRUNK_FLOW_WIDTH,
+        opacity: WATER_PIPES_FLOW_OPACITY,
+        steps: WATER_PIPE_FLOW_STEPS,
+      }, true, before)
+      // THE PULSE, trunk half: the same pipes cut into distance buckets on a
+      // source of their own, one dark layer per bucket, lit in sequence by the
+      // interval below (advanceWaterPulse). Above the dots, so a lit chunk
+      // reads as the pipe itself glowing; still under everything clickable.
+      // The wave is told how many buckets the chain fills so it never sweeps
+      // the empty tail of the layer budget.
+      const pulse = buildWaterPulseFeatures(transitRef.current.waterNetwork)
+      waterPulseCountsRef.current.trunk = pulse.buckets
+      m.addSource(WATER_PULSE_SOURCE_ID, { type: 'geojson', data: pulse.features })
+      addBucketLayers(m, {
+        prefix: WATER_PULSE_TRUNK_PREFIX,
+        source: WATER_PULSE_SOURCE_ID,
+        count: WATER_TRUNK_PULSE_BUCKETS,
+        color: waterMotion.pulse,
+        width: WATER_PULSE_TRUNK_WIDTH,
+        blur: WATER_PULSE_TRUNK_BLUR,
+      }, true, before)
+      // Direction chevrons riding the trunk mains. MapLibre places line symbols
+      // walking the vertices `from` → `to` — the order buildWaterPipeFeatures
+      // emits and the dashes travel — so the arrows point the way the water
+      // goes even for a reader who never catches anything moving. Not on the
+      // mesh: five thousand streets of chevrons would be noise.
+      if (!m.hasImage(WATER_ARROW_ICON)) {
+        const arrowImg = drawArrowIcon()
+        if (arrowImg) m.addImage(WATER_ARROW_ICON, arrowImg, { pixelRatio: 2 })
+      }
+      m.addLayer({
+        id: WATER_ARROWS_LAYER_ID, type: 'symbol', source: WATER_PIPES_SOURCE_ID,
+        // Below this the trunk is a hairline and an arrow would be bigger than
+        // the pipe it sits on.
+        minzoom: 12,
+        layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 110,
+          'icon-image': WATER_ARROW_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.55, 16, 0.85],
+          'icon-rotation-alignment': 'map',
+          'icon-pitch-alignment': 'map',
+          // Upright-flipping would turn a chevron on a westbound pipe into one
+          // pointing east; the direction IS the message.
+          'icon-keep-upright': false,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: { 'icon-opacity': 0.9 },
+      }, before)
+
+      m.addSource(WATER_BUILDINGS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterBuildingFeatures(transitRef.current.waterFacilities),
+        promoteId: WATER_FEATURE_ID_PROPERTY,
+      })
+      // Identical height treatment to the school blocks: the SAME z14→z15.5
+      // ramp as the basemap buildings, so a facility block stays exactly its
+      // 2 m margin proud of its grey neighbours while they grow, and degrades
+      // to a flat coloured footprint where the basemap draws no buildings.
+      m.addLayer({
+        id: WATER_BUILDINGS_LAYER_ID, type: 'fill-extrusion', source: WATER_BUILDINGS_SOURCE_ID,
+        paint: {
+          'fill-extrusion-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            WATER_SELECTED_COLOR,
+            ['get', 'color'],
+          ],
+          'fill-extrusion-height': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'height'],
+          ],
+          'fill-extrusion-base': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'minHeight'],
+          ],
+          'fill-extrusion-opacity': 0.95,
+          'fill-extrusion-vertical-gradient': true,
+        },
+      }, before)
+
+      before = firstExistingLayer(m, [POWER_SELECTED_LAYER_ID, GRAND_PRIX_CORNER_SELECTED_LAYER_ID])
+      // Water-facility markers. Same image contract as the WC / P plates —
+      // setStyle({diff:false}) drops registered images with the layers, so both
+      // variants of all five types are redrawn here under a hasImage guard —
+      // and the same transitRef seeding, since the data has no time dimension.
+      for (const variant of WATER_ICON_VARIANTS) {
+        const name = waterIconName(variant.type, variant.approximate)
+        if (m.hasImage(name)) continue
+        const img = drawWaterIcon(WATER_COLORS[variant.type], variant.approximate)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      if (!m.hasImage(WATER_INLET_ICON)) {
+        const inletImg = drawWaterInletIcon()
+        if (inletImg) m.addImage(WATER_INLET_ICON, inletImg, { pixelRatio: 2 })
+      }
+      m.addSource(WATER_MARKERS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildWaterMarkerFeatures(
+          transitRef.current.waterFacilities, transitRef.current.waterNetwork,
+        ),
+      })
+      m.addLayer({
+        id: WATER_SELECTED_LAYER_ID, type: 'circle', source: WATER_MARKERS_SOURCE_ID,
+        // One ring for both kinds of marker: a facility id from one prop, a
+        // network-node id from the other, at most one of them set.
+        filter: ['in', ['get', WATER_FEATURE_ID_PROPERTY], ['literal', [
+          selectedWaterFacilityIdRef.current ?? '', selectedWaterNodeIdRef.current ?? '',
+        ]]],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      }, before)
+      m.addLayer({
+        id: WATER_ICON_LAYER_ID, type: 'symbol', source: WATER_MARKERS_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          // The approximate pumping stations sit ~25 m from the facility they
+          // are co-located with, which is one pixel at city zoom — collision
+          // hiding would silently drop half the list, so they always draw.
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+          // Only the network nodes carry a label (the inlet has to name itself;
+          // a facility is named by the panel its marker opens), so this reads
+          // as null — no text — for all 22 facilities. Swapped, not rebuilt, on
+          // a language change: see the [lang] effect below.
+          'text-field': ['get', waterLabelField(currentLang)],
+          'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+          'text-size': ['step', ['zoom'], 0, 12, 10, 15, 11],
+          'text-offset': [0, 1.1],
+          'text-anchor': 'top',
+          // The label may collide; the marker never does. `text-optional` keeps
+          // the icon when its label loses the placement.
+          'text-optional': true,
+        },
+        paint: {
+          // The hollow plate already says "inferred position"; a slight fade
+          // keeps it from competing with the facilities we actually mapped.
+          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
+          'text-color': dark ? '#dbeafe' : '#0c4a6e',
+          'text-halo-color': dark ? '#0b0b0c' : '#ffffff',
+          'text-halo-width': 1.2,
+        },
+      }, before)
+      // The stage badges, a second symbol layer on the same source so the
+      // number rides its plate through the zoom ramp: same icon-size curve,
+      // and an offset (in CSS px, scaled by icon-size) that parks the disc on
+      // the plate's top-right corner. A kind the chain does not know has
+      // stage 0 and no badge.
+      for (let stage = 1; stage <= WATER_STAGES.length; stage++) {
+        const name = waterBadgeIconName(stage)
+        if (m.hasImage(name)) continue
+        const img = drawBadgeIcon(stage)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      m.addLayer({
+        id: WATER_BADGES_LAYER_ID, type: 'symbol', source: WATER_MARKERS_SOURCE_ID,
+        filter: ['>', ['get', 'stage'], 0],
+        layout: {
+          'icon-image': ['get', 'badge'],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+          // Since v6 the offset no longer scales with `icon-size`, so it
+          // follows the same zoom ramp by hand to stay on the plate's corner.
+          'icon-offset': [
+            'interpolate', ['linear'], ['zoom'],
+            11, ['literal', [5.5, -5.5]], 15, ['literal', [10, -10]],
+          ],
+        },
+        paint: {
+          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
+        },
+      }, before)
+
+      // Every phase group starts with phase 0 opaque and every pulse bucket dark.
+      waterPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
+      waterPulseRef.current = initialWaterPulseState()
+      waterStateIdRef.current = null
+      applyWaterSelection(m)
+    }
+
+    const addPowerLayers = (m: maplibregl.Map) => {
+      if (m.getSource(POWER_DISTRIBUTION_SOURCE_ID)) return
+      const dark = isDarkRef.current
+      const powerMotion = powerMotionColors(dark)
+      const currentLang = langRef.current
+      let before = firstExistingLayer(m, [WASTE_AREAS_LAYER_ID])
+      // CEM electricity. The same seeding rule as the water overlay
+      // (transitRef, so a theme swap long after power-facilities.json landed
+      // still redraws it), and the same layer order: the street mesh first,
+      // then the HV corridors over it, then the facility blocks — which are
+      // the thing a user clicks — on top.
+      const powerRoadVisibility = powerVisibleRef.current ? 'visible' : 'none'
+      m.addSource(POWER_DISTRIBUTION_SOURCE_ID, {
+        type: 'geojson',
+        data: buildPowerDistributionFeatures(powerDistributionRef.current),
+      })
+      m.addLayer({
+        id: POWER_DISTRIBUTION_GLOW_LAYER_ID, type: 'line',
+        source: POWER_DISTRIBUTION_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: powerRoadVisibility },
+        paint: {
+          'line-color': powerMotion.glow,
+          'line-opacity': 0.12,
+          'line-width': distributionWidth(3, 5, POWER_DISTRIBUTION_MAJOR_CLASSES),
+        },
+      }, before)
+      m.addLayer({
+        id: POWER_DISTRIBUTION_LAYER_ID, type: 'line',
+        source: POWER_DISTRIBUTION_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: powerRoadVisibility },
+        paint: {
+          'line-color': powerMotion.mesh,
+          'line-opacity': POWER_DISTRIBUTION_OPACITY,
+          'line-width': distributionWidth(0.8, 1.6, POWER_DISTRIBUTION_MAJOR_CLASSES),
+        },
+      }, before)
+      // Desktop only. The HV layers are added after this, so on a fresh style
+      // there is no `power-lines-glow` to sit under yet — hence the
+      // group anchor as the fallback, which lands it in the same slot.
+      if (isDesktopRef.current) {
+        addPowerDistributionFlowLayer(m, powerVisibleRef.current, dark, before)
+      }
+      // The mesh half of the pulse, on every viewport (see the water twin).
+      addPowerDistributionPulseLayers(m, powerVisibleRef.current, dark, before)
+      powerPulseCountsRef.current.mesh = powerDistributionBucketCount(powerDistributionRef.current)
+
+      // The HV network: a glow, a solid core whose colour and width come from
+      // the feature's own voltage, and the travelling dots above it. Only three
+      // layers (not the water overlay's four) because nothing here is dashed —
+      // a fallback line says so with grey, not with a dash pattern.
+      m.addSource(POWER_LINES_SOURCE_ID, {
+        type: 'geojson',
+        data: buildPowerLineFeatures(transitRef.current.powerNetwork, dark),
+      })
+      m.addLayer({
+        id: POWER_LINES_GLOW_LAYER_ID, type: 'line', source: POWER_LINES_SOURCE_ID,
+        layout: {
+          'line-cap': 'round', 'line-join': 'round',
+          // Higher voltage over lower where the two share a street.
+          'line-sort-key': ['get', 'sortKey'],
+        },
+        paint: {
+          'line-color': powerMotion.glow,
+          'line-opacity': POWER_LINE_GLOW_OPACITY,
+          'line-width': POWER_TRUNK_GLOW_WIDTH,
+        },
+      }, before)
+      m.addLayer({
+        id: POWER_LINES_LAYER_ID, type: 'line', source: POWER_LINES_SOURCE_ID,
+        layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['get', 'sortKey'] },
+        paint: {
+          // Baked per feature: the voltage colour, or grey where OSRM fell back
+          // to a straight line — a stand-in geometry should never look like a
+          // surveyed route.
+          'line-color': ['get', 'color'],
+          'line-width': POWER_TRUNK_WIDTH,
+        },
+      }, before)
+      // Every line gets dots, fallbacks included: the flow is a statement about
+      // direction, not about how trustworthy the geometry is (the grey already
+      // says that).
+      addPhaseLayers(m, {
+        prefix: POWER_LINES_FLOW_PREFIX,
+        source: POWER_LINES_SOURCE_ID,
+        color: powerMotion.flow,
+        width: POWER_TRUNK_FLOW_WIDTH,
+        opacity: POWER_LINES_FLOW_OPACITY,
+        steps: POWER_LINE_FLOW_STEPS,
+      }, true, before)
+      // THE PULSE, trunk half: the lines cut into distance buckets on a source
+      // of their own, one dark layer per bucket, lit in sequence by the
+      // interval below — exactly as the water trunk above.
+      const powerPulse = buildPowerPulseFeatures(transitRef.current.powerNetwork)
+      powerPulseCountsRef.current.trunk = powerPulse.buckets
+      m.addSource(POWER_PULSE_SOURCE_ID, { type: 'geojson', data: powerPulse.features })
+      addBucketLayers(m, {
+        prefix: POWER_PULSE_TRUNK_PREFIX,
+        source: POWER_PULSE_SOURCE_ID,
+        count: POWER_TRUNK_PULSE_BUCKETS,
+        color: powerMotion.pulse,
+        width: POWER_PULSE_TRUNK_WIDTH,
+        blur: POWER_PULSE_TRUNK_BLUR,
+      }, true, before)
+      // Direction chevrons riding every HV line, `from` → `to` — the direction
+      // of supply the pipeline writes the edges in (an import point or a
+      // generator at the `from` end).
+      if (!m.hasImage(POWER_ARROW_ICON)) {
+        const arrowImg = drawArrowIcon()
+        if (arrowImg) m.addImage(POWER_ARROW_ICON, arrowImg, { pixelRatio: 2 })
+      }
+      m.addLayer({
+        id: POWER_ARROWS_LAYER_ID, type: 'symbol', source: POWER_LINES_SOURCE_ID,
+        minzoom: 12,
+        layout: {
+          'symbol-placement': 'line',
+          'symbol-spacing': 110,
+          'icon-image': POWER_ARROW_ICON,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.55, 16, 0.85],
+          'icon-rotation-alignment': 'map',
+          'icon-pitch-alignment': 'map',
+          'icon-keep-upright': false,
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+        },
+        paint: { 'icon-opacity': 0.9 },
+      }, before)
+
+      m.addSource(POWER_BUILDINGS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildPowerBuildingFeatures(transitRef.current.powerFacilities),
+        promoteId: POWER_FEATURE_ID_PROPERTY,
+      })
+      // Identical height treatment to the school and water blocks: the same
+      // z14→z15.5 ramp as the basemap buildings, so a facility block stays
+      // exactly its 2 m margin proud of its grey neighbours.
+      m.addLayer({
+        id: POWER_BUILDINGS_LAYER_ID, type: 'fill-extrusion', source: POWER_BUILDINGS_SOURCE_ID,
+        paint: {
+          'fill-extrusion-color': [
+            'case',
+            ['boolean', ['feature-state', 'selected'], false],
+            POWER_SELECTED_COLOR,
+            ['get', 'color'],
+          ],
+          'fill-extrusion-height': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'height'],
+          ],
+          'fill-extrusion-base': [
+            'interpolate', ['linear'], ['zoom'],
+            14, 0, 15.5, ['get', 'minHeight'],
+          ],
+          'fill-extrusion-opacity': 0.95,
+          'fill-extrusion-vertical-gradient': true,
+        },
+      }, before)
+
+      before = firstExistingLayer(m, [GRAND_PRIX_CORNER_SELECTED_LAYER_ID])
+      // Electricity markers. Same image contract, same layer pair (a ring that
+      // is a filter swap, then the symbols) and the same transitRef seeding as
+      // the water markers.
+      for (const variant of POWER_ICON_VARIANTS) {
+        const name = powerIconName(variant.type, variant.approximate)
+        if (m.hasImage(name)) continue
+        const img = drawPowerIcon(POWER_COLORS[variant.type], variant.approximate)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      if (!m.hasImage(POWER_INLET_ICON)) {
+        const inletImg = drawPowerInletIcon()
+        if (inletImg) m.addImage(POWER_INLET_ICON, inletImg, { pixelRatio: 2 })
+      }
+      m.addSource(POWER_MARKERS_SOURCE_ID, {
+        type: 'geojson',
+        data: buildPowerMarkerFeatures(
+          transitRef.current.powerFacilities, transitRef.current.powerNetwork,
+        ),
+      })
+      m.addLayer({
+        id: POWER_SELECTED_LAYER_ID, type: 'circle', source: POWER_MARKERS_SOURCE_ID,
+        filter: ['in', ['get', POWER_FEATURE_ID_PROPERTY], ['literal', [
+          selectedPowerFacilityIdRef.current ?? '', selectedPowerNodeIdRef.current ?? '',
+        ]]],
+        paint: {
+          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
+          'circle-color': '#ffffff',
+          'circle-opacity': 0.14,
+          'circle-stroke-width': 2,
+          'circle-stroke-color': '#ffffff',
+          'circle-stroke-opacity': 0.75,
+        },
+      }, before)
+      m.addLayer({
+        id: POWER_ICON_LAYER_ID, type: 'symbol', source: POWER_MARKERS_SOURCE_ID,
+        layout: {
+          'icon-image': ['get', 'icon'],
+          // Substations cluster tightly in Cotai; collision hiding would
+          // silently drop half the list, so they always draw.
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+          // Only the network nodes carry a label (an inlet has to name itself;
+          // a facility is named by the panel its marker opens), so this reads
+          // as null — no text — for every CEM facility. Swapped, not rebuilt,
+          // on a language change: see the [lang] effect below.
+          'text-field': ['get', powerLabelField(currentLang)],
+          'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+          'text-size': ['step', ['zoom'], 0, 12, 10, 15, 11],
+          'text-offset': [0, 1.1],
+          'text-anchor': 'top',
+          'text-optional': true,
+        },
+        paint: {
+          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
+          'text-color': dark ? '#fed7aa' : '#7c2d12',
+          'text-halo-color': dark ? '#0b0b0c' : '#ffffff',
+          'text-halo-width': 1.2,
+        },
+      }, before)
+      // The stage badges, on the same terms as the water ones: a second symbol
+      // layer on the markers source, parked on the plate's top-right corner.
+      for (let stage = 1; stage <= POWER_STAGES.length; stage++) {
+        const name = powerBadgeIconName(stage)
+        if (m.hasImage(name)) continue
+        const img = drawBadgeIcon(stage)
+        if (img) m.addImage(name, img, { pixelRatio: 2 })
+      }
+      m.addLayer({
+        id: POWER_BADGES_LAYER_ID, type: 'symbol', source: POWER_MARKERS_SOURCE_ID,
+        filter: ['>', ['get', 'stage'], 0],
+        layout: {
+          'icon-image': ['get', 'badge'],
+          'icon-allow-overlap': true,
+          'icon-ignore-placement': true,
+          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
+          // Since v6 the offset no longer scales with `icon-size`, so it
+          // follows the same zoom ramp by hand to stay on the plate's corner.
+          'icon-offset': [
+            'interpolate', ['linear'], ['zoom'],
+            11, ['literal', [5.5, -5.5]], 15, ['literal', [10, -10]],
+          ],
+        },
+        paint: {
+          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
+        },
+      }, before)
+
+      powerPhaseRef.current = { trunk: 0, mesh: 0, tick: 0 }
+      powerPulseRef.current = initialPulseState()
+      powerStateIdRef.current = null
+      applyPowerSelection(m)
+    }
+
     const addCustomLayers = (m: maplibregl.Map) => {
       if (debugSwitches.noLayers) {
         debugLog('[map] ?layers=none: no app sources or layers added')
@@ -2542,10 +3124,6 @@ export function MapView(props: MapViewProps) {
       }
       const dark = isDarkRef.current
       oldMapLabelsRef.current = new OldMapLabels(m.getStyle().layers ?? [])
-      // The overlays' own map colours differ per theme (white dots vanish on the light basemap,
-      // Positron); everything below that moves or glows takes them from here.
-      const waterMotion = waterMotionColors(dark)
-      const powerMotion = powerMotionColors(dark)
       const currentLang = langRef.current
       const cur3D = is3DRef.current
       const curBuildings = showBuildingsRef.current
@@ -2755,360 +3333,6 @@ export function MapView(props: MapViewProps) {
             'case',
             ['boolean', ['feature-state', 'selected'], false],
             PUBLIC_HOUSING_SELECTED_COLOR,
-            ['get', 'color'],
-          ],
-          'fill-extrusion-height': [
-            'interpolate', ['linear'], ['zoom'],
-            14, 0, 15.5, ['get', 'height'],
-          ],
-          'fill-extrusion-base': [
-            'interpolate', ['linear'], ['zoom'],
-            14, 0, 15.5, ['get', 'minHeight'],
-          ],
-          'fill-extrusion-opacity': 0.95,
-          'fill-extrusion-vertical-gradient': true,
-        },
-      }, firstSymbolId)
-
-      // Macao Water. Same anchor and the same seeding rule as the schools
-      // above (transitRef, not a closure, so a theme swap long after
-      // water-facilities.json landed still redraws it). Order matters: the
-      // reservoir surfaces are a flat fill and go in FIRST, so the extruded
-      // blocks of a plant standing beside a reservoir draw over the water
-      // rather than under it.
-      m.addSource(WATER_SURFACES_SOURCE_ID, {
-        type: 'geojson',
-        data: buildWaterSurfaceFeatures(transitRef.current.waterFacilities),
-      })
-      m.addLayer({
-        id: WATER_SURFACES_LAYER_ID, type: 'fill', source: WATER_SURFACES_SOURCE_ID,
-        paint: {
-          'fill-color': ['get', 'color'],
-          'fill-opacity': WATER_SURFACE_OPACITY,
-          // A reservoir reads as an area, not an object — a hairline rim is
-          // enough to separate it from the basemap's own water polygon.
-          'fill-outline-color': ['get', 'color'],
-        },
-      }, firstSymbolId)
-      // The distribution network, first of the pipe layers so the trunk mains
-      // draw over it. Seeded from the ref, which is empty until the lazy fetch
-      // lands — the source is created regardless so the layers exist, and the
-      // [waterDistributionRoads] effect fills them in when the file arrives.
-      // Visibility is seeded from the layer flag: unlike the other water layers
-      // this data is CACHED once fetched, so emptying it is not the "off"
-      // mechanism — layout visibility is (see applyNetworkVisibility).
-      const roadVisibility = waterVisibleRef.current ? 'visible' : 'none'
-      m.addSource(WATER_DISTRIBUTION_SOURCE_ID, {
-        type: 'geojson',
-        data: buildWaterDistributionFeatures(waterDistributionRef.current),
-      })
-      m.addLayer({
-        id: WATER_DISTRIBUTION_GLOW_LAYER_ID, type: 'line',
-        source: WATER_DISTRIBUTION_SOURCE_ID,
-        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: roadVisibility },
-        paint: {
-          'line-color': waterMotion.glow,
-          'line-opacity': 0.12,
-          'line-width': distributionWidth(3, 5),
-        },
-      }, firstSymbolId)
-      m.addLayer({
-        id: WATER_DISTRIBUTION_LAYER_ID, type: 'line',
-        source: WATER_DISTRIBUTION_SOURCE_ID,
-        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: roadVisibility },
-        paint: {
-          'line-color': waterMotion.mesh,
-          'line-opacity': 0.7,
-          'line-width': distributionWidth(0.8, 1.6),
-        },
-      }, firstSymbolId)
-      // Desktop only. The trunk layers are added after this, so on a fresh
-      // style there is no `water-pipes-glow` to sit under yet — hence the
-      // firstSymbolId fallback, which lands it in the same slot.
-      if (isDesktopRef.current) {
-        addDistributionFlowLayer(m, waterVisibleRef.current, dark, firstSymbolId)
-      }
-      // The mesh half of the pulse, on every viewport: plain (undashed) lines
-      // partitioned by bucket cost one extra copy of the mesh, not the dash
-      // textures that keep the dots desktop-only. Seeded from the ref like the
-      // source above — empty until the lazy fetch lands.
-      addDistributionPulseLayers(m, waterVisibleRef.current, dark, firstSymbolId)
-      waterPulseCountsRef.current.mesh = waterDistributionBucketCount(waterDistributionRef.current)
-
-      // The pipe network, between the reservoir fills and the facility blocks:
-      // over the water (so a pipe crossing a reservoir stays readable) and under
-      // every block and marker, which are the things a user clicks. Four layers,
-      // glow first — see the WATER_PIPES_* constants for why the dashed core
-      // cannot just be a paint expression on the solid one, and why the treated
-      // core needs a separate layer to show its flow.
-      m.addSource(WATER_PIPES_SOURCE_ID, {
-        type: 'geojson',
-        data: buildWaterPipeFeatures(transitRef.current.waterNetwork),
-      })
-      m.addLayer({
-        id: WATER_PIPES_GLOW_LAYER_ID, type: 'line', source: WATER_PIPES_SOURCE_ID,
-        layout: {
-          'line-cap': 'round', 'line-join': 'round',
-          // Treated water over raw where the two share a street.
-          'line-sort-key': ['get', 'sortKey'],
-        },
-        paint: {
-          'line-color': waterMotion.glow,
-          'line-opacity': WATER_PIPE_GLOW_OPACITY,
-          'line-width': WATER_TRUNK_GLOW_WIDTH,
-        },
-      }, firstSymbolId)
-      // Raw water, plus any pipe whose OSRM lookup fell back to a straight
-      // line — a stand-in geometry should never look like a surveyed route.
-      // One layer per dash phase; the animation swaps which is opaque.
-      addPhaseLayers(m, {
-        prefix: WATER_PIPES_DASHED_PREFIX,
-        source: WATER_PIPES_SOURCE_ID,
-        filter: ['any', ['==', ['get', 'kind'], 'raw'], ['==', ['get', 'fallback'], true]],
-        color: [
-          'case', ['get', 'fallback'], WATER_PIPE_FALLBACK_COLOR, WATER_PIPE_COLORS.raw,
-        ],
-        width: WATER_TRUNK_WIDTH,
-        opacity: WATER_PIPES_DASHED_OPACITY,
-        steps: WATER_PIPE_DASH_STEPS,
-      }, true, firstSymbolId)
-      m.addLayer({
-        id: WATER_PIPES_LAYER_ID, type: 'line', source: WATER_PIPES_SOURCE_ID,
-        filter: ['all', ['==', ['get', 'kind'], 'treated'], ['!=', ['get', 'fallback'], true]],
-        layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['get', 'sortKey'] },
-        paint: {
-          'line-color': waterMotion.treated,
-          'line-width': WATER_TRUNK_WIDTH,
-        },
-      }, firstSymbolId)
-      // The dots that travel along the treated mains — their own group above
-      // the solid core, because one line layer carries one dash pattern and the
-      // core has to stay solid. Every treated pipe gets dots, including a
-      // fallback one: the flow is a statement about direction, not about how
-      // trustworthy the geometry is (the grey dashes below already say that).
-      addPhaseLayers(m, {
-        prefix: WATER_PIPES_FLOW_PREFIX,
-        source: WATER_PIPES_SOURCE_ID,
-        filter: ['==', ['get', 'kind'], 'treated'],
-        color: waterMotion.flow,
-        width: WATER_TRUNK_FLOW_WIDTH,
-        opacity: WATER_PIPES_FLOW_OPACITY,
-        steps: WATER_PIPE_FLOW_STEPS,
-      }, true, firstSymbolId)
-      // THE PULSE, trunk half: the same pipes cut into distance buckets on a
-      // source of their own, one dark layer per bucket, lit in sequence by the
-      // interval below (advanceWaterPulse). Above the dots, so a lit chunk
-      // reads as the pipe itself glowing; still under everything clickable.
-      // The wave is told how many buckets the chain fills so it never sweeps
-      // the empty tail of the layer budget.
-      const pulse = buildWaterPulseFeatures(transitRef.current.waterNetwork)
-      waterPulseCountsRef.current.trunk = pulse.buckets
-      m.addSource(WATER_PULSE_SOURCE_ID, { type: 'geojson', data: pulse.features })
-      addBucketLayers(m, {
-        prefix: WATER_PULSE_TRUNK_PREFIX,
-        source: WATER_PULSE_SOURCE_ID,
-        count: WATER_TRUNK_PULSE_BUCKETS,
-        color: waterMotion.pulse,
-        width: WATER_PULSE_TRUNK_WIDTH,
-        blur: WATER_PULSE_TRUNK_BLUR,
-      }, true, firstSymbolId)
-      // Direction chevrons riding the trunk mains. MapLibre places line symbols
-      // walking the vertices `from` → `to` — the order buildWaterPipeFeatures
-      // emits and the dashes travel — so the arrows point the way the water
-      // goes even for a reader who never catches anything moving. Not on the
-      // mesh: five thousand streets of chevrons would be noise.
-      if (!m.hasImage(WATER_ARROW_ICON)) {
-        const arrowImg = drawArrowIcon()
-        if (arrowImg) m.addImage(WATER_ARROW_ICON, arrowImg, { pixelRatio: 2 })
-      }
-      m.addLayer({
-        id: WATER_ARROWS_LAYER_ID, type: 'symbol', source: WATER_PIPES_SOURCE_ID,
-        // Below this the trunk is a hairline and an arrow would be bigger than
-        // the pipe it sits on.
-        minzoom: 12,
-        layout: {
-          'symbol-placement': 'line',
-          'symbol-spacing': 110,
-          'icon-image': WATER_ARROW_ICON,
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.55, 16, 0.85],
-          'icon-rotation-alignment': 'map',
-          'icon-pitch-alignment': 'map',
-          // Upright-flipping would turn a chevron on a westbound pipe into one
-          // pointing east; the direction IS the message.
-          'icon-keep-upright': false,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-        },
-        paint: { 'icon-opacity': 0.9 },
-      }, firstSymbolId)
-
-      m.addSource(WATER_BUILDINGS_SOURCE_ID, {
-        type: 'geojson',
-        data: buildWaterBuildingFeatures(transitRef.current.waterFacilities),
-        promoteId: WATER_FEATURE_ID_PROPERTY,
-      })
-      // Identical height treatment to the school blocks: the SAME z14→z15.5
-      // ramp as the basemap buildings, so a facility block stays exactly its
-      // 2 m margin proud of its grey neighbours while they grow, and degrades
-      // to a flat coloured footprint where the basemap draws no buildings.
-      m.addLayer({
-        id: WATER_BUILDINGS_LAYER_ID, type: 'fill-extrusion', source: WATER_BUILDINGS_SOURCE_ID,
-        paint: {
-          'fill-extrusion-color': [
-            'case',
-            ['boolean', ['feature-state', 'selected'], false],
-            WATER_SELECTED_COLOR,
-            ['get', 'color'],
-          ],
-          'fill-extrusion-height': [
-            'interpolate', ['linear'], ['zoom'],
-            14, 0, 15.5, ['get', 'height'],
-          ],
-          'fill-extrusion-base': [
-            'interpolate', ['linear'], ['zoom'],
-            14, 0, 15.5, ['get', 'minHeight'],
-          ],
-          'fill-extrusion-opacity': 0.95,
-          'fill-extrusion-vertical-gradient': true,
-        },
-      }, firstSymbolId)
-
-      // CEM electricity. Same anchor and the same seeding rule as the water
-      // overlay above (transitRef, not a closure, so a theme swap long after
-      // power-facilities.json landed still redraws it), and the same layer
-      // order: the street mesh first, then the HV corridors over it, then the
-      // facility blocks — which are the thing a user clicks — on top.
-      const powerRoadVisibility = powerVisibleRef.current ? 'visible' : 'none'
-      m.addSource(POWER_DISTRIBUTION_SOURCE_ID, {
-        type: 'geojson',
-        data: buildPowerDistributionFeatures(powerDistributionRef.current),
-      })
-      m.addLayer({
-        id: POWER_DISTRIBUTION_GLOW_LAYER_ID, type: 'line',
-        source: POWER_DISTRIBUTION_SOURCE_ID,
-        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: powerRoadVisibility },
-        paint: {
-          'line-color': powerMotion.glow,
-          'line-opacity': 0.12,
-          'line-width': distributionWidth(3, 5, POWER_DISTRIBUTION_MAJOR_CLASSES),
-        },
-      }, firstSymbolId)
-      m.addLayer({
-        id: POWER_DISTRIBUTION_LAYER_ID, type: 'line',
-        source: POWER_DISTRIBUTION_SOURCE_ID,
-        layout: { 'line-cap': 'round', 'line-join': 'round', visibility: powerRoadVisibility },
-        paint: {
-          'line-color': powerMotion.mesh,
-          'line-opacity': POWER_DISTRIBUTION_OPACITY,
-          'line-width': distributionWidth(0.8, 1.6, POWER_DISTRIBUTION_MAJOR_CLASSES),
-        },
-      }, firstSymbolId)
-      // Desktop only. The HV layers are added after this, so on a fresh style
-      // there is no `power-lines-glow` to sit under yet — hence the
-      // firstSymbolId fallback, which lands it in the same slot.
-      if (isDesktopRef.current) {
-        addPowerDistributionFlowLayer(m, powerVisibleRef.current, dark, firstSymbolId)
-      }
-      // The mesh half of the pulse, on every viewport (see the water twin).
-      addPowerDistributionPulseLayers(m, powerVisibleRef.current, dark, firstSymbolId)
-      powerPulseCountsRef.current.mesh = powerDistributionBucketCount(powerDistributionRef.current)
-
-      // The HV network: a glow, a solid core whose colour and width come from
-      // the feature's own voltage, and the travelling dots above it. Only three
-      // layers (not the water overlay's four) because nothing here is dashed —
-      // a fallback line says so with grey, not with a dash pattern.
-      m.addSource(POWER_LINES_SOURCE_ID, {
-        type: 'geojson',
-        data: buildPowerLineFeatures(transitRef.current.powerNetwork, dark),
-      })
-      m.addLayer({
-        id: POWER_LINES_GLOW_LAYER_ID, type: 'line', source: POWER_LINES_SOURCE_ID,
-        layout: {
-          'line-cap': 'round', 'line-join': 'round',
-          // Higher voltage over lower where the two share a street.
-          'line-sort-key': ['get', 'sortKey'],
-        },
-        paint: {
-          'line-color': powerMotion.glow,
-          'line-opacity': POWER_LINE_GLOW_OPACITY,
-          'line-width': POWER_TRUNK_GLOW_WIDTH,
-        },
-      }, firstSymbolId)
-      m.addLayer({
-        id: POWER_LINES_LAYER_ID, type: 'line', source: POWER_LINES_SOURCE_ID,
-        layout: { 'line-cap': 'round', 'line-join': 'round', 'line-sort-key': ['get', 'sortKey'] },
-        paint: {
-          // Baked per feature: the voltage colour, or grey where OSRM fell back
-          // to a straight line — a stand-in geometry should never look like a
-          // surveyed route.
-          'line-color': ['get', 'color'],
-          'line-width': POWER_TRUNK_WIDTH,
-        },
-      }, firstSymbolId)
-      // Every line gets dots, fallbacks included: the flow is a statement about
-      // direction, not about how trustworthy the geometry is (the grey already
-      // says that).
-      addPhaseLayers(m, {
-        prefix: POWER_LINES_FLOW_PREFIX,
-        source: POWER_LINES_SOURCE_ID,
-        color: powerMotion.flow,
-        width: POWER_TRUNK_FLOW_WIDTH,
-        opacity: POWER_LINES_FLOW_OPACITY,
-        steps: POWER_LINE_FLOW_STEPS,
-      }, true, firstSymbolId)
-      // THE PULSE, trunk half: the lines cut into distance buckets on a source
-      // of their own, one dark layer per bucket, lit in sequence by the
-      // interval below — exactly as the water trunk above.
-      const powerPulse = buildPowerPulseFeatures(transitRef.current.powerNetwork)
-      powerPulseCountsRef.current.trunk = powerPulse.buckets
-      m.addSource(POWER_PULSE_SOURCE_ID, { type: 'geojson', data: powerPulse.features })
-      addBucketLayers(m, {
-        prefix: POWER_PULSE_TRUNK_PREFIX,
-        source: POWER_PULSE_SOURCE_ID,
-        count: POWER_TRUNK_PULSE_BUCKETS,
-        color: powerMotion.pulse,
-        width: POWER_PULSE_TRUNK_WIDTH,
-        blur: POWER_PULSE_TRUNK_BLUR,
-      }, true, firstSymbolId)
-      // Direction chevrons riding every HV line, `from` → `to` — the direction
-      // of supply the pipeline writes the edges in (an import point or a
-      // generator at the `from` end).
-      if (!m.hasImage(POWER_ARROW_ICON)) {
-        const arrowImg = drawArrowIcon()
-        if (arrowImg) m.addImage(POWER_ARROW_ICON, arrowImg, { pixelRatio: 2 })
-      }
-      m.addLayer({
-        id: POWER_ARROWS_LAYER_ID, type: 'symbol', source: POWER_LINES_SOURCE_ID,
-        minzoom: 12,
-        layout: {
-          'symbol-placement': 'line',
-          'symbol-spacing': 110,
-          'icon-image': POWER_ARROW_ICON,
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 12, 0.55, 16, 0.85],
-          'icon-rotation-alignment': 'map',
-          'icon-pitch-alignment': 'map',
-          'icon-keep-upright': false,
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-        },
-        paint: { 'icon-opacity': 0.9 },
-      }, firstSymbolId)
-
-      m.addSource(POWER_BUILDINGS_SOURCE_ID, {
-        type: 'geojson',
-        data: buildPowerBuildingFeatures(transitRef.current.powerFacilities),
-        promoteId: POWER_FEATURE_ID_PROPERTY,
-      })
-      // Identical height treatment to the school and water blocks: the same
-      // z14→z15.5 ramp as the basemap buildings, so a facility block stays
-      // exactly its 2 m margin proud of its grey neighbours.
-      m.addLayer({
-        id: POWER_BUILDINGS_LAYER_ID, type: 'fill-extrusion', source: POWER_BUILDINGS_SOURCE_ID,
-        paint: {
-          'fill-extrusion-color': [
-            'case',
-            ['boolean', ['feature-state', 'selected'], false],
-            POWER_SELECTED_COLOR,
             ['get', 'color'],
           ],
           'fill-extrusion-height': [
@@ -3532,193 +3756,6 @@ export function MapView(props: MapViewProps) {
         },
       })
 
-      // Water-facility markers. Same image contract as the WC / P plates —
-      // setStyle({diff:false}) drops registered images with the layers, so both
-      // variants of all five types are redrawn here under a hasImage guard —
-      // and the same transitRef seeding, since the data has no time dimension.
-      for (const variant of WATER_ICON_VARIANTS) {
-        const name = waterIconName(variant.type, variant.approximate)
-        if (m.hasImage(name)) continue
-        const img = drawWaterIcon(WATER_COLORS[variant.type], variant.approximate)
-        if (img) m.addImage(name, img, { pixelRatio: 2 })
-      }
-      if (!m.hasImage(WATER_INLET_ICON)) {
-        const inletImg = drawWaterInletIcon()
-        if (inletImg) m.addImage(WATER_INLET_ICON, inletImg, { pixelRatio: 2 })
-      }
-      m.addSource(WATER_MARKERS_SOURCE_ID, {
-        type: 'geojson',
-        data: buildWaterMarkerFeatures(
-          transitRef.current.waterFacilities, transitRef.current.waterNetwork,
-        ),
-      })
-      m.addLayer({
-        id: WATER_SELECTED_LAYER_ID, type: 'circle', source: WATER_MARKERS_SOURCE_ID,
-        // One ring for both kinds of marker: a facility id from one prop, a
-        // network-node id from the other, at most one of them set.
-        filter: ['in', ['get', WATER_FEATURE_ID_PROPERTY], ['literal', [
-          selectedWaterFacilityIdRef.current ?? '', selectedWaterNodeIdRef.current ?? '',
-        ]]],
-        paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
-          'circle-color': '#ffffff',
-          'circle-opacity': 0.14,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-opacity': 0.75,
-        },
-      })
-      m.addLayer({
-        id: WATER_ICON_LAYER_ID, type: 'symbol', source: WATER_MARKERS_SOURCE_ID,
-        layout: {
-          'icon-image': ['get', 'icon'],
-          // The approximate pumping stations sit ~25 m from the facility they
-          // are co-located with, which is one pixel at city zoom — collision
-          // hiding would silently drop half the list, so they always draw.
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
-          // Only the network nodes carry a label (the inlet has to name itself;
-          // a facility is named by the panel its marker opens), so this reads
-          // as null — no text — for all 22 facilities. Swapped, not rebuilt, on
-          // a language change: see the [lang] effect below.
-          'text-field': ['get', waterLabelField(currentLang)],
-          'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
-          'text-size': ['step', ['zoom'], 0, 12, 10, 15, 11],
-          'text-offset': [0, 1.1],
-          'text-anchor': 'top',
-          // The label may collide; the marker never does. `text-optional` keeps
-          // the icon when its label loses the placement.
-          'text-optional': true,
-        },
-        paint: {
-          // The hollow plate already says "inferred position"; a slight fade
-          // keeps it from competing with the facilities we actually mapped.
-          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
-          'text-color': dark ? '#dbeafe' : '#0c4a6e',
-          'text-halo-color': dark ? '#0b0b0c' : '#ffffff',
-          'text-halo-width': 1.2,
-        },
-      })
-      // The stage badges, a second symbol layer on the same source so the
-      // number rides its plate through the zoom ramp: same icon-size curve,
-      // and an offset (in CSS px, scaled by icon-size) that parks the disc on
-      // the plate's top-right corner. A kind the chain does not know has
-      // stage 0 and no badge.
-      for (let stage = 1; stage <= WATER_STAGES.length; stage++) {
-        const name = waterBadgeIconName(stage)
-        if (m.hasImage(name)) continue
-        const img = drawBadgeIcon(stage)
-        if (img) m.addImage(name, img, { pixelRatio: 2 })
-      }
-      m.addLayer({
-        id: WATER_BADGES_LAYER_ID, type: 'symbol', source: WATER_MARKERS_SOURCE_ID,
-        filter: ['>', ['get', 'stage'], 0],
-        layout: {
-          'icon-image': ['get', 'badge'],
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
-          // Since v6 the offset no longer scales with `icon-size`, so it
-          // follows the same zoom ramp by hand to stay on the plate's corner.
-          'icon-offset': [
-            'interpolate', ['linear'], ['zoom'],
-            11, ['literal', [5.5, -5.5]], 15, ['literal', [10, -10]],
-          ],
-        },
-        paint: {
-          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
-        },
-      })
-
-      // Electricity markers. Same image contract, same layer pair (a ring that
-      // is a filter swap, then the symbols) and the same transitRef seeding as
-      // the water markers directly above.
-      for (const variant of POWER_ICON_VARIANTS) {
-        const name = powerIconName(variant.type, variant.approximate)
-        if (m.hasImage(name)) continue
-        const img = drawPowerIcon(POWER_COLORS[variant.type], variant.approximate)
-        if (img) m.addImage(name, img, { pixelRatio: 2 })
-      }
-      if (!m.hasImage(POWER_INLET_ICON)) {
-        const inletImg = drawPowerInletIcon()
-        if (inletImg) m.addImage(POWER_INLET_ICON, inletImg, { pixelRatio: 2 })
-      }
-      m.addSource(POWER_MARKERS_SOURCE_ID, {
-        type: 'geojson',
-        data: buildPowerMarkerFeatures(
-          transitRef.current.powerFacilities, transitRef.current.powerNetwork,
-        ),
-      })
-      m.addLayer({
-        id: POWER_SELECTED_LAYER_ID, type: 'circle', source: POWER_MARKERS_SOURCE_ID,
-        filter: ['in', ['get', POWER_FEATURE_ID_PROPERTY], ['literal', [
-          selectedPowerFacilityIdRef.current ?? '', selectedPowerNodeIdRef.current ?? '',
-        ]]],
-        paint: {
-          'circle-radius': ['interpolate', ['linear'], ['zoom'], 10, 9, 15, 17, 18, 22],
-          'circle-color': '#ffffff',
-          'circle-opacity': 0.14,
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#ffffff',
-          'circle-stroke-opacity': 0.75,
-        },
-      })
-      m.addLayer({
-        id: POWER_ICON_LAYER_ID, type: 'symbol', source: POWER_MARKERS_SOURCE_ID,
-        layout: {
-          'icon-image': ['get', 'icon'],
-          // Substations cluster tightly in Cotai; collision hiding would
-          // silently drop half the list, so they always draw.
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
-          // Only the network nodes carry a label (an inlet has to name itself;
-          // a facility is named by the panel its marker opens), so this reads
-          // as null — no text — for every CEM facility. Swapped, not rebuilt,
-          // on a language change: see the [lang] effect below.
-          'text-field': ['get', powerLabelField(currentLang)],
-          'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
-          'text-size': ['step', ['zoom'], 0, 12, 10, 15, 11],
-          'text-offset': [0, 1.1],
-          'text-anchor': 'top',
-          'text-optional': true,
-        },
-        paint: {
-          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
-          'text-color': dark ? '#fed7aa' : '#7c2d12',
-          'text-halo-color': dark ? '#0b0b0c' : '#ffffff',
-          'text-halo-width': 1.2,
-        },
-      })
-      // The stage badges, on the same terms as the water ones: a second symbol
-      // layer on the markers source, parked on the plate's top-right corner.
-      for (let stage = 1; stage <= POWER_STAGES.length; stage++) {
-        const name = powerBadgeIconName(stage)
-        if (m.hasImage(name)) continue
-        const img = drawBadgeIcon(stage)
-        if (img) m.addImage(name, img, { pixelRatio: 2 })
-      }
-      m.addLayer({
-        id: POWER_BADGES_LAYER_ID, type: 'symbol', source: POWER_MARKERS_SOURCE_ID,
-        filter: ['>', ['get', 'stage'], 0],
-        layout: {
-          'icon-image': ['get', 'badge'],
-          'icon-allow-overlap': true,
-          'icon-ignore-placement': true,
-          'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 1],
-          // Since v6 the offset no longer scales with `icon-size`, so it
-          // follows the same zoom ramp by hand to stay on the plate's corner.
-          'icon-offset': [
-            'interpolate', ['linear'], ['zoom'],
-            11, ['literal', [5.5, -5.5]], 15, ['literal', [10, -10]],
-          ],
-        },
-        paint: {
-          'icon-opacity': ['case', ['get', 'approximate'], 0.85, 1],
-        },
-      })
-
       // GRAND PRIX. The racing line under the basemap's symbols like the
       // utilities' corridors; the corner badges and names over everything,
       // because a corner is the thing a reader looks for. All seeded from
@@ -3902,6 +3939,10 @@ export function MapView(props: MapViewProps) {
       })
       grandPrixCarLabelEmptyRef.current = true
 
+      // Only the utilities that are on (see addWaterLayers).
+      if (waterVisibleRef.current) addWaterLayers(m)
+      if (powerVisibleRef.current) addPowerLayers(m)
+
       layersAddedRef.current = true
       serviceStatusRef.current = new Map()
       lastServiceMinuteRef.current = ''
@@ -3943,6 +3984,8 @@ export function MapView(props: MapViewProps) {
     }
 
     addCustomLayersRef.current = addCustomLayers
+    addWaterLayersRef.current = addWaterLayers
+    addPowerLayersRef.current = addPowerLayers
 
     const attachClickHandlers = (m: maplibregl.Map) => {
       m.on('click', 'stations-circle', (e) => {
@@ -4194,6 +4237,10 @@ export function MapView(props: MapViewProps) {
       // and deliberately the bottom-most target.
       const clickTargetLayers = ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, PUBLIC_HOUSING_LAYER_ID, TOILETS_ICON_LAYER_ID, RELIGION_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers]
 
+      // queryRenderedFeatures fails (an error event and no features) when any
+      // listed layer is missing, and WATER / POWER are added only once switched on.
+      const presentTargets = (extra: string[] = []) => [...clickTargetLayers, ...extra].filter(id => m.getLayer(id))
+
       // Parishes. The one handler registered AFTER the vehicles rather than
       // before them: the tint spans the whole city, so it must never take a
       // click away from anything drawn on top of it. Two guards, because the
@@ -4202,7 +4249,7 @@ export function MapView(props: MapViewProps) {
       // and the query catches the ones that do not (stations-circle).
       m.on('click', PARISHES_FILL_LAYER_ID, (e) => {
         if (e.defaultPrevented) return
-        if (m.queryRenderedFeatures(e.point, { layers: clickTargetLayers }).length > 0) return
+        if (m.queryRenderedFeatures(e.point, { layers: presentTargets() }).length > 0) return
         const feature = e.features?.[0]
         if (!feature) return
         const pid = feature.properties?.[PARISH_FEATURE_ID_PROPERTY]
@@ -4216,9 +4263,7 @@ export function MapView(props: MapViewProps) {
         // The parish fill IS in this list: a click on the tint opens the parish
         // panel just above, so treating it as blank ground would clear the
         // selection that handler had only just made.
-        const features = m.queryRenderedFeatures(e.point, {
-          layers: [...clickTargetLayers, PARISHES_FILL_LAYER_ID],
-        })
+        const features = m.queryRenderedFeatures(e.point, { layers: presentTargets([PARISHES_FILL_LAYER_ID]) })
         if (features.length === 0) onClearSelection?.()
       })
     }
@@ -4731,6 +4776,16 @@ export function MapView(props: MapViewProps) {
       // tick rewrites with the car, so it needs nothing from this interval.)
     }, FLOW_TICK_MS)
     return () => window.clearInterval(timer)
+  }, [waterVisible, powerVisible])
+
+  // WATER / POWER switched on after the style loaded: add that overlay now
+  // (before the style loads, addCustomLayers does it). Ahead of the
+  // visibility effect below, which then covers the new layers too.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !layersAddedRef.current) return
+    if (waterVisible) addWaterLayersRef.current?.(map)
+    if (powerVisible) addPowerLayersRef.current?.(map)
   }, [waterVisible, powerVisible])
 
   useEffect(() => {

@@ -9,6 +9,9 @@ import {
   StationsSchema,
   TripsSchema,
   BusRoutesSchema,
+  BusRoutesRuntimeSchema,
+  BusJunctionsFileSchema,
+  BusJunctionsRuntimeSchema,
   BusStopsSchema,
   FlightsSchema,
   FerryScheduleFileSchema,
@@ -69,6 +72,24 @@ describe('committed data files satisfy their schemas', () => {
     const stale = structuredClone(routes)
     stale[0].geometry.geometry.coordinates[0][0] += .00001
     expect(BusRoutesSchema.safeParse(stale).success).toBe(false)
+  })
+  it('bus-routes.json passes the lighter schema the app loads it with', () => {
+    expectValid(BusRoutesRuntimeSchema, 'bus-routes.json')
+    const routes = load('bus-routes.json') as { geometry: unknown, roadProfile?: { sections: unknown } }[]
+    const broken = structuredClone(routes)
+    broken[0].geometry = { type: 'Feature', geometry: { type: 'LineString', coordinates: [] } }
+    expect(BusRoutesRuntimeSchema.safeParse(broken).success).toBe(false)
+    const noSections = structuredClone(routes)
+    noSections[0].roadProfile!.sections = {}
+    expect(BusRoutesRuntimeSchema.safeParse(noSections).success).toBe(false)
+  })
+  it('bus-junctions.json, with the spans kept out of bus-routes.json', () => {
+    expectValid(BusJunctionsFileSchema, 'bus-junctions.json')
+    expectValid(BusJunctionsRuntimeSchema, 'bus-junctions.json')
+    const routes = load('bus-routes.json') as { id: string, roadProfile?: { geometryKey: string, junctions?: unknown } }[]
+    const file = load('bus-junctions.json') as { routes: Record<string, { geometryKey: string }> }
+    expect(routes.every(r => r.roadProfile && !('junctions' in r.roadProfile))).toBe(true)
+    expect(routes.every(r => file.routes[r.id]?.geometryKey === r.roadProfile!.geometryKey)).toBe(true)
   })
   it('bus-stops.json', () => expectValid(BusStopsSchema, 'bus-stops.json'))
   it('flights.json', () => expectValid(FlightsSchema, 'flights.json'))

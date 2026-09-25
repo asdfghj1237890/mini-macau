@@ -52,7 +52,17 @@ import { gzipSync } from 'node:zlib'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const load = (rel) => JSON.parse(readFileSync(join(ROOT, rel), 'utf8'))
-const busRoutes = () => load(process.env.BUS_TRAFFIC_ROUTES || 'public/data/bus-routes.json')
+// bus-routes.json does not carry the junction spans (bus-junctions.json does);
+// the traffic commands need them, so attach any whose geometryKey still matches.
+const busRoutes = () => {
+  const routes = load(process.env.BUS_TRAFFIC_ROUTES || 'public/data/bus-routes.json')
+  const junctions = load('public/data/bus-junctions.json').routes
+  for (const route of routes) {
+    const entry = junctions[route.id], profile = route.roadProfile
+    if (entry && profile && !profile.junctions && entry.geometryKey === profile.geometryKey) profile.junctions = entry.junctions
+  }
+  return routes
+}
 
 function cmdBusStation(base = 'M172') {
   const stops = load('public/data/bus-stops.json').filter(s => s.id.split('/')[0] === base)

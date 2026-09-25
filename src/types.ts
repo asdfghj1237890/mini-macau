@@ -44,12 +44,23 @@ export interface BusRoadSection {
   widthM?: number
 }
 
+export interface BusJunction { id: string; start: number; end: number; bearing?: number }
+
 export interface BusRoadProfile {
   version: 1
   geometryKey: string
   fetchedAtUtc: string
   sections: BusRoadSection[]
-  junctions?: { id: string; start: number; end: number; bearing?: number }[]
+  // Not in bus-routes.json: attached after startup from bus-junctions.json.
+  junctions?: BusJunction[]
+}
+
+// public/data/bus-junctions.json — each route's junction spans, kept out of
+// bus-routes.json so the startup download stays smaller. `geometryKey` must
+// match the route's roadProfile, or the spans are stale and not attached.
+export interface BusJunctionFile {
+  version: 1
+  routes: Record<string, { geometryKey: string; junctions: BusJunction[] }>
 }
 
 export interface BusRoute {

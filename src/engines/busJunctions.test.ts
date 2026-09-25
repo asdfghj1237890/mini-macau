@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { buildBusPassages, passageAtDistance } from './busJunctions'
+import { attachBusJunctions, buildBusPassages, passageAtDistance } from './busJunctions'
 import { BusTrafficController, busesConflict, type BusTrafficPlan } from './busTraffic'
-import type { BusRoadProfile } from '../types'
+import type { BusJunctionFile, BusRoadProfile, BusRoute } from '../types'
 
 const mx = 111320 * Math.cos(22.19 * Math.PI / 180)
 const keys = new Map<string, object>()
@@ -568,5 +568,27 @@ describe('junction passage reservations', () => {
     expect(busesConflict(vehicles[0], vehicles[1], 0)).toBe(false)
     expect(returning.blocked).toBe(true)
     expect(returning.leaderId).toBe('parked-neighbour')
+  })
+})
+
+describe('bus-junctions.json attachment', () => {
+  const profile = (geometryKey: string) => ({ version: 1, geometryKey, fetchedAtUtc: '2026-09-25T00:00:00Z', sections: [] }) as BusRoadProfile
+  it('attaches matching spans in place and skips stale or missing ones', () => {
+    const fresh = { id: '1', roadProfile: profile('3:0000000a') } as unknown as BusRoute
+    const stale = { id: '2', roadProfile: profile('3:0000000b') } as unknown as BusRoute
+    const bare = { id: '3' } as unknown as BusRoute
+    const spans = [{ id: 'j1', start: 0.1, end: 0.2, bearing: 90 }]
+    const file: BusJunctionFile = { version: 1, routes: {
+      1: { geometryKey: '3:0000000a', junctions: spans },
+      2: { geometryKey: '3:ffffffff', junctions: spans },
+      3: { geometryKey: '3:0000000a', junctions: spans },
+    } }
+    const before = fresh.roadProfile
+    expect(attachBusJunctions([fresh, stale, bare], file)).toBe(1)
+    expect(fresh.roadProfile).toBe(before)
+    expect(fresh.roadProfile!.junctions).toBe(spans)
+    expect(stale.roadProfile!.junctions).toBeUndefined()
+    expect(attachBusJunctions([fresh], file)).toBe(0)
+    expect(buildBusPassages(fresh.roadProfile, 1000)).toHaveLength(1)
   })
 })

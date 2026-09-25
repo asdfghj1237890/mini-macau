@@ -23,6 +23,7 @@
    │  public/data/                         │
    │  - lrt-lines / stations              │
    │  - bus-routes / bus-stops            │
+   │  - bus-junctions（啟動後才載入）     │
    │  - flights.json                      │
    │  - ferry-schedules.json              │
    │  - road-works.json                   │

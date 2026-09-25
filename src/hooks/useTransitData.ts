@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
-import type { TransitData, LRTLine, Station, BusRoute, BusStop, Flight, Ferry, SimulationClock } from '../types'
+import type { TransitData, LRTLine, Station, BusRoute, BusStop, BusJunctionFile, Flight, Ferry, SimulationClock } from '../types'
 import { useLrtState } from './useLrtState'
 import { macauWeekday } from '../macauTime'
 import { FERRY_BERTH_COUNT_BY_TERMINAL, type MacauFerryTerminal, type FerryOperator } from '../engines/ferryBerths'
+import { attachBusJunctions } from '../engines/busJunctions'
 import type { z } from 'zod'
 import {
   parseData,
   LRTLinesSchema,
   StationsSchema,
-  BusRoutesSchema,
+  BusRoutesRuntimeSchema,
+  BusJunctionsRuntimeSchema,
   BusStopsSchema,
   FlightsSchema,
   FerryScheduleFileSchema,
@@ -19,12 +21,31 @@ import { loadCityDataset } from '../cityDataFetch'
 
 const cityStore = createCityDataStore(loadCityDataset)
 
+// Junction spans matter only once buses run detailed traffic at street level,
+// so bus-junctions.json loads after the core data, when the browser is idle,
+// and is attached to the loaded route objects in place (attachBusJunctions).
+// Low fetch priority leaves the bandwidth to map tiles still loading on a
+// slow connection. Until then, and if it fails, buses run without junction
+// reservations.
+function loadBusJunctionsWhenIdle(routes: BusRoute[], cancelled: { current: boolean }): void {
+  if (!routes.length) return
+  const run = () => {
+    if (cancelled.current) return
+    loadJson<BusJunctionFile>('/data/bus-junctions.json', BusJunctionsRuntimeSchema, 'bus-junctions.json', { priority: 'low' })
+      .then(file => { if (!cancelled.current) attachBusJunctions(routes, file) })
+      .catch(err => console.warn('[data] bus-junctions.json unavailable:', err))
+  }
+  const w = window as unknown as { requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number }
+  if (w.requestIdleCallback) w.requestIdleCallback(run, { timeout: 4000 })
+  else setTimeout(run, 1500)
+}
+
 
 // Fetch + schema-validate a static data file. A non-2xx response throws (so a
 // 404 doesn't get parsed as an HTML error page), and the JSON is run through
 // its zod schema (`parseData` throws in dev, logs in prod) before use.
-async function loadJson<T>(path: string, schema: z.ZodType, label: string): Promise<T> {
-  const res = await fetch(path)
+async function loadJson<T>(path: string, schema: z.ZodType, label: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(path, init)
   if (!res.ok) throw new Error(`fetch ${path} → HTTP ${res.status}`)
   const raw = await res.json()
   return parseData<T>(schema, raw, label)
@@ -330,14 +351,16 @@ export function useTransitData(clock: SimulationClock): UseTransitDataResult {
     // Core data gates the `loading` flag — MapView's sim loop waits on it.
     // Flights + ferries are non-critical overlays, so they load independently
     // and do not block the first render of vehicles on the map.
+    let busRoutes: BusRoute[] = []
     Promise.all([
       loadJson<LRTLine[]>('/data/lrt-lines.json', LRTLinesSchema, 'lrt-lines.json').then(v => commit('lrtLines', v)),
       loadJson<Station[]>('/data/stations.json', StationsSchema, 'stations.json').then(v => commit('stations', v)),
-      loadJson<BusRoute[]>('/data/bus-routes.json', BusRoutesSchema, 'bus-routes.json').then(v => commit('busRoutes', v)).catch(() => commit('busRoutes', [])),
+      loadJson<BusRoute[]>('/data/bus-routes.json', BusRoutesRuntimeSchema, 'bus-routes.json').then(v => { busRoutes = v; commit('busRoutes', v) }).catch(() => commit('busRoutes', [])),
       loadJson<BusStop[]>('/data/bus-stops.json', BusStopsSchema, 'bus-stops.json').then(v => commit('busStops', v)).catch(() => commit('busStops', [])),
     ]).then(() => {
       if (cancelledRef.current) return
       setData(prev => (prev.loading ? { ...prev, loading: false } : prev))
+      loadBusJunctionsWhenIdle(busRoutes, cancelledRef)
     }).catch(err => {
       console.error('Failed to load core transit data:', err)
       if (!cancelledRef.current) setData(prev => ({ ...prev, loading: false }))

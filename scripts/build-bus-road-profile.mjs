@@ -4,7 +4,7 @@
 // Separately mapped carriageways: https://wiki.openstreetmap.org/wiki/Dual_carriageway
 import { readFile, writeFile, mkdir, rename, copyFile, unlink } from 'node:fs/promises'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { dirname, join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { buildAmaralNetwork } from './amaral-network.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
@@ -291,6 +291,31 @@ export function routeJunctions(coords, index, sections = []) {
     .sort((a, b) => a.start - b.start || a.id.localeCompare(b.id))
 }
 
+// Junction spans go to their own file: they are about a third of the
+// compressed bus-routes.json and matter only for street-level traffic, so the
+// app loads them after startup (attachBusJunctions in src/engines/busJunctions.ts).
+export function splitBusJunctions(routes) {
+  const file = { version: 1, routes: {} }
+  for (const route of routes) {
+    const profile = route.roadProfile
+    if (!profile?.junctions) continue
+    file.routes[route.id] = { geometryKey: profile.geometryKey, junctions: profile.junctions }
+    delete profile.junctions
+  }
+  return file
+}
+
+async function writeStaged(path, text) {
+  const tempPath = join(ROOT, 'data/raw', `${basename(path, '.json')}-profile-output.json`)
+  await writeFile(tempPath, text)
+  try { await rename(tempPath, path) } catch (error) {
+    // Windows file watchers may hold the destination without FILE_SHARE_DELETE.
+    // The complete validated output already exists in the local staging file.
+    if (error.code !== 'EPERM') throw error
+    await copyFile(tempPath, path); await unlink(tempPath)
+  }
+}
+
 async function run() {
   const path = join(ROOT, 'public/data/bus-routes.json'), cachePath = join(ROOT, 'data/raw/bus-road-ways.json')
   let snapshot
@@ -325,14 +350,9 @@ async function run() {
   const terminal = buildAmaralNetwork(source), replaced = new Set(terminal.ways.map(w => w.id))
   const ways = [...snapshot.elements.filter(w => !replaced.has(w.id)), ...terminal.ways]
   const routes = annotateRoutes(JSON.parse(await readFile(path, 'utf8')), ways, snapshot.fetchedAtUtc)
-  const tempPath = join(ROOT, 'data/raw/bus-routes-profile-output.json')
-  await writeFile(tempPath, JSON.stringify(routes))
-  try { await rename(tempPath, path) } catch (error) {
-    // Windows file watchers may hold the destination without FILE_SHARE_DELETE.
-    // The complete validated output already exists in the local staging file.
-    if (error.code !== 'EPERM') throw error
-    await copyFile(tempPath, path); await unlink(tempPath)
-  }
+  const junctions = splitBusJunctions(routes)
+  await writeStaged(path, JSON.stringify(routes))
+  await writeStaged(join(ROOT, 'public/data/bus-junctions.json'), JSON.stringify(junctions))
   console.log(`Annotated ${routes.length} routes using ${snapshot.elements.length} OSM ways (${snapshot.fetchedAtUtc}).`)
   console.log('Inspect: node scripts/inspect.mjs bus-roads')
 }

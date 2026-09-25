@@ -180,6 +180,26 @@ describe('background bus frame', () => {
     expect(sent.at(-1)?.routeKeys).toEqual(sent[0].routeKeys)
   })
 
+  it('forwards junction spans attached after the routes once, and restarts the queues with them', () => {
+    const { sent, frame, reply } = setup()
+    const late = { id: '2', roadProfile: { version: 1, geometryKey: '2:00000000', fetchedAtUtc: '', sections: [] } } as unknown as BusRoute
+    const lateData = { busRoutes: [late], busStops: [] as BusStop[] }
+    frame.sample(lateData, 1000, 0)
+    expect(sent[0].routes).toHaveLength(1)
+    expect(sent[0].junctions).toBeUndefined()
+    reply()
+    const spans = [{ id: 'j1', start: 0.1, end: 0.2 }]
+    late.roadProfile!.junctions = spans
+    frame.sample(lateData, 1100, 100)
+    expect(sent.at(-1)?.routes).toBeUndefined()
+    expect(sent.at(-1)?.junctions).toEqual([[sent[0].routeKeys![0], spans]])
+    expect(sent.at(-1)?.reset).toBe(true)
+    reply()
+    frame.sample(lateData, 1200, 200)
+    expect(sent.at(-1)?.junctions).toBeUndefined()
+    expect(sent.at(-1)?.reset).toBe(false)
+  })
+
   it('disposes the worker and ignores late completions', () => {
     const { port, sent, frame, reply } = setup()
     frame.sample(data, 1000)

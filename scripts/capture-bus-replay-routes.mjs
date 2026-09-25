@@ -1,5 +1,6 @@
 // Freeze public bus geometry together with geometry-dependent replay playheads.
-// Usage: node scripts/capture-bus-replay-routes.mjs <bus-routes-snapshot.json>
+// Usage: node scripts/capture-bus-replay-routes.mjs <bus-routes-snapshot.json> [bus-junctions.json]
+// The fixture keeps each route's junction spans inside its roadProfile.
 import { readFileSync, writeFileSync } from 'node:fs'
 import { gzipSync } from 'node:zlib'
 const path = process.argv[2]
@@ -9,6 +10,11 @@ const ids = new Set(Object.keys(fixture).map(id => id.replace(/-\d+$/, '')))
 const maneuvers = readFileSync('src/engines/busReplayManeuvers.test.ts', 'utf8')
 for (const [, id] of maneuvers.matchAll(/['"]([A-Z0-9]+)-\d+['"]/g)) ids.add(id)
 const routes = JSON.parse(readFileSync(path, 'utf8')).filter(r => ids.has(r.id))
+const junctions = JSON.parse(readFileSync(process.argv[3] ?? 'public/data/bus-junctions.json', 'utf8')).routes
+for (const route of routes) {
+  const entry = junctions[route.id], profile = route.roadProfile
+  if (entry && profile && !profile.junctions && entry.geometryKey === profile.geometryKey) profile.junctions = entry.junctions
+}
 if (routes.length !== ids.size || routes.some(r => !r.geometry || !r.roadProfile)) throw new Error('Incomplete bus geometry snapshot')
 const output = gzipSync(JSON.stringify(routes), { level: 9 })
 writeFileSync('src/engines/__fixtures__/bus-replay-routes.json.gz', output)

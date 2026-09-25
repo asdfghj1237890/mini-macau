@@ -828,11 +828,17 @@ function computeBusVehicles(
   }
   return traffic ? traffic.sample(plans, timeMs) : plans.map(plan => plan.sample(plan.elapsedSec).vehicle)
 }
-const busPassageCache = new WeakMap<BusRoute, ReturnType<typeof buildBusPassages>>()
+// Keyed by route, checked against its junction list: bus-junctions.json is
+// attached to the route objects after startup, and the passages must follow.
+const busPassageCache = new WeakMap<BusRoute, { junctions: unknown; passages: ReturnType<typeof buildBusPassages> }>()
 function getRoutePassages(route: BusRoute, lengthM: number, circular: boolean) {
-  let passages = busPassageCache.get(route)
-  if (!passages) { passages = buildBusPassages(route.roadProfile, lengthM, circular); busPassageCache.set(route, passages) }
-  return passages
+  const junctions = route.roadProfile?.junctions
+  let hit = busPassageCache.get(route)
+  if (!hit || hit.junctions !== junctions) {
+    hit = { junctions, passages: buildBusPassages(route.roadProfile, lengthM, circular) }
+    busPassageCache.set(route, hit)
+  }
+  return hit.passages
 }
 const FLIGHT_VISIBLE_MINUTES = 15
 const DEPARTURE_CLIMB_MINUTES = 8
