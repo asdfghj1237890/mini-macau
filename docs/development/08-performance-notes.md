@@ -95,7 +95,7 @@ pinch zoom 中上傳退到約 6 Hz，把 main thread 讓給 MapLibre 的 zoom �
 
 ```ts
 const z = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
-// MapView.tsx:1594
+// MapView.tsx:5593
 ```
 
 > Source: [`MapView.tsx`](../../src/components/MapView.tsx)（搜 `useSyncExternalStore`）。
@@ -119,13 +119,15 @@ const z = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
 ## 9. Ferry path 長度 cache + 2D circle for 遠景
 
-- `ferryPathMinutesCache` 把 `(routeId:terminal:berthIndex)` → 巡航分鐘數的計算 cache 掉（[`simulationEngine.ts:1184`](../../src/engines/simulationEngine.ts)）。
+- `ferryPathMinutesCache` 把 `(routeId:terminal:berthIndex)` → 巡航分鐘數的計算 cache 掉（[`simulationEngine.ts:1286`](../../src/engines/simulationEngine.ts)）。
 - 渡輪在大 zoom out 時跟 vehicle layer 一樣退到 circle。
 
 ## 10. `flightOnly` per-frame 補償
 
 **問題**：飛機在高倍速（≥5×）下視覺會「前後抖動」。原因：sim engine 30 Hz 步進、飛機在 climb 階段每 tick 走 3–25 m，當 sim speed 5× 時每 tick 走 15–125 m，畫面看到的位置是 hold 一個 tick 的長度。
 
-**Fix**：新增 `computeFlightOnly(transitData, time)` 只算航班，從 MapView 的 RAF render loop 每 frame 呼叫，讓飛機位置跟連續時間走、不被 sim tick 量化。
+**Fix**：新增 `computeFlightOnly(transitData, time)` 只算航班，最初從 MapView 的 RAF render loop 每 frame 呼叫，讓飛機位置跟連續時間走、不被 sim tick 量化。
 
-> Source: [`simulationEngine.ts:1351`](../../src/engines/simulationEngine.ts)。
+**現況**：整批航班改跟上傳節奏走——[`VehicleFrame`](../../src/engines/vehicleFrame.ts) 每個 frame 取樣，但只在上傳時（33／100／160 ms）重算整批；上傳之間只以 `computeSingleFlight` 重算被追蹤的那一架，機身與鏡頭仍用同一個時刻。
+
+> Source: [`simulationEngine.ts:1429`](../../src/engines/simulationEngine.ts)。

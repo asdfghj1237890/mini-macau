@@ -28,6 +28,9 @@ data/scripts/
 ├── fetch_ferry_schedules.py   # TurboJET / CotaiJet → ferry-schedules.json
 ├── fetch_road_works.py        # data.gov.mo (DSAT) → road-works.json
 ├── fetch_schools.py           # manual; DSEDJ list + OSM footprints → schools.json
+├── fetch_public_housing.py    # manual; 房屋局社屋／經屋清單 + 其他政府房屋 + OSM footprints → public-housing.json
+├── fetch_parishes.py          # manual; OSM 堂區邊界 + DSEC 人口普查（手抄）→ parishes.json
+├── fetch_grand_prix.py        # manual; OSM relation 8877949 + 大賽車委員會彎道名稱 → grand-prix.json
 ├── fetch_water_facilities.py  # 半年一次; 澳門自來水的 22 個設施 + OSM → water-facilities.json
 ├── macao_water.py             # 讀澳門自來水網站 API（供水設施 zh/en/pt、供澳原水、統計數據），給上面那支核對與取數字
 ├── fetch_water_distribution.py # manual; 澳門境內道路，流向由清水設施定 → water-distribution.json
@@ -35,11 +38,14 @@ data/scripts/
 ├── cem_operation.py           # 讀澳電「營運」頁（中、英）：當年數字 + 變電站名單，給上面那支核對用
 ├── fetch_power_distribution.py # manual; 同一份道路底稿，流向由變電站定 → power-distribution.json
 ├── road_network.py            # 上面兩支 *_distribution 共用：道路底稿 + 多源 Dijkstra 流向場
-├── osm_footprints.py          # 學校／供水／供電共用：Overpass 存取 + basemap tile 足跡重切
+├── osm_footprints.py          # 學校／居屋／供水／供電共用：Overpass 存取 + basemap tile 足跡重切
 ├── fetch_toilets.py           # data.gov.mo (IAM) → toilets.json
 ├── fetch_religion.py          # OSM + 文化局 API + 澳門記憶 → religion.json
 ├── fetch_car_parks.py         # data.gov.mo (DSAT) → car-parks.json
 ├── fetch_waste.py             # data.gov.mo (IAM+DSPA) → waste.json
+├── fetch_dspa_stats.py        # DSPA 月度統計（焚化、危廢、堆填、污水廠）→ dspa-stats.json
+├── route_offsets.py           # 巴士站對路線頂點的單調對齊（純 stdlib，validator 也用）
+├── validate_output.py         # CI gate：純 stdlib 檢查 public/data/*.json（`all` 或單一 dataset）
 └── fetch_service_status.py    # 每天 scrape 巴士停駛公告 → service-status.json
 ```
 
@@ -201,6 +207,20 @@ cd data && uv run python scripts/fetch_schools.py
 
 跑完要過 `validate_output.py schools`。
 
+### 居屋 — `fetch_public_housing.py`
+
+手動執行，輸出 `public/data/public-housing.json`，跑完要過 `validate_output.py public-housing`。房屋局（IH）的社會房屋與經濟房屋「位置分佈」兩份清單不在 HTML 本文，而在 Next.js RSC flight payload（`self.__next_f.push([...])`）裡；氹仔與路環要另加 `?ioc=T`／`?ioc=C`，否則只拿得到部分屋苑。社屋少於 16 個或經屋少於 55 個就刻意讓整個 run 失敗——payload 搬了位置要人手改，不是重試。IH 還沒列出的社屋／經屋地段（新城 A 區）放 `EXTRA_ESTATES`；清單以外的政府房屋（長者公寓、置換房、暫住房）寫在 `OTHER_ESTATES`，各附來源，型別是 `other` 並帶 `category`；還沒落成的計畫放 `KNOWN_UNBUILT`，只出現在 `unmatched`。
+
+足跡走和學校同一套 `osm_footprints.py`。比對以名稱為主、最長錨點優先；IH 自己的 `metas.xp`／`yp`（DSCC 本地網格，以有把握的屋苑做最小平方擬合）只用來在候選間取捨，並排除距離超過 350 m 的認領，所以三個重名屋苑（利民大廈、威龍花園、新樂大廈）不會套到別處的樓。需要猜的屋苑一律進 `unmatched`。每棟樓帶入伙年份，前端以型別定色相、年代定深淺。摘要：`node scripts/inspect.mjs public-housing`。
+
+### 堂區 — `fetch_parishes.py`
+
+手動執行，輸出 `public/data/parishes.json`，跑完要過 `validate_output.py parishes`。七個堂區加上不屬任何堂區的路氹填海區（`kind: "reclamation"`，只有這一個）。邊界每次從 OSM 行政邊界現抓；人口、普查年份與土地面積則手抄在腳本的 `AREAS` 表，每個數字旁邊附來源 URL，沒有官方數字就存 `None`，不估算。`areaKm2` 是政府公布的陸地面積，OSM 邊界含水域與未計入的填海地，兩者本來就對不上——`node scripts/inspect.mjs parishes` 會並列兩個數字。嘉模堂區是多個 polygon（另含橫琴的澳門大學校區與隧道走廊）。
+
+### 大賽車 — `fetch_grand_prix.py`
+
+手動執行，輸出 `public/data/grand-prix.json`，跑完要過 `validate_output.py grand-prix`。幾何來自 OSM relation 8877949「Circuito da Guia」：relation 成員的順序不是行車順序，而且友誼大馬路兩個方向的車道都在裡面（主成員合計約 8.1 km），所以腳本自己把比賽方向的一圈接成一條從起終點出發的封閉線，另外抽出維修區。九個彎道名稱照抄大賽車委員會網站三種語言的賽道圖，官方沒有公布座標，位置由每個彎道的規則推導，一律 `approximate: true`。官方長度 6.2 km 用來交叉檢查接好的一圈（目前量得 6.102 km，差 1.6 %）；單圈紀錄取自 Wikipedia（次級來源，面板與圖例都會註明）。車速曲線不在這裡算，由前端 [`src/grandPrix.ts`](../../src/grandPrix.ts) 依彎度產生。摘要：`node scripts/inspect.mjs grand-prix`。
+
 ### 供水設施 — `fetch_water_facilities.py`
 
 **清單是澳門自來水的，幾何是 OSM 的。** 名單來自澳門自來水「[供水設施](https://www.macaowater.com/about-macao-water/water-supply-facilities)」頁：22 個編號設施（4 座水廠、3 個水塘／水庫、4 個高位水池、4 個原水泵站、7 個泵站）。那頁的示意圖（`Facilities.jpg`）**有版權而且沒有地理座標**，所以一點都不描它——只取「有哪些設施、編號、名字」這些事實，座標一律來自 OpenStreetMap。上游沒有機器可讀的清單（整頁是散文加一張圖），因此 22 筆連同各自對應的 OSM element id 直接寫死在腳本的 `FACILITIES` 表裡；每次跑都會重新查一次那些 id（`out geom`），查不到就中止，OSM 的 `name:pt` / `name:en` 只要不比表裡的名字籠統就蓋過表值（`r10266785` 只標成「水塘 / Reservatório」，指的是那片湖而不是「大水塘」這個設施，所以表值留著）。
@@ -284,6 +304,8 @@ cd data && uv run python scripts/cem_operation.py              # 只印頁面讀
 
 ### 歷史地圖（前稱古地圖）— `scripts/build-old-maps.mjs`（Node，不在 Python pipeline 裡）
 
+**現況（2026-09-25）**：`old-maps.json` 共 15 筆，前端合成 13 個選項列（1912 年《Atlas de Macau》半島、氹仔、路環三張共用 `atlas-1912` 一列），一次只畫一列。配方除了主檔的 `MAPS` 表（1792、1796、1889、1893、1912 半島、1927、約 1953），另有四個由 `build-old-maps.mjs` 匯入的檔案：`old-maps-early.mjs`（貝林 1749、霍格版 1780 年代）、`old-maps-islands.mjs`（1912 氹仔與路環、1858 海軍部海圖）、`old-maps-lemos.mjs`（1963 地質略圖）與 `old-maps-dscc.mjs`（地圖繪製暨地籍司 1990／1991）；`old-maps-remote.mjs` 的外部圖磚清單目前是空的。配準分兩種：多數圖版以地標控制點做薄板樣條，岸線另用 `scripts/old-maps-coast/<id>.json` 的對應點分步修正；1990／1991 兩張則以圖上印的澳門坐標網格做單一仿射。各圖的配準數字與來源用 `node scripts/inspect.mjs old-maps` 查。本節以下各段按時間累積，後段註明「取代」的以後段為準。
+
 **1912 離島及 1858 海圖**由 `scripts/old-maps-islands.mjs` 定義，三張都是完整原紙，沒有裁邊或遮掉附圖。`taipa-1912`／`coloane-1912` 分別來自 BNP《Atlas de Macau》第 5／7 頁（4528×6046／4624×5972，1:10,000，Public Domain Mark 1.0）。各以四個主圖山頂及現存地標配準；路環的聚落放大附圖保留印刷位置，不另行對位。`admiralty-1858` 是英國海軍部第 1290 號海圖，11894×15260 原掃描由 Ruderman 經 Wikimedia Commons 提供，標示 PD-UKGov。清單的 1858 是修訂年，1804 測繪、1840 初版另列圖說；使用十一個炮台／山形點，島嶼地形概括，僅供區域尺度比較。三圖使用精確 TPS，控制點零殘差不代表實地精度，歷史岸線不吸附到現代填海邊界。預覽為 2.5／2.5／5 m/px，瓦片皆 z9–16；原圖快取在 `.cache/old-maps/`。重建前先用 `node scripts/build-old-maps.mjs <id> --gcps` 和 `--check` 核對主圖地物，再執行不帶旗標的建置並確認 `fold check: none`，最後跑 `uv run python data/scripts/validate_output.py old-maps`。
 
 **1963 地質略圖**由 `scripts/old-maps-lemos.mjs` 定義。原圖為 Mindat photo 695342、Rui Nunes 上傳的 1000×1386 JPG；頁面標示公有領域，這是圖源聲明，未獨立確認原出版物權利。原圖快取於 `.cache/old-maps/lemos-1963-original.jpg`，需從來源頁下載。每次建置從原圖以 Lanczos3 放大 2×，再套用輕度銳化（sigma 0.6、m1 0.4、m2 0.8），寫入獨立的 `lemos-1963-2x.png`（2000×2772）；保留原件，不在上一次增強結果上累積銳化。GCP 以 `2(u + 0.5) - 0.5` 轉換像素中心，地理座標不變。只裁入地圖內框，完整圖例保留來源連結。採 `projection: 'affine'` 最小平方法，以水塘東側兩堤角及青洲、小潭山、大潭山、疊石塘山共六點配準，避免把既有方格和歷史岸線拉成彎曲；輸出的 RMS 是擬合殘差，不是測繪精度。建置單張 WebP 與 z9–14 的 512 px 圖磚，沒有增加原圖可辨識的細節。執行 `node scripts/build-old-maps.mjs lemos-1963 --check` 檢視 leave-one-out 殘差，再執行同命令移除 `--check` 產生影像。
@@ -296,7 +318,13 @@ cd data && uv run python scripts/cem_operation.py              # 只印頁面讀
 
 **高解析度瓦片金字塔（2026-09-19，使用者：「古地圖放大時候可以解析度一併高清？」）**：單張 WebP 是從「先縮 3 倍的圖版」warp 到 2–3 m/px 的，掃描檔裡的細節遠不止這些。用各圖自己的樣條量（地標釘處一個掃描像素在地面上的大小，中位數）：1889 年石印 0.43 m、1893 年手稿 0.86 m、1796 年 0.89 m（草圖比例不均，0.65–1.7 m）、1792 年 1.55 m（Internet Archive 這份每葉最大就是 1797×3000，IIIF `info.json` 確認過）、1922 年 6.9 m。所以只有前三張值得做：`MAPS` 表裡加 `tiles: { maxzoom }`（1889 → z17 = 0.55 m/px；1893、1796 → z16 = 1.11 m/px；再高一級就比掃描檔還細、檔案數卻是 4 倍——1893 做到 z17 實測要多 6.3 MB），`buildTiles` 就在單張圖之外再寫一套 512 px 的 Web-Mercator XYZ 瓦片到 `public/data/old-maps/<id>/{z}/{x}/{y}.webp`，`old-maps.json` 該筆多一個 `tiles: { url, tileSize, minzoom, maxzoom, count }`。做法：最高一級直接從**沒縮過**的裁切掃描（`buildPlate(map, true)`）取樣，地面 → 圖版像素用的是 warp 同一個映射 `project`（樣條，1796 再加海岸貼合的 `undo`；兩條樣條用 `fuseTPS` 合併求值，核函數一個控制點只算一次），每塊瓦片先在 4 px 的格點上算映射、中間雙線性內插（映射很平滑，格點比逐像素少約 16 倍的樣條求值），圖版像素 = 映射值 × `shrink`（控制點表就是在原掃描上量的，所以這比單張圖「先縮再取樣」還少一次近似）；往下每一級是四塊子瓦片拼起來縮 2 倍（lanczos3，sharp 會先預乘 alpha），深度優先遞迴，記憶體裡只留一條分支。瓦片只畫單張圖 `bounds`（取 6 位小數後的值）以內的像素，所以兩種畫法顯示的是同一塊圖；`bounds` 格網內的每一塊瓦片都會寫出來，空的角落寫同一塊透明瓦片——前端的 raster source 帶 `bounds`，MapLibre 只會要格網內的瓦片，於是不可能出現 404。最低到 z9（圖版約 20 px 寬；再往外 raster source 不畫，也看不到了）。每次重建會先清掉該圖的瓦片目錄（bounds 變了舊瓦片就是垃圾），沒有 `tiles` 的圖若留有目錄也會清掉。實測：1889 年 278 檔 3.64 MB、1893 年 212 檔 3.30 MB、1796 年 393 檔 3.72 MB，合計 883 檔 10.66 MB（WebP quality 80）；三張單張圖重建後 SHA-256 與之前逐位元相同（單張圖的 warp 沒動，仍用兩條分開的樣條）。建置時間含單張圖：1889 約 70 秒、1893 約 20 秒、1796 約 2 分鐘。**代價要記得**：瓦片是 commit 進 repo 的二進位檔，之後每重新校準一張圖，就是再寫一次那張圖的 3–4 MB 到 git 歷史——校準告一段落才值得做，這也是使用者在看過數字後選的方案（三張有細節的；1792 只比單張圖細 1.6 倍、1922 比單張圖還粗，維持單張）。沒採用的做法：把單張圖直接做大（1889 做到 0.5 m/px 是 6100×8800 px，一張貼圖約 215 MB 顯存，也超過不少手機的最大貼圖尺寸，這個專案又有 iPhone X 掉 WebGL context 的前科）；在 CI／部署時才產生瓦片（掃描檔不在 repo 裡，NLA 那張還得手動過瀏覽器檢查，AHU 的下載不穩）；Git LFS（資料工作流每天部署，免費額度的頻寬撐不住）。驗證：scratch `tile-offset.mjs` 在 13 個視窗把瓦片和單張圖放到同一格網上找最佳整數位移，三張圖全部是 (0, 0)（含 1796 海岸貼合過的南岸與內港）；`validate_output.py old-maps` 依 `bounds` 重算每一級的瓦片格網，逐一確認檔案存在、`count` 相符、目錄裡沒有多餘的檔案，沒有 `tiles` 的圖不得留有瓦片目錄（拿掉一塊瓦片、放一個孤兒目錄兩個反向測試都會失敗）；`node scripts/inspect.mjs old-maps` 會列出每張圖的瓦片層級、檔數與磁碟大小。
 
-**《澳門市全圖》（`aomen-1953`）**：使用 LoC `2002626773 / g7823m.ct000572` 在 Wikimedia Commons 的無水印 4270×5241 JPG。LoC 編目 `[1953?]` 並註明同於 1952–53 年工商年鑑內的圖，MUST 則依圖面地貌判為 1938–1941；因此 `year: 1953` 搭配 `yearApproximate: true`，圖例顯示 `≈ 1953`，不宣稱是確定測繪年。16 個地物控制點以 λ=0 配準（原有 13 處地標，加上大水塘東北、東南堤角及南堤轉折；堤角取水側線，參考既有供水資料 OSM r10266785，保留西岸與北側設施在舊圖中的形狀），先用 `--gcps` 核對符號，再以 `--check` 檢查概括化造成的偏差；圖上西南岸的「海軍船塢」不是媽閣廟，不可拿它作廟宇控制點。一般預覽為 2.5 m/px，z9–16 瓦片由原掃描取樣，最高級約 1.11 m/px，105 檔約 1.42 MB。保留 LoC 的來源與使用聲明，不套用預設的 public-domain attribution。重建：`node scripts/build-old-maps.mjs aomen-1953`。1922 年區域圖因半島原圖僅約 600 px 高、放大細節不足，已依使用者要求移除選項、metadata、公開 WebP 與重建設定；加上以下 BNP 的兩幅圖，目前提供七幅古地圖。上文關於 1922 年配準與瓦片取捨的內容為歷史紀錄。
+**《澳門市全圖》（`aomen-1953`）**：使用 LoC `2002626773 / g7823m.ct000572` 在 Wikimedia Commons 的無水印 4270×5241 JPG。LoC 編目 `[1953?]` 並註明同於 1952–53 年工商年鑑內的圖，MUST 則依圖面地貌判為 1938–1941；因此 `year: 1953` 搭配 `yearApproximate: true`，圖例顯示 `≈ 1953`，不宣稱是確定測繪年。16 個地物控制點以 λ=0 配準（原有 13 處地標，加上大水塘東北、東南堤角及南堤轉折；堤角取水側線，參考既有供水資料 OSM r10266785，保留西岸與北側設施在舊圖中的形狀），先用 `--gcps` 核對符號，再以 `--check` 檢查概括化造成的偏差；圖上西南岸的「海軍船塢」不是媽閣廟，不可拿它作廟宇控制點。一般預覽為 2.5 m/px，z9–16 瓦片由原掃描取樣，最高級約 1.11 m/px，105 檔約 1.42 MB。保留 LoC 的來源與使用聲明，不套用預設的 public-domain attribution。重建：`node scripts/build-old-maps.mjs aomen-1953`。1922 年區域圖因半島原圖僅約 600 px 高、放大細節不足，已依使用者要求移除選項、metadata、公開 WebP 與重建設定。之後陸續加入的圖版見本節開頭的現況摘要。上文關於 1922 年配準與瓦片取捨的內容為歷史紀錄。
+
+**BNP 1912／1927（2026-09-20）**：`cartografia-1912` 為《Atlas de Macau》第 3 頁的半島城市圖（1:10,000、4606×6018），不是 1:80,000 區域圖；`alves-1927` 為 Alves／Pires《Planta Geral da Cidade e Novo Porto de Macau》（1:4,000、12484×16318）。來源分別為 https://purl.pt/27811 與 https://purl.pt/11434，BNP 均標示 Public Domain Mark 1.0。`scripts/old-maps-source.mjs` 將 IIIF 原尺寸區塊組成無損快取 PNG，每塊先核對實際尺寸，避開單次回應 5000 px 的上限，不上採樣。兩圖分別以 16／17 個地物點做 λ=0 配準，`--gcps`、仿射 `--check` 與 `--preview` 均需核對；1912 的媽閣廟符號不足以確認對應像素，因此不設針；1927 的蓮峯廟在藍色蓄水池東側，不能誤釘在蓄水池上。兩圖不使用舊岸線吸附，保留各年代的海岸與規劃差異。1912 瓦片 z9–16、1927 z9–17，預覽各 2.5 m/px；1927 下方兩個不同地理範圍的小插圖及全景畫完整保留，依原版排放；插圖不對應所在位置的現代底圖。1927 的三語名稱明示「含規劃」，不把所有填海地與港口畫法視為已建成。重建：`node scripts/build-old-maps.mjs cartografia-1912`、`node scripts/build-old-maps.mjs alves-1927`。
+
+**完整圖版顯示（2026-09-20，取代上文裁切流程）**：八張本機掃描改為保留完整來源圖版，包含紙邊、標題、圖例及插圖；1792 的兩張完整掃描旋轉後上下拼接，維持原有 68 px 書溝間隙。`registrationOrigin` 只保留先前配準座標的原點，不再裁圖。控制點、樣條／仿射及海岸貼合都不變，取樣時才將配準像素轉回完整來源像素；單圖縮圖與原尺寸瓦片共用此轉換。輸出範圍由原圖四邊逐點反解既有配準求得，保留舊輸出像素格網並檢查邊界未截斷圖面；只移除配準後矩形外的透明空間。1927 插圖與全景畫不再遮罩。1963 保留 2× 放大與輕度銳化。（當時的 1996 遠端 WMTS 沿用供應方的完整服務範圍，已於 2026-09-23 移除。）
+
+**2026-09-24 霍格版氹仔整島對位（取代先前氹仔的 60% 法向修正）**：使用者指出 1780 年代霍格版的氹仔仍被拉扯。比較四種做法（現行逐點貼合、每島等比、每島仿射、不修海岸）並實際並排比較等比與仿射後，使用者選擇每島仿射：`scripts/old-maps-coast/hogg-1780s.json` 中小氹、大氹共 13 段的目標點，改為各島一個仿射變換（旋轉、縮放與一個方向的均勻拉伸），以山頂控制點（小潭山、大潭山）為固定中心，用反覆最近點法擬合到 DSSCU 1912 輪廓（小氹兩方向 4.67／6.48 m／原圖像素、旋轉 8.39°，輪廓均方根 84 m；大氹 6.45／5.86 m、旋轉 −0.51°，65 m），每段記錄於 `islandAffine`。島內不作局部推移，山紋與設色不會被局部扯開（小氹整體拉長約四成）；岸線與 1912 輪廓的差距改為平均約 60–70 m、最大約 220 m，這是刻意的取捨。兩島變換不同，之間的水道仍會有輕微拉伸。路環、半島與七個地標不變。建置：無摺疊，氹仔區域最大放大率 42.2 m／原圖像素（上次 51.5），單張圖尺寸與 240 塊瓦片數不變；其他 14 筆紀錄不變。試做與量測工具在 gitignored 的 `.cache/old-maps/make-hogg-taipa-rigid.mjs`、`audit-hogg-islands.mjs`、`hogg-islands-taipa-*.json`、`hogg-islands-audit-taipa-*.json`。
 
 ### 宗教 — `fetch_religion.py`
 
@@ -341,13 +369,6 @@ Runtime 由 [`useServiceStatus.ts`](../../src/hooks/useServiceStatus.ts) 讀進�
 - **改服務時段**：`patch_service_hours.py` / `patch_service_hours_by_day.py`，在腳本裡硬編碼新的小時數，重跑。`patch_service_hours_by_day.py` 會把週六或週日的「不設服務」寫成對應的 `serviceHoursStartSat/Sun: null` / `serviceHoursEndSat/Sun: null`。
 - **更新 LRT 班次**：依最新官方公告更新三種 scheduleType 的部署輸入，通過 schema 與方向一致性驗證後重新部署。
 
-**BNP 1912／1927（2026-09-20）**：`cartografia-1912` 為《Atlas de Macau》第 3 頁的半島城市圖（1:10,000、4606×6018），不是 1:80,000 區域圖；`alves-1927` 為 Alves／Pires《Planta Geral da Cidade e Novo Porto de Macau》（1:4,000、12484×16318）。來源分別為 https://purl.pt/27811 與 https://purl.pt/11434，BNP 均標示 Public Domain Mark 1.0。`scripts/old-maps-source.mjs` 將 IIIF 原尺寸區塊組成無損快取 PNG，每塊先核對實際尺寸，避開單次回應 5000 px 的上限，不上採樣。兩圖分別以 16／17 個地物點做 λ=0 配準，`--gcps`、仿射 `--check` 與 `--preview` 均需核對；1912 的媽閣廟符號不足以確認對應像素，因此不設針；1927 的蓮峯廟在藍色蓄水池東側，不能誤釘在蓄水池上。兩圖不使用舊岸線吸附，保留各年代的海岸與規劃差異。1912 瓦片 z9–16、1927 z9–17，預覽各 2.5 m/px；1927 下方兩個不同地理範圍的小插圖及全景畫完整保留，依原版排放；插圖不對應所在位置的現代底圖。1927 的三語名稱明示「含規劃」，不把所有填海地與港口畫法視為已建成。重建：`node scripts/build-old-maps.mjs cartografia-1912`、`node scripts/build-old-maps.mjs alves-1927`。
-
 ## 自動化
 
-三個 GitHub Actions 處理週期性更新（航班每日、渡輪每月、服務狀態每日），詳見 [07-ci-and-data-sync.md](07-ci-and-data-sync.md)。其餘腳本都是**手動觸發**，因為它們的 input（OSM、MLM 圖片、bus_reference）不會自動變。
-
-
-**完整圖版顯示（2026-09-20，取代上文裁切流程）**：八張本機掃描改為保留完整來源圖版，包含紙邊、標題、圖例及插圖；1792 的兩張完整掃描旋轉後上下拼接，維持原有 68 px 書溝間隙。`registrationOrigin` 只保留先前配準座標的原點，不再裁圖。控制點、樣條／仿射及海岸貼合都不變，取樣時才將配準像素轉回完整來源像素；單圖縮圖與原尺寸瓦片共用此轉換。輸出範圍由原圖四邊逐點反解既有配準求得，保留舊輸出像素格網並檢查邊界未截斷圖面；只移除配準後矩形外的透明空間。1927 插圖與全景畫不再遮罩。1963 保留 2× 放大與輕度銳化。（當時的 1996 遠端 WMTS 沿用供應方的完整服務範圍，已於 2026-09-23 移除。）
-
-**2026-09-24 霍格版氹仔整島對位（取代上文氹仔的 60% 法向修正）**：使用者指出 1780 年代霍格版的氹仔仍被拉扯。比較四種做法（現行逐點貼合、每島等比、每島仿射、不修海岸）並實際並排比較等比與仿射後，使用者選擇每島仿射：`scripts/old-maps-coast/hogg-1780s.json` 中小氹、大氹共 13 段的目標點，改為各島一個仿射變換（旋轉、縮放與一個方向的均勻拉伸），以山頂控制點（小潭山、大潭山）為固定中心，用反覆最近點法擬合到 DSSCU 1912 輪廓（小氹兩方向 4.67／6.48 m／原圖像素、旋轉 8.39°，輪廓均方根 84 m；大氹 6.45／5.86 m、旋轉 −0.51°，65 m），每段記錄於 `islandAffine`。島內不作局部推移，山紋與設色不會被局部扯開（小氹整體拉長約四成）；岸線與 1912 輪廓的差距改為平均約 60–70 m、最大約 220 m，這是刻意的取捨。兩島變換不同，之間的水道仍會有輕微拉伸。路環、半島與七個地標不變。建置：無摺疊，氹仔區域最大放大率 42.2 m／原圖像素（上次 51.5），單張圖尺寸與 240 塊瓦片數不變；其他 14 筆紀錄不變。試做與量測工具在 gitignored 的 `.cache/old-maps/make-hogg-taipa-rigid.mjs`、`audit-hogg-islands.mjs`、`hogg-islands-taipa-*.json`、`hogg-islands-audit-taipa-*.json`。
+GitHub Actions 處理週期性更新：航班、航班時刻表、道路工程、停車場與巴士服務狀態每日；渡輪、公廁、垃圾回收與 DSPA 統計每月；供水與供電設施每年 3 月、9 月各一次。詳見 [07-ci-and-data-sync.md](07-ci-and-data-sync.md)。其餘腳本都是**手動觸發**，因為它們的 input（OSM、MLM 圖片、bus_reference）不會自動變。

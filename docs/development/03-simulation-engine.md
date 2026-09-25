@@ -36,7 +36,7 @@ simNow = paused ? baseSim
 getScheduleType(date: Date): 'mon_thu' | 'friday' | 'sat_sun'
 ```
 
-[`simulationEngine.ts:7`](../../src/engines/simulationEngine.ts)。MLM 三線都是這三種班表，週五因為晚班加密所以獨立。
+[`simulationEngine.ts:15`](../../src/engines/simulationEngine.ts)。MLM 三線都是這三種班表，週五因為晚班加密所以獨立。
 
 伺服器依模擬時間選擇班表，並在跨午夜時保留前一個服務日尚未結束的班次。瀏覽器只傳送時間窗起點。
 
@@ -58,7 +58,7 @@ getScheduleType(date: Date): 'mon_thu' | 'friday' | 'sat_sun'
 - **服務時段跨午夜**（`serviceHoursEnd <= serviceHoursStart` 視為 +1440 min）
 - **週六、週日獨立窗口**（`serviceHoursStartSat` / `serviceHoursEndSat` 與 `serviceHoursStartSun` / `serviceHoursEndSun`；`null/null` 代表該 bucket 明確不設服務）
 - **多輛車間隔發車**：同一條路線同時有 N 輛車，間隔 `route.frequency` 分鐘，車輛 ID `routeId-0..N-1`。
-- **同站排隊**：兩台車同時 dwell 在同一站時，後到的會沿行進方向往後 shift `QUEUE_OFFSET_KM ≈ 28 m`（[`simulationEngine.ts:534`](../../src/engines/simulationEngine.ts)）。如果端點 clamp 了就改成側向 perpendicular nudge。
+- **排隊與路口**：`computeBusVehicles` 本身只按時刻表算出每輛車的計畫位置；傳入 `BusTrafficDriver` 時改由它取樣（[`simulationEngine.ts:829`](../../src/engines/simulationEngine.ts)）。站前排隊、跟車與路口通行權由 [`busTraffic.ts`](../../src/engines/busTraffic.ts) 的 `BusTrafficController` 在 worker 內處理，而且只對視窗附近與追蹤中的車做細部交通（`BusTrafficScope`），見 [05-data-pipeline.md](05-data-pipeline.md)「巴士道路分類」。舊的 `QUEUE_OFFSET_KM` 同站位移已不存在。
 
 ### `getBusSchedule` — 一次性 per-route 的 schedule build
 
@@ -115,11 +115,11 @@ progressAtCycle(schedule: BusSchedule, cycleSec: number): number
 
 `isRunwayBusy(flights, t)` 看任何 departure 是否在 t 前後 `TAXI_MINUTES` 或 `RUNWAY_BUSY_BUFFER_MINUTES` 內，是的話 holding 就再轉一圈。
 
-每 RAF frame 另外呼叫 `computeFlightOnly`（[`simulationEngine.ts:1351`](../../src/engines/simulationEngine.ts)）只算航班，避免 sim tick 的 33 ms 步進讓飛機在高倍速下抖動。
+航班不跟 sim tick 走：[`VehicleFrame`](../../src/engines/vehicleFrame.ts) 每個 RAF frame 取樣，但整批航班只在每次上傳時（桌面 33 ms、手機 100 ms、地圖移動中 160 ms）呼叫 `computeFlightOnly`（[`simulationEngine.ts:1429`](../../src/engines/simulationEngine.ts)）重算；兩次上傳之間只以 `computeSingleFlight` 重算被追蹤的那一架，讓機身與鏡頭用同一個時刻，避免高倍速下抖動。
 
 ## Ferry 模擬（`computeFerryVehicles`）
 
-[`simulationEngine.ts:1206`](../../src/engines/simulationEngine.ts)。
+[`simulationEngine.ts:1308`](../../src/engines/simulationEngine.ts)。
 
 每艘渡輪有兩個階段：
 
@@ -142,7 +142,7 @@ arrival:   [T - pathMin, T)                     從反向 waypoint 巡航
 
 ## 測試
 
-37 個 vitest 測試覆蓋以下 pure function（詳見 [10-testing.md](10-testing.md)）：
+[`simulationEngine.test.ts`](../../src/engines/simulationEngine.test.ts) 的 47 個 vitest 測試覆蓋以下 pure function（詳見 [10-testing.md](10-testing.md)）：
 
 - `getScheduleType` — 邊界日
 - `interpolateOnLine` / `interpolateOnLineSmooth` — 端點、clamp、bearing 慣例

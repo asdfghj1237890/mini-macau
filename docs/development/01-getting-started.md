@@ -13,7 +13,7 @@ npm install
 npm run dev
 ```
 
-Dev server 起在 `http://localhost:5173`。MapView 是 lazy-import 的（[App.tsx:21](../../src/App.tsx)），第一次 paint 會看到 `<MapSplash/>`，等 maplibre-gl bundle parse 完才換成地圖。
+Dev server 起在 `http://localhost:5173`。MapView 是 lazy-import 的（[App.tsx:79](../../src/App.tsx#L79)），第一次 paint 會看到 `<MapSplash/>`，等 maplibre-gl bundle parse 完才換成地圖。
 
 ## 重要的 dev 設定
 

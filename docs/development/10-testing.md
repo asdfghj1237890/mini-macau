@@ -2,7 +2,7 @@
 
 ## 現況
 
-`npm test`（[Vitest](https://vitest.dev/)）現在跑 **10 個測試檔、151 個 `it`**，< 1s。`ls src/**/*.test.ts*` 能看到其中 8 個：[`engines/simulationEngine.test.ts`](../../src/engines/simulationEngine.test.ts)、[`macauTime.test.ts`](../../src/macauTime.test.ts)、[`dataSchemas.test.ts`](../../src/dataSchemas.test.ts)、[`roadWorks.test.ts`](../../src/roadWorks.test.ts)、[`schools.test.ts`](../../src/schools.test.ts)、[`toilets.test.ts`](../../src/toilets.test.ts)、[`carParks.test.ts`](../../src/carParks.test.ts)、[`hooks/useTransitData.test.ts`](../../src/hooks/useTransitData.test.ts)。另外 2 個在 `src/` 之外的 `plugins/seo-content/`——SEO 注入外掛自己的既有測試，跟這裡的城市資料更新無關，CLAUDE.md 已經另外提過。
+`npm test`（[Vitest](https://vitest.dev/)）在乾淨的 clone 裡跑 **73 個測試檔**（69 個在 `src/`，2 個在 `plugins/seo-content/`，2 個在 `server/`），合計約 **955 個 `it`**（2026-09-25 以 `npx vitest list 2>&1 | grep -v tmp_` 計數；數字會隨測試增加，需要時自己重跑）。Vitest 沒有設定 exclude，本機若有 gitignored 的 `tmp_*` 暫存副本，`npm test` 會連它們一起跑，總數因此比 CI 多。`plugins/seo-content/` 的 2 個測 SEO 注入外掛，`server/` 的 2 個（`lrt-api.test.ts`／`lrt-window.test.ts`）測 LRT 短窗 API 與視窗計算。`src/` 底下的檔案分類與涵蓋範圍見下面的表格。
 
 ```bash
 npm test            # 一次性
@@ -32,7 +32,7 @@ npm run test:watch  # 互動模式
 
 ## 城市資料 helper（`roadWorks` / `schools` / `toilets` / `carParks` / `waste`）
 
-跟 `simulationEngine.ts` 同一套邏輯：這五個 helper 都是 pure function（notice/school/toilet/car-park/waste-site 陣列 in，feature/count/label 陣列 out），不摸 DOM、不摸網路，容易上 fixture，所以也測了。`waste.ts` 現在管七種收集點型別，加上環保加Fun站與處理設施（焚化中心＋危廢站＋堆填區）兩個非收集點的 key 列，多了顏色/圖示/排序鍵一致性、hidden-type 過濾、焚化中心從 `power-facilities.json` 借記錄、統計數字格式化這幾塊，其餘同一套 pure-function 哲學（WASTE 本身雖然是專注模式，但這個 helper 只管顏色/文字/可見性/格式化這些跟專注模式無關的純運算）。
+跟 `simulationEngine.ts` 同一套邏輯：這五個 helper 都是 pure function（notice/school/toilet/car-park/waste-site 陣列 in，feature/count/label 陣列 out），不摸 DOM、不摸網路，容易上 fixture，所以也測了。`waste.ts` 現在管九種收集點型別，加上環保加Fun站、處理設施（焚化中心＋危廢站＋堆填區）與污水處理廠三個非收集點的 key 列，多了顏色/圖示/排序鍵一致性、hidden-type 過濾、焚化中心從 `power-facilities.json` 借記錄、統計數字格式化這幾塊，其餘同一套 pure-function 哲學（WASTE 現在是一個獨立圖層，開關只影響自己、不影響其他圖層；這個 helper 只管顏色/文字/可見性/格式化這些純運算，跟圖層開關邏輯本身無關）。
 
 | 檔案 | 測試重點 |
 |------|----------|
@@ -45,11 +45,25 @@ npm run test:watch  # 互動模式
 | `waste.test.ts` | 九型別（含玻璃樽／衣物回收銀行）的顏色/圖示名/排序鍵互不重複、IAM／DSPA／IAM 自家地圖三種來源歸類、`pickWasteText` en→pt→zh fallback（DSPA 沒有英文）、`visibleWasteSites` 隱藏類型過濾（沒有隱藏時保留 array identity）、`countWasteByType`／`visibleWasteCount`（污水處理廠與處理設施分開計數）、`wasteLegendRows`、`loadHiddenWasteTypes`/`saveHiddenWasteTypes` 的 round-trip、壞資料容錯與 `-seen` 遷移（新增預設隱藏列只補一次、訪客自己切過的不覆蓋）、焚化中心從 `power-facilities.json` 借記錄（id+type 雙重比對）、環保加Fun站／處理設施／污水處理廠的可見性與計數、`buildWasteFeatures`／`buildWasteAreaFeatures`／`buildWasteBuildingFeatures`（含污水廠自己的 `buildings[]`） |
 | `dspaStats.test.ts` | `statsAxisStep`／`statsAxisMax` 的 1/2/5 × 10ⁿ 取整規則與零值/空陣列 fallback、`formatStatsTick` 的 k/M 縮寫、`statsAxisTicks` 三格刻度、`formatStatsAmount`／`statsMonthLabel`、`statsChartModel`（含 2% 最小柱高、`latest` 旗標）、`seriesForKey`／`wwtpSeries` 的 `"wwtp.<plant>"` 路徑解析與未知 key／facility 無 series 時回 null |
 
+## 其他測試檔案分類
+
+上面兩節（`simulationEngine.test.ts` 那組、城市資料 helper 那組）只是覆蓋範圍裡最早、最集中的兩塊。`src/` 底下其餘測試檔按功能分組如下，每組一句話帶過測什麼，不逐條列 `it`：
+
+| 分類 | 檔案（`.test.ts`／`.test.tsx`，省略副檔名） | 測什麼 |
+|------|------|--------|
+| 巴士交通引擎（`src/engines/`，16 檔） | `amaralTerminal`／`asyncBusFrame`／`busConvoy`／`busJunctions`／`busLaneGeometry`／`busMultiLane`／`busPlayback`／`busPlaybackRate`／`busReplayManeuvers`／`busRoadProfile`／`busTraffic`／`busTrafficReplay`／`busTrafficScope`／`busWaitGroups`／`busWorkerContinuity`／`busWorkerRuntime` | 排隊/讓行/路口保留、車道幾何、worker 佇列節奏與重播情境；Amaral 終點站那部分另有專門章節，見 [12-amaral-terminal.md](12-amaral-terminal.md) |
+| 3D layer / geometry（`src/layers/`，10 檔） | `AircraftModelLayer`／`Bus3DLayer`／`Ferry3DLayer`／`Flight3DLayer`／`LRT3DLayer`／`aircraftGeometry`／`busGeometry`／`ferryGeometry`／`lrtArticulation`／`lrtGeometry` | mesh／instance buffer／picking geometry 的建構邏輯，不含實際 GPU 畫面（跟前面「視覺層」段落說的 targeted unit tests 是同一批） |
+| UI 元件（`src/components/`，5 檔） | `MobileAllActions`／`OldMapControls`／`OldMapSwitcher`／`VehicleInfoPanel`／`vehiclePanelStatus` | 以 `renderToStaticMarkup` 輸出靜態 HTML，檢查結構、文字與屬性（歷史地圖單選與年份切換鍵、全部顯示／隱藏鍵、車輛面板），加上面板狀態衍生的純邏輯；不跑 DOM 事件互動 |
+| LRT | `lrtStateStore`／`lrtTracks`／`lrtViaduct`／`engines/lrtMotion`／`engines/lrtSimulation`／`engines/lrtTimetable` | 短窗 store 的視窗合併/預取、軌道幾何、高架橋、加減速曲線與時刻表計算 |
+| 城市圖層 helper | `layerVisibility`／`cityCatalog`／`cityData`／`parishes`／`publicHousing`／`power`／`water`／`oldMapLabels` | 跟上面 `roadWorks`／`schools`／... 同一套 pure-function 哲學：顏色/文字/可見性/round-trip，這批補的是圖層開關（`layerVisibility`）、城市圖層目錄（`cityCatalog`／`cityData`）、堂區/居屋/水電覆蓋層 |
+| 其他基礎設施 | `pwaInstall`／`mapRecovery`／`webglDiagnostics`／`timeControls`／`grandPrix`／`flowPulse`／`fontSize`／`analytics/ga` | PWA 安裝流程、WebGL 失敗復原（見 [11-webgl-recovery.md](11-webgl-recovery.md)）、診斷面板、時間控制、大賽車、水電覆蓋層的動畫脈動、字體大小、GA4 |
+| 其他 engines / hooks | `macauTime`／`engines/flightSampling`／`engines/transitCache`／`engines/vehicleFrame`／`hooks/useSimulationClock` | 澳門時間（UTC+8）換算、航班取樣、跨圖層共用的 transit cache、`VehicleFrame` 上傳節奏、模擬時鐘的 external store |
+
 `dataSchemas.test.ts` 是另一種測試：拿 zod schema（[`dataSchemas.ts`](../../src/dataSchemas.ts)）去 parse `public/data/*.json` 實際檔案內容，包括新的 `road-works.json` / `schools.json` / `toilets.json` / `religion.json` / `old-maps.json` / `car-parks.json` / `waste.json` / `dspa-stats.json` / `water-facilities.json`——保證 commit 進來的資料本身合法，不是測程式邏輯。
 
 `trips-mon_thu.json` / `trips-friday.json` / `trips-sat_sun.json` 三個 case 從 `LRT_TRIPS_DIR` 或本機 `src/data/` 讀取輸入。未設定 `LRT_TRIPS_DIR` 且缺少本機檔案時會 skip；明確設定該變數後，缺檔必須失敗。Deploy job 會先準備時刻表、設好 `LRT_TRIPS_DIR` 再跑測試，讓每次上線都經過 schema 檢查。
 
-瀏覽器端的 zod schema 與 pipeline 端的 [`validate_output.py`](../../data/scripts/validate_output.py) 是**互相對照的兩份**，改一邊要改另一邊。目前 `validate_output.py` 認得的 dataset：`lrt-lines`、`stations`、`trips-*`、`bus-routes`、`bus-stops`、`flights`、`flights-timetable`、`ferries`、`service-status`、`road-works`、`schools`、`water-facilities`、`water-distribution`、`power-facilities`、`power-distribution`、`toilets`、`religion`、`old-maps`、`car-parks`、`waste`、`dspa-stats`（`all` 一次跑完）。`schools`、`water-facilities` 與 `power-facilities` 共用同一個 3D 建築足跡檢查（`check_footprint_building`：`osmId` / `height` / `minHeight` / 每個環閉合且在澳門範圍內），差別只在後兩者的 `kind` 是 `building` / `tile` / `outline` 三選一的列舉。`water-distribution` 與 `power-distribution` 是同一支 pipeline（`road_network.py`）產的同一種形狀，所以也共用同一個 validator（`v_distribution`，只差 dataset 名字）。
+瀏覽器端的 zod schema 與 pipeline 端的 [`validate_output.py`](../../data/scripts/validate_output.py) 是**互相對照的兩份**，改一邊要改另一邊。目前 `validate_output.py` 認得的 dataset：`lrt-lines`、`stations`、`trips-*`、`bus-routes`、`bus-stops`、`flights`、`flights-timetable`、`ferries`、`service-status`、`road-works`、`schools`、`public-housing`、`parishes`、`water-facilities`、`water-distribution`、`power-facilities`、`power-distribution`、`toilets`、`religion`、`old-maps`、`car-parks`、`waste`、`dspa-stats`、`grand-prix`（`all` 一次跑完）。`schools`、`water-facilities` 與 `power-facilities` 共用同一個 3D 建築足跡檢查（`check_footprint_building`：`osmId` / `height` / `minHeight` / 每個環閉合且在澳門範圍內），差別只在後兩者的 `kind` 是 `building` / `tile` / `outline` 三選一的列舉。`water-distribution` 與 `power-distribution` 是同一支 pipeline（`road_network.py`）產的同一種形狀，所以也共用同一個 validator（`v_distribution`，只差 dataset 名字）。
 
 ## 沒測什麼
 
@@ -111,24 +125,12 @@ new Date(2026, 4, 4)   // 2026-05-04 local time = Monday
 
 ## CI 整合
 
-`deploy.yml` 還沒跑 `npm test`。要加的話最小變更是新增 `.github/workflows/test.yml`：
+`npm test` 現在已經在兩個 workflow 裡各跑一次，不需要再新增 `test.yml`：
 
-```yaml
-name: Test
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: 22, cache: npm }
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
-```
+- [`ci.yml`](../../.github/workflows/ci.yml) 的 `frontend` job：每個 PR、每次 push 到 master 都跑 `npm ci` → `npm run lint` → `npm test` → `npm run build` → `npm run check:lrt-boundary`，給快速回饋。
+- [`deploy.yml`](../../.github/workflows/deploy.yml)：部署前重跑同一組 lint/test/build/check:lrt-boundary，外加 `python data/scripts/validate_output.py all`，而且 `npm test` 帶著 `LRT_TRIPS_DIR=functions/_lrt`，讓 trips schema 測試吃到真正 staging 好的時刻表。
 
-跟 deploy 解耦，因為 deploy 只在 master push，但 test 想在 PR 也跑。
+兩邊刻意重複：`ci.yml` 給每個 PR 一個不含時刻表資料的快速訊號，`deploy.yml` 在部署前再做一次含 LRT 資料的完整檢查。細節見 [07-ci-and-data-sync.md](07-ci-and-data-sync.md)。
 
 ## 裝置實測（沒有自動化）
 

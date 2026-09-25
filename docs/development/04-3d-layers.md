@@ -73,7 +73,7 @@ GRAND PRIX 圖層的單一賽車：body、nose、兩個 sidepod、airbox、cockp
 
 ## 城市資料層（非車輛）── 學校 / 道路工程 / 公廁 / 停車場 / 供水 / 垃圾回收
 
-這四層跟上面的車輛 layer 不是同一類東西：不隨 sim tick 動，資料是靜態或準靜態的點/面。各自的 helper 集中在 [`src/schools.ts`](../../src/schools.ts)、[`src/roadWorks.ts`](../../src/roadWorks.ts)、[`src/toilets.ts`](../../src/toilets.ts)、[`src/carParks.ts`](../../src/carParks.ts)，`MapView.tsx` 只管 addSource/addLayer 跟 setData。WATER／POWER／WASTE 三個專注模式圖層另成一類，見下面各自的小節。
+這四層跟上面的車輛 layer 不是同一類東西：不隨 sim tick 動，資料是靜態或準靜態的點/面。各自的 helper 集中在 [`src/schools.ts`](../../src/schools.ts)、[`src/roadWorks.ts`](../../src/roadWorks.ts)、[`src/toilets.ts`](../../src/toilets.ts)、[`src/carParks.ts`](../../src/carParks.ts)，`MapView.tsx` 只管 addSource/addLayer 跟 setData。WATER／POWER／WASTE 帶示意網路、設施建築與較多子圖層，另成一類，見下面各自的小節；它們跟其他圖層一樣是獨立開關（2026-09-20 起沒有專注模式），可以同時開，也能與交通圖層並存。
 
 ### 學校：自己畫 extrusion，不吃 basemap
 
@@ -99,11 +99,11 @@ WORKS / WC / P 三層各自多一個 `*-selected` circle layer，疊在 icon 下
 
 即時數字只在 `carParksOn && clock.isLive`（1× 播放速度、在「現在」附近）時才 poll（[`useCarParkVacancy.ts`](../../src/hooks/useCarParkVacancy.ts)），規則一變 false 就立刻把 `vacancy` 設回 `null`，不會讓舊數字停在畫面上冒充即時。
 
-### 垃圾回收：第三個專注模式，但沒有自己的街道網
+### 垃圾回收：沒有自己的街道網
 
-九種收集點型別（垃圾房、壓縮式垃圾收集點、垃圾站、智能回收機、三色資源回收點、電腦及通訊設備回收點、光管及電池回收點、玻璃樽回收點、衣物回收點）、DSPA 環保加Fun站（10 個回收站，`eco_station` 一列）、「處理設施」一列（焚化中心＋特殊和危險廢物處理站＋兩個堆填區，四個一起開關，`facility`）、以及「污水處理廠」一列（5 座 DSPA 污水處理廠，`wwtp`，跟處理設施分開一列，因為讀者想知道「垃圾去哪」不該連帶把處理污水的廠也關掉）——一共十二個 key 列——是第三個專注模式，跟 WATER／POWER 共用同一套快照／還原機制（[`src/focusMode.ts`](../../src/focusMode.ts)：`FocusLayer = 'water' | 'power' | 'waste'`，三者互斥，`setFocus(layer, on)` 是唯一入口——切到另一個專注模式時直接把舊快照交給新的一個，不會真的走一次「還原再重新隱藏」的兩次 render）。開啟時跟 WATER／POWER 一樣把 LRT、巴士、AIR、SEA、WORKS、SCHOOLS、WC、P 全部收起來，時間控制也整個消失（`focusOn = waterOn || powerOn || wasteOn`，見 [09-frontend-ui.md](09-frontend-ui.md)）。
+九種收集點型別（垃圾房、壓縮式垃圾收集點、垃圾站、智能回收機、三色資源回收點、電腦及通訊設備回收點、光管及電池回收點、玻璃樽回收點、衣物回收點）、DSPA 環保加Fun站（10 個回收站，`eco_station` 一列）、「處理設施」一列（焚化中心＋特殊和危險廢物處理站＋兩個堆填區，四個一起開關，`facility`）、以及「污水處理廠」一列（5 座 DSPA 污水處理廠，`wwtp`，跟處理設施分開一列，因為讀者想知道「垃圾去哪」不該連帶把處理污水的廠也關掉）——一共十二個 key 列——是一個獨立的城市圖層：開關只改 `wasteOn`，不會收起、也不會事後還原其他圖層，時間控制是否顯示也與它無關（只看有沒有交通圖層開著，見 [09-frontend-ui.md](09-frontend-ui.md)）。
 
-跟 WATER／POWER 的差異：**垃圾回收沒有自己的街道網**。`applyFocusVisibility(m, water, power, waste)`（[`MapView.tsx`](../../src/components/MapView.tsx)）只把 `waste` 併進共用的 `focus` 旗標去強制隱藏 `bus-routes`／`stations-circle` 等四個靜態 layer，不像 `WATER_FOCUS_SHOWN_LAYERS`／`POWER_FOCUS_SHOWN_LAYERS` 那樣另外列一組「只在自己開時才顯示」的示意管網／電網 layer——垃圾點、堆填區、焚化廠建築全部是「資料陣列一清空就消失」的機制，開關全靠 [`src/waste.ts`](../../src/waste.ts) 的 `visibleWasteSites`／`visibleWasteEcoStations`／`visibleWasteFacilities`／`visibleWasteIncinerator` 過濾出來，不需要另外切 layer visibility。
+跟 WATER／POWER 的差異：**垃圾回收沒有自己的街道網**。WATER／POWER 的示意管網、電網與配水／配電 layer 由 [`MapView.tsx`](../../src/components/MapView.tsx) 的 `applyNetworkVisibility(m, water, power, data)` 依各自的開關切 layout visibility（共用 [`src/layerVisibility.ts`](../../src/layerVisibility.ts) 的 `applyOverlayVisibility`，換底圖後重套一次）；WASTE 沒有這種常駐 layer 群——垃圾點、堆填區、焚化廠建築全部是「資料陣列一清空就消失」的機制，開關全靠 [`src/waste.ts`](../../src/waste.ts) 的 `visibleWasteSites`／`visibleWasteEcoStations`／`visibleWasteFacilities`／`visibleWasteIncinerator` 過濾出來，不需要另外切 layer visibility。
 
 **焚化中心是借來的，不是重新抓的**：澳門垃圾焚化中心早就是 `power-facilities.json` 的一筆 `incinerator` 記錄（POWER 層把它當發電站畫，因為它把電賣給澳電）。與其為 WASTE 再管一份重複的 11 棟足跡，`wasteIncinerator(transitData.powerFacilities)` 直接在已經載入的電力設施清單裡按 `id==='incinerator' && type==='incinerator'` 雙重比對找那一筆，找不到（`power-facilities.json` 還沒到齊）就回 `null`；這個查找不看 `wasteOn`、只看 POWER 資料是否已經進 `TransitData`，POWER 開關與否不影響 WASTE 找不找得到它。找到之後 `buildWasteBuildingFeatures` 用跟 `buildPowerBuildingFeatures` 一樣的寫法，另開一個獨立的 `waste-buildings` fill-extrusion source／layer 畫它——同一個 `firstSymbolId` 插入點、同一套 +2 m 高度餘量（`WASTE_BUILDING_HEIGHT_MARGIN_M`），同一顆 `#a3e635`（POWER 畫它用的顏色，兩邊寫死同一個常數，不會走鐘）——選取時整組 `setFeatureState({selected:true})` 變白（`#ffffff`），跟 SCHOOLS 同招，不疊高亮圈。焚化中心的**月度統計**（收/處理量、發電、回收金屬）不再放 waste.json——那塊搬進獨立的 `dspa-stats.json`（見 [05-data-pipeline.md](05-data-pipeline.md)），waste.json 完全不帶 `incinerator` 欄位了；座標與建築一律問 POWER 要，統計一律問 `dspa-stats.json` 要。
 
@@ -115,9 +115,9 @@ Marker 畫法比照 WC／P：`drawWasteIcon(type)` 現畫九種 `ImageData`（�
 
 點擊依 `WasteSelection`（`{kind:'site'}` / `{kind:'incinerator'}` / `{kind:'ecoStation'}` / `{kind:'facility'}` 的 tagged union）分派到四個面板之一，全部從同一個檔案 [`WasteSiteInfoPanel.tsx`](../../src/components/WasteSiteInfoPanel.tsx) 各自 `lazy()` 匯出（一個 chunk，四個具名 export）：`WasteSiteInfoPanel`／`WasteIncineratorInfoPanel`／`WasteEcoStationInfoPanel`／`WasteFacilityInfoPanel`。危廢站、堆填區、污水廠都是同一種 `WasteFacility`，共用同一個 `WasteFacilityInfoPanel`——面板內部按 `facility.kind` 切三種圖表標題與 chip 排法（污水廠：基本／生物／總處理量三個 chip；堆填區：堆埋體積一個 chip；危廢站：接收／處理量兩個 chip），圖表數字則透過 `facility.statsKey` 從 `dspaStats` 現查，沒有新開一個面板元件。選取仍跟其他 selection 互斥。
 
-### 供水設施：色塊 + 水面 + 標記 + 管線，只在專注模式出現
+### 供水設施：色塊 + 水面 + 標記 + 管線
 
-WATER 一層有九個 layer，全部在 `addCustomLayers` 建、換底圖後重建，可見性跟著 `waterFocus`（[`src/water.ts`](../../src/water.ts) 出 feature，[`MapView.tsx`](../../src/components/MapView.tsx) 管 layer）：
+WATER 一層有九個 layer，全部在 `addCustomLayers` 建、換底圖後重建，可見性跟著 App 傳入的 `waterVisible`（即 `waterOn`；管網類 layer 由 `applyNetworkVisibility` 切換，[`src/water.ts`](../../src/water.ts) 出 feature，[`MapView.tsx`](../../src/components/MapView.tsx) 管 layer）：
 
 - `water-surfaces`（fill，三個自來水水塘＋黑沙水庫的水面，半透明藍）、`water-buildings`（fill-extrusion，水廠建築、高位水池、石排灣泵房；跟學校同一套 promoteId／選取變白／2 m 餘量／插入點）、`water-icon`（canvas 水滴，依類型上色；約略位置畫成空心；珠海原水輸入口是另一個圖示並帶 `text-field` 標籤，語言切換時只換 `text-field`，不重建 source）、`water-selected`。
 - 主幹管四層：`water-pipes-glow`（寬、半透明）、`water-pipes-dashed`（原水與 `fallback` 管段——`line-dasharray` 一層只能烤一種花紋，所以虛線自成一層）、`water-pipes`（淨水實線）、`water-pipes-flow`（淨水實線上的白色粗點，約核心線寬的 0.75 倍，表現流向）。幾何來自 `water-facilities.json` 的 `network`（OSRM 沿路，同址短接為直線 `direct`，頂點順序一律 from→to，流動方向才對）。**動畫不能改 `line-dasharray`**：它是 cross-faded 屬性，任何 `setPaintProperty` 都會讓整個 source 重切瓦片（`Style._updateLayer` → source `reload`），4,910 段道路每秒重切十幾次畫面就會閃（`visibility` 切換也一樣會重載；`sourcedata` 的 `content` 事件看不到 GeoJSON 重載，要看 `style._updatedSources`）。所以每個會動的群組（原水虛線、淨水流點、配水流點）都預先建好 K 個相位圖層（主幹 8、配水網 6），各自固定一組 dasharray，唯一的 ~70 ms interval 每 tick 只把上一相位的 `line-opacity` 設 0、下一相位設回原值——常數對常數的 paint 變更不重切圖，而 MapLibre 對 opacity 0 的線圖層直接跳過繪製，所以隱藏的相位沒有 draw call。實測穩態零次重載、85 fps。主幹管刻意比配水路網粗很多（核心約 4.5→7 px 對 0.8→1.6 px），層級才分得出來。

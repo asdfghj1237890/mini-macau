@@ -67,11 +67,20 @@ compiler, memory or lifecycle condition remains unresolved.
 `RasterMapFallback.tsx` is loaded lazily. Leaflet 1.9.4 requests ordinary raster
 tiles and draws overlays with Canvas2D; it never requests WebGL. It shares the
 existing simulation clock, visible data and selection callbacks. Routes, moving
-vehicle points, station/city markers, schematic mains and the Grand Prix circuit
-remain available. Tracking, layer filters, time controls and info panels work.
-It omits 3D models/buildings, animated network flows and distribution meshes;
-the main MapView settings drawer is not available in this mode. Raster labels
-use the tile provider's language/style rather than the app's basemap theme.
+vehicle points (2D circle markers), station/city markers, schematic water/power
+mains and the Grand Prix circuit and corners remain available, and clicking any
+of them still opens the normal info panels. Several city overlays added after
+this document's 2026-09-08 investigation date are also drawn here: historical-map
+plates (as an image overlay, or as Leaflet raster tiles for a plate with a
+provider-hosted tile service), the parish tint/outline/label, and point markers
+for schools, public housing, toilets, religion sites, car parks, and every waste
+sub-category (sites, eco-stations, facilities, the incinerator). Tracking, layer
+filters, time controls and info panels work. It omits 3D models/buildings,
+animated network flows (the water/power "pulse" and the Grand Prix wake, both
+driven by paint-property opacity toggling on the WebGL map) and the instanced
+vehicle meshes; the main MapView settings drawer is not available in this mode.
+Raster labels use the tile provider's language/style rather than the app's
+basemap theme.
 
 The raster provider is `tile.openstreetmap.org`. Attribution stays visible in
 the compatibility notice, including with the debug overlay open. Requests use
@@ -82,7 +91,10 @@ Automated fault tests mock these tiles rather than pan/zoom against that service
 
 ## Verification and reproduction
 
-- `npm test`: 1,040 passed, 3 skipped, including 12 recovery/diagnostic tests.
+- `npm test` (2026-09-08 snapshot, at the time of this investigation): 1,040 passed, 3
+  skipped, including 12 recovery/diagnostic tests. The suite has grown substantially
+  since; re-run `npm test` for the current count rather than treating this figure as
+  current.
 - `npm run build`: TypeScript and production build passed. The fallback is a
   separate lazy chunk, approximately 46 KB gzip plus 6 KB CSS gzip.
 - Lint passed with local Python virtualenv and temporary test files excluded:

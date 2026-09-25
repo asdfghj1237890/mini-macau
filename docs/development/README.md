@@ -17,6 +17,8 @@
 | [08](08-performance-notes.md) | Performance notes（深度解析） | 想理解為什麼某些寫法不直覺、效能優化的權衡 |
 | [09](09-frontend-ui.md) | Frontend UI（i18n / 路線分組 / 響應式 / LAYERS 面板） | 要動 UI、加新語言、改路線分組規則，或改 LAYERS 面板與城市圖層開關 |
 | [10](10-testing.md) | Testing | 要寫測試、跑 vitest、知道哪些 pure function 已覆蓋 |
+| [11](11-webgl-recovery.md) | WebGL context loss 與 2D 相容模式 | 要動 [`mapRecovery.ts`](../../src/mapRecovery.ts)／[`RasterMapFallback.tsx`](../../src/components/RasterMapFallback.tsx)，或追查裝置掉 WebGL context 的回報 |
+| [12](12-amaral-terminal.md) | 亞馬喇前地總站資料與模型界線 | 要動巴士總站幾何、`patch-amaral-terminal.mjs` 或總站附近的交通規則 |
 
 ## 推薦閱讀順序
 
