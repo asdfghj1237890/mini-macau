@@ -119,11 +119,13 @@ import os
 import re
 import sys
 import time
+import warnings
 import zipfile
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import requests
+import urllib3
 from pyproj import Transformer
 from scipy.spatial import cKDTree
 
@@ -662,9 +664,17 @@ HOU_HON_PO = {
 
 def summit_height_diffs() -> list[str]:
     """Differences between SUMMITS and DSSCU's live hills table. An
-    unreachable table is not a difference: the survey heights are fixed."""
+    unreachable table is not a difference: the survey heights are fixed.
+
+    Certificate verification is OFF for this one read (the user's choice,
+    2026-09-27): geomatics.dsscu.gov.mo serves an incomplete chain ("unable to
+    get local issuer certificate", locally and on the GitHub runners), so the
+    check never ran. It is safe here because the fetched figures are only
+    compared, never written — a tampered response could at worst fail the run."""
     try:
-        r = requests.get(GEO7_URL, headers=NATURE_HEADERS, timeout=TIMEOUT)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", urllib3.exceptions.InsecureRequestWarning)
+            r = requests.get(GEO7_URL, headers=NATURE_HEADERS, timeout=TIMEOUT, verify=False)
         r.raise_for_status()
         row = r.json()["body"]["content"][0]
     except (requests.RequestException, ValueError, KeyError, IndexError, TypeError) as e:
