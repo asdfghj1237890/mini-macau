@@ -191,6 +191,11 @@ const translations = {
     religion: 'Religion',
     religionCount: (n: number) => `${n} sites`,
     religionNote: 'Temples, churches, the mosque and Tou Tei street shrines',
+    trails: 'Walking trails',
+    trailsNote: 'IAM walking trails and cycle tracks, with distance posts and pavilions',
+    trailKindWalk: 'Walking trails',
+    trailKindCycle: 'Cycle tracks',
+    trailsLegendHint: 'Grey dashes = suspended · dots = distance posts · ▲ = summit, official height',
     oldMaps: 'Historical maps',
     oldMapsLayerNote: 'Compare periods, with city and transport layers',
     oldMapsOpacity: 'Opacity',
@@ -296,6 +301,7 @@ const translations = {
     dataSourceParishesLabel: 'Parishes',
     dataSourceToiletsLabel: 'Public toilets',
     dataSourceReligionLabel: 'Religion',
+    dataSourceTrailsLabel: 'Walking trails',
     dataSourceOldMapsLabel: 'Historical maps',
     dataSourceCarParksLabel: 'Car parks',
     dataSourceWaterLabel: 'Water supply',
@@ -485,6 +491,41 @@ const translations = {
     religionSourceMacauMemory: 'Macau Memory',
     religionMacauMemoryEntry: 'Macau Memory entry',
     religionCoverageNote: 'The Cultural Affairs Bureau counts about 10 temples and over 160 public shrines; this layer maps the ones with a known location.',
+    // ---- TrailInfoPanel ----
+    trailLabelWalk: 'WALKING TRAIL',
+    trailLabelCycle: 'CYCLE TRACK',
+    trailAreaPeninsula: 'Macau Peninsula',
+    trailAreaTaipa: 'Taipa',
+    trailAreaColoane: 'Coloane',
+    trailOpen: 'Open',
+    trailSuspended: (from: string, to: string) => `Suspended ${from} – ${to}`,
+    trailClosedFlag: 'Marked temporarily closed by IAM',
+    trailUpcoming: (from: string, to: string) => `Will be suspended ${from} – ${to}`,
+    trailLength: 'LENGTH',
+    trailLengthDrawn: (m: string) => `drawn line ${m}`,
+    trailEntrance: 'ENTRANCE',
+    trailExit: 'EXIT',
+    trailOpenHours: 'HOURS',
+    trailPhone: 'PHONE',
+    trailPoint: 'CLICKED',
+    trailPointEntrance: (n: number) => `Entrance ${n}`,
+    trailPointPost: (code: string) => `Distance post ${code}`,
+    trailPointPavilion: (name: string | null) => (name ? `Pavilion · ${name}` : 'Pavilion'),
+    trailPosts: (n: number) => `${n} distance posts`,
+    trailIamPage: 'IAM trail page',
+    trailSource: 'SOURCE',
+    trailSourceData: 'Macao SAR Government Open Data Platform — Municipal Activity Venues (IAM)',
+    trailSourceOsm: 'Route line: © OpenStreetMap contributors (ODbL)',
+    trailSummit: 'SUMMIT',
+    trailSummitOnTrail: 'reached on this trail',
+    trailSummitViaSpur: (name: string) => `reached via ${name}`,
+    trailSummitViaSpurShort: (name: string, m: number) => `via ${name}, which stops about ${m} m short of the top`,
+    trailSummitNear: (m: number) => `off the trail, about ${m} m away`,
+    trailPointSummit: (name: string, height: string) => `Summit · ${name} ${height}`,
+    trailPointSpur: (name: string) => `Climb to the summit · ${name}`,
+    trailSummitHeightSource: 'Summit heights: DSEC Environmental Statistics',
+    trailSummitPositionSource: 'positions: DSSCU geodetic control points',
+    trailSpurSource: (names: string) => `${names}: © OpenStreetMap contributors (ODbL)`,
     // ---- CarParkInfoPanel ----
     carParkLabel: 'CAR PARK',
     carParkLocation: 'LOCATION',
@@ -785,6 +826,11 @@ const translations = {
     religion: '宗教',
     religionCount: (n: number) => `${n} 處`,
     religionNote: '廟宇、教堂、清真寺與街頭土地神壇',
+    trails: '步行徑',
+    trailsNote: '市政署步行徑與單車徑，含標距柱及涼亭',
+    trailKindWalk: '步行徑',
+    trailKindCycle: '單車徑',
+    trailsLegendHint: '灰色虛線＝暫停開放・小圓點＝標距柱・▲＝山頂及官方海拔',
     oldMaps: '歷史地圖',
     oldMapsLayerNote: '對照不同年代，可疊加城市與交通圖層',
     oldMapsOpacity: '不透明度',
@@ -888,6 +934,7 @@ const translations = {
     dataSourceParishesLabel: '堂區',
     dataSourceToiletsLabel: '公廁',
     dataSourceReligionLabel: '宗教',
+    dataSourceTrailsLabel: '步行徑',
     dataSourceOldMapsLabel: '歷史地圖',
     dataSourceCarParksLabel: '停車場',
     dataSourceWaterLabel: '供水設施',
@@ -1069,6 +1116,40 @@ const translations = {
     religionSourceMacauMemory: '澳門記憶',
     religionMacauMemoryEntry: '澳門記憶條目',
     religionCoverageNote: '文化局統計全澳有近 10 所土地廟、160 多個公共土地神壇；本圖層只標出有位置紀錄的。',
+    trailLabelWalk: '步行徑',
+    trailLabelCycle: '單車徑',
+    trailAreaPeninsula: '澳門半島',
+    trailAreaTaipa: '氹仔',
+    trailAreaColoane: '路環',
+    trailOpen: '開放中',
+    trailSuspended: (from: string, to: string) => `暫停開放 ${from} 至 ${to}`,
+    trailClosedFlag: '市政署標示暫停開放',
+    trailUpcoming: (from: string, to: string) => `將於 ${from} 至 ${to} 暫停開放`,
+    trailLength: '長度',
+    trailLengthDrawn: (m: string) => `圖上線長 ${m}`,
+    trailEntrance: '入口',
+    trailExit: '出口',
+    trailOpenHours: '開放時間',
+    trailPhone: '電話',
+    trailPoint: '點選位置',
+    trailPointEntrance: (n: number) => `入口 ${n}`,
+    trailPointPost: (code: string) => `標距柱 ${code}`,
+    trailPointPavilion: (name: string | null) => (name ? `涼亭・${name}` : '涼亭'),
+    trailPosts: (n: number) => `${n} 支標距柱`,
+    trailIamPage: '市政署步行徑介紹',
+    trailSource: '來源',
+    trailSourceData: '澳門特別行政區政府數據開放平台「市政活動場地」（市政署）',
+    trailSourceOsm: '路線：© OpenStreetMap 貢獻者（ODbL）',
+    trailSummit: '山頂',
+    trailSummitOnTrail: '經此徑登頂',
+    trailSummitViaSpur: (name: string) => `經${name}登頂`,
+    trailSummitViaSpurShort: (name: string, m: number) => `經${name}上山（路徑止於山頂約 ${m} 米）`,
+    trailSummitNear: (m: number) => `步行徑不經山頂（最近約 ${m} 米）`,
+    trailPointSummit: (name: string, height: string) => `山頂・${name} ${height}`,
+    trailPointSpur: (name: string) => `登頂支線・${name}`,
+    trailSummitHeightSource: '山頂高度：統計暨普查局《環境統計》',
+    trailSummitPositionSource: '位置：土地工務局大地控制點',
+    trailSpurSource: (names: string) => `${names}：© OpenStreetMap 貢獻者（ODbL）`,
     carParkLabel: '停車場',
     carParkLocation: '位置',
     carParkEntrance: '出入口',
@@ -1324,6 +1405,11 @@ const translations = {
     religion: 'Religião',
     religionCount: (n: number) => `${n} locais`,
     religionNote: 'Templos, igrejas, a mesquita e altares de Tou Tei',
+    trails: 'Trilhos',
+    trailsNote: 'Trilhos pedestres e pistas de bicicleta do IAM, com marcos de distância e pavilhões',
+    trailKindWalk: 'Trilhos pedestres',
+    trailKindCycle: 'Pistas de bicicleta',
+    trailsLegendHint: 'Tracejado cinzento = encerrado · pontos = marcos de distância · ▲ = cume, altitude oficial',
     oldMaps: 'Mapas históricos',
     oldMapsLayerNote: 'Compare épocas com camadas urbanas e de transportes',
     oldMapsOpacity: 'Opacidade',
@@ -1427,6 +1513,7 @@ const translations = {
     dataSourceParishesLabel: 'Freguesias',
     dataSourceToiletsLabel: 'Sanitários',
     dataSourceReligionLabel: 'Religião',
+    dataSourceTrailsLabel: 'Trilhos',
     dataSourceOldMapsLabel: 'Mapas históricos',
     dataSourceCarParksLabel: 'Estacionamentos',
     dataSourceWaterLabel: 'Abastecimento de água',
@@ -1606,6 +1693,40 @@ const translations = {
     religionSourceMacauMemory: 'Memória de Macau',
     religionMacauMemoryEntry: 'Entrada na Memória de Macau',
     religionCoverageNote: 'O Instituto Cultural conta cerca de 10 templos e mais de 160 altares públicos; esta camada mostra os que têm localização conhecida.',
+    trailLabelWalk: 'TRILHO',
+    trailLabelCycle: 'PISTA DE BICICLETA',
+    trailAreaPeninsula: 'Península de Macau',
+    trailAreaTaipa: 'Taipa',
+    trailAreaColoane: 'Coloane',
+    trailOpen: 'Aberto',
+    trailSuspended: (from: string, to: string) => `Encerrado de ${from} a ${to}`,
+    trailClosedFlag: 'Encerrado temporariamente pelo IAM',
+    trailUpcoming: (from: string, to: string) => `Encerra de ${from} a ${to}`,
+    trailLength: 'COMPRIMENTO',
+    trailLengthDrawn: (m: string) => `linha desenhada ${m}`,
+    trailEntrance: 'ENTRADA',
+    trailExit: 'SAÍDA',
+    trailOpenHours: 'HORÁRIO',
+    trailPhone: 'TELEFONE',
+    trailPoint: 'PONTO',
+    trailPointEntrance: (n: number) => `Entrada ${n}`,
+    trailPointPost: (code: string) => `Marco de distância ${code}`,
+    trailPointPavilion: (name: string | null) => (name ? `Pavilhão · ${name}` : 'Pavilhão'),
+    trailPosts: (n: number) => `${n} marcos de distância`,
+    trailIamPage: 'Página do trilho no IAM',
+    trailSource: 'FONTE',
+    trailSourceData: 'Plataforma de Dados Abertos do Governo da RAEM — Locais para Actividades Municipais (IAM)',
+    trailSourceOsm: 'Percurso: © contribuidores do OpenStreetMap (ODbL)',
+    trailSummit: 'CUME',
+    trailSummitOnTrail: 'alcançado por este trilho',
+    trailSummitViaSpur: (name: string) => `alcançado via ${name}`,
+    trailSummitViaSpurShort: (name: string, m: number) => `via ${name}, que termina a cerca de ${m} m do cume`,
+    trailSummitNear: (m: number) => `fora do trilho, a cerca de ${m} m`,
+    trailPointSummit: (name: string, height: string) => `Cume · ${name} ${height}`,
+    trailPointSpur: (name: string) => `Subida ao cume · ${name}`,
+    trailSummitHeightSource: 'Altitudes: DSEC, Estatísticas do Ambiente',
+    trailSummitPositionSource: 'posições: pontos de controlo geodésico da DSSCU',
+    trailSpurSource: (names: string) => `${names}: © contribuidores do OpenStreetMap (ODbL)`,
     carParkLabel: 'ESTACIONAMENTO',
     carParkLocation: 'LOCALIZAÇÃO',
     carParkEntrance: 'ENTRADA',
@@ -1863,6 +1984,11 @@ export interface Translations {
   religion: string
   religionCount: (n: number) => string
   religionNote: string
+  trails: string
+  trailsNote: string
+  trailKindWalk: string
+  trailKindCycle: string
+  trailsLegendHint: string
   oldMaps: string
   oldMapsLayerNote: string
   oldMapsOpacity: string
@@ -1966,6 +2092,7 @@ export interface Translations {
   dataSourceParishesLabel: string
   dataSourceToiletsLabel: string
   dataSourceReligionLabel: string
+  dataSourceTrailsLabel: string
   dataSourceOldMapsLabel: string
   dataSourceCarParksLabel: string
   dataSourceWaterLabel: string
@@ -2140,6 +2267,40 @@ export interface Translations {
   religionSourceMacauMemory: string
   religionMacauMemoryEntry: string
   religionCoverageNote: string
+  trailLabelWalk: string
+  trailLabelCycle: string
+  trailAreaPeninsula: string
+  trailAreaTaipa: string
+  trailAreaColoane: string
+  trailOpen: string
+  trailSuspended: (from: string, to: string) => string
+  trailClosedFlag: string
+  trailUpcoming: (from: string, to: string) => string
+  trailLength: string
+  trailLengthDrawn: (m: string) => string
+  trailEntrance: string
+  trailExit: string
+  trailOpenHours: string
+  trailPhone: string
+  trailPoint: string
+  trailPointEntrance: (n: number) => string
+  trailPointPost: (code: string) => string
+  trailPointPavilion: (name: string | null) => string
+  trailPosts: (n: number) => string
+  trailIamPage: string
+  trailSource: string
+  trailSourceData: string
+  trailSourceOsm: string
+  trailSummit: string
+  trailSummitOnTrail: string
+  trailSummitViaSpur: (name: string) => string
+  trailSummitViaSpurShort: (name: string, m: number) => string
+  trailSummitNear: (m: number) => string
+  trailPointSummit: (name: string, height: string) => string
+  trailPointSpur: (name: string) => string
+  trailSummitHeightSource: string
+  trailSummitPositionSource: string
+  trailSpurSource: (names: string) => string
   carParkLabel: string
   carParkLocation: string
   carParkEntrance: string

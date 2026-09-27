@@ -10,6 +10,9 @@ export type ModelArticulation = {
   rear: [number, number, number, number]
 }
 const IDENTITY_CAR = [0, 0, 1, 0]
+// The only fields an instance reads: vehicles pass their VehiclePosition,
+// other models (the trail hikers) just these.
+export type ModelInstance = Pick<VehiclePosition, 'coordinates' | 'bearing' | 'color' | 'altitude' | 'scale'>
 const VERTEX = `#version 300 es
 precision highp float;
 layout(location=0) in vec3 a_position;
@@ -55,7 +58,7 @@ void main() {
   fragColor = vec4(v_color * mix(0.58 + 0.28 * key + 0.14 * sky, 1.0, v_emissive), 1.0);
 }`
 
-export function vehicleInstances(vehicles: VehiclePosition[], groundAltitude = 0, articulations?: ModelArticulation[], reuse?: Float32Array): Float32Array {
+export function vehicleInstances(vehicles: ModelInstance[], groundAltitude = 0, articulations?: ModelArticulation[], reuse?: Float32Array): Float32Array {
   const stride = articulations ? INSTANCE_FLOATS + 8 : INSTANCE_FLOATS
   const length = vehicles.length * stride
   const values = reuse?.length === length ? reuse : new Float32Array(length)
@@ -119,6 +122,11 @@ export class InstancedVehicleModelLayer implements CustomLayerInterface {
   }
 
   setVehicles(vehicles: VehiclePosition[], articulations?: ModelArticulation[]): void {
+    this.setInstances(vehicles, articulations)
+  }
+
+  // Any model's instances, vehicle or not (the trail hikers use this).
+  setInstances(vehicles: ModelInstance[], articulations?: ModelArticulation[]): void {
     if (!vehicles.length && !this.fleet.data.length) return
     this.fleet.data = vehicleInstances(vehicles, this.groundAltitude, this.articulated ? articulations ?? [] : undefined, this.fleet.data)
     this.fleet.dirty = true

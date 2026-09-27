@@ -91,6 +91,9 @@ SCHOOLS 打破「一列一開關」：一列拆成本體 + 開關兩個獨立 `<
 | `mini-macau-religion-on` | RELIGION 總開關 | 關 |
 | `mini-macau-religion-categories-on` | 五個宗教類別（土地公／廟宇／教堂／清真寺／其他）個別開關 | 全開 |
 | `mm-religion-legend-open` | RELIGION 圖例子列展開 | 開 |
+| `mini-macau-trails-on` | TRAILS（步行徑）總開關 | 關 |
+| `mini-macau-trails-kinds-on` | 步行徑／單車徑個別開關 | 全開 |
+| `mm-trails-legend-open` | TRAILS 圖例子列展開 | 開 |
 | `mini-macau-oldmaps-on` | HISTORICAL MAPS（歷史地圖）總開關 | 關 |
 | `mini-macau-oldmaps-selected` | 目前畫出的那一張歷史地圖（選項列 id，1912 地圖集為 `atlas-1912`）；2026-09-23 起一次只畫一張 | 無（沿用舊 `mini-macau-oldmaps-hidden` 留下的第一張，否則 `heitor-1889`） |
 | `mini-macau-oldmaps-opacity` | 歷史地圖不透明度（0.2–1） | 0.85 |

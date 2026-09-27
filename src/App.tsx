@@ -30,6 +30,14 @@ import {
   type ReligionCategorySet,
 } from './religion'
 import {
+  countTrailsByKind,
+  filterTrailsByKind,
+  loadTrailKindsOn,
+  saveTrailKindsOn,
+  type TrailKindSet,
+  type TrailSelection,
+} from './trails'
+import {
   groupOldMaps,
   loadHiddenOldMaps,
   loadOldMapsOpacity,
@@ -67,7 +75,7 @@ import { useWaterDistribution } from './hooks/useWaterDistribution'
 import { usePowerDistribution } from './hooks/usePowerDistribution'
 import { ignoreClockShortcut } from './timeControls'
 import { showOnlyCityLayer } from './layerVisibility'
-import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, ReligionCategoryId, OldMap, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
+import type { VehiclePosition, Station, BusRoute, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, ReligionCategoryId, Trail, TrailKind, TrailPavilion, TrailPost, TrailSpur, TrailSummit, OldMap, CarPark, WasteSite, WaterFacility, WaterNetworkNode, PowerFacility, PowerNetworkNode, GrandPrixCorner } from './types'
 
 // MapView pulls in the ~1 MB maplibre-gl bundle; lazy so it doesn't block
 // first paint. The <MapSplash/> fallback keeps the HUD interactive while
@@ -87,6 +95,7 @@ const PublicHousingInfoPanel = lazy(() => import('./components/PublicHousingInfo
 const ParishInfoPanel = lazy(() => import('./components/ParishInfoPanel').then(m => ({ default: m.ParishInfoPanel })))
 const ToiletInfoPanel = lazy(() => import('./components/ToiletInfoPanel').then(m => ({ default: m.ToiletInfoPanel })))
 const ReligionInfoPanel = lazy(() => import('./components/ReligionInfoPanel').then(m => ({ default: m.ReligionInfoPanel })))
+const TrailInfoPanel = lazy(() => import('./components/TrailInfoPanel').then(m => ({ default: m.TrailInfoPanel })))
 const CarParkInfoPanel = lazy(() => import('./components/CarParkInfoPanel').then(m => ({ default: m.CarParkInfoPanel })))
 const WasteSiteInfoPanel = lazy(() => import('./components/WasteSiteInfoPanel').then(m => ({ default: m.WasteSiteInfoPanel })))
 // The incineration plant's variant lives in the same module, so this resolves
@@ -155,6 +164,7 @@ const LS_PUBLIC_HOUSING_KEY = 'mini-macau-public-housing-on'
 const LS_PARISHES_KEY = 'mini-macau-parishes-on'
 const LS_TOILETS_KEY = 'mini-macau-toilets-on'
 const LS_RELIGION_KEY = 'mini-macau-religion-on'
+const LS_TRAILS_KEY = 'mini-macau-trails-on'
 const LS_OLDMAPS_KEY = 'mini-macau-oldmaps-on'
 const LS_CARPARKS_KEY = 'mini-macau-carparks-on'
 const LS_WASTE_KEY = 'mini-macau-waste-on'
@@ -180,6 +190,12 @@ const NO_ROAD_WORKS: RoadWorkNotice[] = []
 const NO_TOILETS: Toilet[] = []
 // And for the Tou Tei markers, pushed on array identity like the toilets.
 const NO_RELIGION: ReligionSite[] = []
+// And for the trail lines and their points, pushed on array identity too.
+const NO_TRAILS: Trail[] = []
+const NO_TRAIL_POSTS: TrailPost[] = []
+const NO_TRAIL_PAVILIONS: TrailPavilion[] = []
+const NO_TRAIL_SUMMITS: TrailSummit[] = []
+const NO_TRAIL_SPURS: TrailSpur[] = []
 // And for the georeferenced scans, whose image sources MapView adds and
 // removes on array identity.
 const NO_OLD_MAPS: OldMap[] = []
@@ -237,6 +253,9 @@ export default function App() {
   const [selectedParish, setSelectedParish] = useState<Parish | null>(null)
   const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null)
   const [selectedReligion, setSelectedReligion] = useState<ReligionSite | null>(null)
+  // The clicked trail, and the point on it (an entrance, a distance post or a
+  // pavilion) when the click landed on one.
+  const [selectedTrail, setSelectedTrail] = useState<TrailSelection | null>(null)
   const [selectedCarPark, setSelectedCarPark] = useState<CarPark | null>(null)
   // Either kind of waste mark — a collection point or the incineration plant.
   // One slot, because the two share a marker layer, a highlight and the
@@ -274,6 +293,9 @@ export default function App() {
   // Tou Tei temples and shrines are opt-in like the toilets — a hundred-odd
   // pins over the old town are noise until someone asks for them.
   const [religionOn, setReligionOn] = useState(() => localStorage.getItem(LS_RELIGION_KEY) === '1')
+  // The walking trails are opt-in like the toilets: 18 lines over the hills
+  // and 150 distance posts are for someone planning a walk.
+  const [trailsOn, setTrailsOn] = useState(() => localStorage.getItem(LS_TRAILS_KEY) === '1')
   // The georeferenced scans are opt-in too: a whole 1792 plate over the old
   // town is a study aid, not a default.
   const [oldMapsOn, setOldMapsOn] = useState(() => localStorage.getItem(LS_OLDMAPS_KEY) === '1')
@@ -300,7 +322,7 @@ export default function App() {
   useEffect(() => {
     const enabled: Record<CityLayer, boolean> = {
       works: roadWorksOn, schools: schoolsOn, housing: publicHousingOn,
-      parishes: parishesOn, toilets: toiletsOn, religion: religionOn, oldmaps: oldMapsOn, carparks: carParksOn,
+      parishes: parishesOn, toilets: toiletsOn, religion: religionOn, trails: trailsOn, oldmaps: oldMapsOn, carparks: carParksOn,
       waste: wasteOn, water: waterOn, power: powerOn, grandprix: grandPrixOn,
     }
     for (const layer of Object.keys(enabled) as CityLayer[]) {
@@ -308,13 +330,15 @@ export default function App() {
     }
     requestedCityLayers.current = enabled
   }, [ensureCityLayerLoaded, roadWorksOn, schoolsOn, publicHousingOn, parishesOn,
-    toiletsOn, religionOn, oldMapsOn, carParksOn, wasteOn, waterOn, powerOn, grandPrixOn])
+    toiletsOn, religionOn, trailsOn, oldMapsOn, carParksOn, wasteOn, waterOn, powerOn, grandPrixOn])
   // Which of the five teaching stages are drawn. Independent of `schoolsOn`,
   // which is the master switch for the whole layer.
   const [schoolLevelsOn, setSchoolLevelsOn] = useState<SchoolLevelSet>(loadSchoolLevelsOn)
   // Which of the five faith groups are drawn (土地公 / temples / churches / the
   // mosque / other). Independent of `religionOn`, the layer's master switch.
   const [religionCategoriesOn, setReligionCategoriesOn] = useState<ReligionCategorySet>(loadReligionCategoriesOn)
+  // Walking trails / cycle tracks. Independent of `trailsOn`, the master switch.
+  const [trailKindsOn, setTrailKindsOn] = useState<TrailKindSet>(loadTrailKindsOn)
   // Which scan is drawn — one selector row at a time — and how opaque it is.
   // Independent of `oldMapsOn`, the layer's master switch. The former
   // multi-select's hidden set is read once, only to carry a choice over.
@@ -384,6 +408,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_PARISHES_KEY, parishesOn ? '1' : '0') }, [parishesOn])
   useEffect(() => { localStorage.setItem(LS_TOILETS_KEY, toiletsOn ? '1' : '0') }, [toiletsOn])
   useEffect(() => { localStorage.setItem(LS_RELIGION_KEY, religionOn ? '1' : '0') }, [religionOn])
+  useEffect(() => { localStorage.setItem(LS_TRAILS_KEY, trailsOn ? '1' : '0') }, [trailsOn])
   useEffect(() => { localStorage.setItem(LS_OLDMAPS_KEY, oldMapsOn ? '1' : '0') }, [oldMapsOn])
   useEffect(() => { localStorage.setItem(LS_CARPARKS_KEY, carParksOn ? '1' : '0') }, [carParksOn])
   useEffect(() => { localStorage.setItem(LS_WASTE_KEY, wasteOn ? '1' : '0') }, [wasteOn])
@@ -393,6 +418,7 @@ export default function App() {
   useEffect(() => { localStorage.setItem(LS_GRANDPRIX_KEY, grandPrixOn ? '1' : '0') }, [grandPrixOn])
   useEffect(() => { saveSchoolLevelsOn(schoolLevelsOn) }, [schoolLevelsOn])
   useEffect(() => { saveReligionCategoriesOn(religionCategoriesOn) }, [religionCategoriesOn])
+  useEffect(() => { saveTrailKindsOn(trailKindsOn) }, [trailKindsOn])
   useEffect(() => { if (oldMapSelected !== null) saveSelectedOldMap(oldMapSelected) }, [oldMapSelected])
   useEffect(() => { saveOldMapsOpacity(oldMapsOpacity) }, [oldMapsOpacity])
   useEffect(() => { savePublicHousingTypesOn(publicHousingTypesOn) }, [publicHousingTypesOn])
@@ -404,6 +430,7 @@ export default function App() {
   useEffect(() => { if (!parishesOn) setSelectedParish(null) }, [parishesOn])
   useEffect(() => { if (!toiletsOn) setSelectedToilet(null) }, [toiletsOn])
   useEffect(() => { if (!religionOn) setSelectedReligion(null) }, [religionOn])
+  useEffect(() => { if (!trailsOn) setSelectedTrail(null) }, [trailsOn])
   useEffect(() => { if (!carParksOn) setSelectedCarPark(null) }, [carParksOn])
   useEffect(() => { if (!wasteOn) setSelectedWasteSite(null) }, [wasteOn])
   // Same rule one level down: hiding a site type removes those markers, so a
@@ -432,6 +459,10 @@ export default function App() {
   useEffect(() => {
     setSelectedReligion(prev => (prev && !religionCategoriesOn.has(prev.category) ? null : prev))
   }, [religionCategoriesOn])
+  // And for the two trail kinds.
+  useEffect(() => {
+    setSelectedTrail(prev => (prev && !trailKindsOn.has(prev.trail.kind) ? null : prev))
+  }, [trailKindsOn])
   // Same rule for the housing types.
   useEffect(() => {
     setSelectedPublicHousing(prev =>
@@ -520,6 +551,28 @@ export default function App() {
   const religionCategoryCounts = useMemo(
     () => cityDataStatus.religion === 'ready' ? countReligionByCategory(transitData.religion) : cityCatalog.religionCategories,
     [transitData.religion, cityDataStatus.religion]
+  )
+
+  // The trails on the RELIGION contract. Distance posts follow their trail's
+  // kind (every post stands on a walking trail); the pavilions, the summits and
+  // the climb follow `walk`.
+  const visibleTrails = useMemo(
+    () => (trailsOn ? filterTrailsByKind(transitData.trails, trailKindsOn) : NO_TRAILS),
+    [transitData.trails, trailsOn, trailKindsOn]
+  )
+  const visibleTrailPosts = useMemo(() => {
+    if (!trailsOn) return NO_TRAIL_POSTS
+    if (visibleTrails === transitData.trails) return transitData.trailPosts
+    const codes = new Set(visibleTrails.map(trail => trail.code))
+    return transitData.trailPosts.filter(post => codes.has(post.trail))
+  }, [transitData.trails, transitData.trailPosts, visibleTrails, trailsOn])
+  const walkOn = trailsOn && trailKindsOn.has('walk')
+  const visibleTrailPavilions = walkOn ? transitData.trailPavilions : NO_TRAIL_PAVILIONS
+  const visibleTrailSummits = walkOn ? transitData.trailSummits : NO_TRAIL_SUMMITS
+  const visibleTrailSpurs = walkOn ? transitData.trailSpurs : NO_TRAIL_SPURS
+  const trailKindCounts = useMemo(
+    () => cityDataStatus.trails === 'ready' ? countTrailsByKind(transitData.trails) : cityCatalog.trailKinds,
+    [transitData.trails, cityDataStatus.trails]
   )
 
   // The georeferenced scans on the same contract: the array identity moves
@@ -613,6 +666,11 @@ export default function App() {
     parishes: visibleParishes,
     toilets: toiletsOn ? transitData.toilets : NO_TOILETS,
     religion: visibleReligion,
+    trails: visibleTrails,
+    trailPosts: visibleTrailPosts,
+    trailPavilions: visibleTrailPavilions,
+    trailSummits: visibleTrailSummits,
+    trailSpurs: visibleTrailSpurs,
     oldMaps: visibleOldMaps,
     carParks: carParksOn ? transitData.carParks : NO_CAR_PARKS,
     waste: visibleWaste,
@@ -626,7 +684,7 @@ export default function App() {
     // And for the circuit: null empties the track, the corners, the pulse and
     // takes the car off.
     grandPrix: grandPrixOn ? transitData.grandPrix : null,
-  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, visiblePublicHousing, visibleParishes, toiletsOn, visibleReligion, visibleOldMaps, carParksOn, visibleWaste, waterOn, powerOn, grandPrixOn])
+  }), [transitData, visibleRoutes, lrtOn, flightsOn, dateAwareFlights, ferriesOn, roadWorksOn, visibleSchools, visiblePublicHousing, visibleParishes, toiletsOn, visibleReligion, visibleTrails, visibleTrailPosts, visibleTrailPavilions, visibleTrailSummits, visibleTrailSpurs, visibleOldMaps, carParksOn, visibleWaste, waterOn, powerOn, grandPrixOn])
 
   // Macau's streets, for the thin distribution pipes. Fetched the first time
   // WATER goes on and kept for the session — the hook ignores later toggles, so
@@ -750,6 +808,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -773,6 +832,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -794,6 +854,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -812,6 +873,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -831,6 +893,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -877,6 +940,26 @@ export default function App() {
     setTrackedVehicleId(null)
   }, [])
 
+  // Trail lines and their points, same exclusivity rule.
+  const onTrailClick = useCallback((selection: TrailSelection | null) => {
+    setSelectedTrail(selection)
+    setSelectedReligion(null)
+    setSelectedVehicle(null)
+    setSelectedStation(null)
+    setSelectedRoadWork(null)
+    setSelectedSchool(null)
+    setSelectedPublicHousing(null)
+    setSelectedParish(null)
+    setSelectedToilet(null)
+    setSelectedCarPark(null)
+    setSelectedWasteSite(null)
+    setSelectedWaterFacility(null)
+    setSelectedWaterNode(null)
+    setSelectedPowerFacility(null)
+    setSelectedPowerNode(null)
+    setTrackedVehicleId(null)
+  }, [])
+
   // Car-park markers, same exclusivity rule.
   const onCarParkClick = useCallback((carPark: CarPark | null) => {
     setSelectedCarPark(carPark)
@@ -888,6 +971,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
@@ -907,6 +991,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWaterFacility(null)
     setSelectedWaterNode(null)
@@ -928,6 +1013,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedPowerFacility(null)
@@ -948,6 +1034,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedPowerFacility(null)
@@ -968,6 +1055,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -988,6 +1076,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -1008,6 +1097,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -1027,6 +1117,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -1048,6 +1139,7 @@ export default function App() {
     setSelectedPublicHousing(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -1067,6 +1159,7 @@ export default function App() {
     setSelectedParish(null)
     setSelectedToilet(null)
     setSelectedReligion(null)
+    setSelectedTrail(null)
     setSelectedCarPark(null)
     setSelectedWasteSite(null)
     setSelectedWaterFacility(null)
@@ -1119,6 +1212,10 @@ export default function App() {
   }), [])
   const toggleReligion = useCallback(() => setReligionOn(v => {
     ga.layerToggled('religion', !v)
+    return !v
+  }), [])
+  const toggleTrails = useCallback(() => setTrailsOn(v => {
+    ga.layerToggled('trails', !v)
     return !v
   }), [])
   const toggleCarParks = useCallback(() => setCarParksOn(v => {
@@ -1179,7 +1276,7 @@ export default function App() {
       },
       city: {
         works: setRoadWorksOn, schools: setSchoolsOn, housing: setPublicHousingOn,
-        parishes: setParishesOn, toilets: setToiletsOn, religion: setReligionOn,
+        parishes: setParishesOn, toilets: setToiletsOn, religion: setReligionOn, trails: setTrailsOn,
         oldmaps: setOldMapsOn, carparks: setCarParksOn, waste: setWasteOn,
         water: setWaterOn, power: setPowerOn, grandprix: setGrandPrixOn,
       },
@@ -1200,6 +1297,15 @@ export default function App() {
       if (next.has(category)) next.delete(category)
       else next.add(category)
       ga.layerToggled(`religion_${category}`, next.has(category))
+      return next
+    })
+  }, [])
+  const toggleTrailKind = useCallback((kind: TrailKind) => {
+    setTrailKindsOn(prev => {
+      const next = new Set(prev)
+      if (next.has(kind)) next.delete(kind)
+      else next.add(kind)
+      ga.layerToggled(`trails_${kind}`, next.has(kind))
       return next
     })
   }, [])
@@ -1257,6 +1363,8 @@ export default function App() {
             onParishClick={onParishClick}
             onToiletClick={onToiletClick}
             onReligionClick={onReligionClick}
+            onTrailClick={onTrailClick}
+            trailsYmd={simYmd}
             oldMapsOpacity={oldMapsOpacity}
             onCarParkClick={onCarParkClick}
             onWasteSiteClick={onWasteSiteClick}
@@ -1281,6 +1389,7 @@ export default function App() {
             selectedParishId={selectedParish?.id ?? null}
             selectedToiletId={selectedToilet?.id ?? null}
             selectedReligionId={selectedReligion?.id ?? null}
+            selectedTrailId={selectedTrail?.trail.id ?? null}
             selectedCarParkId={selectedCarPark?.id ?? null}
             selectedWasteSiteId={wasteSelectionId(selectedWasteSite)}
             selectedWaterFacilityId={selectedWaterFacility?.id ?? null}
@@ -1327,6 +1436,9 @@ export default function App() {
         religionOn={religionOn}
         religionCategoriesOn={religionCategoriesOn}
         religionCategoryCounts={religionCategoryCounts}
+        trailsOn={trailsOn}
+        trailKindsOn={trailKindsOn}
+        trailKindCounts={trailKindCounts}
         oldMapsOn={oldMapsOn}
         oldMapSelection={oldMapSelection}
         timeBarShown={hasTransport}
@@ -1353,6 +1465,8 @@ export default function App() {
         onToggleToilets={toggleToilets}
         onToggleReligion={toggleReligion}
         onToggleReligionCategory={toggleReligionCategory}
+        onToggleTrails={toggleTrails}
+        onToggleTrailKind={toggleTrailKind}
         onToggleOldMaps={toggleOldMaps}
         onSelectOldMap={selectOldMap}
         onChangeOldMapsOpacity={setOldMapsOpacity}
@@ -1439,6 +1553,16 @@ export default function App() {
           <ReligionInfoPanel
             site={selectedReligion}
             categories={transitData.religionCategories}
+            onClose={clearSelection}
+          />
+        )}
+        {selectedTrail && (
+          <TrailInfoPanel
+            selection={selectedTrail}
+            ymd={simYmd}
+            posts={transitData.trailPosts}
+            summits={transitData.trailSummits}
+            spurs={transitData.trailSpurs}
             onClose={clearSelection}
           />
         )}

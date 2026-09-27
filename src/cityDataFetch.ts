@@ -1,4 +1,4 @@
-import type { TransitData, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, ReligionCategory, OldMap, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile } from './types'
+import type { TransitData, RoadWorkNotice, School, SchoolLevel, PublicHousingEstate, PublicHousingType, Parish, Toilet, ReligionSite, ReligionCategory, Trail, TrailPost, TrailPavilion, TrailSummit, TrailSpur, OldMap, CarPark, WasteSite, WasteSource, WasteFacility, WasteEcoStation, DspaStats, WaterFacility, WaterNetwork, WaterFacts, PowerFacility, PowerNetwork, PowerFacts, GrandPrixFile } from './types'
 import type { CityDataset } from './cityData'
 import type { z } from 'zod'
 
@@ -9,6 +9,7 @@ import {
   ParishesFileSchema,
   ToiletsFileSchema,
   ReligionFileSchema,
+  TrailsFileSchema,
   OldMapsFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
@@ -72,6 +73,20 @@ interface ReligionFile {
   fetchedAtUtc: string
   categories: ReligionCategory[]
   sites: ReligionSite[]
+}
+
+// trails.json — the TRAILS overlay. `trails`, `posts` and `pavilions` reach
+// TransitData; `sources` and the top-level `osmCheck` stay provenance metadata
+// (each trail carries its own geometry source and check result).
+interface TrailsFile {
+  fetchedAtUtc: string
+  updatedAt: string | null
+  sources: Record<string, string>
+  trails: Trail[]
+  posts: TrailPost[]
+  pavilions: TrailPavilion[]
+  summits: TrailSummit[]
+  spurs: TrailSpur[]
 }
 
 // old-maps.json — the HISTORICAL MAPS overlay. `maps` is the whole payload:
@@ -154,6 +169,10 @@ export async function loadCityDataset(id: CityDataset): Promise<Partial<TransitD
     case 'religion': {
       const file = await read<ReligionFile>('religion', ReligionFileSchema)
       return { religion: file.sites, religionCategories: file.categories }
+    }
+    case 'trails': {
+      const file = await read<TrailsFile>('trails', TrailsFileSchema)
+      return { trails: file.trails, trailPosts: file.posts, trailPavilions: file.pavilions, trailSummits: file.summits, trailSpurs: file.spurs }
     }
     case 'oldmaps': return { oldMaps: (await read<OldMapsFile>('old-maps', OldMapsFileSchema)).maps }
     case 'carparks': return { carParks: (await read<CarParksFile>('car-parks', CarParksFileSchema)).carParks }

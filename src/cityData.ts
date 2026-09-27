@@ -6,6 +6,7 @@ export const CITY_LAYER_DATASETS = {
   carparks: ['carparks'],
   toilets: ['toilets'],
   religion: ['religion'],
+  trails: ['trails'],
   oldmaps: ['oldmaps'],
   schools: ['schools'],
   housing: ['housing'],

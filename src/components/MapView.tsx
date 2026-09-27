@@ -42,6 +42,7 @@ import {
 } from '../parishes'
 import { TOILET_COLORS, TOILET_VARIANT_ORDER, buildToiletFeatures, toiletIconName } from '../toilets'
 import { RELIGION_APPROXIMATE_OPACITY, RELIGION_CATEGORY_COLORS, RELIGION_ICON_VARIANTS, buildReligionFeatures, religionIconName } from '../religion'
+import { TRAIL_COLORS, TRAIL_KIND_ORDER, TRAIL_PAVILION_COLOR, TRAIL_PAVILION_ICON, TRAIL_SUMMIT_COLOR, TRAIL_SUMMIT_ICON, buildTrailLineFeatures, buildTrailPointFeatures, nearestTrail, summitPhotographerPoses, summitTrail, trailEntranceIconName, trailHikerPoses, trailLabelField, type TrailSelection } from '../trails'
 import { OLD_MAPS_DEFAULT_OPACITY, basemapBuildingsPaint, oldMapIdFromLayer, oldMapLayerId, oldMapSourceId, oldMapSourceSpec } from '../oldMaps'
 import { OldMapLabels } from '../oldMapLabels'
 import { CAR_PARK_COLOR, CAR_PARK_ICON_NAME, buildCarParkFeatures } from '../carParks'
@@ -137,6 +138,7 @@ import {
   type GrandPrixCarState,
 } from '../grandPrix'
 import { RaceCar3DLayer } from '../layers/RaceCar3DLayer'
+import { HIKER_MIN_ZOOM, createSummitPhotographerLayer, createTrailHikerLayer, type TrailFigure3DLayer } from '../layers/TrailFigure3DLayer'
 import { toggleTheme as toggleStoredTheme, useTheme } from '../theme'
 import { useI18n } from '../i18n'
 import { ga } from '../analytics/ga'
@@ -415,6 +417,121 @@ function drawReligionIcon(color: string, kind: ReligionKind): ImageData | null {
     ctx.fillRect(c - 3, c - 5, 6, 10)
   }
 
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// ---- Walking trails (IAM 步行徑) overlay -----------------------------------
+const TRAILS_SOURCE_ID = 'trails'
+const TRAIL_POINTS_SOURCE_ID = 'trail-points'
+const TRAILS_SELECTED_LAYER_ID = 'trails-selected'
+const TRAILS_CASING_LAYER_ID = 'trails-casing'
+const TRAILS_LINE_LAYER_ID = 'trails-line'
+const TRAILS_CLOSED_LAYER_ID = 'trails-closed'
+// Wide and fully transparent: a 3 px line is too thin to hit with a finger.
+const TRAILS_HIT_LAYER_ID = 'trails-hit'
+const TRAILS_LABEL_LAYER_ID = 'trails-label'
+const TRAIL_POSTS_LAYER_ID = 'trail-posts'
+const TRAIL_POST_LABELS_LAYER_ID = 'trail-post-labels'
+// Entrances and pavilions share one symbol layer, told apart by their image.
+const TRAIL_MARKERS_LAYER_ID = 'trail-markers'
+// The climb the GIS lines leave out (好漢坡), dotted in the walking colour.
+const TRAILS_SPUR_LAYER_ID = 'trails-spur'
+// Summit triangles with the name and the official height beside them.
+const TRAIL_SUMMITS_LAYER_ID = 'trail-summits'
+const TRAIL_LINE_WIDTH: maplibregl.ExpressionSpecification = ['interpolate', ['linear'], ['zoom'], 11, 1.4, 14, 2.6, 17, 4.5]
+const TRAIL_CASING_WIDTH: maplibregl.ExpressionSpecification = ['interpolate', ['linear'], ['zoom'], 11, 3, 14, 4.6, 17, 7]
+
+// Theme-dependent paints for the trail lines: a casing that separates the
+// line from the basemap, and the along-line name.
+function trailPaints(dark: boolean) {
+  return dark
+    ? { casing: '#0b0f0a', casingOpacity: 0.75, label: '#d9f99d', halo: '#0b0f0a', post: '#f7fee7', postStroke: '#3f6212' }
+    : { casing: '#ffffff', casingOpacity: 0.9, label: '#3f6212', halo: '#ffffff', post: '#ffffff', postStroke: '#4d7c0f' }
+}
+
+// A trail entrance: a disc in the trail colour with a white rim and a white
+// pennant on a pole. Same canvas contract as drawToiletIcon.
+function drawTrailEntranceIcon(color: string): ImageData | null {
+  const size = TOILET_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  const border = 3
+  const c = size / 2
+  ctx.beginPath()
+  ctx.arc(c, c, c - border / 2 - 1, 0, Math.PI * 2)
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.lineWidth = border
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+  ctx.fillStyle = '#ffffff'
+  // The pole …
+  ctx.fillRect(c - 6, c - 10, 3, 20)
+  // … and the pennant.
+  ctx.beginPath()
+  ctx.moveTo(c - 3, c - 10)
+  ctx.lineTo(c + 9, c - 5.5)
+  ctx.lineTo(c - 3, c - 1)
+  ctx.closePath()
+  ctx.fill()
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// A summit: a brown triangle with a white rim — the map convention for a peak,
+// distinct from every round marker. Same canvas contract as drawToiletIcon.
+function drawTrailSummitIcon(color: string): ImageData | null {
+  const size = TOILET_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  const c = size / 2
+  ctx.beginPath()
+  ctx.moveTo(c, 5)
+  ctx.lineTo(size - 5, size - 8)
+  ctx.lineTo(5, size - 8)
+  ctx.closePath()
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = 3
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+  return ctx.getImageData(0, 0, size, size)
+}
+
+// A pavilion (行山亭): a smaller dark-lime disc with a white hip roof on two
+// posts — distinct from the religion markers' roof-and-hall.
+function drawTrailPavilionIcon(color: string): ImageData | null {
+  const size = TOILET_ICON_PX
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  const border = 3
+  const c = size / 2
+  ctx.beginPath()
+  ctx.arc(c, c, c - border / 2 - 4, 0, Math.PI * 2)
+  ctx.fillStyle = color
+  ctx.fill()
+  ctx.lineWidth = border
+  ctx.strokeStyle = '#ffffff'
+  ctx.stroke()
+  ctx.fillStyle = '#ffffff'
+  ctx.beginPath()
+  ctx.moveTo(c - 10, c - 1)
+  ctx.lineTo(c - 4, c - 7)
+  ctx.lineTo(c + 4, c - 7)
+  ctx.lineTo(c + 10, c - 1)
+  ctx.closePath()
+  ctx.fill()
+  ctx.fillRect(c - 6, c - 1, 2.5, 8)
+  ctx.fillRect(c + 3.5, c - 1, 2.5, 8)
   return ctx.getImageData(0, 0, size, size)
 }
 
@@ -1966,6 +2083,10 @@ export interface MapViewProps {
   onParishClick?: (parish: Parish) => void
   onToiletClick?: (toilet: Toilet | null) => void
   onReligionClick?: (site: ReligionSite | null) => void
+  onTrailClick?: (selection: TrailSelection | null) => void
+  // The simulated Macau date (YYYY-MM-DD). A trail whose published suspension
+  // covers it is drawn grey and dashed.
+  trailsYmd?: string
   // HISTORICAL MAPS: how opaque the georeferenced scans are drawn. The maps
   // themselves arrive through transitData.oldMaps like every other overlay.
   oldMapsOpacity?: number
@@ -2012,6 +2133,7 @@ export interface MapViewProps {
   selectedParishId?: string | null
   selectedToiletId?: string | null
   selectedReligionId?: string | null
+  selectedTrailId?: string | null
   selectedCarParkId?: string | null
   selectedWasteSiteId?: string | null
   selectedWaterFacilityId?: string | null
@@ -2025,7 +2147,7 @@ export interface MapViewProps {
 }
 
 export function MapView(props: MapViewProps) {
-  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onReligionClick, oldMapsOpacity = OLD_MAPS_DEFAULT_OPACITY, onCarParkClick, onWasteSiteClick, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterVisible = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerVisible = false, powerDistributionRoads = null, grandPrixVisible = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedReligionId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
+  const { clock, transitData, allTransitData, onVehicleClick, onTrackedVehicleUpdate, onStationClick, onRoadWorkClick, onSchoolClick, onPublicHousingClick, onParishClick, onToiletClick, onReligionClick, onTrailClick, trailsYmd = '', oldMapsOpacity = OLD_MAPS_DEFAULT_OPACITY, onCarParkClick, onWasteSiteClick, wasteExtras: wasteExtrasProp = null, onWaterFacilityClick, onWaterNodeClick, waterVisible = false, waterDistributionRoads = null, onPowerFacilityClick, onPowerNodeClick, powerVisible = false, powerDistributionRoads = null, grandPrixVisible = false, onGrandPrixCornerClick, onGrandPrixCircuitClick, carParkVacancy, onClearSelection, trackedVehicleId, selectedRoadWorkId, selectedSchoolId, selectedPublicHousingId, selectedParishId, selectedToiletId, selectedReligionId, selectedTrailId, selectedCarParkId, selectedWasteSiteId, selectedWaterFacilityId, selectedWaterNodeId, selectedPowerFacilityId, selectedPowerNodeId, selectedGrandPrixCornerId, onVehicleCount, showTimeBar = true, onToggleTimeBar } = props
   const containerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
   const mapThemeRef = useRef<boolean | null>(null)
@@ -2127,6 +2249,12 @@ export function MapView(props: MapViewProps) {
   // Same contract for the Tou Tei markers.
   const selectedReligionIdRef = useRef<string | null>(selectedReligionId ?? null)
   selectedReligionIdRef.current = selectedReligionId ?? null
+  // And for the trails: the highlight filter, and the date the lines were
+  // last coloured for (a theme swap re-seeds both).
+  const selectedTrailIdRef = useRef<string | null>(selectedTrailId ?? null)
+  selectedTrailIdRef.current = selectedTrailId ?? null
+  const trailsYmdRef = useRef(trailsYmd)
+  trailsYmdRef.current = trailsYmd
   const oldMapsOpacityRef = useRef(oldMapsOpacity)
   oldMapsOpacityRef.current = oldMapsOpacity
   // Where the historical maps are inserted, remembered from addCustomLayers
@@ -2227,6 +2355,10 @@ export function MapView(props: MapViewProps) {
   // per-tick sources (the speed label and the wake) are currently empty — so
   // switching the layer off sends one empty setData each, not one per tick.
   const raceCarRef = useRef<RaceCar3DLayer | null>(null)
+  // The 3D figures: hikers at the walking-trail entrances and photographers on
+  // the summits the trails reach (both detached on a style swap).
+  const hikersRef = useRef<TrailFigure3DLayer | null>(null)
+  const photographersRef = useRef<TrailFigure3DLayer | null>(null)
   const grandPrixCarLabelEmptyRef = useRef(true)
   const grandPrixWakeEmptyRef = useRef(true)
   // Whether the map has already flown to the circuit for the CURRENT switch-on
@@ -3631,6 +3763,186 @@ export function MapView(props: MapViewProps) {
         },
       })
 
+      // Walking trails. The lines go under the basemap's labels like the Grand
+      // Prix track — casing, then the line (solid while open, a grey dash while
+      // suspended), the selection glow under both — and the points over
+      // everything like the WC plates. Both sources are seeded from transitRef
+      // and the date ref, so a theme swap redraws whatever the layer holds.
+      {
+        const trailPaint = trailPaints(dark)
+        for (const kind of TRAIL_KIND_ORDER) {
+          const name = trailEntranceIconName(kind)
+          if (m.hasImage(name)) continue
+          const img = drawTrailEntranceIcon(TRAIL_COLORS[kind])
+          if (img) m.addImage(name, img, { pixelRatio: 2 })
+        }
+        if (!m.hasImage(TRAIL_PAVILION_ICON)) {
+          const img = drawTrailPavilionIcon(TRAIL_PAVILION_COLOR)
+          if (img) m.addImage(TRAIL_PAVILION_ICON, img, { pixelRatio: 2 })
+        }
+        if (!m.hasImage(TRAIL_SUMMIT_ICON)) {
+          const img = drawTrailSummitIcon(TRAIL_SUMMIT_COLOR)
+          if (img) m.addImage(TRAIL_SUMMIT_ICON, img, { pixelRatio: 2 })
+        }
+        const ymd = trailsYmdRef.current
+        const trailData = transitRef.current
+        m.addSource(TRAILS_SOURCE_ID, {
+          type: 'geojson',
+          data: buildTrailLineFeatures(trailData.trails, ymd, trailData.trailSpurs),
+        })
+        m.addSource(TRAIL_POINTS_SOURCE_ID, {
+          type: 'geojson',
+          data: buildTrailPointFeatures(trailData.trails, trailData.trailPosts, trailData.trailPavilions, ymd, trailData.trailSummits),
+        })
+        m.addLayer({
+          id: TRAILS_SELECTED_LAYER_ID, type: 'line', source: TRAILS_SOURCE_ID,
+          filter: ['==', ['get', 'id'], selectedTrailIdRef.current ?? ''],
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: {
+            'line-color': dark ? '#ffffff' : '#1a2e05',
+            'line-opacity': 0.3,
+            'line-width': ['interpolate', ['linear'], ['zoom'], 11, 8, 14, 12, 17, 16],
+            'line-blur': 2,
+          },
+        }, firstSymbolId)
+        m.addLayer({
+          id: TRAILS_CASING_LAYER_ID, type: 'line', source: TRAILS_SOURCE_ID,
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: {
+            'line-color': trailPaint.casing,
+            'line-opacity': trailPaint.casingOpacity,
+            'line-width': TRAIL_CASING_WIDTH,
+          },
+        }, firstSymbolId)
+        m.addLayer({
+          id: TRAILS_LINE_LAYER_ID, type: 'line', source: TRAILS_SOURCE_ID,
+          filter: ['all', ['!', ['get', 'closed']], ['!', ['boolean', ['get', 'spur'], false]]],
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: { 'line-color': ['get', 'color'], 'line-width': TRAIL_LINE_WIDTH },
+        }, firstSymbolId)
+        // The climb: round dots in the walking colour, thinner than a trail.
+        // A STATIC dasharray like the closed dash below.
+        m.addLayer({
+          id: TRAILS_SPUR_LAYER_ID, type: 'line', source: TRAILS_SOURCE_ID,
+          filter: ['boolean', ['get', 'spur'], false],
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: {
+            'line-color': ['get', 'color'],
+            'line-width': ['interpolate', ['linear'], ['zoom'], 11, 1.2, 14, 2.2, 17, 3.6],
+            'line-dasharray': [0.1, 2],
+          },
+        }, firstSymbolId)
+        // A STATIC dash, never animated (see the dasharray rule on the pipes).
+        m.addLayer({
+          id: TRAILS_CLOSED_LAYER_ID, type: 'line', source: TRAILS_SOURCE_ID,
+          filter: ['get', 'closed'],
+          layout: { 'line-cap': 'butt', 'line-join': 'round' },
+          paint: { 'line-color': ['get', 'color'], 'line-width': TRAIL_LINE_WIDTH, 'line-dasharray': [1.6, 1.2] },
+        }, firstSymbolId)
+        m.addLayer({
+          id: TRAILS_HIT_LAYER_ID, type: 'line', source: TRAILS_SOURCE_ID,
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: { 'line-color': '#000000', 'line-opacity': 0, 'line-width': 16 },
+        }, firstSymbolId)
+        m.addLayer({
+          id: TRAILS_LABEL_LAYER_ID, type: 'symbol', source: TRAILS_SOURCE_ID,
+          minzoom: 13.5,
+          layout: {
+            'symbol-placement': 'line',
+            'symbol-spacing': 320,
+            // Swapped, not rebuilt, on a language change: see the [lang] effect.
+            'text-field': ['get', trailLabelField(currentLang)],
+            'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+            'text-size': 11,
+            'text-offset': [0, -0.9],
+            'text-max-angle': 30,
+          },
+          paint: {
+            'text-color': trailPaint.label,
+            'text-halo-color': trailPaint.halo,
+            'text-halo-width': 1.2,
+          },
+        }, firstSymbolId)
+        m.addLayer({
+          id: TRAIL_POSTS_LAYER_ID, type: 'circle', source: TRAIL_POINTS_SOURCE_ID,
+          filter: ['==', ['get', 'kind'], 'post'],
+          minzoom: 13,
+          paint: {
+            'circle-radius': ['interpolate', ['linear'], ['zoom'], 13, 1.8, 16, 3.4, 18, 4.5],
+            'circle-color': trailPaint.post,
+            'circle-stroke-width': 1,
+            'circle-stroke-color': trailPaint.postStroke,
+          },
+        })
+        m.addLayer({
+          id: TRAIL_POST_LABELS_LAYER_ID, type: 'symbol', source: TRAIL_POINTS_SOURCE_ID,
+          filter: ['==', ['get', 'kind'], 'post'],
+          minzoom: 15.5,
+          layout: {
+            'text-field': ['get', 'code'],
+            'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+            'text-size': 9,
+            'text-offset': [0, 0.9],
+            'text-anchor': 'top',
+            'text-optional': true,
+          },
+          paint: {
+            'text-color': trailPaint.label,
+            'text-halo-color': trailPaint.halo,
+            'text-halo-width': 1,
+          },
+        })
+        m.addLayer({
+          id: TRAIL_MARKERS_LAYER_ID, type: 'symbol', source: TRAIL_POINTS_SOURCE_ID,
+          filter: ['match', ['get', 'kind'], ['entrance', 'pavilion'], true, false],
+          layout: {
+            'icon-image': ['get', 'icon'],
+            // Entrances share a road end with a pavilion now and then; both draw.
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.45, 15, 0.9],
+          },
+          paint: {
+            // The entrance of a suspended trail reads as "there, but closed".
+            // An open walking trail's flag fades out just before HIKER_MIN_ZOOM:
+            // its 3D hiker stands there instead (the flag still takes the click).
+            'icon-opacity': ['interpolate', ['linear'], ['zoom'],
+              HIKER_MIN_ZOOM - 0.5, ['case', ['boolean', ['get', 'closed'], false], 0.5, 1],
+              HIKER_MIN_ZOOM, ['case',
+                ['boolean', ['get', 'closed'], false], 0.5,
+                ['all', ['==', ['get', 'kind'], 'entrance'], ['==', ['get', 'trailKind'], 'walk']], 0,
+                1],
+            ],
+          },
+        })
+        m.addLayer({
+          id: TRAIL_SUMMITS_LAYER_ID, type: 'symbol', source: TRAIL_POINTS_SOURCE_ID,
+          filter: ['==', ['get', 'kind'], 'summit'],
+          layout: {
+            'icon-image': ['get', 'icon'],
+            'icon-allow-overlap': true,
+            'icon-ignore-placement': true,
+            'icon-size': ['interpolate', ['linear'], ['zoom'], 11, 0.55, 15, 0.95],
+            // Name over height, beside the triangle; swapped, not rebuilt, on a
+            // language change (see the [lang] effect).
+            'text-field': ['get', trailLabelField(currentLang)],
+            'text-font': ['Montserrat Medium', 'Open Sans Bold', 'Noto Sans Regular'],
+            'text-size': ['interpolate', ['linear'], ['zoom'], 11, 10, 15, 12],
+            'text-anchor': 'left',
+            'text-offset': [0.9, 0],
+            'text-justify': 'left',
+            'text-optional': true,
+            // The highest summit wins a label collision.
+            'symbol-sort-key': ['-', 0, ['get', 'height']],
+          },
+          paint: {
+            'text-color': dark ? '#fde68a' : '#78350f',
+            'text-halo-color': trailPaint.halo,
+            'text-halo-width': 1.4,
+          },
+        })
+      }
+
       // Public car parks. Same contract as the toilets: the image is redrawn
       // here on every style load under a hasImage guard, and the source is
       // seeded from transitRef + the vacancy ref so a theme swap keeps both
@@ -3914,6 +4226,19 @@ export function MapView(props: MapViewProps) {
       })
       raceCar.attach(m)
       raceCarRef.current = raceCar
+      // A hiker at each walking-trail entrance, seeded from the current data
+      // and date like the trail sources.
+      const hikers = createTrailHikerLayer()
+      hikers.attach(m)
+      hikers.setFigures(trailHikerPoses(transitRef.current.trails, trailsYmdRef.current))
+      hikersRef.current = hikers
+      // And a photographer on each summit a trail reaches.
+      const photographers = createSummitPhotographerLayer()
+      photographers.attach(m)
+      photographers.setFigures(summitPhotographerPoses(
+        transitRef.current.trailSummits, transitRef.current.trails, transitRef.current.trailSpurs, trailsYmdRef.current,
+      ))
+      photographersRef.current = photographers
       // Its speed, beside it: the same type and halo as the corner names, on a
       // point the RAF tick rewrites with the pose.
       m.addSource(GRAND_PRIX_CAR_LABEL_SOURCE_ID, {
@@ -4087,6 +4412,62 @@ export function MapView(props: MapViewProps) {
       m.on('mouseenter', RELIGION_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = 'pointer' })
       m.on('mouseleave', RELIGION_ICON_LAYER_ID, () => { m.getCanvas().style.cursor = '' })
 
+      // Trails: an entrance, a distance post or a pavilion opens its trail and
+      // names the point; the line's wide transparent hit layer opens the trail.
+      // The point handlers are registered first and mark the event, so a post
+      // sitting on the line wins over the line under it.
+      const openTrailPoint = (e: maplibregl.MapLayerMouseEvent) => {
+        if (e.defaultPrevented) return
+        const props = e.features?.[0]?.properties
+        if (!props) return
+        // Current arrays (transitRef): trails.json lands after this handler is
+        // attached, and the kind toggles swap the arrays.
+        const { trails, trailPavilions } = transitRef.current
+        let selection: TrailSelection | null = null
+        if (props.kind === 'summit') {
+          const summit = transitRef.current.trailSummits.find(x => x.id === props.summitId)
+          const trail = summit ? summitTrail(summit, trails) : null
+          if (summit && trail) selection = { trail, point: { kind: 'summit', summit } }
+        } else if (props.kind === 'pavilion') {
+          // The GIS gives a pavilion no trail, so it opens the nearest one.
+          const pavilion = trailPavilions[Number(props.index)]
+          const near = pavilion ? nearestTrail(trails, pavilion.coordinates) : null
+          if (pavilion && near) selection = { trail: near.trail, point: { kind: 'pavilion', name: pavilion.name } }
+        } else {
+          const trail = trails.find(x => x.id === props.trailId)
+          if (trail) {
+            selection = {
+              trail,
+              point: props.kind === 'post'
+                ? { kind: 'post', code: String(props.code) }
+                : { kind: 'entrance', index: Number(props.index) },
+            }
+          }
+        }
+        if (selection) { onTrailClick?.(selection); e.preventDefault() }
+      }
+      for (const layerId of [TRAIL_SUMMITS_LAYER_ID, TRAIL_MARKERS_LAYER_ID, TRAIL_POSTS_LAYER_ID]) {
+        m.on('click', layerId, openTrailPoint)
+      }
+      m.on('click', TRAILS_HIT_LAYER_ID, (e) => {
+        if (e.defaultPrevented) return
+        const props = e.features?.[0]?.properties
+        const { trails, trailSpurs } = transitRef.current
+        // A climb opens the trail it starts on and names itself.
+        if (props?.spur) {
+          const spur = trailSpurs.find(x => x.id === props.id)
+          const trail = trails.find(x => x.id === props.trailId)
+          if (spur && trail) { onTrailClick?.({ trail, point: { kind: 'spur', spur } }); e.preventDefault() }
+          return
+        }
+        const trail = trails.find(x => x.id === props?.id)
+        if (trail) { onTrailClick?.({ trail, point: null }); e.preventDefault() }
+      })
+      for (const layerId of [TRAIL_SUMMITS_LAYER_ID, TRAIL_MARKERS_LAYER_ID, TRAIL_POSTS_LAYER_ID, TRAILS_HIT_LAYER_ID]) {
+        m.on('mouseenter', layerId, () => { m.getCanvas().style.cursor = 'pointer' })
+        m.on('mouseleave', layerId, () => { m.getCanvas().style.cursor = '' })
+      }
+
       // Car-park pins, registered before the vehicle handlers for the same
       // reason: a bus passing over a "P" should not steal the click.
       m.on('click', CAR_PARKS_ICON_LAYER_ID, (e) => {
@@ -4235,7 +4616,7 @@ export function MapView(props: MapViewProps) {
 
       // Every layer that owns a click EXCEPT the parish tint, which is context
       // and deliberately the bottom-most target.
-      const clickTargetLayers = ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, PUBLIC_HOUSING_LAYER_ID, TOILETS_ICON_LAYER_ID, RELIGION_ICON_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers]
+      const clickTargetLayers = ['vehicles-circle', 'stations-circle', ROAD_WORKS_ICON_LAYER_ID, SCHOOLS_LAYER_ID, PUBLIC_HOUSING_LAYER_ID, TOILETS_ICON_LAYER_ID, RELIGION_ICON_LAYER_ID, TRAIL_SUMMITS_LAYER_ID, TRAIL_MARKERS_LAYER_ID, TRAIL_POSTS_LAYER_ID, TRAILS_HIT_LAYER_ID, CAR_PARKS_ICON_LAYER_ID, WASTE_ICON_LAYER_ID, WASTE_BUILDINGS_LAYER_ID, WASTE_AREAS_LAYER_ID, WATER_ICON_LAYER_ID, WATER_BUILDINGS_LAYER_ID, POWER_ICON_LAYER_ID, POWER_BUILDINGS_LAYER_ID, GRAND_PRIX_CORNER_LAYER_ID, GRAND_PRIX_TRACK_LAYER_ID, GRAND_PRIX_TRACK_GLOW_LAYER_ID, ...model3DLayers]
 
       // queryRenderedFeatures fails (an error event and no features) when any
       // listed layer is missing, and WATER / POWER are added only once switched on.
@@ -4285,6 +4666,10 @@ export function MapView(props: MapViewProps) {
       layersAddedRef.current = false
       bus3DRef.current?.detach()
       bus3DRef.current = null
+      hikersRef.current?.detach()
+      hikersRef.current = null
+      photographersRef.current?.detach()
+      photographersRef.current = null
       lrt3DRef.current = null
       flight3DRef.current = null
       ferry3DRef.current = null
@@ -4315,6 +4700,10 @@ export function MapView(props: MapViewProps) {
     layersAddedRef.current = false
     bus3DRef.current?.detach()
     bus3DRef.current = null
+    hikersRef.current?.detach()
+    hikersRef.current = null
+    photographersRef.current?.detach()
+    photographersRef.current = null
     lrt3DRef.current = null
     flight3DRef.current = null
     ferry3DRef.current = null
@@ -4342,6 +4731,9 @@ export function MapView(props: MapViewProps) {
     }
     if (map.getLayer(GRAND_PRIX_CORNER_LAYER_ID)) {
       map.setLayoutProperty(GRAND_PRIX_CORNER_LAYER_ID, 'text-field', ['get', grandPrixLabelField(lang)])
+    }
+    for (const layerId of [TRAILS_LABEL_LAYER_ID, TRAIL_SUMMITS_LAYER_ID]) {
+      if (map.getLayer(layerId)) map.setLayoutProperty(layerId, 'text-field', ['get', trailLabelField(lang)])
     }
     if (map.getLayer(PARISHES_LABEL_LAYER_ID)) {
       map.setLayoutProperty(PARISHES_LABEL_LAYER_ID, 'text-field', ['get', parishLabelField(lang)])
@@ -4439,6 +4831,28 @@ export function MapView(props: MapViewProps) {
       { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
     src?.setData?.(buildReligionFeatures(transitData.religion))
   }, [transitData.religion])
+
+  // Trails: lines and points pushed on array identity (the file arriving, the
+  // switch or a kind toggle swapping arrays) and on the simulated DATE, which
+  // decides whether a suspension greys a line out. The date string only moves
+  // at midnight, so this never runs per frame.
+  useEffect(() => {
+    const map = mapRef.current
+    type GeoSource = { setData?: (d: GeoJSON.FeatureCollection) => void } | undefined
+    const lines = map?.getSource(TRAILS_SOURCE_ID) as unknown as GeoSource
+    lines?.setData?.(buildTrailLineFeatures(transitData.trails, trailsYmd, transitData.trailSpurs))
+    const points = map?.getSource(TRAIL_POINTS_SOURCE_ID) as unknown as GeoSource
+    points?.setData?.(buildTrailPointFeatures(transitData.trails, transitData.trailPosts, transitData.trailPavilions, trailsYmd, transitData.trailSummits))
+    hikersRef.current?.setFigures(trailHikerPoses(transitData.trails, trailsYmd))
+    photographersRef.current?.setFigures(summitPhotographerPoses(transitData.trailSummits, transitData.trails, transitData.trailSpurs, trailsYmd))
+  }, [transitData.trails, transitData.trailPosts, transitData.trailPavilions, transitData.trailSummits, transitData.trailSpurs, trailsYmd])
+
+  // Selected trail glow — a filter swap on the line source.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.getLayer(TRAILS_SELECTED_LAYER_ID)) return
+    map.setFilter(TRAILS_SELECTED_LAYER_ID, ['==', ['get', 'id'], selectedTrailId ?? ''])
+  }, [selectedTrailId])
 
   // Historical maps: image sources added and removed on array identity (the
   // file arriving, a map's own switch, or the master switch swapping in the
@@ -5497,6 +5911,38 @@ export function MapView(props: MapViewProps) {
                       rel="noopener noreferrer"
                       className="hover:text-(--mm-amber-1) transition-colors"
                     >澳門記憶</a>
+                  </span>
+                </li>
+                <li className="flex items-baseline justify-between gap-2">
+                  <span className="text-ui-10 text-(--mm-text-secondary) leading-tight">{t.dataSourceTrailsLabel}</span>
+                  <span className="mm-mono text-ui-9 tracking-[0.1em] text-(--mm-amber-1)/80 shrink-0">
+                    <a
+                      href="https://www.iam.gov.mo/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >IAM</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://data.gov.mo/Detail?id=e410770e-caa6-4a56-872b-68b8af389cac"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >data.gov.mo</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://www.dsec.gov.mo/getAttachment/a774d773-9696-48c1-b8a7-21efd4dcd1fb/E_AMB_PUB_2011_Y.aspx"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >DSEC</a>
+                    <span className="text-(--mm-fg)/25 mx-[3px]">/</span>
+                    <a
+                      href="https://geomatics.dsscu.gov.mo/zh-hant/tripoints1.html"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:text-(--mm-amber-1) transition-colors"
+                    >DSSCU</a>
                   </span>
                 </li>
                 <li className="flex items-baseline justify-between gap-2">

@@ -1,0 +1,66 @@
+name: Update Trails Data
+
+on:
+  schedule:
+    # 19:40 UTC on the 1st = 03:40 Macau (UTC+8) on the 2nd — clear of toilets
+    # (18:40), waste/dspa (19:10/19:20) and other monthly jobs' minutes.
+    - cron: '40 19 1 * *'
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7.6.0
+        with:
+          version: latest
+
+      - name: Random pre-fetch delay (jitter)
+        if: github.event_name == 'schedule'
+        run: |
+          delay=$((RANDOM % 3000))
+          echo "Sleeping ${delay}s before fetching..."
+          sleep "$delay"
+
+      - name: Fetch IAM walking trails (with retry)
+        working-directory: data
+        run: |
+          attempt=1
+          max_attempts=2
+          until uv run python scripts/fetch_trails.py; do
+            if [ $attempt -ge $max_attempts ]; then
+              echo "::error::fetch_trails.py failed after $attempt attempts"
+              exit 1
+            fi
+            echo "::warning::fetch_trails.py attempt $attempt failed — retrying in 60s"
+            sleep 60
+            attempt=$((attempt + 1))
+          done
+
+      - name: Validate output before commit
+        working-directory: data
+        run: uv run python scripts/validate_output.py trails
+
+      - name: Commit and push if changed
+        id: commit
+        uses: ./.github/actions/commit-data
+        with:
+          file: public/data/trails.json
+          message: 'chore: update IAM walking trails'
+
+  deploy:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    permissions:
+      contents: read
+      deployments: write
+    uses: ./.github/workflows/deploy.yml
+    with:
+      ref: master
+    secrets: inherit

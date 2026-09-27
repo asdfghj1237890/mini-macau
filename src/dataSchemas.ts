@@ -470,6 +470,91 @@ export const ReligionFileSchema = z.object({
   ),
 })
 
+// trails.json — the TRAILS overlay: IAM's walking trails and cycle tracks with
+// their distance posts and pavilions. Mirrors `v_trails` in
+// data/scripts/validate_output.py. `code` is null for the trails without
+// distance posts; `osmCheck` is null exactly when the line came from OSM.
+const trailText = z.object({ zh: z.string(), pt: z.string(), en: z.string() })
+const trailCode = z.string().regex(/^\d-\d{2}$/)
+
+export const TrailsFileSchema = z.object({
+  fetchedAtUtc: z.string(),
+  updatedAt: z.string().nullable(),
+  sources: z.record(z.string(), z.string()),
+  osmCheck: z.object({
+    osmBase: z.string(),
+    medianLimitM: z.number().positive(),
+    p90LimitM: z.number().positive(),
+  }),
+  trails: z.array(
+    z.object({
+      id: z.string().min(1),
+      code: trailCode.nullable(),
+      kind: z.enum(['walk', 'cycle']),
+      area: z.enum(['peninsula', 'taipa', 'coloane']),
+      name: trailText,
+      entrance: trailText,
+      exit: trailText,
+      openHours: trailText,
+      phone: z.string().nullable(),
+      lengthM: z.number().int().positive().nullable(),
+      drawnLengthM: z.number().int().positive(),
+      closed: z.boolean(),
+      suspensions: z.array(z.object({ from: ymd, to: ymd })),
+      entrances: z.array(lngLat).min(1),
+      webLink: z.string(),
+      geometry: z.object({
+        source: z.enum(['gis', 'osm']),
+        retrievedAt: ymd,
+        osmIds: z.array(z.string()).nullable(),
+        lines: z.array(z.array(lngLat).min(2)).min(1),
+      }),
+      osmCheck: z.object({
+        medianM: z.number().nonnegative(),
+        p90M: z.number().nonnegative(),
+        within15Pct: z.number().min(0).max(100),
+      }).nullable(),
+    }),
+  ).min(1),
+  posts: z.array(
+    z.object({
+      code: z.string().regex(/^\d-\d{2}-[A-Z]?\d{1,2}$/),
+      trail: trailCode,
+      coordinates: lngLat,
+    }),
+  ),
+  pavilions: z.array(
+    z.object({
+      name: z.string().nullable(),
+      coordinates: lngLat,
+    }),
+  ),
+  summits: z.array(
+    z.object({
+      id: z.string().min(1),
+      name: trailText,
+      heightM: z.number().positive().max(300),
+      coordinates: lngLat,
+      trig: z.string().regex(/^[A-Z]{1,2}\d{2,3}$/),
+      access: z.array(z.object({
+        trail: z.string().min(1),
+        via: z.enum(['trail', 'spur', 'near']),
+        distanceM: z.number().int().min(0).max(150),
+      })).min(1),
+    }),
+  ).min(1),
+  spurs: z.array(
+    z.object({
+      id: z.string().min(1),
+      name: trailText,
+      summit: z.string().min(1),
+      trails: z.array(z.string().min(1)).min(1),
+      osmIds: z.array(z.string().regex(/^[nwr]\d+$/)).min(1),
+      lines: z.array(z.array(lngLat).min(2)).min(1),
+    }),
+  ),
+})
+
 // old-maps.json — the HISTORICAL MAPS overlay: georeferenced scans, one
 // north-up WebP with alpha plus local control points, or a provider-hosted
 // tile service with its original extent and attribution. Mirrors `v_old_maps` in data/scripts/validate_output.py.

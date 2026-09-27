@@ -23,6 +23,7 @@ import {
 } from '../parishes'
 import { schoolColor } from '../schools'
 import { religionColor } from '../religion'
+import { TRAIL_COLORS, TRAIL_PAVILION_COLOR, TRAIL_SUMMIT_COLOR, isTrailClosed, nearestTrail, summitHeightText, summitTrail } from '../trails'
 import { OLD_MAPS_DEFAULT_OPACITY } from '../oldMaps'
 
 type Props = MapViewProps & {
@@ -213,6 +214,43 @@ export default function RasterMapFallback(props: Props) {
     // Tou Tei temples and shrines in their kind colour; a street-level guess is
     // still a dot here (the 2D map has no opacity channel per marker).
     for (const site of data.religion) point(site.coordinates, name({ zh: site.name.zh, en: site.name.en ?? undefined, pt: site.name.pt ?? undefined }), religionColor(site), () => live.current.onReligionClick?.(site))
+    // Trails: the line in its kind colour (grey while a suspension covers the
+    // simulated day), the entrances, distance posts and pavilions as dots.
+    const trailDay = macauYmd(minute)
+    for (const trail of data.trails) {
+      const closed = isTrailClosed(trail, trailDay)
+      const color = closed ? '#9ca3af' : TRAIL_COLORS[trail.kind]
+      for (const path of trail.geometry.lines) {
+        line(path, color, 3).on('click', () => live.current.onTrailClick?.({ trail, point: null }))
+      }
+      trail.entrances.forEach((coords, index) => point(coords, name(trail.name), color,
+        () => live.current.onTrailClick?.({ trail, point: { kind: 'entrance', index } })))
+    }
+    const trailsByCode = new Map(data.trails.map(trail => [trail.code, trail]))
+    for (const post of data.trailPosts) {
+      const trail = trailsByCode.get(post.trail)
+      if (trail) point(post.coordinates, post.code, '#f7fee7', () => live.current.onTrailClick?.({ trail, point: { kind: 'post', code: post.code } }))
+    }
+    for (const pavilion of data.trailPavilions) {
+      const near = nearestTrail(data.trails, pavilion.coordinates)
+      point(pavilion.coordinates, pavilion.name ?? '', TRAIL_PAVILION_COLOR,
+        near ? () => live.current.onTrailClick?.({ trail: near.trail, point: { kind: 'pavilion', name: pavilion.name } }) : undefined)
+    }
+    // The climb to the highest summit, and the summits with their heights in
+    // the tooltip.
+    for (const spur of data.trailSpurs) {
+      const trail = data.trails.find(t => spur.trails.includes(t.id))
+      if (!trail) continue
+      for (const path of spur.lines) {
+        line(path, TRAIL_COLORS.walk, 2).on('click', () => live.current.onTrailClick?.({ trail, point: { kind: 'spur', spur } }))
+      }
+    }
+    for (const summit of data.trailSummits) {
+      const trail = summitTrail(summit, data.trails)
+      if (!trail) continue
+      point(summit.coordinates, `${name(summit.name)} ${summitHeightText(summit)}`, TRAIL_SUMMIT_COLOR,
+        () => live.current.onTrailClick?.({ trail, point: { kind: 'summit', summit } }))
+    }
     for (const park of data.carParks) point(park.coordinates, name(park.name), '#3b82f6', () => live.current.onCarParkClick?.(park))
     for (const site of data.waste) point(site.coordinates, name(site.name), '#4ade80', () => live.current.onWasteSiteClick?.({ kind: 'site', site }))
     for (const station of wasteExtras?.ecoStations ?? []) point(station.coordinates, name(station.name), '#4ade80', () => live.current.onWasteSiteClick?.({ kind: 'ecoStation', station }))

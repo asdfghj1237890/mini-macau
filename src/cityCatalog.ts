@@ -1,4 +1,4 @@
-import type { PublicHousingType, ReligionCategoryId, SchoolLevel, WasteSiteType } from './types'
+import type { PublicHousingType, ReligionCategoryId, SchoolLevel, TrailKind, WasteSiteType } from './types'
 import type { CityLayer } from './cityData'
 
 export interface CityCatalog {
@@ -6,6 +6,7 @@ export interface CityCatalog {
   schoolLevels: Record<SchoolLevel, number>
   housingTypes: Record<PublicHousingType, number>
   religionCategories: Record<ReligionCategoryId, number>
+  trailKinds: Record<TrailKind, number>
   wasteTypes: Record<WasteSiteType | 'eco_station' | 'facility' | 'wwtp', number>
   // Aggregated start/end dates only: no notices, text, IDs or geometry.
   roadWorkWindows: [start: string, end: string, count: number][]

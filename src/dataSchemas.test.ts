@@ -21,6 +21,7 @@ import {
   ParishesFileSchema,
   ToiletsFileSchema,
   ReligionFileSchema,
+  TrailsFileSchema,
   OldMapsFileSchema,
   CarParksFileSchema,
   WasteFileSchema,
@@ -101,6 +102,7 @@ describe('committed data files satisfy their schemas', () => {
   it('parishes.json', () => expectValid(ParishesFileSchema, 'parishes.json'))
   it('toilets.json', () => expectValid(ToiletsFileSchema, 'toilets.json'))
   it('religion.json', () => expectValid(ReligionFileSchema, 'religion.json'))
+  it('trails.json', () => expectValid(TrailsFileSchema, 'trails.json'))
   it('old-maps.json', () => expectValid(OldMapsFileSchema, 'old-maps.json'))
   it('car-parks.json', () => expectValid(CarParksFileSchema, 'car-parks.json'))
   it('waste.json', () => expectValid(WasteFileSchema, 'waste.json'))

@@ -3,7 +3,7 @@ import { OldMapControls } from './OldMapControls'
 import { OldMapSwitcher } from './OldMapSwitcher'
 import { cityLayerStatus, type CityLayer, type CityDataStatus } from '../cityData'
 import { useState, useMemo, useEffect, type ReactNode } from 'react'
-import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType, ReligionCategoryId } from '../types'
+import type { TransitData, SimulationClock, SchoolLevel, PublicHousingType, ReligionCategoryId, TrailKind } from '../types'
 import { useI18n, localName, type Translations } from '../i18n'
 import { getRouteGroup, GROUP_ORDER, GROUP_LABEL_KEYS, type GroupKey } from '../routeGroups'
 import {
@@ -22,6 +22,12 @@ import {
   religionCategoryLabel,
   type ReligionCategorySet,
 } from '../religion'
+import {
+  TRAIL_COLORS,
+  TRAIL_KIND_ORDER,
+  countTrailsByKind,
+  type TrailKindSet,
+} from '../trails'
 import {
   OLD_MAPS_DEFAULT_OPACITY,
   groupOldMaps,
@@ -486,6 +492,15 @@ const RELIGION_ICON_16 = (
     <rect x="6.5" y="8.5" width="3" height="4.75" fill="currentColor" stroke="none" />
   </svg>
 )
+// A path winding up a hill to a summit flag.
+const TRAIL_ICON_16 = (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
+       strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M1.75 13.75 6.5 5.5l2.5 3.5 1.75-2.25 3.5 7" />
+    <path d="M4.25 13.75c1.5-1.25 3.5-1 4-2.5s2.25-1.5 3-2.25" strokeDasharray="1.2 1.4" />
+    <path d="M6.5 5.5V1.75l2.75 1.1-2.75 1.1" />
+  </svg>
+)
 const OLD_MAP_ICON_16 = (
   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor"
        strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -555,6 +570,7 @@ const LS_SCHOOLS_LEGEND_OPEN = 'mm-schools-legend-open'
 const LS_PUBLIC_HOUSING_LEGEND_OPEN = 'mm-public-housing-legend-open'
 const LS_WASTE_LEGEND_OPEN = 'mm-waste-legend-open'
 const LS_RELIGION_LEGEND_OPEN = 'mm-religion-legend-open'
+const LS_TRAILS_LEGEND_OPEN = 'mm-trails-legend-open'
 const LS_OLDMAPS_LEGEND_OPEN = 'mm-oldmaps-legend-open'
 // Stable "nothing hidden" fallback for a legend rendered without the prop, so
 // the `??` below cannot hand a fresh Set to the render on every pass.
@@ -607,6 +623,11 @@ interface Props {
   religionOn?: boolean
   religionCategoriesOn?: ReligionCategorySet
   religionCategoryCounts?: Record<ReligionCategoryId, number>
+  // IAM's walking trails and cycle tracks — opt-in like the toilets; the two
+  // kind toggles narrow what is drawn, like the religion categories.
+  trailsOn?: boolean
+  trailKindsOn?: TrailKindSet
+  trailKindCounts?: Record<TrailKind, number>
   // Georeferenced historical maps — opt-in like the toilets. `oldMapSelection`
   // is the one selector row drawn and `oldMapsOpacity` the plate's opacity
   // (0.2–1); both are independent of the master switch.
@@ -648,6 +669,8 @@ interface Props {
   onToggleToilets?: () => void
   onToggleReligion?: () => void
   onToggleReligionCategory?: (category: ReligionCategoryId) => void
+  onToggleTrails?: () => void
+  onToggleTrailKind?: (kind: TrailKind) => void
   onToggleOldMaps?: () => void
   onSelectOldMap?: (id: string) => void
   onChangeOldMapsOpacity?: (value: number) => void
@@ -665,7 +688,7 @@ interface Props {
   onResetAuto?: () => void
 }
 
-type MobilePanel = MobileLayerCategory | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'religion' | 'oldmaps' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | null
+type MobilePanel = MobileLayerCategory | 'parishes' | 'works' | 'schools' | 'housing' | 'toilets' | 'religion' | 'trails' | 'oldmaps' | 'carparks' | 'waste' | 'water' | 'power' | 'grandprix' | null
 
 export function LineLegend({
   cityDataStatus,
@@ -692,6 +715,9 @@ export function LineLegend({
   religionOn = false,
   religionCategoriesOn,
   religionCategoryCounts,
+  trailsOn = false,
+  trailKindsOn,
+  trailKindCounts,
   oldMapsOn = false,
   oldMapSelection = null,
   timeBarShown = false,
@@ -718,6 +744,8 @@ export function LineLegend({
   onToggleToilets,
   onToggleReligion,
   onToggleReligionCategory,
+  onToggleTrails,
+  onToggleTrailKind,
   onToggleOldMaps,
   onSelectOldMap,
   onChangeOldMapsOpacity,
@@ -751,6 +779,9 @@ export function LineLegend({
   const [religionLegendOpen, setReligionLegendOpen] = useState(() => {
     try { return localStorage.getItem(LS_RELIGION_LEGEND_OPEN) !== '0' } catch { return true }
   })
+  const [trailsLegendOpen, setTrailsLegendOpen] = useState(() => {
+    try { return localStorage.getItem(LS_TRAILS_LEGEND_OPEN) !== '0' } catch { return true }
+  })
   const [oldMapsLegendOpen, setOldMapsLegendOpen] = useState(() => {
     try { return localStorage.getItem(LS_OLDMAPS_LEGEND_OPEN) !== '0' } catch { return true }
   })
@@ -782,6 +813,9 @@ export function LineLegend({
   useEffect(() => {
     localStorage.setItem(LS_RELIGION_LEGEND_OPEN, religionLegendOpen ? '1' : '0')
   }, [religionLegendOpen])
+  useEffect(() => {
+    localStorage.setItem(LS_TRAILS_LEGEND_OPEN, trailsLegendOpen ? '1' : '0')
+  }, [trailsLegendOpen])
   useEffect(() => {
     localStorage.setItem(LS_OLDMAPS_LEGEND_OPEN, oldMapsLegendOpen ? '1' : '0')
   }, [oldMapsLegendOpen])
@@ -929,6 +963,15 @@ export function LineLegend({
   const religionEnabledCount = RELIGION_CATEGORY_ORDER.reduce(
     (sum, category) => (isReligionCategoryOn(category) ? sum + (religionCategoryTotals[category] ?? 0) : sum), 0
   )
+  // The trails: 16 walking trails and 2 cycle tracks, narrowed by the two kind
+  // toggles — the RELIGION row's enabled/total grammar.
+  const trailCount = cityCount('trails', allTransitData?.trails.length ?? transitData.trails.length)
+  const trailKindTotals = trailKindCounts ?? countTrailsByKind(allTransitData?.trails ?? transitData.trails)
+  const isTrailKindOn = (kind: TrailKind) => (trailKindsOn ? trailKindsOn.has(kind) : true)
+  const trailKindsAllOn = TRAIL_KIND_ORDER.every(isTrailKindOn)
+  const trailEnabledCount = TRAIL_KIND_ORDER.reduce(
+    (sum, kind) => (isTrailKindOn(kind) ? sum + (trailKindTotals[kind] ?? 0) : sum), 0
+  )
   // Count selectable groups, including the three-sheet 1912 atlas as one.
   // Enabled/total comes from the UNFILTERED data
   // (App swaps in the empty array while the layer is off).
@@ -996,6 +1039,11 @@ export function LineLegend({
       panel: 'religion' as const, thematic: false, label: t.religion, code: 'RELIGION', accent: 'red', description: t.religionNote, icon: RELIGION_ICON_16, on: religionOn,
       count: religionCategoriesAllOn ? String(religionCount) : `${religionEnabledCount}/${religionCount}`,
       toggle: onToggleReligion,
+    } : null,
+    trailCount > 0 ? {
+      panel: 'trails' as const, thematic: false, label: t.trails, code: 'TRAILS', accent: 'emerald', description: t.trailsNote, icon: TRAIL_ICON_16, on: trailsOn,
+      count: trailKindsAllOn ? String(trailCount) : `${trailEnabledCount}/${trailCount}`,
+      toggle: onToggleTrails,
     } : null,
     schoolCount > 0 ? {
       panel: 'schools' as const, thematic: false, label: t.schools, code: 'EDUCATION', accent: 'violet', description: t.schoolsRampHint, icon: MORTARBOARD_ICON_16, on: schoolsOn,
@@ -1157,6 +1205,56 @@ export function LineLegend({
         {/* Colour = faith or group, shape = building kind; said once. */}
         <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
           <span className="normal-case tracking-normal mm-han">{t.religionCategoriesHint}</span>
+        </div>
+      </div>
+    ) },
+    trails: { expanded: trailsLegendOpen, onExpand: () => setTrailsLegendOpen(v => !v), content: (
+      <div className={`pb-1 bg-(--mm-emerald-2)/[0.05] ${trailsOn ? '' : 'opacity-40 light:opacity-100'}`}>
+        {TRAIL_KIND_ORDER.map(kind => {
+          const on = isTrailKindOn(kind)
+          const lit = trailsOn && on
+          const color = TRAIL_COLORS[kind]
+          const label = kind === 'walk' ? t.trailKindWalk : t.trailKindCycle
+          return (
+            <button
+              key={kind}
+              type="button"
+              onClick={() => onToggleTrailKind?.(kind)}
+              disabled={!onToggleTrailKind}
+              aria-pressed={on}
+              title={label}
+              className={`mm-layer-filter w-full flex items-center gap-2 py-1 pl-8 pr-3
+                          hover:bg-(--mm-fg)/[0.04] transition
+                          ${onToggleTrailKind ? '' : 'cursor-default'}`}
+            >
+              {/* A line swatch in the trail colour while on, a hollow box while off. */}
+              <span
+                className="inline-block w-[22px] h-[4px] rounded-full shrink-0"
+                style={on
+                  ? { backgroundColor: color }
+                  : { boxShadow: `inset 0 0 0 1px ${color}99` }}
+              />
+              <span className={`mm-layer-filter-label text-ui-10 leading-[1.2] flex-1 min-w-0 text-left truncate
+                                ${on ? 'text-(--mm-fg)/75' : 'text-(--mm-text-subtle)'}`}>
+                {label}
+              </span>
+              <span
+                className={`mm-mono mm-tabular text-ui-9 w-[18px] text-right shrink-0
+                            ${lit ? '' : 'text-(--mm-fg)/25'}`}
+                style={lit ? { color } : undefined}
+              >
+                {trailKindTotals[kind] ?? 0}
+              </span>
+              <span className={`mm-layer-state mm-mono text-ui-8 tracking-[0.2em] w-[20px] text-right shrink-0
+                                ${lit ? 'text-(--mm-emerald)/80' : 'text-(--mm-text-muted)'}`}>
+                {on ? 'ON' : 'OFF'}
+              </span>
+            </button>
+          )
+        })}
+        {/* What the points are and what the grey dash means, said once. */}
+        <div className="mm-layer-detail-note pl-8 pr-3 pt-[2px] mm-mono text-ui-7 tracking-[0.18em] text-(--mm-text-subtle) uppercase">
+          <span className="normal-case tracking-normal mm-han">{t.trailsLegendHint}</span>
         </div>
       </div>
     ) },

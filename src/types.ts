@@ -426,6 +426,101 @@ export interface ReligionSite {
   macaumemory: { names: string[]; records: string[]; entries: string[] } | null
 }
 
+// TRAILS overlay (trails.json): IAM's 16 walking trails and 2 cycle tracks.
+// The lines come from the government GIS (Walk_Trail_lane, converted from the
+// Macao Grid by the pipeline) unless the GIS lacked a trail, in which case
+// `geometry.source` is 'osm' and `osmIds` names the ways used. Names, the
+// entrance/exit text, the open/closed flag and the suspension windows come
+// from data.gov.mo 市政活動場地 and IAM's nature site. Every text is trilingual.
+export interface TrailText {
+  zh: string
+  pt: string
+  en: string
+}
+
+export type TrailKind = 'walk' | 'cycle'
+export type TrailArea = 'peninsula' | 'taipa' | 'coloane'
+
+// A published suspension (IAM suspendStartDate / suspendEndDate), both dates
+// inclusive, Macau wall-clock YYYY-MM-DD.
+export interface TrailSuspension {
+  from: string
+  to: string
+}
+
+export interface Trail {
+  id: string // IAM nature id (UUID)
+  code: string | null // the distance-post prefix, '1-01' … '2-02'; null for trails without posts
+  kind: TrailKind
+  area: TrailArea
+  name: TrailText
+  entrance: TrailText
+  exit: TrailText
+  openHours: TrailText
+  phone: string | null
+  lengthM: number | null // IAM's published length
+  drawnLengthM: number // length of the drawn line — differs from lengthM on several trails
+  closed: boolean // data.gov.mo tempClose when the file was fetched
+  suspensions: TrailSuspension[]
+  entrances: [number, number][] // [lng, lat]
+  webLink: string
+  geometry: {
+    source: 'gis' | 'osm'
+    retrievedAt: string
+    osmIds: string[] | null
+    lines: [number, number][][]
+  }
+  // Distance from the drawn line to OpenStreetMap's paths, measured by the
+  // pipeline; null when the line itself came from OSM.
+  osmCheck: { medianM: number; p90M: number; within15Pct: number } | null
+}
+
+// A 標距柱 distance post. `code` is what the post says ('2-01-06', '1-02-B1');
+// `trail` is its trail's code.
+export interface TrailPost {
+  code: string
+  trail: string
+  coordinates: [number, number]
+}
+
+// A pavilion (行山亭) on a trail; the GIS names 13 of the 25, in Chinese only.
+export interface TrailPavilion {
+  name: string | null
+  coordinates: [number, number]
+}
+
+// How a walking trail meets a summit: its line passes the top ('trail'), a
+// climb that starts on it ends there ('spur'), or it only passes within
+// 150 m ('near'). `distanceM` is from the summit pillar to the line (or to
+// the climb's end).
+export interface TrailSummitAccess {
+  trail: string // Trail.id
+  via: 'trail' | 'spur' | 'near'
+  distanceM: number
+}
+
+// A summit on or near the trails. `heightM` is the official ground height of
+// the hill (DSEC Environmental Statistics / DSSCU's hills table), the point is
+// the DSSCU control pillar on its top, `trig` that pillar's number.
+export interface TrailSummit {
+  id: string
+  name: TrailText
+  heightM: number
+  coordinates: [number, number]
+  trig: string
+  access: TrailSummitAccess[] // closest way up first
+}
+
+// A climb the GIS lines leave out (好漢坡 to 疊石塘山), drawn from OSM.
+export interface TrailSpur {
+  id: string
+  name: TrailText
+  summit: string // TrailSummit.id
+  trails: string[] // the walking trails it starts on
+  osmIds: string[]
+  lines: [number, number][][]
+}
+
 // HISTORICAL MAPS overlay (old-maps.json): one georeferenced scan per entry,
 // drawn between the basemap and our overlays — as a raster tile pyramid where
 // the entry has `tiles` (sharp when zoomed in), as one MapLibre `image` source
@@ -1196,6 +1291,14 @@ export interface TransitData {
   // category list that names them. Static like the toilets.
   religion: ReligionSite[]
   religionCategories: ReligionCategory[]
+  // The TRAILS overlay: the lines, and the distance posts and pavilions along
+  // them. The kind toggles narrow `trails`; posts follow their trail's kind.
+  trails: Trail[]
+  trailPosts: TrailPost[]
+  trailPavilions: TrailPavilion[]
+  // The summits and the OSM climb to the highest one; both follow `walk`.
+  trailSummits: TrailSummit[]
+  trailSpurs: TrailSpur[]
   oldMaps: OldMap[]
   carParks: CarPark[]
   // Refuse rooms, compacting bins and the four recycling-point kinds. The

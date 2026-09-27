@@ -43,6 +43,7 @@
 //   node scripts/inspect.mjs grand-prix [--kinks]   # grand-prix.json summary (Guia Circuit: official vs measured length, corner table with rules, pit lane, sources); --kinks lists the stitched line's sideways jogs (seams between OSM ways)
 //   node scripts/inspect.mjs religion [query]       # summary; optional regex filters names, ids and heritage codes and prints coordinates/sources
 //   node scripts/inspect.mjs old-maps               # old-maps.json summary (per map: title, years, raster size + bounds, tile pyramid zooms / files / MB on disk, georef method / control points / RMS, worst residuals, scan source)
+//   node scripts/inspect.mjs trails [YYYY-MM-DD]    # trails.json summary (by kind/area, per-trail code/name/published vs drawn length/geometry source/osmCheck, posts per trail, pavilions named vs unnamed) + which trails are closed on a date (default: today, Macau)
 // bucket = weekday | sat | sun (default weekday)
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
@@ -528,7 +529,7 @@ async function cmdBusTraffic(clock = '08:00', duration = '60', interval = '.2', 
 async function cmdCityLoading() {
   const { buildCityCatalog } = await import('../plugins/city-catalog.ts')
   const files = ['road-works', 'schools', 'public-housing', 'parishes', 'toilets',
-    'car-parks', 'waste', 'dspa-stats', 'water-facilities', 'power-facilities', 'grand-prix']
+    'car-parks', 'waste', 'dspa-stats', 'water-facilities', 'power-facilities', 'grand-prix', 'trails']
   const sizes = files.map(name => {
     const bytes = readFileSync(join(ROOT, 'public/data', `${name}.json`))
     return { name, decoded: bytes.length, gzip: gzipSync(bytes).length }
@@ -733,6 +734,56 @@ function cmdRoadWorks(dateArg) {
   console.log('\nactive:')
   for (const n of active) {
     console.log(`  ${n.id.padEnd(10)} ${n.startDate}→${n.endDate}  ${n.restriction.padEnd(10)} ${n.location.zh}`)
+  }
+}
+
+function cmdTrails(dateArg) {
+  if (dateArg && !/^\d{4}-\d{2}-\d{2}$/.test(dateArg)) {
+    return fail(`trails date must be YYYY-MM-DD, got "${dateArg}"`)
+  }
+  const ymd = dateArg || macauYmd()
+  const { updatedAt, osmCheck, trails, posts, pavilions, summits = [], spurs = [] } = load('public/data/trails.json')
+
+  const byKind = {}, byArea = {}
+  for (const t of trails) {
+    byKind[t.kind] = (byKind[t.kind] || 0) + 1
+    byArea[t.area] = (byArea[t.area] || 0) + 1
+  }
+  console.log(`total trails: ${trails.length}   updatedAt: ${updatedAt}`)
+  console.log('by kind:', byKind, '  by area:', byArea)
+  console.log(`osmCheck (top-level): osmBase=${osmCheck.osmBase} medianLimitM=${osmCheck.medianLimitM} p90LimitM=${osmCheck.p90LimitM}`)
+
+  const postsByTrail = {}
+  for (const p of posts) postsByTrail[p.trail] = (postsByTrail[p.trail] || 0) + 1
+
+  console.log('\ntrails (code, name, kind/area, published vs drawn length, geometry source, posts, osmCheck, closed, suspensions):')
+  for (const t of trails) {
+    const check = t.osmCheck ? `median=${t.osmCheck.medianM}m p90=${t.osmCheck.p90M}m within15=${t.osmCheck.within15Pct}%` : '(osm-sourced, no check)'
+    const susp = t.suspensions.map(s => `${s.from}..${s.to}`).join(', ') || 'none'
+    console.log(
+      `  ${(t.code ?? '-').padEnd(6)} ${t.name.zh.padEnd(14)} kind=${t.kind.padEnd(5)} area=${t.area.padEnd(9)} ` +
+      `published=${(t.lengthM ?? '?')}m drawn=${t.drawnLengthM}m src=${t.geometry.source.padEnd(3)} ` +
+      `posts=${postsByTrail[t.code] ?? 0} closed=${t.closed} suspensions=[${susp}] ${check}`
+    )
+  }
+
+  const named = pavilions.filter((p) => p.name).length
+  console.log(`\npavilions: ${pavilions.length} (named=${named} unnamed=${pavilions.length - named})`)
+  console.log(`posts: ${posts.length}`)
+  const trailName = Object.fromEntries(trails.map((t) => [t.id, t.code ?? t.name.zh]))
+  console.log(`
+summits: ${summits.length} (height = official ground height; position = DSSCU control pillar)`)
+  for (const s of summits) {
+    const reach = s.access.map((a) => `${trailName[a.trail] ?? a.trail} ${a.via} ${a.distanceM} m`).join(', ')
+    console.log(`  ${s.name.zh.padEnd(10)} ${s.heightM.toFixed(1).padStart(6)} m  trig ${s.trig.padEnd(4)}  ${reach}`)
+  }
+  for (const sp of spurs) console.log(`spur ${sp.name.zh} -> ${sp.summit}: ${sp.lines.flat().length} points, starts on ${sp.trails.map((id) => trailName[id]).join(', ')} (${sp.osmIds.join(' ')})`)
+
+  const closedToday = trails.filter((t) => t.closed || t.suspensions.some((s) => s.from <= ymd && ymd <= s.to))
+  console.log(`\n@ ${ymd} — closed: ${closedToday.length}`)
+  for (const t of closedToday) {
+    const reason = t.closed ? 'tempClose' : t.suspensions.find((s) => s.from <= ymd && ymd <= s.to)
+    console.log(`  ${(t.code ?? '-').padEnd(6)} ${t.name.zh}  (${t.closed ? 'tempClose' : `suspended ${reason.from}..${reason.to}`})`)
   }
 }
 
@@ -1687,7 +1738,8 @@ switch (cmd) {
   case 'grand-prix': cmdGrandPrix(pos.includes('--kinks')); break
   case 'religion': cmdReligion(pos.join(' ')); break
   case 'old-maps': cmdOldMaps(); break
+  case 'trails': cmdTrails(pos[0]); break
   default:
-    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | bus-route-match [route-id…] [--threshold=30] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix | religion [query] | old-maps')
+    console.log('commands: bus-traffic [HH:MM] [seconds] [step] [current|baseline|amaral|scope] | bus-station [M172] | bus-cycles [route-id] | bus-continuity [HH:MM] [seconds] [step] [schedule|traffic|scope] | bus-playback [HH:MM] [realSeconds] [speed] [latencyMs] | bus-terminal-crossings | bus-route-match [route-id…] [--threshold=30] | city-loading | lrt-motion | routes | route <id> | in-service HH:MM [weekday|sat|sun] [--tail N] | coords | ferries | flights | road-works [YYYY-MM-DD] | schools | public-housing | water-facilities | water-distribution | power-facilities | power-distribution | parishes | toilets | car-parks | waste | dspa-stats | grand-prix | religion [query] | old-maps | trails [YYYY-MM-DD]')
     if (cmd) process.exit(1)
 }

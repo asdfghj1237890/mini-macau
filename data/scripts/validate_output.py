@@ -3367,6 +3367,311 @@ def v_old_maps(data: object) -> list[str]:
     return errs
 
 
+# ── trails (TRAILS overlay) ────────────────────────────────────────────────
+# Mirrors fetch_trails.py's contract exactly — see trails-contract.md.
+TRAIL_TEXT_FIELDS = ("name", "entrance", "exit", "openHours")
+TRAIL_KINDS = ("walk", "cycle")
+TRAIL_AREAS = ("peninsula", "taipa", "coloane")
+TRAIL_GEOMETRY_SOURCES = ("gis", "osm")
+TRAILS_MIN_COUNT = 16  # degenerate-fetch guard mirroring fetch_trails.py's MIN_TRAILS (18 today)
+POSTS_MIN_COUNT = 100  # mirrors fetch_trails.py's MIN_POSTS (150 today)
+PAVILIONS_MIN_COUNT = 10  # mirrors fetch_trails.py's MIN_PAVILIONS (25 today)
+TRAIL_ID_RE = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+TRAIL_CODE_RE = re.compile(r"^\d-\d{2}$")
+TRAIL_POST_CODE_RE = re.compile(r"^\d-\d{2}-[A-Z]?\d{1,2}$")
+TRAIL_LENGTH_TOLERANCE = 0.02  # drawnLengthM within 2% of the recomputed geodesic length
+
+
+def _trail_line_length_m(line: object) -> float | None:
+    """Geodesic length of a single line (list of [lng, lat] points), via the
+    same planar approximation `align_stop_offsets` uses elsewhere in this
+    file — pure stdlib, no third-party deps."""
+    if not (isinstance(line, list) and all(isinstance(p, list) and len(p) == 2 for p in line)):
+        return None
+    total = 0.0
+    for a, b in zip(line, line[1:]):
+        total += math.sqrt(distance_m2(a, b))
+    return total
+
+
+def v_trails(data: object) -> list[str]:
+    errs: list[str] = []
+    if not require_fields(errs, "trails", data, ("fetchedAtUtc", "updatedAt", "sources", "osmCheck", "trails", "posts", "pavilions")):
+        return errs
+    if not isinstance(data["fetchedAtUtc"], str):
+        errs.append("trails: fetchedAtUtc must be a string")
+    if not (data["updatedAt"] is None or isinstance(data["updatedAt"], str)):
+        errs.append("trails: updatedAt must be null or a string")
+
+    sources = data["sources"]
+    if require_fields(errs, "trails.sources", sources, ("name", "license", "venues", "trailInfo", "geometry", "points", "osm")):
+        for key in ("name", "license", "venues", "trailInfo", "geometry", "points", "osm"):
+            if not isinstance(sources[key], str):
+                errs.append(f"trails.sources: '{key}' must be a string")
+
+    osm_check_top = data["osmCheck"]
+    median_limit = p90_limit = None
+    if require_fields(errs, "trails.osmCheck", osm_check_top, ("osmBase", "medianLimitM", "p90LimitM")):
+        if not isinstance(osm_check_top["osmBase"], str):
+            errs.append("trails.osmCheck.osmBase must be a string")
+        for key in ("medianLimitM", "p90LimitM"):
+            v = osm_check_top[key]
+            if not _is_num(v):
+                errs.append(f"trails.osmCheck.{key} must be a number")
+        median_limit = osm_check_top.get("medianLimitM") if _is_num(osm_check_top.get("medianLimitM")) else 10
+        p90_limit = osm_check_top.get("p90LimitM") if _is_num(osm_check_top.get("p90LimitM")) else 30
+
+    if not require_nonempty_list(errs, "trails.trails", data["trails"]):
+        return errs
+
+    seen_ids: set[str] = set()
+    seen_codes: set[str] = set()
+    trail_codes: set[str] = set()
+    for i, t in enumerate(data["trails"]):
+        ctx = f"trails.trails[{i}]"
+        if not require_fields(
+            errs, ctx, t,
+            ("id", "code", "kind", "area", "name", "entrance", "exit", "openHours", "phone",
+             "lengthM", "drawnLengthM", "closed", "suspensions", "entrances", "webLink",
+             "geometry", "osmCheck"),
+        ):
+            continue
+        tid = t["id"]
+        if not (isinstance(tid, str) and TRAIL_ID_RE.match(tid)):
+            errs.append(f"{ctx}: id must be a lowercase UUID")
+        elif tid in seen_ids:
+            errs.append(f"{ctx}: duplicate id '{tid}'")
+        else:
+            seen_ids.add(tid)
+        label = f"{ctx} ({tid if isinstance(tid, str) and tid else '?'})"
+
+        code = t["code"]
+        if code is not None:
+            if not (isinstance(code, str) and TRAIL_CODE_RE.match(code)):
+                errs.append(f"{label}: code must be null or match ^\\d-\\d{{2}}$")
+            elif code in seen_codes:
+                errs.append(f"{label}: duplicate code '{code}'")
+            else:
+                seen_codes.add(code)
+                trail_codes.add(code)
+
+        if t["kind"] not in TRAIL_KINDS:
+            errs.append(f"{label}: kind '{t['kind']}' invalid (expected one of {TRAIL_KINDS})")
+        if t["area"] not in TRAIL_AREAS:
+            errs.append(f"{label}: area '{t['area']}' invalid (expected one of {TRAIL_AREAS})")
+
+        for key in TRAIL_TEXT_FIELDS:
+            obj = t[key]
+            if not require_fields(errs, f"{label}.{key}", obj, ("zh", "pt", "en")):
+                continue
+            for lang in ("zh", "pt", "en"):
+                if not isinstance(obj[lang], str):
+                    errs.append(f"{label}.{key}.{lang} must be a string")
+            if key == "name" and isinstance(obj.get("zh"), str) and not obj["zh"]:
+                errs.append(f"{label}.name.zh must not be empty")
+
+        if not (t["phone"] is None or isinstance(t["phone"], str)):
+            errs.append(f"{label}: phone must be null or a string")
+
+        length_m = t["lengthM"]
+        if not (length_m is None or (isinstance(length_m, int) and not isinstance(length_m, bool) and length_m > 0)):
+            errs.append(f"{label}: lengthM must be null or a positive int")
+
+        drawn_length_m = t["drawnLengthM"]
+        if not (isinstance(drawn_length_m, int) and not isinstance(drawn_length_m, bool) and drawn_length_m > 0):
+            errs.append(f"{label}: drawnLengthM must be a positive int")
+
+        if not isinstance(t["closed"], bool):
+            errs.append(f"{label}: closed must be a boolean")
+
+        suspensions = t["suspensions"]
+        if not isinstance(suspensions, list):
+            errs.append(f"{label}: suspensions must be a list")
+        else:
+            for j, s in enumerate(suspensions):
+                sctx = f"{label}.suspensions[{j}]"
+                if not require_fields(errs, sctx, s, ("from", "to")):
+                    continue
+                dates: dict[str, str] = {}
+                for key in ("from", "to"):
+                    v = s[key]
+                    if isinstance(v, str) and YMD.match(v):
+                        dates[key] = v
+                    else:
+                        errs.append(f"{sctx}: {key} must match YYYY-MM-DD")
+                if "from" in dates and "to" in dates and dates["from"] > dates["to"]:
+                    errs.append(f"{sctx}: from {dates['from']} is after to {dates['to']}")
+
+        entrances = t["entrances"]
+        if not require_nonempty_list(errs, f"{label}.entrances", entrances):
+            pass
+        elif isinstance(entrances, list):
+            for j, e in enumerate(entrances):
+                check_coords(errs, f"{label}.entrances[{j}]", e)
+
+        if not isinstance(t["webLink"], str):
+            errs.append(f"{label}: webLink must be a string")
+
+        geometry = t["geometry"]
+        lines: object = None
+        source: object = None
+        if require_fields(errs, f"{label}.geometry", geometry, ("source", "retrievedAt", "osmIds", "lines")):
+            source = geometry["source"]
+            if source not in TRAIL_GEOMETRY_SOURCES:
+                errs.append(f"{label}.geometry.source '{source}' invalid (expected one of {TRAIL_GEOMETRY_SOURCES})")
+            if not (isinstance(geometry["retrievedAt"], str) and YMD.match(geometry["retrievedAt"])):
+                errs.append(f"{label}.geometry.retrievedAt must match YYYY-MM-DD")
+            osm_ids = geometry["osmIds"]
+            if source == "gis":
+                if osm_ids is not None:
+                    errs.append(f"{label}.geometry.osmIds must be null when source is 'gis'")
+            elif source == "osm":
+                if not (isinstance(osm_ids, list) and osm_ids and all(isinstance(v, str) for v in osm_ids)):
+                    errs.append(f"{label}.geometry.osmIds must be a non-empty list of strings when source is 'osm'")
+            lines = geometry["lines"]
+            if not (isinstance(lines, list) and lines):
+                errs.append(f"{label}.geometry.lines must be a non-empty list (MultiLineString)")
+                lines = None
+            else:
+                for j, line in enumerate(lines):
+                    if not (isinstance(line, list) and len(line) >= 2):
+                        errs.append(f"{label}.geometry.lines[{j}] must have >= 2 points")
+                        continue
+                    for k, pt in enumerate(line):
+                        check_coords(errs, f"{label}.geometry.lines[{j}][{k}]", pt)
+
+        osm_check = t["osmCheck"]
+        if source == "osm":
+            if osm_check is not None:
+                errs.append(f"{label}: osmCheck must be null when geometry.source is 'osm'")
+        elif source == "gis":
+            if require_fields(errs, f"{label}.osmCheck", osm_check, ("medianM", "p90M", "within15Pct")):
+                for key in ("medianM", "p90M", "within15Pct"):
+                    if not _is_num(osm_check[key]):
+                        errs.append(f"{label}.osmCheck.{key} must be a number")
+                if _is_num(osm_check.get("medianM")) and median_limit is not None and osm_check["medianM"] > median_limit:
+                    errs.append(f"{label}.osmCheck.medianM {osm_check['medianM']} exceeds the top-level medianLimitM {median_limit}")
+                if _is_num(osm_check.get("p90M")) and p90_limit is not None and osm_check["p90M"] > p90_limit:
+                    errs.append(f"{label}.osmCheck.p90M {osm_check['p90M']} exceeds the top-level p90LimitM {p90_limit}")
+
+        if lines is not None and isinstance(drawn_length_m, (int, float)) and not isinstance(drawn_length_m, bool):
+            lengths = [_trail_line_length_m(line) for line in lines]
+            if all(v is not None for v in lengths):
+                recomputed = sum(lengths)
+                if recomputed > 0 and abs(drawn_length_m - recomputed) > TRAIL_LENGTH_TOLERANCE * recomputed:
+                    errs.append(
+                        f"{label}: drawnLengthM {drawn_length_m} is not within "
+                        f"{TRAIL_LENGTH_TOLERANCE:.0%} of the recomputed geodesic length {recomputed:.1f}"
+                    )
+
+    if len(data["trails"]) < TRAILS_MIN_COUNT:
+        errs.append(f"trails: only {len(data['trails'])} trails (< {TRAILS_MIN_COUNT}) — looks like a degenerate run")
+
+    if not require_nonempty_list(errs, "trails.posts", data["posts"]):
+        return errs
+    seen_post_codes: set[str] = set()
+    for i, p in enumerate(data["posts"]):
+        ctx = f"trails.posts[{i}]"
+        if not require_fields(errs, ctx, p, ("code", "trail", "coordinates")):
+            continue
+        code = p["code"]
+        if not (isinstance(code, str) and TRAIL_POST_CODE_RE.match(code)):
+            errs.append(f"{ctx}: code must match ^\\d-\\d{{2}}-[A-Z]?\\d{{1,2}}$")
+        elif code in seen_post_codes:
+            errs.append(f"{ctx}: duplicate code '{code}'")
+        else:
+            seen_post_codes.add(code)
+        trail = p["trail"]
+        if isinstance(code, str) and TRAIL_POST_CODE_RE.match(code) and trail != code[:4]:
+            errs.append(f"{ctx}: trail '{trail}' must equal code[:4] ('{code[:4]}')")
+        if trail not in trail_codes:
+            errs.append(f"{ctx}: trail '{trail}' does not match any trails[].code")
+        check_coords(errs, f"{ctx}.coordinates", p["coordinates"])
+    if len(data["posts"]) < POSTS_MIN_COUNT:
+        errs.append(f"trails: only {len(data['posts'])} posts (< {POSTS_MIN_COUNT}) — looks like a degenerate run")
+
+    if not require_nonempty_list(errs, "trails.pavilions", data["pavilions"]):
+        return errs
+    for i, p in enumerate(data["pavilions"]):
+        ctx = f"trails.pavilions[{i}]"
+        if not require_fields(errs, ctx, p, ("name", "coordinates")):
+            continue
+        if not (p["name"] is None or isinstance(p["name"], str)):
+            errs.append(f"{ctx}: name must be null or a string")
+        check_coords(errs, f"{ctx}.coordinates", p["coordinates"])
+    if len(data["pavilions"]) < PAVILIONS_MIN_COUNT:
+        errs.append(f"trails: only {len(data['pavilions'])} pavilions (< {PAVILIONS_MIN_COUNT}) — looks like a degenerate run")
+
+    # Summits (DSEC/DSSCU heights at DSSCU control pillars) and the climbs to
+    # them (OSM). Access and spur trails must name WALKING trails in the file.
+    walk_ids = {t.get("id") for t in data["trails"] if isinstance(t, dict) and t.get("kind") == "walk"}
+    for key in ("summits", "spurs"):
+        if not isinstance(data.get(key), list):
+            errs.append(f"trails: '{key}' must be a list")
+            return errs
+    summit_ids: set[str] = set()
+    for i, s in enumerate(data["summits"]):
+        ctx = f"trails.summits[{i}]"
+        if not require_fields(errs, ctx, s, ("id", "name", "heightM", "coordinates", "trig", "access")):
+            continue
+        if not isinstance(s["id"], str) or not s["id"] or s["id"] in summit_ids:
+            errs.append(f"{ctx}: id must be a unique non-empty string")
+        summit_ids.add(s["id"])
+        if require_fields(errs, f"{ctx}.name", s["name"], ("zh", "pt", "en")):
+            if not all(isinstance(s["name"][lang], str) for lang in ("zh", "pt", "en")) or not s["name"]["zh"]:
+                errs.append(f"{ctx}.name: zh/pt/en must be strings, zh non-empty")
+        h = s["heightM"]
+        if isinstance(h, bool) or not isinstance(h, (int, float)) or not (0 < h < 300):
+            errs.append(f"{ctx}: heightM must be a number between 0 and 300 (Macau's highest point is 170.6 m)")
+        check_coords(errs, f"{ctx}.coordinates", s["coordinates"])
+        if not isinstance(s["trig"], str) or not re.match(r"^[A-Z]{1,2}\d{2,3}$", s["trig"]):
+            errs.append(f"{ctx}: trig must be a DSSCU control-point number like 'A31' or 'AB07'")
+        if not require_nonempty_list(errs, f"{ctx}.access", s["access"]):
+            continue
+        for j, a in enumerate(s["access"]):
+            actx = f"{ctx}.access[{j}]"
+            if not require_fields(errs, actx, a, ("trail", "via", "distanceM")):
+                continue
+            if a["trail"] not in walk_ids:
+                errs.append(f"{actx}: trail '{a['trail']}' is not a walking trail in this file")
+            if a["via"] not in ("trail", "spur", "near"):
+                errs.append(f"{actx}: via '{a['via']}' invalid (trail|spur|near)")
+            d = a["distanceM"]
+            if isinstance(d, bool) or not isinstance(d, int) or not (0 <= d <= 150):
+                errs.append(f"{actx}: distanceM must be an int in 0..150")
+            elif a["via"] == "trail" and d > 30:
+                errs.append(f"{actx}: via 'trail' but {d} m from the summit (> 30 m)")
+            elif a["via"] == "spur" and d > 60:
+                errs.append(f"{actx}: via 'spur' but the climb ends {d} m from the summit (> 60 m)")
+            elif a["via"] == "near" and d <= 30:
+                errs.append(f"{actx}: via 'near' but only {d} m from the summit")
+    if not data["summits"]:
+        errs.append("trails: summits must not be empty")
+    for i, sp in enumerate(data["spurs"]):
+        ctx = f"trails.spurs[{i}]"
+        if not require_fields(errs, ctx, sp, ("id", "name", "summit", "trails", "osmIds", "lines")):
+            continue
+        if sp["summit"] not in summit_ids:
+            errs.append(f"{ctx}: summit '{sp['summit']}' is not in trails.summits")
+        if not isinstance(sp["trails"], list) or not sp["trails"] or any(t not in walk_ids for t in sp["trails"]):
+            errs.append(f"{ctx}: trails must be a non-empty list of walking-trail ids")
+        if not isinstance(sp["osmIds"], list) or not sp["osmIds"] or not all(isinstance(x, str) and re.match(r"^[nwr]\d+$", x) for x in sp["osmIds"]):
+            errs.append(f"{ctx}: osmIds must be a non-empty list like 'w264076934'")
+        if require_fields(errs, f"{ctx}.name", sp["name"], ("zh", "pt", "en")) and not sp["name"]["zh"]:
+            errs.append(f"{ctx}.name.zh must not be empty")
+        if not isinstance(sp["lines"], list) or not sp["lines"]:
+            errs.append(f"{ctx}: lines must be a non-empty list")
+            continue
+        for j, line in enumerate(sp["lines"]):
+            if not isinstance(line, list) or len(line) < 2:
+                errs.append(f"{ctx}.lines[{j}] must have >= 2 points")
+                continue
+            for k, pt in enumerate(line):
+                check_coords(errs, f"{ctx}.lines[{j}][{k}]", pt)
+
+    return errs
+
+
 DATASETS: dict[str, tuple[Path, object]] = {
     "lrt-lines": (PUBLIC / "data/lrt-lines.json", v_lrt_lines),
     "stations": (PUBLIC / "data/stations.json", v_stations),
@@ -3395,6 +3700,7 @@ DATASETS: dict[str, tuple[Path, object]] = {
     "grand-prix": (PUBLIC / "data/grand-prix.json", v_grand_prix),
     "religion": (PUBLIC / "data/religion.json", v_religion),
     "old-maps": (PUBLIC / "data/old-maps.json", v_old_maps),
+    "trails": (PUBLIC / "data/trails.json", v_trails),
 }
 
 # Convenience aliases for the names the trips loader / workflows use.

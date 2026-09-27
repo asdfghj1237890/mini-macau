@@ -37,7 +37,7 @@ describe('independent map overlays', () => {
 
 describe('explicit show only action', () => {
   it('isolates any city layer without saving or replaying an earlier selection', () => {
-    const ids: CityLayer[] = ['works', 'schools', 'housing', 'parishes', 'toilets', 'religion', 'oldmaps', 'carparks', 'waste', 'water', 'power', 'grandprix']
+    const ids: CityLayer[] = ['works', 'schools', 'housing', 'parishes', 'toilets', 'religion', 'trails', 'oldmaps', 'carparks', 'waste', 'water', 'power', 'grandprix']
     for (const selected of ids) {
       const state = new Set<CityLayer>(ids)
       let transit = true
