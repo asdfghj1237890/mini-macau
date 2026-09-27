@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-09-27T08:40:11.710657+00:00",
+  "fetchedAtUtc": "2026-09-27T09:50:16.329690+00:00",
   "updatedAt": "2026-09-14T17:00:06+08:00",
   "sources": {
     "name": "澳門特別行政區政府數據開放平台 – 市政活動場地（市政署）",
@@ -14,7 +14,7 @@
     "summitPositions": "https://geomatics.dsscu.gov.mo/zh-hant/tripoints1.html"
   },
   "osmCheck": {
-    "osmBase": "2026-09-27T08:35:35Z",
+    "osmBase": "2026-09-27T09:42:50Z",
     "medianLimitM": 10,
     "p90LimitM": 30
   },
