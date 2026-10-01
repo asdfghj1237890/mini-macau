@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-09-03T21:35:09.532848+00:00",
-  "updatedAt": "2026-07-29T10:00:05+08:00",
+  "fetchedAtUtc": "2026-10-01T23:29:20.480503+00:00",
+  "updatedAt": "2026-10-01T10:00:08+08:00",
   "sources": {
     "name": "市政署 (IAM) – 公共廁所 / 無障礙公廁",
     "toilets": "https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5",
@@ -1483,9 +1483,9 @@
       "id": "IM01",
       "code": "IM01",
       "name": {
-        "zh": "澳門市政狗房",
-        "pt": "Canil Municipal de Macau",
-        "en": "Macao Municipal Kennel"
+        "zh": "澳門市政狗房 (暫停開放)",
+        "pt": "Canil Municipal de Macau (Encerramento provisório)",
+        "en": "Macao Municipal Kennel (Temporarily closed)"
       },
       "address": {
         "zh": "提督馬路市政狗房地下",
@@ -1627,7 +1627,7 @@
       },
       "openHours": {
         "zh": "星期二至星期日，10:00 - 17:30 (逢星期一休息，如星期一為公眾假期，則順延休息日)",
-        "pt": "De terça-feira a domingo, 10h00-17h30 (encerrado à segunda-feira. Caso o dia de feriado coincida com uma segunda-feira, o encerramento será adiado para o dia seguinte)",
+        "pt": "De terça-feira a domingo, 10h00-17h30 (Encerrado às segundas-feiras. Se a segunda-feira coincidir com um feriado público, fica adiado o dia de descanso para o dia seguinte)",
         "en": "Tuesday to Sunday, 10:00 - 17:30 (Closed on Monday or on the following day instead if a public holiday falls on Monday)"
       },
       "accessible": true,
@@ -1808,7 +1808,7 @@
         "en": "Macao Giant Panda Information Centre"
       },
       "address": {
-        "zh": "路環石排灣大馬路, 石排灣郊野公園, 澳門大熊貓資訊中心",
+        "zh": "路環石排灣馬路, 石排灣郊野公園, 澳門大熊貓資訊中心",
         "pt": "Estrada de Seac Pai Van de Coloane, Parque de Seac Pai Van, Centro de Informação do Panda Gigante de Macau",
         "en": "Estrada de Seac Pai Van, Coloane, Seac Pai Van Park , Macao Giant Panda Information Centre"
       },
@@ -1819,8 +1819,8 @@
       },
       "openHours": {
         "zh": "星期二至星期日上午10時至下午5時（逢星期一休息，如星期一為公眾假期，則順延休息日）",
-        "pt": "de terça-feira a domingo 10h00-17h00 (encerrdo às 2as feiras e, caso elas incidam num feriado, o encerramento será transferido para o dia seguinte)",
-        "en": "10:00 a.m. to 5:00 p.m. from Tuesday to Sunday (Closed on Monday; Closed on the following day if Monday is a public holiday.)"
+        "pt": "de terça-feira a domingo 10h00-17h00 (Encerrado às segundas-feiras. Se a segunda-feira coincidir com um feriado público, fica adiado o dia de descanso para o dia seguinte)",
+        "en": "10:00 a.m. to 5:00 p.m. from Tuesday to Sunday (Closed on Monday or on the following day instead if a public holiday falls on Monday)"
       },
       "accessible": true,
       "family": false,
