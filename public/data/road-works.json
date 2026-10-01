@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-09-30T22:50:56.117505+00:00",
-  "exportedAt": "2026-10-01T00:30:24+0800",
+  "fetchedAtUtc": "2026-10-01T23:20:27.737009+00:00",
+  "exportedAt": "2026-10-02T00:30:22+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -2524,86 +2524,6 @@
       "coordinates": [
         113.547492,
         22.158375
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2801/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "多處道路",
-        "pt": "Vários Arruamentos"
-      },
-      "reason": {
-        "zh": "翻新標線及標誌工作",
-        "pt": "Trabalhos de Pintura de Sinalização Horizontal e Vertical"
-      },
-      "principal": {
-        "zh": "交通事務局",
-        "pt": "DSAT"
-      },
-      "contractor": {
-        "zh": "利馬建築工程有限公司",
-        "pt": "Companhia de Construção Imobiliaria Resoma Limitada"
-      },
-      "details": {
-        "zh": "因進行翻新標線及標誌工作，每日上午9時30分至下午4時30分及晚上10時至翌日上午6時，相關道路將在警方協助下實施有限度通車︰\n於本年9月23日至25日\n馬六甲街與高美士街之交匯處；\n宋玉生廣場近羅理基博士大馬路的路段。\n於本年9月27日至30日\n高美士街近果亞街的路段；\n雅廉訪大馬路與賈伯樂提督街之交匯處；\n東北大馬路與黑沙環中街之交匯處。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de pintura de sinalização horizontal e vertical, as seguintes vias ficarão com condicionamentos ao trânsito e com apoio policial, das 09H30 às 16H30 e das 22H00 às 06H00:\nnos dias 23 a 25/09/2026\na intersecção da Rua de Malaca com a Rua de Luís Gonzaga Gomes;\no troço da Alameda Dr. Carlos D'Assumpção junto da Avenida do Dr. Rodrigo Rodrigues.\nnos dias 27 a 30/09/2026\no troço da Rua de Luís Gonzaga Gomes junto da Rua de Goa;\na intersecção da Avenida do Ouvidor Arriaga com a Rua do Almirante Costa Cabral;\na intersecção da Avenida do Nordeste com a Rua Central da Areia Preta.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 7,
-        "hours": 21
-      },
-      "startDate": "2026-09-23",
-      "endDate": "2026-10-01",
-      "onlineDate": "2026-09-21",
-      "coordinates": [
-        113.553981,
-        22.195886
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2803/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "多處道路",
-        "pt": "Vários Arruamentos"
-      },
-      "reason": {
-        "zh": "翻新巴士站標線工作",
-        "pt": "Trabalhos de Pintura de Sinalização Horizontal nas Paragen de Autocarros"
-      },
-      "principal": {
-        "zh": "交通事務局",
-        "pt": "DSAT"
-      },
-      "contractor": {
-        "zh": "利馬建築工程有限公司",
-        "pt": "Companhia de Construção Imobiliaria Resoma Limitada"
-      },
-      "details": {
-        "zh": "因進行翻新巴士站標線工作，以下路段將實施有限度通車：\n於本年9月23日至30日，每日上午9時30分至下午4時30分\n澳廣視巴士站 (M39)；\n慕拉士/飛通大廈巴士站 (M48)；\n東北大馬路/南澳巴士站 (M55)；\n二龍喉公園巴士站 (M61)；\n約翰四世大馬路巴士站 (M173)；\n連勝/鏡湖醫院巴士站 (M121)；\n高美士/利澳巴士站 (M161)；\n高美士/南園大廈巴士站 (M156)\n青洲/美樂花園巴士站 (M210)；\n馬場東大馬路/黑沙環衛生中心巴士站 (M231)。\n於本年9月29日至30日，每日晚上10時至翌日上午6時\n司打口總站 (M138)。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de pintura de sinalização horizontal nas paragen de autocarros, as seguintes vias ficarão com condicionamentos ao trânsito:\ndas 09H30 às 16H30, nos dias 23 a 30/09/2026\na paragem de autocarros (TDM) (M39);\na paragem de autocarros (Venceslau Morais / Edf. Airway) (M48);\na paragem de autocarros (Av. Nordeste / Nam Ou) (M55);\na paragem de autocarros (Jardim Flora) (M61);\na paragem de autocarros (Av. D. João IV) (M173);\na paragem de autocarros (C. Amaral / Hospital Kiang Wu) (M121);\na paragem de autocarros (Gonzaga Gomes / Rio) (M161);\na paragem de autocarros (Gonzaga Gomes / Edf. Nam Yun) (M156);\na paragem de autocarros (Est. Ilha Verde / Edf. Mei Lok Garden) (M210);\na paragem de autocarros (Av. Leste do Hipódromo / Centro de Saúde da Areia Preta) (M231).\ndas 22H00 às 06H00, nos dias 29 a 30/09/2026\na paragem de autocarros (Praça Ponte Horta / Terminal) (M138).\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 7,
-        "hours": 21
-      },
-      "startDate": "2026-09-23",
-      "endDate": "2026-10-01",
-      "onlineDate": "2026-09-21",
-      "coordinates": [
-        113.549584,
-        22.205976
       ],
       "previousNotice": null
     },
