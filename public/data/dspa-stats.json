@@ -1,22 +1,16 @@
 {
-  "fetchedAtUtc": "2026-09-04T17:29:47.952726+00:00",
+  "fetchedAtUtc": "2026-10-02T00:03:15.567365+00:00",
   "incinerator": {
     "datasetId": "8142c05e-818a-478a-9256-4ecd494d3f87",
     "url": "https://data.gov.mo/Detail?id=8142c05e-818a-478a-9256-4ecd494d3f87",
     "unit": "t",
     "latest": {
-      "period": "2026-06",
-      "receivedT": 58681.05,
-      "electricityMwh": 28136.8,
-      "metalRecycledT": 76.69
+      "period": "2026-07",
+      "receivedT": 62600.44,
+      "electricityMwh": 29039.1,
+      "metalRecycledT": 81.775
     },
     "months": [
-      {
-        "period": "2025-07",
-        "receivedT": 55052.72,
-        "electricityMwh": 24802.9,
-        "metalRecycledT": 65.377
-      },
       {
         "period": "2025-08",
         "receivedT": 57562.17,
@@ -82,6 +76,12 @@
         "receivedT": 58681.05,
         "electricityMwh": 28136.8,
         "metalRecycledT": 76.69
+      },
+      {
+        "period": "2026-07",
+        "receivedT": 62600.44,
+        "electricityMwh": 29039.1,
+        "metalRecycledT": 81.775
       }
     ],
     "facts": {
@@ -101,16 +101,11 @@
     "url": "https://apps.dspa.gov.mo/gis/publicData.html?data=T_Bas_MHWTP_Approved&lng=zh-TW",
     "unit": "t",
     "latest": {
-      "period": "2026-06",
-      "receivedT": 517.61,
-      "processedT": 329.1
+      "period": "2026-07",
+      "receivedT": 393.825,
+      "processedT": 342.68
     },
     "months": [
-      {
-        "period": "2025-07",
-        "receivedT": 513.87,
-        "processedT": 459.805
-      },
       {
         "period": "2025-08",
         "receivedT": 345.185,
@@ -165,6 +160,11 @@
         "period": "2026-06",
         "receivedT": 517.61,
         "processedT": 329.1
+      },
+      {
+        "period": "2026-07",
+        "receivedT": 393.825,
+        "processedT": 342.68
       }
     ]
   },
@@ -173,14 +173,10 @@
     "url": "https://apps.dspa.gov.mo/gis/publicData.html?data=T_Bas_Landfill_Approved&lng=zh-TW",
     "unit": "m3",
     "latest": {
-      "period": "2026-06",
-      "volumeM3": 195728.0
+      "period": "2026-07",
+      "volumeM3": 181131.0
     },
     "months": [
-      {
-        "period": "2025-07",
-        "volumeM3": 185179.0
-      },
       {
         "period": "2025-08",
         "volumeM3": 133303.0
@@ -224,6 +220,10 @@
       {
         "period": "2026-06",
         "volumeM3": 195728.0
+      },
+      {
+        "period": "2026-07",
+        "volumeM3": 181131.0
       }
     ]
   },
@@ -233,18 +233,12 @@
       "url": "https://data.gov.mo/Detail?id=9c555082-70e8-452f-a86b-073cd0da4a55",
       "unit": "m3",
       "latest": {
-        "period": "2026-06",
-        "basicM3": 2267341.0,
-        "biologicalM3": 3806060.0,
-        "totalM3": 6073401.0
+        "period": "2026-07",
+        "basicM3": 3108895.0,
+        "biologicalM3": 3892578.0,
+        "totalM3": 7001473.0
       },
       "months": [
-        {
-          "period": "2025-07",
-          "basicM3": 2271721.0,
-          "biologicalM3": 3492751.0,
-          "totalM3": 5764472.0
-        },
         {
           "period": "2025-08",
           "basicM3": 2102113.0,
@@ -310,6 +304,12 @@
           "basicM3": 2267341.0,
           "biologicalM3": 3806060.0,
           "totalM3": 6073401.0
+        },
+        {
+          "period": "2026-07",
+          "basicM3": 3108895.0,
+          "biologicalM3": 3892578.0,
+          "totalM3": 7001473.0
         }
       ]
     },
@@ -318,14 +318,10 @@
       "url": "https://data.gov.mo/Detail?id=9d257556-9d52-4a59-afa0-d1a2a2bab0a8",
       "unit": "m3",
       "latest": {
-        "period": "2026-06",
-        "totalM3": 861725.0
+        "period": "2026-07",
+        "totalM3": 913558.0
       },
       "months": [
-        {
-          "period": "2025-07",
-          "totalM3": 787670.0
-        },
         {
           "period": "2025-08",
           "totalM3": 968656.0
@@ -369,6 +365,10 @@
         {
           "period": "2026-06",
           "totalM3": 861725.0
+        },
+        {
+          "period": "2026-07",
+          "totalM3": 913558.0
         }
       ]
     },
@@ -377,14 +377,10 @@
       "url": "https://data.gov.mo/Detail?id=a5a05d0e-30c5-4298-81d5-e6bee5af5e8b",
       "unit": "m3",
       "latest": {
-        "period": "2026-06",
-        "totalM3": 1929535.0
+        "period": "2026-07",
+        "totalM3": 2328409.0
       },
       "months": [
-        {
-          "period": "2025-07",
-          "totalM3": 1900669.0
-        },
         {
           "period": "2025-08",
           "totalM3": 2147621.0
@@ -428,6 +424,10 @@
         {
           "period": "2026-06",
           "totalM3": 1929535.0
+        },
+        {
+          "period": "2026-07",
+          "totalM3": 2328409.0
         }
       ]
     },
@@ -436,14 +436,10 @@
       "url": "https://data.gov.mo/Detail?id=4a57b120-60f2-4a36-a6eb-7f93f340f2e6",
       "unit": "m3",
       "latest": {
-        "period": "2026-06",
-        "totalM3": 146178.0
+        "period": "2026-07",
+        "totalM3": 179775.0
       },
       "months": [
-        {
-          "period": "2025-07",
-          "totalM3": 89203.0
-        },
         {
           "period": "2025-08",
           "totalM3": 83629.0
@@ -487,6 +483,10 @@
         {
           "period": "2026-06",
           "totalM3": 146178.0
+        },
+        {
+          "period": "2026-07",
+          "totalM3": 179775.0
         }
       ]
     },
@@ -495,14 +495,10 @@
       "url": "https://apps.dspa.gov.mo/gis/publicData.html?data=V_T_Bas_WWTP_Approved-mia&lng=zh-TW",
       "unit": "m3",
       "latest": {
-        "period": "2026-06",
-        "totalM3": 3407.0
+        "period": "2026-07",
+        "totalM3": 4165.0
       },
       "months": [
-        {
-          "period": "2025-07",
-          "totalM3": 4024.0
-        },
         {
           "period": "2025-08",
           "totalM3": 1737.0
@@ -546,6 +542,10 @@
         {
           "period": "2026-06",
           "totalM3": 3407.0
+        },
+        {
+          "period": "2026-07",
+          "totalM3": 4165.0
         }
       ]
     }
