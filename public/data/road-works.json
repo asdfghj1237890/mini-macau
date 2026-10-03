@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-10-02T23:06:44.284642+00:00",
-  "exportedAt": "2026-10-03T00:30:23+0800",
+  "fetchedAtUtc": "2026-10-03T21:30:07.634247+00:00",
+  "exportedAt": "2026-10-04T00:30:22+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -1366,46 +1366,6 @@
         22.179568
       ],
       "previousNotice": "2222/2026"
-    },
-    {
-      "id": "2548/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車(佔用一條行車道)",
-        "pt": "Ficará condicionada a duas faixas de rodagem"
-      },
-      "location": {
-        "zh": "媽閣上街",
-        "pt": "Rua de S. Tiago da Barra"
-      },
-      "reason": {
-        "zh": "下水道整治工程",
-        "pt": "Obra de Reordenamento de Esgoto"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "長江建築有限公司",
-        "pt": "Cheong Kong Construction Co. Ltd."
-      },
-      "details": {
-        "zh": "因繼續進行下水道整治工程，於本年9月2日至10月3日， 媽閣上街近民國大馬路的路段實施交通訊號燈控制下之單一車道輪流通車。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido a obra de ligação de esgoto, o troço da Rua de S. Tiago da Barra junto da Avenida da República passará a efectuar-se apenas numa faixa de rodagem controlada por semáforo, nos dias 02/09/2026 a 30/10/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 31,
-        "hours": 9
-      },
-      "startDate": "2026-09-02",
-      "endDate": "2026-10-03",
-      "onlineDate": "2026-08-31",
-      "coordinates": [
-        113.53042,
-        22.182251
-      ],
-      "previousNotice": null
     },
     {
       "id": "2539/2026",
