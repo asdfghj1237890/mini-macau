@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-10-03T21:30:07.634247+00:00",
-  "exportedAt": "2026-10-04T00:30:22+0800",
+  "fetchedAtUtc": "2026-10-04T22:12:54.771674+00:00",
+  "exportedAt": "2026-10-05T00:30:20+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -1608,46 +1608,6 @@
       "previousNotice": null
     },
     {
-      "id": "2605/2026",
-      "restriction": "closed",
-      "restrictionText": {
-        "zh": "封閉交通",
-        "pt": "Ficará vedado ao trânsito"
-      },
-      "location": {
-        "zh": "觀光塔街,嘉樂庇總督大橋",
-        "pt": "Rua da Torre de Macau,Ponte Governador Nobre de Carvalho"
-      },
-      "reason": {
-        "zh": "《第34屆澳門國際煙花比賽匯演》之無人機表演",
-        "pt": "34.º os Espectáculos de drones de Concurso Internacional de Fogo-de-Artifício de Macau"
-      },
-      "principal": {
-        "zh": "旅遊局",
-        "pt": "Direcção dos Serviços de Turismo"
-      },
-      "contractor": {
-        "zh": "",
-        "pt": ""
-      },
-      "details": {
-        "zh": "為配合旅遊局舉辦《第34屆澳門國際煙花比賽匯演》之無人機表演的關係，以下道路將在警方協助下實施以下臨時交通管制措施：\n禁止停泊車輛(特許車輛、緊急車輛除外)\n本年9月7日上午9時至12日晚上9時30分、10月3日上午9時至4日晚上11時\n觀光塔街編號4278(1-10)、4279(11-20)、4281(21-43)及4283(44-54)的咪錶泊車位；\n觀光塔街近球場及近燈柱編號35C12的電單車泊車區。\n封閉交通\n本年9月8日至11日每日下午6時至晚上8時15分、9月12日晚上7時至9時30分、10月4日晚上7時30分至10時45分\n觀光塔街。\n其他\n本年9月8日至11日每日下午6時至晚上8時15分、9月12日晚上7時至9時30分、10月4日晚上7時30分至10時45分\n禁止行人於嘉樂庇總督大橋通行。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido à realização dos Espectáculos de drones de Concurso Internacional de Fogo-de-Artifício de Macau, organizada pela Direcção dos Serviços de Turismo, serão introduzidas alterações provisórias ao trânsito nas seguintes vias, e com apoio policial:\nProibição de estacionamento (com excepção dos veículos autorizados e de socorro)\nDas 09H00 do dia 07/09/2026 às 21H30 do dia 12/09/2026, e das 09H00 do dia 03/10/2026 às 23H00 do dia 04/10/2026\nnos lugares de estacionamento com contador de tempo n.ºs 4278(1-10), 4279(11-20), 4281(21-43) e 4283(44-54) na Rua da Torre de Macau;\nna zona de estacionamento para motociclos na Rua da Torre de Macau junto do campo e do poste de iluminação pública 35C12.\nFicará vedado ao trânsito\nDas 18H00 às 20H15, nos dias 08 a 11/09/2026, das 19H00 às 21H30 do dia 12/09/2026, e das 19H30 às 22H45 do dia 04/10/2026\nna Rua da Torre de Macau.\nOutros\nDas 18H00 às 20H15, nos dias 08 a 11/09/2026, das 19H00 às 21H30 do dia 12/09/2026, e das 19H30 às 22H45 do dia 04/10/2026\nÉ proibida a circulação de peões na Ponte Governador Nobre de Carvalho.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 27,
-        "hours": 14
-      },
-      "startDate": "2026-09-07",
-      "endDate": "2026-10-04",
-      "onlineDate": "2026-09-05",
-      "coordinates": [
-        113.538942,
-        22.180342
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "2565/2026",
       "restriction": "closed",
       "restrictionText": {
@@ -2004,46 +1964,6 @@
       "coordinates": [
         113.545027,
         22.209256
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2763/2026",
-      "restriction": "no_parking",
-      "restrictionText": {
-        "zh": "禁止泊車",
-        "pt": "Ficará proibido ao estacionamento"
-      },
-      "location": {
-        "zh": "韶關街,南京街",
-        "pt": "Rua Siu Kuan,Rua de Nam Keng"
-      },
-      "reason": {
-        "zh": "管道鋪設工程",
-        "pt": "Obra de Lançamento de Tubos de PVC"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "康大國際(澳門)有限公司",
-        "pt": ""
-      },
-      "details": {
-        "zh": "因進行管道鋪設工程，於本年9月17日至30日，氹仔韶關街實施有限度通車，並禁止車輛停泊編號1102(1-4)之咪錶泊車位、電單車泊車位及上落客貨位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido à obra de lançamento de tubos de pvc, a Rua Siu Kuan na Ilha da Taipa ficará com condicionamentos ao trânsito, sendo proibido o estacionamento nos lugares-parque com parquímetro n.os 1102(01-04) e nos lugares-parque de motociclos e na zona de carga-descarga e tomada-largada de passageiros, nos dias 17 a 30/09/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 17,
-        "hours": 10
-      },
-      "startDate": "2026-09-17",
-      "endDate": "2026-10-04",
-      "onlineDate": "2026-09-15",
-      "coordinates": [
-        113.556926,
-        22.160267
       ],
       "previousNotice": null
     },
@@ -2924,46 +2844,6 @@
       "coordinates": [
         113.58154,
         22.133286
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2864/2026",
-      "restriction": "no_parking",
-      "restrictionText": {
-        "zh": "禁止泊車",
-        "pt": "Ficará proibido ao estacionamento"
-      },
-      "location": {
-        "zh": "北安碼頭馬路",
-        "pt": "Estrada da Ponte de Pac On"
-      },
-      "reason": {
-        "zh": "設置標線及標誌工作",
-        "pt": "Trabalhos de Instalação de Sinalização Horizontal e Vertical"
-      },
-      "principal": {
-        "zh": "交通事務局",
-        "pt": "DSAT"
-      },
-      "contractor": {
-        "zh": "蔣國良建築商,新宏達建材裝飾設計工程有限公司",
-        "pt": "Xin Hong Da Building & Decoration Co Ltd,Construtor Civil Cheong Kuok Leong"
-      },
-      "details": {
-        "zh": "因進行設置標線及標誌工作，於本年10月3日至4日，禁止車輛停泊氹仔北安碼頭馬路之電單車泊車位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de instalação de sinalização horizontal e vertical, será proibido o estacionamento nos lugares-parque de motociclos na Estrada da Ponte de Pac On na Ilha da Taipa, nos dias 03 a 04/10/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 1,
-        "hours": 9
-      },
-      "startDate": "2026-10-03",
-      "endDate": "2026-10-04",
-      "onlineDate": "2026-10-01",
-      "coordinates": [
-        113.55561,
-        22.163519
       ],
       "previousNotice": null
     },
