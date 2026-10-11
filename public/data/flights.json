@@ -8,7 +8,7 @@
     },
     "type": "departure",
     "scheduledTime": 390,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "TPE",
       "name": "Taipei",
@@ -25,7 +25,7 @@
     },
     "type": "departure",
     "scheduledTime": 465,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "BKK",
       "name": "Bangkok",
@@ -42,7 +42,7 @@
     },
     "type": "departure",
     "scheduledTime": 500,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "KIX",
       "name": "Osaka-Kansai",
@@ -59,29 +59,12 @@
     },
     "type": "departure",
     "scheduledTime": 515,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "ICN",
       "name": "Seoul-Incheon",
       "bearing": 33.0,
       "nameCn": "首爾仁川"
-    }
-  },
-  {
-    "id": "NX862-dep-0570",
-    "flightNumber": "NX862",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 570,
-    "date": "2026-10-10",
-    "destination": {
-      "iata": "NRT",
-      "name": "Tokyo-Narita",
-      "bearing": 53.7,
-      "nameCn": "東京成田"
     }
   },
   {
@@ -93,7 +76,7 @@
     },
     "type": "arrival",
     "scheduledTime": 585,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "TPE",
       "name": "Taipei",
@@ -110,7 +93,7 @@
     },
     "type": "departure",
     "scheduledTime": 625,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "SHA",
       "name": "Shanghai",
@@ -127,7 +110,7 @@
     },
     "type": "arrival",
     "scheduledTime": 625,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "KHH",
       "name": "Kaohsiung",
@@ -144,12 +127,29 @@
     },
     "type": "arrival",
     "scheduledTime": 630,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "PVG",
       "name": "Shanghai-Pudong",
       "bearing": 37.5,
       "nameCn": "上海浦東"
+    }
+  },
+  {
+    "id": "BR829-arr-0635",
+    "flightNumber": "BR829",
+    "airline": {
+      "name": "",
+      "iata": "BR"
+    },
+    "type": "arrival",
+    "scheduledTime": 635,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "KHH",
+      "name": "Kaohsiung",
+      "bearing": 84.8,
+      "nameCn": "高雄"
     }
   },
   {
@@ -161,7 +161,7 @@
     },
     "type": "arrival",
     "scheduledTime": 640,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "ICN",
       "name": "Seoul-Incheon",
@@ -178,7 +178,7 @@
     },
     "type": "arrival",
     "scheduledTime": 645,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "RMQ",
       "name": "Taichung",
@@ -195,7 +195,7 @@
     },
     "type": "arrival",
     "scheduledTime": 650,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "KWE",
       "name": "Guiyang",
@@ -212,7 +212,7 @@
     },
     "type": "departure",
     "scheduledTime": 655,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "TPE",
       "name": "Taipei",
@@ -229,12 +229,46 @@
     },
     "type": "arrival",
     "scheduledTime": 660,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "TPE",
       "name": "Taipei",
       "bearing": 65.8,
       "nameCn": "台北"
+    }
+  },
+  {
+    "id": "NX672-dep-0675",
+    "flightNumber": "NX672",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 675,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "RMQ",
+      "name": "Taichung",
+      "bearing": 70.5,
+      "nameCn": "台中"
+    }
+  },
+  {
+    "id": "NX221-arr-0675",
+    "flightNumber": "NX221",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 675,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8,
+      "nameCn": "杭州"
     }
   },
   {
@@ -246,7 +280,7 @@
     },
     "type": "departure",
     "scheduledTime": 690,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "PVG",
       "name": "Shanghai-Pudong",
@@ -263,12 +297,29 @@
     },
     "type": "departure",
     "scheduledTime": 695,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "BKK",
       "name": "Bangkok",
       "bearing": 237.4,
       "nameCn": "曼谷"
+    }
+  },
+  {
+    "id": "BR830-dep-0705",
+    "flightNumber": "BR830",
+    "airline": {
+      "name": "",
+      "iata": "BR"
+    },
+    "type": "departure",
+    "scheduledTime": 705,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "KHH",
+      "name": "Kaohsiung",
+      "bearing": 84.8,
+      "nameCn": "高雄"
     }
   },
   {
@@ -280,12 +331,29 @@
     },
     "type": "arrival",
     "scheduledTime": 705,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "SHA",
       "name": "Shanghai",
       "bearing": 35.7,
       "nameCn": "上海"
+    }
+  },
+  {
+    "id": "NX182-dep-0710",
+    "flightNumber": "NX182",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 710,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "CKG",
+      "name": "Chongqing",
+      "bearing": 321.9,
+      "nameCn": "重慶"
     }
   },
   {
@@ -297,7 +365,7 @@
     },
     "type": "arrival",
     "scheduledTime": 710,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "TPE",
       "name": "Taipei",
@@ -314,7 +382,7 @@
     },
     "type": "departure",
     "scheduledTime": 715,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "PEK",
       "name": "Beijing",
@@ -331,12 +399,29 @@
     },
     "type": "departure",
     "scheduledTime": 720,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "TPE",
       "name": "Taipei",
       "bearing": 65.8,
       "nameCn": "台北"
+    }
+  },
+  {
+    "id": "NX908-dep-0725",
+    "flightNumber": "NX908",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 725,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "SIN",
+      "name": "Singapore",
+      "bearing": 205.5,
+      "nameCn": "新加坡"
     }
   },
   {
@@ -348,7 +433,7 @@
     },
     "type": "departure",
     "scheduledTime": 730,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "HGH",
       "name": "Hangzhou",
@@ -365,7 +450,7 @@
     },
     "type": "arrival",
     "scheduledTime": 730,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "WUX",
       "name": "Wuxi",
@@ -382,7 +467,7 @@
     },
     "type": "departure",
     "scheduledTime": 740,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "CTU",
       "name": "Chengdu",
@@ -399,7 +484,7 @@
     },
     "type": "departure",
     "scheduledTime": 745,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "KHH",
       "name": "Kaohsiung",
@@ -416,7 +501,7 @@
     },
     "type": "arrival",
     "scheduledTime": 745,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "PVG",
       "name": "Shanghai-Pudong",
@@ -433,7 +518,7 @@
     },
     "type": "arrival",
     "scheduledTime": 750,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "CTU",
       "name": "Chengdu",
@@ -450,7 +535,7 @@
     },
     "type": "arrival",
     "scheduledTime": 755,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "KUL",
       "name": "Kuala Lumpur",
@@ -467,7 +552,7 @@
     },
     "type": "departure",
     "scheduledTime": 760,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "NGB",
       "name": "Ningbo",
@@ -484,12 +569,29 @@
     },
     "type": "arrival",
     "scheduledTime": 760,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "SHA",
       "name": "Shanghai",
       "bearing": 35.7,
       "nameCn": "上海"
+    }
+  },
+  {
+    "id": "NX128-dep-0765",
+    "flightNumber": "NX128",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 765,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "NKG",
+      "name": "Nanjing",
+      "bearing": 24.9,
+      "nameCn": "南京"
     }
   },
   {
@@ -501,7 +603,7 @@
     },
     "type": "arrival",
     "scheduledTime": 770,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "ICN",
       "name": "Seoul-Incheon",
@@ -518,7 +620,7 @@
     },
     "type": "arrival",
     "scheduledTime": 780,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "ICN",
       "name": "Seoul-Incheon",
@@ -535,29 +637,12 @@
     },
     "type": "departure",
     "scheduledTime": 785,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "KUL",
       "name": "Kuala Lumpur",
       "bearing": 212.4,
       "nameCn": "吉隆坡"
-    }
-  },
-  {
-    "id": "MU7403-arr-0785",
-    "flightNumber": "MU7403",
-    "airline": {
-      "name": "",
-      "iata": "MU"
-    },
-    "type": "arrival",
-    "scheduledTime": 785,
-    "date": "2026-10-10",
-    "origin": {
-      "iata": "PVG",
-      "name": "Shanghai-Pudong",
-      "bearing": 37.5,
-      "nameCn": "上海浦東"
     }
   },
   {
@@ -569,7 +654,7 @@
     },
     "type": "departure",
     "scheduledTime": 790,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "WUX",
       "name": "Wuxi",
@@ -586,7 +671,7 @@
     },
     "type": "departure",
     "scheduledTime": 795,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "TPE",
       "name": "Taipei",
@@ -595,20 +680,37 @@
     }
   },
   {
-    "id": "MU5055-arr-0800",
-    "flightNumber": "MU5055",
+    "id": "NX116-dep-0800",
+    "flightNumber": "NX116",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 800,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "PVG",
+      "name": "Shanghai-Pudong",
+      "bearing": 37.5,
+      "nameCn": "上海浦東"
+    }
+  },
+  {
+    "id": "MU865-arr-0800",
+    "flightNumber": "MU865",
     "airline": {
       "name": "",
       "iata": "MU"
     },
     "type": "arrival",
     "scheduledTime": 800,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
-      "iata": "HFE",
-      "name": "Hefei",
-      "bearing": 18.1,
-      "nameCn": "合肥"
+      "iata": "KHN",
+      "name": "Nanchang",
+      "bearing": 16.8,
+      "nameCn": "南昌"
     }
   },
   {
@@ -620,29 +722,12 @@
     },
     "type": "departure",
     "scheduledTime": 805,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "PVG",
       "name": "Shanghai-Pudong",
       "bearing": 37.5,
       "nameCn": "上海浦東"
-    }
-  },
-  {
-    "id": "NX332-dep-0810",
-    "flightNumber": "NX332",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 810,
-    "date": "2026-10-10",
-    "destination": {
-      "iata": "NNG",
-      "name": "Nanning",
-      "bearing": 276.3,
-      "nameCn": "南寧"
     }
   },
   {
@@ -654,7 +739,7 @@
     },
     "type": "arrival",
     "scheduledTime": 815,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "NKG",
       "name": "Nanjing",
@@ -671,7 +756,7 @@
     },
     "type": "departure",
     "scheduledTime": 820,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "SHA",
       "name": "Shanghai",
@@ -688,7 +773,7 @@
     },
     "type": "arrival",
     "scheduledTime": 825,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "DMK",
       "name": "Bangkok-DonMueang",
@@ -705,7 +790,7 @@
     },
     "type": "departure",
     "scheduledTime": 830,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "ICN",
       "name": "Seoul-Incheon",
@@ -722,7 +807,7 @@
     },
     "type": "arrival",
     "scheduledTime": 830,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "DMK",
       "name": "Bangkok-DonMueang",
@@ -739,29 +824,12 @@
     },
     "type": "arrival",
     "scheduledTime": 840,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "XMN",
       "name": "Xiamen",
       "bearing": 59.2,
       "nameCn": "廈門"
-    }
-  },
-  {
-    "id": "MU7404-dep-0845",
-    "flightNumber": "MU7404",
-    "airline": {
-      "name": "",
-      "iata": "MU"
-    },
-    "type": "departure",
-    "scheduledTime": 845,
-    "date": "2026-10-10",
-    "destination": {
-      "iata": "PVG",
-      "name": "Shanghai-Pudong",
-      "bearing": 37.5,
-      "nameCn": "上海浦東"
     }
   },
   {
@@ -773,7 +841,7 @@
     },
     "type": "departure",
     "scheduledTime": 850,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "ICN",
       "name": "Seoul-Incheon",
@@ -790,7 +858,7 @@
     },
     "type": "departure",
     "scheduledTime": 855,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "DMK",
       "name": "Bangkok-DonMueang",
@@ -799,20 +867,20 @@
     }
   },
   {
-    "id": "MU5056-dep-0860",
-    "flightNumber": "MU5056",
+    "id": "MU866-dep-0860",
+    "flightNumber": "MU866",
     "airline": {
       "name": "",
       "iata": "MU"
     },
     "type": "departure",
     "scheduledTime": 860,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
-      "iata": "HFE",
-      "name": "Hefei",
-      "bearing": 18.1,
-      "nameCn": "合肥"
+      "iata": "KHN",
+      "name": "Nanchang",
+      "bearing": 16.8,
+      "nameCn": "南昌"
     }
   },
   {
@@ -824,7 +892,7 @@
     },
     "type": "arrival",
     "scheduledTime": 860,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "BKK",
       "name": "Bangkok",
@@ -841,7 +909,7 @@
     },
     "type": "arrival",
     "scheduledTime": 880,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "DAD",
       "name": "DaNang",
@@ -858,7 +926,7 @@
     },
     "type": "departure",
     "scheduledTime": 885,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "NKG",
       "name": "Nanjing",
@@ -875,7 +943,7 @@
     },
     "type": "departure",
     "scheduledTime": 890,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "DMK",
       "name": "Bangkok-DonMueang",
@@ -892,7 +960,7 @@
     },
     "type": "arrival",
     "scheduledTime": 890,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "DAD",
       "name": "DaNang",
@@ -909,7 +977,7 @@
     },
     "type": "arrival",
     "scheduledTime": 895,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "PKX",
       "name": "Beijing-Daxing",
@@ -926,7 +994,7 @@
     },
     "type": "departure",
     "scheduledTime": 900,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "XMN",
       "name": "Xiamen",
@@ -943,29 +1011,12 @@
     },
     "type": "arrival",
     "scheduledTime": 900,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "HPH",
       "name": "Haiphong-Catbi",
       "bearing": 259.5,
       "nameCn": "海防"
-    }
-  },
-  {
-    "id": "MF8737-arr-0925",
-    "flightNumber": "MF8737",
-    "airline": {
-      "name": "",
-      "iata": "MF"
-    },
-    "type": "arrival",
-    "scheduledTime": 925,
-    "date": "2026-10-10",
-    "origin": {
-      "iata": "JJN",
-      "name": "Jinjiang",
-      "bearing": 59.0,
-      "nameCn": "晉江"
     }
   },
   {
@@ -977,12 +1028,29 @@
     },
     "type": "arrival",
     "scheduledTime": 930,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "PVG",
       "name": "Shanghai-Pudong",
       "bearing": 37.5,
       "nameCn": "上海浦東"
+    }
+  },
+  {
+    "id": "NX671-arr-0940",
+    "flightNumber": "NX671",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 940,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "RMQ",
+      "name": "Taichung",
+      "bearing": 70.5,
+      "nameCn": "台中"
     }
   },
   {
@@ -994,7 +1062,7 @@
     },
     "type": "departure",
     "scheduledTime": 945,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "DAD",
       "name": "DaNang",
@@ -1011,7 +1079,7 @@
     },
     "type": "departure",
     "scheduledTime": 950,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "DAD",
       "name": "DaNang",
@@ -1028,7 +1096,7 @@
     },
     "type": "arrival",
     "scheduledTime": 950,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "WUX",
       "name": "Wuxi",
@@ -1045,7 +1113,7 @@
     },
     "type": "departure",
     "scheduledTime": 955,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "PKX",
       "name": "Beijing-Daxing",
@@ -1062,29 +1130,12 @@
     },
     "type": "departure",
     "scheduledTime": 960,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "HPH",
       "name": "Haiphong-Catbi",
       "bearing": 259.5,
       "nameCn": "海防"
-    }
-  },
-  {
-    "id": "NX952-dep-0965",
-    "flightNumber": "NX952",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "departure",
-    "scheduledTime": 965,
-    "date": "2026-10-10",
-    "destination": {
-      "iata": "MNL",
-      "name": "Manila",
-      "bearing": 136.1,
-      "nameCn": "馬尼拉"
     }
   },
   {
@@ -1096,7 +1147,7 @@
     },
     "type": "arrival",
     "scheduledTime": 975,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "KHH",
       "name": "Kaohsiung",
@@ -1105,20 +1156,54 @@
     }
   },
   {
-    "id": "MF8738-dep-0985",
-    "flightNumber": "MF8738",
+    "id": "AK186-arr-0980",
+    "flightNumber": "AK186",
     "airline": {
       "name": "",
-      "iata": "MF"
+      "iata": "AK"
+    },
+    "type": "arrival",
+    "scheduledTime": 980,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "KUL",
+      "name": "Kuala Lumpur",
+      "bearing": 212.4,
+      "nameCn": "吉隆坡"
+    }
+  },
+  {
+    "id": "CA119-arr-0990",
+    "flightNumber": "CA119",
+    "airline": {
+      "name": "",
+      "iata": "CA"
+    },
+    "type": "arrival",
+    "scheduledTime": 990,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "WUH",
+      "name": "Wuhan",
+      "bearing": 3.5,
+      "nameCn": "武漢"
+    }
+  },
+  {
+    "id": "NX660-dep-0995",
+    "flightNumber": "NX660",
+    "airline": {
+      "name": "",
+      "iata": "NX"
     },
     "type": "departure",
-    "scheduledTime": 985,
-    "date": "2026-10-10",
+    "scheduledTime": 995,
+    "date": "2026-10-11",
     "destination": {
-      "iata": "JJN",
-      "name": "Jinjiang",
-      "bearing": 59.0,
-      "nameCn": "晉江"
+      "iata": "KHH",
+      "name": "Kaohsiung",
+      "bearing": 84.8,
+      "nameCn": "高雄"
     }
   },
   {
@@ -1130,7 +1215,7 @@
     },
     "type": "arrival",
     "scheduledTime": 995,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "TPE",
       "name": "Taipei",
@@ -1147,7 +1232,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1000,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "NKG",
       "name": "Nanjing",
@@ -1164,7 +1249,7 @@
     },
     "type": "departure",
     "scheduledTime": 1005,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "PVG",
       "name": "Shanghai-Pudong",
@@ -1181,7 +1266,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1005,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "SHA",
       "name": "Shanghai",
@@ -1198,7 +1283,7 @@
     },
     "type": "departure",
     "scheduledTime": 1010,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "WUX",
       "name": "Wuxi",
@@ -1215,7 +1300,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1010,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "PKX",
       "name": "Beijing-Daxing",
@@ -1232,12 +1317,29 @@
     },
     "type": "arrival",
     "scheduledTime": 1015,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "KIX",
       "name": "Osaka-Kansai",
       "bearing": 52.4,
       "nameCn": "大阪關西"
+    }
+  },
+  {
+    "id": "AK187-dep-1020",
+    "flightNumber": "AK187",
+    "airline": {
+      "name": "",
+      "iata": "AK"
+    },
+    "type": "departure",
+    "scheduledTime": 1020,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "KUL",
+      "name": "Kuala Lumpur",
+      "bearing": 212.4,
+      "nameCn": "吉隆坡"
     }
   },
   {
@@ -1249,7 +1351,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1020,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "CXR",
       "name": "Cam Ranh",
@@ -1266,7 +1368,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1025,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "ICN",
       "name": "Seoul-Incheon",
@@ -1283,29 +1385,12 @@
     },
     "type": "arrival",
     "scheduledTime": 1030,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "HGH",
       "name": "Hangzhou",
       "bearing": 35.8,
       "nameCn": "杭州"
-    }
-  },
-  {
-    "id": "NX331-arr-1035",
-    "flightNumber": "NX331",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1035,
-    "date": "2026-10-10",
-    "origin": {
-      "iata": "NNG",
-      "name": "Nanning",
-      "bearing": 276.3,
-      "nameCn": "南寧"
     }
   },
   {
@@ -1317,12 +1402,63 @@
     },
     "type": "departure",
     "scheduledTime": 1045,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "TPE",
       "name": "Taipei",
       "bearing": 65.8,
       "nameCn": "台北"
+    }
+  },
+  {
+    "id": "MF8671-arr-1045",
+    "flightNumber": "MF8671",
+    "airline": {
+      "name": "",
+      "iata": "MF"
+    },
+    "type": "arrival",
+    "scheduledTime": 1045,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "FOC",
+      "name": "Fuzhou",
+      "bearing": 54.5,
+      "nameCn": "福州"
+    }
+  },
+  {
+    "id": "CA120-dep-1050",
+    "flightNumber": "CA120",
+    "airline": {
+      "name": "",
+      "iata": "CA"
+    },
+    "type": "departure",
+    "scheduledTime": 1050,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "WUH",
+      "name": "Wuhan",
+      "bearing": 3.5,
+      "nameCn": "武漢"
+    }
+  },
+  {
+    "id": "NX181-arr-1055",
+    "flightNumber": "NX181",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1055,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "CKG",
+      "name": "Chongqing",
+      "bearing": 321.9,
+      "nameCn": "重慶"
     }
   },
   {
@@ -1334,12 +1470,29 @@
     },
     "type": "departure",
     "scheduledTime": 1060,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "NKG",
       "name": "Nanjing",
       "bearing": 24.9,
       "nameCn": "南京"
+    }
+  },
+  {
+    "id": "NX132-dep-1065",
+    "flightNumber": "NX132",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1065,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2,
+      "nameCn": "廈門"
     }
   },
   {
@@ -1351,7 +1504,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1065,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "HGH",
       "name": "Hangzhou",
@@ -1368,7 +1521,7 @@
     },
     "type": "departure",
     "scheduledTime": 1070,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "PKX",
       "name": "Beijing-Daxing",
@@ -1385,7 +1538,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1075,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "SIN",
       "name": "Singapore",
@@ -1402,7 +1555,7 @@
     },
     "type": "departure",
     "scheduledTime": 1080,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "CXR",
       "name": "Cam Ranh",
@@ -1411,20 +1564,20 @@
     }
   },
   {
-    "id": "NX226-dep-1085",
-    "flightNumber": "NX226",
+    "id": "NX372-dep-1085",
+    "flightNumber": "NX372",
     "airline": {
       "name": "",
       "iata": "NX"
     },
     "type": "departure",
     "scheduledTime": 1085,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
-      "iata": "HGH",
-      "name": "Hangzhou",
-      "bearing": 35.8,
-      "nameCn": "杭州"
+      "iata": "KWE",
+      "name": "Guiyang",
+      "bearing": 306.7,
+      "nameCn": "貴陽"
     }
   },
   {
@@ -1436,7 +1589,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1085,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "RMQ",
       "name": "Taichung",
@@ -1453,7 +1606,7 @@
     },
     "type": "departure",
     "scheduledTime": 1090,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "ICN",
       "name": "Seoul-Incheon",
@@ -1470,7 +1623,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1090,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "NGB",
       "name": "Ningbo",
@@ -1487,7 +1640,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1095,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "CTU",
       "name": "Chengdu",
@@ -1504,7 +1657,7 @@
     },
     "type": "departure",
     "scheduledTime": 1100,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "HGH",
       "name": "Hangzhou",
@@ -1513,54 +1666,54 @@
     }
   },
   {
-    "id": "FD766-arr-1100",
-    "flightNumber": "FD766",
-    "airline": {
-      "name": "",
-      "iata": "FD"
-    },
-    "type": "arrival",
-    "scheduledTime": 1100,
-    "date": "2026-10-10",
-    "origin": {
-      "iata": "DMK",
-      "name": "Bangkok-DonMueang",
-      "bearing": 238.5,
-      "nameCn": "曼谷廊曼"
-    }
-  },
-  {
-    "id": "NX372-dep-1105",
-    "flightNumber": "NX372",
+    "id": "NX226-dep-1105",
+    "flightNumber": "NX226",
     "airline": {
       "name": "",
       "iata": "NX"
     },
     "type": "departure",
     "scheduledTime": 1105,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
-      "iata": "KWE",
-      "name": "Guiyang",
-      "bearing": 306.7,
-      "nameCn": "貴陽"
+      "iata": "HGH",
+      "name": "Hangzhou",
+      "bearing": 35.8,
+      "nameCn": "杭州"
     }
   },
   {
-    "id": "BR833-arr-1105",
-    "flightNumber": "BR833",
+    "id": "NX935-arr-1105",
+    "flightNumber": "NX935",
     "airline": {
       "name": "",
-      "iata": "BR"
+      "iata": "NX"
     },
     "type": "arrival",
     "scheduledTime": 1105,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
-      "iata": "KHH",
-      "name": "Kaohsiung",
-      "bearing": 84.8,
-      "nameCn": "高雄"
+      "iata": "BKK",
+      "name": "Bangkok",
+      "bearing": 237.4,
+      "nameCn": "曼谷"
+    }
+  },
+  {
+    "id": "MF8672-dep-1110",
+    "flightNumber": "MF8672",
+    "airline": {
+      "name": "",
+      "iata": "MF"
+    },
+    "type": "departure",
+    "scheduledTime": 1110,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "FOC",
+      "name": "Fuzhou",
+      "bearing": 54.5,
+      "nameCn": "福州"
     }
   },
   {
@@ -1572,7 +1725,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1110,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "MNL",
       "name": "Manila",
@@ -1589,7 +1742,7 @@
     },
     "type": "departure",
     "scheduledTime": 1115,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "RMQ",
       "name": "Taichung",
@@ -1606,8 +1759,25 @@
     },
     "type": "arrival",
     "scheduledTime": 1115,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
+      "iata": "TPE",
+      "name": "Taipei",
+      "bearing": 65.8,
+      "nameCn": "台北"
+    }
+  },
+  {
+    "id": "NX9626-dep-1120",
+    "flightNumber": "NX9626",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1120,
+    "date": "2026-10-11",
+    "destination": {
       "iata": "TPE",
       "name": "Taipei",
       "bearing": 65.8,
@@ -1623,29 +1793,12 @@
     },
     "type": "departure",
     "scheduledTime": 1125,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "SIN",
       "name": "Singapore",
       "bearing": 205.5,
       "nameCn": "新加坡"
-    }
-  },
-  {
-    "id": "NX935-arr-1125",
-    "flightNumber": "NX935",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1125,
-    "date": "2026-10-10",
-    "origin": {
-      "iata": "BKK",
-      "name": "Bangkok",
-      "bearing": 237.4,
-      "nameCn": "曼谷"
     }
   },
   {
@@ -1657,7 +1810,7 @@
     },
     "type": "departure",
     "scheduledTime": 1135,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "BKK",
       "name": "Bangkok",
@@ -1666,20 +1819,20 @@
     }
   },
   {
-    "id": "FD767-dep-1140",
-    "flightNumber": "FD767",
+    "id": "NX127-arr-1135",
+    "flightNumber": "NX127",
     "airline": {
       "name": "",
-      "iata": "FD"
+      "iata": "NX"
     },
-    "type": "departure",
-    "scheduledTime": 1140,
-    "date": "2026-10-10",
-    "destination": {
-      "iata": "DMK",
-      "name": "Bangkok-DonMueang",
-      "bearing": 238.5,
-      "nameCn": "曼谷廊曼"
+    "type": "arrival",
+    "scheduledTime": 1135,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "NKG",
+      "name": "Nanjing",
+      "bearing": 24.9,
+      "nameCn": "南京"
     }
   },
   {
@@ -1691,7 +1844,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1140,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "SHA",
       "name": "Shanghai",
@@ -1708,7 +1861,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1145,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "HAN",
       "name": "Ha Noi",
@@ -1725,7 +1878,7 @@
     },
     "type": "departure",
     "scheduledTime": 1150,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "MNL",
       "name": "Manila",
@@ -1742,12 +1895,46 @@
     },
     "type": "departure",
     "scheduledTime": 1155,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "RMQ",
       "name": "Taichung",
       "bearing": 70.5,
       "nameCn": "台中"
+    }
+  },
+  {
+    "id": "MU239-arr-1155",
+    "flightNumber": "MU239",
+    "airline": {
+      "name": "",
+      "iata": "MU"
+    },
+    "type": "arrival",
+    "scheduledTime": 1155,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "SHA",
+      "name": "Shanghai",
+      "bearing": 35.7,
+      "nameCn": "上海"
+    }
+  },
+  {
+    "id": "NX010-dep-1160",
+    "flightNumber": "NX010",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "departure",
+    "scheduledTime": 1160,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "PEK",
+      "name": "Beijing",
+      "bearing": 7.4,
+      "nameCn": "北京首都"
     }
   },
   {
@@ -1759,7 +1946,7 @@
     },
     "type": "departure",
     "scheduledTime": 1165,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "SHA",
       "name": "Shanghai",
@@ -1776,7 +1963,7 @@
     },
     "type": "departure",
     "scheduledTime": 1170,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "TPE",
       "name": "Taipei",
@@ -1793,7 +1980,7 @@
     },
     "type": "departure",
     "scheduledTime": 1180,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "DAD",
       "name": "DaNang",
@@ -1810,12 +1997,29 @@
     },
     "type": "arrival",
     "scheduledTime": 1180,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "TPE",
       "name": "Taipei",
       "bearing": 65.8,
       "nameCn": "台北"
+    }
+  },
+  {
+    "id": "NX117-arr-1185",
+    "flightNumber": "NX117",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1185,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "PVG",
+      "name": "Shanghai-Pudong",
+      "bearing": 37.5,
+      "nameCn": "上海浦東"
     }
   },
   {
@@ -1827,7 +2031,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1190,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "PEK",
       "name": "Beijing",
@@ -1844,29 +2048,12 @@
     },
     "type": "departure",
     "scheduledTime": 1195,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "SHA",
       "name": "Shanghai",
       "bearing": 35.7,
       "nameCn": "上海"
-    }
-  },
-  {
-    "id": "BR834-dep-1200",
-    "flightNumber": "BR834",
-    "airline": {
-      "name": "",
-      "iata": "BR"
-    },
-    "type": "departure",
-    "scheduledTime": 1200,
-    "date": "2026-10-10",
-    "destination": {
-      "iata": "KHH",
-      "name": "Kaohsiung",
-      "bearing": 84.8,
-      "nameCn": "高雄"
     }
   },
   {
@@ -1878,29 +2065,12 @@
     },
     "type": "departure",
     "scheduledTime": 1205,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "HAN",
       "name": "Ha Noi",
       "bearing": 264.1,
       "nameCn": "河內"
-    }
-  },
-  {
-    "id": "NX861-arr-1205",
-    "flightNumber": "NX861",
-    "airline": {
-      "name": "",
-      "iata": "NX"
-    },
-    "type": "arrival",
-    "scheduledTime": 1205,
-    "date": "2026-10-10",
-    "origin": {
-      "iata": "NRT",
-      "name": "Tokyo-Narita",
-      "bearing": 53.7,
-      "nameCn": "東京成田"
     }
   },
   {
@@ -1912,12 +2082,29 @@
     },
     "type": "departure",
     "scheduledTime": 1210,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "TPE",
       "name": "Taipei",
       "bearing": 65.8,
       "nameCn": "台北"
+    }
+  },
+  {
+    "id": "MU240-dep-1220",
+    "flightNumber": "MU240",
+    "airline": {
+      "name": "",
+      "iata": "MU"
+    },
+    "type": "departure",
+    "scheduledTime": 1220,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "SHA",
+      "name": "Shanghai",
+      "bearing": 35.7,
+      "nameCn": "上海"
     }
   },
   {
@@ -1929,12 +2116,29 @@
     },
     "type": "arrival",
     "scheduledTime": 1225,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "PVG",
       "name": "Shanghai-Pudong",
       "bearing": 37.5,
       "nameCn": "上海浦東"
+    }
+  },
+  {
+    "id": "NX659-arr-1230",
+    "flightNumber": "NX659",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1230,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "KHH",
+      "name": "Kaohsiung",
+      "bearing": 84.8,
+      "nameCn": "高雄"
     }
   },
   {
@@ -1946,12 +2150,29 @@
     },
     "type": "arrival",
     "scheduledTime": 1240,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "BKK",
       "name": "Bangkok",
       "bearing": 237.4,
       "nameCn": "曼谷"
+    }
+  },
+  {
+    "id": "HU7935-arr-1245",
+    "flightNumber": "HU7935",
+    "airline": {
+      "name": "",
+      "iata": "HU"
+    },
+    "type": "arrival",
+    "scheduledTime": 1245,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "HAK",
+      "name": "Haikou",
+      "bearing": 233.4,
+      "nameCn": "海口"
     }
   },
   {
@@ -1963,7 +2184,7 @@
     },
     "type": "departure",
     "scheduledTime": 1250,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "TPE",
       "name": "Taipei",
@@ -1980,12 +2201,29 @@
     },
     "type": "arrival",
     "scheduledTime": 1250,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "DAD",
       "name": "DaNang",
       "bearing": 220.8,
       "nameCn": "峴港"
+    }
+  },
+  {
+    "id": "NX907-arr-1255",
+    "flightNumber": "NX907",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1255,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "SIN",
+      "name": "Singapore",
+      "bearing": 205.5,
+      "nameCn": "新加坡"
     }
   },
   {
@@ -1997,7 +2235,7 @@
     },
     "type": "departure",
     "scheduledTime": 1265,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "HAN",
       "name": "Ha Noi",
@@ -2014,7 +2252,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1265,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "DMK",
       "name": "Bangkok-DonMueang",
@@ -2031,12 +2269,29 @@
     },
     "type": "departure",
     "scheduledTime": 1285,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "DAD",
       "name": "DaNang",
       "bearing": 220.8,
       "nameCn": "峴港"
+    }
+  },
+  {
+    "id": "5J362-arr-1285",
+    "flightNumber": "5J362",
+    "airline": {
+      "name": "",
+      "iata": "5J"
+    },
+    "type": "arrival",
+    "scheduledTime": 1285,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "MNL",
+      "name": "Manila",
+      "bearing": 136.1,
+      "nameCn": "馬尼拉"
     }
   },
   {
@@ -2048,7 +2303,7 @@
     },
     "type": "departure",
     "scheduledTime": 1295,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "KHH",
       "name": "Kaohsiung",
@@ -2065,7 +2320,7 @@
     },
     "type": "departure",
     "scheduledTime": 1300,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "BKK",
       "name": "Bangkok",
@@ -2082,12 +2337,46 @@
     },
     "type": "departure",
     "scheduledTime": 1305,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "PVG",
       "name": "Shanghai-Pudong",
       "bearing": 37.5,
       "nameCn": "上海浦東"
+    }
+  },
+  {
+    "id": "NX131-arr-1305",
+    "flightNumber": "NX131",
+    "airline": {
+      "name": "",
+      "iata": "NX"
+    },
+    "type": "arrival",
+    "scheduledTime": 1305,
+    "date": "2026-10-11",
+    "origin": {
+      "iata": "XMN",
+      "name": "Xiamen",
+      "bearing": 59.2,
+      "nameCn": "廈門"
+    }
+  },
+  {
+    "id": "HU7936-dep-1310",
+    "flightNumber": "HU7936",
+    "airline": {
+      "name": "",
+      "iata": "HU"
+    },
+    "type": "departure",
+    "scheduledTime": 1310,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "HAK",
+      "name": "Haikou",
+      "bearing": 233.4,
+      "nameCn": "海口"
     }
   },
   {
@@ -2099,7 +2388,7 @@
     },
     "type": "departure",
     "scheduledTime": 1315,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "DAD",
       "name": "DaNang",
@@ -2116,7 +2405,7 @@
     },
     "type": "departure",
     "scheduledTime": 1320,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "CTU",
       "name": "Chengdu",
@@ -2133,7 +2422,7 @@
     },
     "type": "departure",
     "scheduledTime": 1325,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "destination": {
       "iata": "DMK",
       "name": "Bangkok-DonMueang",
@@ -2150,7 +2439,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1325,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "TPE",
       "name": "Taipei",
@@ -2159,20 +2448,37 @@
     }
   },
   {
-    "id": "NX951-arr-1355",
-    "flightNumber": "NX951",
+    "id": "5J363-dep-1345",
+    "flightNumber": "5J363",
+    "airline": {
+      "name": "",
+      "iata": "5J"
+    },
+    "type": "departure",
+    "scheduledTime": 1345,
+    "date": "2026-10-11",
+    "destination": {
+      "iata": "MNL",
+      "name": "Manila",
+      "bearing": 136.1,
+      "nameCn": "馬尼拉"
+    }
+  },
+  {
+    "id": "NX9625-arr-1400",
+    "flightNumber": "NX9625",
     "airline": {
       "name": "",
       "iata": "NX"
     },
     "type": "arrival",
-    "scheduledTime": 1355,
-    "date": "2026-10-10",
+    "scheduledTime": 1400,
+    "date": "2026-10-11",
     "origin": {
-      "iata": "MNL",
-      "name": "Manila",
-      "bearing": 136.1,
-      "nameCn": "馬尼拉"
+      "iata": "TPE",
+      "name": "Taipei",
+      "bearing": 65.8,
+      "nameCn": "台北"
     }
   },
   {
@@ -2184,7 +2490,7 @@
     },
     "type": "arrival",
     "scheduledTime": 1435,
-    "date": "2026-10-10",
+    "date": "2026-10-11",
     "origin": {
       "iata": "TPE",
       "name": "Taipei",
