@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-10-17T21:11:27.568600+00:00",
-  "exportedAt": "2026-10-18T00:30:27+0800",
+  "fetchedAtUtc": "2026-10-18T21:00:14.667858+00:00",
+  "exportedAt": "2026-10-19T00:30:27+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -3128,46 +3128,6 @@
       "previousNotice": null
     },
     {
-      "id": "2907/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "多處道路",
-        "pt": "Vários Arruamentos"
-      },
-      "reason": {
-        "zh": "翻新標線及標誌工作",
-        "pt": "Trabalhos de Pintura de Sinalização Horizontal e Vertical"
-      },
-      "principal": {
-        "zh": "交通事務局",
-        "pt": "DSAT"
-      },
-      "contractor": {
-        "zh": "利馬建築工程有限公司",
-        "pt": "Companhia de Construção Imobiliaria Resoma Limitada"
-      },
-      "details": {
-        "zh": "因進行翻新標線及標誌工作，於本年10月10日至17日，每日上午9時30分至下午4時30分及晚上10時至翌日上午6時，相關道路將在警方協助下實施有限度通車︰\n殷皇子大馬路與約翰四世大馬路之交匯處；\n亞馬喇前地近F車道的路段；\n鮑思高圓形地近怡昌花園的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de pintura de sinalização horizontal e vertical, as seguintes vias ficarão com condicionamentos ao trânsito e com apoio policial, das 09H30 às 16H30 e das 22H00 às 06H00, nos dias 10 a 17/10/2026:\na intersecção da Avenida do Infante D. Henrique com a Avenida de D. João IV;\no troço da Praça de Ferreira do Amaral junto da via F;\no troço da Rotunda de S. João Bosco junto do Edf. Yee Cheong Garden.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 7,
-        "hours": 21
-      },
-      "startDate": "2026-10-10",
-      "endDate": "2026-10-18",
-      "onlineDate": "2026-10-08",
-      "coordinates": [
-        113.542041,
-        22.191322
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "2935/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -3646,46 +3606,6 @@
         22.159933
       ],
       "previousNotice": "2763/2026"
-    },
-    {
-      "id": "3020/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "氹仔基馬拉斯大馬路",
-        "pt": "Avenida de Guimarães na Ilha da Taipa"
-      },
-      "reason": {
-        "zh": "維修下水道工作",
-        "pt": "Trabalhos de Reparação de Esgoto"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "得寶國際有限公司",
-        "pt": ""
-      },
-      "details": {
-        "zh": "因進行維修下水道工作，於本年10月12日至17日每日晚上10時至翌日上午6時，介乎孫逸仙博士圓形地與南京街之間的一段氹仔基馬拉斯大馬路將在警方協助下實施有限度通車。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de reparação de esgoto, o troço da Avenida de Guimarães na Ilha da Taipa entre a Rotunda Dr. Sun Yat Sen e a Rua de Nam Keng ficará com condicionamentos ao trânsito e com apoio policial, das 22H00 às 06H00, nos dias 12/10/2026 a 17/10/2026,\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 5,
-        "hours": 8
-      },
-      "startDate": "2026-10-12",
-      "endDate": "2026-10-18",
-      "onlineDate": "2026-10-10",
-      "coordinates": [
-        113.55677,
-        22.158949
-      ],
-      "previousNotice": null
     },
     {
       "id": "3023/2026",
