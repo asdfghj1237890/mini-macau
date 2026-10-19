@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-10-18T21:00:14.667858+00:00",
-  "exportedAt": "2026-10-19T00:30:27+0800",
+  "fetchedAtUtc": "2026-10-19T22:46:39.141227+00:00",
+  "exportedAt": "2026-10-20T00:30:27+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -2848,46 +2848,6 @@
       "previousNotice": null
     },
     {
-      "id": "2914/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "魚鱗巷、仁慕巷、沙梨頭街",
-        "pt": "Travessa da Escam Travessa da Saudade Rua do Patane"
-      },
-      "reason": {
-        "zh": "光纖穿線工作",
-        "pt": "Trabalhos de Lançamento de Cabos Fibra Óptica"
-      },
-      "principal": {
-        "zh": "澳門電訊股份有限公司",
-        "pt": "CTM"
-      },
-      "contractor": {
-        "zh": "澳門電訊",
-        "pt": "CTM"
-      },
-      "details": {
-        "zh": "因進行光纖穿線工作，以下道路將實施有限度通車：\n於本年10月8日上午9時30分至下午5時，魚鱗巷及仁慕巷近沙梨頭海邊街的路段。\n於本年10月19日上午9時30分至下午5時，沙梨頭街近涼水街的路段。\n於本年10月19日上午9時至中午1時，禁止車輛停泊在沙梨頭街編號3256(3)的咪錶泊車位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de manutenção e reparação das luzes de obstrução da aviação, a Ponte Macau ficará com condicionamentos ao trânsito, estando os veículos n.os MO-46-65 ou AB-39-60, autorizados a estacionar momentaneamente, apenas um veículo de cada vez, na referida Ponte, durante a execução dos trabalhos, devendo estar devidamente sinalizados e com apoio policial, das 23H00 às 03H00:\nnos dias 23 e 24/10/2026;\nnos dias 27 e 28/11/2026;\nnos dias 25 e 26/12/2026;\nnos dias 22 e 23/01/2027.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 11,
-        "hours": 9
-      },
-      "startDate": "2026-10-08",
-      "endDate": "2026-10-19",
-      "onlineDate": "2026-10-06",
-      "coordinates": [
-        113.537633,
-        22.201647
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "2921/2026",
       "restriction": "closed",
       "restrictionText": {
@@ -4124,46 +4084,6 @@
       "coordinates": [
         113.571673,
         22.202117
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "3049/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "西灣大橋",
-        "pt": "Ponte de Sai Van"
-      },
-      "reason": {
-        "zh": "維修伸縮縫工作",
-        "pt": "Trabalhos de Reparação de Juntas de Dilatação"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "鴻業建築工程有限公司",
-        "pt": "---"
-      },
-      "details": {
-        "zh": "因進行維修伸縮縫工作，於本年10月16日晚上10時30分至19日上午6時，西灣大橋 (氹仔往觀光塔引橋) 將實施有限度通車，另准許編號MT-41-57 之工作車輛，在設置適當交通標誌以及在警方協助的條件下，在該處短暫停泊。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de reparação de juntas de dilatação, a Ponte de Sai Van (no viaduto de acesso da Taipa à Torre de Macau) ficará com condicionamentos ao trânsito, sendo permitido o estacionamento da veículo de transporte No. MT-41-57 no local durante as operações, que deverá estar devidamente sinalizadas e com apoio policial, das 22H30 do dia 16/10/2026 às 06H00 do dia 19/10/2026:\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 2,
-        "hours": 8
-      },
-      "startDate": "2026-10-16",
-      "endDate": "2026-10-19",
-      "onlineDate": "2026-10-14",
-      "coordinates": [
-        113.533152,
-        22.17787
       ],
       "previousNotice": null
     },
