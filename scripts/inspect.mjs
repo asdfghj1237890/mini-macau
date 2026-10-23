@@ -14,7 +14,7 @@
 //
 // Usage:
 //   node scripts/inspect.mjs routes                 # count, by routeType, ids
-//   node scripts/inspect.mjs route <id>             # one route, all buckets
+//   node scripts/inspect.mjs route <id> [--detail]  # one route, all buckets; stop order, leg lengths and published frequency bands
 //   node scripts/inspect.mjs in-service HH:MM [bucket] [--tail N]
 //   node scripts/inspect.mjs coords                 # bus-line coordinate totals
 //   node scripts/inspect.mjs bus-traffic [HH:MM] [seconds] [step] # replay citywide bus following; timing, overlaps and queue checks (BUS_TRIP_MODEL=legacy for the fixed 30/60-minute cycle; BUS_TRACE_BOX=w,s,e,n [BUS_TRACE_EVERY=20] records every bus in the box: wait reason, passage held/wanted, owners; mode scope = the app's viewport model around BUS_VIEW=w,s,e,n, mode amaral = the same around the terminal)
@@ -642,7 +642,7 @@ function cmdRoutes() {
   console.log('ids:', routes.map((r) => r.id).join(', '))
 }
 
-function cmdRoute(id) {
+function cmdRoute(id, detail = false) {
   if (!id) return fail('route <id> requires an id, e.g. `route 1`')
   const r = busRoutes().find((x) => x.id === id)
   if (!r) return fail(`no route with id "${id}"`)
@@ -651,6 +651,20 @@ function cmdRoute(id) {
   console.log(`  sat     : ${r.serviceHoursStartSat === undefined ? '(falls back to weekday)' : `${fmtHrs(r.serviceHoursStartSat)}–${fmtHrs(r.serviceHoursEndSat)}`}`)
   console.log(`  sun     : ${r.serviceHoursStartSun === undefined ? '(falls back to weekday)' : `${fmtHrs(r.serviceHoursStartSun)}–${fmtHrs(r.serviceHoursEndSun)}`}`)
   console.log(`  stops   : ${r.stopsForward.length} fwd / ${r.stopsBackward.length} back   coords: ${r.geometry.geometry.coordinates.length}`)
+  if (detail) {
+    const stops = new Map(load('public/data/bus-stops.json').map(s => [s.id, s]))
+    const coords = r.geometry.geometry.coordinates, cumulative = [0]
+    const mx = 111320 * Math.cos(22.19 * Math.PI / 180)
+    for (let i = 1; i < coords.length; i++) cumulative.push(cumulative.at(-1) + Math.hypot((coords[i][0] - coords[i - 1][0]) * mx, (coords[i][1] - coords[i - 1][1]) * 111320))
+    r.stopsForward.forEach((stop, i) => {
+      const length = i + 1 < r.stopOffsets.length ? cumulative[r.stopOffsets[i + 1]] - cumulative[r.stopOffsets[i]] : cumulative.at(-1) - cumulative[r.stopOffsets[i]]
+      console.log(`  ${String(i + 1).padStart(2)} ${stop.padEnd(9)} ${stops.get(stop)?.nameCn ?? '?'} -> ${Math.round(length)} m`)
+    })
+    const ref = load('data/bus_reference/routes.json').find(route => route.id === id)
+    if (ref?.effectiveDate) console.log(`  effective: ${ref.effectiveDate}`)
+    for (const row of ref?.schedule ?? []) console.log(`  ${row.period}: ${row.no_service ? 'no service' : `${row.start}–${row.end}, ${row.freq_min}–${row.freq_max} min`}`)
+    for (const source of ref?.sources ?? []) console.log(`  source: ${source}`)
+  }
 }
 
 function cmdInService(hhmm, bucket = 'weekday', tail = 0) {
@@ -1717,7 +1731,7 @@ switch (cmd) {
     break
   }
   case 'routes': cmdRoutes(); break
-  case 'route': cmdRoute(pos[0]); break
+  case 'route': cmdRoute(pos[0], rest.includes('--detail')); break
   case 'in-service': cmdInService(pos[0], pos[1], tail); break
   case 'coords': cmdCoords(); break
   case 'bus-traffic': await cmdBusTraffic(pos[0], pos[1], pos[2], pos[3], pos[4]); break

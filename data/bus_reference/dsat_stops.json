@@ -1,6 +1,6 @@
 {
   "fetchedAtUtc": "2026-09-02T13:30:52.177627+00:00",
-  "totalRoutes": 92,
+  "totalRoutes": 91,
   "emptyRoutes": [],
   "routes": {
     "1": {
@@ -402,8 +402,7 @@
         "M168",
         "M164",
         "M151",
-        "M150",
-        "M145/1",
+        "M147",
         "M165",
         "M202",
         "M157",
@@ -428,7 +427,10 @@
       ],
       "backward": [],
       "forwardOk": true,
-      "backwardOk": true
+      "backwardOk": true,
+      "effectiveDate": "2026-10-24",
+      "source": "https://www.dsat.gov.mo/upload_resize_test/20261016153433_16704.8.jpg",
+      "platformNote": "The guides publish base stop codes. Unchanged MT2 platforms retain their previous suffixes; added platforms use the existing 36 assignments. New 6A/6B hospital stops use the other route's existing platform assignments. These suffixes are carried forward, not independently confirmed by a future-dated DSAT platform list."
     },
     "6B": {
       "forward": [
@@ -447,7 +449,8 @@
         "M69/1",
         "M164",
         "M151",
-        "M147",
+        "M150",
+        "M145/1",
         "M165",
         "M157",
         "M172/4",
@@ -458,7 +461,10 @@
       ],
       "backward": [],
       "forwardOk": true,
-      "backwardOk": true
+      "backwardOk": true,
+      "effectiveDate": "2026-10-24",
+      "source": "https://www.dsat.gov.mo/upload_resize_test/20261016153432_1900904.jpg",
+      "platformNote": "The guides publish base stop codes. Unchanged MT2 platforms retain their previous suffixes; added platforms use the existing 36 assignments. New 6A/6B hospital stops use the other route's existing platform assignments. These suffixes are carried forward, not independently confirmed by a future-dated DSAT platform list."
     },
     "7": {
       "forward": [
@@ -2172,41 +2178,6 @@
       "forwardOk": true,
       "backwardOk": true
     },
-    "36": {
-      "forward": [
-        "T330/4",
-        "T335",
-        "T338",
-        "T326/3",
-        "T350",
-        "T353",
-        "T413",
-        "T310/2",
-        "T408/1",
-        "T343",
-        "T316",
-        "T345/4",
-        "T344",
-        "T356/3",
-        "T358",
-        "T373/1",
-        "T306",
-        "T314/2",
-        "T408/2",
-        "T311/2",
-        "T412",
-        "T352",
-        "T332/1",
-        "T327",
-        "T326/1",
-        "T337",
-        "T334",
-        "T330/2"
-      ],
-      "backward": [],
-      "forwardOk": true,
-      "backwardOk": true
-    },
     "37": {
       "forward": [
         "T440",
@@ -3105,10 +3076,26 @@
         "T335",
         "T338",
         "T326/4",
-        "T332/1",
-        "T331",
+        "T350",
+        "T353",
+        "T413",
+        "T310/2",
+        "T408/1",
+        "T343",
+        "T316",
+        "T354",
+        "T345/4",
+        "T344",
+        "T356/3",
+        "T358",
+        "T373/1",
+        "T306",
+        "T314/2",
+        "T408/2",
+        "T311/2",
         "T412",
         "T352",
+        "T332/1",
         "T327",
         "T326/2",
         "T337",
@@ -3119,7 +3106,10 @@
       ],
       "backward": [],
       "forwardOk": true,
-      "backwardOk": true
+      "backwardOk": true,
+      "effectiveDate": "2026-10-24",
+      "source": "https://www.dsat.gov.mo/upload_resize_test/20261020152543_6602289.jpeg",
+      "platformNote": "The guides publish base stop codes. Unchanged MT2 platforms retain their previous suffixes; added platforms use the existing 36 assignments. New 6A/6B hospital stops use the other route's existing platform assignments. These suffixes are carried forward, not independently confirmed by a future-dated DSAT platform list."
     },
     "MT3": {
       "forward": [

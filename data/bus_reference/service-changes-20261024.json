@@ -1,0 +1,71 @@
+{
+  "effectiveDate": "2026-10-24",
+  "checkedAt": "2026-10-23",
+  "notice": "https://www.dsat.gov.mo/bus/site/bus_news_detail.aspx?a_id=412F70E3C2C4C6CB9C73CE2E822D9CC4",
+  "retiredRoutes": ["36"],
+  "notes": [
+    "The official guides below take effect with the first departures on 2026-10-24. DSAT's live stop endpoint and MO Transport still served the previous routes when checked on 2026-10-23.",
+    "The guides publish base stop codes. Unchanged MT2 platforms retain their previous suffixes; added platforms use the existing 36 assignments. New 6A/6B hospital stops use the other route's existing platform assignments. These suffixes are carried forward, not independently confirmed by a future-dated DSAT platform list.",
+    "Published frequency bands are retained in routes.json. The simulation's frequency field remains one representative interval per route, using the existing rounded mean of the bands.",
+    "6B does not operate on Sundays or mandatory holidays. Its weekday/Saturday service also covers public holidays that are not mandatory holidays."
+  ],
+  "routes": {
+    "MT2": {
+      "guide": "https://www.dsat.gov.mo/upload_resize_test/20261020152543_6602289.jpeg",
+      "description": "城市日前地 - 澳門機場",
+      "descriptionPt": "Praceta 24 de Junho - Aeroporto de Macau",
+      "stops": [
+        "M268", "M172/12", "T330/4", "T335", "T338", "T326/4", "T350", "T353",
+        "T413", "T310/2", "T408/1", "T343", "T316", "T354", "T345/4", "T344",
+        "T356/3", "T358", "T373/1", "T306", "T314/2", "T408/2", "T311/2",
+        "T412", "T352", "T332/1", "T327", "T326/2", "T337", "T334", "M69/2",
+        "M159", "M262"
+      ],
+      "schedule": [
+        { "period": "星期一至五（公眾假期除外）", "start": "06:50", "end": "09:00", "freq_min": 12, "freq_max": 15 },
+        { "period": "星期一至五（公眾假期除外）", "start": "09:00", "end": "16:30", "freq_min": 15, "freq_max": 18 },
+        { "period": "星期一至五（公眾假期除外）", "start": "16:30", "end": "19:00", "freq_min": 12, "freq_max": 15 },
+        { "period": "星期一至五（公眾假期除外）", "start": "19:00", "end": "23:40", "freq_min": 18, "freq_max": 22 },
+        { "period": "星期六、日及公眾假期", "start": "06:50", "end": "23:40", "freq_min": 18, "freq_max": 22 }
+      ],
+      "geometry": "Keep the existing MT2 peninsula and outbound bridge course. Between T338 and T334 follow the former 36 loop, except T316–T354 follows the existing 51 course past the immigration building and T354–T345/4 uses an OSRM road course. Replace the previous extra Taipa excursion between T334 and M69/2 with the unchanged northbound bridge course from the previously captured MT2 GPX. Retain the existing MT2 T326 platforms."
+    },
+    "6A": {
+      "guide": "https://www.dsat.gov.mo/upload_resize_test/20261016153433_16704.8.jpg",
+      "description": "永寧廣場 - 山頂醫院",
+      "descriptionPt": "Al. Tranquilidade - Hospital S. Januário",
+      "stops": [
+        "M214", "M220", "M224", "M30", "M36", "M48", "M47", "M61/1", "M84/2",
+        "M99", "M111", "M112", "M127", "M125", "M135/2", "M167", "M168", "M164",
+        "M151", "M147", "M165", "M202", "M157", "M173", "M134", "M132/2", "M129",
+        "M114", "M113", "M98", "M88", "M59", "M45", "M46/2", "M54", "M56",
+        "M35/2", "M28/1", "M227", "M244", "M214/1"
+      ],
+      "schedule": [
+        { "period": "星期一至六（公眾假期除外）", "start": "06:15", "end": "10:00", "freq_min": 8, "freq_max": 15 },
+        { "period": "星期一至六（公眾假期除外）", "start": "10:00", "end": "15:00", "freq_min": 12, "freq_max": 15 },
+        { "period": "星期一至六（公眾假期除外）", "start": "15:00", "end": "20:00", "freq_min": 8, "freq_max": 15 },
+        { "period": "星期一至六（公眾假期除外）", "start": "20:00", "end": "23:35", "freq_min": 12, "freq_max": 15 },
+        { "period": "星期日及公眾假期", "start": "06:15", "end": "10:00", "freq_min": 12, "freq_max": 15 },
+        { "period": "星期日及公眾假期", "start": "10:00", "end": "20:00", "freq_min": 10, "freq_max": 15 },
+        { "period": "星期日及公眾假期", "start": "20:00", "end": "23:35", "freq_min": 12, "freq_max": 15 }
+      ],
+      "geometry": "Replace M151–M165 with the previous 6B course via M147 and Estrada do Visconde de S. Januário (若憲馬路). Keep the rest of the existing 6A loop."
+    },
+    "6B": {
+      "guide": "https://www.dsat.gov.mo/upload_resize_test/20261016153432_1900904.jpg",
+      "description": "凱泉灣 - 山頂醫院",
+      "descriptionPt": "Riviera Macau - Hospital S. Januário",
+      "stops": [
+        "M185/2", "M139/2", "M184", "M188", "M203/1", "M277", "M197", "M195",
+        "M192", "M181", "M179", "M172/9", "M69/1", "M164", "M151", "M150",
+        "M145/1", "M165", "M157", "M172/4", "M187", "M199", "M198", "M185/2"
+      ],
+      "schedule": [
+        { "period": "星期一至六（強制性假日除外）", "start": "06:15", "end": "23:30", "freq_min": 15, "freq_max": 18 },
+        { "period": "星期日及強制性假日", "no_service": true }
+      ],
+      "geometry": "Replace M151–M165 with the previous 6A course via M150, M145/1 and Rua Nova à Guia (東望洋新街). Keep the rest of the existing 6B loop, including its two distinct Amaral platforms."
+    }
+  }
+}

@@ -18,7 +18,7 @@ const HTML_LANG_TAG = { zh: 'zh-Hant', pt: 'pt-PT', en: 'en' }
 
 ## 路線分組
 
-[`src/routeGroups.ts`](../../src/routeGroups.ts)。把 92 條路線分成 5 組：
+[`src/routeGroups.ts`](../../src/routeGroups.ts)。把 91 條路線分成 5 組：
 
 | Group | 範例 | 規則 |
 |-------|------|------|

@@ -48,7 +48,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 ## Features
 
 - **3D LRT vehicles** — 3 lines, 15 stations, real track geometry and elevated viaducts
-- **3D Bus fleet** — 92 routes, road-snapped via OSRM, with accurate cross-harbour bridge geometry
+- **3D Bus fleet** — 91 routes, road-snapped via OSRM, with accurate cross-harbour bridge geometry
 - **3D Aircraft** — about 160 real MFM flights (auto-synced daily) with detailed airplane models, apron stands, and taxi paths
 - **3D Ferries** — 6 HK/Shenzhen ↔ Macau sea routes (TurboJET + CotaiJet) with a twin-hull catamaran shape, raised bridge, and multi-deck cabin
 - **Timetable-driven simulation** — Schedule-synced playback with ETAs, service status, and trilingual labels (EN / 繁中 / PT)
@@ -59,7 +59,7 @@ Visualizes the **Macau Light Rapid Transit (LRT)**, **bus network**, **HK–Maca
 <summary><strong>Transit & simulation</strong></summary>
 
 - **3D LRT vehicles** — All 3 lines (Taipa, Seac Pai Van, Hengqin) with 15 stations, rendered as 3D models with real track geometry and elevated viaducts
-- **3D Bus fleet** — 92 routes with road-snapped paths via OSRM, including accurate bridge geometry (Macau–Taipa bridges)
+- **3D Bus fleet** — 91 routes with road-snapped paths via OSRM, including accurate bridge geometry (Macau–Taipa bridges)
 - **3D Aircraft** — about 160 real MFM airport flights (auto-synced daily) with detailed airplane models (fuselage, swept wings, vertical tail in airline colors, engine nacelles, window rows, cockpit windshield); aircraft park at 12 apron stands before departure and taxi along waypoint paths before takeoff
 - **Landing & holding patterns** — Aircraft approach from North or South with multi-waypoint landing routes; when the runway is occupied, arriving flights enter a realistic circular holding pattern above the airport and smoothly transition back to the landing route when clear
 - **3D Ferries** — 6 sea routes (Hong Kong Outer Harbour / Taipa / Sheung Wan, HKIA, Shenzhen Airport, Shekou) served by TurboJET and CotaiJet, rendered as a twin-hull catamaran model (flared hulls, raised bridge with wraparound windscreen, cabin, windows, roof equipment) following waypoint routes between berth and open water, with berth-facing headings while docked
