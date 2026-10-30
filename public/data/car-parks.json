@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-10-29T23:30:16.056911+00:00",
+  "fetchedAtUtc": "2026-10-30T22:47:58.224717+00:00",
   "sources": {
     "name": "交通事務局 (DSAT) – 停車場資料",
     "dataset": "https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706",
@@ -5231,7 +5231,7 @@
         "pt": "A entrada e saída no parque de estacionamento efectuam-se pela Rua Dois da Zona Este.",
         "en": "The Entrance and Exit of carpark are located on the Dois da Zona Este road."
       },
-      "phone": "",
+      "phone": "--",
       "heightLimitM": 2.0,
       "fees": {
         "light": {
@@ -5268,6 +5268,62 @@
       "coordinates": [
         113.563537,
         22.206639
+      ]
+    },
+    {
+      "id": "7103",
+      "name": {
+        "zh": "沙梨頭海邊大馬路公共停車場",
+        "pt": "Parque de Estacionamento Público da Avenida Marginal do Patane",
+        "en": "Parque de Estacionamento Público da Avenida Marginal do Patane"
+      },
+      "location": {
+        "zh": "沙梨頭海邊大馬路旁之區域",
+        "pt": "Constituído por uma área situada ao lado da Avenida Marginal do Patane.",
+        "en": "Located at Avenida Marginal do Patane."
+      },
+      "entrance": {
+        "zh": "入口及出口均設於沙梨頭海邊大馬路",
+        "pt": "A entrada e saída no parque de estacionamento efectuam-se pela Avenida Marginal do Patane.",
+        "en": "The Entrance and Exit of carpark are located on the Avenida Marginal do Patane."
+      },
+      "phone": "--",
+      "heightLimitM": null,
+      "fees": {
+        "light": {
+          "zh": "",
+          "pt": "",
+          "en": ""
+        },
+        "heavy": {
+          "zh": "",
+          "pt": "",
+          "en": ""
+        },
+        "moto": {
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
+        },
+        "remark": {
+          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前\n重型及輕型電單車：日間普通票，每半小時或不足半小時為澳門幣1元。夜間普通票，每半小時或不足半小時為澳門幣0.5元。\n進入停車場並於十五分鐘內離場，免收相關泊車費用。",
+          "pt": "Diurno:Das 8,00 horas até antes das 20,00 horas.\nNocturno:Das 20,00 horas até antes das 8,00 horas do dia seguintes.\nMotociclos e ciclomotores: Bilhete simples diurno - 1 pataca por cada meia hora ou fracção. O bilhete simples nocturno - Por cada hora ou fracção: 0,5 patacas.\nA entrada no parque de estacionamento e a saída dentro de 15 minutos estão isentas da tarifa devida pelo estacionamento.",
+          "en": "Day:From 8 a.m. to no later than 8 p.m..\nNight:From 8 p.m. to no later than 8 a.m. of the next day.\nLight and Heavy Motorcycles: Regular Fee (Day), every half an hour or part thereof MOP$1. Regular Fee(Night): every half an hour or part thereof MOP$0.5. .\nFree parking for entering and exiting within 15 minutes."
+        }
+      },
+      "zone": {
+        "zh": "澳門",
+        "pt": "Macau",
+        "en": "Macau"
+      },
+      "parish": {
+        "zh": "下環區",
+        "pt": "Barra/ Manduco",
+        "en": "Barra/ Manduco"
+      },
+      "coordinates": [
+        113.538647,
+        22.203198
       ]
     }
   ]
