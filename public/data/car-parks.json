@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-10-30T22:47:58.224717+00:00",
+  "fetchedAtUtc": "2026-10-31T22:33:21.870273+00:00",
   "sources": {
     "name": "交通事務局 (DSAT) – 停車場資料",
     "dataset": "https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706",
@@ -27,9 +27,9 @@
       "heightLimitM": 1.85,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -37,9 +37,9 @@
           "en": ""
         },
         "moto": {
-          "zh": "MOP$2(日間)\nMOP$1(夜間)",
-          "pt": "MOP$2 (Diurno)\nMOP$1 (Nocturno)",
-          "en": "MOP$2(Day)\nMOP$1(Night)"
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
         },
         "remark": {
           "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
@@ -83,9 +83,9 @@
       "heightLimitM": 1.95,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -98,9 +98,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "",
+          "pt": "",
+          "en": ""
         }
       },
       "zone": {
@@ -139,9 +139,9 @@
       "heightLimitM": 1.95,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -154,9 +154,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "",
+          "pt": "",
+          "en": ""
         }
       },
       "zone": {
@@ -195,9 +195,9 @@
       "heightLimitM": 1.95,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -205,14 +205,14 @@
           "en": ""
         },
         "moto": {
-          "zh": "MOP$2(日間)\nMOP$1(夜間)",
-          "pt": "MOP$2 (Diurno)\nMOP$1 (Nocturno)",
-          "en": "MOP$2(Day)\nMOP$1(Night)"
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "重型及輕型摩托車夜間封頂：$6",
+          "pt": "Encerramento nocturno de motociclos e ciclomotores: $6",
+          "en": ""
         }
       },
       "zone": {
@@ -251,9 +251,9 @@
       "heightLimitM": 1.9,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -266,9 +266,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "輕型汽車夜間封頂：＄24",
+          "pt": "Encerramento nocturno para automóveis ligeiros: $24",
+          "en": ""
         }
       },
       "zone": {
@@ -307,9 +307,9 @@
       "heightLimitM": 2.0,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -317,9 +317,9 @@
           "en": ""
         },
         "moto": {
-          "zh": "MOP$2(日間)\nMOP$1(夜間)",
-          "pt": "MOP$2 (Diurno)\nMOP$1 (Nocturno)",
-          "en": "MOP$2(Day)\nMOP$1(Night)"
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
         },
         "remark": {
           "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
@@ -419,9 +419,9 @@
       "heightLimitM": 1.95,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -434,9 +434,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "輕型汽車夜間封頂：＄24",
+          "pt": "Encerramento nocturno para automóveis ligeiros: $24",
+          "en": ""
         }
       },
       "zone": {
@@ -587,9 +587,9 @@
       "heightLimitM": 1.85,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -597,14 +597,14 @@
           "en": ""
         },
         "moto": {
-          "zh": "MOP$2(日間)\nMOP$1(夜間)",
-          "pt": "MOP$2 (Diurno)\nMOP$1 (Nocturno)",
-          "en": "MOP$2(Day)\nMOP$1(Night)"
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "輕型汽車夜間封頂：＄24",
+          "pt": "Encerramento nocturno para automóveis ligeiros: $24",
+          "en": ""
         }
       },
       "zone": {
@@ -643,9 +643,9 @@
       "heightLimitM": 1.97,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -658,9 +658,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "",
+          "pt": "",
+          "en": ""
         }
       },
       "zone": {
@@ -755,9 +755,9 @@
       "heightLimitM": 1.95,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -765,14 +765,14 @@
           "en": ""
         },
         "moto": {
-          "zh": "MOP$2(日間)\nMOP$1(夜間)",
-          "pt": "MOP$2 (Diurno)\nMOP$1 (Nocturno)",
-          "en": "MOP$2(Day)\nMOP$1(Night)"
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "重型及輕型摩托車日間封頂：$12、夜間封頂：$6",
+          "pt": "Motociclo e ciclomotor Cobertura diurna: $12, noturna: $6",
+          "en": ""
         }
       },
       "zone": {
@@ -1147,9 +1147,9 @@
       "heightLimitM": 2.1,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -1162,9 +1162,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "",
+          "pt": "",
+          "en": ""
         }
       },
       "zone": {
@@ -1203,14 +1203,14 @@
       "heightLimitM": 1.95,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
-          "zh": "MOP$8(日間)\nMOP$4(夜間)",
-          "pt": "MOP$8 (Diurno)\nMOP$4 (Nocturno)",
-          "en": "MOP$8(Day)\nMOP$4(Night)"
+          "zh": "MOP$4(日間)\nMOP$2(夜間)",
+          "pt": "Mop $4a cada meia hora(Diurno)\nMOP $4 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP4 for each half an hour\n(Nighttime) MOP2 for each half an hour"
         },
         "moto": {
           "zh": "",
@@ -1218,9 +1218,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "",
+          "pt": "",
+          "en": ""
         }
       },
       "zone": {
@@ -1371,9 +1371,9 @@
       "heightLimitM": 1.85,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -1381,9 +1381,9 @@
           "en": ""
         },
         "moto": {
-          "zh": "MOP$2(日間)\nMOP$1(夜間)",
-          "pt": "MOP$2 (Diurno)\nMOP$1 (Nocturno)",
-          "en": "MOP$2(Day)\nMOP$1(Night)"
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
         },
         "remark": {
           "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
@@ -2155,9 +2155,9 @@
       "heightLimitM": 1.85,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -2170,9 +2170,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "",
+          "pt": "",
+          "en": ""
         }
       },
       "zone": {
@@ -3051,9 +3051,9 @@
       "heightLimitM": 1.85,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -3066,9 +3066,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "",
+          "pt": "",
+          "en": ""
         }
       },
       "zone": {
@@ -3219,14 +3219,14 @@
       "heightLimitM": null,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
-          "zh": "MOP$8(日間)\nMOP$4(夜間)\n(註1)\n\nMOP$10(日間)\nMOP$5(夜間)\n(註2)",
-          "pt": "MOP$8 (Diurno)\nMOP$4 (Nocturno)\n(Nota 1)\n\nMOP$10 (Diurno)\nMOP$5 (Nocturno)\n(Nota 2)",
-          "en": "MOP$8(Day)\nMOP$4(Night)\n(Remark 1)\n\nMOP$10(Day)\nMOP$5(Night)\n(Remark 2)"
+          "zh": "(日間)每半小時$4\n(夜間)每半小時$2(註1)\n(日間)每半小時$5\n(夜間)每半小時$2.5 (註2)",
+          "pt": "MOP$4 (Diurno)\nMOP$2 (Nocturno)\n(Nota 1)\n\nMOP$5 (Diurno)\nMOP$2.5 (Nocturno)\n(Nota 2)",
+          "en": "(Daytime) MOP4 for each half an hour\n(Nighttime) MOP2 for each half an hour"
         },
         "moto": {
           "zh": "",
@@ -3234,9 +3234,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前\n註1：小型公共汽車及長度不超過7 米和總重量不超過7 公噸的重型車輛。\n註2：公共汽車及其他重型車輛。",
-          "pt": "Diurno：Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.\n\nNota 1: Mini-autocarros e veículos automóveis pesados até 7 metros de comprimento e 7 toneladas de peso bruto\nNota 2: Autocarros e outros veículos automóveis pesados",
-          "en": "Day：From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day.\n\nRemark 1: Light buses and heavy-duty vehicles with length not exceeding 7m and gross weight not exceeding 7 tonnes.\nRemark 2: Public vehicles and other heavy-duty vehicles"
+          "zh": "註1：小型公共汽車及長度不超過7米和總重量不超過7公噸的重型車輛。\n註2：公共汽車及其他重型車輛。",
+          "pt": "Nota 1: Mini-autocarros e veículos automóveis pesados até 7 metros de comprimento e 7 toneladas de peso bruto\nNota 2: Autocarros e outros veículos automóveis pesados",
+          "en": "Remark 1: Light buses and heavy-duty vehicles with length not exceeding 7m and gross weight not exceeding 7 tonnes.\nRemark 2: Public vehicles and other heavy-duty vehicles"
         }
       },
       "zone": {
@@ -3555,9 +3555,9 @@
       "heightLimitM": 1.95,
       "fees": {
         "light": {
-          "zh": "MOP$6(日間)\nMOP$3(夜間)",
-          "pt": "MOP$6 (Diurno)\nMOP$3 (Nocturno)",
-          "en": "MOP$6(Day)\nMOP$3(Night)"
+          "zh": "(日間)每半小時MOP$3\n(夜間) 每半小時MOP$1.5",
+          "pt": "Mop $3 a cada meia hora(Diurno)\nMOP $1,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP3 for each half an hour\n(Nighttime) MOP1.5 for each half an hour"
         },
         "heavy": {
           "zh": "",
@@ -3570,9 +3570,9 @@
           "en": ""
         },
         "remark": {
-          "zh": "日間：上午八時至下午八時前\n夜間：下午八時至翌日上午八時前",
-          "pt": "Diurno:Das 8,00 horas até antes das 20,00 horas.\nNocturno：Das 20,00 horas até antes das 8,00 horas do dia seguintes.",
-          "en": "Day:From 8 a.m. to no later than 8 p.m..\nNight：From 8 p.m. to no later than 8 a.m. of the next day."
+          "zh": "",
+          "pt": "",
+          "en": ""
         }
       },
       "zone": {
