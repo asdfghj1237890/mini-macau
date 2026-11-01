@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-10-01T23:29:20.480503+00:00",
-  "updatedAt": "2026-10-01T10:00:08+08:00",
+  "fetchedAtUtc": "2026-11-01T23:11:23.104973+00:00",
+  "updatedAt": "2026-10-29T10:00:02+08:00",
   "sources": {
     "name": "市政署 (IAM) – 公共廁所 / 無障礙公廁",
     "toilets": "https://data.gov.mo/Detail?id=f6a9892d-7e16-49f0-bcd3-573d670cefe5",
@@ -1763,8 +1763,8 @@
       "closed": false,
       "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/864_8e747fc9fa9942aafe5d1793f5bd12dc.jpg",
       "coordinates": [
-        113.563056,
-        22.121485
+        113.559116,
+        22.122018
       ]
     },
     {
@@ -5827,8 +5827,8 @@
       "closed": false,
       "photo": "https://www.iam.gov.mo/showFile.ashx?p=iamweb/List13/816_fb1d7e1aa4540e6ed27a5f17a5a60346.jpg",
       "coordinates": [
-        113.575524,
-        22.163571
+        113.575243,
+        22.163142
       ]
     },
     {
