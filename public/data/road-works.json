@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-10-31T22:29:00.971047+00:00",
-  "exportedAt": "2026-11-01T00:30:19+0800",
+  "fetchedAtUtc": "2026-11-01T22:22:02.913394+00:00",
+  "exportedAt": "2026-11-02T00:30:20+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -1844,46 +1844,6 @@
       "coordinates": [
         113.530526,
         22.182143
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2788/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車*",
-        "pt": "Ficará com condicionamentos ao trânsito*"
-      },
-      "location": {
-        "zh": "新勝街",
-        "pt": "Rua de Tomás Vieira"
-      },
-      "reason": {
-        "zh": "電纜鋪設工程",
-        "pt": "Obra de Lançamento de Cabos"
-      },
-      "principal": {
-        "zh": "澳門電力股份有限公司",
-        "pt": "CEM"
-      },
-      "contractor": {
-        "zh": "長江建築有限公司",
-        "pt": "Cheong Kong Construction Co. Ltd."
-      },
-      "details": {
-        "zh": "因進行電纜鋪設工程，於本年10月8日至11月1日，新勝街近賣菜巷的路段將實施有限度通車，並禁止車輛停泊編號3284(5至11)之咪錶泊車位、電單車泊車位及上落客貨位，另准許相關運輸車輛，於工作時在設置適當交通標誌的條件下，在該處停泊及上、落貨。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido à obra de lançamento de cabos, o troço da Rua de Tomás Vieira junto da Travessa da Mosca ficará com condicionamentos ao trânsito, sendo proibido o estacionamento nos lugares-parque com parquímetro n.os 3284(05 a 11) e nos lugares-parque de motociclos e na zona de carga-descarga e tomada-largada de passageiros, e permitido o estacionamento do veículo de transporte no local durante as operações de cargas e descargas, que deverá estar devidamente sinalizadas, nos dias 08/10/2026 a 01/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 25,
-        "hours": 0
-      },
-      "startDate": "2026-10-08",
-      "endDate": "2026-11-01",
-      "onlineDate": "2026-10-06",
-      "coordinates": [
-        113.54057,
-        22.198737
       ],
       "previousNotice": null
     },
@@ -3848,46 +3808,6 @@
       "previousNotice": null
     },
     {
-      "id": "3187/2026",
-      "restriction": "no_parking",
-      "restrictionText": {
-        "zh": "禁止泊車",
-        "pt": "Ficará proibido ao estacionamento"
-      },
-      "location": {
-        "zh": "船人街",
-        "pt": "Rua dos Navegantes"
-      },
-      "reason": {
-        "zh": "活動",
-        "pt": "Actividades"
-      },
-      "principal": {
-        "zh": "澳門街坊會聯合總會-片區發展中心",
-        "pt": "União Geral das Associações dos Moradores de Macau Centro de Desenvolvimento Local"
-      },
-      "contractor": {
-        "zh": "",
-        "pt": ""
-      },
-      "details": {
-        "zh": "為配合舉辦活動的關係，於本年10月30日至11月1日每日上午9時至晚上7時，除相關活動車輛外，禁止車輛停泊於船人街近碼頭前地的上落客貨區。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido à realização de actividades, será proibido o estacionamento de veículos, com excepção dos veículos afectos às actividades, na zona de carga e descarga na Rua dos Navegantes junto do Largo do Cais, diariamente das 09H00 às 19H00, nos dias 30/10/2026 a 01/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e/ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 2,
-        "hours": 10
-      },
-      "startDate": "2026-10-30",
-      "endDate": "2026-11-01",
-      "onlineDate": "2026-10-28",
-      "coordinates": [
-        113.549903,
-        22.118982
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "3221/2026",
       "restriction": "no_parking",
       "restrictionText": {
@@ -5406,6 +5326,46 @@
         22.154136
       ],
       "previousNotice": "3102/2026"
+    },
+    {
+      "id": "3258/2026",
+      "restriction": "closed",
+      "restrictionText": {
+        "zh": "封閉交通",
+        "pt": "Ficará vedado ao trânsito"
+      },
+      "location": {
+        "zh": "飛能便度街素啤古街,飛能便度街素啤古街胡琴巷施督憲正街",
+        "pt": "Rua Fernão Mendes PintoRua do Supico,Rua Fernão Mendes PintoRua do SupicoTravessa da RebecaRua Direita Carlos Eugénio"
+      },
+      "reason": {
+        "zh": "下水道整治工程安裝金屬圍欄工作接駁街渠工程維修路面工程安裝防撞柱工作水管鋪設工程管道鋪設工程電纜鋪設工程,管道鋪設工程",
+        "pt": "Obra de Reordenamento de EsgotoTrabalhos de Instalação de Gradeamento MetálicoObra de Ligação de EsgotoObra de Reparação de PavimentoTrabalhos de Instalação de Postes MetálicasObra de Assentamento de TubagemObra de Lançamento de Tubos de PVCObra de,Obra d"
+      },
+      "principal": {
+        "zh": "澳門城市燃氣有限公司,澳門電力股份有限公司",
+        "pt": "Macau City Gas Company Limited,CEM"
+      },
+      "contractor": {
+        "zh": "長江建築有限公司新同創建築工程有限公司黎培璧建築商澋域工程有限公司蔣國良建築商利豐建築工程有限公司景銘建築工程有限公司,瑞權工程有限公司",
+        "pt": "Cheong Kong Construction Co. Ltd.------Construtor Civil Cheong Kuok LeongCompanhia de Construção e Engenharia Lei Fung LdaCompanhia de Construcao e Obras Ken Meng Limitada,Sociedade de Engenharia Soi Kun Limitada"
+      },
+      "details": {
+        "zh": "為繼續進行接駁街渠、下水道整治、維修路面、水管、管道及電纜鋪設工程，於本年11月7日至12日，氹仔相關路段將引入以下臨時交通措施：\n禁止車輛停泊\n飛能便度街編號1144(1-11)的咪錶泊車位及編號1145(1-12) 的電單車咪錶泊車位。\n封閉交通\n介乎素啤古街與律政司街之間的一段施督憲正街。\n反方向行車\n介乎飛能便度街與嘉模泳池之間的一段素啤古街。\n臨時停用巴士站\nT318_泉悅花園；\nT319_嘉模泳池；\nT320_氹仔官也街；\nT321_氹仔中葡小學。\n設置臨時巴士站\n近燈柱編號733B06的一段奧林匹克大馬路；\n近燈柱編號712D07的一段巴波沙總督前地。\n其他\n禁止車輛長度超過7米的車輛由奧林匹克大馬路左轉往飛能便度街（特許車輛除外）；\n禁止車輛由嘉樂庇總督馬路左轉往素啤古街。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido às obras de ligação de esgoto, de reordenamento de esgoto, de reparação de pavimento, de assentamento de tubagem, de lançamento de tubos de pvc e de cabos, serão introduzidas alterações provisórias ao trânsito nas seguintes vias na Ilha da Taipa, nos dias 07 a 12/11/2026:\nProibição de estacionamento\nnos lugares-parque de automóvel ligeiro com parquímetros n.os 1144(01-11) e de motociclos com parquímetros n.os 1145(01-12) na Rua Fernão Mendes Pinto na Taipa.\nFicará vedado ao trânsito\no troço da Rua Direita Carlos Eugénio entre a Rua do Supico e a Rua do Delegado.\nFicará invertido o sentido de circulação\no troço da Rua do Supico entre a Rua Fernão Mendes Pinto e a Piscinas do Carmo.\nSerá provisóriamente desastivada a paragem de autocarros públicos\nT318_Edf. Chun Yuet Garden;\nT319_Piscinas do Carmo;\nT320_Rua do Cunha;\nT321_Escola Luso Chinesa Da Taipa.\nColocação provisória de paragem de autocarros públicos\no troço da Avenida Olímpica junto da iluminação pública n.o 733B06;\no troço do Largo Governador Tamagnini Barbosa junto da iluminação pública n.o 712D07.\nOutros\nSerá proibida a viragem à esquerda das viaturas de comprimento superior a 7 metros que circulem na Avenida Olímpica (à excepção dos veículos autorizados) para a Rua Fernão Mendes Pinto na Taipa;\nSerá proibida a viagem à esquerda das viaturas que circulem na Estrada Governador Nobre de Carvalho para a Rua do Supico.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 6,
+        "hours": 0
+      },
+      "startDate": "2026-11-07",
+      "endDate": "2026-11-12",
+      "onlineDate": "2026-11-05",
+      "coordinates": [
+        113.559269,
+        22.155118
+      ],
+      "previousNotice": "2930/2026"
     },
     {
       "id": "3174/2026",
