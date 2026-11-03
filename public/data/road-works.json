@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-11-01T22:22:02.913394+00:00",
-  "exportedAt": "2026-11-02T00:30:20+0800",
+  "fetchedAtUtc": "2026-11-03T01:43:17.418867+00:00",
+  "exportedAt": "2026-11-03T00:30:19+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -1284,46 +1284,6 @@
       "coordinates": [
         113.545773,
         22.207314
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "2639/2026",
-      "restriction": "closed",
-      "restrictionText": {
-        "zh": "封閉交通",
-        "pt": "Ficará vedado ao trânsito"
-      },
-      "location": {
-        "zh": "水手里,船錨里,煙草里,石里,媽閣上街",
-        "pt": "Beco do Marinheiro,Beco da Âncora,Beco do Tabaco,Beco da Pedra,Rua de S. Tiago da Barra"
-      },
-      "reason": {
-        "zh": "FSM工程,水管鋪設工程,行人路重整工程,管道鋪設工程,下水道整治工程",
-        "pt": "--,Obra de Assentamento de Tubagem,Obra de Reordenamento de Passeio,Obra de Lançamento de Tubos de PVC,Obra de Reordenamento de Esgoto"
-      },
-      "principal": {
-        "zh": "澳門自來水股份有限公司,澳門電訊股份有限公司,MTel 電信有限公司,澳門電力股份有限公司,公共建設區",
-        "pt": "SAAM,CTM,MTEL,CEM,DSOP"
-      },
-      "contractor": {
-        "zh": "協輝建築工程有限公司,明新工程,鴻運工程有限公司,保捷有限公司",
-        "pt": "--,FERMA ENG MENG SAN,E & E Empresa de Instalaçòes e Engenharia Lda.,--"
-      },
-      "details": {
-        "zh": "因進行水管、電纜、管道鋪設、下水道及行人道整治工程，相關路段將實施以下臨時交通管制措施︰\n禁止車輛停泊\n本年9月14日至11月2日，石里近媽閣上街的電單車泊車區。\n封閉交通\n本年9月14日至10月8日，船錨里、石里、及介乎樹木巷與船錨里之間的一段水手里。\n本年10月9日至11月2日，煙草里。\n有限度通車\n本年9月14日至11月2日，媽閣上街近石里的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido às obras de assentamento de tubagem, de assentamento de tubos de PVC, de lançamento de cabos, de reordenamento de esgoto e de passeio, serão introduzidas alterações provisórias ao trânsito nas seguintes vias:\nFicará proibidos de estacionar\nNos dias 14/09/2026 a 02/11/2026, nos lugares-parque de motociclos no troço do Beco da Pedra junto da Rua de S. Tiago da Barra.\nFicará vedado ao trânsito\nNos dias 14/09/2026 a 08/10/2026, Beco da Âncora, Beco da Pedra, o troço do Beco do Marinheiro entre a Travessa da Árvore e o Beco da Âncora;\nNos dias 09/10/2026 a 02/11/2026, Beco do Tabaco.\nFicará com condicionamentos ao trânsito\nNos dias 14/09/2026 a 02/11/2026, o troço da Rua de S. Tiago da Barra junto do Beco da Pedra.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 49,
-        "hours": 15
-      },
-      "startDate": "2026-09-14",
-      "endDate": "2026-11-02",
-      "onlineDate": "2026-09-12",
-      "coordinates": [
-        113.531536,
-        22.185222
       ],
       "previousNotice": null
     },
@@ -3968,46 +3928,6 @@
       "previousNotice": null
     },
     {
-      "id": "3196/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "永進大馬路",
-        "pt": "Avenida do Progresso"
-      },
-      "reason": {
-        "zh": "吊運機器工作",
-        "pt": "Trabalhos de Carregamento e Transporte de Máquina"
-      },
-      "principal": {
-        "zh": "全澳運輸及金屬回收有限公司",
-        "pt": "COMPANHIA DE TRANSPORTES E RECICLAGEM DE METAIS FULL MACAU LIMITADA"
-      },
-      "contractor": {
-        "zh": "",
-        "pt": ""
-      },
-      "details": {
-        "zh": "因進行吊運機器工作，路氹城永進大馬路將實施以下臨時交通管制措施，並准許編號MI-898或MI-899之工業機器車，在設置適當交通標誌的條件下，在該處停泊及吊運︰\n禁止車輛停泊\n於本年10月31日中午12時至11月1日上午6時\n- 在該路段編號1306 (8-11)的咪錶泊車位。\n於本年11月1日中午12時至11月2日上午6時\n- 在該路段編號1305 (13-16)的咪錶泊車位。\n有限度通車（在警方協助下，往順榮大馬路方向，佔用兩條車行道）\n於本年10月31日晚上11時至11月1日上午6時\n- 近燈柱編號778C05的路段。\n於本年11月1日晚上11時至11月2日上午6時\n- 近燈柱編號778C03的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de carregamento e transporte de máquina, serão introduzidas alterações temporárias ao trânsito na Avenida do Progresso em Cotai, sendo permitido o estacionamento da máquina industrial n.o MI-898 ou MI-899 no local, que deverá estar devidamente sinalizadas:\nSerão proibidos de estacionar\nDas 12H00 do dia 31/10/2026 às 06H00 ao dia 01/11/2026\n- nos lugares-parque com parquímetros n.os 1306 (08-11) deste troço.\nDas 12H00 do dia 01/11/2026 às 06H00 ao dia 02/11/2026\n- nos lugares-parque com parquímetros n.os 1305 (13-16) deste troço.\nFicarão com condicionamentos ao trânsito (com apoio policial, em direcção à Avenida da Prosperidade, menos duas faixas de rodagem)\nDas 23H00 do dia 31/10/2026 às 06H00 ao dia 01/11/2026\n- o troço junto da iluminação pública n.o 778C05.\nDas 23H00 do dia 01/11/2026 às 06H00 ao dia 02/11/2026\n- o troço junto da iluminação pública n.o 778C03.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 1,
-        "hours": 18
-      },
-      "startDate": "2026-10-31",
-      "endDate": "2026-11-02",
-      "onlineDate": "2026-10-29",
-      "coordinates": [
-        113.566766,
-        22.14518
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "3219/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -4084,46 +4004,6 @@
       "coordinates": [
         113.550432,
         22.214483
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "3272/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "基馬拉斯大馬路",
-        "pt": "Avenida de Guimarães"
-      },
-      "reason": {
-        "zh": "電纜穿線工作",
-        "pt": "Trabalhos de Lançamento de Cabos"
-      },
-      "principal": {
-        "zh": "澳門電力股份有限公司",
-        "pt": "CEM"
-      },
-      "contractor": {
-        "zh": "瑞權工程有限公司",
-        "pt": "Sociedade de Engenharia Soi Kun Limitada"
-      },
-      "details": {
-        "zh": "因進行電纜穿線工作，於本年10月31日至11月2日，每日上午9時30分至下午5時，基馬拉斯大馬路近帝庭軒的路段將實施有限度通車，工程地點禁止泊車。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de lançamento de cabos, o troço da Avenida de Guimarães junto do Edf. Imperial Mansion ficará com condicionamentos ao trânsito, sendo proibido o estacionamento no local da obra, das 09H30 às 17H00, nos dias 31/10/2026 a 02/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 2,
-        "hours": 8
-      },
-      "startDate": "2026-10-31",
-      "endDate": "2026-11-02",
-      "onlineDate": "2026-10-29",
-      "coordinates": [
-        113.556858,
-        22.159608
       ],
       "previousNotice": null
     },
@@ -4364,46 +4244,6 @@
       "coordinates": [
         113.57204,
         22.145168
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "3212/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "西灣湖景大馬路",
-        "pt": "Avenida Panorâmica do Lago Sai Van"
-      },
-      "reason": {
-        "zh": "檢測工作",
-        "pt": "Verificação"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "南方建築置業有限公司",
-        "pt": ""
-      },
-      "details": {
-        "zh": "因進行檢測工作，於本年11月2日上午9時至下午4時，介乎燈柱編號296B04與32B07之間的一段西灣湖景大馬路實施有限度通車。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido ao trabalho de verificação, o troço da Avenida Panorâmica do Lago Sai Van entre das iluminações públicas n.os 296B04 e 32B07 ficará com condicionamentos ao trânsito, das 09H00 às 16H00 do dia 02/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 0,
-        "hours": 7
-      },
-      "startDate": "2026-11-02",
-      "endDate": "2026-11-02",
-      "onlineDate": "2026-10-31",
-      "coordinates": [
-        113.533318,
-        22.179523
       ],
       "previousNotice": null
     },
