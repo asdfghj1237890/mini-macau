@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-11-05T00:20:18.716831+00:00",
-  "exportedAt": "2026-11-05T00:30:20+0800",
+  "fetchedAtUtc": "2026-11-06T00:03:05.363947+00:00",
+  "exportedAt": "2026-11-06T00:30:22+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -1528,46 +1528,6 @@
       "previousNotice": null
     },
     {
-      "id": "2885/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "白朗古將軍大馬路蓮峰體育中心",
-        "pt": "Avenida do General Castelo BrancoCENTRO DESPORTIVO LIN FONG"
-      },
-      "reason": {
-        "zh": "沙井及管道鋪設工程",
-        "pt": "Obra de Assentamento de Caixa de Visita e de Tubos de PVC"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "澳馬建築集團有限公司/上海隧道工程股份有限公司-澳門分公司/中機建設(澳門)有限公司合作經營",
-        "pt": ""
-      },
-      "details": {
-        "zh": "為設置臨時行人通道，於10月5日至11月5日，白朗古將軍大馬路近蓮峰泳池的一段實施有限度通車，禁止車輛停泊在該路段的上落客貨位及電單車泊車位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido à instalação de passagem temporária para peões, o troço da Av. do Gen. Castelo Branco junto do Complexo Desportivo de Macau ficará com condicionamentos ao trânsito, sendo proibido o estacionamento nos lugares-parque de carga-descarga e tomada-largada de passageiros e nos lugares-parque de motociclos, nos dias 05/10/2026 a 05/11/2026\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 31,
-        "hours": 9
-      },
-      "startDate": "2026-10-05",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-10-03",
-      "coordinates": [
-        113.545608,
-        22.207621
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "2899/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -2128,46 +2088,6 @@
       "previousNotice": null
     },
     {
-      "id": "3029/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "澳門橋大馬路港珠澳口岸環形馬路",
-        "pt": "Avenida da Ponte MacauEstrada Circular Fronteiriça de Hong Kong-Zhuhai-Macau"
-      },
-      "reason": {
-        "zh": "電纜穿線工作",
-        "pt": "Trabalhos de Lançamento de Cabos"
-      },
-      "principal": {
-        "zh": "澳門電力股份有限公司",
-        "pt": "CEM"
-      },
-      "contractor": {
-        "zh": "長江建築有限公司",
-        "pt": "Cheong Kong Construction Co. Ltd."
-      },
-      "details": {
-        "zh": "因進行電纜穿線工作，於本年10月12日至16日及10月20日至11月5日，每日凌晨零時至上午6時，澳門橋大馬路及港珠澳口岸環形馬路將在警方協助下實施有限度通車，並准許相關工作車輛於工作期間，在設置適當交通標誌的條件下於該處短暫停泊。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de lançamento de cabos, a Avenida da Ponte Macau e a Estrada Circular Fronteiriça de Hong Kong-Zhuhai-Macau ficará com condicionamento ao trânsito e com apoio policial, sendo permitida a paragem momentânea da viatura de transporte, no local em causa, durante a execução dos trabalhos, que deverá estar devidamente sinalizados, das 00H00 às 06H00, nos dias 12 a 16/10/2026 e 20/10/2026 a 05/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 24,
-        "hours": 6
-      },
-      "startDate": "2026-10-12",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-10-10",
-      "coordinates": [
-        113.56615,
-        22.208983
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "3052/2026",
       "restriction": "closed",
       "restrictionText": {
@@ -2488,46 +2408,6 @@
       "previousNotice": null
     },
     {
-      "id": "2968/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "爹美刁施拿地大馬路",
-        "pt": "Avenida de Demétrio Cinatti"
-      },
-      "reason": {
-        "zh": "電纜鋪設工程",
-        "pt": "Obra de Lançamento de Cabos"
-      },
-      "principal": {
-        "zh": "澳門電力股份有限公司",
-        "pt": "CEM"
-      },
-      "contractor": {
-        "zh": "景銘建築工程有限公司",
-        "pt": "Companhia de Construcao e Obras Ken Meng Limitada"
-      },
-      "details": {
-        "zh": "因進行電纜鋪設工程，於本年10月20日至11月5日，爹美刁施拿地大馬路近海德大廈及近寶來大廈的路段將實施有限度通車。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido à obra de lançamento de cabos, os troços da Avenida de Demétrio Cinatti juntos do Edf. Hoi Tak e do Edf. Pou Loi ficarão com condicionamentos ao trânsito, nos dias 20/10/2026 a 05/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 16,
-        "hours": 13
-      },
-      "startDate": "2026-10-20",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-10-18",
-      "coordinates": [
-        113.537508,
-        22.202748
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "3032/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -2804,46 +2684,6 @@
       "coordinates": [
         113.559591,
         22.157457
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "3119/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "城市日大馬路,科英布拉街",
-        "pt": "Avenida 24 de Junho,Rua Cidade de Coimbra"
-      },
-      "reason": {
-        "zh": "管道鋪設工程",
-        "pt": "Obra de Assentamento de Tubos de PVC"
-      },
-      "principal": {
-        "zh": "澳門電訊股份有限公司",
-        "pt": "CTM"
-      },
-      "contractor": {
-        "zh": "鴻運工程有限公司",
-        "pt": "E & E Empresa de Instalaçòes e Engenharia Lda."
-      },
-      "details": {
-        "zh": "因進行管道鋪設工程，以下道路將在實施有限度通車：\n於2026年10月22日至31日\n城市日大馬路近街燈棟編號16E14的路段 (靠近左車行道一側)。\n於2026年10月22日至11月5日每日上午9時30分至下午5時\n科英布拉街近城市日大馬路的路段 (靠近金苑大廈一側)。\n城市日大馬路近街燈棟編號16E11的路段 (靠近左車行道一側)。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido a obra de assentamento de tubos de PVC, as seguintes vias ficarão com condicionamentos ao trânsito:\nNos dias 22 a 31/10/2026\no troço da Avenida 24 de Junho junto da iluminação pública n.o 16E14 (do lado da faixa de rodagem à esquerda).\nDas 09H30 às 17H00 dos dias 22/10/2026 a 05/11/2026\no troço da Rua Cidade de Coimbra junto da Avenida 24 de Junho (do lado do Edifício Kam Yuen).\no troço da Avenida 24 de Junho junto da iluminação pública n.o 16E11 (do lado da faixa de rodagem à esquerda).\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 15,
-        "hours": 0
-      },
-      "startDate": "2026-10-22",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-10-20",
-      "coordinates": [
-        113.548623,
-        22.187716
       ],
       "previousNotice": null
     },
@@ -4328,46 +4168,6 @@
       "previousNotice": null
     },
     {
-      "id": "3245/2026",
-      "restriction": "no_parking",
-      "restrictionText": {
-        "zh": "禁止泊車",
-        "pt": "Ficará proibido ao estacionamento"
-      },
-      "location": {
-        "zh": "水池斜坡、松山晨運斜坡",
-        "pt": "Rampa do Reservatório Rampa do Padre Vasconcelos"
-      },
-      "reason": {
-        "zh": "移除樹木工作",
-        "pt": "Trabalhos de Remoção de Árvores"
-      },
-      "principal": {
-        "zh": "市政署",
-        "pt": "IAM"
-      },
-      "contractor": {
-        "zh": "",
-        "pt": ""
-      },
-      "details": {
-        "zh": "因進行移除樹木工作，禁止車輛停泊在以下泊車位，並准許相關輔助車輛，在設置適當交通標誌的條件下，於工作時在該處停泊：\n於本年11月3日上午9時至下午5時\n水池斜坡編號3018(11-15)的咪錶泊車位。\n於本年11月4日上午9時至11月5日下午5時\n松山晨運斜坡編號3033(1-3)的咪錶泊車位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de remoção de árvores, será proibido o estacionamento nas seguintes lugares-parque, sendo permitido o estacionamento do veículo de apoio no local, durante a execução dos trabalhos, que deverá estar devidamente sinalizado:\nDas 09H00 às 17H00 do dia 03/11/2026\nnos lugares-parque com parquímetro n.º 3018(11-15) na Rampa do Reservatório.\nDas 09H00 do dia 04/11/2026 às 17H00 do dia 05/11/2026\nnos lugares-parque com parquímetro n.º 3033(1-3) na Rampa do Padre Vasconcelos.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 2,
-        "hours": 8
-      },
-      "startDate": "2026-11-03",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-11-01",
-      "coordinates": [
-        113.550093,
-        22.197351
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "3252/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -4404,46 +4204,6 @@
       "coordinates": [
         113.545977,
         22.189894
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "3255/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "美副將馬路,大纜巷",
-        "pt": "Travessa da CordaESCOLA PRIMÁRIA ANEXA À ESCOLA LOU HAUEDF. VENG HOUEDF. HANG FUNG,Travessa da Corda"
-      },
-      "reason": {
-        "zh": "檢測標線及標誌工作",
-        "pt": "Trabalhos de Verificação de Sinalização Horizontal e Vertical"
-      },
-      "principal": {
-        "zh": "交通事務局",
-        "pt": "DSAT"
-      },
-      "contractor": {
-        "zh": "新宏達建材裝飾工程有限公司,蔣國良建築商",
-        "pt": "Xin Hong Da Building & Decoration Co Ltd,Construtor Civil Cheong Kuok Leong"
-      },
-      "details": {
-        "zh": "因繼續進行檢測標線及標誌工作，每日上午9時30分至下午4時30分，相關道路維持在警方協助下實施有限度通車︰\n於本年11月3日\n氹仔美副將馬路近珍珠圍的路段。\n於本年11月5日\n大纜巷近勞校中學附屬小學的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de verificação de sinalização horizontal e vertical, as seguintes vias ficarão com condicionamentos ao trânsito e com apoio policial, das 09H30 às 16H30:\ndo dia 03/11/2026\no troço da Estrada Coronel Nicolau de Mesquita na Ilha da Taipa junto do Beco da Pérola.\ndo dia 05/11/2026\no troço da Travessa da Corda junto do Escola Primária Anexa à Escola Lou Hau.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 2,
-        "hours": 7
-      },
-      "startDate": "2026-11-03",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-11-01",
-      "coordinates": [
-        113.560521,
-        22.157339
       ],
       "previousNotice": null
     },
@@ -4564,86 +4324,6 @@
       "coordinates": [
         113.542739,
         22.210178
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "3238/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "青洲大馬路、氹仔柯維納馬路",
-        "pt": "Avenida do Conselheiro Borja Estrada Governador Albano de Oliveira na Ilha da Taipa"
-      },
-      "reason": {
-        "zh": "遷移樹木工作",
-        "pt": "Trabalhos de Transplante de Árvores"
-      },
-      "principal": {
-        "zh": "市政署",
-        "pt": "IAM"
-      },
-      "contractor": {
-        "zh": "力寶威建築置業有限公司",
-        "pt": "Cia.de Construcao e Fomento Predial Lek Pou Wai, Lda"
-      },
-      "details": {
-        "zh": "因進行遷移樹木工作，本年11月4日及5日，以下路段將在警方協助下實施有限度通車，並准許編號MT-92-13之工作車輛，在設置適當交通標誌的條件下，於該處停泊及進行吊運工作：\n每日上午9時30分至|下午1時\n青洲大馬路近台山街市市政綜合大樓的路段。\n每日下午2時至5時30分\n氹仔柯維納馬路近輕軌馬會站的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido ao trabalho de transplante de árvores, as seguintes vias ficarão com condicionamentos ao trânsito e com apoio policial, sendo permitido o estacionamento do veículo n.o MT-92-13 no local, durante as operações de cargas e descargas, que deverá estar devidamente sinalizado, nos dias 04 e 05/11/2026:\nDas 09H30 às 13H00\no troço da Avenida do Conselheiro Borja junto do Complexo Municipal do Mercado de Tamagnini Barbosa.\nDas 14H00 às 17H30\no troço da Estrada Governador Albano de Oliveira na Ilha da Taipa junto do Estação do Jockey Clube.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 2,
-        "hours": 0
-      },
-      "startDate": "2026-11-04",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-11-02",
-      "coordinates": [
-        113.545678,
-        22.210511
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "3269/2026",
-      "restriction": "no_parking",
-      "restrictionText": {
-        "zh": "禁止泊車",
-        "pt": "Ficará proibido ao estacionamento"
-      },
-      "location": {
-        "zh": "青洲新馬路",
-        "pt": "Estrada Nova da Ilha Verde"
-      },
-      "reason": {
-        "zh": "搬運及起卸設備工作",
-        "pt": "Trabalhos de Transporte e Carregamento de Equipamento"
-      },
-      "principal": {
-        "zh": "澳門電力股份有限公司",
-        "pt": "CEM"
-      },
-      "contractor": {
-        "zh": "鴻運工程有限公司",
-        "pt": "E & E Empresa de Instalaçòes e Engenharia Lda."
-      },
-      "details": {
-        "zh": "因進行搬運及起卸設備工作，青洲新馬路將引入以下臨時交通改動措施︰\n於本年11月4日下午2時至11月5日下午1時，禁止車輛停泊\n近瑞祥新邨的路段之澳門特殊奧運會留用泊車位；\n近青松樓的路段之上落客貨位，並用作設置臨時澳門特殊奧運會留用泊車位。\n於本年11月5日上午9時至下午1時，有限度通車\n近瑞祥新邨的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de transporte e carregamento de equipamento, serão introduzidas alterações temporárias ao trânsito na Estrada Nova da Ilha Verde:\ndas 14H00 do dia 04/11/2026 às 13H00 do dia 05/11/2026, será proibido o estacionamento\nno lugar-parque reservado ao Macau Special Olympics no troço junto do Complexo Residencial Soi Cheong;\nna zona de carga-descarga e tomada-largada de passageiros no troço junto do Edf. Cheng Chong, para colocação provisória de lugar-parque reservado ao Macau Special Olympics.\ndas 09H00 às 13H00 do dia 05/11/2026, ficará com condicionamentos ao trânsito\no troço junto do Complexo Residencial Soi Cheong.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 0,
-        "hours": 23
-      },
-      "startDate": "2026-11-04",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-11-02",
-      "coordinates": [
-        113.538803,
-        22.212745
       ],
       "previousNotice": null
     },
@@ -4848,86 +4528,6 @@
       "previousNotice": null
     },
     {
-      "id": "3295/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "高士德大馬路",
-        "pt": "Avenida de Horta e Costa"
-      },
-      "reason": {
-        "zh": "修剪樹枝工作",
-        "pt": "Trabalhos de Poda de Árvores"
-      },
-      "principal": {
-        "zh": "市政署",
-        "pt": "IAM"
-      },
-      "contractor": {
-        "zh": "",
-        "pt": ""
-      },
-      "details": {
-        "zh": "因進行修剪樹枝工作，於2026年11月5日上午9時30分至中午12時及下午3時至5時，高士德大馬路近羅若翰神父街的路段將實施有限度通車，並准許相關輔助車輛，在設置適當交通標誌及警方協助下的條件下，於工作時在該處停泊。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de poda de árvores, o troço da Avenida de Horta e Costa junto da Rua do Padre João Clímaco ficará com condicionamentos ao trânsito, sendo permitido o estacionamento do veículo de apoio no local, durante a execução dos trabalhos, que deverá estar devidamente sinalizado e com apoio policial, das 09H30 às 12H00 e das 15H00 às 17H00, no dia 05/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 0,
-        "hours": 8
-      },
-      "startDate": "2026-11-05",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-11-03",
-      "coordinates": [
-        113.544928,
-        22.204804
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "3311/2026",
-      "restriction": "no_parking",
-      "restrictionText": {
-        "zh": "禁止泊車",
-        "pt": "Ficará proibido ao estacionamento"
-      },
-      "location": {
-        "zh": "田畔街",
-        "pt": "Rua de Entre-Campos"
-      },
-      "reason": {
-        "zh": "緊急水管維修工程",
-        "pt": "Obra de Reparação Urgente de Tubagem"
-      },
-      "principal": {
-        "zh": "澳門自來水股份有限公司",
-        "pt": "SAAM"
-      },
-      "contractor": {
-        "zh": "利馬建築工程有限公司",
-        "pt": "Companhia de Construção Imobiliaria Resoma Limitada"
-      },
-      "details": {
-        "zh": "因進行緊急水管維修工程，本年11月5日，禁止車輛停泊田畔街編號3259(11)之咪錶泊車位，另准許相關輔助車輛，在設置適當交通標誌的條件下，於該處停泊及上、落貨。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido à obra de reparação urgente de tubagem, será proibido o estacionamento no lugar-parque com parquímetro n.o 3259(11) na Rua de Entre-Campos, sendo permitido o estacionamento do veículo de transporte no local durante as operações de cargas e descargas, que deverá estar devidamente sinalizadas, no dia 05/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 1,
-        "hours": 0
-      },
-      "startDate": "2026-11-05",
-      "endDate": "2026-11-05",
-      "onlineDate": "2026-11-03",
-      "coordinates": [
-        113.541745,
-        22.200706
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "3318/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -5044,6 +4644,46 @@
       "coordinates": [
         113.541385,
         22.197798
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3315/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "路氹連貫公路",
+        "pt": "路氹連貫公路"
+      },
+      "reason": {
+        "zh": "管道鋪設工程",
+        "pt": "Obra de Lançamento de Tubos de PVC"
+      },
+      "principal": {
+        "zh": "澳門電訊股份有限公司",
+        "pt": "CTM"
+      },
+      "contractor": {
+        "zh": "鴻運工程有限公司",
+        "pt": "E & E Empresa de Instalaçòes e Engenharia Lda."
+      },
+      "details": {
+        "zh": "因進行管道鋪設工程，於本年11月6日至10日，路氹連貫公路近路氹城大馬路的路段將實施有限度通車。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido à obra de lançamento de tubos de PVC, o troço da Estrada do Istmo junto da Avenida de COTAI ficará com condicionamentos ao trânsito, do dia 06/11/2026 ao dia 10/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 4,
+        "hours": 23
+      },
+      "startDate": "2026-11-06",
+      "endDate": "2026-11-10",
+      "onlineDate": "2026-11-04",
+      "coordinates": [
+        113.563294,
+        22.142735
       ],
       "previousNotice": null
     },
@@ -5208,6 +4848,46 @@
       "previousNotice": null
     },
     {
+      "id": "3298/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "羅理基博士大馬路",
+        "pt": "Avenida do Dr. Rodrigo Rodrigues"
+      },
+      "reason": {
+        "zh": "維修路面工程",
+        "pt": "Obra de Reparação de Pavimento"
+      },
+      "principal": {
+        "zh": "公共建設局",
+        "pt": "DSOP"
+      },
+      "contractor": {
+        "zh": "長江建築有限公司",
+        "pt": "Cheong Kong Construction Co. Ltd."
+      },
+      "details": {
+        "zh": "因進行維修路面工程，於本年11月7日上午9時至下午5時，羅理基博士大馬路近南光大廈的路段將在警方協助下實施有限度通車，並禁止車輛停泊該路段的上落客貨位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido a obra de reparação de pavimento, o troço da Avenida do Dr. Rodrigo Rodrigues junto do Nam Kwong Building ficará com condicionamentos ao trânsito e com apoio policial, sendo proibido o estacionamento na zona de carga-descarga e tomada-largada de passageiro deste troço, das 09H00 às 17H00, no dia 07/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 0,
+        "hours": 8
+      },
+      "startDate": "2026-11-07",
+      "endDate": "2026-11-07",
+      "onlineDate": "2026-11-05",
+      "coordinates": [
+        113.546958,
+        22.192241
+      ],
+      "previousNotice": null
+    },
+    {
       "id": "3307/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -5284,6 +4964,86 @@
       "coordinates": [
         113.543765,
         22.187321
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3320/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "孫逸仙大馬路",
+        "pt": "Avenida Dr. Sun Yat-Sen"
+      },
+      "reason": {
+        "zh": "緊急維修路面工程",
+        "pt": "Obra de Reparação Urgente do Pavimento"
+      },
+      "principal": {
+        "zh": "澳門城市燃氣有限公司",
+        "pt": "Macau City Gas Company Limited"
+      },
+      "contractor": {
+        "zh": "德發建業工程有限公司",
+        "pt": "Empresa de Construcao e Obras de Engenharia Tak Fat Kin Ip Lda"
+      },
+      "details": {
+        "zh": "因進行緊急維修路面工程，於2026年11月7日上午9時30分至下午5時，介乎冼星海大馬路與科學館圓形地之間的一段孫逸仙大馬路 (往友誼大馬路方向) (靠近左方車行道一側) 將在警方協助下實施有限度通車。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido à obra de reparação urgente do pavimento, o troço da Avenida Dr. Sun Yat-Sen entre a Avenida Xian Xing Hai e a Rotunda de Centro de Ciência (em direcção à Avenida da Amizade) (do lado da faixa de rodagem à esquerda) ficará com condicionamentos ao trânsito e com apoio policial, das 09H30 às 17H00 do dia 07/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e/ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 0,
+        "hours": 8
+      },
+      "startDate": "2026-11-07",
+      "endDate": "2026-11-07",
+      "onlineDate": "2026-11-05",
+      "coordinates": [
+        113.555023,
+        22.188002
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3325/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "多處道路",
+        "pt": "Vários Arruamentos"
+      },
+      "reason": {
+        "zh": "設置標線及標誌工作",
+        "pt": "Trabalhos de Instalação de Sinalização Horizontal e Vertical"
+      },
+      "principal": {
+        "zh": "交通事務局",
+        "pt": "DSAT"
+      },
+      "contractor": {
+        "zh": "新宏達建材裝飾工程有限公司,蔣國良建築商",
+        "pt": "Xin Hong Da Building & Decoration Co Ltd,Construtor Civil Cheong Kuok Leong"
+      },
+      "details": {
+        "zh": "因進行設置標線及標誌工作，相關道路將實施以下交通措施︰\n有限度通車（每日上午9時30分至下午4時30分）\n於本年11月7日至15日\n- 介乎永富街與永勝街之間的一段北安大馬路。\n於本年11月9日至10日（在警方協助下）\n- 殷皇子大馬路近中國銀行大廈的路段。\n禁止車輛停泊\n於本年11月10日至15日\n- 黑沙環中街近海名居的路段之上落客貨位；\n- 東北巷近東北大馬路的路段之上落客貨位。\n於本年11月11日至15日\n- 勞動節大馬路近廣華新邨的路段及近御景灣 (第五座)的路段之上落客貨位。\n於本年11月15日至16日\n- 爹利仙拿姑娘街編號3292 (5)之咪錶泊車位。\n於本年11月15日至18日\n- 高美士街近狄芃尼．豪舍的路段之上落客貨位及近金豐大廈(第二座)之電單車泊車位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido aos trabalhos de instalação de sinalização horizontal e vertical, serão introduzidas alterações temporárias ao trânsito nas seguintes vias:\nFicarão com condicionamentos ao trânsito (das 09H30 às 16H30)\nnos dias 07 a 15/11/2026\n- o troço da Estrada de Pac On entre a Rua da Riqueza e a Rua da Vitória.\nnos dias 09 a 10/11/2026 (com apoio policial)\n- o troço da Avenida do Infante D. Henrique junto do Edf. Banco da China.\nSerá proibido o estacionamento\nnos dias 10 a 15/11/2026\n- na zona de carga-descarga e tomada-largada de passageiros no troço da Rua Central da Areia Preta junto do La Baie du Noble;\n- na zona de carga-descarga e tomada-largada de passageiros no troço da Travessa do Nordeste junto da Avenida do Nordeste.\nnos dias 11 a 15/11/2026\n- na zona de carga-descarga e tomada-largada de passageiros nos troços da Avenida 1º de Maio junto do Edf. Kuong Wa e junto do The Bayview (Block V).\nnos dias 15 a 16/11/2026\n- nos lugares-parque com parquímetros n.o 3292 (05) na Rua da Madre Terezina.\nnos dias 15 a 18/11/2026\n- na zona de carga-descarga e tomada-largada de passageiros nos troços da Rua de Luís Gonzaga Gomes junto do Tiffany House e nos lugares-parque de motociclos junto do Edificio Golden Peak (Bloco II).\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 11,
+        "hours": 9
+      },
+      "startDate": "2026-11-07",
+      "endDate": "2026-11-18",
+      "onlineDate": "2026-11-05",
+      "coordinates": [
+        113.547411,
+        22.20567
       ],
       "previousNotice": null
     },
@@ -5448,6 +5208,246 @@
       "previousNotice": null
     },
     {
+      "id": "3308/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "史伯泰海軍馬路,盧廉若馬路",
+        "pt": "Estrada Almirante Marques Esparteiro,Estrada Lou Lim Ieok"
+      },
+      "reason": {
+        "zh": "道路重整工程,電纜鋪設工程,管道鋪設工程",
+        "pt": "Obra de Reordenamento Viário,Obra de Lançamento de Cabos,Obra de Lançamento de Tubos de PVC"
+      },
+      "principal": {
+        "zh": "交通事務局,澳門電力股份有限公司,澳門電訊股份有限公司",
+        "pt": "DSAT,CEM,CTM"
+      },
+      "contractor": {
+        "zh": "利成建築工程有限公司,長江建築有限公司,瑞權工程有限公司,瑞權工程有限公司利成創新建築工程有限公司蔣國良建築商",
+        "pt": "LEI SENG CONSTRUCTION CO.LTD,Cheong Kong Construction Co. Ltd.,Sociedade de Engenharia Soi Kun Limitada,--"
+      },
+      "details": {
+        "zh": "因進行電纜、管道鋪設及道路重整工程，於本年11月9日至12月4日，氹仔以下道路將實施有限度通車：\n介乎宋玉生博士圓形地與盧廉若馬路之間的一段史伯泰海軍將軍馬路 (往宋玉生博士圓形地方向)；\n每日上午9時30分至下午5時 - 介乎宋玉生博士圓形地與加德士油站之間的一段史伯泰海軍將軍馬路 (往蘇利安圓形地方向)；\n盧廉若馬路近加德士油站的路段，並禁止車輛停泊在該路段編號1023(10-14)的咪錶泊車位及澳門明愛留用泊車位，編號1023(13-14)的咪錶泊車位將作為澳門明愛臨時留用泊車位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido às obras de lançamento de cabos, de lançamento de tubos de PVC e de Reordenamento Viário, as seguintes vias na Ilha da Taipa ficarão com condicionamentos ao trânsito, nos dias 09/11/2026 a 04/12/2026:\no troço da Estrada Almirante Marques Esparteiro entre a Rotunda Dr. Carlos Augusto Corrêa Paes d'Assumpção e a Estrada Lou Lim Ieok (em direcção à Rotunda Dr. Carlos Augusto Corrêa Paes d'Assumpção);\nDas 09H30 às 17H00 - o troço da Estrada Almirante Marques Esparteiro entre a Rotunda Dr. Carlos Augusto Corrêa Paes d'Assumpção e o Caltex (em direcção à Rotunda de Leonel de Sousa);\no troço da Estrada Lou Lim Ieok junto do Caltex, sendo proibido o estacionamento nos lugares-parque com parquímetros n.os 1023 (10-14) e lugar-parque reservado à Caritas de Macau deste troço, os lugares-parque com parquímetros n.os 1023 (13-14) para colocação provisória de lugar-parque reservado à Caritas de Macau.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 25,
+        "hours": 0
+      },
+      "startDate": "2026-11-09",
+      "endDate": "2026-12-04",
+      "onlineDate": "2026-11-07",
+      "coordinates": [
+        113.554407,
+        22.162499
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3323/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "沙梨頭南街,沙梨頭北街",
+        "pt": "Rua Sul do Patane,Rua Norte do Patane"
+      },
+      "reason": {
+        "zh": "翻新標線及標誌工作",
+        "pt": "Trabalhos de Pintura de Sinalização Horizontal e Vertical"
+      },
+      "principal": {
+        "zh": "交通事務局",
+        "pt": "DSAT"
+      },
+      "contractor": {
+        "zh": "新宏達建材裝飾工程有限公司",
+        "pt": "Xin Hong Da Building & Decoration Co Ltd"
+      },
+      "details": {
+        "zh": "因進行翻新標線及標誌工作，於本年11月9日至14日，每日上午9時30分至下午4時30分及晚上10時至翌日上午6時，相關道路將在警方協助下實施有限度通車︰\n沙梨頭南街近聖瑪大肋納學校的路段；\n介乎青洲大馬路與沙梨頭北巷之間的一段沙梨頭北街。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido aos trabalhos de pintura de sinalização horizontal e vertical, as seguintes vias ficarão com condicionamentos ao trânsito e com apoio policial, das 09H30 às 16H30 e das 22H00 às 06H00, nos dias 09 a 14/11/2026:\no troço da Rua Sul do Patane junto do Escola de Santa Madalena;\no troço da Rua Norte do Patane entre a Avenida do Conselheiro Borja e a Travessa Norte do Patane.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 5,
+        "hours": 21
+      },
+      "startDate": "2026-11-09",
+      "endDate": "2026-11-15",
+      "onlineDate": "2026-11-07",
+      "coordinates": [
+        113.542049,
+        22.207641
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3327/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "多處道路",
+        "pt": "Vários Arruamentos"
+      },
+      "reason": {
+        "zh": "光纖穿線工作",
+        "pt": "Trabalhos de Lançamento de Cabos Fibra Óptica"
+      },
+      "principal": {
+        "zh": "澳門電力股份有限公司",
+        "pt": "CEM"
+      },
+      "contractor": {
+        "zh": "利成建築工程有限公司",
+        "pt": "Lei Seng Construction Co.Ltd"
+      },
+      "details": {
+        "zh": "因進行光纖穿線工作，相關道路將實施以下臨時交通管制措施，並准許相關工作車輛，在設置適當交通標誌條件下於工作地點附近短暫停泊：\n有限度通車(在警方協助下)\n本年11月9日至11日每日上午9時30分至下午4時30分\n介乎安苑與峰景大廈之間的一段民國大馬路。\n本年11月11日至14日每日上午9時30分至下午4時30分\n介乎衣灣斜巷與峰景大廈之間的一段民國大馬路。\n衣灣斜巷。\n竹仔室斜巷近高可寧紳士街的路段。\n介乎竹仔室斜巷與濠璟酒店之間的一段高可寧紳士街。\n禁止車輛停泊\n本年11月9日至11日\n民國大馬路編號4234(21、25、28及29)、4236(34、36)、4238(45、50)、4239(55、58及59)的咪錶泊車位及電單車泊車位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido ao trabalhos de lançamento de cabos de fibra óptica, serão introduzidas alterações provisórias ao trânsito nas seguintes vias, sendo permitida a paragem momentânea do veículo no local, durante a execução dos trabalhos, que deverá estar devidamente sinalizado:\nFicarão com condicionamentos ao trânsito e com apoio policial\nDas 09H30 às 16H30 dos dias 09 a 11/11/2026\no troço da Avenida da República entre o Edifício Baía e o Edifício Bela Vista.\nDas 09H30 às 16H30 dos dias 11 a 14/11/2026\no troço da Avenida da República entre a Calçada da Praia e o Edifício Bela Vista.\na Calçada da Praia.\no troço da Calçada das Chácaras junto da Rua do Comendador Kou Hó Neng.\no troço da Rua do Comendador Kou Hó Neng entre a Calçada das Chácaras e o Hotel Ritz.\nFicará proibidos de estacionar\nNos dias 09 a 11/11/2026\nnos lugares-parque com parquímetros n.os 4234(21, 25, 28 e 29), 4236(34, 36), 4238(45, 50), 4239(55, 58 e 59) e nos lugares-parque de motociclo na Avenida da República.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 6,
+        "hours": 0
+      },
+      "startDate": "2026-11-09",
+      "endDate": "2026-11-14",
+      "onlineDate": "2026-11-07",
+      "coordinates": [
+        113.533329,
+        22.182196
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3329/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "新黑沙馬路",
+        "pt": "Estrada Nova de Hac Sá"
+      },
+      "reason": {
+        "zh": "搬運及起卸設備工作",
+        "pt": "Trabalhos de Transporte e Carregamento de Equipamento"
+      },
+      "principal": {
+        "zh": "澳門電力股份有限公司",
+        "pt": "CEM"
+      },
+      "contractor": {
+        "zh": "鴻運工程有限公司",
+        "pt": "E & E Empresa de Instalaçòes e Engenharia Lda."
+      },
+      "details": {
+        "zh": "因進行搬運及起卸設備工作，本年11月9日上午9時30分至中午12時30分，新黑沙馬路內路近燈柱編號906B08的路段將實施有限度通車，另准許編號MM-49-88之工作車輛，在設置適當交通標誌以及警方協助的條件下，於工作時在該處停泊。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido aos trabalhos de carregamento e transporte de equipamento, o troço da via interior da Estrada Nova de Hac Sá junto da iluminação pública n.o 906B08 ficará com condicionamentos ao trânsito, sendo permitido o estacionamento do veículo com a matrícula n.o MM-49-88 no local durante a execução dos trabalhos, que deverá estar devidamente sinalizado e com apoio policial, das 09H30 às 12H30 do dia 09/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 0,
+        "hours": 3
+      },
+      "startDate": "2026-11-09",
+      "endDate": "2026-11-09",
+      "onlineDate": "2026-11-07",
+      "coordinates": [
+        113.569181,
+        22.119206
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3331/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "北安港大馬路",
+        "pt": "Avenida do Porto de Pac On"
+      },
+      "reason": {
+        "zh": "光纖穿線工作",
+        "pt": "Trabalhos de Lançamento de Cabos Fibra Óptica"
+      },
+      "principal": {
+        "zh": "澳門電訊股份有限公司",
+        "pt": "CTM"
+      },
+      "contractor": {
+        "zh": "-",
+        "pt": "-"
+      },
+      "details": {
+        "zh": "因進行光纖穿線工作，本年11月9日上午9時30分至下午4時30分，以下道路將實施有限度通車：\n北安港廣場近燈柱編號800D18的路段。\n北安港大馬路近燈柱編號800D16的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido aos trabalhos de lançamento de cabos de fibra óptica, as seguintes vias ficarão com condicionamentos ao trânsito, das 09H30 às 16H30 do dia 09/11/2026:\no troço da Praça do Porto de Pac On junto da iluminação pública n.º 800D18.\no troço da Avenida do Porto de Pac On junto da iluminação pública n.º 800D16.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e/ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 0,
+        "hours": 7
+      },
+      "startDate": "2026-11-09",
+      "endDate": "2026-11-09",
+      "onlineDate": "2026-11-07",
+      "coordinates": [
+        113.575572,
+        22.162749
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3333/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "西灣湖景大馬路",
+        "pt": "Avenida Panorâmica do Lago Sai Van"
+      },
+      "reason": {
+        "zh": "修剪樹枝工作",
+        "pt": "Trabalhos de Poda de Árvores"
+      },
+      "principal": {
+        "zh": "市政署",
+        "pt": "IAM"
+      },
+      "contractor": {
+        "zh": "",
+        "pt": ""
+      },
+      "details": {
+        "zh": "因進行修剪樹枝工作，於2026年11月9日及10日，每日上午10時至中午12時30分及下午3時至4時30分，西灣湖景大馬路將實施有限度通車，並准許相關輔助車輛，在設置適當交通標誌及警方協助下的條件下，於工作時在該處停泊：\n介乎燈柱編號32E01與32E02之間的路段。\n介乎燈柱編號174A03與174C01之間的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido aos trabalhos de poda de árvores, a Avenida Panorâmica do Lago Sai Van ficará com condicionamentos ao trânsito, sendo permitido o estacionamento do veículo de apoio no local, durante a execução dos trabalhos, que deverá estar devidamente sinalizado e com apoio policial, das 10H00 às 12H30 e das 15H00 às 16H30, nos dias 09 e 10/11/2026:\no troço entre as iluminações públicas n.os 32E01 e 32E02.\no troço entre as iluminações públicas n.os 174A03 e 174C01.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e/ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 1,
+        "hours": 7
+      },
+      "startDate": "2026-11-09",
+      "endDate": "2026-11-10",
+      "onlineDate": "2026-11-07",
+      "coordinates": [
+        113.531505,
+        22.180354
+      ],
+      "previousNotice": null
+    },
+    {
       "id": "3155/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -5484,6 +5484,46 @@
       "coordinates": [
         113.549945,
         22.192475
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3334/2026",
+      "restriction": "no_parking",
+      "restrictionText": {
+        "zh": "禁止泊車",
+        "pt": "Ficará proibido ao estacionamento"
+      },
+      "location": {
+        "zh": "市場街",
+        "pt": "Rua do Mercado de Iao Hon"
+      },
+      "reason": {
+        "zh": "修剪樹枝工作",
+        "pt": "Trabalhos de Poda de Árvores"
+      },
+      "principal": {
+        "zh": "市政署",
+        "pt": "IAM"
+      },
+      "contractor": {
+        "zh": "",
+        "pt": ""
+      },
+      "details": {
+        "zh": "因進行修剪樹枝工作，市場街將實施以下臨時交通管制措施，並准許相關輔助車輛，在設置適當交通標誌的條件下，於工作時在該處停泊：\n有限度通車(在警方協助下)\n於2026年11月10日至13日，每日上午9時30分至中午12時及下午3時至5時，近祐漢街市的路段。\n禁止車輛停泊\n於2026年11月10日上午9時至11日下午5時，編號2177(17至34)的咪錶泊車位。\n於2026年11月12日上午9時至13日下午5時，編號2175(1至12)的咪錶泊車位。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido aos trabalhos de poda de árvores, serão introduzidas alterações provisórias ao trânsito na Rua do Mercado de Iao Hon, sendo permitido o estacionamento do veículo de apoio no local, durante a execução dos trabalhos, que deverá estar devidamente sinalizado:\nFicarão com condicionamentos ao trânsito e com apoio policial\nDas 09H30 às 12H00 e das 15H00 às 17H00, nos dias 10 a 13/11/2026, o troço junto do Mercado do Bairro Iao Hon.\nFicarão proibidos de estacionar\nDas 09H00 do dia 10/11/2026 às 17H00 do dia 11/11/2026, nos lugares-parque com parquímetros n.os 2177(17 a 34).\nDas 09H00 do dia 12/11/2026 às 17H00 do dia 13/11/2026, nos lugares-parque com parquímetros n.os 2175(01 a 12).\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 3,
+        "hours": 8
+      },
+      "startDate": "2026-11-10",
+      "endDate": "2026-11-13",
+      "onlineDate": "2026-11-08",
+      "coordinates": [
+        113.551061,
+        22.211583
       ],
       "previousNotice": null
     },
@@ -5644,6 +5684,46 @@
       "coordinates": [
         113.549427,
         22.133079
+      ],
+      "previousNotice": null
+    },
+    {
+      "id": "3312/2026",
+      "restriction": "limited",
+      "restrictionText": {
+        "zh": "有限度通車",
+        "pt": "Ficará com condicionamentos ao trânsito"
+      },
+      "location": {
+        "zh": "景觀里",
+        "pt": "Beco da Boa Vista"
+      },
+      "reason": {
+        "zh": "管道鋪設工程",
+        "pt": "Obra de Assentamento de Tubos de PVC"
+      },
+      "principal": {
+        "zh": "澳門電訊股份有限公司",
+        "pt": "CTM"
+      },
+      "contractor": {
+        "zh": "鴻運工程有限公司",
+        "pt": "E & E Empresa de Instalaçòes e Engenharia Lda."
+      },
+      "details": {
+        "zh": "因進行管道鋪設工程，於2026年11月12日至12月1日，景觀里將實施實施有限度通車，並禁止車輛停泊在景觀里近高基閣的電單車泊車位，另准許相關工作車輛於工作時在該路段短暫停泊。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
+        "pt": "Devido à obra de assentamento de tubos de PVC, o Beco da Boa Vista ficará com condicionamentos ao trânsito, sendo proibido o estacionamento nos lugares-parque de motociclos no troço do Beco da Boa Vista junto do Edifício Kou Kei e permitida a paragem momentânea da viatura de trabalho no local em causa, durante a execução dos trabalhos, nos dias 12/11/2026 a 01/12/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
+      },
+      "duration": {
+        "days": 20,
+        "hours": 0
+      },
+      "startDate": "2026-11-12",
+      "endDate": "2026-12-01",
+      "onlineDate": "2026-11-10",
+      "coordinates": [
+        113.543721,
+        22.195675
       ],
       "previousNotice": null
     },
