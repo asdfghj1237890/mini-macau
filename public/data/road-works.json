@@ -1,6 +1,6 @@
 {
-  "fetchedAtUtc": "2026-11-21T23:58:22.917457+00:00",
-  "exportedAt": "2026-11-22T00:30:59+0800",
+  "fetchedAtUtc": "2026-11-23T00:20:49.926219+00:00",
+  "exportedAt": "2026-11-23T00:30:20+0800",
   "source": {
     "name": "交通事務局 (DSAT) – 工程改道消息",
     "dataset": "https://data.gov.mo/Detail?id=81c17efc-3e92-484e-ab14-de7fa0f90f01",
@@ -3048,86 +3048,6 @@
       "previousNotice": null
     },
     {
-      "id": "3360/2026",
-      "restriction": "no_parking",
-      "restrictionText": {
-        "zh": "禁止泊車",
-        "pt": "Ficará proibido ao estacionamento"
-      },
-      "location": {
-        "zh": "多處道路",
-        "pt": "Vários Arruamentos"
-      },
-      "reason": {
-        "zh": "設置標線及標誌工作",
-        "pt": "Trabalhos de Instalação de Sinalização Horizontal e Vertical"
-      },
-      "principal": {
-        "zh": "交通事務局",
-        "pt": "DSAT"
-      },
-      "contractor": {
-        "zh": "新宏達建材裝飾工程有限公司,蔣國良建築商",
-        "pt": "Xin Hong Da Building & Decoration Co Ltd,Construtor Civil Cheong Kuok Leong"
-      },
-      "details": {
-        "zh": "因進行設置標線及標誌工作，於本年11月13日至22日，禁止車輛停泊在相關道路之上落客貨位︰\n介乎南灣中巷與南灣南巷之間的一段澳門商業大馬路；\n馬德里街近珠光大廈的路段；\n孫逸仙大馬路近雙鑽的路段；\n介乎基馬拉斯大馬路與大連街之間的一段哥英布拉街；\n介乎哥英布拉街與南京街之間的一段大連街；\n布拉干薩街近亞威羅街的路段；\n介乎大連街與埃武拉街之間的一段成都街；\n柯維納馬路近南新花園(第三座)的路段及近駿龍酒店的路段；\n潮州街近樂駿盈軒的路段。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de instalação de sinalização horizontal e vertical, será proibido o estacionamento na zona de carga-descarga e tomada-largada de passageiros nas seguintes vias, nos dias 13 a 22/11/2026:\no troço da Avenida Comercial de Macau entre a Travessa Central da Praia Grande e a Travessa Sul da Praia Grande;\no troço da Rua de Madrid junto do Edf. \"Zhukuan\";\no troço da Avenida Dr. Sun Yat-Sen junto do The Carat;\no troço da Rua de Coimbra entre a Avenida de Guimarães e a Rua de Tai Lin;\no troço da Rua de Tai Lin entre a Rua de Coimbra e a Rua de Nam Keng;\no troço da Rua de Bragança junto da Rua de Aveiro;\no troço da Rua de Seng Tou entre a Rua de Tai Lin e a Rua de Évora;\nos troços da Estrada Governador Albano de Oliveira junto do Edf. Nam San (Bloco 3) e junto do Hotel Grande Dragão;\no troço da Rua de Chiu Chau junto do Edf. Happy Valley.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 9,
-        "hours": 9
-      },
-      "startDate": "2026-11-13",
-      "endDate": "2026-11-22",
-      "onlineDate": "2026-11-11",
-      "coordinates": [
-        113.54012,
-        22.190809
-      ],
-      "previousNotice": null
-    },
-    {
-      "id": "3405/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "港珠澳口岸大馬路、港珠澳口岸環形馬路",
-        "pt": "Avenida Fronteiriça de Hong Kong-Zhuhai-Macau Estrada Circular Fronteiriça de Hong Kong-Zhuhai-Macau"
-      },
-      "reason": {
-        "zh": "電纜穿線工作",
-        "pt": "Trabalhos de Lançamento de Cabos"
-      },
-      "principal": {
-        "zh": "澳門電力股份有限公司",
-        "pt": "CEM"
-      },
-      "contractor": {
-        "zh": "長江建築有限公司",
-        "pt": "Cheong Kong Construction Co. Ltd."
-      },
-      "details": {
-        "zh": "因進行電纜穿線工作，於本年11月13日至22日，每日上午9時至下午6時，港珠澳口岸大馬路及港珠澳口岸環形馬路近大橋變電站的路段將在警方協助下有限度通車，工程地點禁止泊車。\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido aos trabalhos de lançamento de cabos, os troços da Avenida Fronteiriça de Hong Kong-Zhuhai-Macau e da Estrada Circular Fronteiriça de Hong Kong-Zhuhai-Macau junto da Subestação da Zona de acesso da Ponte ficarão com condicionamentos ao trânsito e com apoio policial, sendo proibido o estacionamento no local da obra, das 09H00 às 18H00, nos dias 13 a 22/11/2026.\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e /ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 9,
-        "hours": 9
-      },
-      "startDate": "2026-11-13",
-      "endDate": "2026-11-22",
-      "onlineDate": "2026-11-11",
-      "coordinates": [
-        113.57364,
-        22.198783
-      ],
-      "previousNotice": null
-    },
-    {
       "id": "3286/2026",
       "restriction": "limited",
       "restrictionText": {
@@ -3326,46 +3246,6 @@
         22.160058
       ],
       "previousNotice": null
-    },
-    {
-      "id": "3389/2026",
-      "restriction": "limited",
-      "restrictionText": {
-        "zh": "有限度通車",
-        "pt": "Ficará com condicionamentos ao trânsito"
-      },
-      "location": {
-        "zh": "氹仔黑橋街",
-        "pt": "Rua da Ponte Negra na Ilha da Taipa"
-      },
-      "reason": {
-        "zh": "下水道整治工程",
-        "pt": "Obra de Reordenamento de Esgoto"
-      },
-      "principal": {
-        "zh": "公共建設局",
-        "pt": "DSOP"
-      },
-      "contractor": {
-        "zh": "德發建業工程有限公司",
-        "pt": "Empresa de Construcao e Obras de Engenharia Tak Fat Kin Ip Lda"
-      },
-      "details": {
-        "zh": "為進行下水道整治工程，相關道路維持引入以下臨時交通改動措施：\n於11月17日至11月22日\n黑橋街將改作單一方向行車(往奧林匹克大馬路方向)，並禁止車輛停泊上落客貨位及殘疾人士留用泊車位；\n介乎黑橋街與律政司街之間的一段消防局前地將實施單一方向行車(往黑橋街方向)；\n敬請駕駛者遵守路上所設置之臨時交通標誌、服從交通警員之指揮及諒解是次改動所造成之不便。因應現場交通情況，本局及/或交通警員可即時終止此交通通告。",
-        "pt": "Devido à obra de reordenamento de esgoto, serão introduzidas alterações temporárias ao trânsito nas seguintes vias:\nnos dias 17/11/2026 a 22/11/2026\no troço da Rua da Ponte Negra passará a efectuar-se provisoriamente em sentido único de circulação (para a Avenida Olímpica), sendo proibido o estacionamento nos lugares-parque de zona de carga-descarga e tomada-largada de passageiros e reservado para deficientes;\no troço da Largo dos Bombeiros entre a Rua da Ponte Negra e a Rua do Delegado passará a efectuar-se provisoriamente em sentido único de circulação (para a Rua da Ponte Negra).\nA DSAT solicita aos senhores condutores o respeito pela sinalização provisória instalada e pelas indicações dadas pelos agentes da Brigada de Trânsito, bem como a máxima compreensão pelos transtornos causados. De acordo com as condições de trânsito em locais, esta Direcção de Serviços e/ou agentes da Brigada de Trânsito podem cessar imediatamente este Aviso."
-      },
-      "duration": {
-        "days": 5,
-        "hours": 9
-      },
-      "startDate": "2026-11-17",
-      "endDate": "2026-11-22",
-      "onlineDate": "2026-11-15",
-      "coordinates": [
-        113.556283,
-        22.154136
-      ],
-      "previousNotice": "3213/2026"
     },
     {
       "id": "3399/2026",
