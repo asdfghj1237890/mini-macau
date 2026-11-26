@@ -1,5 +1,5 @@
 {
-  "fetchedAtUtc": "2026-11-25T03:27:35.582826+00:00",
+  "fetchedAtUtc": "2026-11-26T02:04:00.545012+00:00",
   "sources": {
     "name": "交通事務局 (DSAT) – 停車場資料",
     "dataset": "https://data.gov.mo/Detail?id=ac55c2f1-780a-4dc8-875f-851b2203b706",
@@ -5324,6 +5324,62 @@
       "coordinates": [
         113.538647,
         22.203198
+      ]
+    },
+    {
+      "id": "7104",
+      "name": {
+        "zh": "韶關街公共停車場",
+        "pt": "Parque de Estacionamento Público da Rua Siu Kuan",
+        "en": "Parque de Estacionamento Público da Rua Siu Kuan"
+      },
+      "location": {
+        "zh": "韶關街、孫逸仙博士大馬路及孫逸仙博士圓形地交界",
+        "pt": "Confluência da Rua Siu Kuan, Av. Dr. Sun Yat Sen e Rotunda Dr. Sun Yat Sen.",
+        "en": "Located at Rua Siu Kuan."
+      },
+      "entrance": {
+        "zh": "韶關街",
+        "pt": "Rua Siu Kuan.",
+        "en": "The Entrance and Exit of carpark are located on the Rua Siu Kuan."
+      },
+      "phone": "--",
+      "heightLimitM": null,
+      "fees": {
+        "light": {
+          "zh": "(日間)每半小時MOP$4\n(夜間) 每半小時MOP$2",
+          "pt": "Mop $4 a cada meia hora(Diurno)\nMOP $2 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP4 for each half an hour\n(Nighttime) MOP2 for each half an hour"
+        },
+        "heavy": {
+          "zh": "",
+          "pt": "",
+          "en": ""
+        },
+        "moto": {
+          "zh": "(日間)每半小時MOP$1\n(夜間) 每半小時MOP$0.5",
+          "pt": "Mop $1 a cada meia hora(Diurno)\nMOP $0,5 a cada meia hora (Nocturno)",
+          "en": "(Daytime) MOP1 for each half an hour\n(Nighttime) MOP0.5 for each half an hour"
+        },
+        "remark": {
+          "zh": "進入停車場並於十五分鐘內離場，免收相關泊車費用。",
+          "pt": "A entrada no parque de estacionamento e a saída dentro de 15 minutos estão isentas da tarifa devida pelo estacionamento.",
+          "en": "Free parking for entering and exiting within 15 minutes."
+        }
+      },
+      "zone": {
+        "zh": "氹仔",
+        "pt": "Taipa",
+        "en": "Taipa"
+      },
+      "parish": {
+        "zh": "大學及北安灣區",
+        "pt": "Universidade e Baía de Pac On",
+        "en": "University/ Pac On bay"
+      },
+      "coordinates": [
+        113.556733,
+        22.160106
       ]
     }
   ]
